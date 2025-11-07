@@ -2,10 +2,12 @@
 using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
+using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.DTOs.Department;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Department;
 using axionpro.application.DTOS.Designation;
+using axionpro.application.DTOS.Role;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
@@ -43,6 +45,9 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
         private readonly IPermissionService _permissionService;
         private readonly IConfiguration _config;
         private readonly IEncryptionService _encryptionService;
+        private readonly IIdEncoderService _idEncoderService    ;
+      
+
 
         public GetDesignationOptionQueryHandler(
             IUnitOfWork unitOfWork,
@@ -52,7 +57,7 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,
-            IEncryptionService encryptionService)
+           IEncryptionService encryptionService, IIdEncoderService idEncoderService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -62,6 +67,7 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
             _permissionService = permissionService;
             _config = config;
             _encryptionService = encryptionService;
+            _idEncoderService = idEncoderService;
         }
 
         public async Task<ApiResponse<List<GetDesignationOptionResponseDTO>>> Handle(GetDesignationOptionQuery request, CancellationToken cancellationToken)
@@ -77,12 +83,22 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                 var secretKey = TokenKeyHelper.GetJwtSecret(_config);
                 var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
 
-                if (tokenClaims == null || string.IsNullOrWhiteSpace(tokenClaims.TenantId))
+                if (tokenClaims == null || tokenClaims.IsExpired)
+                    return ApiResponse<List<GetDesignationOptionResponseDTO>>.Fail("Invalid or expired token.");
+
+
+                string tenantKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
+
+                if (string.IsNullOrEmpty(request.OptionDTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
                 {
-                    return ApiResponse<List<GetDesignationOptionResponseDTO>>.Fail("Unauthorized: Invalid token or tenant.");
+                    _logger.LogWarning("❌ Missing tenantKey or UserEmployeeId.");
+                    return ApiResponse<List<GetDesignationOptionResponseDTO>>.Fail("User invalid.");
                 }
 
-                long decryptedTenantId = SafeParser.TryParseLong(tokenClaims.TenantId);
+                string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
+                string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.OptionDTO.UserEmployeeId);
+                long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
+                long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
 
                 if (decryptedTenantId <= 0)
                     return ApiResponse<List<GetDesignationOptionResponseDTO>>.Fail("Unauthorized: Tenant not found.");

@@ -81,6 +81,8 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                     return ApiResponse<List<GetDepartmentOptionResponse>>.Fail("Unauthorized: Invalid token or tenant.");
                 }
 
+
+
                 long decryptedTenantId = SafeParser.TryParseLong(tokenClaims.TenantId);
 
                 if (decryptedTenantId <= 0)

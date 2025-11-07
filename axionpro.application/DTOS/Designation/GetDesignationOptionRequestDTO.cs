@@ -9,9 +9,7 @@ namespace axionpro.application.DTOS.Designation
     public class GetDesignationOptionRequestDTO
     {
         public required string UserEmployeeId { get; set; }
-        public required int DepartmentId { get; set; }
-        public string? DesignationName { get; set; }
-        public string? Description { get; set; }
+        public required int DepartmentId { get; set; }       
         public bool IsActive { get; set; } = true;
     }
 }

@@ -37,7 +37,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\Location\" />
     <Folder Include="Controllers\NewFolder\" />
     <Folder Include="Controllers\VerifyTenantEmail\" />
     <Folder Include="Properties\PublishProfiles\" />

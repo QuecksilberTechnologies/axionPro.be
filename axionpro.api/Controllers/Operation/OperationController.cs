@@ -32,7 +32,7 @@ namespace axionpro.api.Controllers.Operation
         /// <summary>
         /// Get all operations.
         /// </summary>
-        [HttpGet("get-operations")]
+        [HttpGet("get")]
         public async Task<IActionResult> GetAllOperationAsyc([FromQuery] GetOperationRequestDTO operationRequestDTO)
         {
             _logger.LogInfo($"Received request to get operationRequestDTO from userId: {operationRequestDTO.EmployeeId}");
@@ -90,7 +90,7 @@ namespace axionpro.api.Controllers.Operation
             return Ok(result);
         }
          [Authorize]
-        [HttpGet("has-page-operation-access")]
+        [HttpGet("has-access")]
         public async Task<IActionResult> HasPageOperationAccess([FromQuery] GetCheckOperationPermissionRequestDTO? checkOperationPermissionRequest)
         {
             if (checkOperationPermissionRequest == null)

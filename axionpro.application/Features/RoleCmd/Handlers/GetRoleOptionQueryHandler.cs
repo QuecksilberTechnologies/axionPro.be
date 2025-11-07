@@ -2,6 +2,8 @@
 using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
+using axionpro.application.Common.Helpers.EncryptionHelper;
+using axionpro.application.DTOs.Department;
 using axionpro.application.DTOS.Designation;
 using axionpro.application.DTOS.Role;
 using axionpro.application.Features.DepartmentCmd.Handlers;
@@ -41,6 +43,7 @@ namespace axionpro.application.Features.RoleCmd.Handlers
         private readonly ITokenService _tokenService;
         private readonly IPermissionService _permissionService;
         private readonly IConfiguration _config;
+        private readonly IIdEncoderService _idEncoderService;
         private readonly IEncryptionService _encryptionService;
 
         public GetRoleOptionQueryHandler(
@@ -51,7 +54,7 @@ namespace axionpro.application.Features.RoleCmd.Handlers
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,
-            IEncryptionService encryptionService)
+            IEncryptionService encryptionService, IIdEncoderService idEncoderService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -61,12 +64,15 @@ namespace axionpro.application.Features.RoleCmd.Handlers
             _permissionService = permissionService;
             _config = config;
             _encryptionService = encryptionService;
+            _idEncoderService = idEncoderService;
         }
 
         public async Task<ApiResponse<List<GetRoleOptionResponseDTO>>> Handle(GetRoleOptionQuery request, CancellationToken cancellationToken)
         {
             try
             {
+
+                // 🧩 STEP 1: Validate JWT Token
                 var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
                     .ToString()?.Replace("Bearer ", "");
 
@@ -76,38 +82,48 @@ namespace axionpro.application.Features.RoleCmd.Handlers
                 var secretKey = TokenKeyHelper.GetJwtSecret(_config);
                 var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
 
-                if (tokenClaims == null || string.IsNullOrWhiteSpace(tokenClaims.TenantId))
+                if (tokenClaims == null || tokenClaims.IsExpired)
+                    return ApiResponse<List<GetRoleOptionResponseDTO>>.Fail("Invalid or expired token.");
+ 
+ 
+                string tenantKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
+
+                if (string.IsNullOrEmpty(request.OptionDTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
                 {
-                    return ApiResponse<List<GetRoleOptionResponseDTO>>.Fail("Unauthorized: Invalid token or tenant.");
+                    _logger.LogWarning("❌ Missing tenantKey or UserEmployeeId.");
+                    return ApiResponse<List<GetRoleOptionResponseDTO>>.Fail("User invalid.");
                 }
 
-                long decryptedTenantId = SafeParser.TryParseLong(tokenClaims.TenantId);
+                string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
+                string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.OptionDTO.UserEmployeeId);
+                long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
+                long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);       
 
                 if (decryptedTenantId <= 0)
                     return ApiResponse<List<GetRoleOptionResponseDTO>>.Fail("Unauthorized: Tenant not found.");
 
-                var departments = await _unitOfWork.RoleRepository.GetOptionAsync(request.OptionDTO, decryptedTenantId);
+                var response = await _unitOfWork.RoleRepository.GetOptionAsync(request.OptionDTO, decryptedTenantId);
 
-                if (departments.Data == null || !departments.Data.Any())
+                if (response.Data == null || !response.Data.Any())
                 {
                     _logger.LogWarning("No departments found for tenant ID: {TenantId}", decryptedTenantId);
 
                     return new ApiResponse<List<GetRoleOptionResponseDTO>>
                     {
                         IsSucceeded = false,
-                        Message = departments.Message,
+                        Message = response.Message,
                         Data = new List<GetRoleOptionResponseDTO>()
                     };
                 }
 
                 _logger.LogInformation("Successfully retrieved {Count} departments for tenant {TenantId}.",
-                    departments.Data.Count, decryptedTenantId);
+                    response.Data.Count, decryptedTenantId);
 
                 return new ApiResponse<List<GetRoleOptionResponseDTO>>
                 {
                     IsSucceeded = true,
-                    Message = departments.Message,
-                    Data = departments.Data
+                    Message = response.Message,
+                    Data = response.Data
                 };
             }
             catch (Exception ex)

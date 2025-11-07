@@ -416,7 +416,7 @@ namespace axionpro.persistance.Repositories
                     .Where(x =>
                         x.TenantId == tenantId &&
                         x.IsSoftDeleted != true &&
-                        x.IsActive == true &&
+                        x.IsActive == dto.IsActive &&
                         x.DepartmentId == dto.DepartmentId)
                     .Select(d => new GetDesignationOptionResponseDTO
                     {
