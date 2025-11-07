@@ -421,6 +421,7 @@ namespace axionpro.persistance.Repositories
                     .Select(d => new GetDesignationOptionResponseDTO
                     {
                         Id = d.Id,
+                        DepartmentId = d.DepartmentId, // 👈 Corrected: DepartmentName → DesignationName
                         DesignationName = d.DesignationName, // 👈 Corrected: DepartmentName → DesignationName
                         IsActive = d.IsActive
                     })
