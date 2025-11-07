@@ -1,0 +1,48 @@
+﻿
+
+using axionpro.application.DTOs.Employee.AccessResponse;
+using axionpro.application.DTOS.Employee.Bank;
+using axionpro.application.DTOS.Employee.BaseEmployee;
+using axionpro.application.DTOS.Employee.Contact;
+
+using axionpro.application.DTOS.Employee.Dependent;
+using axionpro.application.DTOS.Employee.Education;
+using axionpro.application.DTOS.Employee.Experience;
+using axionpro.application.DTOS.Employee.Sensitive;
+using axionpro.application.DTOS.Employee.Type;
+using axionpro.application.DTOS.EmployeeLeavePolicyMap;
+using axionpro.application.DTOS.Pagination;
+
+using axionpro.domain.Entity;
+using MediatR;
+using System.Collections.Generic;
+
+namespace axionpro.application.Interfaces.IRepositories;
+
+public interface IBaseEmployeeRepository
+{
+
+    #region Employee-Base-info
+
+    Task<GetLeaveBalanceToEmployeeResponseDTO> UpdateLeaveBalanceToEmployee(UpdateLeaveBalanceToEmployeeRequestDTO updateLeaveBalanceTo);  // Ensure this returns Task<Employee>   
+
+     Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> GetInfo(GetBaseEmployeeRequestDTO dto, long  decryptedTenantId);
+
+    public Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> CreateAsync(Employee entity);
+    
+    public Task<GetMinimalEmployeeResponseDTO> GetSingleRecordAsync(long Id, bool IsActive);  // Ensure this returns 
+
+      public  Task<bool> DeleteAsync(string id, string tenantKey);
+      public  Task<long> AutoCreated(Employee entity);
+     
+      public Task<bool> UpdateEmployeeFieldAsync(long Id, string entity, string fieldName, object? fieldValue, long updatedById);
+      public Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> GetImage(GetEmployeeImageRequestDTO dto, long decryptedTenantId);
+
+    #endregion
+
+
+
+
+
+}
+

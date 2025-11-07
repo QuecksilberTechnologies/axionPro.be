@@ -1,0 +1,251 @@
+﻿ 
+using axionpro.application.DTOs.Employee;
+using axionpro.application.DTOs.EmployeeType;
+using axionpro.application.DTOS.Employee.BaseEmployee;
+using axionpro.application.DTOS.Employee.Type;
+using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
+using axionpro.application.Features.EmployeeCmd.EmployeeBase.Queries;
+ 
+using axionpro.application.Interfaces.ILogger;
+using axionpro.application.Wrappers;
+using FluentValidation;
+using MediatR; 
+using Microsoft.AspNetCore.Mvc;
+ 
+
+namespace axionpro.api.Controllers.Employee
+{
+    /// <summary>
+    /// Handles all Employee related operations like create, update, delete, and view.
+    /// </summary>
+    [Route("api/[controller]")]
+    [ApiController]
+    public class EmployeeController : ControllerBase
+    {
+        private readonly IMediator _mediator;
+        private readonly ILoggerService _logger;
+
+        public EmployeeController(IMediator mediator, ILoggerService logger)
+        {
+            _mediator = mediator;
+            _logger = logger;
+        }
+
+        /// <summary>
+        /// Validates IMEI number. Must be 15 digits and numeric only.
+        /// </summary>
+
+
+        /// <summary>
+        /// Creates a new employee record.
+        /// </summary>
+        /// <param name="employeeCreateDto">Employee details</param>
+        [HttpPost("create")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> CreateEmployee([FromBody] CreateBaseEmployeeRequestDTO employeeCreateDto)
+        {
+            try
+            {
+                // ✅ IMEI validation
+                if (employeeCreateDto == null)
+                {
+                    _logger.LogInfo($"Invalid IMEI: {employeeCreateDto}");
+                    var invalidResponse = ApiResponse<bool>.Fail("Invalid IMEI number. It must be 15 digits numeric value.");
+                    return BadRequest(invalidResponse);
+                }
+
+                _logger.LogInfo("Creating new employee process started.");
+
+                var command = new CreateBaseEmployeeInfoCommand(employeeCreateDto);
+                var result = await _mediator.Send(command);
+
+                if (!result.IsSucceeded)
+                {
+                    _logger.LogInfo("Failed to create employee record.");
+                    return BadRequest(result);
+                }
+
+                _logger.LogInfo("Employee created successfully.");
+                return Ok(result);
+            }
+            catch (ValidationException vex)
+            {
+                _logger.LogError($"Validation Error: {vex.Message}");
+                var errorResponse = ApiResponse<bool>.Fail("Validation failed.", new List<string> { vex.Message });
+                return BadRequest(errorResponse);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Exception occurred in CreateEmployee: {ex.Message}");
+                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while creating employee.",
+                    new List<string> { ex.Message });
+                return StatusCode(500, errorResponse);
+            }
+        }
+
+        /// <summary>
+        /// Returns list of all Employee Types.
+        /// </summary>
+       
+        [HttpGet("Type/get")]
+        [ProducesResponseType(typeof(ApiResponse<List<application.DTOs.EmployeeType.GetEmployeeTypeResponseDTO>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<List<application.DTOs.EmployeeType.GetEmployeeTypeResponseDTO>>), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetAllEmployeeType([FromQuery] application.DTOS.Employee.Type.GetEmployeeTypeRequestDTO requestDto)
+        {
+            try
+            {
+                _logger.LogInfo("Fetching all employee types.");
+
+                var employeeTypes = new List<application.DTOs.EmployeeType.GetEmployeeTypeResponseDTO>
+                {
+                    new() { Id = 1, TypeName = "Full-Time", Description = "Permanent employee with all benefits", IsActive = true },
+                    new() { Id = 2, TypeName = "Contract", Description = "Contract-based employee", IsActive = true },
+                    new() { Id = 3, TypeName = "Intern", Description = "Internship employee", IsActive = true },
+                    new() { Id = 4, TypeName = "Freelancer", Description = "External resource", IsActive = false }
+                };
+
+                var response = new ApiResponse<List<application.DTOs.EmployeeType.GetEmployeeTypeResponseDTO>>(employeeTypes, "Employee types fetched successfully.", true);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error fetching employee types: {ex.Message}");
+                var errorResponse = ApiResponse<List<application.DTOs.EmployeeType.GetEmployeeTypeResponseDTO>>.Fail("Failed to fetch employee types.", new List<string> { ex.Message });
+                return StatusCode(500, errorResponse);
+            }
+        }
+
+        /// <summary>
+        /// Get all employees based on TenantId or filters.
+        /// </summary>
+       
+        [HttpGet("Image/get")]
+
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetAllEmployeeImage([FromQuery] GetEmployeeImageRequestDTO requestDto)
+        {
+            try
+            {
+                _logger.LogInfo("Fetching all employees.");
+
+                var command = new GetEmployeeImageQuery(requestDto);
+                var result = await _mediator.Send(command);
+
+                if (!result.IsSucceeded)
+                {
+                    _logger.LogInfo("No employees found or request failed.");
+                    return BadRequest(result);
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error while fetching employees: {ex.Message}");
+                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while fetching employee info.",
+                    new List<string> { ex.Message });
+                return StatusCode(500, errorResponse);
+            }
+        }
+
+        /// <summary>
+        /// Get all employees based on TenantId or filters.
+        /// </summary>
+        [HttpGet("get")]
+
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetAllEmployee([FromQuery] GetBaseEmployeeRequestDTO requestDto)
+        {
+            try
+            {
+                _logger.LogInfo("Fetching all employees.");
+
+                var command = new GetBaseEmployeeInfoQuery(requestDto);
+                var result = await _mediator.Send(command);
+
+                if (!result.IsSucceeded)
+                {
+                    _logger.LogInfo("No employees found or request failed.");
+                    return BadRequest(result);
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error while fetching employees: {ex.Message}");
+                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while fetching employee info.",
+                    new List<string> { ex.Message });
+                return StatusCode(500, errorResponse);
+            }
+        }
+
+        /// <summary>
+        /// Deletes employee record by Id.
+        /// </summary>
+        [HttpDelete("delete")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> Delete([FromQuery] long id)
+        {
+            try
+            {
+                _logger.LogInfo($"Deleting employee with Id: {id}");
+
+                var command = new DeleteEmployeeQuery(id);
+                var result = await _mediator.Send(command);
+
+                if (!result.IsSucceeded)
+                {
+                    _logger.LogInfo($"Failed to delete employee with Id: {id}");
+                    return BadRequest(result);
+                }
+
+                _logger.LogInfo("Employee deleted successfully.");
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error deleting employee: {ex.Message}");
+                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while deleting employee.",
+                    new List<string> { ex.Message });
+                return StatusCode(500, errorResponse);
+            }
+        }
+
+        /// <summary>
+        /// Updates employee details.
+        /// </summary>
+        [HttpPost("update")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> Update([FromBody] GenricUpdateRequestDTO dto)
+        {
+            try
+            {
+                _logger.LogInfo($"Updating employee record. EmployeeId: {dto.EncriptedId}");
+
+                var command = new UpdateEmployeeCommand(dto);
+                var result = await _mediator.Send(command);
+
+                if (!result.IsSucceeded)
+                {
+                    _logger.LogInfo($"Failed to update employee with Id: {dto.EncriptedId}");
+                    return BadRequest(result);
+                }
+
+                _logger.LogInfo("Employee updated successfully.");
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error updating employee: {ex.Message}");
+                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while updating employee info.",
+                    new List<string> { ex.Message });
+                return StatusCode(500, errorResponse);
+            }
+        }
+    }
+}

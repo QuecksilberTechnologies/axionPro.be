@@ -1,0 +1,871 @@
+﻿using AutoMapper;
+using axionpro.application.Common.Helpers;
+using axionpro.application.Constants;
+using axionpro.application.DTOS.AssetDTO.asset;
+using axionpro.application.DTOS.AssetDTO.category;
+using axionpro.application.DTOS.AssetDTO.status;
+using axionpro.application.DTOS.AssetDTO.type;
+using axionpro.application.DTOS.Employee.Bank;
+using axionpro.application.DTOS.Pagination;
+using axionpro.application.Interfaces.IFileStorage;
+
+using axionpro.application.Interfaces.IQRService;
+using axionpro.application.Interfaces.IRepositories;
+using axionpro.domain.Entity;
+using axionpro.persistance.Data.Context;
+using Azure.Core;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Serilog.Core;
+using SkiaSharp;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace axionpro.persistance.Repositories
+{
+    
+ 
+
+    public class AssetRepository : IAssetRepository
+    {
+        private WorkforceDbContext _context;
+
+        private ILogger<AssetRepository> _logger;
+        private readonly IQRService _qrService;
+        private readonly IFileStorageService _fileStorageService;
+        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+        private readonly IMapper _mapper;
+
+
+        public AssetRepository(WorkforceDbContext context, ILogger<AssetRepository> logger, IQRService qrService, IFileStorageService fileStorageService,
+            IMapper mapper, IDbContextFactory<WorkforceDbContext> contextFactory)
+        {
+            _context = context;
+            _logger = logger;
+            _qrService = qrService;
+            _fileStorageService = fileStorageService;
+            _mapper = mapper;
+            _contextFactory = contextFactory;
+        }
+
+        #region Asset
+
+        /// <summary>
+        ///   Asset  Codes
+        /// </summary>
+        /// <param name="asset"></param>
+        /// <returns></returns>
+        /// 
+
+
+
+
+
+
+        public async Task<PagedResponseDTO<GetAssetResponseDTO>> AddAssetAsync(AddAssetRequestDTO assetDto)
+        {
+            if (assetDto == null)
+                throw new ArgumentNullException(nameof(assetDto));
+
+            try
+            {
+                await using var context = await _contextFactory.CreateDbContextAsync();
+
+                // 1️⃣ Map DTO to Entity
+                var asset = _mapper.Map<Asset>(assetDto);
+                asset.AddedById = assetDto.EmployeeId;
+                asset.AddedDateTime = DateTime.UtcNow;
+                asset.IsSoftDeleted = false;
+
+                await context.Assets.AddAsync(asset);
+                await context.SaveChangesAsync();
+
+                // 2️⃣ Prepare QR JSON
+                string qrJson = string.Empty;
+                try
+                {
+                    var assetTypeName = await context.AssetTypes
+                        .Where(at => at.Id == asset.AssetTypeId)
+                        .Select(at => at.TypeName)
+                        .FirstOrDefaultAsync() ?? string.Empty;
+
+                    var qrData = new
+                    {
+                        AssetId = asset.Id,
+                        AssetCode = $"QR-{asset.AssetTypeId}-{asset.Id:000}",
+                        AssetName = asset.AssetName,
+                        AssetType = assetTypeName,
+                        TenantId = asset.TenantId,
+                        PurchaseDate = asset.PurchaseDate.ToString("yyyy-MM-dd"),
+                        WarrantyExpiryDate = asset.WarrantyExpiryDate,
+                        QRCodeVersion = "v1.0"
+                    };
+
+                    qrJson = JsonConvert.SerializeObject(qrData);
+                    asset.Qrcode = qrJson;
+                    context.Assets.Update(asset);
+                    await context.SaveChangesAsync();
+                }
+                catch (Exception exQrJson)
+                {
+                    _logger.LogError(exQrJson, "Error preparing QR JSON for AssetId {AssetId}", asset.Id);
+                }
+
+                // 3️⃣ File paths
+                long? tenantId = asset.TenantId;
+                string assetFileName = $"ASSET-{asset.AssetTypeId}-{asset.Id:000}-Main.png";
+                string qrFileName = $"ASSET-{asset.AssetTypeId}-{asset.Id:000}-QR.png";
+                string assetFilePath = _fileStorageService.GenerateFilePath(tenantId, "assets", assetFileName);
+                string qrFilePath = _fileStorageService.GenerateFilePath(tenantId, "qrcodes", qrFileName);
+
+                string savedAssetPath;
+
+                // 4️⃣ Asset Image save
+                try
+                {
+                    if (!string.IsNullOrEmpty(assetDto.AssetImagePath))
+                        savedAssetPath = await SaveAssetImageAsync(assetDto.AssetImagePath, assetFilePath);
+                    else
+                        savedAssetPath = _fileStorageService.GetDefaultImagePath();
+                }
+                catch (Exception exAssetImg)
+                {
+                    _logger.LogError(exAssetImg, "Error saving Asset Image for AssetId {AssetId}", asset.Id);
+                    savedAssetPath = _fileStorageService.GetDefaultImagePath();
+                }
+
+                // 5️⃣ QR Image save
+                try
+                {
+                    var qrBytes = _qrService.GenerateQrCode(qrJson, 20);
+                    await _fileStorageService.SaveFileAsync(qrBytes, qrFileName, _fileStorageService.GetTenantFolderPath(tenantId, "qrcodes"));
+                }
+                catch (Exception exQr)
+                {
+                    _logger.LogError(exQr, "Error generating QR Image for AssetId {AssetId}", asset.Id);
+                }
+
+                // 6️⃣ AssetImage entity
+                try
+                {
+                    var assetImage = await context.AssetImages
+                        .FirstOrDefaultAsync(ai => ai.AssetId == asset.Id && ai.AssetImageType == ConstantValues.Web);
+
+                    if (assetImage != null)
+                    {
+                        assetImage.AssetImagePath = savedAssetPath;
+                        assetImage.QRCodeImagePath = qrFilePath;
+                        assetImage.UpdatedDateTime = DateTime.UtcNow;
+                        assetImage.UpdatedById = assetDto.EmployeeId;
+                        context.AssetImages.Update(assetImage);
+                    }
+                    else
+                    {
+                        assetImage = new AssetImage
+                        {
+                            AssetId = asset.Id,
+                            TenantId = asset.TenantId,
+                            AssetImageType = ConstantValues.Web,
+                            AssetImagePath = savedAssetPath,
+                            QRCodeImagePath = qrFilePath,
+                            QRImageType = ConstantValues.Web,
+                            IsActive = true,
+                            AddedDateTime = DateTime.UtcNow,
+                            AddedById = assetDto.EmployeeId
+                        };
+                        await context.AssetImages.AddAsync(assetImage);
+                    }
+
+                    await context.SaveChangesAsync();
+                }
+                catch (Exception exAssetImgEntity)
+                {
+                    _logger.LogError(exAssetImgEntity, "Error updating/adding AssetImage entity for AssetId {AssetId}", asset.Id);
+                }
+
+                // 7️⃣ Return all assets
+                try
+                {
+                    var allAssets = await GetAllAssetAsync(assetDto.TenantId, assetDto.IsActive);
+
+                    // Paging logic (you can customize this)
+                    int totalRecords = allAssets.Count;
+                    var orderedAssets = allAssets.OrderByDescending(r => r.AssetId).ToList();
+
+                    return new PagedResponseDTO<GetAssetResponseDTO>
+                    {
+                        
+                        Items = orderedAssets,
+                        TotalCount = totalRecords,
+                        PageNumber = 1,
+                        PageSize = 10,
+                      
+                    };
+                }
+                catch (Exception exReturn)
+                {
+                    _logger.LogError(exReturn, "Error returning all assets for TenantId {TenantId}", assetDto.TenantId);
+
+                    return new PagedResponseDTO<GetAssetResponseDTO>
+                    {
+                        Items = null,
+                        TotalCount = 0,
+                        PageNumber = 1,
+                        PageSize = 10,
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error in AddAssetAsync for TenantId {TenantId}", assetDto?.TenantId);
+
+                return new PagedResponseDTO<GetAssetResponseDTO>
+                {
+                    Items = null,
+                    TotalCount = 0,
+                    PageNumber = 1,
+                    PageSize = 10,
+                };
+            }
+        }
+
+
+        private async Task<string> SaveAssetImageAsync(string assetImagePath, string destinationPath)
+        {
+            try
+            {
+                byte[] bytes;
+
+                if (assetImagePath.StartsWith("data:image"))
+                {
+                    var base64Data = assetImagePath.Substring(assetImagePath.IndexOf(',') + 1);
+                    bytes = Convert.FromBase64String(base64Data);
+                }
+                else if (assetImagePath.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+                {
+                    using var httpClient = new HttpClient();
+                    bytes = await httpClient.GetByteArrayAsync(assetImagePath);
+                }
+                else if (File.Exists(assetImagePath))
+                {
+                    bytes = await File.ReadAllBytesAsync(assetImagePath);
+                }
+                else
+                {
+                    _logger.LogWarning("Asset image invalid: {Path}", assetImagePath);
+                    return _fileStorageService.GetDefaultImagePath();
+
+                }
+
+                return await _fileStorageService.SaveFileAsync(bytes, Path.GetFileName(destinationPath), Path.GetDirectoryName(destinationPath));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving asset image");
+                return _fileStorageService.GetDefaultImageUrl();
+            }
+        }
+
+        public async Task<Asset> GetAssetByIdFromTenantAsync(long id)
+        {
+            try
+            {
+                var asset = await _context.Assets.FirstOrDefaultAsync(a => a.Id == id);
+
+                if (asset == null)
+                {
+                    _logger.LogWarning("Asset with ID {AssetId} not found.", id);
+                }
+
+                return asset;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while fetching asset with ID {AssetId}.", id);
+                throw; // Exception को rethrow कर दें ताकि calling code को पता चल सके
+            }
+        }
+
+        public async Task<bool> IsAssetCategoryDuplicate(AssetCategory asset)
+        {
+            try
+            {
+                return await _context.AssetCategories.AnyAsync(a =>
+                    (a.CategoryName == asset.CategoryName));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while checking for duplicate asset with ID {AssetId}.", asset.Id);
+                throw;  // Exception को रिथ्रो कर दें ताकि calling code को पता चल सके
+            }
+        }
+
+        public async Task<bool> IsAssetDuplicate(Asset asset)
+        {
+            try
+            {
+                return await _context.Assets.AnyAsync(a =>
+                    (a.SerialNumber == asset.SerialNumber || a.Barcode == asset.Barcode) && a.Id != asset.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while checking for duplicate asset with ID {AssetId}.", asset.Id);
+                throw;  // Exception को रिथ्रो कर दें ताकि calling code को पता चल सके
+            }
+        }
+        public async Task<Asset> UpdateAssetAsync(UpdateAssetRequestDTO assetDto)
+        {
+            if (assetDto == null || assetDto.Id <= 0)
+            {
+                _logger.LogWarning("UpdateAssetAsync called with invalid asset DTO or Id.");
+                return null;
+            }
+
+            try
+            {
+                await using var context = await _contextFactory.CreateDbContextAsync();
+
+                // 🔹 1️⃣ Find Existing Asset
+                var existingAsset = await context.Assets
+                    .FirstOrDefaultAsync(a => a.Id == assetDto.Id && a.IsSoftDeleted != ConstantValues.IsByDefaultTrue);
+
+                if (existingAsset == null)
+                {
+                    _logger.LogWarning("Asset with ID {AssetId} not found.", assetDto.Id);
+                    return null;
+                }
+
+                // 🔹 2️⃣ Update fields if provided
+                existingAsset.AssetName = !string.IsNullOrWhiteSpace(assetDto.AssetName) ? assetDto.AssetName : existingAsset.AssetName;
+                existingAsset.AssetTypeId = assetDto.AssetTypeId ?? existingAsset.AssetTypeId;
+                existingAsset.Company = !string.IsNullOrWhiteSpace(assetDto.Company) ? assetDto.Company : existingAsset.Company;
+                existingAsset.ModelNo = !string.IsNullOrWhiteSpace(assetDto.ModelNo) ? assetDto.ModelNo : existingAsset.ModelNo;
+                existingAsset.Size = !string.IsNullOrWhiteSpace(assetDto.Size) ? assetDto.Size : existingAsset.Size;
+                existingAsset.Weight = !string.IsNullOrWhiteSpace(assetDto.Weight) ? assetDto.Weight : existingAsset.Weight;
+                existingAsset.Color = !string.IsNullOrWhiteSpace(assetDto.Color) ? assetDto.Color : existingAsset.Color;
+                existingAsset.Barcode = !string.IsNullOrWhiteSpace(assetDto.Barcode) ? assetDto.Barcode : existingAsset.Barcode;
+                existingAsset.IsRepairable = assetDto.IsRepairable ?? existingAsset.IsRepairable;
+                existingAsset.Price = assetDto.Price ?? existingAsset.Price;
+                existingAsset.SerialNumber = !string.IsNullOrWhiteSpace(assetDto.SerialNumber) ? assetDto.SerialNumber : existingAsset.SerialNumber;
+                existingAsset.PurchaseDate = assetDto.PurchaseDate ?? existingAsset.PurchaseDate;
+                existingAsset.WarrantyExpiryDate = assetDto.WarrantyExpiryDate ?? existingAsset.WarrantyExpiryDate;
+                existingAsset.AssetStatusId = assetDto.AssetStatusId ?? existingAsset.AssetStatusId;
+                existingAsset.IsAssigned = assetDto.IsAssigned ?? existingAsset.IsAssigned;
+                existingAsset.IsActive = assetDto.IsActive ?? existingAsset.IsActive;
+                existingAsset.UpdatedById = assetDto.EmployeeId;
+                existingAsset.UpdatedDateTime = DateTime.UtcNow;
+
+                // 🔹 3️⃣ Generate QR JSON
+                var qrData = new
+                {
+                    AssetId = existingAsset.Id,
+                    AssetCode = $"QR-{existingAsset.AssetTypeId}-{existingAsset.Id:000}",
+                    AssetName = existingAsset.AssetName,
+                    AssetType = await context.AssetTypes
+                                .Where(at => at.Id == existingAsset.AssetTypeId)
+                                .Select(at => at.TypeName)
+                                .FirstOrDefaultAsync() ?? string.Empty,
+                    TenantId = existingAsset.TenantId,
+                    PurchaseDate = existingAsset.PurchaseDate,
+                    WarrantyExpiryDate = existingAsset.WarrantyExpiryDate,
+                    QRCodeVersion = "v1.0"
+                };
+                string qrJson = JsonConvert.SerializeObject(qrData);
+                existingAsset.Qrcode = qrJson;
+
+                context.Assets.Update(existingAsset);
+                await context.SaveChangesAsync();
+
+                // 🔹 4️⃣ AssetImage update
+                var assetImage = await context.AssetImages
+                    .FirstOrDefaultAsync(ai => ai.AssetId == existingAsset.Id && ai.AssetImageType == ConstantValues.Web);
+
+                string qrFolder = _fileStorageService.GetTenantFolderPath(existingAsset.TenantId, "qrcodes");
+                string qrFileName = $"ASSET-{existingAsset.AssetTypeId}-{existingAsset.Id:000}-QR.png";
+                string qrFilePath = _fileStorageService.GenerateFilePath(existingAsset.TenantId, "qrcodes", qrFileName);
+
+                // Generate QR image
+                try
+                {
+                    var qrBytes = _qrService.GenerateQrCode(qrJson, 20);
+                    await _fileStorageService.SaveFileAsync(qrBytes, qrFileName, qrFolder);
+                }
+                catch (Exception exQr)
+                {
+                    _logger.LogError(exQr, "Error generating QR image for AssetId {AssetId}", existingAsset.Id);
+                }
+
+                if (assetImage != null)
+                {
+                    // 🔹 4a) If new image provided, overwrite
+                    if (!string.IsNullOrEmpty(assetDto.AssetImagePath))
+                    {
+                        string assetFileName = $"ASSET-{existingAsset.AssetTypeId}-{existingAsset.Id:000}-Main.png";
+                        string assetFilePath = _fileStorageService.GenerateFilePath(existingAsset.TenantId, "assets", assetFileName);
+                        string savedAssetPath = string.Empty;
+
+                        try
+                        {
+                            if (!string.IsNullOrEmpty(assetDto.AssetImagePath))
+                                savedAssetPath = await FileHelper.SaveAssetImageAsync(
+                                    assetDto.AssetImagePath,
+                                    assetFilePath,
+                                    _fileStorageService,
+                                    _logger
+                                );
+                            else
+                                savedAssetPath = _fileStorageService.GetDefaultImagePath();
+                        }
+                        catch (Exception exAssetImg)
+                        {
+                            _logger.LogError(exAssetImg, "Error saving Asset Image for AssetId {AssetId}", assetDto.Id);
+                            savedAssetPath = _fileStorageService.GetDefaultImagePath();
+                        }
+
+
+                        assetImage.AssetImagePath = savedAssetPath;
+
+
+
+                    }
+
+                    assetImage.QRCodeImagePath = qrFilePath;
+                    assetImage.UpdatedDateTime = DateTime.UtcNow;
+                    assetImage.UpdatedById = assetDto.EmployeeId;
+                    context.AssetImages.Update(assetImage);
+                }
+                else
+                {
+                    // 🔹 4b) AssetImage record not exists, create new
+                    string assetFilePath;
+                    string savedAssetPath;
+
+                    if (!string.IsNullOrEmpty(assetDto.AssetImagePath))
+                    {
+                        string assetFileName = $"ASSET-{existingAsset.AssetTypeId}-{existingAsset.Id:000}-Main.png";
+                        assetFilePath = _fileStorageService.GenerateFilePath(existingAsset.TenantId, "assets", assetFileName);
+                        savedAssetPath = await SaveAssetImageAsync(assetDto.AssetImagePath, assetFilePath);
+                    }
+                    else
+                    {
+                        assetFilePath = null;
+                        savedAssetPath = _fileStorageService.GetDefaultImagePath();
+                    }
+
+                    assetImage = new AssetImage
+                    {
+                        AssetId = existingAsset.Id,
+                        TenantId = existingAsset.TenantId,
+                        AssetImageType = !string.IsNullOrEmpty(assetDto.AssetImagePath) ? ConstantValues.Web : ConstantValues.Web,
+                        AssetImagePath = savedAssetPath,
+                        QRCodeImagePath = qrFilePath,
+                        QRImageType = ConstantValues.Web,
+                        IsActive = true,
+                        AddedDateTime = DateTime.UtcNow,
+                        AddedById = assetDto.EmployeeId
+                    };
+                    await context.AssetImages.AddAsync(assetImage);
+                }
+
+                await context.SaveChangesAsync();
+
+                return existingAsset;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error in UpdateAssetAsync for AssetId {AssetId}", assetDto?.Id);
+                throw;
+            }
+        }
+
+
+        /// <summary>
+        /// Updates asset information, regenerates QR code and updates images.
+        /// Returns true if update succeeds, false if fails or not found.
+        /// </summary>
+        public async Task<bool> UpdateAssetInfoAsync(UpdateAssetRequestDTO assetDto)
+        {
+            if (assetDto == null || assetDto.Id <= 0)
+            {
+                _logger.LogWarning("❌ Invalid Asset DTO or missing Id in UpdateAssetInfoAsync.");
+                return false;
+            }
+
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            try
+            {
+                _logger.LogInformation("🔹 Updating asset (ID: {AssetId}, TenantId: {TenantId})", assetDto.Id, assetDto.TenantId);
+
+                // 🔸 1️⃣ Fetch existing asset with images
+                var existingAsset = await context.Assets
+                    .Include(a => a.AssetImages)
+                    .FirstOrDefaultAsync(a => a.Id == assetDto.Id && a.TenantId == assetDto.TenantId);
+
+                if (existingAsset == null)
+                {
+                    _logger.LogWarning("⚠️ Asset not found with Id {AssetId} and TenantId {TenantId}", assetDto.Id, assetDto.TenantId);
+                    return false;
+                }
+
+                // 🔸 2️⃣ Update only provided fields (null-safe update)
+                existingAsset.AssetName = !string.IsNullOrWhiteSpace(assetDto.AssetName) ? assetDto.AssetName : existingAsset.AssetName;
+                existingAsset.AssetTypeId = assetDto.AssetTypeId ?? existingAsset.AssetTypeId;
+                existingAsset.Company = !string.IsNullOrWhiteSpace(assetDto.Company) ? assetDto.Company : existingAsset.Company;
+                existingAsset.ModelNo = !string.IsNullOrWhiteSpace(assetDto.ModelNo) ? assetDto.ModelNo : existingAsset.ModelNo;
+                existingAsset.Size = !string.IsNullOrWhiteSpace(assetDto.Size) ? assetDto.Size : existingAsset.Size;
+                existingAsset.Weight = !string.IsNullOrWhiteSpace(assetDto.Weight) ? assetDto.Weight : existingAsset.Weight;
+                existingAsset.Color = !string.IsNullOrWhiteSpace(assetDto.Color) ? assetDto.Color : existingAsset.Color;
+                existingAsset.Barcode = !string.IsNullOrWhiteSpace(assetDto.Barcode) ? assetDto.Barcode : existingAsset.Barcode;
+                existingAsset.IsRepairable = assetDto.IsRepairable ?? existingAsset.IsRepairable;
+
+                existingAsset.Price = assetDto.Price ?? existingAsset.Price;
+                existingAsset.SerialNumber = !string.IsNullOrWhiteSpace(assetDto.SerialNumber) ? assetDto.SerialNumber : existingAsset.SerialNumber;
+                existingAsset.PurchaseDate = assetDto.PurchaseDate ?? existingAsset.PurchaseDate;
+                existingAsset.WarrantyExpiryDate = assetDto.WarrantyExpiryDate ?? existingAsset.WarrantyExpiryDate;
+                existingAsset.AssetStatusId = assetDto.AssetStatusId ?? existingAsset.AssetStatusId;
+                existingAsset.IsAssigned = assetDto.IsAssigned ?? existingAsset.IsAssigned;
+                existingAsset.IsActive = assetDto.IsActive ?? existingAsset.IsActive;
+                existingAsset.UpdatedById = assetDto.EmployeeId;
+                existingAsset.UpdatedDateTime = DateTime.UtcNow;
+
+                // 🔸 3️⃣ Generate new QR data
+                var assetTypeName = await context.AssetTypes
+                    .Where(at => at.Id == existingAsset.AssetTypeId)
+                    .Select(at => at.TypeName)
+                    .FirstOrDefaultAsync() ?? string.Empty;
+
+                var qrData = new
+                {
+                    AssetId = existingAsset.Id,
+                    AssetCode = $"QR-{existingAsset.AssetTypeId}-{existingAsset.Id:000}",
+                    AssetName = existingAsset.AssetName,
+                    AssetType = assetTypeName,
+                    TenantId = existingAsset.TenantId,
+                    PurchaseDate = existingAsset.PurchaseDate.ToString("yyyy-MM-dd"),
+                    WarrantyExpiryDate = existingAsset.WarrantyExpiryDate,
+                    QRCodeVersion = "v1.0"
+                };
+                string qrJson = JsonConvert.SerializeObject(qrData);
+                existingAsset.Qrcode = qrJson;
+
+                // 🔸 4️⃣ Generate QR image and save
+                string qrFileName = $"ASSET-{existingAsset.AssetTypeId}-{existingAsset.Id:000}-QR.png";
+                string qrFolder = _fileStorageService.GetTenantFolderPath(existingAsset.TenantId, "qrcodes");
+                string qrFilePath = _fileStorageService.GenerateFilePath(existingAsset.TenantId, "qrcodes", qrFileName);
+                var qrBytes = _qrService.GenerateQrCode(qrJson, 20);
+                await _fileStorageService.SaveFileAsync(qrBytes, qrFileName, qrFolder);
+
+                // 🔸 5️⃣ Update or add QR code image record
+                var qrImage = existingAsset.AssetImages.FirstOrDefault(ai => ai.QRCodeImagePath != null);
+                if (qrImage != null)
+                {
+                    qrImage.QRCodeImagePath = qrFilePath;
+                    qrImage.UpdatedById = assetDto.EmployeeId;
+                    qrImage.UpdatedDateTime = DateTime.UtcNow;
+                    context.AssetImages.Update(qrImage);
+                }
+                else
+                {
+                    await context.AssetImages.AddAsync(new AssetImage
+                    {
+                        AssetId = existingAsset.Id,
+                        TenantId = existingAsset.TenantId,
+                        AssetImageType = ConstantValues.Web,
+                        QRCodeImagePath = qrFilePath,
+                        IsActive = true,
+                        UpdatedById = assetDto.EmployeeId,
+                        UpdatedDateTime = DateTime.UtcNow
+                    });
+                }
+
+                // 🔸 6️⃣ Handle Main Asset Image (if provided)
+                if (!string.IsNullOrEmpty(assetDto.AssetImagePath) && File.Exists(assetDto.AssetImagePath))
+                {
+                    string assetFileName = $"ASSET-{existingAsset.AssetTypeId}-{existingAsset.Id:000}-Main.png";
+                    string assetFolder = _fileStorageService.GetTenantFolderPath(existingAsset.TenantId, "assets");
+                    string assetFilePath = _fileStorageService.GenerateFilePath(existingAsset.TenantId, "assets", assetFileName);
+
+                    File.Copy(assetDto.AssetImagePath, assetFilePath, true);
+
+                    var mainImage = existingAsset.AssetImages.FirstOrDefault(ai => ai.AssetImageType == ConstantValues.Web);
+                    if (mainImage != null)
+                    {
+                        mainImage.AssetImagePath = assetFilePath;
+                        mainImage.UpdatedById = assetDto.EmployeeId;
+                        mainImage.UpdatedDateTime = DateTime.UtcNow;
+                        context.AssetImages.Update(mainImage);
+                    }
+                    else
+                    {
+                        await context.AssetImages.AddAsync(new AssetImage
+                        {
+                            AssetId = existingAsset.Id,
+                            TenantId = existingAsset.TenantId,
+                            AssetImageType = ConstantValues.Web,
+                            AssetImagePath = assetFilePath,
+                            IsActive = true,
+                            UpdatedById = assetDto.EmployeeId,
+                            UpdatedDateTime = DateTime.UtcNow
+                        });
+                    }
+                }
+
+                // 🔸 7️⃣ Commit all changes
+                context.Assets.Update(existingAsset);
+                var changes = await context.SaveChangesAsync();
+
+                if (changes > 0)
+                {
+                    _logger.LogInformation("✅ Asset updated successfully (ID: {AssetId})", existingAsset.Id);
+                    return true;
+                }
+
+                _logger.LogWarning("⚠️ No changes detected for Asset ID: {AssetId}", existingAsset.Id);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error occurred while updating asset info (ID: {AssetId})", assetDto?.Id);
+                return false;
+            }
+        }
+
+        public async Task<List<GetAssetResponseDTO>> GetAllAssetAsync(long? tenantId, bool Isactive)
+        {
+            try
+            {
+                _logger.LogInformation("Fetching assets for TenantId: {TenantId}", tenantId);
+
+                var assets = await (from a in _context.Assets
+                                    where a.TenantId == tenantId &&
+                                          a.IsActive == Isactive &&
+                                          (a.IsSoftDeleted == false || a.IsSoftDeleted == null)
+                                    select new GetAssetResponseDTO
+                                    {
+                                        AssetId = a.Id,
+                                        TenantId = a.TenantId,
+                                        AssetName = a.AssetName,
+                                        AssetTypeId = a.AssetTypeId,
+                                        Company = a.Company,
+                                        Color = a.Color,
+                                        IsRepairable = a.IsRepairable,
+                                        Price = a.Price,
+                                        SerialNumber = a.SerialNumber,
+                                        Barcode = a.Barcode,
+                                        PurchaseDate = a.PurchaseDate,
+                                        WarrantyExpiryDate = a.WarrantyExpiryDate,
+                                        IsAssigned = a.IsAssigned,
+                                        Qrcode = a.Qrcode,
+
+
+                                        // ✅ Get Main Image
+                                        AssetImagePath = _context.AssetImages
+                                                        .Where(img => img.AssetId == a.Id && img.IsActive && img.AssetImageType == ConstantValues.Web)
+                                                        .Select(img => img.AssetImagePath)
+                                                        .FirstOrDefault(),
+
+                                        // ✅ Get QR Image
+                                        QRCodeImagePath = _context.AssetImages
+                                                        .Where(img => img.AssetId == a.Id && img.IsActive && img.QRImageType == ConstantValues.Web)
+                                                        .Select(img => img.QRCodeImagePath)
+                                                        .FirstOrDefault()
+                                    })
+                                    .OrderByDescending(x => x.AssetId)
+                                    .ToListAsync();
+
+                _logger.LogInformation("Fetched {Count} assets for TenantId: {TenantId}", assets.Count, tenantId);
+                return assets;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while fetching assets for TenantId: {TenantId}", tenantId);
+                throw;
+            }
+        }
+
+
+
+        public async Task<int> DeleteAssetAsync(DeleteAssetReqestDTO? asset)
+        {
+            try
+            {
+                if (asset == null || asset.Id <= 0)
+                {
+                    _logger.LogWarning("DeleteAssetAsync called with invalid asset DTO or Id.");
+                    return 0;
+                }
+
+                // Corrected query: use x for filtering
+                var existingAsset = await _context.Assets
+                    .FirstOrDefaultAsync(x => x.Id == asset.Id &&
+                                              x.IsSoftDeleted != true);
+
+                if (existingAsset == null)
+                {
+                    _logger.LogWarning("Asset with Id {Id} not found for TenantId {TenantId}.", asset.Id, asset.TenantId);
+                    return 0; // Or throw custom NotFoundException
+                }
+                if (existingAsset.IsAssigned == ConstantValues.IsByDefaultTrue)
+                    return -1;
+
+                // Update only the tracked entity
+                existingAsset.IsSoftDeleted = ConstantValues.IsByDefaultTrue;
+                existingAsset.IsActive = ConstantValues.IsByDefaultFalse;
+                existingAsset.SoftDeletedById = asset.EmployeeId;
+                existingAsset.DeletedDateTime = DateTime.Now;
+
+                await _context.SaveChangesAsync();
+                return 1;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while soft deleting Asset.");
+                return -2;
+            }
+
+        }
+
+
+        /// <summary>
+        /// Fetch assets based on filter criteria safely.
+        /// Returns all assets matching TenantId, TypeId (optional) with latest AssetImage and QRCode image.
+        /// </summary>
+        /// <param name="asset">Filter DTO containing TenantId, TypeId, etc.</param>
+        /// <returns>List of GetAssetResponseDTO</returns>
+        /// 
+
+        /// <summary>
+        /// Retrieves filtered assets based on multiple optional parameters.
+        /// Mandatory: TenantId, RoleId, EmployeeId.
+        /// </summary>
+        public async Task<List<GetAssetResponseDTO>> GetAssetsByFilterAsync(GetAssetRequestDTO? asset)
+        {
+            if (asset == null)
+                throw new ArgumentNullException(nameof(asset), "Asset filter request cannot be null.");
+
+            if (asset.TenantId <= 0)
+                throw new ArgumentException("TenantId is mandatory and must be greater than zero.", nameof(asset.TenantId));
+
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            try
+            {
+                // 🔹 Base query with eager loading
+                var query = context.Assets
+                    .Include(a => a.AssetType)
+                        .ThenInclude(at => at.AssetCategory)
+                    .Include(a => a.AssetImages)
+                    .Include(a => a.AssetStatus) // ✅ Load AssetStatus in same query
+                    .Where(a => a.TenantId == asset.TenantId && a.IsSoftDeleted != true)
+                    .AsQueryable();
+
+                // 🔸 Dynamic filters
+                if (asset.AssetId is > 0)
+                    query = query.Where(a => a.Id == asset.AssetId);
+
+                if (asset.AssetTypeId is > 0)
+                    query = query.Where(a => a.AssetTypeId == asset.AssetTypeId);
+
+                if (!string.IsNullOrWhiteSpace(asset.SerialNumber))
+                    query = query.Where(a => a.SerialNumber != null && a.SerialNumber.Contains(asset.SerialNumber));
+
+                if (!string.IsNullOrWhiteSpace(asset.ModelNumber))
+                    query = query.Where(a => a.ModelNo != null && a.ModelNo.Contains(asset.ModelNumber));
+
+                if (asset.PurchasedDateTime.HasValue)
+                    query = query.Where(a => a.PurchaseDate.Date == asset.PurchasedDateTime.Value.Date);
+
+                if (asset.InBetweenPurchaseDate.HasValue && asset.PurchasedDateTime.HasValue)
+                    query = query.Where(a => a.PurchaseDate >= asset.PurchasedDateTime && a.PurchaseDate <= asset.InBetweenPurchaseDate);
+
+                if (asset.WarrantyExpiryDateTime.HasValue)
+                    query = query.Where(a => a.WarrantyExpiryDate.HasValue &&
+                                             a.WarrantyExpiryDate.Value.Date == asset.WarrantyExpiryDateTime.Value.Date);
+
+                if (asset.AssetStatusId is > 0)
+                    query = query.Where(a => a.AssetStatusId == asset.AssetStatusId);
+
+                if (asset.IsAssigned.HasValue)
+                    query = query.Where(a => a.IsAssigned == asset.IsAssigned);
+
+                if (asset.TypeId is > 0)
+                    query = query.Where(a => a.AssetTypeId == asset.TypeId);
+
+                if (asset.IsActive.HasValue)
+                    query = query.Where(a => a.IsActive == asset.IsActive);
+
+                // 🔹 Fetch results in one go
+                var assets = await query.ToListAsync();
+
+                // 🔸 Project to DTO efficiently
+                var result = assets.Select(a =>
+                {
+                    var latestImage = a.AssetImages?
+                        .OrderByDescending(img => img.UpdatedDateTime)
+                        .FirstOrDefault();
+                   
+                    return new GetAssetResponseDTO
+                    {
+                        AssetId = a.Id,
+                        TenantId = a.TenantId,
+                        AssetTypeId = a.AssetTypeId,
+                        CategoryId = a.AssetType?.AssetCategory?.Id ?? 0,
+                        CategoryName = a.AssetType?.AssetCategory?.CategoryName,
+                        TypeName = a.AssetType?.TypeName,
+                        AssetName = a.AssetName,
+                        Company = a.Company,
+                        ModelNo = a.ModelNo,
+                        Size = a.Size,
+                        Weight = a.Weight,
+                        Color = a.Color,
+
+                        IsRepairable = a.IsRepairable,
+                        Price = a.Price,
+                        SerialNumber = a.SerialNumber,
+                        Barcode = a.Barcode,
+                        Qrcode = a.Qrcode,
+                        AssetImagePath = latestImage?.AssetImagePath,
+                        QRCodeImagePath = latestImage?.QRCodeImagePath,
+                        AssetImageType = latestImage?.AssetImageType ?? 0,
+                        QRImageType = latestImage?.QRImageType ?? 0,
+                        PurchaseDate = a.PurchaseDate,
+                        WarrantyExpiryDate = a.WarrantyExpiryDate,
+                        AssetStatusId = a.AssetStatusId,
+                        StatusName = a.AssetStatus?.StatusName, // ✅ No extra query
+                        ColorKey = a.AssetStatus.ColorKey, // ✅ Added
+                        IsAssigned = a.IsAssigned,
+                        IsActive = a.IsActive
+                    };
+                }).ToList();
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error in GetAssetsByFilterAsync: {Message}", ex.Message);
+                throw new Exception("Error occurred while retrieving filtered assets.", ex);
+            }
+        }
+
+       
+
+
+
+
+
+        #endregion
+
+
+
+    }
+}
+
+
+

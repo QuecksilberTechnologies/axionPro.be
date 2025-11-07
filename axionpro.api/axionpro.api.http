@@ -1,0 +1,7 @@
+@axionpro.api_HostAddress = http://localhost:5170
+
+GET {{axionpro.api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+ 
+###
