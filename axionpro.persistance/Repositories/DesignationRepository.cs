@@ -140,8 +140,8 @@ namespace axionpro.persistance.Repositories
                         dto.DesignationName, TenantId);
                     result.Items = new List<GetDesignationResponseDTO>();
                     result.TotalCount = 0;
-                    result.PageNumber = dto.PageNumber;
-                    result.PageSize = dto.PageSize;
+                    result.PageNumber = 1;
+                    result.PageSize = 10;
                     return result;
                 }
 
@@ -170,8 +170,8 @@ namespace axionpro.persistance.Repositories
 
                 // 🧩 6️⃣ Pagination & Count
                 int totalCount = await query.CountAsync();
-                int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
-                int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
+                int pageNumber =  1 ;
+                int pageSize =  10 ;
 
                 var pagedData = await query
                     .Skip((pageNumber - 1) * pageSize)

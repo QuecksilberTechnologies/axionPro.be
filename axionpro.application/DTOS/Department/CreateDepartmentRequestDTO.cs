@@ -9,12 +9,12 @@ namespace axionpro.application.DTOs.Department
 {
     public class CreateDepartmentRequestDTO: BaseRequest
     {
-     
-        public string? EmployerId { get; set; }
-        public string DepartmentName { get; set; } = null!;  // अनिवार्य फ़ील्ड
-        public string? Description { get; set; } // वैकल्पिक (nullable) फ़ील्ड
-        public bool IsActive { get; set; } = true; // डिफ़ॉल्ट रूप से Active
-        public string? Remark { get; set; } // वैकल्पिक (nullable) फ़ील्ड
+
+        public required string UserEmployeeId { get; set; }
+        public string DepartmentName { get; set; } = null!;   
+        public string? Description { get; set; }  
+        public bool IsActive { get; set; } = true;  
+        public string? Remark { get; set; }  
 
   
     }

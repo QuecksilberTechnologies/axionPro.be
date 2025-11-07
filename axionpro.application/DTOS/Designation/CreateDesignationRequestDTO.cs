@@ -7,10 +7,11 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.DTOs.Designation
 {
-    public class CreateDesignationRequestDTO: BaseRequest
+    public class CreateDesignationRequestDTO
     {
 
-      
+        public required string UserEmployeeId { get; set; }
+
         public int? DepartmentId { get; set; }
         public string? DesignationName { get; set; }
         public string? Description { get; set; }

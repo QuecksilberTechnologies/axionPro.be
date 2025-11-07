@@ -333,7 +333,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 employeeInfo.IsPasswordChangeRequired = IsPasswordChange;
                 employeeInfo.UserPrimaryRole = primaryRole;
                 employeeInfo.UserSecondryRoles = userRoleDTOs;
-                employeeInfo.RoleTypeId = roleInfo.Role.RoleType;
+                employeeInfo.RoleTypeId = roleInfo.Role.RoleType.ToString();
                 employeeInfo.RoleTypeName = roleInfo.Role.RoleName;
                 employeeInfo.EmployeeId = encriptedEmployeeId.Trim();
 
@@ -380,9 +380,9 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                     UserId = request.RequestLoginDTO.LoginId,
                     EmployeeId = encriptedEmployeeId.Trim().ToString(), // long
                     RoleId = employeeInfo.UserPrimaryRole.RoleId, // long
-                    RoleTypeId = employeeInfo.RoleTypeId ?? 0,
+                    RoleTypeId = employeeInfo.RoleTypeId ?? "0",
                     RoleTypeName = employeeInfo.RoleTypeName ?? "",
-                    EmployeeTypeId =  employeeInfo.EmployeeTypeId,
+                    EmployeeTypeId =  employeeInfo.EmployeeTypeId.ToString()??"0",
                     GenderId = empMinimalResponse.GenderId,
                     GenderName = empMinimalResponse.GenderName,                  
                     Email = request.RequestLoginDTO.LoginId ,

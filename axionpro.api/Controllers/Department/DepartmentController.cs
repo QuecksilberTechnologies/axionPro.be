@@ -56,7 +56,7 @@ namespace axionpro.api.Controllers.Department
         /// <param name="createDto">Department details to create.</param>
         /// <returns>Success or failure response with created data.</returns>
         [HttpPost("add")]
-        public async Task<IActionResult> CreateDepartmentAsync([FromBody] CreateDepartmentCommand createDto)
+        public async Task<IActionResult> CreateDepartmentAsync([FromBody] CreateDepartmentRequestDTO createDto)
         {
             if (createDto == null)
             {
@@ -64,9 +64,9 @@ namespace axionpro.api.Controllers.Department
                 return BadRequest("Department data cannot be null.");
             }
 
-            _logger.LogInfo($"Creating new department: {createDto.DTO.DepartmentName}");
+            _logger.LogInfo($"Creating new department: {createDto.DepartmentName}");
 
-            var command = new  CreateDepartmentCommand(createDto.DTO);
+            var command = new  CreateDepartmentCommand(createDto);
             var result = await _mediator.Send(command);
 
             if (!result.IsSucceeded)

@@ -449,8 +449,8 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                     UserId = tenantEntity.TenantEmail,       // ✅ Email is string already
                     EmployeeId = EncriptedEmployeeId,                 // ✅ Keep as long
                     RoleId = createdAdminRole,               // ✅ Keep as long
-                    RoleTypeId = ConstantValues.RoleTypeAdmin,                            // ✅ string
-                    EmployeeTypeId = ConstantValues.ParmanentEmployeeType,                 // ✅ string
+                    RoleTypeId = ConstantValues.RoleTypeAdmin.ToString(),                            // ✅ string
+                    EmployeeTypeId = ConstantValues.ParmanentEmployeeType.ToString(),                 // ✅ string
                     TenantId = EncriptedTenantId,                  // ✅ Keep as long
                     Email = tenantEntity.TenantEmail,
                     FullName = $"{request.TenantCreateRequestDTO.ContactPersonName}", // ✅ Construct properly

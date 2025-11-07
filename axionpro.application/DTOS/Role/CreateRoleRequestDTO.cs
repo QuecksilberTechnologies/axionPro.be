@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.DTOs.Role
 {
-    public class CreateRoleRequestDTO:BaseRequest
+    public class CreateRoleRequestDTO 
     {
-
+        public required string UserEmployeeId { get; set; }
        
         public string RoleName { get; set; } = string.Empty; // Default value        
        // public int DesignationId { get; set; }       

@@ -14,7 +14,7 @@ namespace axionpro.application.DTOs.Employee
     public class GetEmployeeLoginInfoResponseDTO
     {
         public string? EmployeeId { get; set; }         
-        public int? RoleTypeId { get; set; }
+        public string? RoleTypeId { get; set; }
         public string? RoleTypeName { get; set; }
         public string? TenantName { get; set; }
         public bool? IsPasswordChangeRequired { get; set; }

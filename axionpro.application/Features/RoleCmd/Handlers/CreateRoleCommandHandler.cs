@@ -101,8 +101,8 @@ namespace axionpro.application.Features.RoleCmd.Handlers
                 string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
                 long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
                 long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
-                string Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
-                request.DTO.Id = (_idEncoderService.DecodeString(Id, finalKey)).ToString();
+                //string Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
+             //   request.DTO.Id = (_idEncoderService.DecodeString(Id, finalKey)).ToString();
 
 
                 if (decryptedTenantId <= 0 || decryptedEmployeeId <= 0)
