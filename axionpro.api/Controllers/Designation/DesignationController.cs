@@ -1,5 +1,6 @@
 ﻿using axionpro.application.DTOs.Department;
 using axionpro.application.DTOs.Designation;
+using axionpro.application.DTOS.Designation;
 using axionpro.application.Features.DepartmentCmd.Handlers;
 using axionpro.application.Features.DesignationCmd.Handlers;
 using axionpro.application.Interfaces.ILogger;
@@ -70,6 +71,26 @@ namespace axionpro.api.Controllers.Designation
             }
             return Ok(result);
         }
+
+        /// <summary>
+        /// Get all designation.
+        /// </summary>
+        [HttpGet("option")]
+
+        public async Task<IActionResult> getDesignation([FromQuery] GetDesignationOptionRequestDTO requestDTO)
+        {
+            _logger.LogInfo($"Received request to get Designation : {requestDTO.UserEmployeeId}");
+
+            var command = new GetDesignationOptionQuery(requestDTO);
+            var result = await _mediator.Send(command);
+
+            if (!result.IsSucceeded)
+            {
+                return Unauthorized(result);
+            }
+            return Ok(result);
+        }
+
         /// <summary>
         /// Creates a new designation for the specified tenant.
         /// </summary>

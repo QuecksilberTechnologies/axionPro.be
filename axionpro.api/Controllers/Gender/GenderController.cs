@@ -1,6 +1,8 @@
 ﻿using axionpro.api.Controllers.Leave;
 using axionpro.application.DTOs.Gender;
 using axionpro.application.DTOs.Leave;
+using axionpro.application.DTOS.Common;
+using axionpro.application.Features.GenderCmd.Handlers;
 using axionpro.application.Features.GenderCmd.Queries;
 using axionpro.application.Features.LeaveCmd.Commands;
 using axionpro.application.Features.LeaveCmd.Queries;
@@ -24,7 +26,24 @@ namespace axionpro.api.Controllers.Gender
             _logger = logger;
         }
 
-        
+        /// <summary>
+        /// Get all designation.
+        /// </summary>
+        [HttpGet("option")]
+
+        public async Task<IActionResult> getGender([FromQuery] GetOptionRequestDTO requestDTO)
+        {
+            _logger.LogInformation($"Received request to get Gender : {requestDTO.UserEmployeeId}");
+
+            var command = new GetGenderOptionQuery(requestDTO);
+            var result = await _mediator.Send(command);
+
+            if (!result.IsSucceeded)
+            {
+                return Unauthorized(result);
+            }
+            return Ok(result);
+        }
 
         //  ✅ Get All Gender 
         [HttpGet("get")]

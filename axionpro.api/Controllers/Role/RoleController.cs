@@ -1,4 +1,5 @@
 ﻿using axionpro.application.DTOs.Role;
+using axionpro.application.DTOS.Role;
 using axionpro.application.Features.CategoryCmd.Command;
 using axionpro.application.Features.RoleCmd.Handlers;
 using axionpro.application.Interfaces.ILogger;
@@ -43,6 +44,24 @@ namespace axionpro.api.Controllers.Role
             _logger.LogInfo("Received request to update a role: " + updateRoleDTO.ToString());
             var command = new UpdateRoleCommand(updateRoleDTO);
             var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+        /// <summary>
+        /// Get all Role.
+        /// </summary>
+        [HttpGet("option")]
+
+        public async Task<IActionResult> getRole([FromQuery] GetRoleOptionRequestDTO requestDTO)
+        {
+            _logger.LogInfo($"Received request to get Role : {requestDTO.UserEmployeeId}");
+
+            var command = new GetRoleOptionQuery(requestDTO);
+            var result = await _mediator.Send(command);
+
+            if (!result.IsSucceeded)
+            {
+                return Unauthorized(result);
+            }
             return Ok(result);
         }
 

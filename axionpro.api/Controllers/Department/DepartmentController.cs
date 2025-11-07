@@ -1,4 +1,5 @@
 ﻿using axionpro.application.DTOs.Department;
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.Features.DepartmentCmd.Handlers;
 using axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers;
@@ -102,7 +103,24 @@ namespace axionpro.api.Controllers.Department
 
             return Ok(result);
         }
+        /// <summary>
+        /// Get all department.
+        /// </summary>
+        [HttpGet("option")]
 
+        public async Task<IActionResult> getDepartment([FromQuery] GetOptionRequestDTO requestDTO)
+        {
+            _logger.LogInfo($"Received request to get Department : {requestDTO.UserEmployeeId}");
+
+            var command = new GetDepartmentOptionQuery(requestDTO);
+            var result = await _mediator.Send(command);
+
+            if (!result.IsSucceeded)
+            {
+                return Unauthorized(result);
+            }
+            return Ok(result);
+        }
         // -------------------------------------------------------
         // ✅ DELETE : Soft delete department
         // -------------------------------------------------------

@@ -26,95 +26,25 @@ namespace axionpro.api.Controllers.Option
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
-    public class OptionController : ControllerBase
+    public class LocationController : ControllerBase
     {
         private readonly IMediator _mediator;
         private readonly ILoggerService _logger;  // Logger service ka declaration
 
-        public OptionController(IMediator mediator, ILoggerService logger)
+        public LocationController(IMediator mediator, ILoggerService logger)
         {
             _mediator = mediator;
             _logger = logger;
         }
 
-        /// <summary>
-        /// Get all department.
-        /// </summary>
-        [HttpGet("/Department/get")]
-
-        public async Task<IActionResult> getDepartment([FromQuery] GetOptionRequestDTO requestDTO)
-        {
-            _logger.LogInfo($"Received request to get Department : {requestDTO.UserEmployeeId}");
-
-            var command = new GetDepartmentOptionQuery(requestDTO);
-            var result = await _mediator.Send(command);
-
-            if (!result.IsSucceeded)
-            {
-                return Unauthorized(result);
-            }
-            return Ok(result);
-        }
-
-        /// <summary>
-        /// Get all designation.
-        /// </summary>
-        [HttpGet("/Designation/get")]
-
-        public async Task<IActionResult> getDesignation([FromQuery] GetDesignationOptionRequestDTO requestDTO)
-        {
-            _logger.LogInfo($"Received request to get Designation : {requestDTO.UserEmployeeId}");
-
-            var command = new GetDesignationOptionQuery(requestDTO);
-            var result = await _mediator.Send(command);
-
-            if (!result.IsSucceeded)
-            {
-                return Unauthorized(result);
-            }
-            return Ok(result);
-        }
-
-        /// <summary>
-        /// Get all designation.
-        /// </summary>
-        [HttpGet("/Role/get")]
-
-        public async Task<IActionResult> getRole([FromQuery] GetRoleOptionRequestDTO requestDTO)
-        {
-            _logger.LogInfo($"Received request to get Role : {requestDTO.UserEmployeeId}");
-
-            var command = new GetRoleOptionQuery(requestDTO);
-            var result = await _mediator.Send(command);
-
-            if (!result.IsSucceeded)
-            {
-                return Unauthorized(result);
-            }
-            return Ok(result);
-        }
-        /// <summary>
-        /// Get all designation.
-        /// </summary>
-        [HttpGet("/Gender/get")]
-
-        public async Task<IActionResult> getGender([FromQuery] GetOptionRequestDTO requestDTO)
-        {
-            _logger.LogInfo($"Received request to get Gender : {requestDTO.UserEmployeeId}");
-
-            var command = new GetGenderOptionQuery(requestDTO);
-            var result = await _mediator.Send(command);
-
-            if (!result.IsSucceeded)
-            {
-                return Unauthorized(result);
-            }
-            return Ok(result);
-        }
+    
+         
+        
+       
         /// <summary>
         /// Get all location.
         /// </summary>
-        [HttpGet("/Location/Country")]
+        [HttpGet("country/option")]
         public async Task<IActionResult> getCountry([FromQuery] GetCountryOptionRequestDTO requestDTO)
         {
             _logger.LogInfo($"Received request to get Country : {requestDTO.UserEmployeeId}");
@@ -131,7 +61,7 @@ namespace axionpro.api.Controllers.Option
 
         /// Get all Country.
         /// </summary>
-        [HttpGet("/Location/Country/State")]
+        [HttpGet("State/option")]
         public async Task<IActionResult> getState([FromQuery] GetStateOptionRequestDTO requestDTO)
         {
             _logger.LogInfo($"Received request to get State : {requestDTO.UserEmployeeId}");
@@ -147,7 +77,7 @@ namespace axionpro.api.Controllers.Option
         }
         /// Get all District.
         /// </summary>
-        [HttpGet("/Location/Country/State/District")]
+        [HttpGet("District/option")]
         public async Task<IActionResult> getDistrict([FromQuery] GetDistrictOptionRequestDTO requestDTO)
         {
             _logger.LogInfo($"Received request to get District : {requestDTO.UserEmployeeId}");
