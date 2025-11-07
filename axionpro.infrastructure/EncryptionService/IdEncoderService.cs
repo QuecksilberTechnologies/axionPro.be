@@ -3,7 +3,7 @@ using HashidsNet;
 using System;
 using System.Text;
 
-namespace axionpro.infrastructure.Services
+namespace axionpro.infrastructure.EncryptionService
 {
     public class IdEncoderService : IIdEncoderService
     {

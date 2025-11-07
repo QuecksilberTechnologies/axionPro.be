@@ -104,6 +104,7 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                 request.DTO.Id = (_idEncoderService.DecodeString(Id, finalKey)).ToString();
 
 
+
                 // 🧩 STEP 4: Validate all employee references
 
 
@@ -122,7 +123,8 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
 
                     return ApiResponse<List<GetDepartmentResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
                 }
-                var permissions = await _permissionService.GetPermissionsAsync(tokenClaims.RoleId);
+                
+                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
                 if (!permissions.Contains("AddBankInfo"))
                 {
                     //  await _unitOfWork.RollbackTransactionAsync();

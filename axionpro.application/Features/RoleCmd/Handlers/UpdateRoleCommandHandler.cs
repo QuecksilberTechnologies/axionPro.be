@@ -14,6 +14,7 @@ using axionpro.application.Features.DepartmentCmd.Handlers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using axionpro.application.Common.Helpers.Converters;
 
 namespace axionpro.application.Features.RoleCmd.Handlers
 {
@@ -120,7 +121,7 @@ namespace axionpro.application.Features.RoleCmd.Handlers
 
                     return ApiResponse<bool>.Fail("Unauthorized: Employee mismatch.");
                 }
-                var permissions = await _permissionService.GetPermissionsAsync(tokenClaims.RoleId);
+                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
                 if (!permissions.Contains("AddBankInfo"))
                 {
                     await _unitOfWork.RollbackTransactionAsync();

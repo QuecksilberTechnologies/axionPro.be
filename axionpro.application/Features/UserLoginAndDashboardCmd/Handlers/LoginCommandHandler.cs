@@ -206,10 +206,9 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                         userRoleDTOs.Remove(primaryRole); // Remove primary from list
 
                     // 🎯 Extract secondary role IDs
-                    List<int> secondaryRoleIds = userRoleDTOs
-                        .Where(ur => ur.RoleId > 0)
-                        .Select(ur => ur.RoleId)
-                        .ToList();
+                    List<int> secondaryRoleIds = userRoleDTOs?.Where(ur => !string.IsNullOrWhiteSpace(ur.RoleId) && int.TryParse(ur.RoleId, out _)).Select(ur => int.Parse(ur.RoleId))
+                           .Distinct().ToList() ?? new List<int>();
+
 
                     string secondaryRolesCsv = secondaryRoleIds.Any()
                         ? string.Join(",", secondaryRoleIds)
@@ -341,9 +340,10 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 
                 GetRoleRequestDTO getRoleRequestDTO = new GetRoleRequestDTO
                 {
-                    Id = (employeeInfo.UserPrimaryRole?.RoleId).ToString()??"0"
+                    Id = (employeeInfo.UserPrimaryRole?.RoleId)?.ToString() ?? "0"
                 };
-                
+
+
 
                 // ✅ Get role list (filtered by roleId)
                 var roleTypeList = await _unitOfWork.RoleRepository.GetAsync(getRoleRequestDTO, dto.TenantId);
@@ -379,11 +379,11 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                     TenantId = encriptedTenantId,
                     UserId = request.RequestLoginDTO.LoginId,
                     EmployeeId = encriptedEmployeeId.Trim().ToString(), // long
-                    RoleId = employeeInfo.UserPrimaryRole.RoleId, // long
+                    RoleId = employeeInfo.UserPrimaryRole.RoleId.ToString(), // long
                     RoleTypeId = employeeInfo.RoleTypeId ?? "0",
                     RoleTypeName = employeeInfo.RoleTypeName ?? "",
                     EmployeeTypeId =  employeeInfo.EmployeeTypeId.ToString()??"0",
-                    GenderId = empMinimalResponse.GenderId,
+                    GenderId = empMinimalResponse.GenderId.ToString(),
                     GenderName = empMinimalResponse.GenderName,                  
                     Email = request.RequestLoginDTO.LoginId ,
                     FullName = empMinimalResponse.FirstName + ("-" + empMinimalResponse.LastName) ?? " Unknown",

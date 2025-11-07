@@ -125,7 +125,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                     return ApiResponse<List<GetBankResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
                 }
 
-                var permissions = await _permissionService.GetPermissionsAsync(tokenClaims.RoleId);
+                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
                 if (!permissions.Contains("AddIdentityInfo"))
                 {
                     await _unitOfWork.RollbackTransactionAsync();

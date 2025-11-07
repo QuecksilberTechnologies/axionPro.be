@@ -3,7 +3,7 @@ using axionpro.application.Interfaces.ICacheService;
 using Microsoft.Extensions.Caching.Memory;
 using System.Text.Json;
 
-namespace axionpro.infrastructure.Caching
+namespace axionpro.infrastructure.CacheMemory
 {
     public class CacheService : ICacheService
     {

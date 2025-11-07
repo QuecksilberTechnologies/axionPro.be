@@ -19,7 +19,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace axionpro.api.Controllers.Option
+namespace axionpro.api.Controllers.Location
 {
     /// <summary>
     /// handled-DDL/Option-related-actions.

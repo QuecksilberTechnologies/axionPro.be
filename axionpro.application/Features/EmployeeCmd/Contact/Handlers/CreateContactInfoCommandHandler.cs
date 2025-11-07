@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers;
+using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Pagination;
@@ -78,7 +79,7 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
                 var tenantKey = tokenClaims.TenantEncriptionKey;
 
                 // 2. Permission check
-                var permissions = await _permissionService.GetPermissionsAsync(tokenClaims.RoleId);
+                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
                 if (!permissions.Contains("AddContactInfo"))
                 {
                     await _unitOfWork.RollbackTransactionAsync();

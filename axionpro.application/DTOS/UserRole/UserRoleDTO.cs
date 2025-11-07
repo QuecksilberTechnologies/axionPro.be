@@ -10,7 +10,7 @@ namespace axionpro.application.DTOs.UserRole
     {  
        
         public string RoleName { get; set; }
-        public int RoleId { get; set; }   
+        public string? RoleId { get; set; }   
         public bool IsActive { get; set; }      
         public bool IsPrimaryRole { get; set; }        
       

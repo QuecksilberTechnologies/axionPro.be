@@ -19,10 +19,10 @@ namespace axionpro.application.DTOs.Employee
         public string? TenantName { get; set; }
         public bool? IsPasswordChangeRequired { get; set; }
         public string? DesignationName { get; set; }
-        public int? DesignationId { get; set; }
-        public int? DepartmentId { get; set; }
+        public string? DesignationId { get; set; }
+        public string? DepartmentId { get; set; }
         public string? DepartmentName { get; set; }
-        public int EmployeeTypeId  { get; set; }
+        public string? EmployeeTypeId  { get; set; }
         public string? OfficialEmail  { get; set; }
         public string? EmployeeFullName { get; set; }
         public UserRoleDTO UserPrimaryRole { get; set; }

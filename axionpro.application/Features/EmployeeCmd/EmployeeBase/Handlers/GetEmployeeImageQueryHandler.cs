@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.axionpro.application.Configuration;
+using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.Features.EmployeeCmd.EmployeeBase.Queries;
@@ -115,7 +116,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 }
 
                 // 🧩 STEP 6: Permission Check (optional)
-                var tokenPermissions = await _permissionService.GetPermissionsAsync(tokenClaims.RoleId);
+                var tokenPermissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
                 // if (tokenPermissions == null || !tokenPermissions.Contains("ViewEmployeeBase"))
                 //     return ApiResponse<List<GetBaseEmployeeResponseDTO>>.Fail("You do not have permission to view base employee info.");
 

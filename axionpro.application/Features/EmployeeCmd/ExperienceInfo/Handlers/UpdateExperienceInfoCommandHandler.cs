@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers;
+using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.DTOs.Employee;
 using axionpro.application.DTOs.Employee.AccessControlReadOnlyType;
 using axionpro.application.DTOs.Employee.AccessResponse;
@@ -88,7 +89,7 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                 }
 
                 // 🧱 Step 3: Permission Check
-                var permissions = await _permissionService.GetPermissionsAsync(tokenClaims.RoleId);
+                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
                 if (!permissions.Contains("EditExperienceInfo"))
                 {
                     await _unitOfWork.RollbackTransactionAsync();

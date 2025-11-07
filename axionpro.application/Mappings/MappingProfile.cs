@@ -387,13 +387,17 @@ namespace axionpro.application.Mappings
                 .ForMember(dest => dest.EmployeeInfo, opt => opt.MapFrom(src => src));
 
             CreateMap<GetMinimalEmployeeResponseDTO, GetEmployeeLoginInfoResponseDTO>()
-                .ForMember(dest => dest.EmployeeId, opt => opt.MapFrom(src => src.Id.ToString()))
-                .ForMember(dest => dest.EmployeeFullName, opt => opt.MapFrom(src =>
-                    $"{src.FirstName} {(string.IsNullOrWhiteSpace(src.MiddleName) ? "" : src.MiddleName + " ")}{src.LastName}".Trim()))
-                .ForMember(dest => dest.EmployeeTypeId, opt => opt.MapFrom(src => src.EmployeeTypeId))
-                .ForMember(dest => dest.DepartmentId, opt => opt.MapFrom(src => src.DepartmentId.HasValue ? src.DepartmentId : null))
-                .ForMember(dest => dest.DesignationId, opt => opt.MapFrom(src => src.DesignationId.HasValue ? src.DesignationId : null))
-                .ForMember(dest => dest.OfficialEmail, opt => opt.MapFrom(src => src.OfficialEmail ?? null));
+     .ForMember(dest => dest.EmployeeId, opt => opt.MapFrom(src => src.Id.ToString()))
+     .ForMember(dest => dest.EmployeeFullName, opt => opt.MapFrom(src =>
+         $"{src.FirstName} {(string.IsNullOrWhiteSpace(src.MiddleName) ? "" : src.MiddleName + " ")}{src.LastName}".Trim()))
+     .ForMember(dest => dest.EmployeeTypeId, opt => opt.MapFrom(src =>
+         src.EmployeeTypeId.HasValue ? src.EmployeeTypeId.Value.ToString() : null))
+     .ForMember(dest => dest.DepartmentId, opt => opt.MapFrom(src =>
+         src.DepartmentId.HasValue ? src.DepartmentId.Value.ToString() : null))
+     .ForMember(dest => dest.DesignationId, opt => opt.MapFrom(src =>
+         src.DesignationId.HasValue ? src.DesignationId.Value.ToString() : null))
+     .ForMember(dest => dest.OfficialEmail, opt => opt.MapFrom(src => src.OfficialEmail ?? null));
+
             #endregion
 
 

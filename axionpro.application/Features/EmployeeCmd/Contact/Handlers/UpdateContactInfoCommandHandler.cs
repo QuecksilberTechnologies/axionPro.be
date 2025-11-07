@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers;
+using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.DTOs.Employee.AccessControlReadOnlyType;
 using axionpro.application.DTOs.Employee.AccessResponse;
 using axionpro.application.Features.EmployeeCmd.BankInfo.Handlers;
@@ -85,7 +86,7 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
                 }
 
                 // 🧱 Step 3: Permission Check
-                var permissions = await _permissionService.GetPermissionsAsync(tokenClaims.RoleId);
+                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
                 if (permissions == null || !permissions.Contains("AddContactInfo"))
                 {
                     _logger.LogWarning("Permission denied for RoleId: {RoleId}", tokenClaims.RoleId);

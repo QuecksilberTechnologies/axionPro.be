@@ -123,7 +123,7 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
                     return ApiResponse<List<GetContactResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
                 }
 
-                var permissions = await _permissionService.GetPermissionsAsync(tokenClaims.RoleId);
+                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
                 if (!permissions.Contains("AddIdentityInfo"))
                 {
                     await _unitOfWork.RollbackTransactionAsync();

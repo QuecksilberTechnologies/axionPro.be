@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.axionpro.application.Configuration;
+using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.DTOs.Department;
 using axionpro.application.DTOS.Employee.Education;
@@ -125,7 +126,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                     return ApiResponse<List<GetEducationResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
                 }
 
-                var permissions = await _permissionService.GetPermissionsAsync(tokenClaims.RoleId);
+                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
                 if (!permissions.Contains("AddIdentityInfo"))
                 {
                     await _unitOfWork.RollbackTransactionAsync();

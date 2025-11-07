@@ -127,7 +127,7 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                          decryptedEmployeeId, loggedInEmpId
                     );
                 }
-                    var permissions = await _permissionService.GetPermissionsAsync(tokenClaims.RoleId);
+                    var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
                 if (!permissions.Contains("AddBankInfo"))
                 {
                     await _unitOfWork.RollbackTransactionAsync();

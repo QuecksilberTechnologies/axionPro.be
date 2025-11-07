@@ -10,7 +10,7 @@ using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.domain.Entity;
 using axionpro.infrastructure.BackgroundJob;
-using axionpro.infrastructure.Caching;
+using axionpro.infrastructure.CacheMemory;
 using axionpro.infrastructure.EncryptionService;
 using axionpro.infrastructure.FileStoringService;
 using axionpro.infrastructure.Logging;
@@ -18,7 +18,6 @@ using axionpro.infrastructure.MailService;
 using axionpro.infrastructure.Permission;
 using axionpro.infrastructure.QRServies;
 using axionpro.infrastructure.Security.HashedService;
-using axionpro.infrastructure.Services;
 using axionpro.infrastructure.Token;
 using axionpro.persistance.Repositories;
 using Microsoft.Extensions.Configuration;
@@ -45,7 +44,7 @@ namespace axionpro.infrastructure
             services.AddScoped<IFileStorageService, FileStorageService>();
             services.AddScoped<IPasswordService, PasswordService>();
             services.AddScoped<ITokenService, TokenService>();
-            services.AddScoped<ICacheService, CacheService>();
+            
 
             // ✅ Add missing repository registration
             services.AddScoped<IPermissionRepository, PermissionRepository>();
@@ -56,6 +55,7 @@ namespace axionpro.infrastructure
 
             services.AddScoped<IEncryptionService, AesEncryptionService>();
             services.AddScoped<IIdEncoderService, IdEncoderService>();
+            services.AddScoped<ICacheService, CacheService>();
 
 
 

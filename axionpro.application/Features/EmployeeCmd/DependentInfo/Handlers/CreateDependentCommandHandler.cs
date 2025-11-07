@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers;
+using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.DTOS.Pagination;
@@ -89,7 +90,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                 var tenantKey = tokenClaims.TenantEncriptionKey;
 
                 // 2️⃣ Permission check
-                var permissions = await _permissionService.GetPermissionsAsync(tokenClaims.RoleId);
+                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
                 if (!permissions.Contains("AddDependentInfo"))
                 {
                     await _unitOfWork.RollbackTransactionAsync();

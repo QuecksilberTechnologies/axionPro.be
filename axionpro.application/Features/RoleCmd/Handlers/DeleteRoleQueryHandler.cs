@@ -20,6 +20,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using axionpro.application.Common.Helpers.Converters;
 
 namespace axionpro.application.Features.RoleCmd.Handlers
 {
@@ -130,7 +131,7 @@ namespace axionpro.application.Features.RoleCmd.Handlers
 
                     return ApiResponse<bool>.Fail("Unauthorized: Employee mismatch.");
                 }
-                var permissions = await _permissionService.GetPermissionsAsync(tokenClaims.RoleId);
+                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
                 if (!permissions.Contains("AddBankInfo"))
                 {
                     //  await _unitOfWork.RollbackTransactionAsync();

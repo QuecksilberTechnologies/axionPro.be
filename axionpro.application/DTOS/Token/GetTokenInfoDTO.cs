@@ -11,8 +11,8 @@ namespace axionpro.application.DTOS.Token
         {
         public string UserId { get; set; } = string.Empty;
         public string? EmployeeId { get; set; }  
-        public int RoleId { get; set; }  
-        public int GenderId { get; set; }  
+        public string RoleId { get; set; }  
+        public string GenderId { get; set; }  
         public bool HasPermanent { get; set; }  
         public string GenderName { get; set; }  
         public string? RoleTypeId { get; set; }    

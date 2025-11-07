@@ -47,7 +47,7 @@ namespace axionpro.application.Common.Helpers
                 {
                     UserId = principal.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value ?? string.Empty,
                     EmployeeId = principal.Claims.FirstOrDefault(c => c.Type == "EmployeeId")?.Value ?? "0",
-                    RoleId = Convert.ToInt32(principal.Claims.FirstOrDefault(c => c.Type == "RoleId")?.Value ?? "0"),
+                    RoleId = principal.Claims.FirstOrDefault(c => c.Type == "RoleId")?.Value ?? "0",
                     RoleTypeId = principal.Claims.FirstOrDefault(c => c.Type == "RoleTypeId")?.Value ?? "0",
                     EmployeeTypeId = principal.Claims.FirstOrDefault(c => c.Type == "EmployeeTypeId")?.Value ?? "0",
                     TenantId = principal.Claims.FirstOrDefault(c => c.Type == "TenantId")?.Value ?? "0",
