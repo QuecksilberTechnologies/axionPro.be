@@ -3,14 +3,17 @@ using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.Department;
 using axionpro.application.DTOs.Designation;
+using axionpro.application.DTOs.Role;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Designation;
 using axionpro.application.DTOS.Designation.Custom;
 using axionpro.application.DTOS.Pagination;
+using axionpro.application.DTOS.Role;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
+using Azure;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -241,61 +244,101 @@ namespace axionpro.persistance.Repositories
         }
 
 
-        public async Task<PagedResponseDTO<GetDesignationResponseDTO>> GetAsync(GetDesignationRequestDTO dto, long tenantId)
+        #region Get-Complete
+        public async Task<PagedResponseDTO<GetDesignationResponseDTO>> GetAsync(GetDesignationRequestDTO request, long tenantId, int id)
         {
-            var result = new PagedResponseDTO<GetDesignationResponseDTO>();
+            var response = new PagedResponseDTO<GetDesignationResponseDTO>();
 
             try
             {
-                // 🧩 1️⃣ Validate input
-                if (dto == null)
+                if (request == null)
                 {
                     _logger.LogWarning("⚠️ GetAsync called with null request DTO.");
-                    throw new ArgumentNullException(nameof(dto), "Request DTO cannot be null.");
+                    return response;
                 }
 
                 await using var context = await _contextFactory.CreateDbContextAsync();
 
-                // 🧩 2️⃣ Base query — fetch only active & non-deleted designations for tenant
-                var query = context.Designations
-                    .AsNoTracking()
-                    .Where(d =>
-                        d.TenantId == tenantId &&
-                        (d.IsSoftDeleted != true))
-                    .OrderByDescending(d => d.Id);
+                int departmentId = 0;
+                if (!string.IsNullOrWhiteSpace(request.DepartmentId))
+                    departmentId = SafeParser.TryParseInt(request.DepartmentId);
 
-                
-                // 🧩 4️⃣ Get total count before pagination
-                int totalCount = await query.CountAsync();
+                // ✅ Base query (join with Department)
+                var query =
+                    from des in context.Designations
+                    join dep in context.Departments
+                        on des.DepartmentId equals dep.Id into deptGroup
+                    from dept in deptGroup.DefaultIfEmpty()
+                    where des.TenantId == tenantId
+                          && des.IsSoftDeleted != true
+                          && (dept == null || (dept.IsSoftDeleted != true && dept.IsActive == true))
+                    select new
+                    {
+                        des,
+                        DepartmentName = dept != null ? dept.DepartmentName : string.Empty
+                    };
 
-                // 🧩 5️⃣ Pagination setup
-                int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
-                int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
+                // ✅ Optional Filters
+                if (id > 0)
+                    query = query.Where(x => x.des.Id == id);
 
-                var pagedData = await query
-                    .Skip((pageNumber - 1) * pageSize)
-                    .Take(pageSize)
+                if (!string.IsNullOrWhiteSpace(request.DesignationName))
+                    query = query.Where(x => x.des.DesignationName.ToLower().Contains(request.DesignationName.ToLower()));
+
+                if (request.IsActive)
+                    query = query.Where(x => x.des.IsActive == request.IsActive);
+
+                if (departmentId > 0)
+                    query = query.Where(x => x.des.DepartmentId == departmentId);
+
+                // ✅ Sorting
+                query = request.SortBy?.ToLower() switch
+                {
+                    "designationname" => request.SortOrder?.ToLower() == "asc"
+                        ? query.OrderBy(x => x.des.DesignationName)
+                        : query.OrderByDescending(x => x.des.DesignationName),
+
+                    "departmentname" => request.SortOrder?.ToLower() == "asc"
+                        ? query.OrderBy(x => x.DepartmentName)
+                        : query.OrderByDescending(x => x.DepartmentName),
+
+                    _ => query.OrderByDescending(x => x.des.Id) // Default sort by Id descending
+                };
+
+                // ✅ Pagination
+                var totalRecords = await query.CountAsync();
+                var designations = await query
+                    .Skip((request.PageNumber - 1) * request.PageSize)
+                    .Take(request.PageSize)
                     .ToListAsync();
 
-                // 🧩 6️⃣ Map to response DTOs
-                var mappedData = _mapper.Map<List<GetDesignationResponseDTO>>(pagedData);
+                // ✅ Mapping to DTO (manual mapping with DepartmentName)
+                var mappedList = designations.Select(x =>
+                {
+                    var dto = _mapper.Map<GetDesignationResponseDTO>(x.des);
+                    dto.DepartmentName = x.DepartmentName ?? string.Empty;
+                    return dto;
+                }).ToList();
 
-                // 🧩 7️⃣ Build final response
-                result.Items = mappedData;
-                result.TotalCount = totalCount;
-                result.PageNumber = pageNumber;
-                result.PageSize = pageSize;
+                response.Items = mappedList;
+                response.TotalCount = totalRecords;
+                response.PageNumber = request.PageNumber;
+                response.PageSize = request.PageSize;
+                response.TotalPages = (int)Math.Ceiling((double)totalRecords / request.PageSize);
 
-                _logger.LogInformation("✅ Retrieved {Count} designations for TenantId: {TenantId}", mappedData.Count, tenantId);
-
-                return result;
+                _logger.LogInformation("✅ Retrieved {Count} designations for TenantId: {TenantId}", mappedList.Count, tenantId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error occurred while fetching designations for TenantId: {TenantId}", tenantId);
-                throw new Exception("An error occurred while fetching designations.", ex);
+                _logger.LogError(ex, "❌ Error fetching designations for TenantId: {TenantId}", tenantId);
+                response.Items = new List<GetDesignationResponseDTO>();
             }
+
+            return response;
         }
+
+        #endregion
+
 
 
         public async Task<bool> UpdateDesignationAsync(UpdateDesignationRequestDTO dto, long employeeId)
@@ -407,43 +450,52 @@ namespace axionpro.persistance.Repositories
 
         public async Task<ApiResponse<List<GetDesignationOptionResponseDTO?>>> GetOptionAsync(GetDesignationOptionRequestDTO dto, long tenantId)
         {
+            var response = new ApiResponse<List<GetDesignationOptionResponseDTO?>>();
+
             try
             {
                 using var context = _contextFactory.CreateDbContext();
 
-                var designations = await context.Designations
-                    .AsNoTracking()
-                    .Where(x =>
-                        x.TenantId == tenantId &&
-                        x.IsSoftDeleted != true &&
-                        x.IsActive == dto.IsActive &&
-                        x.DepartmentId ==Convert.ToInt32( dto.DepartmentId))
-                    .Select(d => new GetDesignationOptionResponseDTO
+                // ✅ Parse DepartmentId safely
+                int departmentId = 0;
+                if (!string.IsNullOrWhiteSpace(dto.DepartmentId))
+                    departmentId = SafeParser.TryParseInt(dto.DepartmentId);
+
+                // ✅ Base Query
+                var query = context.Designations
+                    .Where(x => x.TenantId == tenantId && x.IsSoftDeleted != true && x.IsActive == true);
+
+                // ✅ Conditional filter (apply only if departmentId > 0)
+                if (departmentId > 0)
+                    query = query.Where(x => x.DepartmentId == departmentId);
+
+                // ✅ Projection
+                var designations = await query
+                    .OrderBy(x => x.DesignationName)
+                    .Select(r => new GetDesignationOptionResponseDTO
                     {
-                        Id = d.Id,
-                        DepartmentId = d.DepartmentId, // 👈 Corrected: DepartmentName → DesignationName
-                        DesignationName = d.DesignationName, // 👈 Corrected: DepartmentName → DesignationName
-                        IsActive = d.IsActive
+                        Id = r.Id.ToString(),
+                        DepartmentId = r.DepartmentId.ToString(),
+                        DesignationName = r.DesignationName
                     })
+                    .AsNoTracking()
                     .ToListAsync();
 
-                return new ApiResponse<List<GetDesignationOptionResponseDTO?>>
-                {
-                    
-                    Message = designations.Count > 0
-                        ? "Designation options fetched successfully."
-                        : "No designations found.",
-                    Data = designations
-                };
+                // ✅ Response setup
+                response.Data = designations;
+                response.Message = designations.Any()
+                    ? "✅ Designation options fetched successfully."
+                    : "⚠️ No designations found for this tenant.";
+
+                return response;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching designation options");
+                _logger.LogError(ex, "❌ Error fetching designation options for TenantId {TenantId}", tenantId);
 
                 return new ApiResponse<List<GetDesignationOptionResponseDTO?>>
                 {
-                     
-                    Message = "An error occurred while fetching designation options.",
+                    Message = "❌ An error occurred while fetching designation options.",
                     Data = new List<GetDesignationOptionResponseDTO?>()
                 };
             }

@@ -108,6 +108,8 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                 long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
                 long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
                 request.DTO.Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
+                int id = SafeParser.TryParseInt(request.DTO.Id);
+                request.DTO.DepartmentId = EncryptionSanitizer.CleanEncodedInput(request.DTO.DepartmentId);
                 request.DTO.SortOrder = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortOrder);
                 request.DTO.SortBy = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortBy);
 
@@ -134,38 +136,43 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                     //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
                 }
                 // 🧩 STEP 4: Call Repository to get data
-                var designationResponse = await _unitOfWork.DesignationRepository.GetAsync(request.DTO, decryptedTenantId);
+                var responseDTO = await _unitOfWork.DesignationRepository.GetAsync(request.DTO, decryptedTenantId, id);
 
-                if (designationResponse == null || designationResponse.Items == null || !designationResponse.Items.Any())
+
+                if (responseDTO.Items == null || !responseDTO.Items.Any())
                 {
-                    _logger.LogWarning("⚠️ No designations found for TenantId {TenantId}", decryptedTenantId);
-                    return ApiResponse<List<GetDesignationResponseDTO>>.Fail("No designations found.");
+                    _logger.LogInformation("⚠️ No designation found for TenantId: {TenantId}", decryptedTenantId);
+                    return new ApiResponse<List<GetDesignationResponseDTO>>
+                    {
+                        IsSucceeded = true,
+                        Message = "No roles found.",
+                        Data = new List<GetDesignationResponseDTO>(),
+                        PageNumber = request.DTO.PageNumber,
+                        PageSize = request.DTO.PageSize,
+                        TotalRecords = 0,
+                        TotalPages = 0
+                    };
                 }
 
-                // 🧩 STEP 5: Encrypt data for output
-                var encryptedData = designationResponse.Items
-                    .Select(item =>
-                    {
-                        item.Id = _encryptionService.Encrypt(item.Id.ToString(), tenantKey);
-                        item.AddedById = _encryptionService.Encrypt(item.AddedById.ToString(), tenantKey);
-                        item.UpdatedById = _encryptionService.Encrypt(item.AddedById.ToString(), tenantKey);
-                        return item;
-                    }).ToList();
+                //  var encryptedList = ProjectionHelper.ToGetRoleResponseDTOs(responseDTO.Items, _encryptionService, tenantKey);
 
-                _logger.LogInformation("✅ {Count} designations retrieved for TenantId {TenantId}.", encryptedData.Count, decryptedTenantId);
 
-                // 🧩 STEP 6: Return final response
+                // 🧩 STEP 7: Success response
+                _logger.LogInformation("✅ {Count} designation retrieved successfully for TenantId: {TenantId}",
+                    responseDTO.TotalCount, decryptedTenantId);
+
                 return new ApiResponse<List<GetDesignationResponseDTO>>
                 {
                     IsSucceeded = true,
-                    Message = $"{encryptedData.Count} designations retrieved successfully.",
-                    PageNumber = designationResponse.PageNumber,
-                    PageSize = designationResponse.PageSize,
-                    TotalRecords = designationResponse.TotalCount,
-                    TotalPages = designationResponse.TotalPages,
-                    Data = encryptedData
+                    Message = "Roles retrieved successfully.",
+                    Data = responseDTO.Items,
+                    PageNumber = responseDTO.PageNumber,
+                    PageSize = responseDTO.PageSize,
+                    TotalRecords = responseDTO.TotalCount,
+                    TotalPages = responseDTO.TotalPages
                 };
             }
+        
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error occurred while fetching designations: {Message}", ex.Message);

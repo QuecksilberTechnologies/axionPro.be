@@ -325,21 +325,21 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         //    }).ToList();
         //}
 
-        public static List<GetDesignationResponseDTO> ToGetDesignationResponseDTOs(List<GetDesignationResponseDTO> entities, IEncryptionService encryptionService, string tenantKey)
-        {
-            if (entities == null || entities.Count == 0)
-                return new List<GetDesignationResponseDTO>();
+        //public static List<GetDesignationResponseDTO> ToGetDesignationResponseDTOs(List<GetDesignationResponseDTO> entities, IEncryptionService encryptionService, string tenantKey)
+        //{
+        //    if (entities == null || entities.Count == 0)
+        //        return new List<GetDesignationResponseDTO>();
 
-            return entities.Select(e => new GetDesignationResponseDTO
-            {
-                Id = SafeEncrypt(e.Id?.ToString(), encryptionService, tenantKey),
-                AddedById = SafeEncrypt(e.AddedById?.ToString(), encryptionService, tenantKey),
-                UpdatedById = SafeEncrypt(e.UpdatedById?.ToString(), encryptionService, tenantKey),
-                DepartmentName = e.DepartmentName ?? string.Empty,
-                Description = e.Description ?? string.Empty,
-                IsActive = e.IsActive
-            }).ToList();
-        }
+        //    return entities.Select(e => new GetDesignationResponseDTO
+        //    {
+        //        Id = SafeEncrypt(e.Id?.ToString(), encryptionService, tenantKey),
+        //        AddedById = SafeEncrypt(e.AddedById?.ToString(), encryptionService, tenantKey),
+        //        UpdatedById = SafeEncrypt(e.UpdatedById?.ToString(), encryptionService, tenantKey),
+        //        DepartmentName = e.DepartmentName ?? string.Empty,
+        //        Description = e.Description ?? string.Empty,
+        //        IsActive = e.IsActive
+        //    }).ToList();
+        //}
 
         public static List<GetEmployeeImageReponseDTO> ToGetEmployeeImageResponseDTOs(List<GetEmployeeImageReponseDTO> entities, IEncryptionService encryptionService, string tenantKey)
         {

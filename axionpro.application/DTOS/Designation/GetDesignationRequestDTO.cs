@@ -9,10 +9,8 @@ namespace axionpro.application.DTOs.Designation
 {
     public class GetDesignationRequestDTO : BaseRequest
     {
-       
-       
-      
-        public int? DepartmentId { get; set; }     
+             
+        public string? DepartmentId { get; set; }     
         public string? DesignationName { get; set; }
         public bool IsActive { get; set; }
  

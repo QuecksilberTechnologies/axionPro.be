@@ -23,7 +23,7 @@ namespace axionpro.application.Interfaces.IRepositories
 
         Task<bool> DeleteAsync(DeleteRoleRequestDTO requestDTO, long EmployeeId);
         Task<PagedResponseDTO<GetRoleResponseDTO>> CreateAsync(CreateRoleRequestDTO dto, long TenantId, long EmployeeId);
-        Task<PagedResponseDTO<GetRoleResponseDTO>> GetAsync(GetRoleRequestDTO request, long tenantId);
+        Task<PagedResponseDTO<GetRoleResponseDTO>> GetAsync(GetRoleRequestDTO request, long tenantId , int Id);
               
         Task<bool> UpdateAsync(UpdateRoleRequestDTO requestDTO, long EmployeeId); 
         Task<Role> AutoCreatedSingleTenantRoleAsync(Role role);

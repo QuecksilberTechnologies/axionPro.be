@@ -184,7 +184,7 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                     };
                 }
 
-                var encryptedList = ProjectionHelper.ToGetDesignationResponseDTOs(responseDTO.Items, _encryptionService, tenantKey);
+               // var encryptedList = ProjectionHelper.ToGetDesignationResponseDTOs(responseDTO.Items, _encryptionService, tenantKey);
 
                 // 5️⃣ Commit transaction
                 await _unitOfWork.CommitTransactionAsync();

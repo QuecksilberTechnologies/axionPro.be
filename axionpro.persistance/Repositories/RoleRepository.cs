@@ -569,7 +569,7 @@ public class RoleRepository : IRoleRepository
 
    # endregion
 
-    public async Task<PagedResponseDTO<GetRoleResponseDTO>> GetAsync(GetRoleRequestDTO request, long tenantId)
+    public async Task<PagedResponseDTO<GetRoleResponseDTO>> GetAsync(GetRoleRequestDTO request, long tenantId, int id)
     {
         var response = new PagedResponseDTO<GetRoleResponseDTO>();
 
@@ -584,16 +584,11 @@ public class RoleRepository : IRoleRepository
             await using var context = await _contextFactory.CreateDbContextAsync();
           
             int roleType = 0;
-            int id = 0;
+            
             if (!string.IsNullOrWhiteSpace(request.RoleType))
             {
                 roleType = SafeParser.TryParseInt(request.RoleType);
-            }
-
-            if (!string.IsNullOrWhiteSpace(request.Id))
-            {
-                id = SafeParser.TryParseInt(request.Id);
-            }
+            }          
                               
 
             var query = context.Roles
@@ -643,8 +638,8 @@ public class RoleRepository : IRoleRepository
             response.TotalCount = totalRecords;
             response.PageNumber = request.PageNumber;
             response.PageSize = request.PageSize;
-           
-            
+            response.TotalPages = (int)Math.Ceiling((double)totalRecords / request.PageSize);
+
             _logger.LogInformation("✅ Retrieved {Count} roles for TenantId: {TenantId}", mappedList.Count, tenantId);
         }
         catch (Exception ex)

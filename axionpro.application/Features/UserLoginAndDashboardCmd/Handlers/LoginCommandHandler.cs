@@ -344,9 +344,9 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 };
 
 
-
+                int id = 0 ;
                 // ✅ Get role list (filtered by roleId)
-                var roleTypeList = await _unitOfWork.RoleRepository.GetAsync(getRoleRequestDTO, dto.TenantId);
+                var roleTypeList = await _unitOfWork.RoleRepository.GetAsync(getRoleRequestDTO, dto.TenantId,  id);
 
                 // ✅ Select specific role
                 var roleType = roleTypeList.Items.FirstOrDefault(r => r.Id.Trim() == getRoleRequestDTO.Id.Trim() && r.IsActive == true);
