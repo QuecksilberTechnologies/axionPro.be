@@ -476,7 +476,8 @@ namespace axionpro.persistance.Repositories
                     {
                         Id = r.Id.ToString(),
                         DepartmentId = r.DepartmentId.ToString(),
-                        DesignationName = r.DesignationName
+                        DesignationName = r.DesignationName,
+                       // IsActive = r.IsActive
                     })
                     .AsNoTracking()
                     .ToListAsync();
