@@ -417,7 +417,7 @@ namespace axionpro.persistance.Repositories
                         x.TenantId == tenantId &&
                         x.IsSoftDeleted != true &&
                         x.IsActive == dto.IsActive &&
-                        x.DepartmentId == dto.DepartmentId)
+                        x.DepartmentId ==Convert.ToInt32( dto.DepartmentId))
                     .Select(d => new GetDesignationOptionResponseDTO
                     {
                         Id = d.Id,
