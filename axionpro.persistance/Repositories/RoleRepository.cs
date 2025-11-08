@@ -689,11 +689,9 @@ namespace axionpro.persistance.Repositories
 
                 // ✅ Base Query
                 var query = context.Roles
-                    .Where(x => x.TenantId == tenantId && x.IsSoftDeleted != true);
+                    .Where(x => x.TenantId == tenantId && x.IsSoftDeleted != true && x.IsActive);
 
-                // ✅ Active filter (optional)
-                if (dto.IsActive)
-                    query = query.Where(x => x.IsActive == dto.IsActive);
+              
 
                 // ✅ Conditional filter (apply only if roleType > 0)
                 if (roleType > 0)
@@ -707,7 +705,7 @@ namespace axionpro.persistance.Repositories
                         Id = r.Id.ToString(),
                         RoleName = r.RoleName,
                         RoleType = r.RoleType,                      
-                        IsActive = r.IsActive
+                       // IsActive = r.IsActive
                         
                     })
                     .AsNoTracking()

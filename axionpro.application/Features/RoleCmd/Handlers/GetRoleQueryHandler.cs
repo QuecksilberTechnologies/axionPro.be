@@ -114,8 +114,7 @@ namespace axionpro.application.Features.RoleCmd.Handlers
                 long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
                 long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
                 request.DTO.Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
-             //   request.DTO.Id = (_idEncoderService.DecodeString(Id, finalKey)).ToString();
-                 request.DTO.SortOrder = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortOrder);
+                request.DTO.SortOrder = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortOrder);
                  request.DTO.SortBy = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortBy);
 
                 // 🧩 STEP 4: Validate all employee references
