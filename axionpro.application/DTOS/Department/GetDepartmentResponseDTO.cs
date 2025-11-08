@@ -7,17 +7,14 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.DTOs.Department
 {
-    public class GetDepartmentResponseDTO : BaseResponse
+    public class GetDepartmentResponseDTO 
     {
-
-
-
-        
+               
+        public string Id { get; set; } 
         public string DepartmentName { get; set; } = string.Empty;
         public bool IsActive { get; set; }
         public string? Description { get; set; }
-        public string? AddedById { get; set; }
-        public string? UpdatedById { get; set; }
+        
 
 
     }

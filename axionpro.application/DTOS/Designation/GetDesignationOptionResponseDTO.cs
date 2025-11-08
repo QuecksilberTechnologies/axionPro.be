@@ -11,6 +11,6 @@ namespace axionpro.application.DTOS.Designation
         public string? Id {  get; set; }
         public string? DepartmentId { get; set; }        
         public string? DesignationName { get; set; }       
-       // public bool IsActive { get; set; }
+       
     }
 }

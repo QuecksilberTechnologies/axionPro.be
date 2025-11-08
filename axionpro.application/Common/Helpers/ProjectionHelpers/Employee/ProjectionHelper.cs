@@ -302,8 +302,8 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             {
 
                 Id = idEncoderService.EncodeString(e.Id, tenantKey),
-                AddedById = idEncoderService.EncodeId(SafeParser.TryParseLong(e.AddedById), tenantKey),
-                UpdatedById = idEncoderService.EncodeId(SafeParser.TryParseLong(e.UpdatedById), tenantKey),
+                //AddedById = idEncoderService.EncodeId(SafeParser.TryParseLong(e.AddedById), tenantKey),
+                //UpdatedById = idEncoderService.EncodeId(SafeParser.TryParseLong(e.UpdatedById), tenantKey),
                 DepartmentName = e.DepartmentName ?? string.Empty,
                 Description = e.Description ?? string.Empty,
                 IsActive = e.IsActive

@@ -15,12 +15,12 @@ using System.Threading.Tasks;
 namespace axionpro.application.DTOS.Department
 {
 
-    public class GetDepartmentOptionResponse
+    public class GetDepartmentOptionResponse 
     {
 
-        public int Id { get; set; }
+        public  string?  Id { get; set; }
         public string DepartmentName { get; set; } = string.Empty;
-        public bool IsActive { get; set; }
+       // public bool IsActive { get; set; }
     
     }
 
