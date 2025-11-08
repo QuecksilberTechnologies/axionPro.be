@@ -11,7 +11,8 @@ namespace axionpro.application.DTOS.Role
     {
 
         public required string UserEmployeeId { get; set; }
-        public int RoleType { get; set; } = 0;
+        public string? RoleType { get; set; } 
+        public bool IsActive { get; set; } = true;
 
     }
 }

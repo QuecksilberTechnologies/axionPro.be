@@ -119,12 +119,13 @@ namespace axionpro.application.Features.RoleCmd.Handlers
                 _logger.LogInformation("Successfully retrieved {Count} departments for tenant {TenantId}.",
                     response.Data.Count, decryptedTenantId);
 
-                return new ApiResponse<List<GetRoleOptionResponseDTO>>
-                {
-                    IsSucceeded = true,
-                    Message = response.Message,
-                    Data = response.Data
-                };
+                return ApiResponse<List<GetRoleOptionResponseDTO>>.Success( response.Data, "✅ Role options fetched successfully.");
+                //return new ApiResponse<List<GetRoleOptionResponseDTO>>
+                //{
+                //    IsSucceeded = true,
+                //    Message = response.Message,
+                //    Data = response.Data
+                //};
             }
             catch (Exception ex)
             {

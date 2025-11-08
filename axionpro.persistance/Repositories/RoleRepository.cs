@@ -12,6 +12,7 @@ using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
+using Azure;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -464,7 +465,7 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-
+        # region Create-Complted
         public async Task<PagedResponseDTO<GetRoleResponseDTO>> CreateAsync(CreateRoleRequestDTO dto, long tenantId, long employeeId)
         {
             var response = new PagedResponseDTO<GetRoleResponseDTO>();
@@ -474,14 +475,11 @@ namespace axionpro.persistance.Repositories
                 if (dto == null)
                 {
                     _logger.LogWarning("⚠️ CreateAsync called with null DTO.");
-
                     return response;
                 }
 
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
-                // ✅ Check if role with same name already exists for tenant
-                bool isDuplicate = await context.Roles
+                // ✅ Duplicate check
+                bool isDuplicate = await _context.Roles
                     .AnyAsync(r => r.RoleName.ToLower() == dto.RoleName.ToLower()
                                 && r.TenantId == tenantId
                                 && r.IsSoftDeleted != true);
@@ -489,45 +487,80 @@ namespace axionpro.persistance.Repositories
                 if (isDuplicate)
                 {
                     _logger.LogWarning("⚠️ Role '{RoleName}' already exists for TenantId: {TenantId}", dto.RoleName, tenantId);
-
                     return response;
                 }
 
-                // ✅ Map DTO to Entity
-                var roleEntity = _mapper.Map<Role>(dto);
-                roleEntity.TenantId = tenantId;
-                roleEntity.AddedById = employeeId;
-                roleEntity.AddedDateTime = DateTime.UtcNow;
-                roleEntity.IsSoftDeleted = false;
+                // ✅ Create new Role entity
+                var role = new Role
+                {
+                    TenantId = tenantId,
+                    AddedById = employeeId,
+                    AddedDateTime = DateTime.UtcNow,
+                    IsSoftDeleted = false,
+                    RoleName = dto.RoleName?.Trim(),
+                    RoleType = dto.RoleType,
+                    IsActive = dto.IsActive,
+                    IsSystemDefault = false
+                };
 
-                // ✅ Save to database
-                await context.Roles.AddAsync(roleEntity);
-                await context.SaveChangesAsync();
-
-                // ✅ Map to Response DTO
-                var createdRole = _mapper.Map<GetRoleResponseDTO>(roleEntity);
-
-                response.Items = new List<GetRoleResponseDTO> { createdRole };
-                response.TotalCount = 1;
-                response.PageNumber = 1;
-                response.PageSize = 1;
+                await _context.Roles.AddAsync(role);
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation("✅ Role '{RoleName}' created successfully for TenantId: {TenantId} by EmployeeId: {EmployeeId}",
                     dto.RoleName, tenantId, employeeId);
 
+                // ✅ Static pagination setup
+                int pageNumber = 1;
+                int pageSize = 10;
 
+                // ✅ Get total count dynamically
+                int totalCount = await _context.Roles
+                    .CountAsync(r => r.TenantId == tenantId && r.IsSoftDeleted != true);
+
+                // ✅ Fetch paged data (Top 10 latest)
+                var rolesFromDb = await _context.Roles
+                    .Where(r => r.TenantId == tenantId && r.IsSoftDeleted != true)
+                    .OrderByDescending(r => r.AddedDateTime)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                // ✅ Map manually to DTOs
+                var roles = rolesFromDb.Select(r => new GetRoleResponseDTO
+                {
+                    Id = r.Id.ToString(),
+                    RoleName = r.RoleName,
+                    RoleType = r.RoleType.ToString(),
+                    RoleTypeName = r.RoleType == 1 ? "Super-Admin"
+                                 : r.RoleType == 2 ? "Employee"
+                                 : r.RoleType == 3 ? "Manager"
+                                 : "Unknown",
+                    IsActive = r.IsActive
+                }).ToList();
+
+                // ✅ Prepare paged response
+                response.Items = roles;
+                response.TotalCount = totalCount;
+                response.PageNumber = pageNumber;
+                response.PageSize = pageSize;
+                response.TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+                return response;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error creating role '{RoleName}' for TenantId: {TenantId}", dto?.RoleName, tenantId);
-
                 response.Items = new List<GetRoleResponseDTO>();
                 response.TotalCount = 0;
+                response.PageNumber = 1;
+                response.PageSize = 10;
+                response.TotalPages = 0;
+                return response;
             }
-
-            return response;
         }
 
+       # endregion
 
         public async Task<PagedResponseDTO<GetRoleResponseDTO>> GetAsync(GetRoleRequestDTO request, long tenantId)
         {
@@ -542,15 +575,29 @@ namespace axionpro.persistance.Repositories
                 }
 
                 await using var context = await _contextFactory.CreateDbContextAsync();
+              
+                int roleType = 0;
+                int id = 0;
+                if (!string.IsNullOrWhiteSpace(request.RoleType))
+                {
+                    roleType = SafeParser.TryParseInt(request.RoleType);
+                }
 
-                int roleId = Convert.ToInt32(request.Id);
+                if (!string.IsNullOrWhiteSpace(request.Id))
+                {
+                    id = SafeParser.TryParseInt(request.Id);
+                }
+                                  
+
                 var query = context.Roles
                     .Where(r => r.TenantId == tenantId && (r.IsSoftDeleted != true))
                     .AsQueryable();
 
                 // ✅ Optional Filters
-                if (roleId > 0)
-                    query = query.Where(r => r.Id == roleId);
+                if (id > 0)
+                    query = query.Where(r => r.Id == id);
+
+             
 
                 if (!string.IsNullOrWhiteSpace(request.RoleName))
                     query = query.Where(r => r.RoleName.ToLower().Contains(request.RoleName.ToLower()));
@@ -558,10 +605,23 @@ namespace axionpro.persistance.Repositories
                 if (request.IsActive == true)
                     query = query.Where(r => r.IsActive == request.IsActive);
 
+                if (roleType > 0)
+                    query = query.Where(r => r.RoleType == roleType);
+
                 // ✅ Sorting
-                query = request.SortOrder?.ToLower() == "asc"
-                    ? query.OrderBy(x => x.RoleName)
-                    : query.OrderByDescending(x => x.RoleName);
+
+                query = request.SortBy?.ToLower() switch
+                {
+                    "rolename" => request.SortOrder?.ToLower() == "asc"
+                        ? query.OrderBy(x => x.RoleName)
+                        : query.OrderByDescending(x => x.RoleName),
+
+                    "roletype" => request.SortOrder?.ToLower() == "asc"
+                        ? query.OrderBy(x => x.RoleType)
+                        : query.OrderByDescending(x => x.RoleType),
+
+                    _ => query.OrderByDescending(x => x.Id) // default sort by Id
+                };
 
                 // ✅ Pagination
                 var totalRecords = await query.CountAsync();
@@ -576,7 +636,7 @@ namespace axionpro.persistance.Repositories
                 response.TotalCount = totalRecords;
                 response.PageNumber = request.PageNumber;
                 response.PageSize = request.PageSize;
-
+                
                 _logger.LogInformation("✅ Retrieved {Count} roles for TenantId: {TenantId}", mappedList.Count, tenantId);
             }
             catch (Exception ex)
@@ -588,56 +648,65 @@ namespace axionpro.persistance.Repositories
             return response;
         }
 
+        #region Option-Complete
         public async Task<ApiResponse<List<GetRoleOptionResponseDTO?>>> GetOptionAsync(GetRoleOptionRequestDTO dto, long tenantId)
         {
+            var response = new ApiResponse<List<GetRoleOptionResponseDTO?>>();
+
             try
             {
                 using var context = _contextFactory.CreateDbContext();
 
+                // ✅ Parse RoleType safely
+                int roleType = 0;
+                if (!string.IsNullOrWhiteSpace(dto.RoleType))
+                    roleType = SafeParser.TryParseInt(dto.RoleType);
+
                 // ✅ Base Query
                 var query = context.Roles
-                    .Where(x => x.TenantId == tenantId && x.IsSoftDeleted != true && x.IsActive == true);
+                    .Where(x => x.TenantId == tenantId && x.IsSoftDeleted != true);
 
-                // ✅ Conditional Filter (agar RoleType = 0 nahi hai)
-                if (dto.RoleType != 0)
-                {
-                    query = query.Where(x => x.RoleType == dto.RoleType);
-                }
+                // ✅ Active filter (optional)
+                if (dto.IsActive)
+                    query = query.Where(x => x.IsActive == dto.IsActive);
+
+                // ✅ Conditional filter (apply only if roleType > 0)
+                if (roleType > 0)
+                    query = query.Where(x => x.RoleType == roleType);
 
                 // ✅ Projection
                 var roles = await query
+                    .OrderBy(x => x.RoleName)
                     .Select(r => new GetRoleOptionResponseDTO
                     {
-                        Id = r.Id,
-                        RoleName = r.RoleName,   // ⚡ correct property name as per your entity
-                        RoleType = r.RoleType,
+                        Id = r.Id.ToString(),
+                        RoleName = r.RoleName,
+                        RoleType = r.RoleType,                      
                         IsActive = r.IsActive
-
                     })
+                    .AsNoTracking()
                     .ToListAsync();
 
-                // ✅ ApiResponse return
-                return new ApiResponse<List<GetRoleOptionResponseDTO?>>
-                {
-                   
-                    Message = roles.Any()
-                        ? "Role options fetched successfully."
-                        : "No roles found for this tenant.",
-                    Data = roles
-                };
+                // ✅ Response setup
+                response.Data = roles;
+                response.Message = roles.Any()
+                    ? "✅ Role options fetched successfully."
+                    : "⚠️ No roles found for this tenant.";
+
+                return response;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching role options for tenantId {TenantId}", tenantId);
+                _logger.LogError(ex, "❌ Error fetching role options for TenantId {TenantId}", tenantId);
 
                 return new ApiResponse<List<GetRoleOptionResponseDTO?>>
                 {
-                   
-                    Message = "An error occurred while fetching role options.",
+                    Message = "❌ An error occurred while fetching role options.",
                     Data = new List<GetRoleOptionResponseDTO?>()
                 };
             }
         }
 
+        #endregion
     }
 }

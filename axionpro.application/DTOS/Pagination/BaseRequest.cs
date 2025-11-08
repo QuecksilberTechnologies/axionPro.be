@@ -15,6 +15,7 @@ namespace axionpro.application.DTOS.Pagination
         public string? SortOrder { get; set; } = "desc";
         public string UserEmployeeId { get; set; } = string.Empty;
         public string Id { get; set; } = string.Empty;
+
     }
 
     

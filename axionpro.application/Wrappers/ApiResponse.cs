@@ -1,10 +1,11 @@
-﻿namespace axionpro.application.Wrappers
+﻿using System.Text.Json.Serialization;
+
+namespace axionpro.application.Wrappers
 {
     public class ApiResponse<T>
     {
         public ApiResponse() { }
 
-        // ✅ Success response with pagination
         public ApiResponse(
             T data,
             string? message = null,
@@ -24,19 +25,24 @@
             Errors = new List<string>();
         }
 
-        // ✅ Basic response info
         public bool IsSucceeded { get; set; }
         public string Message { get; set; } = string.Empty;
         public List<string> Errors { get; set; } = new();
         public T Data { get; set; }
 
         // ✅ Pagination (optional, for list responses)
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? PageNumber { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? PageSize { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? TotalRecords { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? TotalPages { get; set; }
 
-        // ✅ Static method for failure
         public static ApiResponse<T> Fail(string message, List<string>? errors = null)
         {
             return new ApiResponse<T>
@@ -48,7 +54,6 @@
             };
         }
 
-        // ✅ Static method for success (non-paginated)
         public static ApiResponse<T> Success(T data, string message = "")
         {
             return new ApiResponse<T>
@@ -60,7 +65,6 @@
             };
         }
 
-        // ✅ Static method for paginated success
         public static ApiResponse<T> SuccessPaginated(
             T data,
             int pageNumber,

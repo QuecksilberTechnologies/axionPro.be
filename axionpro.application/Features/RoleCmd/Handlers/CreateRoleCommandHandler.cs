@@ -127,7 +127,7 @@ namespace axionpro.application.Features.RoleCmd.Handlers
                 var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
                 if (!permissions.Contains("AddBankInfo"))
                 {
-                    await _unitOfWork.RollbackTransactionAsync();
+                    //await _unitOfWork.RollbackTransactionAsync();
                     //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
                 }
 
@@ -161,7 +161,7 @@ namespace axionpro.application.Features.RoleCmd.Handlers
                         Data = null
                     };
                 }
-                var encryptedList = ProjectionHelper.ToGetRoleResponseDTOs(responseDTO.Items, _encryptionService, tenantKey);
+             //   var encryptedList = ProjectionHelper.ToGetRoleResponseDTOs(responseDTO.Items, _encryptionService, tenantKey);
 
 
                 // 🧩 STEP 7: Commit Transaction
@@ -171,7 +171,7 @@ namespace axionpro.application.Features.RoleCmd.Handlers
                 return new ApiResponse<List<GetRoleResponseDTO>>
                 {
                     IsSucceeded = true,
-                    Message = $"{responseDTO.TotalCount} record(s) retrieved successfully.",
+                    Message = $"{responseDTO.PageSize} record(s) retrieved successfully.",
                     PageNumber = responseDTO.PageNumber,
                     PageSize = responseDTO.PageSize,
                     TotalRecords = responseDTO.TotalCount,

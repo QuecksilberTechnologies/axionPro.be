@@ -10,7 +10,7 @@ namespace axionpro.application.DTOS.Role
     public class GetRoleOptionResponseDTO
     {
 
-        public int Id { get; set; }
+        public string Id { get; set; }
         public int? RoleType { get; set; }
         public string? RoleName { get; set; } = string.Empty;
         public bool IsActive { get; set; }

@@ -9,7 +9,7 @@ namespace axionpro.application.DTOs.Role
 {
     public class GetRoleRequestDTO:BaseRequest
     {      
-       
+       public string? RoleType { get; set; }
         public bool IsActive{ get; set; } = true;  
         public string? RoleName { get; set; }
 

@@ -7,13 +7,11 @@ public partial class Role
 {
     public int Id { get; set; }
 
-    public long? TenantId { get; set; }
-
-   // public int? DesignationId { get; set; }
+    public long? TenantId { get; set; }  
 
     public string? RoleName { get; set; }
 
-    public int? RoleType { get; set; }
+    public int RoleType { get; set; }
 
     public string? Remark { get; set; }
 

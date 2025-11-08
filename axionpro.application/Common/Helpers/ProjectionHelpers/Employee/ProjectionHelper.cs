@@ -310,20 +310,20 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             }).ToList();
         }
 
-        public static List<GetRoleResponseDTO> ToGetRoleResponseDTOs(List<GetRoleResponseDTO> entities, IEncryptionService encryptionService, string tenantKey)
-        {
-            if (entities == null || entities.Count == 0)
-                return new List<GetRoleResponseDTO>();
+        //public static List<GetRoleResponseDTO> ToGetRoleResponseDTOs(List<GetRoleResponseDTO> entities, IEncryptionService encryptionService, string tenantKey)
+        //{
+        //    if (entities == null || entities.Count == 0)
+        //        return new List<GetRoleResponseDTO>();
 
-            return entities.Select(e => new GetRoleResponseDTO
-            {
-                AddedById = SafeEncrypt(e.AddedById?.ToString(), encryptionService, tenantKey),
-                UpdatedById = SafeEncrypt(e.UpdatedById?.ToString(), encryptionService, tenantKey),
-                RoleName = e.RoleName ?? string.Empty,
-                Remark = e.Remark ?? string.Empty,
-                IsActive = e.IsActive
-            }).ToList();
-        }
+        //    return entities.Select(e => new GetRoleResponseDTO
+        //    {
+        //        AddedById = SafeEncrypt(e.AddedById?.ToString(), encryptionService, tenantKey),
+        //        UpdatedById = SafeEncrypt(e.UpdatedById?.ToString(), encryptionService, tenantKey),
+        //        RoleName = e.RoleName ?? string.Empty,
+        //        Remark = e.Remark ?? string.Empty,
+        //        IsActive = e.IsActive
+        //    }).ToList();
+        //}
 
         public static List<GetDesignationResponseDTO> ToGetDesignationResponseDTOs(List<GetDesignationResponseDTO> entities, IEncryptionService encryptionService, string tenantKey)
         {

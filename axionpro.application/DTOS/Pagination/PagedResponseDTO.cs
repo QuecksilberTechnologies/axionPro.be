@@ -30,7 +30,8 @@ namespace axionpro.application.DTOS.Pagination
             set => _pageSize = value;
         }
 
-        public int TotalPages => PageSize == 0 ? 0 : (int)Math.Ceiling(TotalCount / (double)PageSize);
+     //   public int TotalPages => PageSize == 0 ? 0 : (int)Math.Ceiling(TotalCount / (double)PageSize);
+           public int TotalPages = 1;
         public bool HasPrevious => PageNumber > 1;
         public bool HasNext => PageNumber < TotalPages;
     }
