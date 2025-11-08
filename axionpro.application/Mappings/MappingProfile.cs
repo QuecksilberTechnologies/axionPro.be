@@ -305,18 +305,24 @@ namespace axionpro.application.Mappings
             //    .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => true));// Example
 
             CreateMap<Role, GetRoleResponseDTO>()
-         .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
-         .ForMember(dest => dest.RoleType, opt => opt.MapFrom(src => src.RoleType.ToString()))
-         .ForMember(dest => dest.RoleTypeName, opt => opt.MapFrom(src =>
-             src.RoleType == 1 ? "Super Admin" :
-             src.RoleType == 2 ? "Employee" :
-             src.RoleType == 3 ? "Manager" : "Unknown"
-         ))
-         .ReverseMap()
-         .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Convert.ToInt32(src.Id)))
-         .ForMember(dest => dest.RoleType, opt => opt.MapFrom(src =>
-             string.IsNullOrEmpty(src.RoleType) ? 0 : Convert.ToInt32(src.RoleType)
-         ));
+      .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
+      .ForMember(dest => dest.RoleType, opt => opt.MapFrom(src => src.RoleType.ToString()))
+      .ForMember(dest => dest.RoleTypeName, opt => opt.MapFrom(src =>
+          src.RoleType == 1 ? "Super Admin" :
+          src.RoleType == 2 ? "Employee" :
+          src.RoleType == 3 ? "Manager" :
+          "Unknown"
+      ))
+      .ForMember(dest => dest.Remark, opt => opt.MapFrom(src => src.Remark)) // ✅ Added
+      .ReverseMap()
+      .ForMember(dest => dest.Id, opt => opt.MapFrom(src =>
+          string.IsNullOrEmpty(src.Id) ? 0 : Convert.ToInt32(src.Id)
+      ))
+      .ForMember(dest => dest.RoleType, opt => opt.MapFrom(src =>
+          string.IsNullOrEmpty(src.RoleType) ? 0 : Convert.ToInt32(src.RoleType)
+      ))
+      .ForMember(dest => dest.Remark, opt => opt.MapFrom(src => src.Remark)); // ✅ Added
+
 
 
             CreateMap<Department,GetDepartmentResponseDTO>();

@@ -103,6 +103,7 @@ namespace axionpro.application.Features.RoleCmd.Handlers
                 long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
                 
                 request.DTO.Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
+                request.DTO.RoleType = EncryptionSanitizer.CleanEncodedInput(request.DTO.RoleType);
                 //  request.DTO.Id = (_idEncoderService.DecodeId(Id, finalKey)).ToString();
                 // 🧩 STEP 4: Validate all employee references
 

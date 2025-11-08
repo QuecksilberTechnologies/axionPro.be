@@ -12,7 +12,7 @@ namespace axionpro.application.DTOs.Role
         public required string Id { get; set; }
         public string? UserEmployeeId { get; set; }
         public string? RoleName { get; set; }
-        public int? RoleType { get; set; }
+        public string? RoleType { get; set; }
         public string? Remark { get; set; }
         public bool? IsActive { get; set; }
 

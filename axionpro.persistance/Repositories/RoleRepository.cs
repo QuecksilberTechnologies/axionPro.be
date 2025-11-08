@@ -13,7 +13,9 @@ using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Azure;
+using Azure.Core;
 using FluentValidation;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Serilog.Core;
@@ -284,11 +286,11 @@ namespace axionpro.persistance.Repositories
 
 
 
-        public async Task<bool> UpdateAsync(UpdateRoleRequestDTO dto, long employeeId)
+        public async Task<bool> UpdateAsync(UpdateRoleRequestDTO requestDTO, long employeeId)
         {
-            if (dto == null)
+            if (requestDTO == null)
             {
-                _logger.LogWarning("❌ UpdateAsync1 called with null DTO.");
+                _logger.LogWarning("❌ UpdateAsync called with null DTO.");
                 return false;
             }
 
@@ -296,87 +298,84 @@ namespace axionpro.persistance.Repositories
             {
                 await using var context = await _contextFactory.CreateDbContextAsync();
 
-                // 🧩 1️⃣ Validate input
-                if (dto == null || dto.Id == "0")
+                int id = SafeParser.TryParseInt(requestDTO.Id);
+                if (id <= 0)
                 {
-                    _logger.LogWarning("⚠️ DeleteDesignationAsync called with invalid DesignationId.");
-                    throw new ArgumentException("Invalid DesignationId for deletion.");
-                }
-                int Id = SafeParser.TryParseInt(dto.Id);
-                // 🔍 Fetch existing role for update
-                var existingRole = await context.Roles
-                    .FirstOrDefaultAsync(r =>
-                        r.Id == Id && (r.IsSoftDeleted != true));
-
-                if (existingRole == null)
-                {
-                    _logger.LogWarning("⚠️ Role with ID {RoleId} not found ", dto.Id);
+                    _logger.LogWarning("⚠️ UpdateAsync called with invalid RoleId: {RoleId}", requestDTO.Id);
                     return false;
                 }
 
-                // -------------------------
-                // ✅ Field-wise conditional updates
-                // -------------------------
+                var existingRole = await context.Roles
+                    .FirstOrDefaultAsync(r => r.Id == id && (r.IsSoftDeleted != true));
+
+                if (existingRole == null)
+                {
+                    _logger.LogWarning("⚠️ Role with ID {RoleId} not found", requestDTO.Id);
+                    return false;
+                }
+
                 bool isModified = false;
 
-                if (!string.IsNullOrWhiteSpace(dto.RoleName) && dto.RoleName != existingRole.RoleName)
+                // ✅ RoleName
+                if (!string.IsNullOrWhiteSpace(requestDTO.RoleName) && requestDTO.RoleName != existingRole.RoleName)
                 {
-                    existingRole.RoleName = dto.RoleName;
+                    existingRole.RoleName = requestDTO.RoleName;
                     isModified = true;
                 }
 
-                if (dto.RoleType.HasValue && dto.RoleType.Value != existingRole.RoleType)
+                // ✅ RoleType (Handle type mismatch safely)
+                if (!string.IsNullOrWhiteSpace(requestDTO.RoleType))
                 {
-                    existingRole.RoleType = dto.RoleType.Value;
+                    int newRoleType = SafeParser.TryParseInt(requestDTO.RoleType);
+                    if (newRoleType != existingRole.RoleType)
+                    {
+                        existingRole.RoleType = newRoleType;
+                        isModified = true;
+                    }
+                }
+
+                // ✅ Remark
+                if (requestDTO.Remark != null && requestDTO.Remark != existingRole.Remark)
+                {
+                    existingRole.Remark = requestDTO.Remark;
                     isModified = true;
                 }
 
-                if (dto.Remark != null && dto.Remark != existingRole.Remark)
+                // ✅ IsActive
+                if (requestDTO.IsActive.HasValue && requestDTO.IsActive.Value != existingRole.IsActive)
                 {
-                    existingRole.Remark = dto.Remark;
+                    existingRole.IsActive = requestDTO.IsActive.Value;
                     isModified = true;
                 }
 
-                if (dto.IsActive.HasValue && dto.IsActive.Value != existingRole.IsActive)
-                {
-                    existingRole.IsActive = dto.IsActive.Value;
-                    isModified = true;
-                }
-
-                // Always update audit fields
+                // ✅ Audit Fields (always update)
                 existingRole.UpdatedById = employeeId;
                 existingRole.UpdatedDateTime = DateTime.UtcNow;
 
-                // -------------------------
-                // 💾 Save changes only if required
-                // -------------------------
+                // ✅ Save only if modified
                 if (isModified)
                 {
                     var changes = await context.SaveChangesAsync();
-
                     if (changes > 0)
                     {
-                        _logger.LogInformation("✅ Role with ID {RoleId} updated successfully.", dto.Id);
+                        _logger.LogInformation("✅ Role with ID {RoleId} updated successfully.", requestDTO.Id);
                         return true;
                     }
 
-                    _logger.LogInformation("ℹ️ No database changes detected for Role ID {RoleId}.", dto.Id);
-                    return true; // treat as success, even if no rows changed
+                    _logger.LogInformation("ℹ️ No database changes detected for Role ID {RoleId}.", requestDTO.Id);
+                    return true; // No change but still OK
                 }
-                else
-                {
-                    _logger.LogInformation("🔹 No changes detected for Role ID {RoleId}. Returning success (no update required).", dto.Id);
-                    return true; // treat as success
-                }
+
+                _logger.LogInformation("🔹 No changes detected for Role ID {RoleId}. Returning success.", requestDTO.Id);
+                return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "💥 Error occurred while updating role with ID {RoleId} for ", dto.Id);
+                _logger.LogError(ex, "💥 Error occurred while updating role with ID {RoleId}", requestDTO.Id);
                 return false;
             }
         }
 
-    
         public async Task<GetSingleRoleResponseDTO?> GetByIdAsync1(GetSingleRoleRequestDTO dto)
         {
             try
@@ -420,47 +419,70 @@ namespace axionpro.persistance.Repositories
 
 
 
+
         public async Task<bool> DeleteAsync(DeleteRoleRequestDTO dto, long employeeId)
         {
             try
             {
-                // 🧩 1️⃣ Validate input
-                if (dto == null || dto.Id == "0")
+                // 🧩 Step 1️⃣ - Validate Input
+                if (dto == null)
                 {
-                    _logger.LogWarning("⚠️ DeleteDesignationAsync called with invalid DesignationId.");
-                    throw new ArgumentException("Invalid DesignationId for deletion.");
-                }
-                int Id = SafeParser.TryParseInt(dto.Id);
-                // ✅ Step 1: Fetch existing role which is not soft deleted
-                var role = await _context.Roles
-                    .FirstOrDefaultAsync(r => r.Id == Id && (r.IsSoftDeleted == null || r.IsSoftDeleted == false));
-
-                if (role == null)
-                {
-                    _logger.LogWarning("Delete failed: Role not found for Id: {Id}", dto.Id);
+                    _logger.LogWarning("⚠️ DeleteAsync called with null DTO.");
                     return false;
                 }
 
-                // ✅ Step 2: Soft delete logic
+                // 🧩 Step 2️⃣ - Validate ID
+                if (string.IsNullOrWhiteSpace(dto.Id))
+                {
+                    _logger.LogWarning("⚠️ DeleteAsync called with empty RoleId.");
+                    return false;
+                }
+
+                int id = SafeParser.TryParseInt(dto.Id);
+                if (id <= 0)
+                {
+                    _logger.LogWarning("⚠️ Invalid RoleId provided: {Id}", dto.Id);
+                    return false;
+                }
+
+                await using var context = await _contextFactory.CreateDbContextAsync();
+
+                // 🧩 Step 3️⃣ - Fetch Role
+                var role = await context.Roles
+                    .FirstOrDefaultAsync(r => r.Id == id && (r.IsSoftDeleted == null || r.IsSoftDeleted == false));
+
+                if (role == null)
+                {
+                    _logger.LogWarning("❌ Delete failed: Role not found for Id: {Id}", dto.Id);
+                    return false;
+                }
+
+                // 🧩 Step 4️⃣ - Apply Soft Delete
                 role.IsSoftDeleted = true;
                 role.IsActive = false;
                 role.SoftDeletedById = employeeId;
-                role.DeletedDateTime = DateTime.Now;
+                role.DeletedDateTime = DateTime.UtcNow;
                 role.UpdatedById = employeeId;
-                role.UpdatedDateTime = DateTime.Now;
+                role.UpdatedDateTime = DateTime.UtcNow;
 
-                // ✅ Step 3: Mark entity as updated
-                _context.Roles.Update(role);
+                // 🧩 Step 5️⃣ - Update Entity
+                context.Roles.Update(role);
 
-                // ✅ Step 4: Commit changes
-                await _context.SaveChangesAsync();
+                // 🧩 Step 6️⃣ - Commit Changes
+                var result = await context.SaveChangesAsync();
 
-                _logger.LogInformation("Role deleted successfully. Id: {Id}", dto.Id);
-                return true;
+                if (result > 0)
+                {
+                    _logger.LogInformation("✅ Role deleted successfully. Id: {Id}", dto.Id);
+                    return true;
+                }
+
+                _logger.LogWarning("⚠️ No changes saved for Role Id: {Id}", dto.Id);
+                return false;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while deleting Role. Id: {Id}", dto.Id);
+                _logger.LogError(ex, "💥 Error while deleting Role. Id: {Id}", dto?.Id);
                 return false;
             }
         }
@@ -536,7 +558,9 @@ namespace axionpro.persistance.Repositories
                                  : r.RoleType == 2 ? "Employee"
                                  : r.RoleType == 3 ? "Manager"
                                  : "Unknown",
-                    IsActive = r.IsActive
+                    IsActive = r.IsActive,
+                   Remark = r.Remark,
+
                 }).ToList();
 
                 // ✅ Prepare paged response
@@ -636,6 +660,7 @@ namespace axionpro.persistance.Repositories
                 response.TotalCount = totalRecords;
                 response.PageNumber = request.PageNumber;
                 response.PageSize = request.PageSize;
+               
                 
                 _logger.LogInformation("✅ Retrieved {Count} roles for TenantId: {TenantId}", mappedList.Count, tenantId);
             }
@@ -683,6 +708,7 @@ namespace axionpro.persistance.Repositories
                         RoleName = r.RoleName,
                         RoleType = r.RoleType,                      
                         IsActive = r.IsActive
+                        
                     })
                     .AsNoTracking()
                     .ToListAsync();

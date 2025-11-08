@@ -14,6 +14,7 @@ namespace axionpro.application.DTOs.Role
         public string RoleType { get; set; }          
         public string? RoleTypeName { get; set; }          
         public bool IsActive { get; set; } = false; // Default false
+        public string? Remark { get; set; } = string.Empty; // Default false
       
 
 
