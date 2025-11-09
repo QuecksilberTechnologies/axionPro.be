@@ -178,7 +178,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 entity.EmployeeTypeId = employeeTypeId;
                 entity.GenderId = genderId;
                 entity.EmployementCode = $"{decryptedTenantId}/{datePart}/{timePart}-{randomSuffix}";
-
+              //   HttpRequestOptionsKey
 
                 // 4️⃣ Repository Operation
                 var responseDTO = await _unitOfWork.Employees.CreateAsync(entity);
