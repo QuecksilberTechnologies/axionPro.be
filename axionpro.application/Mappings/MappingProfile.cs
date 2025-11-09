@@ -269,7 +269,7 @@ namespace axionpro.application.Mappings
 
 
             CreateMap<CreateClientTypeDTO, ClientType>();
-            CreateMap<ClientType, GetAllClientTypeDTO>();
+            CreateMap<ClientType, GetClientTypeDTO>();
             CreateMap<UpdateClientTypeDTO, ClientType>();  // ✅ Yeh likhna hoga!
             CreateMap<CreateTravelModeDTO, TravelMode>();
             CreateMap<TravelMode, GetAllTravelModeDTO>();

@@ -18,7 +18,7 @@ using axionpro.application.DTOs.Client;
 
 namespace axionpro.application.Features.ClientCmd.Handlers
 {
-    internal class GetAllClientTypeQueryHandler : IRequestHandler<GetAllClientTypeQuery, ApiResponse<List<GetAllClientTypeDTO>>>
+    internal class GetAllClientTypeQueryHandler : IRequestHandler<GetClientTypeQuery, ApiResponse<List<GetClientTypeDTO>>>
     {
        // private readonly IClientRepository _clienttypeRepository;
         private readonly IMapper _mapper;
@@ -36,7 +36,7 @@ namespace axionpro.application.Features.ClientCmd.Handlers
         }
 
 
-        public async Task<ApiResponse<List<GetAllClientTypeDTO>>> Handle(GetAllClientTypeQuery request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<List<GetClientTypeDTO>>> Handle(GetClientTypeQuery request, CancellationToken cancellationToken)
         {
             try
             {
@@ -50,10 +50,10 @@ namespace axionpro.application.Features.ClientCmd.Handlers
                 //}
 
                 //// ✅ Map Role entities to DTOs
-                var getAllClientTypeDTOs = _mapper.Map<List<GetAllClientTypeDTO>>(clientTypes);
+                var getAllClientTypeDTOs = _mapper.Map<List<GetClientTypeDTO>>(clientTypes);
 
                 _logger.LogInformation("Successfully retrieved {Count} roles.", getAllClientTypeDTOs.Count);
-                return new ApiResponse<List<GetAllClientTypeDTO>>
+                return new ApiResponse<List<GetClientTypeDTO>>
                 {
                     IsSucceeded = true,
                     Message = "Categories fetched successfully.",
@@ -64,7 +64,7 @@ namespace axionpro.application.Features.ClientCmd.Handlers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while fetching roles.");
-                return new ApiResponse<List<GetAllClientTypeDTO>>
+                return new ApiResponse<List<GetClientTypeDTO>>
                 {
                     IsSucceeded = false,
                     Message = "Categories fetched successfully.",

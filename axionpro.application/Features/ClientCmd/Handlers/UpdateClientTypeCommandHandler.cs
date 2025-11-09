@@ -14,7 +14,7 @@ using axionpro.application.DTOs.Client;
 
 namespace axionpro.application.Features.ClientCmd.Handlers
 {
-    public class UpdateClientTypeCommandHandler : IRequestHandler<UpdateClientTypeCommand, ApiResponse<List<GetAllClientTypeDTO>>>
+    public class UpdateClientTypeCommandHandler : IRequestHandler<UpdateClientTypeCommand, ApiResponse<List<GetClientTypeDTO>>>
     {
         private readonly IClientRepository _ClientRepository;
         private readonly IMapper _mapper;
@@ -26,7 +26,7 @@ namespace axionpro.application.Features.ClientCmd.Handlers
             _mapper = mapper;
             _unitOfWork = unitOfWork;
         }
-        public async Task<ApiResponse<List<GetAllClientTypeDTO>>> Handle(UpdateClientTypeCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<List<GetClientTypeDTO>>> Handle(UpdateClientTypeCommand request, CancellationToken cancellationToken)
         {
             try
             {
@@ -35,17 +35,17 @@ namespace axionpro.application.Features.ClientCmd.Handlers
 
                 if (ClientTypes == null || !ClientTypes.Any())
                 {
-                    return new ApiResponse<List<GetAllClientTypeDTO>>
+                    return new ApiResponse<List<GetClientTypeDTO>>
                     {
                         IsSucceeded = false,
                         Message = "No Client were update.",
-                        Data = new List<GetAllClientTypeDTO>()
+                        Data = new List<GetClientTypeDTO>()
                     };
                 }
 
-                List<GetAllClientTypeDTO> ClientTypeDTOs = _mapper.Map<List<GetAllClientTypeDTO>>(ClientTypes);
+                List<GetClientTypeDTO> ClientTypeDTOs = _mapper.Map<List<GetClientTypeDTO>>(ClientTypes);
 
-                return new ApiResponse<List<GetAllClientTypeDTO>>
+                return new ApiResponse<List<GetClientTypeDTO>>
                 {
                     IsSucceeded = true,
                     Message = "Client update successfully",
@@ -55,7 +55,7 @@ namespace axionpro.application.Features.ClientCmd.Handlers
             catch (Exception ex)
             {
                 //  _logger.LogError(ex, "Error occurred while creating role.");
-                return new ApiResponse<List<GetAllClientTypeDTO>>
+                return new ApiResponse<List<GetClientTypeDTO>>
 
                 {
                     IsSucceeded = false,

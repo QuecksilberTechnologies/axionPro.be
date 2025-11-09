@@ -1,8 +1,9 @@
 ﻿ 
 using axionpro.application.DTOs.Client;
- 
+using axionpro.application.DTOS.Common;
 using axionpro.application.Features.CategoryCmd.Command;
 using axionpro.application.Features.ClientCmd.Commands;
+using axionpro.application.Features.ClientCmd.Handlers;
 using axionpro.application.Features.ClientCmd.Queries;
 using axionpro.application.Features.LeaveCmd.Commands;
 using axionpro.application.Interfaces.ILogger;
@@ -25,21 +26,54 @@ namespace axionpro.api.Controllers.Client
             }
 
 
-        [HttpGet("getallclienttype")]
-        public async Task<IActionResult> GetAllClientType([FromQuery] ClientRequestTypeDTO clientRequestType)
+        
+        [HttpGet("get")]
+        public async Task<IActionResult> GetAllClientType([FromQuery] GetOptionRequestDTO clientRequestType)
         {
-            _logger.LogInfo($"Received request to get clientRequestType from userId: {clientRequestType.Id}");
+            _logger.LogInfo($"📩 Received request to get client list for userId: {clientRequestType.UserEmployeeId}");
 
-            var command = new GetAllClientTypeQuery(clientRequestType);
-            var result = await _mediator.Send(command);
+            // 🧩 Dummy Data (Temporary Static List)
+            var clientList = new List<GetClientOptionResponseDTO>
+    {
+        new GetClientOptionResponseDTO { Id = "1", ClientName = "TechNova Solutions Pvt. Ltd." },
+        new GetClientOptionResponseDTO { Id = "2", ClientName = "InfyCore Technologies LLP" },
+        new GetClientOptionResponseDTO { Id = "3", ClientName = "BluePeak Consulting Services" },
+        new GetClientOptionResponseDTO { Id = "4", ClientName = "SkyBridge Digital Systems" },
+        new GetClientOptionResponseDTO { Id = "5", ClientName = "NextEra IT Innovations" },
+        new GetClientOptionResponseDTO { Id = "6", ClientName = "VirtuWorks Global Pvt. Ltd." },
+        new GetClientOptionResponseDTO { Id = "7", ClientName = "DataMinds Analytics" },
+        new GetClientOptionResponseDTO { Id = "8", ClientName = "ProEdge Business Solutions" },
+        new GetClientOptionResponseDTO { Id = "9", ClientName = "CloudNest Technologies" },
+        new GetClientOptionResponseDTO { Id = "10", ClientName = "AxionPro Workforce Systems" }
+    };
 
-            if (!result.IsSucceeded)
+            // 🧾 Wrap Response (Optional Standard Format)
+            var response = new
             {
-                return Unauthorized(result);
-            }
-            return Ok(result);
+                IsSucceeded = true,
+                Message = "Client list fetched successfully.",
+                Data = clientList
+            };
+
+            _logger.LogInfo($"✅ Returning {clientList.Count} clients successfully.");
+            return Ok(response);
         }
-        [HttpPost("addclient")]
+
+        //[HttpGet("get")]
+        //public async Task<IActionResult> GetAllClientType([FromQuery] ClientRequestTypeDTO clientRequestType)
+        //{
+        //    _logger.LogInfo($"Received request to get clientRequestType from userId: {clientRequestType.Id}");
+
+        //    var command = new GetClientTypeQuery(clientRequestType);
+        //    var result = await _mediator.Send(command);
+
+        //    if (!result.IsSucceeded)
+        //    {
+        //        return Unauthorized(result);
+        //    }
+        //    return Ok(result);
+        //}
+        [HttpPost("add")]
         public async Task<IActionResult> CreateClientType([FromBody] CreateClientTypeDTO createClientTypeDTO)
         {
             if (createClientTypeDTO == null)
@@ -50,7 +84,7 @@ namespace axionpro.api.Controllers.Client
 
             _logger.LogInfo($"Received request to create a new leave type: {createClientTypeDTO.TypeName}");
 
-            var command = new CreateClientTypeCommand(createClientTypeDTO);
+            var command = new  CreateClientTypeCommand(createClientTypeDTO);
             var result = await _mediator.Send(command);
 
             if (!result.IsSucceeded)
@@ -61,7 +95,7 @@ namespace axionpro.api.Controllers.Client
             return Ok(result);
         }
 
-        [HttpPost("updateclient")]
+        [HttpPost("update")]
         public async Task<IActionResult> UpdateClientType([FromBody] UpdateClientTypeDTO updateClientTypeDTO)
         {
             _logger.LogInfo("Received request for update a leave" + updateClientTypeDTO.ToString());

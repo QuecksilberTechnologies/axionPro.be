@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.Features.ClientCmd.Commands
 {
-    public class UpdateClientTypeCommand : IRequest<ApiResponse<List<GetAllClientTypeDTO>>>
+    public class UpdateClientTypeCommand : IRequest<ApiResponse<List<GetClientTypeDTO>>>
     {
 
         public UpdateClientTypeDTO updateClientTypeCommand { get; set; }

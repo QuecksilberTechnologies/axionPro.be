@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.DTOs.Client
 {
-    public class GetAllClientTypeDTO
+    public class GetClientTypeDTO
     {
-        public int Id { get; set; } //  
+      
+        public string Id { get; set; } //  
         public string TypeName { get; set; } //  
         public bool IsActive { get; set; } = true;
         public string? Remark { get; set; } // 

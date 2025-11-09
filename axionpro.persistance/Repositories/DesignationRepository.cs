@@ -381,6 +381,7 @@ namespace axionpro.persistance.Repositories
                 int departmentId = SafeParser.TryParseInt(dto.DepartmentId);
                 await using var context = await _contextFactory.CreateDbContextAsync();
 
+
                 // 🧩 2️⃣ Fetch existing record
                 var existingEntity = await context.Designations
                     .FirstOrDefaultAsync(d => d.Id == id && (d.IsSoftDeleted != true));

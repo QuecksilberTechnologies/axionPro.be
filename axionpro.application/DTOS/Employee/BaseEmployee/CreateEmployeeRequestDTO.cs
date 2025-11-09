@@ -8,13 +8,17 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
     /// <summary>
     /// Employee create request
     /// </summary>
-    public class CreateBaseEmployeeRequestDTO : BaseRequest
+    public class CreateBaseEmployeeRequestDTO 
 
     {     
 
         [Required]
+        public string UserEmployeeId { get; set; } 
+
+
+        [Required]
         
-        public int EmployeeDocumentId { get; set; }
+        public string EmployeeDocumentId { get; set; }
 
        // [Required]
         [MaxLength(50)]
@@ -32,16 +36,16 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         public DateTime? DateOfBirth { get; set; }
 
         [Required]
-        public int DesignationId { get; set; }
+        public string DesignationId { get; set; }
 
         [Required]
-        public int DepartmentId { get; set; }
+        public string DepartmentId { get; set; }
 
         [Required]
-        public int? EmployeeTypeId { get; set; }
+        public string? EmployeeTypeId { get; set; }
 
         [Required]
-        public int? GenderId { get; set; }
+        public string? GenderId { get; set; }
 
         //[Required]
         public required bool HasPermanent { get; set; }
@@ -61,11 +65,11 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
 
         public DateTime? DateOfExit { get; set; }
 
-        public int? RoleId { get; set; }
+        public string? RoleId { get; set; }
 
-        public int? FunctionalId { get; set; }
+        public string? FunctionalId { get; set; }
 
-        public int? ReferalId { get; set; }
+        public string? ReferalId { get; set; }
 
         public string? Remark { get; set; }
 
@@ -76,15 +80,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         public string? InfoVerifiedById { get; set; }
 
         public bool? IsInfoVerified { get; set; }
-
-        public bool? IsDeleted { get; set; }
-
-        public string? SoftDeletedById { get; set; }
-
-        public DateTime? DeletedDateTime { get; set; }
-        public string? AddedById { get; set; }
-        public DateTime? AddedDateTime { get; set; }
-        public bool IsEditAllowed { get; set; } = true;
+      public bool? IsEditAllowed { get; set; } 
        
     }
 

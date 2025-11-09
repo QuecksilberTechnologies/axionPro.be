@@ -10,11 +10,11 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.Features.ClientCmd.Queries
 {
-    public class GetAllClientTypeQuery : IRequest<ApiResponse<List<GetAllClientTypeDTO>>>
+    public class GetClientTypeQuery : IRequest<ApiResponse<List<GetClientTypeDTO>>>
     {
         public ClientRequestTypeDTO clientTypeRequestDTO { get; set; }
 
-        public GetAllClientTypeQuery(ClientRequestTypeDTO clientTypeRequestDTO)
+        public GetClientTypeQuery(ClientRequestTypeDTO clientTypeRequestDTO)
         {
             this.clientTypeRequestDTO = clientTypeRequestDTO;
         }

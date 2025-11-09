@@ -6,6 +6,7 @@ namespace axionpro.domain.Entity;
 public partial class Employee
 {
    
+
     public long Id { get; set; }
 
     public long TenantId { get; set; }
