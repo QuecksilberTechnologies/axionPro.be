@@ -379,6 +379,35 @@ namespace axionpro.application.Mappings
 
             #region 🔹 Base Employee Mappings
             CreateMap<Employee, CreateBaseEmployeeRequestDTO>().ReverseMap();
+            CreateMap<Employee, GetBaseEmployeeResponseDTO>()
+         .ForMember(dest => dest.EmployementCode, opt => opt.MapFrom(src => src.EmployementCode ?? string.Empty))
+         .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.LastName ?? string.Empty))
+         .ForMember(dest => dest.MiddleName, opt => opt.MapFrom(src => src.MiddleName))
+         .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FirstName ?? string.Empty))
+         .ForMember(dest => dest.GenderId, opt => opt.MapFrom(src => src.GenderId.ToString()))
+         .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth))
+         .ForMember(dest => dest.DateOfOnBoarding, opt => opt.MapFrom(src => src.DateOfOnBoarding))
+         .ForMember(dest => dest.DateOfExit, opt => opt.MapFrom(src => src.DateOfExit))
+         .ForMember(dest => dest.DesignationId, opt => opt.MapFrom(src => src.DesignationId != null ? src.DesignationId.ToString() : null))
+         .ForMember(dest => dest.EmployeeTypeId, opt => opt.MapFrom(src => src.EmployeeTypeId != null ? src.EmployeeTypeId.ToString() : null))
+         .ForMember(dest => dest.DepartmentId, opt => opt.MapFrom(src => src.DepartmentId != null ? src.DepartmentId.ToString() : null))
+         .ForMember(dest => dest.OfficialEmail, opt => opt.MapFrom(src => src.OfficialEmail))
+         .ForMember(dest => dest.HasPermanent, opt => opt.MapFrom(src => src.HasPermanent))
+         .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
+         .ForMember(dest => dest.IsEditAllowed, opt => opt.MapFrom(src => src.IsEditAllowed))
+         .ForMember(dest => dest.IsInfoVerified, opt => opt.MapFrom(src => src.IsInfoVerified))         
+         .ReverseMap();
+
+
+
+
+
+
+
+
+
+
+
             CreateMap<GetMinimalEmployeeResponseDTO, CreateBaseEmployeeRequestDTO>().ReverseMap();
             CreateMap<GetMinimalEmployeeResponseDTO, GetBaseEmployeeResponseDTO>().ReverseMap();
             CreateMap<GetMinimalEmployeeResponseDTO, EmployeeInfoEditableFieldsDTO>().ReverseMap();

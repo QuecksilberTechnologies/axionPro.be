@@ -100,7 +100,7 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                 string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
                 long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
                 long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
-           
+                
 
 
                 // 🧩 STEP 4: Validate all employee references

@@ -274,24 +274,23 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             }).ToList();
         }
 
-        public static List<GetBaseEmployeeResponseDTO> ToGetBaseInfoResponseDTOs(List<GetBaseEmployeeResponseDTO> entities, IEncryptionService encryptionService, string tenantKey)
-        {
-            if (entities == null || entities.Count == 0)
-                return new List<GetBaseEmployeeResponseDTO>();
+        //public static List<GetBaseEmployeeResponseDTO> ToGetBaseInfoResponseDTOs(List<GetBaseEmployeeResponseDTO> entities, IEncryptionService encryptionService, string tenantKey)
+        //{
+        //    if (entities != null && responseDTO.Items.Any())
+        //    {
+        //        foreach (var item in responseDTO.Items)
+        //        {
+        //            item.Id = item.Id; // (skip decode if already raw)
+        //        }
+        //    }
 
-            return entities.Select(e => new GetBaseEmployeeResponseDTO
-            {
-                Id = SafeEncrypt(e.Id, encryptionService, tenantKey),
-                EmployementCode = e.EmployementCode ?? string.Empty,
-                LastName = e.LastName ?? string.Empty,
-                MiddleName = e.MiddleName ?? string.Empty,
-                FirstName = e.FirstName ?? string.Empty,
-                DesignationId = e.DesignationId,
-                DepartmentId = e.DepartmentId,
-                OfficialEmail = e.OfficialEmail ?? string.Empty,
-                IsActive = e.IsActive
-            }).ToList();
-        }
+        //    // Step 2️⃣ Encrypt safely (super lightweight)
+        //    var encryptedList = ProjectionHelper.ToGetBaseInfoResponseDTOs(
+        //        responseDTO.Items,
+        //        _encryptionService,
+        //        tenantKey
+        //    );
+        //}
 
         public static List<GetDepartmentResponseDTO> ToGetDepartmentResponseDTOs(List<GetDepartmentResponseDTO> entities, IIdEncoderService idEncoderService, string tenantKey)
         {

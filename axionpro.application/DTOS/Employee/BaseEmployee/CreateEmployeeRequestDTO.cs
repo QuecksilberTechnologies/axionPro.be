@@ -19,11 +19,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         [Required]
         
         public string EmployeeDocumentId { get; set; }
-
-       // [Required]
-        [MaxLength(50)]
-        public  string? EmployementCode { get; set; }
-
+       
         [Required]
         [MaxLength(100)]
         public required string FirstName { get; set; }
@@ -62,25 +58,13 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         public string? MiddleName { get; set; }
 
         public DateTime? DateOfOnBoarding { get; set; }
-
-        public DateTime? DateOfExit { get; set; }
-
+ 
         public string? RoleId { get; set; }
 
-        public string? FunctionalId { get; set; }
+        
+        public string? ReferalId { get; set; }    
 
-        public string? ReferalId { get; set; }
-
-        public string? Remark { get; set; }
-
-        public string? Description { get; set; }
-
-        public DateTime? InfoVerifiedDateTime { get; set; }
-
-        public string? InfoVerifiedById { get; set; }
-
-        public bool? IsInfoVerified { get; set; }
-      public bool? IsEditAllowed { get; set; } 
+  
        
     }
 
