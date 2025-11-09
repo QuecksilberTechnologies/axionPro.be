@@ -18,6 +18,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace axionpro.application.Features.DepartmentCmd.Handlers
 {
@@ -104,9 +105,10 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                 string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
                 long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
                 long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
-                string Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
-                request.DTO.Id = (_idEncoderService.DecodeString(Id, finalKey)).ToString();
-
+                request.DTO.Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
+                int id = SafeParser.TryParseInt(request.DTO.Id);           
+                request.DTO.SortOrder = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortOrder);
+                request.DTO.SortBy = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortBy);
                 // 🧩 STEP 4: Validate all employee references
 
 
@@ -134,7 +136,7 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                     //return ApiResponse<List<GetDepartmentResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
                 }
                 
-                var responseDTO = await _unitOfWork.DepartmentRepository.GetAsync(request.DTO,  decryptedTenantId);
+                var responseDTO = await _unitOfWork.DepartmentRepository.GetAsync(request.DTO,  decryptedTenantId, id);
 
                 if (responseDTO.Items == null || !responseDTO.Items.Any())
                 {
@@ -147,9 +149,9 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                         Data = new List<GetDepartmentResponseDTO>()
                     };
                 }
-                var encryptedList = ProjectionHelper.ToGetDepartmentResponseDTOs(responseDTO.Items, _idEncoderService, finalKey);
+              //  var encryptedList = ProjectionHelper.ToGetDepartmentResponseDTOs(responseDTO.Items, _idEncoderService, finalKey);
 
-                _logger.LogInformation("Successfully retrieved {Count} active departments.", responseDTO.TotalCount);
+                _logger.LogInformation("Successfully total record {Count} found active departments.", responseDTO.TotalCount);
                 // 6️⃣ Return API response
                 return new ApiResponse<List<GetDepartmentResponseDTO>>
                 {
@@ -159,7 +161,7 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                     PageSize = responseDTO.PageSize,
                     TotalRecords = responseDTO.TotalCount,
                     TotalPages = responseDTO.TotalPages,
-                    Data = encryptedList
+                    Data = responseDTO.Items
                 };
             }
             catch (Exception ex)

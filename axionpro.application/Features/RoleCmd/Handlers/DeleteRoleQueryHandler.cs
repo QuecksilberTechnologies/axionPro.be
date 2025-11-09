@@ -112,8 +112,15 @@ namespace axionpro.application.Features.RoleCmd.Handlers
                 long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
                 long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
                 string Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
-               // request.DTO.Id = (_idEncoderService.DecodeId(Id, finalKey)).ToString();
+                
                 // 🧩 STEP 4: Validate all employee references
+
+                int id = SafeParser.TryParseInt(request.DTO.Id);
+                if (id <= 0)
+                {
+                    return ApiResponse<bool>.Fail("Invalid role id.");
+
+                }
 
 
                 if (decryptedEmployeeId <= 0 || decryptedEmployeeId <= 0)
@@ -149,7 +156,7 @@ namespace axionpro.application.Features.RoleCmd.Handlers
 
                 // 🧩 STEP 6: Repository call
 
-                bool isDeleted = await _unitOfWork.RoleRepository.DeleteAsync(request.DTO, decryptedEmployeeId);
+                bool isDeleted = await _unitOfWork.RoleRepository.DeleteAsync(request.DTO, decryptedEmployeeId, id);
 
                 if (!isDeleted)
                 {

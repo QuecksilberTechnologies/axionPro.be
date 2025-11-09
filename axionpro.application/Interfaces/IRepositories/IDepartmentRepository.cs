@@ -20,13 +20,13 @@ namespace axionpro.application.Interfaces.IRepositories
 
             Task<GetSingleDepartmentResponseDTO?> GetByIdAsync(GetSingleDepartmentRequestDTO dto);
             Task<ApiResponse<List<GetDepartmentOptionResponse?>>> GetOptionAsync(GetOptionRequestDTO dto , long tenantId);
-            Task<bool> DeleteAsync(DeleteDepartmentRequestDTO requestDTO, long EmployeeId); 
+            Task<bool> DeleteAsync(DeleteDepartmentRequestDTO requestDTO, long EmployeeId, int Id); 
             Task<PagedResponseDTO<GetDepartmentResponseDTO>> CreateAsync(CreateDepartmentRequestDTO dto, long TenantId ,long EmployeeId);
-            Task<PagedResponseDTO<GetDepartmentResponseDTO>> GetAsync(GetDepartmentRequestDTO request, long tenantId);
+            Task<PagedResponseDTO<GetDepartmentResponseDTO>> GetAsync(GetDepartmentRequestDTO request, long tenantId, int id);
            
             Task<int> AutoCreateDepartmentSeedAsync(List<Department>? departments);
            
-           Task<bool> UpdateAsync(UpdateDepartmentRequestDTO requestDTO , long EmployeeId);
+           Task<bool> UpdateAsync(UpdateDepartmentRequestDTO requestDTO , long EmployeeId, int Id);
           
             Task<bool> ExistsAsync(long id, long tenantId);
            Task<Dictionary<string, int>> GetDepartmentNameIdMapAsync(long tenantId);

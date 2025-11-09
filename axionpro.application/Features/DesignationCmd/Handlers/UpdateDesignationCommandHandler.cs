@@ -104,7 +104,12 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                 long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
                 long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
                 string Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
-                request.DTO.Id = (_idEncoderService.DecodeId(Id, finalKey)).ToString();
+                int id =  SafeParser.TryParseInt(Id);               
+                if(id<=0)
+                {
+                    _logger.LogWarning("❌  Id not correct.");
+                    return ApiResponse<bool>.Fail("Tenant or employee information missing.");
+                }
                 // 🧩 STEP 4: Validate all employee references
 
 
@@ -134,13 +139,9 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                 string? designationName = request.DTO.DesignationName?.Trim();
                 if (string.IsNullOrWhiteSpace(designationName))
                     return ApiResponse<bool>.Fail("Designation name should not be empty.");
-
-                bool exists = await _unitOfWork.DesignationRepository.CheckDuplicateValueAsync(decryptedTenantId, designationName);
-                if (exists)
-                    return ApiResponse<bool>.Fail("A designation with this name already exists.");
-
+ 
                 // 🧩 STEP 6: Update in repository
-                bool isUpdated = await _unitOfWork.DesignationRepository.UpdateDesignationAsync(request.DTO, decryptedEmployeeId);
+                bool isUpdated = await _unitOfWork.DesignationRepository.UpdateDesignationAsync(request.DTO, decryptedEmployeeId,id);
 
                 if (!isUpdated)
                 {

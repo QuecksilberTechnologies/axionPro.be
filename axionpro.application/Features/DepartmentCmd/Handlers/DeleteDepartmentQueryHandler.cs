@@ -103,8 +103,14 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                 long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
                 long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
                 string Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
-                request.DTO.Id = (_idEncoderService.DecodeId(Id, finalKey)).ToString();
+                 
 
+               int    id = SafeParser.TryParseInt(Id);
+                if (id <= 0)
+                {
+                    _logger.LogWarning("Invalid Department Id provided for deletion: {Id}", Id);
+                    return ApiResponse<bool>.Fail("Id invalid.");
+                }
                 if (decryptedEmployeeId <= 0 || decryptedEmployeeId <= 0)
                 {
                     _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
@@ -127,7 +133,7 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                     //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
                     }
 
-                var isDeleted = await _unitOfWork.DepartmentRepository.DeleteAsync(request.DTO,decryptedEmployeeId);
+                var isDeleted = await _unitOfWork.DepartmentRepository.DeleteAsync(request.DTO,decryptedEmployeeId , id);
 
                 if (isDeleted)
                 {

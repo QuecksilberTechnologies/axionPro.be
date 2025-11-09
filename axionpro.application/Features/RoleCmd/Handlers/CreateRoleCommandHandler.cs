@@ -150,7 +150,7 @@ namespace axionpro.application.Features.RoleCmd.Handlers
 
 
                 // 🧩 STEP 6: Validate response
-                if (responseDTO.Items == null || !responseDTO.Items.Any())
+                if (responseDTO == null || responseDTO.Items == null || !responseDTO.Items.Any())
                 {
                     _logger.LogWarning("Role creation failed or no role returned. TenantId: {TenantId}", decryptedTenantId);
 

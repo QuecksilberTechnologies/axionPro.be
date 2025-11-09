@@ -102,9 +102,13 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                 long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
                 long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
                 string Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
-                request.DTO.Id = (_idEncoderService.DecodeId(Id, finalKey)).ToString();
-                // 🧩 STEP 4: Validate all employee references
 
+                int id = SafeParser.TryParseInt(Id);
+                if (id <= 0)
+                {
+                    _logger.LogWarning("❌  Id not correct.");
+                    return ApiResponse<bool>.Fail("Tenant or employee information missing.");
+                }
 
                 if (decryptedEmployeeId <= 0 || decryptedEmployeeId <= 0)
                 {
@@ -150,7 +154,7 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                     };
 
                 }
-                var isUpdated = await _unitOfWork.DepartmentRepository.UpdateAsync(request.DTO, decryptedEmployeeId);
+                var isUpdated = await _unitOfWork.DepartmentRepository.UpdateAsync(request.DTO, decryptedEmployeeId,id);
 
                 if (!isUpdated)
                 {

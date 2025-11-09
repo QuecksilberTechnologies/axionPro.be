@@ -51,16 +51,16 @@ namespace axionpro.application.Features.LocationCmd.Handlers
                     };
                 }
 
-                if (request.DTO.IsActive != true)
-                {
-                    _logger.LogWarning("Request skipped because IsActive is false or null.");
-                    return new ApiResponse<List<GetCountryOptionResponseDTO>>
-                    {
-                        IsSucceeded = false,
-                        Message = "Inactive request. Cannot fetch countries.",
-                        Data = new List<GetCountryOptionResponseDTO>()
-                    };
-                }
+                //if (request.DTO.IsActive != true)
+                //{
+                //    _logger.LogWarning("Request skipped because IsActive is false or null.");
+                //    return new ApiResponse<List<GetCountryOptionResponseDTO>>
+                //    {
+                //        IsSucceeded = false,
+                //        Message = "Inactive request. Cannot fetch countries.",
+                //        Data = new List<GetCountryOptionResponseDTO>()
+                //    };
+                //}
 
                 // ✅ Step 2: Log date
                 var date = request.DTO.TodaysDate.Value.Date;

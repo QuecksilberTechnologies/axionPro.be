@@ -13,7 +13,8 @@ namespace axionpro.application.DTOs.Designation
         public string? UserEmployeeId { get; set; }
         public int? DepartmentId { get; set; }
         public string? DesignationName { get; set; }
-        public bool IsActive { get; set; }
+        public string? Description { get; set; }
+        public bool? IsActive { get; set; }
 
     }
 }

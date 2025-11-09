@@ -60,16 +60,16 @@ namespace axionpro.application.Features.LocationCmd.Handlers
                 }
 
                 // ✅ Step 3: Validate IsActive flag
-                if (request.DTO.IsActive != true)
-                {
-                    _logger.LogWarning("Inactive request received.");
-                    return new ApiResponse<List<GetDistrictOptionResponseDTO>>
-                    {
-                        IsSucceeded = false,
-                        Message = "Inactive request. Cannot fetch districts.",
-                        Data = new List<GetDistrictOptionResponseDTO>()
-                    };
-                }
+                //if (request.DTO.IsActive != true)
+                //{
+                //    _logger.LogWarning("Inactive request received.");
+                //    return new ApiResponse<List<GetDistrictOptionResponseDTO>>
+                //    {
+                //        IsSucceeded = false,
+                //        Message = "Inactive request. Cannot fetch districts.",
+                //        Data = new List<GetDistrictOptionResponseDTO>()
+                //    };
+                //}
 
                 // ✅ Step 4: Validate StateId
                 if (request.DTO.StateId <= 0)

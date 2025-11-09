@@ -10,7 +10,7 @@ namespace axionpro.application.DTOS.Common
     {
         public string? UserEmployeeId { get; set; }  
         public  DateTime? TodaysDate { get; set; }        
-        public required bool IsActive { get; set; }
+      
     
     }
 }

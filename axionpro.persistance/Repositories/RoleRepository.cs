@@ -324,6 +324,7 @@ public class RoleRepository : IRoleRepository
                 isModified = true;
             }
 
+
             // ✅ IsActive
             if (requestDTO.IsActive.HasValue && requestDTO.IsActive.Value != existingRole.IsActive)
             {
@@ -403,7 +404,7 @@ public class RoleRepository : IRoleRepository
 
 
 
-    public async Task<bool> DeleteAsync(DeleteRoleRequestDTO dto, long employeeId)
+    public async Task<bool> DeleteAsync(DeleteRoleRequestDTO dto, long employeeId, int id)
     {
         try
         {
@@ -420,14 +421,7 @@ public class RoleRepository : IRoleRepository
                 _logger.LogWarning("⚠️ DeleteAsync called with empty RoleId.");
                 return false;
             }
-
-            int id = SafeParser.TryParseInt(dto.Id);
-            if (id <= 0)
-            {
-                _logger.LogWarning("⚠️ Invalid RoleId provided: {Id}", dto.Id);
-                return false;
-            }
-
+                   
             await using var context = await _contextFactory.CreateDbContextAsync();
 
             // 🧩 Step 3️⃣ - Fetch Role

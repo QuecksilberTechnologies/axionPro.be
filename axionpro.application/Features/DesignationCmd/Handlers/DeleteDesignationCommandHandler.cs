@@ -95,30 +95,33 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                     _logger.LogWarning("❌ Missing tenantKey or UserEmployeeId.");
                     return ApiResponse<bool>.Fail("User invalid.");
                 }
-                // Decrypt / convert values
-                string encryptedFromDb = EncryptionSanitizer.SuperSanitize(request.DTO.UserEmployeeId);
-                string key = EncryptionSanitizer.SuperSanitize(tenantKey);
-                string decryptedString = _encryptionService.Decrypt(encryptedFromDb, key);
-                long decryptedEmployeeId = SafeParser.TryParseLong(decryptedString ?? "0");
-                long decryptedTenantId = SafeParser.TryParseLong(tokenClaims.TenantId ?? "0");
-                long tokenEmployeeId = SafeParser.TryParseLong(tokenClaims.EmployeeId ?? "0");
-
+                string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
+                string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
+                long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
+                long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
+                string Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
 
                 // 🧩 STEP 4: Validate all employee references
-                // Condition → sab teeno match hone chahiye:
-                // requestEmployeeId == tokenEmployeeId == loggedInEmpId
 
-                if (decryptedTenantId <= 0 || decryptedEmployeeId <= 0 || tokenEmployeeId <= 0)
+                int id = SafeParser.TryParseInt(request.DTO.Id);
+                if (id <= 0)
+                {
+                    return ApiResponse<bool>.Fail("Invalid role id.");
+
+                }
+
+
+                if (decryptedEmployeeId <= 0 || decryptedEmployeeId <= 0)
                 {
                     _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
                     return ApiResponse<bool>.Fail("Tenant or employee information missing.");
                 }
 
-                if (!(decryptedEmployeeId == tokenEmployeeId && tokenEmployeeId == loggedInEmpId))
+                if (!(decryptedEmployeeId == loggedInEmpId))
                 {
                     _logger.LogWarning(
-                        "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, TokenEmpId: {TokenEmp}, LoggedEmpId: {LoggedEmp}",
-                        decryptedEmployeeId, tokenEmployeeId, loggedInEmpId
+                        "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
+                         decryptedEmployeeId, loggedInEmpId
                     );
 
                     return ApiResponse<bool>.Fail("Unauthorized: Employee mismatch.");
@@ -126,23 +129,23 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                 var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
                 if (!permissions.Contains("AddBankInfo"))
                 {
-                    await _unitOfWork.RollbackTransactionAsync();
+                    //  await _unitOfWork.RollbackTransactionAsync();
                     //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
                 }
 
-                // 🧩 STEP 5: Validate request data
-                if (request.DTO == null || request.DTO.Id == null)
+                // 🧩 STEP 5: Validate RoleId
+                if (request.DTO.Id == null)
                 {
-                    return new ApiResponse<bool>
-                    {
-                        IsSucceeded = false,
-                        Message = "Delete request cannot be null or invalid Id.",
-                        Data = false
-                    };
+                    _logger.LogWarning("⚠️ Invalid RoleId for delete operation: {RoleId}", request.DTO.Id);
+                    return ApiResponse<bool>.Fail("Invalid RoleId. It must be greater than zero.");
                 }
 
+                _logger.LogInformation("🗑️ Attempting to delete RoleId: {RoleId} for TenantId: {TenantId}", request.DTO.Id, decryptedTenantId);
+
+                // 🧩 STEP 6: Repository call             
+
                 // 🧩 STEP 6: Call repository for delete
-                var isDeleted = await _unitOfWork.DesignationRepository.DeleteDesignationAsync(request.DTO, decryptedEmployeeId);
+                var isDeleted = await _unitOfWork.DesignationRepository.DeleteDesignationAsync(request.DTO, decryptedEmployeeId,id);
 
                 if (isDeleted)
                 {

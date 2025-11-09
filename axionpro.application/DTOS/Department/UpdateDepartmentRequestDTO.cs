@@ -13,7 +13,7 @@ namespace axionpro.application.DTOs.Department
          
         public string? DepartmentName { get; set; }  // अनिवार्य फ़ील्ड
         public string? Description { get; set; } // वैकल्पिक (nullable) फ़ील्ड
-        public bool IsActive { get; set; } = true; // डिफ़ॉल्ट रूप से Active
+        public bool? IsActive { get; set; } 
         public string? Remark { get; set; } // वैकल्पिक (nullable) फ़ील्ड
 
 

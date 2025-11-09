@@ -116,8 +116,9 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                 string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
                 long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
                 long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
-              //  string Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
-               // request.DTO.Id = (_idEncoderService.DecodeString(Id, finalKey)).ToString();
+                request.DTO.DepartmentId = EncryptionSanitizer.CleanEncodedInput(request.DTO.DepartmentId);
+                //  string Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
+                // request.DTO.Id = (_idEncoderService.DecodeString(Id, finalKey)).ToString();
 
 
 
@@ -174,17 +175,17 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                 // ✅ Create designation using repository
                 var responseDTO = await _unitOfWork.DesignationRepository.CreateAsync(request.DTO, decryptedTenantId, decryptedEmployeeId);
 
-                if (responseDTO == null || responseDTO.Items.Any())
+                if (responseDTO == null || responseDTO.Items == null || !responseDTO.Items.Any())
                 {
                     return new ApiResponse<List<GetDesignationResponseDTO>>
                     {
                         IsSucceeded = false,
                         Message = "No designation was created.",
-                        Data = null
+                        Data = new List<GetDesignationResponseDTO>() // empty list instead of null
                     };
                 }
 
-               // var encryptedList = ProjectionHelper.ToGetDesignationResponseDTOs(responseDTO.Items, _encryptionService, tenantKey);
+                // var encryptedList = ProjectionHelper.ToGetDesignationResponseDTOs(responseDTO.Items, _encryptionService, tenantKey);
 
                 // 5️⃣ Commit transaction
                 await _unitOfWork.CommitTransactionAsync();

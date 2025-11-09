@@ -21,7 +21,7 @@ namespace axionpro.application.Interfaces.IRepositories
         Task<GetSingleRoleResponseDTO?> GetByIdAsync1(GetSingleRoleRequestDTO dto);
         Task<ApiResponse<List<GetRoleOptionResponseDTO?>>> GetOptionAsync(GetRoleOptionRequestDTO dto, long tenantId);
 
-        Task<bool> DeleteAsync(DeleteRoleRequestDTO requestDTO, long EmployeeId);
+        Task<bool> DeleteAsync(DeleteRoleRequestDTO requestDTO, long EmployeeId, int id);
         Task<PagedResponseDTO<GetRoleResponseDTO>> CreateAsync(CreateRoleRequestDTO dto, long TenantId, long EmployeeId);
         Task<PagedResponseDTO<GetRoleResponseDTO>> GetAsync(GetRoleRequestDTO request, long tenantId , int Id);
               
