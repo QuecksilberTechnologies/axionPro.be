@@ -274,23 +274,33 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             }).ToList();
         }
 
-        //public static List<GetBaseEmployeeResponseDTO> ToGetBaseInfoResponseDTOs(List<GetBaseEmployeeResponseDTO> entities, IEncryptionService encryptionService, string tenantKey)
-        //{
-        //    if (entities != null && responseDTO.Items.Any())
-        //    {
-        //        foreach (var item in responseDTO.Items)
-        //        {
-        //            item.Id = item.Id; // (skip decode if already raw)
-        //        }
-        //    }
+        public static List<GetBaseEmployeeResponseDTO> ToGetBaseInfoResponseDTOs(
+      List<GetBaseEmployeeResponseDTO> entities,
+      IIdEncoderService encoderService,
+      string tenantKey)
+        {
+            if (entities == null || !entities.Any())
+                return new List<GetBaseEmployeeResponseDTO>();
 
-        //    // Step 2️⃣ Encrypt safely (super lightweight)
-        //    var encryptedList = ProjectionHelper.ToGetBaseInfoResponseDTOs(
-        //        responseDTO.Items,
-        //        _encryptionService,
-        //        tenantKey
-        //    );
-        //}
+            foreach (var item in entities)
+            {
+                // ✅ Sirf Id encode karo (agar valid hai)
+                if (long.TryParse(item.Id, out long rawId) && rawId > 0)
+                {
+                    item.Id = encoderService.EncodeId(rawId, tenantKey);
+                }
+
+                // ✅ Optional null-safe cleanup (lightweight safety)
+                item.EmployementCode ??= string.Empty;
+                item.FirstName ??= string.Empty;
+                item.LastName ??= string.Empty;
+                item.MiddleName ??= string.Empty;
+                item.OfficialEmail ??= string.Empty;
+            }
+
+            return entities;
+        }
+
 
         public static List<GetDepartmentResponseDTO> ToGetDepartmentResponseDTOs(List<GetDepartmentResponseDTO> entities, IIdEncoderService idEncoderService, string tenantKey)
         {

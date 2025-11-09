@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.DTOS.Employee.BaseEmployee
 {
-    public class GetBaseEmployeeResponseDTO: BaseResponse
+    public class GetBaseEmployeeResponseDTO
     {
                   
-         
+             public string Id { get; set; }
             public string EmployementCode { get; set; } = null!;
             public string LastName { get; set; } = string.Empty;
             public string? MiddleName { get; set; }
-            public string FirstName { get; set; } = string.Empty;
+            public string? FirstName { get; set; } = string.Empty;
             public string GenderId { get; set; }
             public DateTime? DateOfBirth { get; set; }
             public DateTime? DateOfOnBoarding { get; set; }

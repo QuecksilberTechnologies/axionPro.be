@@ -41,6 +41,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         private readonly IPermissionService _permissionService;
         private readonly IConfiguration _config;
         private readonly IEncryptionService _encryptionService;
+        private readonly IIdEncoderService _idEncoder;
 
         public GetBaseEmployeeInfoQueryHandler(
             IUnitOfWork unitOfWork,
@@ -50,7 +51,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,
-            IEncryptionService encryptionService)
+            IEncryptionService encryptionService, IIdEncoderService idEncoderService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -60,6 +61,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             _permissionService = permissionService;
             _config = config;
             _encryptionService = encryptionService;
+            _idEncoder = idEncoderService;
         }
 
         public async Task<ApiResponse<List<GetBaseEmployeeResponseDTO>>> Handle(GetBaseEmployeeInfoQuery request, CancellationToken cancellationToken)
@@ -128,7 +130,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 }
 
                 // 🧩 STEP 7: Encrypt Ids and Map using ProjectionHelper (optimized)
-                var resultList = ProjectionHelper.ToGetBaseInfoResponseDTOs(entityPaged.Items, _encryptionService, tenantKey);
+                var resultList = ProjectionHelper.ToGetBaseInfoResponseDTOs(entityPaged.Items, _idEncoder, tenantKey);
 
                 // 🧩 STEP 8: Construct success response with pagination
                 return ApiResponse<List<GetBaseEmployeeResponseDTO>>.SuccessPaginated(

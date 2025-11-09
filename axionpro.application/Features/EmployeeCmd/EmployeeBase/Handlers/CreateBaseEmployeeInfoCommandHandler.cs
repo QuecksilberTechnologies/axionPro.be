@@ -184,7 +184,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 var responseDTO = await _unitOfWork.Employees.CreateAsync(entity);
                  
                 // 5️⃣ Encrypt Result Data
-                 var encryptedList = ProjectionHelper.ToGetBaseInfoResponseDTOs(responseDTO.Items, _encryptionService, tenantKey);
+                 var encryptedList = ProjectionHelper.ToGetBaseInfoResponseDTOs(responseDTO.Items, _idEncoderService, tenantKey);
 
                 // 6️⃣ Commit Transaction
                 await _unitOfWork.CommitTransactionAsync();
@@ -198,7 +198,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     PageSize = responseDTO.PageSize,
                     TotalRecords = responseDTO.TotalCount,
                     TotalPages = responseDTO.TotalPages,
-                    Data = responseDTO.Items,
+                    Data = encryptedList,
                 };
             }
             catch (Exception ex)

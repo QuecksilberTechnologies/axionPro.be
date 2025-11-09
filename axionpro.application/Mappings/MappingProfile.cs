@@ -380,10 +380,11 @@ namespace axionpro.application.Mappings
             #region 🔹 Base Employee Mappings
             CreateMap<Employee, CreateBaseEmployeeRequestDTO>().ReverseMap();
             CreateMap<Employee, GetBaseEmployeeResponseDTO>()
-         .ForMember(dest => dest.EmployementCode, opt => opt.MapFrom(src => src.EmployementCode ?? string.Empty))
-         .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.LastName ?? string.Empty))
+         .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id != null ? src.Id.ToString() : string.Empty))
+         .ForMember(dest => dest.EmployementCode, opt => opt.MapFrom(src => src.EmployementCode))
+         .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.LastName))
          .ForMember(dest => dest.MiddleName, opt => opt.MapFrom(src => src.MiddleName))
-         .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FirstName ?? string.Empty))
+         .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FirstName))
          .ForMember(dest => dest.GenderId, opt => opt.MapFrom(src => src.GenderId.ToString()))
          .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth))
          .ForMember(dest => dest.DateOfOnBoarding, opt => opt.MapFrom(src => src.DateOfOnBoarding))
@@ -398,8 +399,7 @@ namespace axionpro.application.Mappings
          .ForMember(dest => dest.IsInfoVerified, opt => opt.MapFrom(src => src.IsInfoVerified))         
          .ReverseMap();
 
-
-
+             
 
 
 

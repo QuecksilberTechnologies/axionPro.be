@@ -41,13 +41,12 @@ namespace axionpro.persistance.Repositories
         }
 
 
-        
+
         public async Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> CreateAsync(Employee entity)
         {
             try
             {
-               
-                // 🔹 Validation
+                // 🔹 Basic Validation
                 if (entity == null)
                     throw new ArgumentNullException(nameof(entity), "Employee entity cannot be null.");
 
@@ -58,32 +57,45 @@ namespace axionpro.persistance.Repositories
                 await _context.Employees.AddAsync(entity);
                 await _context.SaveChangesAsync();
 
-                // 🔹 Fetch recent list for that employee or tenant
+                // 🔹 Pagination Setup
+                const int pageNumber = 1;
+                const int pageSize = 10;
+
+                // 🔹 Fetch recent list for same tenant
                 var query = _context.Employees
                     .AsNoTracking()
                     .Where(x => x.TenantId == entity.TenantId && x.IsSoftDeleted != true)
                     .OrderByDescending(x => x.Id);
 
-                var totalRecords = await query.CountAsync();
+                int totalCount = await query.CountAsync();
 
-                var records = await query.Take(10).ToListAsync();
+                var pagedData = await query
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
 
-                var responseData = _mapper.Map<List<GetBaseEmployeeResponseDTO>>(records);
+                // 🔹 Map to DTO
+                var mappedData = _mapper.Map<List<GetBaseEmployeeResponseDTO>>(pagedData);
 
-                return new PagedResponseDTO<GetBaseEmployeeResponseDTO>
+                // 🔹 Prepare paged response
+                var result = new PagedResponseDTO<GetBaseEmployeeResponseDTO>
                 {
-                    Items = responseData,
-                    TotalCount = totalRecords,
-                    PageNumber = 1,
-                    PageSize = 10
+                    Items = mappedData,
+                    TotalCount = totalCount,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
                 };
+
+                return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error occurred while creating employee record for {Name}", entity.FirstName);
+                _logger.LogError(ex, "❌ Error while creating employee for {TenantId}", entity.TenantId);
                 throw new Exception($"Failed to add employee: {ex.Message}");
             }
         }
+
 
 
         public async Task<bool> Delete(string id, string tenantKey)
@@ -265,19 +277,16 @@ namespace axionpro.persistance.Repositories
                         LastName = x.LastName,
                         MiddleName = x.MiddleName,
                         FirstName = x.FirstName,
-                        GenderId = x.GenderId,
+                        GenderId = x.GenderId.ToString(),
                         DateOfBirth = x.DateOfBirth,
                         DateOfOnBoarding = x.DateOfOnBoarding,
                         DateOfExit = x.DateOfExit,
-                        DesignationId = x.DesignationId,
-                        EmployeeTypeId = x.EmployeeTypeId,
-                        DepartmentId = x.DepartmentId,
+                        DesignationId = x.DesignationId.ToString(),
+                        EmployeeTypeId = x.EmployeeTypeId.ToString(),
+                        DepartmentId = x.DepartmentId.ToString(),
                         OfficialEmail = x.OfficialEmail,
                         HasPermanent = x.HasPermanent,
-                        IsActive = x.IsActive,
-                        FunctionalId = x.FunctionalId,
-                        ReferalId = x.ReferalId,
-                        Remark = x.Remark,
+                        IsActive = x.IsActive,                       
                         IsEditAllowed = x.IsEditAllowed,
                         IsInfoVerified = x.IsInfoVerified
                     })
