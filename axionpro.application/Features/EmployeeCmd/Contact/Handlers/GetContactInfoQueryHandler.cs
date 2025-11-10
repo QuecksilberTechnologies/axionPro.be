@@ -4,6 +4,8 @@ using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
+using axionpro.application.DTOS.Employee.Bank;
+using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.DTOS.Pagination;
@@ -41,6 +43,7 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
         private readonly IPermissionService _permissionService;
         private readonly IConfiguration _config;
         private readonly IEncryptionService _encryptionService;
+        private readonly IIdEncoderService _idEncoderService;
 
         public GetContactInfoQueryHandler(
             IUnitOfWork unitOfWork,
@@ -50,7 +53,7 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,
-            IEncryptionService encryptionService)
+            IEncryptionService encryptionService, IIdEncoderService idEncoderService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -60,6 +63,7 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
             _permissionService = permissionService;
             _config = config;
             _encryptionService = encryptionService;
+            _idEncoderService = idEncoderService;
         }
 
         public async Task<ApiResponse<List<GetContactResponseDTO>>> Handle(GetContactInfoQuery request, CancellationToken cancellationToken)
@@ -98,48 +102,74 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
                 }
 
                 // Decrypt / convert values
-                string encryptedFromDb = EncryptionSanitizer.SuperSanitize(request.DTO.UserEmployeeId);
-                string key = EncryptionSanitizer.SuperSanitize(tenantKey);
-                string decryptedString = _encryptionService.Decrypt(encryptedFromDb, key);
-                long decryptedUserEmployeeId = SafeParser.TryParseLong(decryptedString ?? "0");
-                long decryptedTenantId = SafeParser.TryParseLong(tokenClaims.TenantId ?? "0");
-                long tokenEmployeeId = SafeParser.TryParseLong(tokenClaims.EmployeeId ?? "0");
-                long Id = SafeParser.TryParseLong(_encryptionService.Decrypt(request.DTO.Id, tenantKey) ?? "0");
-                 
+                string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
+                //UserEmployeeId
+                string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
+                long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
+                //Token TenantId
+                string tokenTenant = EncryptionSanitizer.CleanEncodedInput(tokenClaims.TenantId);
+                long decryptedTenantId = _idEncoderService.DecodeId(tokenTenant, finalKey);
+                //Id              
+                // Actual EmployeeId
+                string actualEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId);
+                long decryptedActualEmployeeId = _idEncoderService.DecodeId(actualEmpId, finalKey);
+                request.DTO.Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
+                long id = _idEncoderService.DecodeId(request.DTO.Id, finalKey);
+                int Id = SafeParser.TryParseInt(id);
+
                 // 🧩 STEP 4: Validate all employee references
-                if (decryptedTenantId <= 0 || decryptedUserEmployeeId <= 0 || tokenEmployeeId <= 0)
+                if (decryptedTenantId <= 0)
                 {
                     _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
                     return ApiResponse<List<GetContactResponseDTO>>.Fail("Tenant or employee information missing.");
                 }
 
-                if (!(decryptedUserEmployeeId == tokenEmployeeId && tokenEmployeeId == loggedInEmpId))
+
+                if (decryptedTenantId <= 0 || decryptedEmployeeId <= 0)
+                {
+                    _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
+                    return ApiResponse<List<GetContactResponseDTO>>.Fail("Tenant or employee information missing.");
+                }
+
+                if (!(decryptedEmployeeId == loggedInEmpId))
                 {
                     _logger.LogWarning(
-                        "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, TokenEmpId: {TokenEmp}, LoggedEmpId: {LoggedEmp}",
-                        decryptedUserEmployeeId, tokenEmployeeId, loggedInEmpId
+                        "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
+                         decryptedEmployeeId, loggedInEmpId
                     );
 
                     return ApiResponse<List<GetContactResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
                 }
 
                 var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
-                if (!permissions.Contains("AddIdentityInfo"))
+                if (!permissions.Contains("AddBankInfo"))
                 {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<List<GetContactResponseDTO>>.Fail("You do not have permission to add identity info.");
+                    //  await _unitOfWork.RollbackTransactionAsync();
+                    //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
+
+
+                    // 🧩 STEP 4: Call Repository to get data          
+                  //  return ApiResponse<List<GetContactResponseDTO>>.Fail("You do not have permission to add identity info.");
                 }
                 // 4️⃣ Fetch Data from Repository
                 // 4️⃣ Fetch from repository
-                PagedResponseDTO<GetContactResponseDTO> Entity = await _unitOfWork.EmployeeContactRepository.GetInfo(request.DTO, decryptedUserEmployeeId, Id);
+              var Entity = await _unitOfWork.EmployeeContactRepository.GetInfo(request.DTO, decryptedEmployeeId,Id);
                 if (Entity == null || !Entity.Items.Any())
                     return ApiResponse<List<GetContactResponseDTO>>.Fail("No Contact info found.");
 
                 // 5️⃣ Projection (fastest approach)
-                var result = ProjectionHelper.ToGetContactResponseDTOs(Entity.Items, _encryptionService, tenantKey);
+                var responseDTO = ProjectionHelper.ToGetContactResponseDTOs(Entity.Items, _idEncoderService, tenantKey);
 
                 // 6️⃣ Return success response    
-                return ApiResponse<List<GetContactResponseDTO>>.Success(result, "Contact info retrieved successfully.");
+               
+                return ApiResponse<List<GetContactResponseDTO>>.SuccessPaginated(
+                  data: responseDTO ,
+                  message: "Contact info retrieved successfully.",
+                  pageNumber: Entity.PageNumber,
+                  pageSize: Entity.PageSize,
+                  totalRecords: Entity.TotalCount,
+                  totalPages: Entity.TotalPages
+              );
             }
             catch (Exception ex)
             {

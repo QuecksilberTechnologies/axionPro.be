@@ -128,9 +128,10 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                     return ApiResponse<bool>.Fail("Field name is required.");
 
                 // 🧱 Step 5: Fetch Existing Bank Record
-                             
 
-                var existingRecord = await _unitOfWork.EmployeeBankRepository.GetSingleRecordAsync(request.DTO.Id, true);
+
+                //var existingRecord = await _unitOfWork.EmployeeBankRepository.GetSingleRecordAsync(request.DTO.Id, true);
+                EmployeeBankDetail existingRecord = new EmployeeBankDetail(); 
 
                 if (existingRecord == null)
                 {

@@ -22,9 +22,8 @@ public interface IEmployeeBankRepository
     #region Bank-info
     public Task<PagedResponseDTO<GetBankResponseDTO>> AddCreatedAsync(EmployeeBankDetail entity); // Ensure this returns 
     public Task< PagedResponseDTO<GetBankResponseDTO>> CreateAsync(EmployeeBankDetail entity);  // Ensure this returns 
-    public Task<EmployeeBankDetail> GetSingleRecordAsync(long Id ,bool IsActive);  // Ensure this returns 
-   
-    public  Task<PagedResponseDTO<GetBankResponseDTO>> GetInfo(GetBankReqestDTO dto, long tenantId, long employeeId);
+    public Task<GetBankResponseDTO> GetSingleRecordAsync(int Id ,bool IsActive);  // Ensure this returns    
+    public  Task<PagedResponseDTO<GetBankResponseDTO>> GetInfoAsync(GetBankReqestDTO dto, int id, long EmployeeId);
 
 
 

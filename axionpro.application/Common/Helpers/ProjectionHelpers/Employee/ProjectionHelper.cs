@@ -10,6 +10,7 @@ using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.DTOS.Employee.Experience;
 using axionpro.application.DTOS.Employee.Sensitive;
+using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.domain.Entity;
 using Microsoft.Win32.SafeHandles;
@@ -45,107 +46,68 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         }
 
 
-        public static List<GetBankResponseDTO> ToGetBankResponseDTOs(
-                      List<GetBankResponseDTO> entities,
-                      IEncryptionService encryptionService,
-                       string tenantKey,
-                       string empId)
+      
+
+        public static List<GetDependentResponseDTO> ToGetDependentResponseDTOs(List<GetDependentResponseDTO> entities,
+      IIdEncoderService encoderService,
+      string tenantKey)
         {
-            if (entities == null || entities.Count == 0)
-                return new List<GetBankResponseDTO>();
-
-            return entities.Select(e => new GetBankResponseDTO
-            {
-                Id = SafeEncrypt(e.Id?.ToString(), encryptionService, tenantKey),
-                EmployeeId = empId,
-                BankName = e.BankName ?? string.Empty,
-                AccountNumber = e.AccountNumber ?? string.Empty,
-                IFSCCode = e.IFSCCode ?? string.Empty,
-                BranchName = e.BranchName ?? string.Empty,
-                IsPrimary = e.IsPrimaryAccount
-            }).ToList();
-        }
-
-        public static List<GetContactResponseDTO> ToGetContactResponseDTOs(
-     List<GetContactResponseDTO> entities,
-     IEncryptionService encryptionService,
-     string tenantKey)
-        {
-            if (entities == null || entities.Count == 0)
-                return new List<GetContactResponseDTO>();
-
-            return entities.Select(e => new GetContactResponseDTO
-            {
-                Id = SafeEncrypt(e.Id, encryptionService, tenantKey),
-                UserEmployeeId = SafeEncrypt(e.UserEmployeeId, encryptionService, tenantKey),
-                ContactLocation = e.ContactLocation ?? string.Empty,
-                LocalAddress = e.LocalAddress ?? string.Empty,
-                LandMark = e.LandMark ?? string.Empty,
-                CountryId = e.CountryId ?? 0,
-                Country = e.Country ?? string.Empty,
-                StateId = e.StateId ?? 0,
-                State = e.State ?? string.Empty,
-                DistrictId = e.DistrictId ?? 0,
-                District = e.District ?? string.Empty,
-                IsPrimary = e.IsPrimary,
-                IsActive = e.IsActive,
-                IsInfoVerified = e.IsInfoVerified,
-                IsEditAllowed = e.IsEditAllowed,
-                ContactType = e.ContactType,
-                PermanentAddress = e.PermanentAddress ?? string.Empty,
-                ContactNumber = e.ContactNumber ?? string.Empty,
-                AlternateNumber = e.AlternateNumber ?? string.Empty,
-                Email = e.Email ?? string.Empty,
-                Remark = e.Remark ?? string.Empty,
-                Description = e.Description ?? string.Empty,
-                AddedById = SafeEncrypt(e.AddedById, encryptionService, tenantKey),
-                AddedDateTime = e.AddedDateTime,
-                UpdatedById = SafeEncrypt(e.UpdatedById, encryptionService, tenantKey),
-                UpdatedDateTime = e.UpdatedDateTime,
-                InfoVerifiedById = SafeEncrypt(e.InfoVerifiedById, encryptionService, tenantKey),
-                InfoVerifiedDateTime = e.InfoVerifiedDateTime
-            }).ToList();
-        }
-
-
-        public static List<GetDependentResponseDTO> ToGetDependentResponseDTOs(
-       List<GetDependentResponseDTO> entities,
-       IEncryptionService encryptionService,
-       string tenantKey)
-        {
-            if (entities == null || entities.Count == 0)
+            if (entities == null || !entities.Any())
                 return new List<GetDependentResponseDTO>();
 
-            return entities.Select(e => new GetDependentResponseDTO
+            foreach (var item in entities)
             {
-                Id = SafeEncrypt(e.Id, encryptionService, tenantKey),
-                RoleId = e.RoleId,
-                DependentName = e.DependentName ?? string.Empty,
-                Relation = e.Relation ?? string.Empty,
-                DateOfBirth = e.DateOfBirth,
-                IsCoveredInPolicy = e.IsCoveredInPolicy,
-                IsMarried = e.IsMarried,
-                Remark = e.Remark ?? string.Empty,
-                Description = e.Description ?? string.Empty,
+                // ✅ Sirf Id encode karo (agar valid hai)
+                if (long.TryParse(item.Id, out long rawId) && rawId > 0)
+                {
+                    item.Id = encoderService.EncodeId(rawId, tenantKey);
+                }
+                // ✅ Encode EmployeeId separately
+                if (long.TryParse(item.EmployeeId, out long empRawId) && empRawId > 0)
+                {
+                    item.EmployeeId = encoderService.EncodeId(empRawId, tenantKey);
+                }
 
-                AddedById = SafeEncrypt(e.AddedById, encryptionService, tenantKey),
-                UpdatedById = SafeEncrypt(e.UpdatedById, encryptionService, tenantKey),
-                AddedDateTime = e.AddedDateTime,
-                UpdatedDateTime = e.UpdatedDateTime,
+                // ✅ Optional cleanup (avoid nulls)
+                item.EmployeeId ??= string.Empty;
+                item.Id ??= string.Empty;
 
-                IsActive = e.IsActive,
-                InfoVerifiedById = SafeEncrypt(e.InfoVerifiedById, encryptionService, tenantKey),
-                IsInfoVerified = e.IsInfoVerified,
-                IsEditAllowed = e.IsEditAllowed,
-                InfoVerifiedDateTime = e.InfoVerifiedDateTime,
+            }
 
-                PageNumber = e.PageNumber,
-                PageSize = e.PageSize,
-                SortBy = e.SortBy,
-                SortOrder = e.SortOrder
-            }).ToList();
+            return entities;
+        }
+        
+        
+        public static List<GetContactResponseDTO> ToGetContactResponseDTOs(List<GetContactResponseDTO> entities,
+      IIdEncoderService encoderService,
+      string tenantKey)
+        {
+            if (entities == null || !entities.Any())
+                return new List<GetContactResponseDTO>();
+
+            foreach (var item in entities)
+            {
+                // ✅ Sirf Id encode karo (agar valid hai)
+                if (long.TryParse(item.Id, out long rawId) && rawId > 0)
+                {
+                    item.Id = encoderService.EncodeId(rawId, tenantKey);
+                }
+                // ✅ Encode EmployeeId separately
+                if (long.TryParse(item.EmployeeId, out long empRawId) && empRawId > 0)
+                {
+                    item.EmployeeId = encoderService.EncodeId(empRawId, tenantKey);
+                }
+
+                // ✅ Optional cleanup (avoid nulls)
+                item.EmployeeId ??= string.Empty;
+                item.Id ??= string.Empty;
+
+            }
+
+            return entities;
         }
 
+     
 
         public static List<GetEducationResponseDTO> ToGetEducationResponseDTOs(
      List<GetEducationResponseDTO> entities,
@@ -274,8 +236,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             }).ToList();
         }
 
-        public static List<GetBaseEmployeeResponseDTO> ToGetBaseInfoResponseDTOs(
-      List<GetBaseEmployeeResponseDTO> entities,
+        public static List<GetBaseEmployeeResponseDTO> ToGetBaseInfoResponseDTOs(List<GetBaseEmployeeResponseDTO> entities,
       IIdEncoderService encoderService,
       string tenantKey)
         {
@@ -299,6 +260,42 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             }
 
             return entities;
+        }
+        public static List<GetBankResponseDTO> ToGetBankResponseDTOs(
+    PagedResponseDTO<GetBankResponseDTO> entities,
+    IIdEncoderService encoderService,
+    string tenantKey,
+    string empId)
+        {
+            if (entities == null || entities.Items == null || !entities.Items.Any())
+                return new List<GetBankResponseDTO>();
+
+            var result = new List<GetBankResponseDTO>();
+
+            foreach (var item in entities.Items) // now item is GetBankResponseDTO
+            {
+                if (item == null) continue;
+
+                // ✅ Encode Bank Record Id
+                if (long.TryParse(item.Id, out long rawId) && rawId > 0)
+                {
+                    item.Id = encoderService.EncodeId(rawId, tenantKey);
+                }
+
+                // ✅ Encode EmployeeId separately
+                if (long.TryParse(item.EmployeeId, out long empRawId) && empRawId > 0)
+                {
+                    item.EmployeeId = encoderService.EncodeId(empRawId, tenantKey);
+                }
+
+                // ✅ Optional cleanup (avoid nulls)
+                item.EmployeeId ??= string.Empty;
+                item.Id ??= string.Empty;
+
+                result.Add(item);
+            }
+
+            return result;
         }
 
 

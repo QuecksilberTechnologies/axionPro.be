@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -9,6 +10,7 @@ using axionpro.persistance.Data.Context;
 using Azure.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Drawing.Printing;
 
 namespace axionpro.persistance.Repositories
 {
@@ -112,11 +114,18 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<PagedResponseDTO<GetContactResponseDTO>> GetInfo(GetContactRequestDTO dto, long EmployeeId, long Id)
+        public async Task<PagedResponseDTO<GetContactResponseDTO>> GetInfo(GetContactRequestDTO dto, long EmployeeId, int id)
         {
             try
             {
-                // 🧭 Base query with mandatory filters
+                // 🔹 Pagination & Sorting defaults
+                int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
+                int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
+                string sortBy = dto.SortBy?.ToLower() ?? "id";
+                string sortOrder = dto.SortOrder?.ToLower() ?? "desc";
+                bool isDescending = string.Equals(sortOrder, "desc", StringComparison.OrdinalIgnoreCase);
+
+                // 🔹 Base query
                 var baseQuery = _context.EmployeeContacts
                     .AsNoTracking()
                     .Where(contact =>
@@ -124,131 +133,77 @@ namespace axionpro.persistance.Repositories
                         (dto.IsActive == null || contact.IsActive == dto.IsActive) &&
                         contact.IsSoftDeleted != true);
 
-                // 🗺️ Optional filters
-                long id = 0;
-                if (!string.IsNullOrWhiteSpace(dto.Id))
-                {
-                    long.TryParse(dto.Id, out id);
-                }
+                // 🔹 Optional filters with SafeParser
+                int countryId = !string.IsNullOrWhiteSpace(dto.CountryId) ? SafeParser.TryParseInt(dto.CountryId) : 0;
+                int stateId = !string.IsNullOrWhiteSpace(dto.StateId) ? SafeParser.TryParseInt(dto.StateId) : 0;
+                int districtId = !string.IsNullOrWhiteSpace(dto.DistrictId) ? SafeParser.TryParseInt(dto.DistrictId) : 0;
 
                 if (id > 0)
                     baseQuery = baseQuery.Where(x => x.Id == id);
-
-                if (dto.CountryId.HasValue)
-                    baseQuery = baseQuery.Where(x => x.CountryId == dto.CountryId);
-
-                if (dto.StateId.HasValue)
-                    baseQuery = baseQuery.Where(x => x.StateId == dto.StateId);
-
-                if (dto.DistrictId.HasValue)
-                    baseQuery = baseQuery.Where(x => x.DistrictId == dto.DistrictId);
-
+                if (countryId > 0)
+                    baseQuery = baseQuery.Where(x => x.CountryId == countryId);
+                if (stateId > 0)
+                    baseQuery = baseQuery.Where(x => x.StateId == stateId);
+                if (districtId > 0)
+                    baseQuery = baseQuery.Where(x => x.DistrictId == districtId);
                 if (dto.IsPrimary.HasValue)
                     baseQuery = baseQuery.Where(x => x.IsPrimary == dto.IsPrimary);
 
-                // 🔍 Search filter
-                if (!string.IsNullOrEmpty(dto.SortBy))
+                // 🔹 Sorting
+                baseQuery = sortBy switch
                 {
-                    var keyword = dto.SortBy.Trim().ToLower();
-                    baseQuery = baseQuery.Where(x =>
-                        (x.LocalAddress != null && x.LocalAddress.ToLower().Contains(keyword)) ||
-                        (x.LandMark != null && x.LandMark.ToLower().Contains(keyword)));
-                }
+                    "countryid" => isDescending ? baseQuery.OrderByDescending(x => x.CountryId) : baseQuery.OrderBy(x => x.CountryId),
+                    "stateid" => isDescending ? baseQuery.OrderByDescending(x => x.StateId) : baseQuery.OrderBy(x => x.StateId),
+                    "districtid" => isDescending ? baseQuery.OrderByDescending(x => x.DistrictId) : baseQuery.OrderBy(x => x.DistrictId),
+                    "contactnumber" => isDescending ? baseQuery.OrderByDescending(x => x.ContactNumber) : baseQuery.OrderBy(x => x.ContactNumber),
+                    _ => isDescending ? baseQuery.OrderByDescending(x => x.Id) : baseQuery.OrderBy(x => x.Id)
+                };
 
-                // 🔽 Sorting
-                bool isDescending = string.Equals(dto.SortOrder, "desc", StringComparison.OrdinalIgnoreCase);
-                if (!string.IsNullOrEmpty(dto.SortBy))
-                {
-                    baseQuery = dto.SortBy.ToLower() switch
-                    {
-                        "countryid" => isDescending
-                            ? baseQuery.OrderByDescending(x => x.CountryId)
-                            : baseQuery.OrderBy(x => x.CountryId),
-
-                        "stateid" => isDescending
-                            ? baseQuery.OrderByDescending(x => x.StateId)
-                            : baseQuery.OrderBy(x => x.StateId),
-
-                        "districtid" => isDescending
-                            ? baseQuery.OrderByDescending(x => x.DistrictId)
-                            : baseQuery.OrderBy(x => x.DistrictId),
-
-                        _ => isDescending
-                            ? baseQuery.OrderByDescending(x => x.Id)
-                            : baseQuery.OrderBy(x => x.Id)
-                    };
-
-                }
-                else
-                {
-                    baseQuery = baseQuery.OrderByDescending(x => x.Id);
-                }
-
-                // 📄 Total Count
+                // 🔹 Total records before pagination
                 var totalRecords = await baseQuery.CountAsync();
 
-                // 🧩 Join Query (Country, State, District)
-                var query = from contact in baseQuery
-                            join country in _context.Countries on contact.CountryId equals country.Id into countryGroup
-                            from country in countryGroup.DefaultIfEmpty()
-                            join state in _context.States on contact.StateId equals state.Id into stateGroup
-                            from state in stateGroup.DefaultIfEmpty()
-                            join district in _context.Districts on contact.DistrictId equals district.Id into districtGroup
-                            from district in districtGroup.DefaultIfEmpty()
-                            select new GetContactResponseDTO
-                            {
-                                // 🆔 Encrypted Ids
-                                Id =  contact.Id.ToString(),
-                                EmployeeId  =  contact.EmployeeId.ToString(),
+                // 🔹 Fetch data to memory for client-side mapping
+                var data = baseQuery
+                    .AsEnumerable() // Client-side for null-safe conversions
+                    .Select(contact => new GetContactResponseDTO
+                    {
+                        Id = contact.Id.ToString(),
+                        EmployeeId = contact.EmployeeId.ToString(),
 
-                                // 📋 Contact Info
-                                LocalAddress = contact.LocalAddress,
-                                LandMark = contact.LandMark,
-                                CountryId = contact.CountryId,
-                                Country = country != null ? country.CountryName : null,
-                                StateId = contact.StateId,
-                                State = state != null ? state.StateName : null,
-                                DistrictId = contact.DistrictId,
-                                District = district != null ? district.DistrictName : null,
-                                IsPrimary = contact.IsPrimary,
-                                IsActive = contact.IsActive,
-                                IsInfoVerified = contact.IsInfoVerified,
-                                IsEditAllowed = contact.IsEditAllowed,
+                        // Contact Info
+                        LocalAddress = contact.LocalAddress,
+                        LandMark = contact.LandMark,
+                        CountryId = contact.CountryId.ToString(),
+                        StateId = contact.StateId.ToString(),
+                        DistrictId = contact.DistrictId.ToString(),
+                        IsPrimary = contact.IsPrimary,
+                        IsActive = contact.IsActive,
+                        IsInfoVerified = contact.IsInfoVerified,
+                        IsEditAllowed = contact.IsEditAllowed,
+                        ContactType = contact.ContactType.HasValue ? contact.ContactType.Value.ToString() : null,
+                        PermanentAddress = contact.PermanentAddress,
+                        ContactNumber = contact.ContactNumber,
+                        AlternateNumber = contact.AlternateNumber,
+                        Email = contact.Email,
+                        Remark = contact.Remark,
+                        Description = contact.Description,
 
-                                // 📞 Additional Info
-                                ContactType = contact.ContactType,
-                                PermanentAddress = contact.PermanentAddress,
-                                ContactNumber = contact.ContactNumber,
-                                AlternateNumber = contact.AlternateNumber,
-                                Email = contact.Email,
-                                Remark = contact.Remark,
-                                Description = contact.Description,
+                        InfoVerifiedById = contact.InfoVerifiedById?.ToString(),
+                        InfoVerifiedDateTime = contact.InfoVerifiedDateTime
+                    })
+                    .DistinctBy(x => x.Id)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
 
-                                // 🕒 Audit Fields
-                                AddedById = contact.AddedById.ToString(),
-                                AddedDateTime = contact.AddedDateTime,
-                                UpdatedById = contact.UpdatedById.ToString(),
-                                UpdatedDateTime = contact.UpdatedDateTime,
-                                InfoVerifiedById = contact.InfoVerifiedById.ToString(),
-                                InfoVerifiedDateTime = contact.InfoVerifiedDateTime
-                            };
-
-                // 🚫 Remove duplicates
-                var distinctQuery = query.DistinctBy(x => x.Id);
-
-                // 📜 Pagination
-                var pagedRecords = await distinctQuery
-                    .Skip((dto.PageNumber - 1) * dto.PageSize)
-                    .Take(dto.PageSize)
-                    .ToListAsync();
-
-                // 📦 Final Response
+                // 🔹 Return paged response
                 return new PagedResponseDTO<GetContactResponseDTO>
                 {
-                    Items = pagedRecords ?? new List<GetContactResponseDTO>(),
+                    Items = data,
                     TotalCount = totalRecords,
-                    PageNumber = dto.PageNumber,
-                    PageSize = dto.PageSize
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize)
                 };
             }
             catch (Exception ex)
@@ -257,8 +212,6 @@ namespace axionpro.persistance.Repositories
                 throw new Exception($"Failed to fetch contacts: {ex.Message}");
             }
         }
-
-
 
 
 
@@ -278,5 +231,7 @@ namespace axionpro.persistance.Repositories
         {
             throw new NotImplementedException();
         }
+
+       
     }
 }

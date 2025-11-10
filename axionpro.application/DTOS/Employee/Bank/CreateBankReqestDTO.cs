@@ -11,15 +11,14 @@ namespace axionpro.application.DTOS.Employee.Bank
     /// 
     /// <summary> TenantId Required</summary>
    
-    public class CreateBankRequestDTO:BaseRequest
+    public class CreateBankRequestDTO
     {
         /// <summary> TenantId Required</summary>
 
         [Required]
-      
-        public string EmployeeId { get; set; }
-        public int RoleId { get; set; }
-        public bool IsActive { get; set; }        
+
+        public string UserEmployeeId { get; set; } = string.Empty;        
+        public string EmployeeId { get; set; } = string.Empty;      
         public string? BankName { get; set; }
         public string? AccountNumber { get; set; }
         public string? IFSCCode { get; set; }
@@ -27,10 +26,7 @@ namespace axionpro.application.DTOS.Employee.Bank
         public string? AccountType { get; set; }
         public string? UPIId { get; set; }
         public bool IsPrimaryAccount { get; set; }= false;        
-        public string? AddedById { get; set; }
-        public DateTime? AddedDateTime { get; set; }
-        public bool IsEditAllowed { get; set; } = true;
-        public bool IsInfoVerified { get; set; } = false;
+  
 
 
     }

@@ -39,6 +39,8 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
         private readonly IPermissionService _permissionService;
         private readonly IConfiguration _config;
         private readonly IEncryptionService _encryptionService;
+        private readonly IIdEncoderService _idEncoderService;
+
 
         public GetDependentInfoQueryHandler(
             IUnitOfWork unitOfWork,
@@ -48,7 +50,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,
-            IEncryptionService encryptionService)
+          IEncryptionService encryptionService, IIdEncoderService idEncoderService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -58,7 +60,9 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
             _permissionService = permissionService;
             _config = config;
             _encryptionService = encryptionService;
+            _idEncoderService = idEncoderService;
         }
+
 
         public async Task<ApiResponse<List<GetDependentResponseDTO>>> Handle(GetDependentInfoQuery request, CancellationToken cancellationToken)
         {
@@ -133,7 +137,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                     return ApiResponse<List<GetDependentResponseDTO>>.Fail("No dependent info found.");
 
                 // 5️⃣ Projection for fast mapping
-                var result = ProjectionHelper.ToGetDependentResponseDTOs(Entity.Items, _encryptionService, tenantKey);
+                var result = ProjectionHelper.ToGetDependentResponseDTOs(Entity.Items, _idEncoderService, tenantKey);
 
                 // 6️⃣ Success response
                 return ApiResponse<List<GetDependentResponseDTO>>.Success(result, "Dependent info retrieved successfully.");

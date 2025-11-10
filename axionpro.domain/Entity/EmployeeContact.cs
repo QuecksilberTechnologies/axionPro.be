@@ -9,7 +9,7 @@ public partial class EmployeeContact
 
     public long EmployeeId { get; set; }
 
-    public int ContactType { get; set; }
+    public int? ContactType { get; set; }
 
     public string ContactNumber { get; set; } = null!;
 
@@ -52,7 +52,7 @@ public partial class EmployeeContact
     public long? SoftDeletedById { get; set; }
 
     public DateTime? DeletedDateTime { get; set; }
-
+    
     public bool? IsEditAllowed { get; set; }
 
     public bool? IsInfoVerified { get; set; }

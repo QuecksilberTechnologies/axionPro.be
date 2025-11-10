@@ -1,5 +1,6 @@
 ﻿
 
+using axionpro.application.DTOs.Department;
 using axionpro.application.DTOs.Employee.AccessResponse;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
@@ -26,13 +27,13 @@ public interface IBaseEmployeeRepository
 
     Task<GetLeaveBalanceToEmployeeResponseDTO> UpdateLeaveBalanceToEmployee(UpdateLeaveBalanceToEmployeeRequestDTO updateLeaveBalanceTo);  // Ensure this returns Task<Employee>   
 
-     Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> GetInfo(GetBaseEmployeeRequestDTO dto, long  decryptedTenantId);
+     Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> GetInfo(GetBaseEmployeeRequestDTO dto, long  decryptedTenantId, long id);
 
     public Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> CreateAsync(Employee entity);
     
     public Task<GetMinimalEmployeeResponseDTO> GetSingleRecordAsync(long Id, bool IsActive);  // Ensure this returns 
-
-      public  Task<bool> DeleteAsync(string id, string tenantKey);
+    
+      public Task<bool> DeleteAsync(long id);
       public  Task<long> AutoCreated(Employee entity);
      
       public Task<bool> UpdateEmployeeFieldAsync(long Id, string entity, string fieldName, object? fieldValue, long updatedById);

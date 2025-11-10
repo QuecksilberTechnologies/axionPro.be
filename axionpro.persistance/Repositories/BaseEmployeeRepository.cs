@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.EmployeeLeavePolicyMap;
 using axionpro.application.DTOS.Pagination;
@@ -7,6 +8,8 @@ using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
+using Azure.Core;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -135,10 +138,84 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public Task<bool> DeleteAsync(string id, string tenantKey)
+
+
+        public async Task<bool> DeleteAsync(long id)
         {
-            throw new NotImplementedException();
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                // 🔹 Main Employee record
+                var employee = await _context.Employees
+                    .FirstOrDefaultAsync(e => e.Id == id && (e.IsSoftDeleted == null || e.IsSoftDeleted == false));
+
+                if (employee == null)
+                {
+                    _logger.LogWarning($"⚠️ Employee with ID {id} not found or already deleted.");
+                    return false;
+                }
+
+                // 🔹 Soft delete main Employee
+                employee.IsSoftDeleted = true;
+                employee.UpdatedDateTime = DateTime.UtcNow;
+
+                _context.Employees.Update(employee);
+
+                // 🔹 Related Employee Details
+                var bankDetails = await _context.EmployeeBankDetails
+                    .Where(d => d.EmployeeId == id && (d.IsSoftDeleted == null || d.IsSoftDeleted == false))
+                    .ToListAsync();
+
+                foreach (var detail in bankDetails)
+                {
+                    detail.IsSoftDeleted = true;
+                    detail.UpdatedDateTime = DateTime.UtcNow;
+                }
+
+                _context.EmployeeBankDetails.UpdateRange(bankDetails);
+
+                // 🔹 Related Bank Info
+                var bankInfos = await _context.EmployeeContacts
+                    .Where(b => b.EmployeeId == id && (b.IsSoftDeleted == null || b.IsSoftDeleted == false))
+                    .ToListAsync();
+
+                foreach (var bank in bankInfos)
+                {
+                    bank.IsSoftDeleted = true;
+                    bank.UpdatedDateTime = DateTime.UtcNow;
+                }
+
+                _context.EmployeeContacts.UpdateRange(bankInfos);
+
+                // 🔹 Related Address
+                var addresses = await _context.EmployeeContacts
+                    .Where(a => a.EmployeeId == id && (a.IsSoftDeleted == null || a.IsSoftDeleted == false))
+                    .ToListAsync();
+
+                foreach (var addr in addresses)
+                {
+                    addr.IsSoftDeleted = true;
+                    addr.UpdatedDateTime = DateTime.UtcNow;
+                }
+
+                _context.EmployeeContacts.UpdateRange(addresses);
+
+                // 🔹 Save changes in single transaction
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                _logger.LogInformation($"✅ Employee {id} and related records soft deleted successfully.");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, $"❌ Failed to delete employee and related records for ID {id}");
+                throw new Exception($"Failed to delete employee {id}: {ex.Message}", ex);
+            }
         }
+
 
         public async Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> GetImage(GetEmployeeImageRequestDTO dto, long decryptedTenantId)
         {
@@ -202,26 +279,31 @@ namespace axionpro.persistance.Repositories
        
         
         }
- 
 
-        public async  Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> GetInfo(GetBaseEmployeeRequestDTO dto, long decryptedTenantId)
+
+        public async Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> GetInfo(GetBaseEmployeeRequestDTO dto, long decryptedTenantId, long id)
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
-
+          
             try
             {
                 // 🧩 Step 1: Pagination defaults
                 int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
                 int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
 
-                // 🧩 Step 2: Base query (Filter by Tenant)
+                // 🧩 Step 2: Base query (Tenant + Active filter)
                 var query = context.Employees
                     .AsNoTracking()
                     .Where(x => x.TenantId == decryptedTenantId && x.IsSoftDeleted != true);
+                
+                // 🧩 Step 3: Safe parse helpers (convert string → long safely)
+                   
+                int designationId = SafeParser.TryParseInt(dto.DesignationId); 
+                int typeId = SafeParser.TryParseInt(dto.Id);
 
-                // 🧩 Step 3: Dynamic filters
-                if (dto.EmployeeDocumentId.HasValue)
-                    query = query.Where(x => x.EmployeeDocumentId == dto.EmployeeDocumentId);
+                // 🧩 Step 4: Dynamic filters (null-safe + condition-based)
+                if (id > 0)
+                    query = query.Where(x => x.Id == id);
 
                 if (!string.IsNullOrWhiteSpace(dto.EmployementCode))
                     query = query.Where(x => x.EmployementCode.Contains(dto.EmployementCode));
@@ -232,47 +314,46 @@ namespace axionpro.persistance.Repositories
                 if (!string.IsNullOrWhiteSpace(dto.LastName))
                     query = query.Where(x => x.LastName.Contains(dto.LastName));
 
+                if (dto.DateOfBirth.HasValue)
+                    query = query.Where(x => x.DateOfBirth == dto.DateOfBirth);
+
                 if (dto.DateOfOnBoarding.HasValue)
                     query = query.Where(x => x.DateOfOnBoarding == dto.DateOfOnBoarding);
-               
 
-                if (dto.DesignationId.HasValue)
-                    query = query.Where(x => x.DesignationId == dto.DesignationId);
+                if (designationId > 0)
+                    query = query.Where(x => x.DesignationId == designationId);
 
-                if (dto.DepartmentId.HasValue)
-                    query = query.Where(x => x.DepartmentId == dto.DepartmentId);
-
-                if (!string.IsNullOrWhiteSpace(dto.OfficialEmail))
-                    query = query.Where(x => x.OfficialEmail.Contains(dto.OfficialEmail));
+                if (typeId > 0)
+                    query = query.Where(x => x.EmployeeTypeId == typeId);
 
                 if (dto.HasPermanent.HasValue)
                     query = query.Where(x => x.HasPermanent == dto.HasPermanent);
 
-                if (dto.TypeId.HasValue)
-                    query = query.Where(x => x.EmployeeTypeId == dto.TypeId);
-
-                if (dto.IsEditAllowed)
+                if (dto.IsEditAllowed.HasValue)
                     query = query.Where(x => x.IsEditAllowed == dto.IsEditAllowed);
 
-                if (dto.IsInfoVerified)
+                if (dto.IsInfoVerified.HasValue)
                     query = query.Where(x => x.IsInfoVerified == dto.IsInfoVerified);
 
-                // 🧩 Step 4: Sorting (default by EmployeeDocumentId DESC)
-                query = dto.SortOrder?.ToLower() == "asc"
-                    ? query.OrderBy(x => x.EmployeeDocumentId)
-                    : query.OrderByDescending(x => x.EmployeeDocumentId);
+                // 🧩 Step 5: Sorting (custom field ya default)
+                bool isAscending = string.Equals(dto.SortOrder, "asc", StringComparison.OrdinalIgnoreCase);
+                query = dto.SortBy?.ToLower() switch
+                {
+                    "firstname" => isAscending ? query.OrderBy(x => x.FirstName) : query.OrderByDescending(x => x.FirstName),
+                    "lastname" => isAscending ? query.OrderBy(x => x.LastName) : query.OrderByDescending(x => x.LastName),
+                    "employementcode" => isAscending ? query.OrderBy(x => x.EmployementCode) : query.OrderByDescending(x => x.EmployementCode),
+                    _ => isAscending ? query.OrderBy(x => x.Id) : query.OrderByDescending(x => x.Id)
+                };
 
-                // 🧩 Step 5: Total count before paging
+                // 🧩 Step 6: Pagination & total count
                 int totalCount = await query.CountAsync();
 
-                // 🧩 Step 6: Fetch paginated data
-                var data = await query
+                var records = await query
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .Select(x => new GetBaseEmployeeResponseDTO
                     {
-
-                        Id = (x.Id).ToString(),
+                        Id = x.Id.ToString(),
                         EmployementCode = x.EmployementCode,
                         LastName = x.LastName,
                         MiddleName = x.MiddleName,
@@ -286,19 +367,19 @@ namespace axionpro.persistance.Repositories
                         DepartmentId = x.DepartmentId.ToString(),
                         OfficialEmail = x.OfficialEmail,
                         HasPermanent = x.HasPermanent,
-                        IsActive = x.IsActive,                       
+                        IsActive = x.IsActive,
                         IsEditAllowed = x.IsEditAllowed,
                         IsInfoVerified = x.IsInfoVerified
                     })
                     .ToListAsync();
 
-                // 🧩 Step 7: Return paginated response
+                // 🧩 Step 7: Final paged response
                 return new PagedResponseDTO<GetBaseEmployeeResponseDTO>
                 {
-                    Items = data,
+                    Items = records,
                     TotalCount = totalCount,
                     PageNumber = pageNumber,
-                    PageSize = pageSize,
+                    TotalPages = (int)Math.Ceiling((double)totalCount/pageSize)
 
                 };
             }
@@ -309,6 +390,8 @@ namespace axionpro.persistance.Repositories
             }
         }
 
+
+        
 
         public async Task<GetMinimalEmployeeResponseDTO> GetSingleRecordAsync(long id, bool isActive)
         {

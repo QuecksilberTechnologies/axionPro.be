@@ -6,9 +6,9 @@ namespace axionpro.application.DTOS.Employee.Contact
     {
           
         public string EmployeeId { get; set; }
-        public int? CountryId { get; set; }            // optional filter
-        public int? StateId { get; set; }              // optional filter
-        public int? DistrictId { get; set; }              // optional filter
+        public string? CountryId { get; set; }            // optional filter
+        public string? StateId { get; set; }              // optional filter
+        public string? DistrictId { get; set; }              // optional filter
         public bool? IsActive { get; set; }            // only active/inactive records
         public bool? IsPrimary { get; set; }           // only primary contacts
         public bool? IsInfoVerified { get; set; }

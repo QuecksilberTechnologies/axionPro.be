@@ -331,10 +331,10 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 GetEmployeeLoginInfoResponseDTO? employeeInfo = _mapper.Map<GetEmployeeLoginInfoResponseDTO>(empMinimalResponse);
                 employeeInfo.IsPasswordChangeRequired = IsPasswordChange;
                 employeeInfo.UserPrimaryRole = primaryRole;
-                employeeInfo.UserSecondryRoles = userRoleDTOs;
                 employeeInfo.RoleTypeId = roleInfo.Role.RoleType.ToString();
                 employeeInfo.RoleTypeName = roleInfo.Role.RoleName;
                 employeeInfo.EmployeeId = encriptedEmployeeId.Trim();
+                employeeInfo.UserSecondryRoles = userRoleDTOs;
 
                 var tenant = await _unitOfWork.TenantRepository.GetByIdAsync(dto.TenantId);
 
@@ -393,8 +393,8 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 
 
                // 🔐 Step 3: Generate tokens
-               var token = await _tokenService.GenerateToken(getTokenInfoDTO);
-                var refreshToken = await _tokenService.GenerateRefreshToken();
+                 var token = await _tokenService.GenerateToken(getTokenInfoDTO);
+                 var refreshToken = await _tokenService.GenerateRefreshToken();
 
                 await _refreshTokenRepository.SaveOrUpdateRefreshToken(
                     loginRequest.LoginId.ToString(),

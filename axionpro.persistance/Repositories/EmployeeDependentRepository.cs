@@ -37,18 +37,17 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                // ✅ 1️⃣ Validation
                 if (entity == null)
                     throw new ArgumentNullException(nameof(entity), "Dependent info entity cannot be null.");
 
                 if (entity.EmployeeId <= 0)
                     throw new ArgumentException("Invalid EmployeeId provided.");
 
-                // ✅ 2️⃣ Record insert karo
+                // Add record
                 await _context.EmployeeDependents.AddAsync(entity);
                 await _context.SaveChangesAsync();
 
-                // ✅ 3️⃣ Fetch updated list (latest record ke sath)
+                // Fetch updated list
                 var query = _context.EmployeeDependents
                     .AsNoTracking()
                     .Where(x => x.EmployeeId == entity.EmployeeId && x.IsSoftDeleted != true)
@@ -56,19 +55,18 @@ namespace axionpro.persistance.Repositories
 
                 var totalRecords = await query.CountAsync();
 
-                // ✅ 4️⃣ Fetch paginated data
-                var records = await query.Take(10).ToListAsync();
+                int pageSize = 10; // fixed or parameter
+                var records = await query.Take(pageSize).ToListAsync();
 
-                // ✅ 5️⃣ Map to DTOs
                 var responseData = _mapper.Map<List<GetDependentResponseDTO>>(records);
 
-                // ✅ 6️⃣ Prepare PagedResponse
                 return new PagedResponseDTO<GetDependentResponseDTO>
                 {
                     Items = responseData,
                     TotalCount = totalRecords,
                     PageNumber = 1,
-                    PageSize = 10,
+                    PageSize = pageSize,
+                    TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize)
                 };
             }
             catch (Exception ex)
@@ -161,10 +159,7 @@ namespace axionpro.persistance.Repositories
                                 IsEditAllowed = dep.IsEditAllowed,
 
                                 // 📅 Audit Fields
-                                AddedById = dep.AddedById.ToString(),
-                                AddedDateTime = dep.AddedDateTime,
-                                UpdatedById = dep.UpdatedById.ToString(),
-                                UpdatedDateTime = dep.UpdatedDateTime,
+                               
                                 InfoVerifiedById = dep.InfoVerifiedById.ToString(),
                                 InfoVerifiedDateTime = dep.InfoVerifiedDateTime
                             };

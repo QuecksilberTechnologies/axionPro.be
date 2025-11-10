@@ -2,6 +2,7 @@
 using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
+using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.Employee.Bank;
@@ -47,6 +48,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
         private readonly IPermissionService _permissionService;
         private readonly IConfiguration _config;
         private readonly IEncryptionService _encryptionService;
+        private readonly IIdEncoderService _idEncoderService;
 
         public CreateBankInfoCommandHandler(
             IUnitOfWork unitOfWork,
@@ -56,7 +58,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,
-            IEncryptionService encryptionService) // 👈 parameter
+            IEncryptionService encryptionService, IIdEncoderService idEncoderService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -65,7 +67,8 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
             _tokenService = tokenService;
             _permissionService = permissionService;
             _config = config;
-            _encryptionService = encryptionService; // 👈 same name use karo
+            _encryptionService = encryptionService;
+            _idEncoderService = idEncoderService;
         }
 
 
@@ -75,7 +78,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 
             try
             {
-                await _unitOfWork.BeginTransactionAsync();
+
                 // 🧩 STEP 1: Validate JWT Token
                 var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
                     .ToString()?.Replace("Bearer ", "");
@@ -97,7 +100,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                     return ApiResponse<List<GetBankResponseDTO>>.Fail("Unauthorized or inactive user.");
                 }
 
-                // 🧩 STEP 3: Tenant and Employee info validation from token
+                // 🧩 STEP 3: Decrypt Tenant and Employee
                 string tenantKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
 
                 if (string.IsNullOrEmpty(request.DTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
@@ -106,55 +109,71 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                     return ApiResponse<List<GetBankResponseDTO>>.Fail("User invalid.");
                 }
 
-                // Decrypt / convert values
-                long decryptedUserEmployeeId = Convert.ToInt64(_encryptionService.Decrypt(request.DTO.UserEmployeeId, tenantKey) ?? "0");
-                long decryptedActualEmployeeId = Convert.ToInt64(_encryptionService.Decrypt(request.DTO.EmployeeId, tenantKey) ?? "0");
-                long tokenEmployeeId = Convert.ToInt64(tokenClaims.EmployeeId ?? "0");
-                long decryptedTenantId = Convert.ToInt64(tokenClaims.TenantId ?? "0");
+                 string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
+                //UserEmployeeId
+                string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
+                long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
+                //Token TenantId
+                string tokenTenant = EncryptionSanitizer.CleanEncodedInput(tokenClaims.TenantId);
+                long decryptedTenantId = _idEncoderService.DecodeId(tokenTenant, finalKey);
+                //Id              
+                // Actual EmployeeId
+                string actualEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId);
+                long decryptedActualEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
+
+
+
+
+
 
 
                 // 🧩 STEP 4: Validate all employee references
-                if (decryptedTenantId <= 0 || decryptedUserEmployeeId <= 0 || tokenEmployeeId <= 0)
+                if (decryptedTenantId <= 0 )
                 {
                     _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
                     return ApiResponse<List<GetBankResponseDTO>>.Fail("Tenant or employee information missing.");
                 }
 
-                if (!(decryptedUserEmployeeId == tokenEmployeeId && tokenEmployeeId == loggedInEmpId))
+
+                if (decryptedTenantId <= 0 || decryptedEmployeeId <= 0)
+                {
+                    _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
+                    return ApiResponse<List<GetBankResponseDTO>>.Fail("Tenant or employee information missing.");
+                }
+
+                if (!(decryptedEmployeeId == loggedInEmpId))
                 {
                     _logger.LogWarning(
-                        "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, TokenEmpId: {TokenEmp}, LoggedEmpId: {LoggedEmp}",
-                        decryptedUserEmployeeId, tokenEmployeeId, loggedInEmpId
+                        "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
+                         decryptedEmployeeId, loggedInEmpId
                     );
 
                     return ApiResponse<List<GetBankResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
                 }
 
                 var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
-                if (!permissions.Contains("AddIdentityInfo"))
+                if (!permissions.Contains("AddBankInfo"))
                 {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add identity info.");
-
+                    //  await _unitOfWork.RollbackTransactionAsync();
+                    //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
                 }
-               
-               
-
-                // 3️⃣ Prepare entity from DTO
-                request.DTO.EmployeeId = decryptedActualEmployeeId.ToString();
-                request.DTO.AddedById = decryptedUserEmployeeId.ToString();
-                request.DTO.AddedDateTime = DateTime.UtcNow;
-                request.DTO.IsActive = true;
-                request.DTO.IsEditAllowed = true;
-                request.DTO.IsInfoVerified = false;
-
+                // 🧩 STEP 4: Call Repository to get data          
+                 
 
                 var bankEntity = _mapper.Map<EmployeeBankDetail>(request.DTO); // use mapper for create mapping
+                bankEntity.AddedById = decryptedEmployeeId;
+                bankEntity.AddedDateTime = DateTime.UtcNow;
+                bankEntity.IsActive = true;
+                bankEntity.IsEditAllowed = false;
+                bankEntity.IsInfoVerified = false;
+                bankEntity.IsPrimaryAccount = request.DTO.IsPrimaryAccount;
+                bankEntity.EmployeeId = decryptedActualEmployeeId;
+
                 PagedResponseDTO<GetBankResponseDTO> responseDTO = await _unitOfWork.EmployeeBankRepository.CreateAsync(bankEntity);
                  
                 // 4. Pre-map projection + encrypt Ids (fast)
                 // If pagedResult.Items are entities:
-                var encryptedList = ProjectionHelper.ToGetBankResponseDTOs(responseDTO.Items, _encryptionService, tenantKey, request.DTO.EmployeeId);
+                var encryptedList = ProjectionHelper.ToGetBankResponseDTOs(responseDTO, _idEncoderService, tenantKey, request.DTO.EmployeeId);
                
 
                 // 5. commit

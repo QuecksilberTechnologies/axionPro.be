@@ -1,8 +1,9 @@
 ﻿using axionpro.application.DTOs.PageTypeEnum;
 using axionpro.application.DTOs.UserLogin;
- 
+using axionpro.application.DTOS.Token;
+using axionpro.application.DTOS.Token.ems.application.DTOs.UserLogin;
 using axionpro.application.Features.UserLoginAndDashboardCmd.Commands;
- 
+using axionpro.application.Features.UserLoginAndDashboardCmd.Handlers;
 using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
@@ -41,6 +42,16 @@ namespace axionpro.api.Controllers.Login
             }
            return Ok(result);
         }
+
+        [HttpPost("refresh-token")]
+        [ProducesResponseType(typeof(ApiResponse<LoginResponseDTO>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDTO request)
+        {
+            var command = new RefreshTokenCommand(request);
+            var result = await _mediator.Send(command);
+            return Ok(new ApiResponse<TokenInfoResponseDTO>(result.Data));
+        }
+
         //[HttpPost("AccessDetails")]
         //[Authorize] // Ensures the user is authenticated via token
         //public async Task<IActionResult> UserAccessDetailsAsync([FromBody] AccessDetailRequestDTO accessDetailsDTO)

@@ -2,7 +2,9 @@
 using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
+using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
+using axionpro.application.DTOs.Designation;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Pagination; 
 using axionpro.application.Features.EmployeeCmd.EmployeeBase.Queries;
@@ -41,7 +43,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         private readonly IPermissionService _permissionService;
         private readonly IConfiguration _config;
         private readonly IEncryptionService _encryptionService;
-        private readonly IIdEncoderService _idEncoder;
+        private readonly IIdEncoderService _idEncoderService;
 
         public GetBaseEmployeeInfoQueryHandler(
             IUnitOfWork unitOfWork,
@@ -61,13 +63,15 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             _permissionService = permissionService;
             _config = config;
             _encryptionService = encryptionService;
-            _idEncoder = idEncoderService;
+            _idEncoderService = idEncoderService;
         }
 
         public async Task<ApiResponse<List<GetBaseEmployeeResponseDTO>>> Handle(GetBaseEmployeeInfoQuery request, CancellationToken cancellationToken)
         {
             try
             {
+                // 🧩 STEP 1: Validate JWT Token
+
                 // 🧩 STEP 1: Validate JWT Token
                 var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
                     .ToString()?.Replace("Bearer ", "");
@@ -98,48 +102,68 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     return ApiResponse<List<GetBaseEmployeeResponseDTO>>.Fail("User invalid.");
                 }
 
-                long decryptedEmployeeId = Convert.ToInt64(_encryptionService.Decrypt(request.DTO.UserEmployeeId, tenantKey) ?? "0");
-                long decryptedTenantId = Convert.ToInt64(tokenClaims.TenantId ?? "0");
+
+
+                if (string.IsNullOrEmpty(request.DTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
+                {
+                    _logger.LogWarning("❌ Missing tenantKey or UserEmployeeId.");
+                    return ApiResponse<List<GetBaseEmployeeResponseDTO>>.Fail("User invalid.");
+                }
+
+                // Decrypt / convert values
+                string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
+                string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
+                long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
+                long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
+                request.DTO.Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
+                long Id = _idEncoderService.DecodeId(request.DTO.Id, finalKey);
+
+
+                request.DTO.SortOrder = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortOrder);
+                request.DTO.SortBy = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortBy);
+
+                // 🧩 STEP 4: Validate all employee references
+
 
                 if (decryptedTenantId <= 0 || decryptedEmployeeId <= 0)
                 {
-                    _logger.LogWarning("❌ Tenant or employee info missing in token.");
+                    _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
                     return ApiResponse<List<GetBaseEmployeeResponseDTO>>.Fail("Tenant or employee information missing.");
                 }
 
-                // 🧩 STEP 4: Validate EmployeeId match between token and request
-                long requestEmployeeId = decryptedEmployeeId; // ✅ already decrypted
-                if (requestEmployeeId != decryptedEmployeeId)
+                if (!(decryptedEmployeeId == loggedInEmpId))
                 {
-                    _logger.LogWarning("❌ EmployeeId mismatch. TokenEmployeeId: {TokenEmp}, RequestEmployeeId: {ReqEmp}",
-                        decryptedEmployeeId, requestEmployeeId);
-                    return ApiResponse<List<GetBaseEmployeeResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
+                    _logger.LogWarning(
+                        "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
+                         decryptedEmployeeId, loggedInEmpId
+                    );
                 }
-
-                // 🧩 STEP 5: Permission Check (optional)
-                var tokenPermissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
-                // if (tokenPermissions == null || !tokenPermissions.Contains("ViewEmployeeBase"))
-                //     return ApiResponse<List<GetBaseEmployeeResponseDTO>>.Fail("You do not have permission to view base employee info.");
-
-                // 🧩 STEP 6: Fetch data from repository
-                var entityPaged = await _unitOfWork.Employees.GetInfo(request.DTO, decryptedTenantId);
-                if (entityPaged == null || !entityPaged.Items.Any())
+                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
+                if (!permissions.Contains("AddBankInfo"))
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                    //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
+                }
+                // 🧩 STEP 4: Call Repository to get data
+                // 🧩 STEP 4: Call Repository to get data
+                var responseDTO = await _unitOfWork.Employees.GetInfo(request.DTO, decryptedTenantId, Id);
+                if (responseDTO == null || !responseDTO.Items.Any())
                 {
                     _logger.LogInformation("No Base Employee info found for EmployeeId: {EmpId}", decryptedEmployeeId);
                     return ApiResponse<List<GetBaseEmployeeResponseDTO>>.Fail("No Base Employee info found.");
                 }
 
-                // 🧩 STEP 7: Encrypt Ids and Map using ProjectionHelper (optimized)
-                var resultList = ProjectionHelper.ToGetBaseInfoResponseDTOs(entityPaged.Items, _idEncoder, tenantKey);
+              
+                var resultList = ProjectionHelper.ToGetBaseInfoResponseDTOs(responseDTO.Items, _idEncoderService, tenantKey);
 
                 // 🧩 STEP 8: Construct success response with pagination
                 return ApiResponse<List<GetBaseEmployeeResponseDTO>>.SuccessPaginated(
                     data: resultList,
                     message: "Base Employee info retrieved successfully.",
-                    pageNumber: entityPaged.PageNumber,
-                    pageSize: entityPaged.PageSize,
-                    totalRecords: entityPaged.TotalCount,
-                    totalPages: entityPaged.TotalPages
+                    pageNumber: responseDTO.PageNumber,
+                    pageSize: responseDTO.PageSize,
+                    totalRecords: responseDTO.TotalCount,
+                    totalPages: responseDTO.TotalPages
                 );
             }
             catch (Exception ex)

@@ -18,6 +18,8 @@ namespace axionpro.application.DTOS.Employee.Bank
         public bool? IsInfoVerified { get; set; }
         public string? IFSCCode { get; set; }
         public string? BranchName { get; set; }
+        public string? UPIId { get; set; }
+
         public bool? IsPrimary { get; set; }
         public bool? IsEditAllowed { get; set; }
         public bool IsActive { get; set; }

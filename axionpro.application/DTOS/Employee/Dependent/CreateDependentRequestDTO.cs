@@ -10,9 +10,8 @@ namespace axionpro.application.DTOS.Employee.Dependent
     public class CreateDependentRequestDTO
     {
 
-         
-        public string? EmployeeId { get; set; }
-        public int RoleId { get; set; }
+         public string? UserEmployeeId { get; set; }
+         public string EmployeeId { get; set; } = string.Empty;      
         public string? DependentName { get; set; }
         public string? Relation { get; set; }
         public DateTime? DateOfBirth { get; set; }
@@ -20,12 +19,9 @@ namespace axionpro.application.DTOS.Employee.Dependent
         public bool? IsMarried { get; set; }
         public string? Remark { get; set; }
         public string? Description { get; set; }
-        
-        public bool IsActive { get; set; }       
-       
-        public bool? IsInfoVerified { get; set; }
-        public bool? IsEditAllowed { get; set; }
-   
+
+
+
     }
 
 

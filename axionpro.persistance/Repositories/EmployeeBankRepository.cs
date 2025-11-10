@@ -10,6 +10,7 @@ using axionpro.persistance.Data.Context;
 using Azure.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Drawing.Printing;
 
 namespace axionpro.persistance.Repositories
 {
@@ -31,6 +32,63 @@ namespace axionpro.persistance.Repositories
             _passwordService = passwordService;
             _encryptionService = encryptionService;
 
+        }
+        public async Task<PagedResponseDTO<GetBankResponseDTO>> CreateAsync(EmployeeBankDetail entity)
+        {
+            try
+            {
+                // 🔹 Step 1: Record insert
+                await _context.EmployeeBankDetails.AddAsync(entity);
+                await _context.SaveChangesAsync();
+
+                // 🔹 Step 2: Default pagination setup
+                int pageNumber = 1;
+                int pageSize = 10;
+
+                // 🔹 Step 3: Fetch latest records (orderby Id desc)
+                var baseQuery = _context.EmployeeBankDetails
+                    .AsNoTracking()
+                    .Where(x => x.EmployeeId == entity.EmployeeId)
+                    .OrderByDescending(x => x.Id);
+
+                var totalRecords = await baseQuery.CountAsync();
+
+                // 🔹 Step 4: Pagination logic
+                var pagedData = await baseQuery
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(bank => new GetBankResponseDTO
+                    {
+                        Id = bank.Id.ToString(),
+                        EmployeeId = bank.EmployeeId.ToString(),
+                        BankName = bank.BankName,
+                        AccountNumber = bank.AccountNumber,
+                        AccountType = bank.AccountType,
+                        IsPrimaryAccount = bank.IsPrimaryAccount,
+                        IsInfoVerified = bank.IsInfoVerified,
+                        IFSCCode = bank.IFSCCode,
+                        BranchName = bank.BranchName,
+                        IsPrimary = bank.IsPrimaryAccount,
+                        IsEditAllowed = bank.IsEditAllowed,
+                        IsActive = bank.IsActive
+                    })
+                    .ToListAsync();
+
+                // 🔹 Step 5: Final Response DTO
+                return new PagedResponseDTO<GetBankResponseDTO>
+                {
+                    Items = pagedData ?? new List<GetBankResponseDTO>(),
+                    TotalCount = totalRecords,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error occurred while creating bank record for EmployeeId: {EmployeeId}", entity.EmployeeId);
+                throw new Exception($"Failed to create bank info: {ex.Message}");
+            }
         }
 
         public async Task<PagedResponseDTO<GetBankResponseDTO>> AddCreatedAsync(EmployeeBankDetail entity)
@@ -83,137 +141,136 @@ namespace axionpro.persistance.Repositories
 
 
 
-
-        public async Task<PagedResponseDTO<GetBankResponseDTO>> CreateAsync(EmployeeBankDetail entity)
+        public async Task<PagedResponseDTO<GetBankResponseDTO>> GetInfoAsync(GetBankReqestDTO dto, int id, long EmployeeId)
         {
             try
             {
-                // 🔹 Step 1: Record insert
-                await _context.EmployeeBankDetails.AddAsync(entity);
-                await _context.SaveChangesAsync();
+                int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
+                int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
+                string sortBy = dto.SortBy?.ToLower() ?? "id";
+                string sortOrder = dto.SortOrder?.ToLower() ?? "desc";
 
-                // 🔹 Step 2: Default pagination setup
-                int pageNumber = 1;
-                int pageSize = 10;
-
-                // 🔹 Step 3: Fetch latest records (orderby Id desc)
-                var baseQuery = _context.EmployeeBankDetails
+                // 🧭 Base query
+                var query = _context.EmployeeBankDetails
                     .AsNoTracking()
-                    .Where(x => x.EmployeeId == entity.EmployeeId && x.IsSoftDeleted != true)
-                    .OrderByDescending(x => x.Id);
+                    .Where(x => x.EmployeeId == EmployeeId && x.IsSoftDeleted != true);
 
-                var totalRecords = await baseQuery.CountAsync();
+                // ✅ Apply dynamic filters based on optional DTO properties
+                if (dto.IsActive.HasValue)
+                    query = query.Where(x => x.IsActive == dto.IsActive.Value);
 
-                // 🔹 Step 4: Pagination logic
-                var pagedData = await baseQuery
+                if (dto.IsPrimaryAccount.HasValue)
+                    query = query.Where(x => x.IsPrimaryAccount == dto.IsPrimaryAccount.Value);
+
+                if (dto.IsInfoVerified.HasValue)
+                    query = query.Where(x => x.IsInfoVerified == dto.IsInfoVerified.Value);
+
+                if (dto.IsEditAllowed.HasValue)
+                    query = query.Where(x => x.IsEditAllowed == dto.IsEditAllowed.Value);
+
+                if (!string.IsNullOrEmpty(dto.AccountType))
+                    query = query.Where(x => x.AccountType.ToLower().Contains(dto.AccountType.ToLower()));
+
+                // 🔍 Optional search text (if needed later)
+                // if (!string.IsNullOrEmpty(dto.SearchTerm))
+                //     query = query.Where(x => x.BankName.Contains(dto.SearchTerm) || x.AccountNumber.Contains(dto.SearchTerm));
+
+                // 🔽 Sorting
+                bool isDescending = string.Equals(sortOrder, "desc", StringComparison.OrdinalIgnoreCase);
+                query = sortBy switch
+                {
+                    "bankname" => isDescending ? query.OrderByDescending(x => x.BankName) : query.OrderBy(x => x.BankName),
+                    "accountnumber" => isDescending ? query.OrderByDescending(x => x.AccountNumber) : query.OrderBy(x => x.AccountNumber),
+                    "branchname" => isDescending ? query.OrderByDescending(x => x.BranchName) : query.OrderBy(x => x.BranchName),
+                    "accounttype" => isDescending ? query.OrderByDescending(x => x.AccountType) : query.OrderBy(x => x.AccountType),
+                    _ => isDescending ? query.OrderByDescending(x => x.Id) : query.OrderBy(x => x.Id)
+                };
+
+                // 🧾 Total count before pagination
+                int totalCount = await query.CountAsync();
+
+                // 📄 Apply pagination
+                var records = await query
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
-                    .Select(bank => new GetBankResponseDTO
+                    .Select(x => new GetBankResponseDTO
                     {
-                        Id = bank.Id.ToString(),
-                        EmployeeId = bank.EmployeeId.ToString(),
-                        BankName = bank.BankName,
-                        AccountNumber = bank.AccountNumber,
-                        AccountType = bank.AccountType,
-                        IsPrimaryAccount = bank.IsPrimaryAccount,
-                        IsInfoVerified = bank.IsInfoVerified,
-                        IFSCCode = bank.IFSCCode,
-                        BranchName = bank.BranchName,
-                        IsPrimary = bank.IsPrimaryAccount,
-                        IsEditAllowed = bank.IsEditAllowed,
-                        IsActive = bank.IsActive
+                        Id = x.Id.ToString(),
+                        EmployeeId = x.EmployeeId.ToString(),
+                        BankName = x.BankName,
+                        AccountNumber = x.AccountNumber,
+                        IFSCCode = x.IFSCCode,
+                        IsPrimary =x.IsPrimaryAccount,
+                        UPIId = x.UPIId,
+                        BranchName = x.BranchName,
+                        AccountType = x.AccountType,
+                        IsPrimaryAccount = x.IsPrimaryAccount,
+                        IsActive = x.IsActive,
+                        IsInfoVerified = x.IsInfoVerified,
+                        IsEditAllowed = x.IsEditAllowed
                     })
                     .ToListAsync();
 
-                // 🔹 Step 5: Final Response DTO
+                // 📦 Return paged response
                 return new PagedResponseDTO<GetBankResponseDTO>
                 {
-                    Items = pagedData ?? new List<GetBankResponseDTO>(),
-                    TotalCount = totalRecords,
+                    Items = records,
+                    TotalCount = totalCount,
                     PageNumber = pageNumber,
                     PageSize = pageSize,
-                    
+                    TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
                 };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error occurred while creating bank record for EmployeeId: {EmployeeId}", entity.EmployeeId);
-                throw new Exception($"Failed to create bank info: {ex.Message}");
+                _logger.LogError(ex, "❌ Error fetching bank info for EmployeeId {EmployeeId}", EmployeeId);
+                throw new Exception($"Failed to fetch bank information: {ex.Message}");
             }
         }
 
 
-        public async Task<PagedResponseDTO<GetBankResponseDTO>> GetInfo( GetBankReqestDTO dto, long tenantId, long EmployeeId)
+
+        public async Task<GetBankResponseDTO> GetSingleRecordAsync(int id, bool isActive)
         {
-            // 🧭 Base query
-            var query = _context.EmployeeBankDetails
-                .AsNoTracking()
-                .Where(x => x.EmployeeId == EmployeeId &&
-                            x.IsActive == dto.IsActive &&
-                            x.IsSoftDeleted != true);
-
-            // 🔍 Apply search
-            if (!string.IsNullOrEmpty(dto.SortOrder))
+            try
             {
-                query = query.Where(x =>
-                    x.BankName.Contains(dto.SortOrder) ||
-                    x.AccountNumber.Contains(dto.SortOrder));
-            }
+                await using var context = await _contextFactory.CreateDbContextAsync();
 
-            // 🔽 Apply sorting
-            bool isDescending = string.Equals(dto.SortOrder, "desc", StringComparison.OrdinalIgnoreCase);
-            if (!string.IsNullOrEmpty(dto.SortBy))
-            {
-                query = dto.SortBy.ToLower() switch
+                // 🔹 Record fetch karna with filters
+                var entity = await context.EmployeeBankDetails
+                    .AsNoTracking()
+                    .Where(b => b.Id == id && b.IsActive == isActive && (b.IsSoftDeleted !=true))
+                    .Select(b => new GetBankResponseDTO
+                    {
+                        Id = b.Id.ToString(),
+                        EmployeeId = b.EmployeeId.ToString(),
+                        BankName = b.BankName,
+                        AccountNumber = b.AccountNumber,
+                        IFSCCode = b.IFSCCode,
+                        BranchName = b.BranchName,
+                        AccountType = b.AccountType,                       
+                        IsPrimaryAccount = b.IsPrimaryAccount,
+                        IsActive = b.IsActive,
+                       
+                    })
+                    .FirstOrDefaultAsync();
+
+                // 🔹 Null check handling
+                if (entity == null)
                 {
-                    "bankname" => isDescending ? query.OrderByDescending(x => x.BankName) : query.OrderBy(x => x.BankName),
-                    "accountnumber" => isDescending ? query.OrderByDescending(x => x.AccountNumber) : query.OrderBy(x => x.AccountNumber),
-                    _ => isDescending ? query.OrderByDescending(x => x.Id) : query.OrderBy(x => x.Id)
-                };
+                    _logger.LogWarning($"⚠️ No active bank info found for ID {id} with IsActive = {isActive}");
+                    return null!;
+                }
+
+                _logger.LogInformation($"✅ Bank info record fetched successfully for ID {id}");
+                return entity;
             }
-            else
+            catch (Exception ex)
             {
-                query = isDescending ? query.OrderByDescending(x => x.Id) : query.OrderBy(x => x.Id);
+                _logger.LogError(ex, $"❌ Error while fetching single bank record for ID {id}");
+                throw new Exception($"Failed to fetch bank record: {ex.Message}", ex);
             }
-
-            // 📄 Pagination
-            var totalRecords = await query.CountAsync();
-
-            var records = await query
-                .Skip((dto.PageNumber - 1) * dto.PageSize)
-                .Take(dto.PageSize)
-                .Select(x => new GetBankResponseDTO
-                {
-                    // 🔐 Encrypt sensitive identifiers here
-                    Id = x.Id.ToString(),
-                    EmployeeId =x.EmployeeId.ToString(),
-
-                    // 🏦 Business data
-                    BankName = x.BankName,
-                    AccountNumber = x.AccountNumber,
-                    IFSCCode = x.IFSCCode,
-                    BranchName = x.BranchName,
-                    IsPrimaryAccount = x.IsPrimaryAccount,
-                    IsActive = x.IsActive,
-                    IsInfoVerified = x.IsInfoVerified,
-                    IsEditAllowed = x.IsEditAllowed
-                })
-                .ToListAsync();
-
-            // 📦 Return paged response
-            return new PagedResponseDTO<GetBankResponseDTO>
-            {
-                Items = records,
-                TotalCount = totalRecords,
-                 PageNumber= dto.PageNumber,
-                PageSize = dto.PageSize,
-                
-            };
         }
 
-        public Task<EmployeeBankDetail> GetSingleRecordAsync(long Id, bool IsActive)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

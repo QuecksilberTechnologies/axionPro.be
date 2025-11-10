@@ -12,13 +12,14 @@ namespace axionpro.application.Interfaces.ITokenService
     // ITokenService.cs (Application Layer)
     public interface ITokenService
     {
-      public Task <string> GenerateToken(GetTokenInfoDTO dto);
+           public Task <string> GenerateToken(GetTokenInfoDTO dto);
        
             bool ValidateToken(string token);
         public Task<string>  GenerateRefreshToken();
         // ✅ Naye methods for extracting info
         Task<string> GetUserInfoFromToken(string token);
         DateTime? GetExpiryFromToken(string token);
+        Task<GetTokenInfoDTO?> GetUserInfoByLoginIdAsync(string loginId);
 
     }
 

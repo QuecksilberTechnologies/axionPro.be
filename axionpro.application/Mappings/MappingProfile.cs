@@ -51,6 +51,7 @@ using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.domain.Entity;
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -91,7 +92,7 @@ namespace axionpro.application.Mappings
             CreateMap<Gender, GetGenderResponseDTO>().ReverseMap();
             CreateMap<Gender, GetGenderOptionResponseDTO>().ReverseMap();
            
-            //   CreateMap<Asset, GetAllAssetWithDependentEntityDTO>();
+             // CreateMap<Asset, GetAllAssetWithDependentEntityDTO>();
 
             CreateMap<TicketType, GetTicketTypeResponseDTO>().ReverseMap();
             CreateMap<GetClassificationRequestDTO, TicketClassification>().ReverseMap();
@@ -290,7 +291,6 @@ namespace axionpro.application.Mappings
             CreateMap<UpdateLeaveRuleRequestDTO, LeaveRule>().ReverseMap();
 
 
-
             CreateMap< CreateRoleRequestDTO,Role > ()
                   .ForMember(dest => dest.AddedById, opt => opt.MapFrom(src => src.UserEmployeeId)) ; // Example
 
@@ -364,17 +364,47 @@ namespace axionpro.application.Mappings
                      .ForMember(dest => dest.AddedById, opt => opt.MapFrom(src => src.AddedById.ToString()))
                       .ForMember(dest => dest.UpdatedById, opt => opt.MapFrom(src => src.UpdatedById.HasValue ? src.UpdatedById.Value.ToString() : null));
 
-            CreateMap<EmployeeBankDetail, CreateBankRequestDTO>()
-   // 🔹 Entity → DTO
-   .ForMember(dest => dest.EmployeeId, opt => opt.MapFrom(src => src.EmployeeId.ToString()))
-   .ForMember(dest => dest.AddedById, opt => opt.MapFrom(src => src.AddedById.ToString()))
+                     CreateMap<CreateBankRequestDTO, EmployeeBankDetail>()
+           .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
+.ForMember(dest => dest.AccountType, opt => opt.MapFrom(src => src.AccountType))
+.ForMember(dest => dest.IsPrimaryAccount, opt => opt.MapFrom(src => src.IsPrimaryAccount))
+.ForMember(dest => dest.UPIId, opt => opt.MapFrom(src => src.UPIId));
+
+            CreateMap<CreateContactRequestDTO, EmployeeContact>()
+    
+         .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
+
+         // 🔹 Contact Info
+         .ForMember(dest => dest.ContactNumber, opt => opt.MapFrom(src => src.ContactNumber))
+         .ForMember(dest => dest.AlternateNumber, opt => opt.MapFrom(src => src.AlternateNumber))
+         .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+         //.ForMember(dest => dest.IsPrimary, opt => opt.MapFrom(src => src.IsPrimary))
+         //.ForMember(dest => dest.IsPrimary, opt => opt.PreCondition(src => src.IsPrimary.HasValue))
+
+         // 🔹 Address Info (string → int safely)
+         .ForMember(dest => dest.CountryId, opt => opt.MapFrom(src => string.IsNullOrEmpty(src.CountryId) ? 0 : int.Parse(src.CountryId)))
+         .ForMember(dest => dest.StateId, opt => opt.MapFrom(src => string.IsNullOrEmpty(src.StateId) ? 0 : int.Parse(src.StateId)))
+         .ForMember(dest => dest.DistrictId, opt => opt.MapFrom(src => string.IsNullOrEmpty(src.DistrictId) ? 0 : int.Parse(src.DistrictId)))
+         .ForMember(dest => dest.ContactType,opt => opt.MapFrom(src =>string.IsNullOrEmpty(src.ContactType)? 0: src.ContactType.Equals("Personal", StringComparison.OrdinalIgnoreCase) ? 1 :
+              src.ContactType.Equals("Official", StringComparison.OrdinalIgnoreCase) ? 2 : 0))
 
 
-   // 🔁 ReverseMap (DTO → Entity)
-   .ReverseMap()
-   .ForMember(dest => dest.EmployeeId, opt => opt.MapFrom(src => Convert.ToInt64(src.EmployeeId)))
-   .ForMember(dest => dest.AddedById, opt => opt.MapFrom(src => Convert.ToInt64(src.AddedById)));
-  
+         // 🔹 Other address fields
+         .ForMember(dest => dest.HouseNo, opt => opt.MapFrom(src => src.HouseNo))
+         .ForMember(dest => dest.LandMark, opt => opt.MapFrom(src => src.LandMark))
+         .ForMember(dest => dest.Street, opt => opt.MapFrom(src => src.Street))
+         .ForMember(dest => dest.LocalAddress, opt => opt.MapFrom(src => src.LocalAddress))
+         .ForMember(dest => dest.PermanentAddress, opt => opt.MapFrom(src => src.PermanentAddress))
+
+         // 🔹 Optional/Metadata
+         .ForMember(dest => dest.Remark, opt => opt.MapFrom(src => src.Remark))
+         .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
+
+
+
+            // 🔁 ReverseMap (DTO → Entity)
+
+
             #endregion
 
             #region 🔹 Base Employee Mappings
@@ -411,6 +441,34 @@ namespace axionpro.application.Mappings
             CreateMap<GetMinimalEmployeeResponseDTO, CreateBaseEmployeeRequestDTO>().ReverseMap();
             CreateMap<GetMinimalEmployeeResponseDTO, GetBaseEmployeeResponseDTO>().ReverseMap();
             CreateMap<GetMinimalEmployeeResponseDTO, EmployeeInfoEditableFieldsDTO>().ReverseMap();
+            #endregion
+
+            #region Dependent
+            CreateMap<CreateDependentRequestDTO, EmployeeDependent>()
+.ForMember(dest => dest.EmployeeId, opt => opt.Ignore()) // manually assign later
+.ForMember(dest => dest.DependentName, opt => opt.MapFrom(src => src.DependentName))
+.ForMember(dest => dest.Relation, opt => opt.MapFrom(src => src.Relation))
+.ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth))
+.ForMember(dest => dest.IsCoveredInPolicy, opt => opt.MapFrom(src => src.IsCoveredInPolicy))
+.ForMember(dest => dest.IsMarried, opt => opt.MapFrom(src => src.IsMarried))
+.ForMember(dest => dest.Remark, opt => opt.MapFrom(src => src.Remark))
+.ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
+
+            CreateMap<EmployeeDependent, GetDependentResponseDTO>()
+    .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
+    .ForMember(dest => dest.EmployeeId, opt => opt.MapFrom(src => src.EmployeeId.ToString()))
+    .ForMember(dest => dest.DependentName, opt => opt.MapFrom(src => src.DependentName))
+    .ForMember(dest => dest.Relation, opt => opt.MapFrom(src => src.Relation))
+    .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth))
+    .ForMember(dest => dest.IsCoveredInPolicy, opt => opt.MapFrom(src => src.IsCoveredInPolicy))
+    .ForMember(dest => dest.IsMarried, opt => opt.MapFrom(src => src.IsMarried))
+    .ForMember(dest => dest.Remark, opt => opt.MapFrom(src => src.Remark))
+    .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))   
+     .ForMember(dest => dest.InfoVerifiedById, opt => opt.MapFrom(src => src.InfoVerifiedById.HasValue ? src.InfoVerifiedById.Value.ToString() : null))
+    .ForMember(dest => dest.IsInfoVerified, opt => opt.MapFrom(src => src.IsInfoVerified))
+    .ForMember(dest => dest.InfoVerifiedDateTime, opt => opt.MapFrom(src => src.InfoVerifiedDateTime));
+
+
             #endregion
 
             #region 🔹 Contact Mappings

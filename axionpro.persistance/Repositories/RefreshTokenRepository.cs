@@ -1,11 +1,12 @@
-﻿using axionpro.persistance.Data.Context;
+﻿using axionpro.application.Interfaces.ITokenService;
+using axionpro.domain.Entity;
+using axionpro.persistance.Data.Context;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Data;
 using System.Threading.Tasks;
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
-using axionpro.application.Interfaces.ITokenService;
 
 namespace axionpro.persistance.Repositories
 {
@@ -61,96 +62,73 @@ namespace axionpro.persistance.Repositories
             }
         }
 
+     
+        public async Task<bool> RevokeRefreshTokenAsync(string loginId, string token, string revokedByIp)
+        {
+            try
+            {
+                var tokenRec = await _context.RefreshTokens
+                    .FirstOrDefaultAsync(t => t.LoginId == loginId && t.Token == token);
+
+                if (tokenRec == null)
+                {
+                    _logger.LogWarning($"No token found to revoke for LoginId: {loginId}");
+                    return false;
+                }
+
+                tokenRec.IsRevoked = true;
+                tokenRec.RevokedAt = DateTime.UtcNow;
+                tokenRec.RevokedByIp = revokedByIp;
+
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation($"Refresh token revoked for LoginId: {loginId}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error in RevokeRefreshTokenAsync: {ex.Message}");
+                return false;
+            }
+        }
+
+        public async Task<string?> GetValidRefreshTokenAsync(string refreshToken)
+        {
+            var record = await _context.RefreshTokens
+                .FirstOrDefaultAsync(x => x.Token == refreshToken && x.IsRevoked == false && x.ExpiryDate > DateTime.UtcNow);
+
+            return record?.LoginId;
+        }
         // ✅ Get Valid Refresh Token (Stored Procedure)
-        public async Task<string?> GetValidRefreshTokenAsync(string loginId, string token)
+        public async Task<RefreshToken?> GetValidRefreshTokenAsync(string loginId, string token)
         {
             try
             {
                 _logger.LogInformation($"Fetching valid refresh token for LoginId: {loginId}");
 
-                var refreshTokenParam = new SqlParameter("@Token", SqlDbType.NVarChar, 500)
-                {
-                    Direction = ParameterDirection.Output
-                };
+                var tokenRec = await _context.RefreshTokens
+                    .FirstOrDefaultAsync(t =>
+                        t.LoginId == loginId &&
+                        t.Token == token &&
+                        t.IsRevoked == false &&
+                        t.ExpiryDate > DateTime.UtcNow);
 
-                await _context.Database.ExecuteSqlRawAsync(
-                    "EXEC AxionPro.GetValidRefreshToken @LoginId, @Token OUTPUT",
-                    new SqlParameter("@LoginId", loginId),
-                    refreshTokenParam
-                );
-
-                string? refreshToken = refreshTokenParam.Value as string;
-
-                if (!string.IsNullOrEmpty(refreshToken))
-                {
-                    _logger.LogInformation($"Valid refresh token found for LoginId: {loginId}");
-                }
-                else
+                if (tokenRec == null)
                 {
                     _logger.LogWarning($"No valid refresh token found for LoginId: {loginId}");
                 }
 
-                return refreshToken;
+                return tokenRec;
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error retrieving refresh token for LoginId: {loginId} - {ex.Message}");
+                _logger.LogError($"Error in GetValidRefreshTokenAsync for LoginId {loginId}: {ex.Message}");
                 return null;
             }
         }
 
-        // ✅ Revoke Refresh Token (Stored Procedure)
-        public async Task<bool> RevokeRefreshTokenAsync(string loginId, string token)
-        {
-            try
-            {
-                _logger.LogInformation($"Revoking refresh token for LoginId: {loginId}");
 
-                var result = await _context.Database.ExecuteSqlRawAsync(
-                    "EXEC AxionPro.RevokeRefreshToken @LoginId, @Token",
-                    new SqlParameter("@LoginId", loginId),
-                    new SqlParameter("@Token", token)
-                );
 
-                if (result > 0)
-                {
-                    _logger.LogInformation($"Refresh token revoked successfully for LoginId: {loginId}");
-                    return true;
-                }
 
-                _logger.LogWarning($"No refresh token found to revoke for LoginId: {loginId}");
-                return false;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error revoking refresh token for LoginId: {loginId} - {ex.Message}");
-                return false;
-            }
-        }
-
-        // ✅ Delete Expired Tokens (Stored Procedure)
-        public async Task<bool> DeleteExpiredTokensAsync()
-        {
-            try
-            {
-                _logger.LogInformation("Deleting expired refresh tokens.");
-
-                var result = await _context.Database.ExecuteSqlRawAsync("EXEC AxionPro.DeleteExpiredTokens");
-
-                if (result > 0)
-                {
-                    _logger.LogInformation("Expired refresh tokens deleted successfully.");
-                    return true;
-                }
-
-                _logger.LogWarning("No expired refresh tokens found to delete.");
-                return false;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error deleting expired refresh tokens - {ex.Message}");
-                return false;
-            }
-        }
     }
 }

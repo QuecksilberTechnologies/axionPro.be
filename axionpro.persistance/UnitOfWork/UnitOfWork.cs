@@ -68,11 +68,12 @@ public class UnitOfWork : IUnitOfWork
     private IEmployeeExpereinceRepository? _employeeExpereinceRepository;
     private IEmployeeIdentityRepository? _employeeIdentityRepository;
     private IEmployeeInsuranceRepository? _employeeInsuranceRepository;
+    private IEmployeeDependentRepository? _employeeDependentRepository;
 
     private IWorkflowStagesRepository? _workflowStagesRepository;
     private ITenantRepository? _tenantRepository;
    
-    IEmployeeDependentRepository EmployeeDependentRepository { get; }
+   
     private IUserRoleRepository? _userRoleRepository;
     private IRoleRepository? _roleRepository;
     private IEmployeeTypeRepository? _employeeTyperepository;
@@ -190,7 +191,10 @@ public class UnitOfWork : IUnitOfWork
             );
         }
     }
-    public IEmployeeContactRepository EmployeeContacts
+    
+   
+
+    public IEmployeeContactRepository EmployeeContactRepository
     {
         get
         {
@@ -199,11 +203,90 @@ public class UnitOfWork : IUnitOfWork
                 _mapper,
                 _loggerFactory.CreateLogger<EmployeeContactRepository>(),
                 _contextFactory,
-                _passwordService,
-                _encriptionService
+                _passwordService, _encriptionService
+
             );
         }
     }
+
+
+
+    public IEmployeeEducationRepository EmployeeEducationRepository
+    {
+        get
+        {
+            return _employeeEducationRepository ??= new EmployeeEducationRepository(
+                _context,
+                _mapper,
+                _loggerFactory.CreateLogger<EmployeeEducationRepository>(),
+                _contextFactory,
+                _passwordService, _encriptionService
+
+            );
+        }
+    }
+
+
+    public IEmployeeExpereinceRepository EmployeeExpereinceRepository
+    {
+        get
+        {
+            return _employeeExpereinceRepository ??= new EmployeeExpereinceRepository(
+                _context,
+                _mapper,
+                _loggerFactory.CreateLogger<EmployeeExpereinceRepository>(),
+                _contextFactory,
+                _passwordService, _encriptionService
+
+            );
+        }
+    }
+
+    public IEmployeeIdentityRepository EmployeeIdentityRepository
+    {
+        get
+        {
+            return _employeeIdentityRepository ??= new EmployeeIdentityRepository(
+                _context,
+                _mapper,
+                _loggerFactory.CreateLogger<EmployeeIdentityRepository>(),
+                _contextFactory,
+                _passwordService, _encriptionService
+
+            );
+        }
+    }
+
+    public IEmployeeInsuranceRepository EmployeeInsuranceRepository
+    {
+        get
+        {
+            return _employeeInsuranceRepository ??= new EmployeeInsuranceRepository(
+                _context,
+                _mapper,
+                _loggerFactory.CreateLogger<EmployeeInsuranceRepository>(),
+                _contextFactory,
+                _passwordService, _encriptionService
+
+            );
+        }
+    }
+ 
+    public IEmployeeBankRepository EmployeeBankRepository
+    {
+        get
+        {
+            return _employeeBankRepository ??= new EmployeeBankRepository(
+                _context,
+                _mapper,
+                _loggerFactory.CreateLogger<EmployeeBankRepository>(),
+                _contextFactory,
+                _passwordService, _encriptionService
+
+            );
+        }
+    }
+    
       
          public IEmployeeLeaveRepository EmployeeLeaveRepository
     {
@@ -239,7 +322,19 @@ public class UnitOfWork : IUnitOfWork
             );
         }
     }
-
+   
+    public IEmployeeDependentRepository EmployeeDependentRepository
+    {
+        get
+        {
+            return _employeeDependentRepository ??= new EmployeeDependentRepository(
+                _context,
+                _mapper,
+                _loggerFactory.CreateLogger<EmployeeDependentRepository>(),
+                _contextFactory, _passwordService, _encriptionService
+            );
+        }
+    }
     public IEmployeeExpereinceRepository EmployeeExperiences
     {
         get
@@ -612,19 +707,6 @@ public class UnitOfWork : IUnitOfWork
         }
     }
 
-    public IEmployeeContactRepository EmployeeContactRepository => throw new NotImplementedException();
-
-    public IEmployeeBankRepository EmployeeBankRepository => throw new NotImplementedException();
-
-    public IEmployeeEducationRepository EmployeeEducationRepository => throw new NotImplementedException();
-
-    public IEmployeeExpereinceRepository EmployeeExpereinceRepository => throw new NotImplementedException();
-
-    public IEmployeeIdentityRepository EmployeeIdentityRepository => throw new NotImplementedException();
-
-    public IEmployeeInsuranceRepository EmployeeInsuranceRepository => throw new NotImplementedException();
-
-    IEmployeeDependentRepository IUnitOfWork.EmployeeDependentRepository => EmployeeDependentRepository;
 
     public async Task BeginTransactionAsync()
     {

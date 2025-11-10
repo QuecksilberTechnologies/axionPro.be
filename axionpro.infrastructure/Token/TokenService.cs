@@ -1,7 +1,9 @@
 ﻿using axionpro.application.DTOs.Employee;
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.DTOS.Token;
+using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ITokenService;
+using axionpro.application.Wrappers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
@@ -17,11 +19,13 @@ namespace axionpro.infrastructure.Token
     {
         private readonly IConfiguration _configuration;
         private readonly ILogger<TokenService> _logger;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public TokenService(IConfiguration configuration, ILogger<TokenService> logger)
+        public TokenService(IConfiguration configuration, ILogger<TokenService> logger, IUnitOfWork _UOW)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _UOW = _UOW ?? throw new ArgumentNullException(nameof(_UOW));
         }
 
         // ✅ 1️⃣ Generate Token with Custom Claims
@@ -56,12 +60,9 @@ namespace axionpro.infrastructure.Token
                     claims.Add(new Claim("RoleTypeId", user.RoleTypeId.ToString() ?? string.Empty));
                     claims.Add(new Claim("EmployeeTypeId", user.EmployeeTypeId.ToString() ?? string.Empty));
                     claims.Add(new Claim("TenantId", user.TenantId?.ToString() ?? string.Empty));
-
                     claims.Add(new Claim(ClaimTypes.Email, user.Email ?? string.Empty));
                     claims.Add(new Claim("FullName", user.FullName ?? string.Empty));
-
                     claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
-
                     claims.Add(new Claim("TenantEncriptionKey", user.TenantEncriptionKey ?? string.Empty));
                     claims.Add(new Claim("GenderId", user.GenderId.ToString() ?? string.Empty));
                     claims.Add(new Claim("GenderName", user.GenderName ?? string.Empty));
@@ -196,5 +197,67 @@ namespace axionpro.infrastructure.Token
                 return string.Empty;
             }
         }
+
+        public async Task<GetTokenInfoDTO?> GetUserInfoByLoginIdAsync(string loginId)
+        {
+            try
+            {
+                // ✅ Step 1: Validate active login and get EmployeeId
+                var empId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(loginId);
+                if (empId < 1)
+                {
+                    _logger.LogWarning($"No active user found for LoginId: {loginId}");
+                    return null;
+                }
+
+                // ✅ Step 2: Get Employee details
+                var userMin = await _unitOfWork.Employees.GetSingleRecordAsync(empId, true);
+                if (userMin == null)
+                {
+                    _logger.LogWarning($"Employee record not found for EmployeeId: {empId}");
+                    return null;
+                }
+
+                // ✅ Step 3: Get Tenant encryption key
+                var tenantKey = await _unitOfWork.TenantEncryptionKeyRepository.GetActiveKeyByTenantIdAsync(userMin.TenantId);
+                if (tenantKey == null)
+                {
+                    _logger.LogWarning($"Tenant encryption key not found for TenantId: {userMin.TenantId}");
+                    return null;
+                }
+
+                // ✅ Step 4: Get user roles
+                var roles = await _unitOfWork.UserRoleRepository.GetEmployeeRolesWithDetailsByIdAsync(empId, userMin.TenantId);
+                var roleInfo = roles?.FirstOrDefault(r => r.IsPrimaryRole==true);
+                if (roleInfo == null)
+                {
+                    _logger.LogWarning($"Primary role not found for EmployeeId: {empId}");
+                    return null;
+                }
+
+                // ✅ Step 5: Build and return token info DTO
+                var tokenInfo = new GetTokenInfoDTO
+                {
+                    TenantEncriptionKey = tenantKey.EncryptionKey,
+                    TenantId = userMin.TenantId.ToString(),
+                    UserId = loginId,
+                    EmployeeId = userMin.Id.ToString(),
+                    RoleId = roleInfo.RoleId.ToString(),
+                    RoleTypeId = roleInfo.Role.RoleType.ToString(),
+                    RoleTypeName = roleInfo.Role.RoleName,
+                    Email = userMin.OfficialEmail ?? string.Empty,
+                    FullName = $"{userMin.FirstName} {userMin.LastName}",
+                    Expiry = DateTime.UtcNow.AddMinutes(15)
+                };
+
+                return tokenInfo;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error fetching user info for LoginId: {loginId}");
+                return null;
+            }
+        }
     }
 }
+

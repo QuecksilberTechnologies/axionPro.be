@@ -7,25 +7,19 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.DTOS.Employee.Dependent
 {
-    public class GetDependentResponseDTO: BaseRequest
+    public class GetDependentResponseDTO
     {
 
 
-         public string? EmployeeId { get; set; }
-        public int RoleId { get; set; }
+        public string? Id { get; set; }
+        public string? EmployeeId { get; set; }
         public string? DependentName { get; set; }
         public string? Relation { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public bool? IsCoveredInPolicy { get; set; }
         public bool? IsMarried { get; set; }
         public string? Remark { get; set; }
-        public string? Description { get; set; }
-
-        // 🔹 Audit Fields
-        public string? AddedById { get; set; }
-        public DateTime? AddedDateTime { get; set; }
-        public string? UpdatedById { get; set; }
-        public DateTime? UpdatedDateTime { get; set; }     
+        public string? Description { get; set; }  
 
         // 🔹 Flags
 
