@@ -121,13 +121,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 string actualEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId);
                 long decryptedActualEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
 
-
-
-
-
-
-
-                // 🧩 STEP 4: Validate all employee references
+               // 🧩 STEP 4: Validate all employee references
                 if (decryptedTenantId <= 0 )
                 {
                     _logger.LogWarning("❌ Tenant or employee information missing in token/request.");

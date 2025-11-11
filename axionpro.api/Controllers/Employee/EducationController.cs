@@ -29,7 +29,8 @@ namespace axionpro.api.Controllers.Employee
         /// Create new employee education record.
         /// </summary>
         [HttpPost("create")]
-        public async Task<IActionResult> CreateEmployee([FromBody] CreateEducationRequestDTO dto)
+        public async Task<IActionResult> CreateEmployee([FromForm] CreateEducationRequestDTO dto)
+
         {
             try
             {
@@ -53,10 +54,10 @@ namespace axionpro.api.Controllers.Employee
         /// <summary>
         /// Get all education records (Paginated).
         /// </summary>
-        [HttpPost("get")]
+        [HttpGet("get")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetAllEmployeeInfo([FromBody] GetEducationRequestDTO commandDto)
+        public async Task<IActionResult> GetAllEmployeeInfo([FromQuery] GetEducationRequestDTO commandDto)
         {
             try
             {

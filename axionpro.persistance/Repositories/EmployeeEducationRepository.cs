@@ -78,10 +78,13 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<PagedResponseDTO<GetEducationResponseDTO>> GetInfo(GetEducationRequestDTO dto, long employeeId, long Id)
+        public async Task<PagedResponseDTO<GetEducationResponseDTO>> GetInfo(GetEducationRequestDTO dto, long employeeId, long id)
         {
             try
             {
+                // 📄 Pagination Defaults
+                int pageNumber = dto.PageNumber > 0 ? dto.PageNumber : 1;
+                int pageSize = dto.PageSize > 0 ? dto.PageSize : 10;
                 // 🧭 Base Query (EmployeeId, IsActive & SoftDelete)
                 var baseQuery = _context.EmployeeEducations
                     .AsNoTracking()
@@ -91,12 +94,7 @@ namespace axionpro.persistance.Repositories
                         (edu.IsSoftDeleted!=true)
                     );
 
-                // 🔍 Optional Search Filters
-                long id = 0;
-                if (!string.IsNullOrWhiteSpace(dto.Id))
-                {
-                    long.TryParse(dto.Id, out id);
-                }
+               
                 if (id > 0)
                     baseQuery = baseQuery.Where(x => x.Id == id);
 
@@ -137,9 +135,7 @@ namespace axionpro.persistance.Repositories
                 // 📄 Total Count (before pagination)
                 var totalRecords = await baseQuery.CountAsync();
 
-                // 📄 Pagination Defaults
-                int pageNumber = dto.PageNumber > 0 ? dto.PageNumber : 1;
-                int pageSize = dto.PageSize > 0 ? dto.PageSize : 10;
+             
 
                 // 🧩 Select Response DTO
                 var query = baseQuery.Select(edu => new GetEducationResponseDTO

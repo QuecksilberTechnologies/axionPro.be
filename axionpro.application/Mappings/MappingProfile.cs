@@ -353,18 +353,15 @@ namespace axionpro.application.Mappings
             #region 🔹 Education Mappings
             CreateMap<EmployeeEducation, EmployeeEducationEditableFieldsDTO>().ReverseMap();
             CreateMap<EmployeeEducation, GetEducationResponseDTO>().ReverseMap();
-        
             CreateMap<CreateEducationRequestDTO, EmployeeEducation>()
-            .ForMember(dest => dest.EmployeeId, opt => opt.MapFrom(src => Convert.ToInt64(src.EmployeeId)))
-             .ForMember(dest => dest.AddedById, opt => opt.MapFrom(src => Convert.ToInt64(src.AddedById)))
-              .ForMember(dest => dest.UpdatedById, opt => opt.MapFrom(src =>
-                 string.IsNullOrEmpty(src.UpdatedById) ? (long?)null : Convert.ToInt64(src.UpdatedById)))
-                 .ReverseMap()
-                 .ForMember(dest => dest.EmployeeId, opt => opt.MapFrom(src => src.EmployeeId.ToString()))
-                     .ForMember(dest => dest.AddedById, opt => opt.MapFrom(src => src.AddedById.ToString()))
-                      .ForMember(dest => dest.UpdatedById, opt => opt.MapFrom(src => src.UpdatedById.HasValue ? src.UpdatedById.Value.ToString() : null));
+           .ForMember(dest => dest.Id, opt => opt.Ignore())
+      .ForMember(dest => dest.EmployeeId, opt => opt.Ignore()) // decrypt करके manually assign करते हैं
+      .ForMember(dest => dest.AddedById, opt => opt.Ignore())
+      .ForMember(dest => dest.AddedDateTime, opt => opt.Ignore())
+      .ForMember(dest => dest.EducationGap, opt => opt.MapFrom((src=> src.IsEducationGapBeforeDegree)));
+    
 
-                     CreateMap<CreateBankRequestDTO, EmployeeBankDetail>()
+            CreateMap<CreateBankRequestDTO, EmployeeBankDetail>()
            .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
 .ForMember(dest => dest.AccountType, opt => opt.MapFrom(src => src.AccountType))
 .ForMember(dest => dest.IsPrimaryAccount, opt => opt.MapFrom(src => src.IsPrimaryAccount))

@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.DTOS.Employee.Dependent
 {
-    public class GetDependentRequestDTO: BaseRequest
+    public class GetDependentRequestDTO:BaseRequest
     {
 
-       public string? EmployeeId { get; set; }
        
+        public string? EmployeeId { get; set; }       
         public string? Relation { get; set; }      
         public bool? IsCoveredInPolicy { get; set; }
         public bool? IsMarried { get; set; }

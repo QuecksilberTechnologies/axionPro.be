@@ -2,6 +2,7 @@
 using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
+using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Employee.Dependent;
@@ -100,37 +101,56 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                 }
 
                 // Decrypt / convert values
-                long decryptedUserEmployeeId = Convert.ToInt64(_encryptionService.Decrypt(request.DTO.UserEmployeeId, tenantKey) ?? "0");
-                long decryptedActualEmployeeId = Convert.ToInt64(_encryptionService.Decrypt(request.DTO.EmployeeId, tenantKey) ?? "0");
-                long tokenEmployeeId = Convert.ToInt64(tokenClaims.EmployeeId ?? "0");
-                long decryptedTenantId = Convert.ToInt64(tokenClaims.TenantId ?? "0");
-                long Id = Convert.ToInt64(_encryptionService.Decrypt(request.DTO.Id, tenantKey) ?? "0");
+                string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
+                //UserEmployeeId
+                string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
+                long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
+                //Token TenantId
+                string tokenTenant = EncryptionSanitizer.CleanEncodedInput(tokenClaims.TenantId);
+                long decryptedTenantId = _idEncoderService.DecodeId(tokenTenant, finalKey);
+                //Id              
+                // Actual EmployeeId
+                string actualEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId);
+                long decryptedActualEmployeeId = _idEncoderService.DecodeId(actualEmpId, finalKey);
+                request.DTO.Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
+                long id = _idEncoderService.DecodeId(request.DTO.Id, finalKey);
+                int Id = SafeParser.TryParseInt(id);
 
                 // 🧩 STEP 4: Validate all employee references
-                if (decryptedTenantId <= 0 || decryptedUserEmployeeId <= 0 || tokenEmployeeId <= 0)
+                if (decryptedTenantId <= 0)
                 {
                     _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
                     return ApiResponse<List<GetDependentResponseDTO>>.Fail("Tenant or employee information missing.");
                 }
 
-                if (!(decryptedUserEmployeeId == tokenEmployeeId && tokenEmployeeId == loggedInEmpId))
+
+                if (decryptedTenantId <= 0 || decryptedEmployeeId <= 0)
+                {
+                    _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
+                    return ApiResponse<List<GetDependentResponseDTO>>.Fail("Tenant or employee information missing.");
+                }
+
+                if (!(decryptedEmployeeId == loggedInEmpId))
                 {
                     _logger.LogWarning(
-                        "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, TokenEmpId: {TokenEmp}, LoggedEmpId: {LoggedEmp}",
-                        decryptedUserEmployeeId, tokenEmployeeId, loggedInEmpId
+                        "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
+                         decryptedEmployeeId, loggedInEmpId
                     );
 
                     return ApiResponse<List<GetDependentResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
                 }
 
                 var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
-                if (!permissions.Contains("AddIdentityInfo"))
+                if (!permissions.Contains("AddBankInfo"))
                 {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<List<GetDependentResponseDTO>>.Fail("You do not have permission to add identity info.");
+                    //  await _unitOfWork.RollbackTransactionAsync();
+                    //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
+
+
+                    // 🧩 STEP 4: Call Repository to get data          
+                    //  return ApiResponse<List<GetContactResponseDTO>>.Fail("You do not have permission to add identity info.");
                 }
-                // 4️⃣ Fetch Data from Repository
-                // 4️⃣ Fetch from repository
+              
                 // 4️⃣ Fetch from repository
                 PagedResponseDTO<GetDependentResponseDTO> Entity = await _unitOfWork.EmployeeDependentRepository.GetInfo(request.DTO, decryptedActualEmployeeId, Id);
                 if (Entity == null || !Entity.Items.Any())

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.DTOS.Employee.Dependent
 {
-    public class GetDependentResponseDTO
+    public class GetDependentResponseDTO 
     {
 
 
