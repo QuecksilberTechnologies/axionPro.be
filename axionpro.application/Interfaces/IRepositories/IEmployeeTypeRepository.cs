@@ -1,6 +1,8 @@
 ﻿using axionpro.application.DTOs.Employee;
 using axionpro.application.DTOs.EmployeeType;
 using axionpro.application.DTOs.PolicyType;
+using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.EmployeeType;
 using axionpro.domain.Entity;
 using System;
 using System.Collections.Generic;
@@ -15,7 +17,7 @@ namespace axionpro.application.Interfaces.IRepositories
     {
       public  Task<EmployeeType> GetEmployeeTypeByIdAsync(int? employeeTypeId);
 
-       public Task<IEnumerable<GetEmployeeTypeResponseDTO>> GetAllEmployeeTypesAsync(GetEmployeeTypeRequestDTO getPolicyTypeDTO);
+       public Task<IEnumerable<GetEmployeeTypeResponseOptionDTO>> GetEmployeeTypesOptionAsync(GetOptionRequestDTO getPolicyTypeDTO);
 
     }
 }

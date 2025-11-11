@@ -1,7 +1,10 @@
 ﻿using AutoMapper;
 using axionpro.application.DTOs.EmployeeType;
 using axionpro.application.DTOs.Leave;
-using axionpro.application.Features.EmployeeTypeCmd.Queries;
+using axionpro.application.DTOs.Operation;
+using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.EmployeeType;
+
 using axionpro.application.Features.LeaveCmd.Handlers;
 using axionpro.application.Features.LeaveCmd.Queries;
 using axionpro.application.Interfaces;
@@ -18,13 +21,22 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.Features.EmployeeTypeCmd.Handlers
 {
-    public class GetAllEmployeeTypeQueryHandler : IRequestHandler<GetAllEmployeeTypeQuery, ApiResponse<List<GetEmployeeTypeResponseDTO>>>
+    public class GetEmployeeTypeOptionQuery : IRequest<ApiResponse<List<GetEmployeeTypeResponseOptionDTO>>>
+    {
+        public GetOptionRequestDTO DTO { get; set; }
+
+        public GetEmployeeTypeOptionQuery(GetOptionRequestDTO dTO)
+        {
+            this.DTO = dTO;
+        }
+    }
+    public class GetEmployeeTypeOptionQueryHandler : IRequestHandler<GetEmployeeTypeOptionQuery, ApiResponse<List<GetEmployeeTypeResponseOptionDTO>>>
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ILogger<GetAllLeaveRuleQueryHandler> _logger;
+        private readonly ILogger<GetEmployeeTypeOptionQueryHandler> _logger;
         private readonly IEmployeeTypeRepository _employeeTypeRepository;
-        public GetAllEmployeeTypeQueryHandler(IMapper mapper, IUnitOfWork unitOfWork, ILogger<GetAllLeaveRuleQueryHandler> logger,IEmployeeTypeRepository employeeTypeRepository)
+        public GetEmployeeTypeOptionQueryHandler(IMapper mapper, IUnitOfWork unitOfWork, ILogger<GetEmployeeTypeOptionQueryHandler> logger,IEmployeeTypeRepository employeeTypeRepository)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
@@ -32,43 +44,42 @@ namespace axionpro.application.Features.EmployeeTypeCmd.Handlers
             _employeeTypeRepository = employeeTypeRepository;
         }
 
-        public async Task<ApiResponse<List<GetEmployeeTypeResponseDTO>>> Handle(GetAllEmployeeTypeQuery request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<List<GetEmployeeTypeResponseOptionDTO>>> Handle(GetEmployeeTypeOptionQuery request, CancellationToken cancellationToken)
         {
             try
             {
                 // 🔹 Null check for request
                 if (request?.DTO == null)
                 {
-                    return new ApiResponse<List<GetEmployeeTypeResponseDTO>>
+                    return new ApiResponse<List<GetEmployeeTypeResponseOptionDTO>>
                     {
                         IsSucceeded = false,
                         Message = "Invalid request. DTO cannot be null.",
-                        Data = new List<GetEmployeeTypeResponseDTO>()
+                        Data = new List<GetEmployeeTypeResponseOptionDTO>()
                     };
                 }
 
                 // 🔹 IsActive default handling (agar null aaya to false kar do)
-                bool isActive = request.DTO.IsActive;
+           //     bool isActive = request.DTO.IsActive;
 
                 // 🔹 Repository se data fetch
-                IEnumerable<GetEmployeeTypeResponseDTO> employeeTypes =
-                    await _employeeTypeRepository.GetAllEmployeeTypesAsync(request.DTO);
+                IEnumerable<GetEmployeeTypeResponseOptionDTO> employeeTypes   =      await _employeeTypeRepository.GetEmployeeTypesOptionAsync(request.DTO);
 
                 // 🔹 Validation: Agar list null ya empty hai
                 if (employeeTypes == null || !employeeTypes.Any())
                 {
                     _logger.LogWarning("⚠️ No EmployeeType found in database.");
 
-                    return new ApiResponse<List<GetEmployeeTypeResponseDTO>>
+                    return new ApiResponse<List<GetEmployeeTypeResponseOptionDTO>>
                     {
                         IsSucceeded = false,
                         Message = "No Employee Types found.",
-                        Data = new List<GetEmployeeTypeResponseDTO>()
+                        Data = new List<GetEmployeeTypeResponseOptionDTO>()
                     };
                 }
 
                 // 🔹 Success response
-                return new ApiResponse<List<GetEmployeeTypeResponseDTO>>
+                return new ApiResponse<List<GetEmployeeTypeResponseOptionDTO>>
                 {
                     IsSucceeded = true,
                     Message = "Employee Types fetched successfully.",
@@ -79,11 +90,11 @@ namespace axionpro.application.Features.EmployeeTypeCmd.Handlers
             {
                 _logger.LogError(ex, "❌ Error occurred while fetching EmployeeTypes.");
 
-                return new ApiResponse<List<GetEmployeeTypeResponseDTO>>
+                return new ApiResponse<List<GetEmployeeTypeResponseOptionDTO>>
                 {
                     IsSucceeded = false,
                     Message = $"An error occurred while fetching Employee Types: {ex.Message}",
-                    Data = new List<GetEmployeeTypeResponseDTO>() // null ke bajaye empty list bhejna better hai
+                    Data = new List<GetEmployeeTypeResponseOptionDTO>() // null ke bajaye empty list bhejna better hai
                 };
             }
         }

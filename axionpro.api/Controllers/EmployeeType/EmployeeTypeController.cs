@@ -1,6 +1,7 @@
 ﻿using axionpro.application.DTOs.EmployeeType;
 using axionpro.application.DTOs.Leave;
-using axionpro.application.Features.EmployeeTypeCmd.Queries;
+using axionpro.application.DTOS.Common;
+using axionpro.application.Features.EmployeeTypeCmd.Handlers;
 using axionpro.application.Features.LeaveCmd.Commands;
 using axionpro.application.Features.LeaveCmd.Queries;
 using axionpro.application.Wrappers;
@@ -43,10 +44,43 @@ namespace axionpro.api.Controllers.EmployeeType
 
         //    return Ok(result);
         //}
-         [HttpGet("get")]
-        public async Task<IActionResult> GetAllEmployeeType([FromQuery] GetEmployeeTypeRequestDTO getAllEmployeeTypeRequestDTO)
+        /// <summary>
+        /// Returns list of all Employee Types.
+        /// </summary>
+
+        [HttpGet("get")]
+        [ProducesResponseType(typeof(ApiResponse<List<application.DTOs.EmployeeType.GetEmployeeTypeResponseDTO>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<List<application.DTOs.EmployeeType.GetEmployeeTypeResponseDTO>>), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetAllEmployeeType([FromQuery] application.DTOS.Employee.Type.GetEmployeeTypeRequestDTO requestDto)
         {
-            if (getAllEmployeeTypeRequestDTO == null)
+            try
+            {
+                _logger.LogInformation("Fetching all employee types.");
+
+                var employeeTypes = new List<application.DTOs.EmployeeType.GetEmployeeTypeResponseDTO>
+                {
+                    new() { Id = 1, TypeName = "Full-Time", Description = "Permanent employee with all benefits", IsActive = true },
+                    new() { Id = 2, TypeName = "Contract", Description = "Contract-based employee", IsActive = true },
+                    new() { Id = 3, TypeName = "Intern", Description = "Internship employee", IsActive = true },
+                    new() { Id = 4, TypeName = "Freelancer", Description = "External resource", IsActive = false }
+                };
+
+                var response = new ApiResponse<List<application.DTOs.EmployeeType.GetEmployeeTypeResponseDTO>>(employeeTypes, "Employee types fetched successfully.", true);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error fetching employee types: {ex.Message}");
+                var errorResponse = ApiResponse<List<application.DTOs.EmployeeType.GetEmployeeTypeResponseDTO>>.Fail("Failed to fetch employee types.", new List<string> { ex.Message });
+                return StatusCode(500, errorResponse);
+            }
+        }
+        [HttpGet("option")]
+
+        public async Task<IActionResult> GetAllEmployeeType([FromQuery] GetOptionRequestDTO requestDTO)
+        {
+       
+            if (requestDTO == null)
             {
                 _logger.LogWarning("Received null request for getting leaves.");
                 return BadRequest(new { success = false, message = "Invalid request" });
@@ -54,7 +88,7 @@ namespace axionpro.api.Controllers.EmployeeType
 
             _logger.LogInformation("Fetching all leave types...");
 
-            var query = new GetAllEmployeeTypeQuery(getAllEmployeeTypeRequestDTO);
+            var query = new GetEmployeeTypeOptionQuery(requestDTO);
             var result = await _mediator.Send(query);
 
             if (!result.IsSucceeded)

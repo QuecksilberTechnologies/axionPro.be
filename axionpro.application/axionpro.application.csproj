@@ -53,6 +53,7 @@
     <Folder Include="Features\EmployeeTypeCmd\Commands\" />
     <Folder Include="Features\EmployeeLeavePolicyMapCmd\Queries\" />
     <Folder Include="Features\EmployeeLeavePolicyMapCmd\NewFolder2\" />
+    <Folder Include="Features\EmployeeTypeCmd\Queries\" />
     <Folder Include="Features\HolidayCalandarCmd\Commands\" />
     <Folder Include="Features\LeaveRuleCmd\NewFolder\" />
     <Folder Include="Features\LeaveCmd\NewFolder\" />

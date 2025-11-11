@@ -1,5 +1,7 @@
 ﻿using axionpro.application.DTOs.Employee;
 using axionpro.application.DTOs.EmployeeType;
+using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.EmployeeType;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
@@ -28,7 +30,7 @@ namespace axionpro.persistance.Repositories
             this.logger = logger;
         }
 
-        public async Task<IEnumerable<GetEmployeeTypeResponseDTO>> GetAllEmployeeTypesAsync(GetEmployeeTypeRequestDTO request)
+        public async Task<IEnumerable<GetEmployeeTypeResponseOptionDTO>> GetEmployeeTypesOptionAsync(GetOptionRequestDTO request)
         {
             try
             {
@@ -37,19 +39,17 @@ namespace axionpro.persistance.Repositories
 
                 // 🔹 Filter: Active + Not SoftDeleted
                 query = query.Where(et =>
-                    et.IsActive == request.IsActive
+                    et.IsActive == true
                     && (et.IsSoftDeleted == null || et.IsSoftDeleted == false)
                 );
 
                 // 🔹 Data map into ResponseDTO
                 var list = await query
-                    .Select(et => new GetEmployeeTypeResponseDTO
+                    .Select(et => new GetEmployeeTypeResponseOptionDTO
                     {
                         Id = et.Id,
                         TypeName = et.TypeName ?? string.Empty,
-                        Description = et.Description ?? string.Empty,
-                        Remark = et.Remark ?? string.Empty,
-                        IsActive = et.IsActive
+                       
                     })
                     .ToListAsync();
 
@@ -59,7 +59,7 @@ namespace axionpro.persistance.Repositories
             {
                 // 🔹 Agar error aaya toh empty list return karo aur log karo
                 _logger.LogError(ex, "Error while fetching EmployeeTypes");
-                return Enumerable.Empty<GetEmployeeTypeResponseDTO>();
+                return Enumerable.Empty<GetEmployeeTypeResponseOptionDTO>();
             }
         }
 

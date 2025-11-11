@@ -85,37 +85,7 @@ namespace axionpro.api.Controllers.Employee
             }
         }
 
-        /// <summary>
-        /// Returns list of all Employee Types.
-        /// </summary>
-       
-        [HttpGet("Type/get")]
-        [ProducesResponseType(typeof(ApiResponse<List<application.DTOs.EmployeeType.GetEmployeeTypeResponseDTO>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<List<application.DTOs.EmployeeType.GetEmployeeTypeResponseDTO>>), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetAllEmployeeType([FromQuery] application.DTOS.Employee.Type.GetEmployeeTypeRequestDTO requestDto)
-        {
-            try
-            {
-                _logger.LogInfo("Fetching all employee types.");
-
-                var employeeTypes = new List<application.DTOs.EmployeeType.GetEmployeeTypeResponseDTO>
-                {
-                    new() { Id = 1, TypeName = "Full-Time", Description = "Permanent employee with all benefits", IsActive = true },
-                    new() { Id = 2, TypeName = "Contract", Description = "Contract-based employee", IsActive = true },
-                    new() { Id = 3, TypeName = "Intern", Description = "Internship employee", IsActive = true },
-                    new() { Id = 4, TypeName = "Freelancer", Description = "External resource", IsActive = false }
-                };
-
-                var response = new ApiResponse<List<application.DTOs.EmployeeType.GetEmployeeTypeResponseDTO>>(employeeTypes, "Employee types fetched successfully.", true);
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error fetching employee types: {ex.Message}");
-                var errorResponse = ApiResponse<List<application.DTOs.EmployeeType.GetEmployeeTypeResponseDTO>>.Fail("Failed to fetch employee types.", new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
-        }
+      
 
         /// <summary>
         /// Get all employees based on TenantId or filters.
