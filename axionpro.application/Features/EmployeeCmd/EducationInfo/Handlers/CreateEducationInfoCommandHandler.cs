@@ -16,6 +16,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 {
@@ -155,14 +156,14 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                     }
 
                 }
+                            
                 else
                     return ApiResponse<List<GetEducationResponseDTO>>.Fail("Digree-Name missing.");
 
                 // 🔹 STEP 5: Map DTO to Entity
                 var educationEntity = _mapper.Map<EmployeeEducation>(request.DTO);
                  
-                 docName = _idEncoderService.DecodeString(EncryptionSanitizer.CleanEncodedInput(docName), finalKey);
-
+               
                 educationEntity.EmployeeId = decryptedEmployeeId;
                 educationEntity.EducationDocPath = docPath;
                 educationEntity.AddedById = decryptedEmployeeId;

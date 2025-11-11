@@ -109,8 +109,10 @@ namespace axionpro.infrastructure.FileStoringService
 
         public string GenerateFilePath(long? tenantId, string subFolder, string fileName)
         {
+          //  fileName = null;
             var tenantFolder = GetTenantFolderPath(tenantId, subFolder);
-            return Path.Combine(tenantFolder, fileName);
+          //  return Path.Combine(tenantFolder, fileName);
+            return Path.Combine(tenantFolder);
         }
 
     }
