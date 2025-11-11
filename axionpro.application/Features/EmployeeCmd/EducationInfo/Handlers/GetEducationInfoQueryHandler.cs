@@ -126,12 +126,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                 int Id = SafeParser.TryParseInt(id);
 
                 // 🧩 STEP 4: Validate all employee references
-                if (decryptedTenantId <= 0)
-                {
-                    _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
-                    return ApiResponse<List<GetEducationResponseDTO>>.Fail("Tenant or employee information missing.");
-                }
-
+               
 
                 if (decryptedTenantId <= 0 || decryptedEmployeeId <= 0)
                 {

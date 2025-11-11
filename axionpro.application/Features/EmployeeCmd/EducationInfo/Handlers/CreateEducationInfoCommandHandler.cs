@@ -92,36 +92,71 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                 string tenantKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
                 if (string.IsNullOrEmpty(request.DTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
                     return ApiResponse<List<GetEducationResponseDTO>>.Fail("User invalid.");
-
                 string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
                 long decryptedEmployeeId = _idEncoderService.DecodeId(EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId), finalKey);
                 long decryptedTenantId = _idEncoderService.DecodeId(EncryptionSanitizer.CleanEncodedInput(tokenClaims.TenantId), finalKey);
+                string actualEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId);
+                long decryptedActualEmployeeId = _idEncoderService.DecodeId(actualEmpId, finalKey);
+                          
+
 
                 if (decryptedTenantId <= 0 || decryptedEmployeeId <= 0)
-                    return ApiResponse<List<GetEducationResponseDTO>>.Fail("Tenant or employee info missing.");
+                {
+                    _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
+                    return ApiResponse<List<GetEducationResponseDTO>>.Fail("Tenant or employee information missing.");
+                }
+
+                if (!(decryptedEmployeeId == loggedInEmpId))
+                {
+                    _logger.LogWarning(
+                        "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
+                         decryptedEmployeeId, loggedInEmpId
+                    );
+
+                    return ApiResponse<List<GetEducationResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
+                }
+
 
                 // 🔹 STEP 4: File Upload
                 string? docPath = null;
                 string? docName = null;
+               
+                // 🔹 Tenant info from decoded values
+                long? tenantId = decryptedTenantId;
 
-                if (request.DTO.EducationDocument != null && request.DTO.EducationDocument.Length > 0)
+                string docFileName = EncryptionSanitizer.CleanEncodedInput(request.DTO.Degree.Trim().ToLower());
+                if (docFileName != null)
                 {
-                    using (var ms = new MemoryStream())
+                    // 🔹 File upload check
+                    if (request.DTO.EducationDocument != null && request.DTO.EducationDocument.Length > 0)
                     {
-                        await request.DTO.EducationDocument.CopyToAsync(ms);
-                        var fileBytes = ms.ToArray();
+                        using (var ms = new MemoryStream())
+                        {
+                            await request.DTO.EducationDocument.CopyToAsync(ms);
+                            var fileBytes = ms.ToArray();
 
-                        string fileName = $"EDU-{decryptedEmployeeId}-{DateTime.UtcNow:yyyyMMddHHmmss}.pdf";
-                        string folderPath = "education";
-                        string filePath = _fileStorageService.GenerateFilePath(decryptedTenantId, folderPath, fileName);
-                        docName = filePath;
-                        savedFullPath = await _fileStorageService.SaveFileAsync(fileBytes, fileName, filePath);
+                            // 🔹 File naming convention (same pattern as asset)
+                            string fileName = $"EDU-{decryptedActualEmployeeId + "_"+docFileName}-{DateTime.UtcNow:yyMMddHHmmss}.pdf";
+                            string folderPath = "education"; // Folder name same for all education docs
 
-                        if (!string.IsNullOrEmpty(savedFullPath))
-                            docPath = _fileStorageService.GetRelativePath(savedFullPath);
+                            // 🔹 Generate full file path (tenant + folder + filename)
+                            string filePath = _fileStorageService.GenerateFilePath(tenantId, folderPath, fileName);
+
+                            // 🔹 Store actual name for reference in DB
+                            docName = fileName;
+
+                            // 🔹 Save file physically
+                            savedFullPath = await _fileStorageService.SaveFileAsync(fileBytes, fileName, filePath);
+
+                            // 🔹 If saved successfully, set relative path
+                            if (!string.IsNullOrEmpty(savedFullPath))
+                                docPath = _fileStorageService.GetRelativePath(savedFullPath);
+                        }
                     }
-                }
 
+                }
+                else
+                    return ApiResponse<List<GetEducationResponseDTO>>.Fail("Digree-Name missing.");
 
                 // 🔹 STEP 5: Map DTO to Entity
                 var educationEntity = _mapper.Map<EmployeeEducation>(request.DTO);
