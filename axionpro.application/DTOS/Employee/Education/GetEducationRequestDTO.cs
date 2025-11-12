@@ -10,7 +10,7 @@ namespace axionpro.application.DTOS.Employee.Education
 {
     public class GetEducationRequestDTO :BaseRequest
     {    
-            
+       
         
         public string? EmployeeId { get; set; }= string.Empty;
         public string? Degree { get; set; }

@@ -76,84 +76,8 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 
             return entities;
         }
-        
-        
-        public static List<GetContactResponseDTO> ToGetContactResponseDTOs(List<GetContactResponseDTO> entities,
-      IIdEncoderService encoderService,
-      string tenantKey)
-        {
-            if (entities == null || !entities.Any())
-                return new List<GetContactResponseDTO>();
 
-            foreach (var item in entities)
-            {
-                // ✅ Sirf Id encode karo (agar valid hai)
-                if (long.TryParse(item.Id, out long rawId) && rawId > 0)
-                {
-                    item.Id = encoderService.EncodeId(rawId, tenantKey);
-                }
-                // ✅ Encode EmployeeId separately
-                if (long.TryParse(item.EmployeeId, out long empRawId) && empRawId > 0)
-                {
-                    item.EmployeeId = encoderService.EncodeId(empRawId, tenantKey);
-                }
 
-                // ✅ Optional cleanup (avoid nulls)
-                item.EmployeeId ??= string.Empty;
-                item.Id ??= string.Empty;
-
-            }
-
-            return entities;
-        }
-
-     
-
-        public static List<GetEducationResponseDTO> ToGetEducationResponseDTOs(
-     List<GetEducationResponseDTO> entities,
-     IEncryptionService encryptionService,
-     string tenantKey,
-     string encryptedEmployeeId)
-        {
-            if (entities == null || !entities.Any())
-                return new List<GetEducationResponseDTO>();
-
-            return entities.Select(e => new GetEducationResponseDTO
-            {
-                // 🆔 Encrypted IDs (no double encryption)
-                Id = EnsureEncrypted(e.Id, encryptionService, tenantKey),
-                EmployeeId = encryptedEmployeeId, // already encrypted from request
-
-                // 🎓 Education Info
-                Degree = e.Degree,
-                InstituteName = e.InstituteName,
-                Remark = e.Remark,
-                StartDate = e.StartDate,
-                EndDate = e.EndDate,
-                GradeOrPercentage = e.GradeOrPercentage,
-                GPAOrPercentage = e.GPAOrPercentage,
-                EducationDocPath = e.EducationDocPath,
-                DocType = e.DocType,
-                DocName = e.DocName,
-                EducationGap = e.EducationGap,
-                ReasonOfEducationGap = e.ReasonOfEducationGap,
-
-                // 🕒 Audit Info
-                AddedById = EnsureEncrypted(e.AddedById, encryptionService, tenantKey),
-                AddedDateTime = e.AddedDateTime,
-                UpdatedById = EnsureEncrypted(e.UpdatedById, encryptionService, tenantKey),
-                UpdatedDateTime = e.UpdatedDateTime,
-
-                // 🧾 Verification Info
-                InfoVerifiedById = EnsureEncrypted(e.InfoVerifiedById, encryptionService, tenantKey),
-                IsInfoVerified = e.IsInfoVerified,
-                InfoVerifiedDateTime = e.InfoVerifiedDateTime,
-                IsEditAllowed = e.IsEditAllowed,
-
-                // ⚙️ Status
-                IsActive = e.IsActive
-            }).ToList();
-        }
 
         /// <summary>
         /// Prevents double encryption by detecting pre-encrypted strings.
@@ -261,11 +185,9 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 
             return entities;
         }
-        public static List<GetBankResponseDTO> ToGetBankResponseDTOs(
-    PagedResponseDTO<GetBankResponseDTO> entities,
+        public static List<GetBankResponseDTO> ToGetBankResponseDTOs(  PagedResponseDTO<GetBankResponseDTO> entities,
     IIdEncoderService encoderService,
-    string tenantKey,
-    string empId)
+    string tenantKey)
         {
             if (entities == null || entities.Items == null || !entities.Items.Any())
                 return new List<GetBankResponseDTO>();
@@ -299,6 +221,42 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         }
 
 
+        public static List<GetEducationResponseDTO> ToGetEducationResponseDTOs(  PagedResponseDTO<GetEducationResponseDTO> entities, IIdEncoderService encryptionService,
+            string tenantKey
+           )
+        {
+            // 🔹 Null / Empty check
+            if (entities == null || entities.Items == null || !entities.Items.Any())
+                return new List<GetEducationResponseDTO>();
+
+            var result = new List<GetEducationResponseDTO>();
+
+            foreach (var item in entities.Items)
+            {
+                if (item == null) continue;
+
+                // ✅ ID encrypt करो (अगर valid long है)
+                if (long.TryParse(item.Id, out long rawId) && rawId > 0)
+                {
+                    item.Id = encryptionService.EncodeId(rawId, tenantKey);
+                }
+
+                // ✅ EmployeeId encrypt करो
+                if (long.TryParse(item.EmployeeId, out long empRawId) && empRawId > 0)
+                {
+                    item.EmployeeId = encryptionService.EncodeId(empRawId, tenantKey);
+                }
+
+                // ✅ Optional cleanup (null safety)
+                item.Id ??= string.Empty;
+                item.EmployeeId ??= string.Empty;
+
+                result.Add(item);
+            }
+
+            return result;
+        }
+
         public static List<GetDepartmentResponseDTO> ToGetDepartmentResponseDTOs(List<GetDepartmentResponseDTO> entities, IIdEncoderService idEncoderService, string tenantKey)
         {
             if (entities == null || entities.Count == 0)
@@ -315,6 +273,45 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 IsActive = e.IsActive
             }).ToList();
         }
+
+        public static List<GetContactResponseDTO> ToGetContactResponseDTOs(PagedResponseDTO<GetContactResponseDTO> entities,
+            IIdEncoderService encoderService,
+                    string tenantKey)
+        {
+            if (entities == null || entities.Items == null || !entities.Items.Any())
+                return new List<GetContactResponseDTO>();
+
+            var result = new List<GetContactResponseDTO>();
+
+            foreach (var item in entities.Items) // now item is GetBankResponseDTO
+            {
+                if (item == null) continue;
+
+                // ✅ Encode Bank Record Id
+                if (long.TryParse(item.Id, out long rawId) && rawId > 0)
+                {
+                    item.Id = encoderService.EncodeId(rawId, tenantKey);
+                }
+
+                // ✅ Encode EmployeeId separately
+                if (long.TryParse(item.EmployeeId, out long empRawId) && empRawId > 0)
+                {
+                    item.EmployeeId = encoderService.EncodeId(empRawId, tenantKey);
+                }
+
+                // ✅ Optional cleanup (avoid nulls)
+                item.EmployeeId ??= string.Empty;
+                item.Id ??= string.Empty;
+
+                result.Add(item);
+            }
+
+            return result;
+        }
+
+
+
+
 
         //public static List<GetRoleResponseDTO> ToGetRoleResponseDTOs(List<GetRoleResponseDTO> entities, IEncryptionService encryptionService, string tenantKey)
         //{

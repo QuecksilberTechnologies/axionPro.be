@@ -161,7 +161,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                     return ApiResponse<List<GetBankResponseDTO>>.Fail("No bank info found.");
 
                 // 5️⃣ Projection (fastest approach)
-               var result = ProjectionHelper.ToGetBankResponseDTOs(bankEntities, _idEncoderService, tenantKey, request.DTO.EmployeeId);
+               var result = ProjectionHelper.ToGetBankResponseDTOs(bankEntities, _idEncoderService, tenantKey);
 
                 // ✅ Correct paginated return
                 return ApiResponse<List<GetBankResponseDTO>>.SuccessPaginated(

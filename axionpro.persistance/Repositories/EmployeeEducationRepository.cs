@@ -85,8 +85,13 @@ namespace axionpro.persistance.Repositories
             try
             {
                 // 📄 Pagination Defaults
-                int pageNumber = dto.PageNumber > 0 ? dto.PageNumber : 1;
-                int pageSize = dto.PageSize > 0 ? dto.PageSize : 10;
+                int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
+                int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
+                
+                string sortBy = !string.IsNullOrWhiteSpace(dto.SortBy) ? dto.SortBy.ToLower() : "id";
+                string sortOrder = !string.IsNullOrWhiteSpace(dto.SortOrder) ? dto.SortOrder.ToLower() : "desc";
+                bool isDescending = string.Equals(dto.SortOrder, "desc", StringComparison.OrdinalIgnoreCase);
+
                 // 🧭 Base Query (EmployeeId, IsActive & SoftDelete)
                 var baseQuery = _context.EmployeeEducations
                     .AsNoTracking()
@@ -121,30 +126,46 @@ namespace axionpro.persistance.Repositories
                     baseQuery = baseQuery.Where(x => x.IsEditAllowed == dto.IsEditAllowed);
 
                 // 🧩 Sorting Logic — dynamic based on DTO
-                string sortBy = !string.IsNullOrWhiteSpace(dto.SortBy) ? dto.SortBy : "Id";
-                string sortOrder = !string.IsNullOrWhiteSpace(dto.SortOrder) ? dto.SortOrder.ToLower() : "desc";
+         
 
                 // Sort dynamically using reflection or known fields
-                baseQuery = sortBy switch
+                baseQuery = (sortBy?.ToLower()) switch
                 {
-                    "Degree" => sortOrder == "asc" ? baseQuery.OrderBy(x => x.Degree) : baseQuery.OrderByDescending(x => x.Degree),
-                    "InstituteName" => sortOrder == "asc" ? baseQuery.OrderBy(x => x.InstituteName) : baseQuery.OrderByDescending(x => x.InstituteName),
-                    "StartDate" => sortOrder == "asc" ? baseQuery.OrderBy(x => x.StartDate) : baseQuery.OrderByDescending(x => x.StartDate),
-                    "EndDate" => sortOrder == "asc" ? baseQuery.OrderBy(x => x.EndDate) : baseQuery.OrderByDescending(x => x.EndDate),
-                    _ => sortOrder == "asc" ? baseQuery.OrderBy(x => x.Id) : baseQuery.OrderByDescending(x => x.Id)
+                    "degree" => sortOrder == "asc"
+                        ? baseQuery.OrderBy(x => x.Degree)
+                        : baseQuery.OrderByDescending(x => x.Degree),
+
+                    "institutename" => sortOrder == "asc"
+                        ? baseQuery.OrderBy(x => x.InstituteName)
+                        : baseQuery.OrderByDescending(x => x.InstituteName),
+
+                    "haseducationdocuploded" => sortOrder == "asc"
+                        ? baseQuery.OrderBy(x => x.HasEducationDocUploded)
+                        : baseQuery.OrderByDescending(x => x.Id),
+
+                    "startdate" => sortOrder == "asc"
+                        ? baseQuery.OrderBy(x => x.StartDate)
+                        : baseQuery.OrderByDescending(x => x.StartDate),
+
+                    "enddate" => sortOrder == "asc"
+                        ? baseQuery.OrderBy(x => x.EndDate)
+                        : baseQuery.OrderByDescending(x => x.EndDate),
+
+                    _ => sortOrder == "asc"
+                        ? baseQuery.OrderBy(x => x.Id)
+                        : baseQuery.OrderByDescending(x => x.Id)
                 };
 
                 // 📄 Total Count (before pagination)
                 var totalRecords = await baseQuery.CountAsync();
 
-             
+
 
                 // 🧩 Select Response DTO
                 var query = baseQuery.Select(edu => new GetEducationResponseDTO
                 {
                     Id = edu.Id.ToString(),
                     EmployeeId = edu.EmployeeId.ToString(),
-
                     Degree = edu.Degree,
                     InstituteName = edu.InstituteName,
                     Remark = edu.Remark,
@@ -152,24 +173,14 @@ namespace axionpro.persistance.Repositories
                     GPAOrPercentage = edu.GpaorPercentage,
                     EducationGap = edu.EducationGap,
                     ReasonOfEducationGap = edu.ReasonOfEducationGap,
-
                     StartDate = edu.StartDate,
                     EndDate = edu.EndDate,
-
                     EducationDocPath = edu.EducationDocPath,
-                    DocType = edu.DocType,
+                    DocType = edu.DocType.ToString(),
                     DocName = edu.DocName,
 
                     IsActive = edu.IsActive,
-                    IsInfoVerified = edu.IsInfoVerified,
-                    IsEditAllowed = edu.IsEditAllowed,
 
-                    InfoVerifiedById = edu.InfoVerifiedById.HasValue ? edu.InfoVerifiedById.Value.ToString() : null,
-                    AddedById = edu.AddedById.ToString(),
-                    UpdatedById = edu.UpdatedById.HasValue ? edu.UpdatedById.Value.ToString() : null,
-
-                    AddedDateTime = edu.AddedDateTime,
-                    UpdatedDateTime = edu.UpdatedDateTime
                 });
 
                 // 📜 Pagination Apply

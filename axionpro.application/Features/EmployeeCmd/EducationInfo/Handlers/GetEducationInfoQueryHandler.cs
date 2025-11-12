@@ -166,7 +166,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 
                 // 5️⃣ Projection + Encryption
              //   var encryptedResult = ProjectionHelper.ToGetEducationResponseDTOs(Entity.Items, _encryptionService, tenantKey, request.DTO.EmployeeId);
-                var encryptedResult = ProjectionHelper.ToGetEducationResponseDTOs(Entity.Items, _encryptionService, tenantKey, request.DTO.EmployeeId);
+                var encryptedResult = ProjectionHelper.ToGetEducationResponseDTOs(Entity, _idEncoderService, tenantKey);
 
                 // 6️⃣ Commit Transaction
                 await _unitOfWork.CommitTransactionAsync();

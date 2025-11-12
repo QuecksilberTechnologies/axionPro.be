@@ -4,6 +4,7 @@ using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
+using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -11,12 +12,15 @@ using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
+using axionpro.domain.Common;
 using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Drawing.Printing;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 {
@@ -121,11 +125,12 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                 // 🔹 STEP 4: File Upload
                 string? docPath = null;
                 string? docName = null;
-               
+                bool HasEducationUploaded = false;
                 // 🔹 Tenant info from decoded values
-                long? tenantId = decryptedTenantId;
+                long tenantId = decryptedTenantId;
 
                 string docFileName = EncryptionSanitizer.CleanEncodedInput(request.DTO.Degree.Trim().ToLower());
+                
                 if (docFileName != null)
                 {
                     // 🔹 File upload check
@@ -137,82 +142,72 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                             var fileBytes = ms.ToArray();
 
                             // 🔹 File naming convention (same pattern as asset)
-                            string fileName = $"EDU-{decryptedActualEmployeeId + "_"+docFileName}-{DateTime.UtcNow:yyMMddHHmmss}.pdf";                           
-                          
-                            string folderPath = Path.Combine(decryptedActualEmployeeId.ToString() + "education");
-                  
+                            string fileName = $"EDU-{decryptedActualEmployeeId + "_"+docFileName}-{DateTime.UtcNow:yyMMddHHmmss}.pdf";
 
-                            // 🔹 Generate full file path (tenant + folder + filename)
-                            // 🔹 Generate full file path (tenant + folder + filename)
-                            string filePath = _fileStorageService.GenerateFilePath(tenantId, folderPath, fileName);
-
+                            string fullFolderPath = _fileStorageService.GetEmployeeFolderPath(tenantId, decryptedActualEmployeeId, "education");
+                            
                             // 🔹 Store actual name for reference in DB
                             docName = fileName;
 
                             // 🔹 Save file physically
-                            savedFullPath = await _fileStorageService.SaveFileAsync(fileBytes, fileName, filePath);
+                            savedFullPath = await _fileStorageService.SaveFileAsync(fileBytes, fileName, fullFolderPath);
 
                             // 🔹 If saved successfully, set relative path
                             if (!string.IsNullOrEmpty(savedFullPath))
+                            {
                                 docPath = _fileStorageService.GetRelativePath(savedFullPath);
+
+                                HasEducationUploaded = true;
+                                    }
+
+                          
                         }
                     }
 
                 }
                             
-                else
-                    return ApiResponse<List<GetEducationResponseDTO>>.Fail("Digree-Name missing.");
-
+              
                 // 🔹 STEP 5: Map DTO to Entity
-                var educationEntity = _mapper.Map<EmployeeEducation>(request.DTO);
-                 
-               
-                educationEntity.EmployeeId = decryptedEmployeeId;
-                educationEntity.EducationDocPath = docPath;
+                var educationEntity = _mapper.Map<EmployeeEducation>(request.DTO);                  
+                educationEntity.EmployeeId = decryptedEmployeeId;                
                 educationEntity.AddedById = decryptedEmployeeId;
                 educationEntity.AddedDateTime = DateTime.UtcNow;
                 educationEntity.IsActive = true;
                 educationEntity.IsInfoVerified = false;
-                educationEntity.IsEditAllowed = true;
-                educationEntity.DocName = docName;
-                educationEntity.DocType = 2;
-                educationEntity.HasEducationDocUploded = true;
-
+                educationEntity.IsEditAllowed = true;               
+                educationEntity.DocType = 0;
+              
+                if (HasEducationUploaded)
+                {
+                    educationEntity.DocType = 2;//pdf
+                    educationEntity.EducationDocPath = docPath;
+                    educationEntity.DocName = docName;
+                   
+                }
+                educationEntity.HasEducationDocUploded = HasEducationUploaded;
 
 
                 // 🔹 STEP 6: Database Insert + File Validation
                 var responseDTO = await _unitOfWork.EmployeeEducationRepository.CreateAsync(educationEntity);
 
-                if (responseDTO == null || responseDTO.Items == null || !responseDTO.Items.Any())
-                {
-                    // ❌ File save ho gaya lekin data save nahi hua → file delete karo
-                    if (!string.IsNullOrEmpty(savedFullPath))
-                    {
-                        try
-                        {
-                            File.Delete(savedFullPath);
-                            _logger.LogWarning("🗑️ File deleted due to DB failure: {Path}", savedFullPath);
-                        }
-                        catch (Exception delEx)
-                        {
-                            _logger.LogError(delEx, "❌ Failed to delete file after DB failure.");
-                        }
-                    }
-
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<List<GetEducationResponseDTO>>.Fail("Education info insert failed. File reverted.");
-                }
+                 
 
                 // 🔹 STEP 7: Commit Transaction
                 await _unitOfWork.CommitTransactionAsync();
 
                 // 🔹 STEP 8: Projection + Encryption
-                var encryptedList = ProjectionHelper.ToGetEducationResponseDTOs(responseDTO.Items, _encryptionService, tenantKey, request.DTO.EmployeeId);
+                var encryptedList = ProjectionHelper.ToGetEducationResponseDTOs(responseDTO, _idEncoderService, tenantKey);
 
-                return ApiResponse<List<GetEducationResponseDTO>>.Success(
-                    encryptedList,
-                    $"{responseDTO.TotalCount} record(s) created successfully."
-                );
+                return new ApiResponse<List<GetEducationResponseDTO>>
+                {
+                    IsSucceeded = true,
+                    Message = $"{responseDTO.TotalCount} record(s) retrieved successfully.",
+                    PageNumber = responseDTO.PageNumber,
+                    PageSize = responseDTO.PageSize,
+                    TotalRecords = responseDTO.TotalCount,
+                    TotalPages = responseDTO.TotalPages,
+                    Data = encryptedList
+                };
             }
             catch (Exception ex)
             {

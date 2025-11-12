@@ -158,7 +158,7 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
                     return ApiResponse<List<GetContactResponseDTO>>.Fail("No Contact info found.");
 
                 // 5️⃣ Projection (fastest approach)
-                var responseDTO = ProjectionHelper.ToGetContactResponseDTOs(Entity.Items, _idEncoderService, tenantKey);
+                var responseDTO = ProjectionHelper.ToGetContactResponseDTOs(Entity, _idEncoderService, tenantKey);
 
                 // 6️⃣ Return success response    
                

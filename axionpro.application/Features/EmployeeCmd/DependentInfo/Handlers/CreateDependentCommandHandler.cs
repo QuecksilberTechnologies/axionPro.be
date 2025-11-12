@@ -164,7 +164,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                 string? docName = null;
 
                 // 🔹 Tenant info from decoded values
-                long? tenantId = decryptedTenantId;
+                long tenantId = decryptedTenantId;
                 bool HasProofUploaded = false;
                 if (string.IsNullOrWhiteSpace(request.DTO.Relation))
                 {
@@ -191,14 +191,14 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
 
                         // 🔹 File naming convention (same pattern as asset)
                         string fileName = $"proof-{decryptedActualEmployeeId + "_" + docFileName}-{DateTime.UtcNow:yyMMddHHmmss}.pdf";
-                        string folderPath = Path.Combine(decryptedActualEmployeeId.ToString(), "dependent");
-                        string filePath = _fileStorageService.GenerateFilePath(folderPath, fileName);
 
+                        string fullFolderPath = _fileStorageService.GetEmployeeFolderPath(tenantId, decryptedActualEmployeeId, "dependent");
+                     
                         // 🔹 Store actual name for reference in DB
                         docName = fileName;
 
                         // 🔹 Save file physically
-                        savedFullPath = await _fileStorageService.SaveFileAsync(fileBytes, fileName, filePath);
+                        savedFullPath = await _fileStorageService.SaveFileAsync(fileBytes, fileName, fullFolderPath);
 
                         // 🔹 If saved successfully, set relative path
                         if (!string.IsNullOrEmpty(savedFullPath))
@@ -225,7 +225,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                 {
                     dependentEntity.ProofDocName = docName;
                     dependentEntity.ProofDocPath = docPath;
-                      dependentEntity.DocType = 2;
+                      dependentEntity.DocType = 2;//pdf
                 }
                 dependentEntity.HasProofUploaded = HasProofUploaded;
 

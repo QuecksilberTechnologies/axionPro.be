@@ -167,7 +167,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 string? docName = null;
 
                 // 🔹 Tenant info from decoded values
-                long? tenantId = decryptedTenantId;
+                long tenantId = decryptedTenantId;
                 bool HasChequeDocUploaded = false;
                 if (string.IsNullOrWhiteSpace(request.DTO.BankName))
                 {
@@ -193,18 +193,14 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                             var fileBytes = ms.ToArray();
 
                             // 🔹 File naming convention (same pattern as asset)
-                            string fileName = $"Cheque-{decryptedActualEmployeeId + "_" + docFileName}-{DateTime.UtcNow:yyMMddHHmmss}.pdf";
-                         
-                           string folderPath = Path.Combine(decryptedActualEmployeeId.ToString() + "bank");
-
-                        // 🔹 Generate full file path (tenant + folder + filename)
-                        string filePath = _fileStorageService.GenerateFilePath(tenantId, folderPath, fileName);
+                            string fileName = $"Cheque-{decryptedActualEmployeeId + "_" + docFileName}-{DateTime.UtcNow:yyMMddHHmmss}.png";
+                            string fullFolderPath = _fileStorageService.GetEmployeeFolderPath(tenantId, decryptedActualEmployeeId, "bank");              
 
                             // 🔹 Store actual name for reference in DB
                             docName = fileName;
 
                             // 🔹 Save file physically
-                            savedFullPath = await _fileStorageService.SaveFileAsync(fileBytes, fileName, filePath);
+                            savedFullPath = await _fileStorageService.SaveFileAsync(fileBytes, fileName, fullFolderPath);
 
                             // 🔹 If saved successfully, set relative path
                             if (!string.IsNullOrEmpty(savedFullPath))
@@ -229,9 +225,10 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 
                 if (HasChequeDocUploaded)
                 {
-                    bankEntity.DocType = 2;
+                    bankEntity.DocType = 1;//image
                     bankEntity.CancelledChequeDocPath = docPath;
                     bankEntity.CancelledChequeDocName= docName;
+                    
                 }
                bankEntity.HasChequeDocUploaded=HasChequeDocUploaded;
 
@@ -240,7 +237,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                  
                 // 4. Pre-map projection + encrypt Ids (fast)
                 // If pagedResult.Items are entities:
-                var encryptedList = ProjectionHelper.ToGetBankResponseDTOs(responseDTO, _idEncoderService, tenantKey, request.DTO.EmployeeId);
+                var encryptedList = ProjectionHelper.ToGetBankResponseDTOs(responseDTO, _idEncoderService, tenantKey);
                
 
                 // 5. commit

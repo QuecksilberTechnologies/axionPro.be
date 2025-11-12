@@ -52,12 +52,7 @@ namespace axionpro.infrastructure.FileStoringService
 
             return path;
         }
-
-        public string GenerateFilePath(string tenantId, string subFolder, string fileName)
-        {
-            var tenantFolder = GetTenantFolderPath(tenantId, subFolder);
-            return Path.Combine(tenantFolder, fileName);
-        }
+ 
 
         public string GetRelativePath(string fullPath)
         {
@@ -107,6 +102,47 @@ namespace axionpro.infrastructure.FileStoringService
             return path;
         }
 
+        /// <summary>
+        /// Use This function
+        /// </summary>
+        /// <param name="tenantId"></param>
+        /// <param name="employeeId"></param>
+        /// <param name="subFolder"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public string GetEmployeeFolderPath(long tenantId, long employeeId, string subFolder)
+        {
+            if (tenantId <0)
+                throw new ArgumentNullException(nameof(tenantId));
+            if (employeeId <0)
+                throw new ArgumentNullException(nameof(employeeId));
+            if (string.IsNullOrEmpty(subFolder))
+                throw new ArgumentNullException(nameof(subFolder));
+
+            // 🔹 Config values
+            var rootFolder = RootFolder ?? string.Empty;
+            var tenantFolder = TenantFolder ?? string.Empty;
+
+            // 🔹 Path structure:
+            // RootFolder / tenants / {tenantId} / employees / {employeeId} / {subFolder}
+            var path = Path.Combine(
+                rootFolder,
+                tenantFolder,
+                tenantId.ToString(),
+                "employees",
+                employeeId.ToString(),
+                subFolder
+            );
+
+            // 🔹 Create folder if it doesn’t exist
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+
+            return path;
+        }
+
+
+
         public string GenerateFilePath(long? tenantId, string subFolder, string fileName)
         {
           //  fileName = null;
@@ -115,25 +151,27 @@ namespace axionpro.infrastructure.FileStoringService
             return Path.Combine(tenantFolder);
         }
 
-        public string GenerateFilePath(string? folders, string fileName)
+        public string GenerateFilePath(string fullPathFolder, string fileName)
         {
-            // 🔹 Base upload directory
-            string basePath = Path.Combine("uploads", "tenants");
+            if (string.IsNullOrEmpty(fullPathFolder))
+                throw new ArgumentNullException(nameof(fullPathFolder));
 
-            // 🔹 Combine base + provided folders (if any)
-            string fullFolderPath = string.IsNullOrEmpty(folders)
-                ? basePath
-                : Path.Combine(basePath, folders);
+            // 🔹 Folder exist check
+            if (!Directory.Exists(fullPathFolder))
+                Directory.CreateDirectory(fullPathFolder);
 
-            // 🔹 Ensure folder exists before returning (create if missing)
-            if (!Directory.Exists(fullFolderPath))
-                Directory.CreateDirectory(fullFolderPath);
-
-            // 🔹 Return full file path (folder + filename)
-            return Path.Combine(fullFolderPath, fileName);
+            // 🔹 Combine full folder path + file name
+            return Path.Combine(fullPathFolder, fileName);
         }
 
     }
 
 
 }
+
+
+
+
+
+
+

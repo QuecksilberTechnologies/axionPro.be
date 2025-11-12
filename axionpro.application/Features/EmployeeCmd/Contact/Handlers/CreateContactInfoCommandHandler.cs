@@ -161,7 +161,7 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
                 PagedResponseDTO<GetContactResponseDTO> responseDTO = await _unitOfWork.EmployeeContactRepository.CreateAsync(mappedData);
 
                 // 4. Encrypt Ids in result
-                var encryptedList = ProjectionHelper.ToGetContactResponseDTOs(responseDTO.Items, _idEncoderService, tenantKey);
+                var encryptedList = ProjectionHelper.ToGetContactResponseDTOs(responseDTO, _idEncoderService, tenantKey);
 
                 // 5. Commit
                 await _unitOfWork.CommitTransactionAsync();
