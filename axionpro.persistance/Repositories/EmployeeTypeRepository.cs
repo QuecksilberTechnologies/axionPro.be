@@ -63,12 +63,6 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-   
-
-
-
-
-
         // Method to fetch employee type by ID
         public async Task<EmployeeType> GetEmployeeTypeByIdAsync(int? employeeTypeId)
         {

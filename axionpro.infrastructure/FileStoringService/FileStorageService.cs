@@ -115,6 +115,24 @@ namespace axionpro.infrastructure.FileStoringService
             return Path.Combine(tenantFolder);
         }
 
+        public string GenerateFilePath(string? folders, string fileName)
+        {
+            // 🔹 Base upload directory
+            string basePath = Path.Combine("uploads", "tenants");
+
+            // 🔹 Combine base + provided folders (if any)
+            string fullFolderPath = string.IsNullOrEmpty(folders)
+                ? basePath
+                : Path.Combine(basePath, folders);
+
+            // 🔹 Ensure folder exists before returning (create if missing)
+            if (!Directory.Exists(fullFolderPath))
+                Directory.CreateDirectory(fullFolderPath);
+
+            // 🔹 Return full file path (folder + filename)
+            return Path.Combine(fullFolderPath, fileName);
+        }
+
     }
 
 

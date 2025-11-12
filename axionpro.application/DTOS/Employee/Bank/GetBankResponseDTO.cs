@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,7 +20,9 @@ namespace axionpro.application.DTOS.Employee.Bank
         public string? IFSCCode { get; set; }
         public string? BranchName { get; set; }
         public string? UPIId { get; set; }
-
+        public bool HasChequeDocUploaded { get; set; }
+        public string? CancelledChequeDocPath { get; set; }
+        public IFormFile? CancelledChequeFile { get; set; }
         public bool? IsPrimary { get; set; }
         public bool? IsEditAllowed { get; set; }
         public bool IsActive { get; set; }

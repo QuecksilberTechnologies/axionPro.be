@@ -12,6 +12,7 @@ using axionpro.application.DTOS.Pagination;
 
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
+using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
@@ -24,6 +25,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -49,6 +51,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
         private readonly IConfiguration _config;
         private readonly IEncryptionService _encryptionService;
         private readonly IIdEncoderService _idEncoderService;
+        private readonly IFileStorageService _fileStorageService;
 
         public CreateBankInfoCommandHandler(
             IUnitOfWork unitOfWork,
@@ -58,7 +61,9 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,
-            IEncryptionService encryptionService, IIdEncoderService idEncoderService)
+            IEncryptionService encryptionService, IIdEncoderService idEncoderService
+            ,IFileStorageService fileStorageService
+            )
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -69,12 +74,16 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
             _config = config;
             _encryptionService = encryptionService;
             _idEncoderService = idEncoderService;
+            _fileStorageService = fileStorageService;
+
         }
 
 
         public async Task<ApiResponse<List<GetBankResponseDTO>>> Handle(CreateBankInfoCommand request, CancellationToken cancellationToken)
         {
             await _unitOfWork.BeginTransactionAsync();
+            string? savedFullPath = null;  // 📂 File full path track karne ke liye
+
 
             try
             {
@@ -152,7 +161,61 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                     //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
                 }
                 // 🧩 STEP 4: Call Repository to get data          
-                 
+
+                // 🔹 STEP 4: File Upload
+                string? docPath = null;
+                string? docName = null;
+
+                // 🔹 Tenant info from decoded values
+                long? tenantId = decryptedTenantId;
+                bool HasChequeDocUploaded = false;
+                if (string.IsNullOrWhiteSpace(request.DTO.BankName))
+                {
+                     return ApiResponse<List<GetBankResponseDTO>>.Fail("Bank name cannot be null.");
+                }
+
+                // ✅ check — sirf letters (A–Z, a–z) aur space allowed
+                if (!Regex.IsMatch(request.DTO.BankName, @"^[a-zA-Z\s]+$"))
+                {
+                    return ApiResponse<List<GetBankResponseDTO>>.Fail("Bank name cannot be null or sepcial character.");
+
+                }
+
+                string? docFileName = null;
+             
+                    // 🔹 File upload check
+                    if (request.DTO.CancelledChequeFile != null && request.DTO.CancelledChequeFile.Length > 0)
+                    {
+                    docFileName = EncryptionSanitizer.CleanEncodedInput(request.DTO.BankName.Trim().Replace(" ", "").ToLower());
+                    using (var ms = new MemoryStream())
+                        {
+                            await request.DTO.CancelledChequeFile.CopyToAsync(ms);
+                            var fileBytes = ms.ToArray();
+
+                            // 🔹 File naming convention (same pattern as asset)
+                            string fileName = $"Cheque-{decryptedActualEmployeeId + "_" + docFileName}-{DateTime.UtcNow:yyMMddHHmmss}.pdf";
+                         
+                           string folderPath = Path.Combine(decryptedActualEmployeeId.ToString() + "bank");
+
+                        // 🔹 Generate full file path (tenant + folder + filename)
+                        string filePath = _fileStorageService.GenerateFilePath(tenantId, folderPath, fileName);
+
+                            // 🔹 Store actual name for reference in DB
+                            docName = fileName;
+
+                            // 🔹 Save file physically
+                            savedFullPath = await _fileStorageService.SaveFileAsync(fileBytes, fileName, filePath);
+
+                            // 🔹 If saved successfully, set relative path
+                            if (!string.IsNullOrEmpty(savedFullPath))
+                            {
+                                docPath = _fileStorageService.GetRelativePath(savedFullPath);
+                                 HasChequeDocUploaded = true;
+                            }
+                        }
+                    }
+
+                
 
                 var bankEntity = _mapper.Map<EmployeeBankDetail>(request.DTO); // use mapper for create mapping
                 bankEntity.AddedById = decryptedEmployeeId;
@@ -162,8 +225,18 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 bankEntity.IsInfoVerified = false;
                 bankEntity.IsPrimaryAccount = request.DTO.IsPrimaryAccount;
                 bankEntity.EmployeeId = decryptedActualEmployeeId;
+                bankEntity.DocType = 0;
 
-                PagedResponseDTO<GetBankResponseDTO> responseDTO = await _unitOfWork.EmployeeBankRepository.CreateAsync(bankEntity);
+                if (HasChequeDocUploaded)
+                {
+                    bankEntity.DocType = 2;
+                    bankEntity.CancelledChequeDocPath = docPath;
+                    bankEntity.CancelledChequeDocName= docName;
+                }
+               bankEntity.HasChequeDocUploaded=HasChequeDocUploaded;
+
+
+                    PagedResponseDTO<GetBankResponseDTO> responseDTO = await _unitOfWork.EmployeeBankRepository.CreateAsync(bankEntity);
                  
                 // 4. Pre-map projection + encrypt Ids (fast)
                 // If pagedResult.Items are entities:

@@ -42,7 +42,7 @@ namespace axionpro.api.Controllers.Employee
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> CreateDependentInfo([FromBody] CreateDependentRequestDTO Dto)
+        public async Task<IActionResult> CreateDependentInfo([FromForm] CreateDependentRequestDTO Dto)
         {
             try
             {

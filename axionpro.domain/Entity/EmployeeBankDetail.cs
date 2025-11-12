@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 
 namespace axionpro.domain.Entity;
@@ -18,13 +19,17 @@ public partial class EmployeeBankDetail
     public string? BranchName { get; set; }
 
     public string? AccountType { get; set; }
+    public int DocType { get; set; }
+
 
     public string? UPIId { get; set; }
 
     public bool? IsPrimaryAccount { get; set; }
 
     public long AddedById { get; set; }
-
+    public bool HasChequeDocUploaded { get; set; }
+    public string? CancelledChequeDocName { get; set; }
+    public string? CancelledChequeDocPath { get; set; }   
     public DateTime AddedDateTime { get; set; }
 
     public long? UpdatedById { get; set; }

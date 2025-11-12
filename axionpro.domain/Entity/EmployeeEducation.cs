@@ -17,6 +17,8 @@ public partial class EmployeeEducation
 
     public DateTime? StartDate { get; set; }
 
+    public bool  HasEducationDocUploded { get; set; }
+
     public DateTime? EndDate { get; set; }
 
     public string? GradeOrPercentage { get; set; }

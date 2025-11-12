@@ -108,6 +108,8 @@ namespace axionpro.persistance.Repositories
 
                 if (dto.IsMarried.HasValue)
                     query = query.Where(x => x.IsMarried == dto.IsMarried);
+                if (dto.HasProofUploaded)
+                    query = query.Where(x => x.HasProofUploaded == dto.HasProofUploaded);
 
                 // 🔽 Sorting
                 query = sortBy switch
@@ -115,6 +117,8 @@ namespace axionpro.persistance.Repositories
                     "relation" => isDescending ? query.OrderByDescending(x => x.Relation) : query.OrderBy(x => x.Relation),
                     "iscoveredinpolicy" => isDescending ? query.OrderByDescending(x => x.IsCoveredInPolicy) : query.OrderBy(x => x.IsCoveredInPolicy),
                     "ismarried" => isDescending ? query.OrderByDescending(x => x.IsMarried) : query.OrderBy(x => x.IsMarried),
+                    "hasproofUploaded" => isDescending ? query.OrderByDescending(x => x.HasProofUploaded) : query.OrderBy(x => x.HasProofUploaded),
+
                     _ => isDescending ? query.OrderByDescending(x => x.Id) : query.OrderBy(x => x.Id)
                 };
 
@@ -132,6 +136,8 @@ namespace axionpro.persistance.Repositories
                         DateOfBirth = dep.DateOfBirth,
                         IsCoveredInPolicy = dep.IsCoveredInPolicy,
                         IsMarried = dep.IsMarried,
+                        HasProofUploaded = dep.HasProofUploaded,
+                        ProofDocPath = dep.ProofDocPath,
                         Remark = dep.Remark,
                         Description = dep.Description,
                         IsActive = dep.IsActive,

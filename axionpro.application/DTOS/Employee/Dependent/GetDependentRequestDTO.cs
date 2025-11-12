@@ -16,7 +16,9 @@ namespace axionpro.application.DTOS.Employee.Dependent
         public bool? IsCoveredInPolicy { get; set; }
         public bool? IsMarried { get; set; }
         public bool? IsActive { get; set; }
-        
+        public bool HasProofUploaded { get; set; }
+      
+
     }
 
 

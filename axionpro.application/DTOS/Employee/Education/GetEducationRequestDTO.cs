@@ -28,6 +28,8 @@ namespace axionpro.application.DTOS.Employee.Education
         public bool? EducationGap { get; set; }       
    
         public bool? IsInfoVerified { get; set; }     
+        public bool HasEducationDocUploded { get; set; }     
+        
 
         public bool? IsEditAllowed { get; set; } 
 

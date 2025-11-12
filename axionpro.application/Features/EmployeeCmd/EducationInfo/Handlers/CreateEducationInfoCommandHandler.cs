@@ -137,9 +137,12 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                             var fileBytes = ms.ToArray();
 
                             // 🔹 File naming convention (same pattern as asset)
-                            string fileName = $"EDU-{decryptedActualEmployeeId + "_"+docFileName}-{DateTime.UtcNow:yyMMddHHmmss}.pdf";
-                            string folderPath = "education"; // Folder name same for all education docs
+                            string fileName = $"EDU-{decryptedActualEmployeeId + "_"+docFileName}-{DateTime.UtcNow:yyMMddHHmmss}.pdf";                           
+                          
+                            string folderPath = Path.Combine(decryptedActualEmployeeId.ToString() + "education");
+                  
 
+                            // 🔹 Generate full file path (tenant + folder + filename)
                             // 🔹 Generate full file path (tenant + folder + filename)
                             string filePath = _fileStorageService.GenerateFilePath(tenantId, folderPath, fileName);
 
@@ -173,6 +176,8 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                 educationEntity.IsEditAllowed = true;
                 educationEntity.DocName = docName;
                 educationEntity.DocType = 2;
+                educationEntity.HasEducationDocUploded = true;
+
 
 
                 // 🔹 STEP 6: Database Insert + File Validation

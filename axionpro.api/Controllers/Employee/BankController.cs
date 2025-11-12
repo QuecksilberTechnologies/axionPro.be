@@ -43,7 +43,7 @@ namespace axionpro.api.Controllers.Employee
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> CreateBankInfo([FromBody] CreateBankRequestDTO Dto)
+        public async Task<IActionResult> CreateBankInfo([FromForm] CreateBankRequestDTO Dto)
         {
             try
             {

@@ -40,7 +40,7 @@
     <Folder Include="Controllers\NewFolder\" />
     <Folder Include="Controllers\VerifyTenantEmail\" />
     <Folder Include="Properties\PublishProfiles\" />
-    <Folder Include="wwwroot\uploads\tenants\317\education\234\" />
+    <Folder Include="wwwroot\" />
   </ItemGroup>
 
 </Project>

@@ -70,7 +70,10 @@ namespace axionpro.persistance.Repositories
                         BranchName = bank.BranchName,
                         IsPrimary = bank.IsPrimaryAccount,
                         IsEditAllowed = bank.IsEditAllowed,
-                        IsActive = bank.IsActive
+                        IsActive = bank.IsActive,
+                        HasChequeDocUploaded = bank.HasChequeDocUploaded,
+                        CancelledChequeDocPath = bank.CancelledChequeDocPath,
+                      
                     })
                     .ToListAsync();
 
@@ -159,6 +162,10 @@ namespace axionpro.persistance.Repositories
                 if (dto.IsActive.HasValue)
                     query = query.Where(x => x.IsActive == dto.IsActive.Value);
 
+                if (dto.HasChequeDocUploaded==true)
+                    query = query.Where(x => x.HasChequeDocUploaded == dto.HasChequeDocUploaded);
+
+
                 if (dto.IsPrimaryAccount.HasValue)
                     query = query.Where(x => x.IsPrimaryAccount == dto.IsPrimaryAccount.Value);
 
@@ -183,6 +190,7 @@ namespace axionpro.persistance.Repositories
                     "accountnumber" => isDescending ? query.OrderByDescending(x => x.AccountNumber) : query.OrderBy(x => x.AccountNumber),
                     "branchname" => isDescending ? query.OrderByDescending(x => x.BranchName) : query.OrderBy(x => x.BranchName),
                     "accounttype" => isDescending ? query.OrderByDescending(x => x.AccountType) : query.OrderBy(x => x.AccountType),
+                    "haschequedocuploaded" => isDescending ? query.OrderByDescending(x => x.HasChequeDocUploaded) : query.OrderBy(x => x.HasChequeDocUploaded),
                     _ => isDescending ? query.OrderByDescending(x => x.Id) : query.OrderBy(x => x.Id)
                 };
 
@@ -207,7 +215,10 @@ namespace axionpro.persistance.Repositories
                         IsPrimaryAccount = x.IsPrimaryAccount,
                         IsActive = x.IsActive,
                         IsInfoVerified = x.IsInfoVerified,
-                        IsEditAllowed = x.IsEditAllowed
+                        IsEditAllowed = x.IsEditAllowed,
+                        HasChequeDocUploaded = x.HasChequeDocUploaded,
+                        CancelledChequeDocPath = x.CancelledChequeDocPath,
+
                     })
                     .ToListAsync();
 

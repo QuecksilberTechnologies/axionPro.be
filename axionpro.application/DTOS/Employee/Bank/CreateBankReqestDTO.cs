@@ -1,4 +1,5 @@
 ﻿using axionpro.application.DTOS.Pagination;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -16,7 +17,6 @@ namespace axionpro.application.DTOS.Employee.Bank
         /// <summary> TenantId Required</summary>
 
         [Required]
-
         public string UserEmployeeId { get; set; } = string.Empty;        
         public string EmployeeId { get; set; } = string.Empty;      
         public string? BankName { get; set; }
@@ -26,7 +26,11 @@ namespace axionpro.application.DTOS.Employee.Bank
         public string? AccountType { get; set; }
         public string? UPIId { get; set; }
         public bool IsPrimaryAccount { get; set; }= false;        
-  
+        public IFormFile? CancelledChequeFile { get; set; }
+
+
+
+
 
 
     }

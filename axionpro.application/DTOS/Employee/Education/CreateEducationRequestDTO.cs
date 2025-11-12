@@ -18,9 +18,11 @@ namespace axionpro.application.DTOS.Employee.Education
         public string? Remark { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
+
         public string? GradeOrPercentage { get; set; }
         public string? GPAOrPercentage { get; set; }
         public bool IsEducationGapBeforeDegree { get; set; }
+        public bool HasEducationDocUploded { get; set; }
         public string? ReasonOfEducationGap { get; set; }              
 
         // 🔹 File related properties

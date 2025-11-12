@@ -4,6 +4,7 @@ using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
+using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.DTOS.Pagination;
@@ -11,6 +12,7 @@ using axionpro.application.Features.EmployeeCmd.Contact.Handlers;
 using axionpro.application.Features.EmployeeCmd.DependentInfo.Command;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
+using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
@@ -22,6 +24,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -48,6 +51,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
         private readonly IConfiguration _config;
         private readonly IEncryptionService _encryptionService;
         private readonly IIdEncoderService _idEncoderService;
+        private readonly IFileStorageService _fileStorageService;
 
 
         public CreateDependentCommandHandler(
@@ -58,7 +62,8 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,
-          IEncryptionService encryptionService, IIdEncoderService idEncoderService)
+          IEncryptionService encryptionService, IIdEncoderService idEncoderService
+             , IFileStorageService fileStorageService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -69,11 +74,14 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
             _config = config;
             _encryptionService = encryptionService;
             _idEncoderService = idEncoderService;
+            _fileStorageService = fileStorageService;
         }
 
         public async Task<ApiResponse<List<GetDependentResponseDTO>>> Handle(CreateDependentCommand request, CancellationToken cancellationToken)
         {
             await _unitOfWork.BeginTransactionAsync();
+           
+            string? savedFullPath = null;  // 📂 File full path track karne ke liye
 
             try
             {
@@ -146,14 +154,61 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                 if (!permissions.Contains("AddBankInfo"))
                 {
                     //  await _unitOfWork.RollbackTransactionAsync();
-                    //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
+                    //return ApiResponse<List<GetDependentResponseDTO>>.Fail("You do not have permission to add bank info.");
                 }
                 // 🧩 STEP 4: Call Repository to get data          
 
+
+
+                string? docPath = null;
+                string? docName = null;
+
+                // 🔹 Tenant info from decoded values
+                long? tenantId = decryptedTenantId;
+                bool HasProofUploaded = false;
+                if (string.IsNullOrWhiteSpace(request.DTO.Relation))
+                {
+                    return ApiResponse<List<GetDependentResponseDTO>>.Fail("Dependent relation name cannot be null.");
+                }
+
+                // ✅ check — sirf letters (A–Z, a–z) aur space allowed
+                if (!Regex.IsMatch(request.DTO.Relation, @"^[a-zA-Z\s]+$"))
+                {
+                    return ApiResponse<List<GetDependentResponseDTO>>.Fail("Dependent relation cannot be null or sepcial character.");
+
+                }
+
+                string? docFileName = null;
+
+                // 🔹 File upload check
+                if (request.DTO.ProofFile != null && request.DTO.ProofFile.Length > 0)
+                {
+                    docFileName = EncryptionSanitizer.CleanEncodedInput(request.DTO.Relation.Trim().Replace(" ", "").ToLower());
+                    using (var ms = new MemoryStream())
+                    {
+                        await request.DTO.ProofFile.CopyToAsync(ms);
+                        var fileBytes = ms.ToArray();
+
+                        // 🔹 File naming convention (same pattern as asset)
+                        string fileName = $"proof-{decryptedActualEmployeeId + "_" + docFileName}-{DateTime.UtcNow:yyMMddHHmmss}.pdf";
+                        string folderPath = Path.Combine(decryptedActualEmployeeId.ToString(), "dependent");
+                        string filePath = _fileStorageService.GenerateFilePath(folderPath, fileName);
+
+                        // 🔹 Store actual name for reference in DB
+                        docName = fileName;
+
+                        // 🔹 Save file physically
+                        savedFullPath = await _fileStorageService.SaveFileAsync(fileBytes, fileName, filePath);
+
+                        // 🔹 If saved successfully, set relative path
+                        if (!string.IsNullOrEmpty(savedFullPath))
+                        {
+                            docPath = _fileStorageService.GetRelativePath(savedFullPath);
+                            HasProofUploaded = true;
+                        }
+                    }
+                }
             
-
-                 
-
 
                 EmployeeDependent dependentEntity = _mapper.Map<EmployeeDependent>(request.DTO);
 
@@ -164,7 +219,15 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                 dependentEntity.IsEditAllowed = true;
                 dependentEntity.IsInfoVerified = false;
                 dependentEntity.EmployeeId = decryptedActualEmployeeId;
+                dependentEntity.DocType = 0;
 
+                if (HasProofUploaded)
+                {
+                    dependentEntity.ProofDocName = docName;
+                    dependentEntity.ProofDocPath = docPath;
+                      dependentEntity.DocType = 2;
+                }
+                dependentEntity.HasProofUploaded = HasProofUploaded;
 
                 PagedResponseDTO<GetDependentResponseDTO> responseDTO = await _unitOfWork.EmployeeDependentRepository.CreateAsync(dependentEntity);
 

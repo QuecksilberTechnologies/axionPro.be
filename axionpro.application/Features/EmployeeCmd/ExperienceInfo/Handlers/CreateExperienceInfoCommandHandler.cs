@@ -2,13 +2,16 @@
 using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
+using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.DTOs.Department;
 using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.DTOS.Employee.Experience;
 using axionpro.application.DTOS.Pagination;
+using axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
+using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
@@ -43,6 +46,8 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
         private readonly IPermissionService _permissionService;
         private readonly IConfiguration _config;
         private readonly IEncryptionService _encryptionService;
+        private readonly IIdEncoderService _idEncoderService;
+        private readonly IFileStorageService _fileStorageService;
 
         public CreateExperienceInfoCommandHandler(
             IUnitOfWork unitOfWork,
@@ -52,7 +57,9 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,
-            IEncryptionService encryptionService)
+            IEncryptionService encryptionService,
+            IIdEncoderService idEncoderService,
+            IFileStorageService fileStorageService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -62,89 +69,104 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
             _permissionService = permissionService;
             _config = config;
             _encryptionService = encryptionService;
+            _idEncoderService = idEncoderService;
+            _fileStorageService = fileStorageService;
         }
-
         public async Task<ApiResponse<List<GetExperienceResponseDTO>>> Handle(CreateExperienceInfoCommand request, CancellationToken cancellationToken)
         {
-            await _unitOfWork.BeginTransactionAsync();
+            string? savedFullPath = null;  // 📂 File full path track karne ke liye
 
             try
             {
-
-                await _unitOfWork.BeginTransactionAsync();
-                // 🧩 STEP 1: Validate JWT Token
+                // 🔹 STEP 1: Token Validation
                 var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
                     .ToString()?.Replace("Bearer ", "");
-
                 if (string.IsNullOrEmpty(bearerToken))
                     return ApiResponse<List<GetExperienceResponseDTO>>.Fail("Unauthorized: Token not found.");
 
                 var secretKey = TokenKeyHelper.GetJwtSecret(_config);
                 var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
-
                 if (tokenClaims == null || tokenClaims.IsExpired)
                     return ApiResponse<List<GetExperienceResponseDTO>>.Fail("Invalid or expired token.");
 
-                // 🧩 STEP 2: Validate Active User
+                // 🔹 STEP 2: Validate Active User
                 long loggedInEmpId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
                 if (loggedInEmpId < 1)
-                {
-                    _logger.LogWarning("❌ Invalid or inactive user. LoginId: {LoginId}", tokenClaims.UserId);
                     return ApiResponse<List<GetExperienceResponseDTO>>.Fail("Unauthorized or inactive user.");
-                }
 
-                // 🧩 STEP 3: Tenant and Employee info validation from token
+                // 🔹 STEP 3: Decrypt Tenant + Employee
                 string tenantKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
-
                 if (string.IsNullOrEmpty(request.DTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
-                {
-                    _logger.LogWarning("❌ Missing tenantKey or UserEmployeeId.");
                     return ApiResponse<List<GetExperienceResponseDTO>>.Fail("User invalid.");
-                }
-
-                // Decrypt / convert values
-                long decryptedUserEmployeeId = Convert.ToInt64(_encryptionService.Decrypt(request.DTO.UserEmployeeId, tenantKey) ?? "0");
-                long decryptedActualEmployeeId = Convert.ToInt64(_encryptionService.Decrypt(request.DTO.EmployeeId, tenantKey) ?? "0");
-                long tokenEmployeeId = Convert.ToInt64(tokenClaims.EmployeeId ?? "0");
-                long decryptedTenantId = Convert.ToInt64(tokenClaims.TenantId ?? "0");
-                long Id = Convert.ToInt64(_encryptionService.Decrypt(request.DTO.Id, tenantKey) ?? "0");
+                string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
+                long decryptedEmployeeId = _idEncoderService.DecodeId(EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId), finalKey);
+                long decryptedTenantId = _idEncoderService.DecodeId(EncryptionSanitizer.CleanEncodedInput(tokenClaims.TenantId), finalKey);
+                string actualEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId);
+                long decryptedActualEmployeeId = _idEncoderService.DecodeId(actualEmpId, finalKey);
 
 
-                // 🧩 STEP 4: Validate all employee references
-                if (decryptedTenantId <= 0 || decryptedUserEmployeeId <= 0 || tokenEmployeeId <= 0)
+
+                if (decryptedTenantId <= 0 || decryptedEmployeeId <= 0)
                 {
                     _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
                     return ApiResponse<List<GetExperienceResponseDTO>>.Fail("Tenant or employee information missing.");
                 }
 
-                if (!(decryptedUserEmployeeId == tokenEmployeeId && tokenEmployeeId == loggedInEmpId))
+                if (!(decryptedEmployeeId == loggedInEmpId))
                 {
                     _logger.LogWarning(
-                        "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, TokenEmpId: {TokenEmp}, LoggedEmpId: {LoggedEmp}",
-                        decryptedUserEmployeeId, tokenEmployeeId, loggedInEmpId
+                        "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
+                         decryptedEmployeeId, loggedInEmpId
                     );
 
                     return ApiResponse<List<GetExperienceResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
                 }
 
-                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
-                if (!permissions.Contains("AddIdentityInfo"))
+
+                // 🔹 STEP 4: File Upload
+                string? docPath = null;
+                string? docName = null;
+
+                // 🔹 Tenant info from decoded values
+                long? tenantId = decryptedTenantId;
+
+                string docFileName = EncryptionSanitizer.CleanEncodedInput(request.DTO.BankStatementDocName.Trim().ToLower());
+                if (docFileName != null)
                 {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<List<GetExperienceResponseDTO>>.Fail("You do not have permission to add identity info.");
+                    // 🔹 File upload check
+                    if (request.DTO.ExperienceCertificatePDF != null && request.DTO.ExperienceCertificatePDF.Length > 0)
+                    {
+                        using (var ms = new MemoryStream())
+                        {
+                            await request.DTO.ExperienceCertificatePDF.CopyToAsync(ms);
+                            var fileBytes = ms.ToArray();
+
+                            // 🔹 File naming convention (same pattern as asset)
+                            string fileName = $"EDU-{decryptedActualEmployeeId + "_" + docFileName}-{DateTime.UtcNow:yyMMddHHmmss}.pdf";
+                            string folderPath = "education"; // Folder name same for all education docs
+
+                            // 🔹 Generate full file path (tenant + folder + filename)
+                            string filePath = _fileStorageService.GenerateFilePath(tenantId, folderPath, fileName);
+
+                            // 🔹 Store actual name for reference in DB
+                            docName = fileName;
+
+                            // 🔹 Save file physically
+                            savedFullPath = await _fileStorageService.SaveFileAsync(fileBytes, fileName, filePath);
+
+                            // 🔹 If saved successfully, set relative path
+                            if (!string.IsNullOrEmpty(savedFullPath))
+                                docPath = _fileStorageService.GetRelativePath(savedFullPath);
+                        }
+                    }
 
                 }
-                // 3️⃣ Prepare entity from DTO
-                request.DTO.EmployeeId = decryptedActualEmployeeId.ToString();
-                request.DTO.AddedById = decryptedUserEmployeeId.ToString();
-                request.DTO.AddedDateTime = DateTime.UtcNow;
-                request.DTO.IsActive = true;
-                request.DTO.IsEditAllowed = true;
-                request.DTO.IsInfoVerified = false;
 
-                var Entity = _mapper.Map<EmployeeExperience>(request.DTO);
+                else
+                    return ApiResponse<List<GetExperienceResponseDTO>>.Fail("Digree-Name missing.");
+                EmployeeExperience  employeeExperience = new EmployeeExperience();
 
-                PagedResponseDTO<GetExperienceResponseDTO> responseDTO = await _unitOfWork.EmployeeExpereinceRepository.CreateAsync(Entity);
+                PagedResponseDTO<GetExperienceResponseDTO> responseDTO = await _unitOfWork.EmployeeExpereinceRepository.CreateAsync(employeeExperience);
 
 
                 // 4️⃣ Encrypt Ids in result

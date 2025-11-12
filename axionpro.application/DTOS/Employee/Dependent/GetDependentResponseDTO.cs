@@ -24,6 +24,8 @@ namespace axionpro.application.DTOS.Employee.Dependent
         // 🔹 Flags
 
         public bool? IsActive { get; set; }
+        public bool HasProofUploaded { get; set; }    
+        public string? ProofDocPath { get; set; }
 
         // 🔹 Info Verification
         public string? InfoVerifiedById { get; set; }

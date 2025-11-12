@@ -14,6 +14,7 @@ namespace axionpro.application.Interfaces.IFileStorage
 
         string GetTenantFolderPath(long? tenantId, string subFolder);
         string GenerateFilePath(long? tenantId, string subFolder, string fileName);
+        string GenerateFilePath(string? tenantId, string fileName);
         string GetPublicUrl(string relativePath);
         string GetRelativePath(string fullPath);
 

@@ -34,7 +34,10 @@ public partial class EmployeeDependent
     public long? SoftDeletedById { get; set; }
 
     public DateTime? DeletedDateTime { get; set; }
-
+    public bool HasProofUploaded { get; set; }
+    public string? ProofDocName { get; set; }
+    public string? ProofDocPath { get; set; }
+    public int  DocType { get; set; }
     public bool? IsSoftDeleted { get; set; }
     public bool? IsEditAllowed { get; set; }
     public bool? IsActive { get; set; }
