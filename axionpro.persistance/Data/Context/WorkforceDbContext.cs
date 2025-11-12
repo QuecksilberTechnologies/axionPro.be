@@ -1339,11 +1339,13 @@ namespace axionpro.persistance.Data.Context
                 entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC074796302D");
 
                 entity.ToTable("EmployeePersonalDetail", "AxionPro");
-
                 entity.Property(e => e.AadhaarNumber).HasMaxLength(20);
                 entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
                 entity.Property(e => e.BloodGroup).HasMaxLength(10);
                 entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.AadhaarDocPath).HasMaxLength(200);
+                entity.Property(e => e.PanDocPath).HasMaxLength(200);
+                entity.Property(e => e.PassportDocPath).HasMaxLength(200);
                 entity.Property(e => e.DrivingLicenseNumber).HasMaxLength(20);
                 entity.Property(e => e.EmergencyContactName).HasMaxLength(100);
                 entity.Property(e => e.EmergencyContactNumber).HasMaxLength(15);

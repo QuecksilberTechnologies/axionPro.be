@@ -12,11 +12,14 @@ namespace axionpro.application.DTOS.Employee.Sensitive
     {
        
         public string? EmployeeId { get; set; }
-        public bool IsActive { get; set; }
-        public int RoleId { get; set; }    
+        public bool IsActive { get; set; }       
         public string? BloodGroup { get; set; }
         public string? MaritalStatus { get; set; }
         public string? Nationality { get; set; }
         public string? EmergencyContactName { get; set; }
+        // ✅ For Aadhaar / PAN / Passport Upload filters
+        public bool? HasAadhaarIdUploaded { get; set; }
+        public bool? HasPanIdUploaded { get; set; }
+        public bool? HasPassportIdUploaded { get; set; }
     }
 }

@@ -80,7 +80,7 @@ namespace axionpro.persistance.Repositories
         }
 
 
-        public async Task<PagedResponseDTO<GetEducationResponseDTO>> GetInfo(GetEducationRequestDTO dto, long employeeId, long id)
+        public async Task<PagedResponseDTO<GetEducationResponseDTO>> GetInfo(GetEducationRequestDTO dto, long employeeId, long id, long tenantId)
         {
             try
             {

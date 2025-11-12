@@ -156,7 +156,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                     //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
                 }
                 // 🧩 STEP 4: Call Repository to get data GetBankReqestDTO dto, int id, long EmployeeId
-                var bankEntities = await _unitOfWork.EmployeeBankRepository.GetInfoAsync(request.DTO, Id , decryptedActualEmployeeId);
+                var bankEntities = await _unitOfWork.EmployeeBankRepository.GetInfoAsync(request.DTO, Id , decryptedActualEmployeeId,decryptedTenantId );
                 if (bankEntities == null || !bankEntities.Items.Any())
                     return ApiResponse<List<GetBankResponseDTO>>.Fail("No bank info found.");
 

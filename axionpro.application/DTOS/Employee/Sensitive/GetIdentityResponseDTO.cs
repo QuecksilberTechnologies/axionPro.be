@@ -1,4 +1,5 @@
 ﻿using axionpro.application.DTOS.Pagination;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,19 +20,17 @@ namespace axionpro.application.DTOS.Employee.Sensitive
         public string? MaritalStatus { get; set; }
         public string? Nationality { get; set; }
         public string? EmergencyContactName { get; set; }
-        public string? EmergencyContactNumber { get; set; }
-        public bool IsActive { get; set; }
-        public bool? IsEditAllowed { get; set; }
-        public bool? IsSoftDeleted { get; set; }
-        public string? AddedById { get; set; }
-        public DateTime? AddedDateTime { get; set; }
-        public string? UpdatedById { get; set; }
-        public DateTime? UpdatedDateTime { get; set; }
-        public long? SoftDeletedById { get; set; }
-        public DateTime? DeletedDateTime { get; set; }
-        public string? InfoVerifiedById { get; set; }
-        public DateTime? InfoVerifiedDateTime { get; set; }
+        public string? EmergencyContactNumber { get; set; }        
         public bool? IsInfoVerified { get; set; }
+        public bool? IsEditable { get; set; }
+        public bool IsVerified { get; set; }
+        public   bool hasPanIdUploaded { get; set; }
+        public bool hasAadharIdUploaded { get; set; }
+        public bool hasPassportIdUploaded { get; set; }
+
+        public string? passportDocPath { get; set; }
+        public string? panDocPath { get; set; }
+        public string? aadharDocPath { get; set; }
     }
 
 }

@@ -144,7 +144,7 @@ namespace axionpro.persistance.Repositories
 
 
 
-        public async Task<PagedResponseDTO<GetBankResponseDTO>> GetInfoAsync(GetBankReqestDTO dto, int id, long EmployeeId)
+        public async Task<PagedResponseDTO<GetBankResponseDTO>> GetInfoAsync(GetBankReqestDTO dto, int id, long employeeId, long tenantId)
         {
             try
             {
@@ -152,19 +152,37 @@ namespace axionpro.persistance.Repositories
                 int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
                 string sortBy = dto.SortBy?.ToLower() ?? "id";
                 string sortOrder = dto.SortOrder?.ToLower() ?? "desc";
+                bool isDescending = sortOrder == "desc";
 
-                // 🧭 Base query
-                var query = _context.EmployeeBankDetails
-                    .AsNoTracking()
-                    .Where(x => x.EmployeeId == EmployeeId && x.IsSoftDeleted != true);
+                IQueryable<EmployeeBankDetail> query;
 
-                // ✅ Apply dynamic filters based on optional DTO properties
+                // 🧭 CASE 1: If tenantId is available (Admin case)
+                if (tenantId > 0)
+                {
+                    // Get all EmployeeIds under the same tenant
+                    var employeeIds = await _context.Employees
+                        .Where(e => e.TenantId == tenantId && e.IsSoftDeleted != true)
+                        .Select(e => e.Id)
+                        .ToListAsync();
+
+                    query = _context.EmployeeBankDetails
+                        .AsNoTracking()
+                        .Where(x => employeeIds.Contains(x.EmployeeId) && x.IsSoftDeleted != true);
+                }
+                else
+                {
+                    // 🧭 CASE 2: Normal employee case (self records only)
+                    query = _context.EmployeeBankDetails
+                        .AsNoTracking()
+                        .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true);
+                }
+
+                // ✅ Apply dynamic filters
                 if (dto.IsActive.HasValue)
                     query = query.Where(x => x.IsActive == dto.IsActive.Value);
 
-                if (dto.HasChequeDocUploaded==true)
+                if (dto.HasChequeDocUploaded == true)
                     query = query.Where(x => x.HasChequeDocUploaded == dto.HasChequeDocUploaded);
-
 
                 if (dto.IsPrimaryAccount.HasValue)
                     query = query.Where(x => x.IsPrimaryAccount == dto.IsPrimaryAccount.Value);
@@ -178,12 +196,7 @@ namespace axionpro.persistance.Repositories
                 if (!string.IsNullOrEmpty(dto.AccountType))
                     query = query.Where(x => x.AccountType.ToLower().Contains(dto.AccountType.ToLower()));
 
-                // 🔍 Optional search text (if needed later)
-                // if (!string.IsNullOrEmpty(dto.SearchTerm))
-                //     query = query.Where(x => x.BankName.Contains(dto.SearchTerm) || x.AccountNumber.Contains(dto.SearchTerm));
-
-                // 🔽 Sorting
-                bool isDescending = string.Equals(sortOrder, "desc", StringComparison.OrdinalIgnoreCase);
+                // 🔽 Sorting dynamically
                 query = sortBy switch
                 {
                     "bankname" => isDescending ? query.OrderByDescending(x => x.BankName) : query.OrderBy(x => x.BankName),
@@ -208,7 +221,7 @@ namespace axionpro.persistance.Repositories
                         BankName = x.BankName,
                         AccountNumber = x.AccountNumber,
                         IFSCCode = x.IFSCCode,
-                        IsPrimary =x.IsPrimaryAccount,
+                        IsPrimary = x.IsPrimaryAccount,
                         UPIId = x.UPIId,
                         BranchName = x.BranchName,
                         AccountType = x.AccountType,
@@ -218,7 +231,6 @@ namespace axionpro.persistance.Repositories
                         IsEditAllowed = x.IsEditAllowed,
                         HasChequeDocUploaded = x.HasChequeDocUploaded,
                         CancelledChequeDocPath = x.CancelledChequeDocPath,
-
                     })
                     .ToListAsync();
 
@@ -234,7 +246,7 @@ namespace axionpro.persistance.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error fetching bank info for EmployeeId {EmployeeId}", EmployeeId);
+                _logger.LogError(ex, "❌ Error fetching bank info for EmployeeId {EmployeeId}", employeeId);
                 throw new Exception($"Failed to fetch bank information: {ex.Message}");
             }
         }

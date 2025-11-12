@@ -18,6 +18,15 @@ public partial class EmployeePersonalDetail
     public string? DrivingLicenseNumber { get; set; }
 
     public string? VoterId { get; set; }
+    public bool HasPanIdUploaded { get; set; }
+    public bool HasAadhaarIdUploaded { get; set; }
+    public bool HasPassportIdUploaded { get; set; }
+    public string? PanDocName { get; set; }
+    public string? PassportDocName { get; set; }
+    public string? AadhaarDocName { get; set; }
+    public string? PassportDocPath { get; set; }
+    public string? AadhaarDocPath { get; set; }
+    public string? PanDocPath { get; set; }
 
     public string? BloodGroup { get; set; }
 

@@ -476,7 +476,8 @@ namespace axionpro.application.Mappings
             #endregion
 
             #region 🔹 Personal Detail Mappings
-            CreateMap<EmployeePersonalDetail, EmployeePersonalEditableFieldDTO>().ReverseMap();
+            CreateMap<EmployeePersonalDetail, CreateIdentityRequestDTO>()
+              .ForMember(dest => dest.EmployeeId, opt => opt.Ignore());  
             #endregion
 
             #region 🔹 Experience Mappings

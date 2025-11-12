@@ -55,7 +55,7 @@ namespace axionpro.api.Controllers.Employee
         /// <summary>
         /// Get all personal info records (Paginated).
         /// </summary>
-        [HttpPost("get")]
+        [HttpGet("get")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetSensitiveData([FromQuery] GetIdentityRequestDTO commandDto)

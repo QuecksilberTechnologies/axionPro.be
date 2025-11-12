@@ -84,7 +84,7 @@ namespace axionpro.persistance.Repositories
                 var baseQuery = _context.EmployeePersonalDetails
                     .AsNoTracking()
                     .Where(identity => identity.EmployeeId == employeeId
-                                       && (identity.IsActive == dto.IsActive)
+                                       && identity.IsActive == dto.IsActive
                                        && identity.IsSoftDeleted != true);
 
                 // 🗺️ Optional Filters
@@ -103,7 +103,15 @@ namespace axionpro.persistance.Repositories
                 if (!string.IsNullOrWhiteSpace(dto.EmergencyContactName))
                     baseQuery = baseQuery.Where(x => x.EmergencyContactName.ToLower().Contains(dto.EmergencyContactName.ToLower()));
 
-                 
+                // 🧩 Aadhaar / PAN / Passport Uploaded Filters
+                if (dto.HasAadhaarIdUploaded.HasValue)
+                    baseQuery = baseQuery.Where(x => x.HasAadhaarIdUploaded == dto.HasAadhaarIdUploaded.Value);
+
+                if (dto.HasPanIdUploaded.HasValue)
+                    baseQuery = baseQuery.Where(x => x.HasPanIdUploaded == dto.HasPanIdUploaded.Value);
+
+                if (dto.HasPassportIdUploaded.HasValue)
+                    baseQuery = baseQuery.Where(x => x.HasPassportIdUploaded == dto.HasPassportIdUploaded.Value);
 
                 // 🔍 Keyword Search
                 if (!string.IsNullOrEmpty(dto.SortBy))
@@ -113,7 +121,10 @@ namespace axionpro.persistance.Repositories
                         (x.BloodGroup != null && x.BloodGroup.ToLower().Contains(keyword)) ||
                         (x.MaritalStatus != null && x.MaritalStatus.ToLower().Contains(keyword)) ||
                         (x.Nationality != null && x.Nationality.ToLower().Contains(keyword)) ||
-                        (x.EmergencyContactName != null && x.EmergencyContactName.ToLower().Contains(keyword)));
+                        (x.EmergencyContactName != null && x.EmergencyContactName.ToLower().Contains(keyword)) ||
+                        (x.PanNumber != null && x.PanNumber.ToLower().Contains(keyword)) ||
+                        (x.AadhaarNumber != null && x.AadhaarNumber.ToLower().Contains(keyword)) ||
+                        (x.PassportNumber != null && x.PassportNumber.ToLower().Contains(keyword)));
                 }
 
                 // 🔽 Sorting
@@ -134,7 +145,18 @@ namespace axionpro.persistance.Repositories
                             ? baseQuery.OrderByDescending(x => x.Nationality)
                             : baseQuery.OrderBy(x => x.Nationality),
 
-                        
+                        "hasaadhariduploaded" => isDescending
+                            ? baseQuery.OrderByDescending(x => x.HasAadhaarIdUploaded)
+                            : baseQuery.OrderBy(x => x.HasAadhaarIdUploaded),
+
+                        "haspaniduploaded" => isDescending
+                            ? baseQuery.OrderByDescending(x => x.HasPanIdUploaded)
+                            : baseQuery.OrderBy(x => x.HasPanIdUploaded),
+
+                        "haspassportiduploaded" => isDescending
+                            ? baseQuery.OrderByDescending(x => x.HasPassportIdUploaded)
+                            : baseQuery.OrderBy(x => x.HasPassportIdUploaded),
+
                         _ => isDescending
                             ? baseQuery.OrderByDescending(x => x.Id)
                             : baseQuery.OrderBy(x => x.Id)
@@ -148,11 +170,8 @@ namespace axionpro.persistance.Repositories
                 var query = from identity in baseQuery
                             select new GetIdentityResponseDTO
                             {
-                                // 🔐 Encrypted IDs
                                 Id = identity.Id.ToString(),
                                 EmployeeId = identity.EmployeeId.ToString(),
-
-                                // 👤 Identity Info
                                 BloodGroup = identity.BloodGroup,
                                 MaritalStatus = identity.MaritalStatus,
                                 Nationality = identity.Nationality,
@@ -162,26 +181,16 @@ namespace axionpro.persistance.Repositories
                                 AadhaarNumber = identity.AadhaarNumber,
                                 PassportNumber = identity.PassportNumber,
                                 DrivingLicenseNumber = identity.DrivingLicenseNumber,
-
-                                // ⚙️ Status
-                                IsActive = identity.IsActive,
-                                IsInfoVerified = identity.IsInfoVerified,
-                                IsEditAllowed = identity.IsEditAllowed,
-
-                                // 📅 Audit Fields
-                                AddedById = identity.AddedById.ToString(),
-                                AddedDateTime = identity.AddedDateTime,
-                                UpdatedById = identity.UpdatedById.ToString(),
-                                UpdatedDateTime = identity.UpdatedDateTime,
-                                InfoVerifiedById = identity.InfoVerifiedById.ToString(),
-                                InfoVerifiedDateTime = identity.InfoVerifiedDateTime
+                                hasPassportIdUploaded = identity.HasPassportIdUploaded,
+                                hasAadharIdUploaded = identity.HasAadhaarIdUploaded,
+                                hasPanIdUploaded = identity.HasPanIdUploaded,
+                                aadharDocPath = identity.AadhaarDocPath,
+                                panDocPath = identity.PanDocPath,
+                                passportDocPath = identity.PassportDocPath,
                             };
 
-                // 🚫 Remove Duplicates
-                var distinctQuery = query.DistinctBy(x => x.Id);
-
                 // 📜 Pagination
-                var pagedRecords = await distinctQuery
+                var pagedRecords = await query
                     .Skip((dto.PageNumber - 1) * dto.PageSize)
                     .Take(dto.PageSize)
                     .ToListAsync();

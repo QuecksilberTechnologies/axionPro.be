@@ -146,17 +146,9 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 Nationality = e.Nationality ?? string.Empty,
                 EmergencyContactName = e.EmergencyContactName ?? string.Empty,
                 EmergencyContactNumber = e.EmergencyContactNumber ?? string.Empty,
-                IsActive = e.IsActive,
-                IsEditAllowed = e.IsEditAllowed,
-                IsSoftDeleted = e.IsSoftDeleted,
-                AddedById = SafeEncrypt(e.AddedById, encryptionService, tenantKey),
-                AddedDateTime = e.AddedDateTime,
-                UpdatedById = SafeEncrypt(e.UpdatedById, encryptionService, tenantKey),
-                UpdatedDateTime = e.UpdatedDateTime,
-                DeletedDateTime = e.DeletedDateTime,
-                InfoVerifiedById = SafeEncrypt(e.InfoVerifiedById, encryptionService, tenantKey),
-                InfoVerifiedDateTime = e.InfoVerifiedDateTime,
-                IsInfoVerified = e.IsInfoVerified
+          
+
+                
             }).ToList();
         }
 

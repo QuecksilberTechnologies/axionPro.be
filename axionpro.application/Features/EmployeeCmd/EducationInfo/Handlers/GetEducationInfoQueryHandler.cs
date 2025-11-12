@@ -157,7 +157,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 
                
                 // 4️⃣ Fetch Data from Repository
-                PagedResponseDTO<GetEducationResponseDTO> Entity = await _unitOfWork.EmployeeEducationRepository.GetInfo(request.DTO, decryptedActualEmployeeId, Id);
+                PagedResponseDTO<GetEducationResponseDTO> Entity = await _unitOfWork.EmployeeEducationRepository.GetInfo(request.DTO, decryptedActualEmployeeId, Id, decryptedTenantId);
                 if (Entity == null || !Entity.Items.Any())
                 {
                     await _unitOfWork.RollbackTransactionAsync();
