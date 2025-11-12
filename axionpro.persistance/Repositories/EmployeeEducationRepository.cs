@@ -79,7 +79,7 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-       
+
         public async Task<PagedResponseDTO<GetEducationResponseDTO>> GetInfo(GetEducationRequestDTO dto, long employeeId, long id)
         {
             try
@@ -87,28 +87,26 @@ namespace axionpro.persistance.Repositories
                 // 📄 Pagination Defaults
                 int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
                 int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
-                
+
+                // 📦 Sorting Defaults (case-insensitive)
                 string sortBy = !string.IsNullOrWhiteSpace(dto.SortBy) ? dto.SortBy.ToLower() : "id";
                 string sortOrder = !string.IsNullOrWhiteSpace(dto.SortOrder) ? dto.SortOrder.ToLower() : "desc";
-                bool isDescending = string.Equals(dto.SortOrder, "desc", StringComparison.OrdinalIgnoreCase);
+                bool isDescending = sortOrder.Equals("desc", StringComparison.OrdinalIgnoreCase);
 
-                // 🧭 Base Query (EmployeeId, IsActive & SoftDelete)
+                // 🧭 Base Query (with filters)
                 var baseQuery = _context.EmployeeEducations
                     .AsNoTracking()
                     .Where(edu =>
                         edu.EmployeeId == employeeId &&
                         (dto.IsActive == null || edu.IsActive == dto.IsActive) &&
-                        (edu.IsSoftDeleted!=true)
+                        (edu.IsSoftDeleted != true)
                     );
 
-               
                 if (id > 0)
                     baseQuery = baseQuery.Where(x => x.Id == id);
 
                 if (!string.IsNullOrEmpty(dto.InstituteName))
                     baseQuery = baseQuery.Where(x => x.InstituteName.ToLower().Contains(dto.InstituteName.ToLower()));
-
-              
 
                 if (!string.IsNullOrEmpty(dto.Degree))
                     baseQuery = baseQuery.Where(x => x.Degree.ToLower().Contains(dto.Degree.ToLower()));
@@ -125,66 +123,57 @@ namespace axionpro.persistance.Repositories
                 if (dto.IsEditAllowed.HasValue)
                     baseQuery = baseQuery.Where(x => x.IsEditAllowed == dto.IsEditAllowed);
 
-                // 🧩 Sorting Logic — dynamic based on DTO
-         
-
-                // Sort dynamically using reflection or known fields
-                baseQuery = (sortBy?.ToLower()) switch
+                // 🧩 Sorting Logic — clean & consistent
+                switch (sortBy)
                 {
-                    "degree" => sortOrder == "asc"
-                        ? baseQuery.OrderBy(x => x.Degree)
-                        : baseQuery.OrderByDescending(x => x.Degree),
+                    case "degree":
+                        baseQuery = isDescending ? baseQuery.OrderByDescending(x => x.Degree) : baseQuery.OrderBy(x => x.Degree);
+                        break;
 
-                    "institutename" => sortOrder == "asc"
-                        ? baseQuery.OrderBy(x => x.InstituteName)
-                        : baseQuery.OrderByDescending(x => x.InstituteName),
+                    case "institutename":
+                        baseQuery = isDescending ? baseQuery.OrderByDescending(x => x.InstituteName) : baseQuery.OrderBy(x => x.InstituteName);
+                        break;
 
-                    "haseducationdocuploded" => sortOrder == "asc"
-                        ? baseQuery.OrderBy(x => x.HasEducationDocUploded)
-                        : baseQuery.OrderByDescending(x => x.Id),
+                    case "haseducationdocuploded":
+                        baseQuery = isDescending ? baseQuery.OrderByDescending(x => x.HasEducationDocUploded) : baseQuery.OrderBy(x => x.HasEducationDocUploded);
+                        break;
 
-                    "startdate" => sortOrder == "asc"
-                        ? baseQuery.OrderBy(x => x.StartDate)
-                        : baseQuery.OrderByDescending(x => x.StartDate),
+                    case "startdate":
+                        baseQuery = isDescending ? baseQuery.OrderByDescending(x => x.StartDate) : baseQuery.OrderBy(x => x.StartDate);
+                        break;
 
-                    "enddate" => sortOrder == "asc"
-                        ? baseQuery.OrderBy(x => x.EndDate)
-                        : baseQuery.OrderByDescending(x => x.EndDate),
+                    case "enddate":
+                        baseQuery = isDescending ? baseQuery.OrderByDescending(x => x.EndDate) : baseQuery.OrderBy(x => x.EndDate);
+                        break;
 
-                    _ => sortOrder == "asc"
-                        ? baseQuery.OrderBy(x => x.Id)
-                        : baseQuery.OrderByDescending(x => x.Id)
-                };
+                    default:
+                        baseQuery = isDescending ? baseQuery.OrderByDescending(x => x.Id) : baseQuery.OrderBy(x => x.Id);
+                        break;
+                }
 
-                // 📄 Total Count (before pagination)
+                // 📊 Total Count (before pagination)
                 var totalRecords = await baseQuery.CountAsync();
 
-
-
-                // 🧩 Select Response DTO
-                var query = baseQuery.Select(edu => new GetEducationResponseDTO
-                {
-                    Id = edu.Id.ToString(),
-                    EmployeeId = edu.EmployeeId.ToString(),
-                    Degree = edu.Degree,
-                    InstituteName = edu.InstituteName,
-                    Remark = edu.Remark,
-                    GradeOrPercentage = edu.GradeOrPercentage,
-                    GPAOrPercentage = edu.GpaorPercentage,
-                    EducationGap = edu.EducationGap,
-                    ReasonOfEducationGap = edu.ReasonOfEducationGap,
-                    StartDate = edu.StartDate,
-                    EndDate = edu.EndDate,
-                    EducationDocPath = edu.EducationDocPath,
-                    DocType = edu.DocType.ToString(),
-                    DocName = edu.DocName,
-
-                    IsActive = edu.IsActive,
-
-                });
-
-                // 📜 Pagination Apply
-                var pagedRecords = await query
+                // 🧩 Apply projection + pagination on same query (to retain sorting)
+                var pagedRecords = await baseQuery
+                    .Select(edu => new GetEducationResponseDTO
+                    {
+                        Id = edu.Id.ToString(),
+                        EmployeeId = edu.EmployeeId.ToString(),
+                        Degree = edu.Degree,
+                        InstituteName = edu.InstituteName,
+                        Remark = edu.Remark,
+                        GradeOrPercentage = edu.GradeOrPercentage,
+                        GPAOrPercentage = edu.GpaorPercentage,
+                        EducationGap = edu.EducationGap,
+                        ReasonOfEducationGap = edu.ReasonOfEducationGap,
+                        StartDate = edu.StartDate,
+                        EndDate = edu.EndDate,
+                        EducationDocPath = edu.EducationDocPath,
+                        DocType = edu.DocType.ToString(),
+                        DocName = edu.DocName,
+                        IsActive = edu.IsActive
+                    })
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync();
@@ -195,7 +184,10 @@ namespace axionpro.persistance.Repositories
                     Items = pagedRecords,
                     TotalCount = totalRecords,
                     PageNumber = pageNumber,
-                    PageSize = pageSize
+                    PageSize = pageSize,
+                  TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize)
+
+
                 };
             }
             catch (Exception ex)
