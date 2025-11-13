@@ -24,7 +24,7 @@ public partial class EmployeeBankDetail
 
     public string? UPIId { get; set; }
 
-    public bool? IsPrimaryAccount { get; set; }
+    public bool IsPrimaryAccount { get; set; }
 
     public long AddedById { get; set; }
     public bool HasChequeDocUploaded { get; set; }

@@ -10,13 +10,21 @@ namespace axionpro.application.DTOS.Pagination
             Items = new List<T>();
         }
 
-        public PagedResponseDTO(List<T> items, int totalCount, int pageNumber, int pageSize)
+        public PagedResponseDTO(
+            List<T> items,
+            int totalCount,
+            int pageNumber,
+            int pageSize,
+            bool? hasUploadedAll = null,
+            double? completionPercentage = null)
         {
             Items = items ?? new List<T>();
             TotalCount = totalCount;
             PageNumber = pageNumber;
             PageSize = pageSize > 0 ? pageSize : 10; // fallback if invalid
-            
+
+            HasUploadedAll = hasUploadedAll;
+            CompletionPercentage = completionPercentage;
         }
 
         public List<T> Items { get; set; }
@@ -30,9 +38,14 @@ namespace axionpro.application.DTOS.Pagination
             set => _pageSize = value;
         }
 
-     //   public int TotalPages => PageSize == 0 ? 0 : (int)Math.Ceiling(TotalCount / (double)PageSize);
-           public int TotalPages = 1;
+        // ❌ existing logic maintain kiya gaya
+        public int TotalPages = 1;
+
         public bool HasPrevious => PageNumber > 1;
         public bool HasNext => PageNumber < TotalPages;
+
+        // ✅ Nullable dynamic fields (additions)
+        public bool? HasUploadedAll { get; set; }
+        public double? CompletionPercentage { get; set; }
     }
 }

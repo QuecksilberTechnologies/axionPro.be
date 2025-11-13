@@ -26,6 +26,9 @@ namespace axionpro.application.DTOS.Employee.Bank
         public bool? IsPrimary { get; set; }
         public bool? IsEditAllowed { get; set; }
         public bool IsActive { get; set; }
+        public double CompletionPercentage { get; set; }
+      
+
     }
 
 }

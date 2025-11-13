@@ -128,7 +128,8 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 int Id = SafeParser.TryParseInt(id);
                 // Actual EmployeeId
                 string actualEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId);
-                long decryptedActualEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
+                long decryptedActualEmployeeId = _idEncoderService.DecodeId(actualEmpId, finalKey);
+                if(decryptedActualEmployeeId<0)
 
                 request.DTO.SortOrder = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortOrder);
                 request.DTO.SortBy = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortBy);
@@ -136,7 +137,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 // 🧩 STEP 4: Validate all employee references
 
 
-                if (decryptedTenantId <= 0 || decryptedEmployeeId <= 0)
+                if (decryptedTenantId <= 0 || decryptedEmployeeId <= 0 || decryptedActualEmployeeId <= 0)
                 {
                     _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
                     return ApiResponse<List<GetBankResponseDTO>>.Fail("Tenant or employee information missing.");
@@ -156,7 +157,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                     //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
                 }
                 // 🧩 STEP 4: Call Repository to get data GetBankReqestDTO dto, int id, long EmployeeId
-                var bankEntities = await _unitOfWork.EmployeeBankRepository.GetInfoAsync(request.DTO, Id , decryptedActualEmployeeId,decryptedTenantId );
+                var bankEntities = await _unitOfWork.EmployeeBankRepository.GetInfoAsync(request.DTO, Id , decryptedActualEmployeeId );
                 if (bankEntities == null || !bankEntities.Items.Any())
                     return ApiResponse<List<GetBankResponseDTO>>.Fail("No bank info found.");
 
@@ -164,13 +165,17 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                var result = ProjectionHelper.ToGetBankResponseDTOs(bankEntities, _idEncoderService, tenantKey);
 
                 // ✅ Correct paginated return
-                return ApiResponse<List<GetBankResponseDTO>>.SuccessPaginated(
+                return ApiResponse<List<GetBankResponseDTO>>.SuccessPaginatedPercentage(
                     data: result,
                     message: "Bank info retrieved successfully.",
                     pageNumber: bankEntities.PageNumber,
                     pageSize: bankEntities.PageSize,
                     totalRecords: bankEntities.TotalCount,
-                    totalPages: bankEntities.TotalPages
+                    totalPages: bankEntities.TotalPages,
+                    hasUploadedAll : bankEntities.HasUploadedAll,
+                    completionPercentage: bankEntities.CompletionPercentage
+
+                  
                 );
             }
             catch (Exception ex)

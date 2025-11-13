@@ -142,42 +142,26 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-
-
-        public async Task<PagedResponseDTO<GetBankResponseDTO>> GetInfoAsync(GetBankReqestDTO dto, int id, long employeeId, long tenantId)
+        public async Task<PagedResponseDTO<GetBankResponseDTO>> GetInfoAsync(GetBankReqestDTO dto, int id, long employeeId)
         {
             try
             {
+                // ✅ Default pagination setup
                 int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
                 int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
                 string sortBy = dto.SortBy?.ToLower() ?? "id";
                 string sortOrder = dto.SortOrder?.ToLower() ?? "desc";
                 bool isDescending = sortOrder == "desc";
 
-                IQueryable<EmployeeBankDetail> query;
+                // ✅ Base query - fetch all bank details of the employee which are not soft deleted
+                IQueryable<EmployeeBankDetail> query = _context.EmployeeBankDetails
+                    .AsNoTracking()
+                    .Where(x => x.EmployeeId == employeeId && (x.IsSoftDeleted == false || x.IsSoftDeleted == null));
 
-                // 🧭 CASE 1: If tenantId is available (Admin case)
-                if (tenantId > 0)
-                {
-                    // Get all EmployeeIds under the same tenant
-                    var employeeIds = await _context.Employees
-                        .Where(e => e.TenantId == tenantId && e.IsSoftDeleted != true)
-                        .Select(e => e.Id)
-                        .ToListAsync();
+                // ✅ Dynamic Filters
+                if (id > 0)
+                    query = query.Where(x => x.Id == id);
 
-                    query = _context.EmployeeBankDetails
-                        .AsNoTracking()
-                        .Where(x => employeeIds.Contains(x.EmployeeId) && x.IsSoftDeleted != true);
-                }
-                else
-                {
-                    // 🧭 CASE 2: Normal employee case (self records only)
-                    query = _context.EmployeeBankDetails
-                        .AsNoTracking()
-                        .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true);
-                }
-
-                // ✅ Apply dynamic filters
                 if (dto.IsActive.HasValue)
                     query = query.Where(x => x.IsActive == dto.IsActive.Value);
 
@@ -196,7 +180,7 @@ namespace axionpro.persistance.Repositories
                 if (!string.IsNullOrEmpty(dto.AccountType))
                     query = query.Where(x => x.AccountType.ToLower().Contains(dto.AccountType.ToLower()));
 
-                // 🔽 Sorting dynamically
+                // ✅ Dynamic Sorting
                 query = sortBy switch
                 {
                     "bankname" => isDescending ? query.OrderByDescending(x => x.BankName) : query.OrderBy(x => x.BankName),
@@ -207,10 +191,10 @@ namespace axionpro.persistance.Repositories
                     _ => isDescending ? query.OrderByDescending(x => x.Id) : query.OrderBy(x => x.Id)
                 };
 
-                // 🧾 Total count before pagination
+                // ✅ Total record count before pagination
                 int totalCount = await query.CountAsync();
 
-                // 📄 Apply pagination
+                // 📄 Apply pagination + projection + conditional completion %
                 var records = await query
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
@@ -231,8 +215,52 @@ namespace axionpro.persistance.Repositories
                         IsEditAllowed = x.IsEditAllowed,
                         HasChequeDocUploaded = x.HasChequeDocUploaded,
                         CancelledChequeDocPath = x.CancelledChequeDocPath,
+
+                        // ✅ Completion Percentage Calculation:
+                        // Primary account → total 5 checks (cheque upload included)
+                        // Secondary account → total 4 checks (cheque upload excluded)
+                        CompletionPercentage = Math.Round(
+                            (
+                                x.IsPrimaryAccount
+                                ? (new[]
+                                {
+                            string.IsNullOrEmpty(x.BankName) ? 0 : 1,
+                            string.IsNullOrEmpty(x.AccountNumber) ? 0 : 1,
+                            string.IsNullOrEmpty(x.IFSCCode) ? 0 : 1,
+                            x.HasChequeDocUploaded ? 1 : 0, // count only for primary
+                            1 // itself is primary
+                                }).Sum() / 5.0
+                                : (new[]
+                                {
+                            string.IsNullOrEmpty(x.BankName) ? 0 : 1,
+                            string.IsNullOrEmpty(x.AccountNumber) ? 0 : 1,
+                            string.IsNullOrEmpty(x.IFSCCode) ? 0 : 1,
+                            1 // account valid but non-primary → exclude cheque check
+                                }).Sum() / 4.0
+                            ) * 100, 0)
                     })
                     .ToListAsync();
+
+                // --- post-processing section ---
+
+                // ✅ Calculate overall average percentage (nullable if no record)
+                double? averagePercentage = records.Any()
+                    ? records.Average(r => r.CompletionPercentage)
+                    : (double?)null;
+
+                // ✅ Determine if all required cheque docs are uploaded for primary accounts only
+                bool? hasUploadedAllDocs;
+                var primaryRecords = records.Where(r => r.IsPrimaryAccount == true).ToList();
+                if (primaryRecords.Any())
+                {
+                    // true only if every primary account has uploaded cheque document
+                    hasUploadedAllDocs = primaryRecords.All(r => r.HasChequeDocUploaded == true);
+                }
+                else
+                {
+                    // no primary account present => treat as false
+                    hasUploadedAllDocs = false;
+                }
 
                 // 📦 Return paged response
                 return new PagedResponseDTO<GetBankResponseDTO>
@@ -241,11 +269,14 @@ namespace axionpro.persistance.Repositories
                     TotalCount = totalCount,
                     PageNumber = pageNumber,
                     PageSize = pageSize,
-                    TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+                    TotalPages = (int)Math.Ceiling((double)totalCount / pageSize),
+                    HasUploadedAll = hasUploadedAllDocs,
+                    CompletionPercentage = averagePercentage
                 };
             }
             catch (Exception ex)
             {
+                // ❌ Exception logging
                 _logger.LogError(ex, "❌ Error fetching bank info for EmployeeId {EmployeeId}", employeeId);
                 throw new Exception($"Failed to fetch bank information: {ex.Message}");
             }

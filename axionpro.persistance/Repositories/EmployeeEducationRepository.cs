@@ -80,7 +80,7 @@ namespace axionpro.persistance.Repositories
         }
 
 
-        public async Task<PagedResponseDTO<GetEducationResponseDTO>> GetInfo(GetEducationRequestDTO dto, long employeeId, long id, long tenantId)
+        public async Task<PagedResponseDTO<GetEducationResponseDTO>> GetInfo(GetEducationRequestDTO dto, long employeeId, long id)
         {
             try
             {
@@ -185,7 +185,7 @@ namespace axionpro.persistance.Repositories
                     TotalCount = totalRecords,
                     PageNumber = pageNumber,
                     PageSize = pageSize,
-                  TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize)
+                    TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize)
 
 
                 };

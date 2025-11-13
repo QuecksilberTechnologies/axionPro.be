@@ -27,7 +27,7 @@ public interface IEmployeeEducationRepository
 
 
     #region Employee-Education-info
-    public Task<PagedResponseDTO<GetEducationResponseDTO>> GetInfo(GetEducationRequestDTO dto,  long EmployeeId, long Id, long tenantId);
+    public Task<PagedResponseDTO<GetEducationResponseDTO>> GetInfo(GetEducationRequestDTO dto,  long EmployeeId, long Id);
     public Task<PagedResponseDTO<GetEducationResponseDTO>> CreateAsync(EmployeeEducation entity);
     //  public Task<PagedResponseDTO<GetDependentResponseDTO>> AutoCreatedAsync(EmployeeContact entity);
     public Task<EmployeeEducation> GetSingleRecordAsync(long Id, bool IsActive);  // Ensure this returns 
