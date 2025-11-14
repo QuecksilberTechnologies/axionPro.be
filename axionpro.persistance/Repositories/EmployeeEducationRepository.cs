@@ -79,7 +79,6 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-
         public async Task<PagedResponseDTO<GetEducationResponseDTO>> GetInfo(GetEducationRequestDTO dto, long employeeId, long id)
         {
             try
@@ -159,13 +158,13 @@ namespace axionpro.persistance.Repositories
                     .Select(edu => new GetEducationResponseDTO
                     {
                         Id = edu.Id.ToString(),
-                        EmployeeId = edu.EmployeeId.ToString(),
-                        Degree = edu.Degree,
-                        InstituteName = edu.InstituteName,
+                        EmployeeId = edu.EmployeeId.ToString(),   // required
+                        Degree = edu.Degree, // required
+                        InstituteName = edu.InstituteName, // required
                         Remark = edu.Remark,
-                        GradeOrPercentage = edu.GradeOrPercentage,
-                        GPAOrPercentage = edu.GpaorPercentage,
-                        EducationGap = edu.EducationGap,
+                        GradeOrPercentage = edu.GradeOrPercentage, // required
+                        GPAOrPercentage = edu.GpaorPercentage, // required
+                        EducationGap = edu.EducationGap,   
                         ReasonOfEducationGap = edu.ReasonOfEducationGap,
                         StartDate = edu.StartDate,
                         EndDate = edu.EndDate,
@@ -173,6 +172,9 @@ namespace axionpro.persistance.Repositories
                         DocType = edu.DocType.ToString(),
                         DocName = edu.DocName,
                         IsActive = edu.IsActive
+
+
+
                     })
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
@@ -185,7 +187,10 @@ namespace axionpro.persistance.Repositories
                     TotalCount = totalRecords,
                     PageNumber = pageNumber,
                     PageSize = pageSize,
-                    TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize)
+                    TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
+                    CompletionPercentage = 80,
+                    HasUploadedAll = false,
+                   
 
 
                 };

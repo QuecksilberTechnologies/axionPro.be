@@ -49,4 +49,5 @@ public partial class EmployeeDependent
     public DateTime? InfoVerifiedDateTime { get; set; }
 
     public virtual Employee? Employee { get; set; }
+
 }

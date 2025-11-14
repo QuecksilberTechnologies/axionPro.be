@@ -16,6 +16,8 @@ public partial class EmployeeImage
     public bool IsActive { get; set; }
 
     public bool IsPrimary { get; set; }
+    public bool HasImageUploaded { get; set; }
+    
 
     public bool IsSoftDeleted { get; set; }
 
@@ -23,7 +25,7 @@ public partial class EmployeeImage
     public long? UpdateById { get; set; }
     public long? AddedById { get; set; }
  
-    public DateTime? AdddedDateTime { get; set; }
+    public DateTime? AddedDateTime { get; set; }
     public DateTime? UpdatedDateTime { get; set; }
     public DateTime? DeletedDateTime { get; set; }
    

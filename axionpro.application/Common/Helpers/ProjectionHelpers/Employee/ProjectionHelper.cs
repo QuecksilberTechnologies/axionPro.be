@@ -151,6 +151,31 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 
             }).ToList();
         }
+        public static List<GetAllEmployeeInfoResponseDTO> ToGetAllEmployeeInfoResponseDTOs(
+     PagedResponseDTO<GetAllEmployeeInfoResponseDTO> entities,
+      IIdEncoderService encoderService,
+      string tenantKey)
+        {
+            if (entities == null || !entities.Items.Any())
+                return new List<GetAllEmployeeInfoResponseDTO>();
+
+            foreach (var item in entities.Items)
+            {
+                if (long.TryParse(item.EmployeeId, out long rawId) && rawId > 0)
+                {
+                    item.EmployeeId = encoderService.EncodeId(rawId, tenantKey);
+                }
+
+                item.EmployementCode ??= string.Empty;
+                item.FirstName ??= string.Empty;
+                item.LastName ??= string.Empty;
+                item.MiddleName ??= string.Empty;
+                item.OfficialEmail ??= string.Empty;
+            }
+
+            return entities.Items;
+        }
+
 
         public static List<GetBaseEmployeeResponseDTO> ToGetBaseInfoResponseDTOs(List<GetBaseEmployeeResponseDTO> entities,
       IIdEncoderService encoderService,

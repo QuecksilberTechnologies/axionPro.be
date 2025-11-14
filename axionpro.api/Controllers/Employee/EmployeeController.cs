@@ -126,13 +126,44 @@ namespace axionpro.api.Controllers.Employee
         [HttpGet("get")]
 
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetAllEmployee([FromQuery] GetBaseEmployeeRequestDTO requestDto)
+        public async Task<IActionResult> GetEmployee([FromQuery] GetBaseEmployeeRequestDTO requestDto)
         {
             try
             {
                 _logger.LogInfo("Fetching all employees.");
 
                 var command = new GetBaseEmployeeInfoQuery(requestDto);
+                var result = await _mediator.Send(command);
+
+                if (!result.IsSucceeded)
+                {
+                    _logger.LogInfo("No employees found or request failed.");
+                    return BadRequest(result);
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error while fetching employees: {ex.Message}");
+                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while fetching employee info.",
+                    new List<string> { ex.Message });
+                return StatusCode(500, errorResponse);
+            }
+        }
+        /// <summary>
+        /// Get all employees based on TenantId or filters.
+        /// </summary>
+        [HttpGet("get-all")]
+
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetAllEmployee([FromQuery] GetAllEmployeeInfoRequestDTO requestDto)
+        {
+            try
+            {
+                _logger.LogInfo("Fetching all employees.");
+
+                var command = new GetAllEmployeeInfoQuery(requestDto);
                 var result = await _mediator.Send(command);
 
                 if (!result.IsSucceeded)

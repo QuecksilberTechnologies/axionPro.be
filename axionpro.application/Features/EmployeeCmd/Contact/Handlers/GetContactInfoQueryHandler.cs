@@ -162,13 +162,17 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
 
                 // 6️⃣ Return success response    
                
-                return ApiResponse<List<GetContactResponseDTO>>.SuccessPaginated(
+                return ApiResponse<List<GetContactResponseDTO>>.SuccessPaginatedPercentage(
                   data: responseDTO ,
                   message: "Contact info retrieved successfully.",
                   pageNumber: Entity.PageNumber,
                   pageSize: Entity.PageSize,
                   totalRecords: Entity.TotalCount,
-                  totalPages: Entity.TotalPages
+                  totalPages: Entity.TotalPages,
+                  completionPercentage: 80,
+                  hasUploadedAll: null
+       
+
               );
             }
             catch (Exception ex)

@@ -24,8 +24,8 @@ namespace axionpro.application.DTOS.Employee.Contact
             public string? HouseNo { get; set; }              // Address details
             public string? LandMark { get; set; }
             public string? Street { get; set; }
-            public string? LocalAddress { get; set; }
-            public string? PermanentAddress { get; set; }
+           
+            public string? Address { get; set; }
             public string? Remark { get; set; }
             public bool? IsActive { get; set; }               // Active/Inactive
             
@@ -35,7 +35,8 @@ namespace axionpro.application.DTOS.Employee.Contact
             public string? InfoVerifiedById { get; set; }
             public DateTime? InfoVerifiedDateTime { get; set; }
             public string? Description { get; set; }          // extra notes / description
-        }
+        public double CompletionPercentage { get; set; } = 0;
+    }
     
 
 }

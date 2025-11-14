@@ -24,7 +24,9 @@ namespace axionpro.application.DTOS.Employee.Dependent
         // 🔹 Flags
 
         public bool? IsActive { get; set; }
-        public bool HasProofUploaded { get; set; }    
+        public bool HasProofUploaded { get; set; }
+        public bool HasUploadedAll { get; set; }
+        public   double   CompletionPercentage { get; set; }
         public string? ProofDocPath { get; set; }
 
         // 🔹 Info Verification
@@ -32,6 +34,7 @@ namespace axionpro.application.DTOS.Employee.Dependent
         public bool? IsInfoVerified { get; set; }
         public bool? IsEditAllowed { get; set; }
         public DateTime? InfoVerifiedDateTime { get; set; }
+
     }
 
 

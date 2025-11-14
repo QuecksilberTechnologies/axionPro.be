@@ -27,6 +27,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
             public bool IsActive { get; set; } = true;         
             public bool? IsEditAllowed { get; set; } 
             public bool? IsInfoVerified { get; set; }
+        
         }
     
 

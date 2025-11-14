@@ -41,6 +41,8 @@ namespace axionpro.application.DTOS.Employee.Education
         public bool HasEducationDocUploded { get; set; } 
    
         public bool? IsActive { get; set; }
+        public double? CompletionPercentage { get; set; }
+
     }
 
 

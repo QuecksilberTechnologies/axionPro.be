@@ -390,9 +390,8 @@ namespace axionpro.application.Mappings
          .ForMember(dest => dest.HouseNo, opt => opt.MapFrom(src => src.HouseNo))
          .ForMember(dest => dest.LandMark, opt => opt.MapFrom(src => src.LandMark))
          .ForMember(dest => dest.Street, opt => opt.MapFrom(src => src.Street))
-         .ForMember(dest => dest.LocalAddress, opt => opt.MapFrom(src => src.LocalAddress))
-         .ForMember(dest => dest.PermanentAddress, opt => opt.MapFrom(src => src.PermanentAddress))
-
+         .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
+       
          // 🔹 Optional/Metadata
          .ForMember(dest => dest.Remark, opt => opt.MapFrom(src => src.Remark))
          .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));

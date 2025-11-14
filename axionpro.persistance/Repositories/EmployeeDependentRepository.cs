@@ -75,106 +75,118 @@ namespace axionpro.persistance.Repositories
                 throw new Exception($"Failed to add or fetch Dependent info: {ex.Message}");
             }
         }
-        public async Task<PagedResponseDTO<GetDependentResponseDTO>> GetInfo(GetDependentRequestDTO dto, long employeeId, long id)
+
+        public async Task<PagedResponseDTO<GetDependentResponseDTO>> GetInfo(
+      GetDependentRequestDTO dto,
+      long employeeId,
+      long id)
         {
+            var response = new PagedResponseDTO<GetDependentResponseDTO>();
+
             try
             {
-                // 🔹 Pagination defaults
-                int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
-                int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
-                string sortBy = dto.SortBy?.Trim().ToLower() ?? "id";
-                bool isDescending = string.Equals(dto.SortOrder, "desc", StringComparison.OrdinalIgnoreCase);
+                await using var context = await _contextFactory.CreateDbContextAsync();
 
-                // 🧭 Base query (Active & Not SoftDeleted)
-                var query = _context.EmployeeDependents
-                    .AsNoTracking()
-                    .Where(dep => dep.EmployeeId == employeeId && dep.IsSoftDeleted != true);
+                // ✔ Base Query
+                var query = context.EmployeeDependents
+                    .Where(d => d.IsSoftDeleted != true)
+                    .AsQueryable();
 
-                // 🗺 Optional Filters
-                if (dto.IsActive.HasValue)
-                    query = query.Where(x => x.IsActive == dto.IsActive);
+                // ✔ Filter by Dependent Id
+                if (id > 0)
+                    query = query.Where(d => d.Id == id);
 
-                if (!string.IsNullOrWhiteSpace(dto.Id) && long.TryParse(dto.Id, out long parsedId) && parsedId > 0)
-                    query = query.Where(x => x.Id == parsedId);
+                // ✔ Filter by Employee
+                if (employeeId > 0)
+                    query = query.Where(d => d.EmployeeId == employeeId);
 
+                // ✔ Filter by Name
                 if (!string.IsNullOrWhiteSpace(dto.Relation))
+                    query = query.Where(d => d.Relation.ToLower().Contains(dto.Relation.ToLower()));
+
+                // ✔ Filter by Active
+                if (dto.IsActive.HasValue)
+                    query = query.Where(d => d.IsActive == dto.IsActive.Value);
+
+                // ✔ Sorting
+                query = dto.SortBy?.ToLower() switch
                 {
-                    string relationFilter = dto.Relation.ToLower();
-                    query = query.Where(x => x.Relation.ToLower().Contains(relationFilter));
-                }
+                    "dependentname" => dto.SortOrder?.ToLower() == "asc"
+                        ? query.OrderBy(x => x.DependentName)
+                        : query.OrderByDescending(x => x.DependentName),
+                    "relation" => dto.SortOrder?.ToLower() == "asc"
+                   ? query.OrderBy(x => x.Relation)
+                   : query.OrderByDescending(x => x.Relation),
 
-                if (dto.IsCoveredInPolicy.HasValue)
-                    query = query.Where(x => x.IsCoveredInPolicy == dto.IsCoveredInPolicy);
-
-                if (dto.IsMarried.HasValue)
-                    query = query.Where(x => x.IsMarried == dto.IsMarried);
-                if (dto.HasProofUploaded)
-                    query = query.Where(x => x.HasProofUploaded == dto.HasProofUploaded);
-
-                // 🔽 Sorting
-                query = sortBy switch
-                {
-                    "relation" => isDescending ? query.OrderByDescending(x => x.Relation) : query.OrderBy(x => x.Relation),
-                    "iscoveredinpolicy" => isDescending ? query.OrderByDescending(x => x.IsCoveredInPolicy) : query.OrderBy(x => x.IsCoveredInPolicy),
-                    "ismarried" => isDescending ? query.OrderByDescending(x => x.IsMarried) : query.OrderBy(x => x.IsMarried),
-                    "hasproofUploaded" => isDescending ? query.OrderByDescending(x => x.HasProofUploaded) : query.OrderBy(x => x.HasProofUploaded),
-
-                    _ => isDescending ? query.OrderByDescending(x => x.Id) : query.OrderBy(x => x.Id)
+                    _ => query.OrderByDescending(x => x.Id)
                 };
 
-                // 📄 Total count before pagination
+                // ✔ Pagination
                 var totalRecords = await query.CountAsync();
+                var dependents = await query
+                    .Skip((dto.PageNumber - 1) * dto.PageSize)
+                    .Take(dto.PageSize)
+                    .AsNoTracking()
+                    .ToListAsync();
 
-                // 🧩 Projection to DTO (EF-friendly)
-                var projectedList = await query
-                    .Select(dep => new GetDependentResponseDTO
+                // ⭐ Build Final List with Completion Logic
+                var finalList = dependents.Select(dep =>
+                {
+                    double completion = (
+                        new[]
+                        {
+                    string.IsNullOrEmpty(dep.DependentName) ? 0 : 1,
+                    string.IsNullOrEmpty(dep.Relation) ? 0 : 1,
+                    dep.DateOfBirth.HasValue ? 1 : 0,
+                    dep.IsCoveredInPolicy.HasValue ? 1 : 0,
+                    dep.IsMarried.HasValue ? 1 : 0,
+                    string.IsNullOrEmpty(dep.Remark) ? 0 : 1,
+                    string.IsNullOrEmpty(dep.Description) ? 0 : 1,
+                    dep.HasProofUploaded ? 1 : 0
+                        }.Sum() / 8.0
+                    ) * 100;
+
+                    return new GetDependentResponseDTO
                     {
-                        Id = dep.Id.ToString(),
-                        EmployeeId = dep.EmployeeId.ToString(),
+                        Id = id.ToString(),
                         DependentName = dep.DependentName,
                         Relation = dep.Relation,
                         DateOfBirth = dep.DateOfBirth,
                         IsCoveredInPolicy = dep.IsCoveredInPolicy,
                         IsMarried = dep.IsMarried,
-                        HasProofUploaded = dep.HasProofUploaded,
-                        ProofDocPath = dep.ProofDocPath,
                         Remark = dep.Remark,
                         Description = dep.Description,
-                        IsActive = dep.IsActive,
-                        IsInfoVerified = dep.IsInfoVerified,
-                        IsEditAllowed = dep.IsEditAllowed,
-                        InfoVerifiedById = dep.InfoVerifiedById.ToString(),
-                        InfoVerifiedDateTime = dep.InfoVerifiedDateTime
-                    })
-                    .ToListAsync();
+                        HasProofUploaded = dep.HasProofUploaded,
+                        CompletionPercentage = completion,
+                        HasUploadedAll = dep.HasProofUploaded
+                    };
+                }).ToList();
 
-                // 🚫 DistinctBy apply karo ab (C# level pe)
-                var distinctList = projectedList
-                    .GroupBy(x => x.Id)
-                    .Select(g => g.First())
-                    .ToList();
+                // ⭐ Fill Paged Response
+                response.Items = finalList;
+                response.TotalCount = totalRecords;
+                response.PageNumber = dto.PageNumber;
+                response.PageSize = dto.PageSize;
+                response.TotalPages = (int)Math.Ceiling((double)totalRecords / dto.PageSize);
 
-                // 📜 Pagination
-                var pagedRecords = distinctList
-                    .Skip((pageNumber - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToList();
 
-                // 📦 Return final paged response
-                return new PagedResponseDTO<GetDependentResponseDTO>
-                {
-                    Items = pagedRecords,
-                    TotalCount = totalRecords,
-                    PageNumber = pageNumber,
-                    PageSize = pageSize
-                };
+                // ⭐ Average Completion
+                response.CompletionPercentage = finalList.Count > 0
+                    ? finalList.Average(x => x.CompletionPercentage)
+                    : 0;
+
+                // ⭐ Check if all dependents uploaded proof
+                response.HasUploadedAll = finalList.All(x => x.HasProofUploaded);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error occurred while fetching dependent info for EmployeeId: {EmployeeId}", employeeId);
-                throw new Exception($"Failed to fetch dependents: {ex.Message}");
+                _logger.LogError(ex, "❌ Error fetching dependents");
+                response.Items = new List<GetDependentResponseDTO>();
             }
+
+            return response;
         }
+
 
         public Task<EmployeeContact> GetSingleRecordAsync(long Id, bool IsActive)
         {

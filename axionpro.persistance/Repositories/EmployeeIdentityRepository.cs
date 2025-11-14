@@ -201,7 +201,9 @@ namespace axionpro.persistance.Repositories
                     Items = pagedRecords ?? new List<GetIdentityResponseDTO>(),
                     TotalCount = totalRecords,
                     PageNumber = dto.PageNumber,
-                    PageSize = dto.PageSize
+                    PageSize = dto.PageSize,
+                    CompletionPercentage = 75.5,
+                    HasUploadedAll= false,
                 };
             }
             catch (Exception ex)

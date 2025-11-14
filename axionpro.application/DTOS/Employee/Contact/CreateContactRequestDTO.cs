@@ -27,8 +27,8 @@ namespace axionpro.application.DTOS.Employee.Contact
         public string? HouseNo { get; set; }
         public string? LandMark { get; set; }
         public string? Street { get; set; }
-        public string? LocalAddress { get; set; }
-        public string? PermanentAddress { get; set; }
+        public string? Address { get; set; }
+      
 
         // 🔹 Optional/Metadata
         public string? Remark { get; set; }

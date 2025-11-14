@@ -1022,8 +1022,7 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.IsPrimary).HasDefaultValue(false);
                 entity.Property(e => e.IsSoftDeleted).HasDefaultValue(true);
                 entity.Property(e => e.LandMark).HasMaxLength(250);
-                entity.Property(e => e.LocalAddress).HasMaxLength(250);
-                entity.Property(e => e.PermanentAddress).HasMaxLength(250);
+                entity.Property(e => e.Address).HasMaxLength(250);               
                 entity.Property(e => e.Remark).HasMaxLength(250);
                 entity.Property(e => e.Street).HasMaxLength(250);
                 entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
@@ -1210,6 +1209,7 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
                 entity.Property(e => e.EmployeeImagePath).HasMaxLength(500);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.HasImageUploaded).HasDefaultValue(false);
 
                 entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeImages)
                     .HasForeignKey(d => d.EmployeeId)

@@ -55,5 +55,7 @@ public partial class EmployeeEducation
     public bool? IsEditAllowed { get; set; }
 
     public bool? IsActive { get; set; }
+    public virtual Employee Employee { get; set; } = null!;
+
 
 }

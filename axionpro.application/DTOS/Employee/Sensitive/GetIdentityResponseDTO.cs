@@ -31,6 +31,7 @@ namespace axionpro.application.DTOS.Employee.Sensitive
         public string? passportDocPath { get; set; }
         public string? panDocPath { get; set; }
         public string? aadharDocPath { get; set; }
+        public double? CompletionPercentage {  get; set; }
     }
 
 }

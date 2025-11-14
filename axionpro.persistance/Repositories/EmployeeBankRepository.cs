@@ -195,6 +195,7 @@ namespace axionpro.persistance.Repositories
                 int totalCount = await query.CountAsync();
 
                 // 📄 Apply pagination + projection + conditional completion %
+                // 📄 Apply pagination + projection + conditional completion %
                 var records = await query
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
@@ -217,26 +218,31 @@ namespace axionpro.persistance.Repositories
                         CancelledChequeDocPath = x.CancelledChequeDocPath,
 
                         // ✅ Completion Percentage Calculation:
-                        // Primary account → total 5 checks (cheque upload included)
-                        // Secondary account → total 4 checks (cheque upload excluded)
+                        // Primary account → total 7 checks (including cheque upload)
+                        // Non-primary account → total 6 checks (excluding cheque upload)
                         CompletionPercentage = Math.Round(
                             (
                                 x.IsPrimaryAccount
                                 ? (new[]
                                 {
-                            string.IsNullOrEmpty(x.BankName) ? 0 : 1,
-                            string.IsNullOrEmpty(x.AccountNumber) ? 0 : 1,
-                            string.IsNullOrEmpty(x.IFSCCode) ? 0 : 1,
-                            x.HasChequeDocUploaded ? 1 : 0, // count only for primary
-                            1 // itself is primary
-                                }).Sum() / 5.0
+                    // --- Fields considered for primary account completeness ---
+                    string.IsNullOrEmpty(x.BankName) ? 0 : 1,
+                    string.IsNullOrEmpty(x.AccountNumber) ? 0 : 1,
+                    string.IsNullOrEmpty(x.IFSCCode) ? 0 : 1,
+                    string.IsNullOrEmpty(x.BranchName) ? 0 : 1,
+                    string.IsNullOrEmpty(x.AccountType) ? 0 : 1,
+                    x.HasChequeDocUploaded ? 1 : 0, /* ✅ Only for primary */      1 // ✅ Itself is primary
+                                }).Sum() / 7.0
                                 : (new[]
                                 {
-                            string.IsNullOrEmpty(x.BankName) ? 0 : 1,
-                            string.IsNullOrEmpty(x.AccountNumber) ? 0 : 1,
-                            string.IsNullOrEmpty(x.IFSCCode) ? 0 : 1,
-                            1 // account valid but non-primary → exclude cheque check
-                                }).Sum() / 4.0
+                    // --- Fields considered for non-primary account completeness ---
+                    string.IsNullOrEmpty(x.BankName) ? 0 : 1,
+                    string.IsNullOrEmpty(x.AccountNumber) ? 0 : 1,
+                    string.IsNullOrEmpty(x.IFSCCode) ? 0 : 1,
+                    string.IsNullOrEmpty(x.BranchName) ? 0 : 1,
+                    string.IsNullOrEmpty(x.AccountType) ? 0 : 1,
+                    1 // ✅ Account is valid but non-primary → exclude cheque
+                                }).Sum() / 6.0
                             ) * 100, 0)
                     })
                     .ToListAsync();
@@ -281,6 +287,9 @@ namespace axionpro.persistance.Repositories
                 throw new Exception($"Failed to fetch bank information: {ex.Message}");
             }
         }
+
+
+
 
 
 

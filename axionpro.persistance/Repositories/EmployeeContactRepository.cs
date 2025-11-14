@@ -133,7 +133,7 @@ namespace axionpro.persistance.Repositories
                         (dto.IsActive == null || contact.IsActive == dto.IsActive) &&
                         contact.IsSoftDeleted != true);
 
-                // 🔹 Optional filters with SafeParser
+                // 🔹 Optional filters
                 int countryId = !string.IsNullOrWhiteSpace(dto.CountryId) ? SafeParser.TryParseInt(dto.CountryId) : 0;
                 int stateId = !string.IsNullOrWhiteSpace(dto.StateId) ? SafeParser.TryParseInt(dto.StateId) : 0;
                 int districtId = !string.IsNullOrWhiteSpace(dto.DistrictId) ? SafeParser.TryParseInt(dto.DistrictId) : 0;
@@ -162,48 +162,77 @@ namespace axionpro.persistance.Repositories
                 // 🔹 Total records before pagination
                 var totalRecords = await baseQuery.CountAsync();
 
-                // 🔹 Fetch data to memory for client-side mapping
+                // ⭐ Check if employee has ANY primary contact
+                bool hasPrimary = baseQuery.Any(x => x.IsPrimary == true);
+
+                // 🔹 Fetch and map
                 var data = baseQuery
-                    .AsEnumerable() // Client-side for null-safe conversions
-                    .Select(contact => new GetContactResponseDTO
+                    .AsEnumerable()
+                    .Select(contact =>
                     {
-                        Id = contact.Id.ToString(),
-                        EmployeeId = contact.EmployeeId.ToString(),
+                        // ⭐ Primary Rule
+                        int primaryValue = hasPrimary ? (contact.IsPrimary.HasValue ? 1 : 0) : 0;
 
-                        // Contact Info
-                        LocalAddress = contact.LocalAddress,
-                        LandMark = contact.LandMark,
-                        CountryId = contact.CountryId.ToString(),
-                        StateId = contact.StateId.ToString(),
-                        DistrictId = contact.DistrictId.ToString(),
-                        IsPrimary = contact.IsPrimary,
-                        IsActive = contact.IsActive,
-                        IsInfoVerified = contact.IsInfoVerified,
-                        IsEditAllowed = contact.IsEditAllowed,
-                        ContactType = contact.ContactType.HasValue ? contact.ContactType.Value.ToString() : null,
-                        PermanentAddress = contact.PermanentAddress,
-                        ContactNumber = contact.ContactNumber,
-                        AlternateNumber = contact.AlternateNumber,
-                        Email = contact.Email,
-                        Remark = contact.Remark,
-                        Description = contact.Description,
+                        // ⭐ Completion Calculation
+                        double completion = (
+                            (new[]
+                            {
+                        string.IsNullOrEmpty(contact.Address) ? 0 : 1,
+                        string.IsNullOrEmpty(contact.CountryId?.ToString()) ? 0 : 1,
+                        string.IsNullOrEmpty(contact.StateId?.ToString()) ? 0 : 1,
+                        string.IsNullOrEmpty(contact.DistrictId?.ToString()) ? 0 : 1,
+                        string.IsNullOrEmpty(contact.ContactNumber) ? 0 : 1,
+                        string.IsNullOrEmpty(contact.Email) ? 0 : 1,
+                        primaryValue
+                            }).Sum() / 7.0
+                        ) * 100;
 
-                        InfoVerifiedById = contact.InfoVerifiedById?.ToString(),
-                        InfoVerifiedDateTime = contact.InfoVerifiedDateTime
+                        return new GetContactResponseDTO
+                        {
+                            Id = contact.Id.ToString(),
+                            EmployeeId = contact.EmployeeId.ToString(),
+                            Address = contact.Address,
+                            LandMark = contact.LandMark,
+                            CountryId = contact.CountryId?.ToString(),
+                            StateId = contact.StateId?.ToString(),
+                            DistrictId = contact.DistrictId?.ToString(),
+                            IsPrimary = contact.IsPrimary,
+                            IsActive = contact.IsActive,
+                            IsInfoVerified = contact.IsInfoVerified,
+                            IsEditAllowed = contact.IsEditAllowed,
+                            ContactType = contact.ContactType?.ToString(),
+                            ContactNumber = contact.ContactNumber,
+                            AlternateNumber = contact.AlternateNumber,
+                            Email = contact.Email,
+                            Remark = contact.Remark,
+                            Description = contact.Description,
+                            InfoVerifiedById = contact.InfoVerifiedById?.ToString(),
+                            InfoVerifiedDateTime = contact.InfoVerifiedDateTime,
+
+                            // ⭐ Final Completion
+                            CompletionPercentage = completion
+                        };
                     })
                     .DistinctBy(x => x.Id)
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .ToList();
 
-                // 🔹 Return paged response
+                // ⭐ Average completion for page
+                double averagePercentage = data.Count > 0
+                    ? data.Average(x => x.CompletionPercentage)
+                    : 0;
+
+                // 🔹 Return Response
                 return new PagedResponseDTO<GetContactResponseDTO>
                 {
                     Items = data,
                     TotalCount = totalRecords,
                     PageNumber = pageNumber,
                     PageSize = pageSize,
-                    TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize)
+                    TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
+                    HasUploadedAll = null,
+                    CompletionPercentage = averagePercentage
                 };
             }
             catch (Exception ex)
@@ -212,9 +241,6 @@ namespace axionpro.persistance.Repositories
                 throw new Exception($"Failed to fetch contacts: {ex.Message}");
             }
         }
-
-
-
 
         public Task<PagedResponseDTO<GetContactResponseDTO>> AutoCreatedAsync(EmployeeContact entity)
         {
