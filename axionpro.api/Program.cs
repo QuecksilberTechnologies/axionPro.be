@@ -113,6 +113,7 @@ try
 
     // ✅ Build the app
     var app = builder.Build();
+    app.UseStaticFiles(); // wwwroot ko public banata hai
 
     // ✅ Middleware setup
     app.UseHttpsRedirection();

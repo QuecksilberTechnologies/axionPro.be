@@ -30,7 +30,12 @@ namespace axionpro.api.Controllers.Employee
         /// <summary>
         /// Create new employee personal info record.
         /// </summary>
+       
         [HttpPost("Create")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Createpersonalinfo([FromForm] CreateIdentityRequestDTO dto)
         {
             try
@@ -58,6 +63,7 @@ namespace axionpro.api.Controllers.Employee
         [HttpGet("get")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> GetSensitiveData([FromQuery] GetIdentityRequestDTO commandDto)
         {
             try
@@ -82,6 +88,7 @@ namespace axionpro.api.Controllers.Employee
         [HttpPost("update")]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Update([FromBody] GenricUpdateRequestDTO dto)
         {
             try
