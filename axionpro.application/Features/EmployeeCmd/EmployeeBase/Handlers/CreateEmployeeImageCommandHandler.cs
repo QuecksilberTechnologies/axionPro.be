@@ -30,22 +30,22 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
-    public class GetEmployeeImageCommand : IRequest<ApiResponse<List<GetEmployeeImageReponseDTO>>>
+    public class CreateEmployeeImageCommand : IRequest<ApiResponse<List<GetEmployeeImageReponseDTO>>>
     {
-        public GetEmployeeImageRequestDTO DTO { get; set; }
+        public CreateEmployeeImageRequestDTO DTO { get; set; }
 
-        public GetEmployeeImageCommand(GetEmployeeImageRequestDTO dto)
+        public CreateEmployeeImageCommand(CreateEmployeeImageRequestDTO dto)
         {
             DTO = dto;
         }
     }
 
-    public class CreateEmployeeImageCommandHandler : IRequestHandler<GetEmployeeImageCommand, ApiResponse<List<GetEmployeeImageReponseDTO>>>
+    public class CreateEmployeeImageCommandHandler : IRequestHandler<CreateEmployeeImageCommand, ApiResponse<List<GetEmployeeImageReponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ILogger<CreateEmployeeImageCommandHandler> _logger;
+        private readonly ILogger<CreateEmployeeImageCommand> _logger;
         private readonly ITokenService _tokenService;
         private readonly IPermissionService _permissionService;
         private readonly IConfiguration _config;
@@ -57,7 +57,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             IUnitOfWork unitOfWork,
             IMapper mapper,
             IHttpContextAccessor httpContextAccessor,
-            ILogger<CreateEmployeeImageCommandHandler> logger,
+            ILogger<CreateEmployeeImageCommand> logger,
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,
@@ -77,7 +77,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             _fileStorageService = fileStorageService;
         }
 
-        public async Task<ApiResponse<List<GetEmployeeImageReponseDTO>>> Handle(GetEmployeeImageCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<List<GetEmployeeImageReponseDTO>>> Handle(CreateEmployeeImageCommand request, CancellationToken cancellationToken)
         {
             await _unitOfWork.BeginTransactionAsync();
             string? savedFullPath = null;  // 📂 File full path track karne ke liye
@@ -152,7 +152,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                             // 🔹 File naming convention (same pattern as asset)
                             string fileName = $"ProfileImage-{decryptedActualEmployeeId + "_" + docFileName}-{DateTime.UtcNow:yyMMddHHmmss}.png";
 
-                            string fullFolderPath = _fileStorageService.GetEmployeeFolderPath(tenantId, decryptedActualEmployeeId, "education");
+                            string fullFolderPath = _fileStorageService.GetEmployeeFolderPath(tenantId, decryptedActualEmployeeId, "profile");
 
                             // 🔹 Store actual name for reference in DB
                             FileName = fileName;
@@ -187,29 +187,31 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 
                 // 3️⃣ DTO Configuration
                 var entity = _mapper.Map<EmployeeImage>(request.DTO);
-                // 🧩 STEP 5: Entity Mapping (join fields + base fields)
+
+                entity.EmployeeId = decryptedActualEmployeeId;
                 entity.AddedById = decryptedEmployeeId;
                 entity.AddedDateTime = DateTime.UtcNow;
-                entity.IsActive = true;             
-                entity.FileType = 0;
+                entity.IsActive = request.DTO.IsActive;
+                entity.FileType = HasImageUploaded ? ImageType : 0;
 
                 if (HasImageUploaded)
                 {
-                    entity.FileType = ImageType; //image
-                    entity.FilePath = FilePath ;
-                    entity.FileName = FileName ;
-
+                    entity.FilePath = FilePath;
+                    entity.FileName = FileName;
                 }
+
                 entity.HasImageUploaded = HasImageUploaded;
+
+                
 
 
                 //   HttpRequestOptionsKey
 
                 // 4️⃣ Repository Operation
-                var responseDTO = await _unitOfWork.Employees.CreateImageAsync(entity);
+                var responseDTO = await _unitOfWork.Employees.AddImageAsync(entity);
                  
                 // 5️⃣ Encrypt Result Data
-                // var encryptedList = ProjectionHelper.ToGetBaseInfoResponseDTOs(responseDTO.Items, _idEncoderService, tenantKey);
+                    var encryptedList = ProjectionHelper.ToGetProfileImageInfoResponseDTOs(responseDTO.Items, _idEncoderService, tenantKey);
 
                 // 6️⃣ Commit Transaction
                 await _unitOfWork.CommitTransactionAsync();
@@ -223,7 +225,8 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     PageSize = responseDTO.PageSize,
                     TotalRecords = responseDTO.TotalCount,
                     TotalPages = responseDTO.TotalPages,
-                    Data = null,
+                    CompletionPercentage = responseDTO.CompletionPercentage,
+                    Data = encryptedList,
                 };
             }
             catch (Exception ex)

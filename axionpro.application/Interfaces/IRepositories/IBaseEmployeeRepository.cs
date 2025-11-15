@@ -31,7 +31,7 @@ public interface IBaseEmployeeRepository
      Task<PagedResponseDTO<GetAllEmployeeInfoResponseDTO>> GetAllInfo(GetAllEmployeeInfoRequestDTO dto, long decryptedTenantId);
 
     public Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> CreateAsync(Employee entity);
-    public Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> CreateImageAsync(EmployeeImage entity);
+    public Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> AddImageAsync(EmployeeImage entity);
     
     public Task<GetMinimalEmployeeResponseDTO> GetSingleRecordAsync(long Id, bool IsActive);  // Ensure this returns 
     

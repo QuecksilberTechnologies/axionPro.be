@@ -188,6 +188,36 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         }
 
 
+        public static List<GetEmployeeImageReponseDTO> ToGetProfileImageInfoResponseDTOs(
+       List<GetEmployeeImageReponseDTO> entities,
+       IIdEncoderService encoderService,
+       string tenantKey)
+        {
+            if (entities == null || entities.Count == 0)
+                return new List<GetEmployeeImageReponseDTO>();
+
+            foreach (var item in entities)
+            {
+                // Encode numeric Id only
+                if (!string.IsNullOrWhiteSpace(item.Id) &&
+                    long.TryParse(item.Id, out long rawId) &&
+                    rawId > 0)
+                {
+                    item.Id = encoderService.EncodeId(rawId, tenantKey);
+                }
+
+                // Null-safe defaults
+                item.FilePath ??= string.Empty;
+               
+
+                // 🔹 Ensure IsPrimary always returns true/false (avoid null)
+                item.IsPrimary = item.IsPrimary ?? false;
+            }
+
+            return entities;
+        }
+
+
         public static List<GetBaseEmployeeResponseDTO> ToGetBaseInfoResponseDTOs(List<GetBaseEmployeeResponseDTO> entities,
       IIdEncoderService encoderService,
       string tenantKey)

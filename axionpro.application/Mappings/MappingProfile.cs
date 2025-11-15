@@ -359,16 +359,27 @@ namespace axionpro.application.Mappings
       .ForMember(dest => dest.AddedById, opt => opt.Ignore())
       .ForMember(dest => dest.AddedDateTime, opt => opt.Ignore())
       .ForMember(dest => dest.EducationGap, opt => opt.MapFrom((src=> src.IsEducationGapBeforeDegree)));
-    
+
+
+
+            #region 🔹 Education Mappings
+            CreateMap<CreateEmployeeImageRequestDTO, EmployeeImage>()
+     .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())   // ❗ ignore
+     .ForMember(dest => dest.FilePath, opt => opt.Ignore())     // ❗ file path later set hoga
+     .ForMember(dest => dest.FileName, opt => opt.Ignore())     // ❗ file name later set hoga
+     .ForMember(dest => dest.HasImageUploaded, opt => opt.Ignore())
+     .ForMember(dest => dest.IsPrimary, opt => opt.Ignore())
+     .ForMember(dest => dest.TenantId, opt => opt.Ignore()).ReverseMap();
+
+            #endregion
 
             CreateMap<CreateBankRequestDTO, EmployeeBankDetail>()
            .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
-.ForMember(dest => dest.AccountType, opt => opt.MapFrom(src => src.AccountType))
-.ForMember(dest => dest.IsPrimaryAccount, opt => opt.MapFrom(src => src.IsPrimaryAccount))
-.ForMember(dest => dest.UPIId, opt => opt.MapFrom(src => src.UPIId));
+            .ForMember(dest => dest.AccountType, opt => opt.MapFrom(src => src.AccountType))
+           .ForMember(dest => dest.IsPrimaryAccount, opt => opt.MapFrom(src => src.IsPrimaryAccount))
+            .ForMember(dest => dest.UPIId, opt => opt.MapFrom(src => src.UPIId));
 
-            CreateMap<CreateContactRequestDTO, EmployeeContact>()
-    
+            CreateMap<CreateContactRequestDTO, EmployeeContact>()  
          .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
 
          // 🔹 Contact Info

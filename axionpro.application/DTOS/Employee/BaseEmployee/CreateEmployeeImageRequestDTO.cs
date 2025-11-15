@@ -9,12 +9,13 @@ using System.Threading.Tasks;
 namespace axionpro.application.DTOS.Employee.BaseEmployee
 {
  
-    public class GetEmployeeImageRequestDTO : BaseRequest
+    public class CreateEmployeeImageRequestDTO 
     {
 
-        public string? EmployeeId { get; set; }
+        public string? UserEmployeeId { get; set; }          
+        public string? EmployeeId { get; set; } 
         public bool IsActive { get; set; }
-        
-       
+      
+        public IFormFile? ImageFile { get; set; }
     }
 }

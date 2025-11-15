@@ -13,10 +13,13 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         public string Id { get; set; } = null!;
         public string? FilePath { get; set; }        
         public bool IsActive { get; set; }
-        public bool? IsPrimary { get; set; }       
-         
+        public bool? IsPrimary { get; set; }
 
- 
-        
+        public double? CompletionPercentage { get; set; }
+        public bool HasEducationDocUploded { get; set; }
+
+
+
+
     }
 }

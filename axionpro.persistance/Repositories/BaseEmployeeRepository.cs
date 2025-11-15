@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers.Converters;
+using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.EmployeeLeavePolicyMap;
 using axionpro.application.DTOS.Pagination;
@@ -732,25 +733,92 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> CreateImageAsync(EmployeeInsurancePolicy entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> CreateImageAsync(EmployeeImage entity)
-        {
-            throw new NotImplementedException();
-        }
-
-
-
-
-
 
 
         #region Employee-Base-info
 
+        public async Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> AddImageAsync(EmployeeImage entity)
+        {
+            try
+            {
+                int pageNumber = 1;
+                int pageSize = 10;
 
+                // 1️⃣ Validation
+                if (entity == null)
+                    throw new ArgumentNullException(nameof(entity), "Image entity can't be null.");
+
+                if (entity.EmployeeId <= 0)
+                    throw new ArgumentException("Invalid Image entity provided.");
+
+                // 2️⃣ Insert record
+                await _context.EmployeeImages.AddAsync(entity);
+                await _context.SaveChangesAsync();
+
+                // 3️⃣ Fetch all images of that employee
+                var allImages = await _context.EmployeeImages
+                    .AsNoTracking()
+                    .Where(x => x.EmployeeId == entity.EmployeeId && x.IsSoftDeleted != true)
+                    .OrderByDescending(x => x.Id)
+                    .ToListAsync();
+
+                int totalRecords = allImages.Count;
+
+                // 4️⃣ Pagination
+                var pagedImages = allImages
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                // 5️⃣ Check if employee has any primary image
+                bool hasPrimary = allImages.Any(x => x.IsPrimary == true);
+
+                // 6️⃣ Completion Percentage based only on IsPrimary
+                double completionPercentage = hasPrimary ? 100 : 0;
+
+                // 7️⃣ Map records
+                var responseData = pagedImages.Select(x => new GetEmployeeImageReponseDTO
+                {
+                    Id = x.Id.ToString(),
+                    FilePath = x.FilePath,
+                    IsActive = x.IsActive,
+                    IsPrimary = x.IsPrimary,
+                    CompletionPercentage = completionPercentage
+                }).ToList();
+
+                // 8️⃣ Return
+                return new PagedResponseDTO<GetEmployeeImageReponseDTO>
+                {
+                    Items = responseData,
+                    TotalCount = totalRecords,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "❌ Error occurred while adding/fetching image info for EmployeeId: {EmployeeId}",
+                    entity?.EmployeeId);
+
+                throw new Exception($"Failed to add or fetch image info: {ex.Message}");
+            }
+        }
+
+
+
+    }
+
+
+}
+
+
+
+
+
+
+
+       
 
 
 
@@ -759,8 +827,7 @@ namespace axionpro.persistance.Repositories
 
 
 
-    }
-}
+  
 
 
 

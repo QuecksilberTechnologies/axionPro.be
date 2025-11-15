@@ -121,6 +121,37 @@ namespace axionpro.api.Controllers.Employee
                 return StatusCode(500, errorResponse);
             }
         }
+       
+        [HttpPost("Image/add")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> AddEmployeeImage([FromForm] CreateEmployeeImageRequestDTO requestDto)
+        {
+            try
+            {
+                _logger.LogInfo("add new image.");
+
+                var command = new CreateEmployeeImageCommand(requestDto);
+                var result = await _mediator.Send(command);
+
+                if (!result.IsSucceeded)
+                {
+                    _logger.LogInfo("No employees found or request failed.");
+                    return BadRequest(result);
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error while fetching employees: {ex.Message}");
+                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while fetching employee info.",
+                    new List<string> { ex.Message });
+                return StatusCode(500, errorResponse);
+            }
+        }
 
         /// <summary>
         /// Get all employees based on TenantId or filters.

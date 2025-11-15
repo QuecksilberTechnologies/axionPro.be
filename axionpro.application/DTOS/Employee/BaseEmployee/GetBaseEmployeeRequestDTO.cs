@@ -16,6 +16,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
     {
         /// <summary> TenantId Required</summary>       
         
+        public string? EmployementId { get; set; }
         public string? EmployementCode { get; set; }
 
         public string? LastName { get; set; }
