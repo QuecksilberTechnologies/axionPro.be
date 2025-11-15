@@ -17,6 +17,8 @@ namespace axionpro.application.DTOS.Employee.Sensitive
         public string? PassportNumber { get; set; }
         public string? DrivingLicenseNumber { get; set; }
         public string? EmergencyContactRelation { get; set; }
+        public bool  HasEPFAccount { get; set; }
+        public string? UANNumber { get; set; }
         public string? VoterId { get; set; }
         public string? BloodGroup { get; set; }
         public string? MaritalStatus { get; set; }

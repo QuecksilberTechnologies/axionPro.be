@@ -17,8 +17,8 @@ public partial class EmployeePersonalDetail
 
     public string? DrivingLicenseNumber { get; set; }
     public string? EmergencyContactRelation { get; set; }
-    
-
+    public bool HasEPFAccount { get; set; }
+    public string? UANNumber { get; set; }
     public string? VoterId { get; set; }
     public bool HasPanIdUploaded { get; set; }
     public bool HasAadhaarIdUploaded { get; set; }

@@ -1,6 +1,7 @@
 ﻿ 
 using axionpro.application.DTOs.Employee;
 using axionpro.application.DTOs.EmployeeType;
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.Type;
 using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
@@ -229,18 +230,18 @@ namespace axionpro.api.Controllers.Employee
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Delete([FromQuery] long id)
+        public async Task<IActionResult> Delete([FromQuery] DeleteRequestDTO dto)
         {
             try
             {
-                _logger.LogInfo($"Deleting employee with Id: {id}");
+                _logger.LogInfo($"Deleting employee with Id: {dto.Id}");
 
-                var command = new DeleteEmployeeQuery(id);
+                var command = new DeleteEmployeeQuery(dto);
                 var result = await _mediator.Send(command);
 
                 if (!result.IsSucceeded)
                 {
-                    _logger.LogInfo($"Failed to delete employee with Id: {id}");
+                    _logger.LogInfo($"Failed to delete employee with Id: {dto.UserEmployeeId}");
                     return BadRequest(result);
                 }
 

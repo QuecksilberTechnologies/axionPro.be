@@ -250,6 +250,7 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
                 identityEntity.IsEditAllowed = true;
                 identityEntity.IsInfoVerified = false;
                
+               
                 // 🪪 Document paths assignment (only if uploaded)
                 if (hasAadharIdUploaded)
                 {
@@ -275,7 +276,6 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
                 var savedResponse = await _unitOfWork.EmployeeIdentityRepository.CreateAsync(identityEntity);
 
                 var result = ProjectionHelper.ToGetIdentityResponseDTOs(savedResponse, _idEncoderService, tenantKey);
-
 
                 await _unitOfWork.CommitTransactionAsync();
 

@@ -1350,6 +1350,7 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.DrivingLicenseNumber).HasMaxLength(20);
                 entity.Property(e => e.EmergencyContactName).HasMaxLength(100);
                 entity.Property(e => e.EmergencyContactRelation).HasMaxLength(49);
+                entity.Property(e => e.UANNumber).HasMaxLength(15);
                 entity.Property(e => e.EmergencyContactNumber).HasMaxLength(15);
                 entity.Property(e => e.InfoVerifiedDateTime).HasColumnType("datetime");
                 entity.Property(e => e.MaritalStatus).HasMaxLength(20);

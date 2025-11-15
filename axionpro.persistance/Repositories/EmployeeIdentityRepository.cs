@@ -69,6 +69,9 @@ namespace axionpro.persistance.Repositories
                         VoterId = x.VoterId,
                         BloodGroup = x.BloodGroup,
                         MaritalStatus = x.MaritalStatus,
+                        HasEPFAccount = x.HasEPFAccount,
+                        UANNumber = x.UANNumber,
+
                         Nationality = x.Nationality,
                         EmergencyContactName = x.EmergencyContactName,
                         EmergencyContactNumber = x.EmergencyContactNumber,
@@ -140,6 +143,9 @@ namespace axionpro.persistance.Repositories
 
                 if (!string.IsNullOrWhiteSpace(dto.BloodGroup))
                     baseQuery = baseQuery.Where(x => x.BloodGroup.ToLower().Contains(dto.BloodGroup.ToLower()));
+
+                if ((dto.HasEPFAccount.HasValue))
+                    baseQuery = baseQuery.Where(x => x.HasEPFAccount == dto.HasEPFAccount.Value);
 
                 if (!string.IsNullOrWhiteSpace(dto.MaritalStatus))
                     baseQuery = baseQuery.Where(x => x.MaritalStatus.ToLower().Contains(dto.MaritalStatus.ToLower()));
@@ -227,6 +233,8 @@ namespace axionpro.persistance.Repositories
                                 EmergencyContactNumber = identity.EmergencyContactNumber,
                                 EmergencyContactRelation= identity.EmergencyContactRelation,
                                 PanNumber = identity.PanNumber,
+                                HasEPFAccount = identity.HasEPFAccount,
+                                UANNumber = identity.UANNumber,
                                 AadhaarNumber = identity.AadhaarNumber,
                                 PassportNumber = identity.PassportNumber,
                                 DrivingLicenseNumber = identity.DrivingLicenseNumber,
@@ -250,7 +258,9 @@ namespace axionpro.persistance.Repositories
                             string.IsNullOrEmpty(identity.EmergencyContactName) ? 0 : 1,
                             string.IsNullOrEmpty(identity.EmergencyContactRelation) ? 0 : 1,
                             identity.HasAadhaarIdUploaded ? 1 : 0,
-                            identity.HasPanIdUploaded ? 1 : 0
+                            identity.HasPanIdUploaded ? 1 : 0,
+                            
+
                         }.Sum() / 10.0
                     ) * 100
 

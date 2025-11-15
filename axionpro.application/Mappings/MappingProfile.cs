@@ -503,6 +503,8 @@ namespace axionpro.application.Mappings
                 // Simple 1-1 mapping
                 .ForMember(dest => dest.EmployeeId, opt => opt.MapFrom(src => src._EmployeeId))
                 
+                .ForMember(dest => dest.HasEPFAccount, opt => opt.MapFrom(src => src.HasEPFAccount))
+                .ForMember(dest => dest.UANNumber, opt => opt.MapFrom(src => src.UANNumber))
                 .ForMember(dest => dest.AadhaarNumber, opt => opt.MapFrom(src => src.AadhaarNumber))
                 .ForMember(dest => dest.PanNumber, opt => opt.MapFrom(src => src.PanNumber))
                 .ForMember(dest => dest.PassportNumber, opt => opt.MapFrom(src => src.PassportNumber))

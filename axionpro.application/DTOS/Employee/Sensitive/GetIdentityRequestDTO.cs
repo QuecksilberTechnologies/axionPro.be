@@ -15,6 +15,7 @@ namespace axionpro.application.DTOS.Employee.Sensitive
         public bool IsActive { get; set; }       
         public string? BloodGroup { get; set; }
         public string? MaritalStatus { get; set; }
+        public bool? HasEPFAccount { get; set; }   
         public string? Nationality { get; set; }
         public string? EmergencyContactName { get; set; }
         // ✅ For Aadhaar / PAN / Passport Upload filters

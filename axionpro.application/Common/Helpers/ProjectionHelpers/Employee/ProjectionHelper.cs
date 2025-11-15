@@ -158,7 +158,9 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 panFilePath = e.panFilePath,
                 passportFilePath = e.passportFilePath,
                 aadharFilePath = e.aadharFilePath,
-                CompletionPercentage = e.CompletionPercentage
+                CompletionPercentage = e.CompletionPercentage,
+                HasEPFAccount = e.HasEPFAccount,
+                UANNumber = e.UANNumber
             }).ToList();
         }
 

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.DTOS.Employee.Type;
 using axionpro.application.Features.EmployeeCmd.EmployeeBase.Queries;
@@ -19,6 +20,15 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
+    public class DeleteEmployeeQuery : IRequest<ApiResponse<bool>>
+    {
+      public  DeleteRequestDTO  DTO;
+
+        public DeleteEmployeeQuery(DeleteRequestDTO dto)
+        {
+            DTO = dto;
+        }
+    }
     public class DeleteBaseEmployeeInfoQueryHandler : IRequestHandler<DeleteEmployeeQuery, ApiResponse<bool>>
     {
         private readonly IBaseEmployeeRepository _employeeRepository;
