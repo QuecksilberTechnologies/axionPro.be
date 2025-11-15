@@ -30,23 +30,24 @@ namespace axionpro.api.Controllers.Gender
         /// Get all designation.
         /// </summary>
         [HttpGet("option")]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+
         public async Task<IActionResult> getGender([FromQuery] GetOptionRequestDTO requestDTO)
         {
             _logger.LogInformation($"Received request to get Gender : {requestDTO.UserEmployeeId}");
+
             var command = new GetGenderOptionQuery(requestDTO);
             var result = await _mediator.Send(command);
 
             if (!result.IsSucceeded)
             {
-                return Unauthorized(result);
+                return BadRequest(result);
             }
             return Ok(result);
         }
 
         //  ✅ Get All Gender 
         [HttpGet("get")]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+
         public async Task<IActionResult> GetAllGenderAsync([FromQuery] GetGenderRequestDTO? getGenderRequestDTO)
         {
             _logger.LogInformation("Fetching all LeavePolicies...");

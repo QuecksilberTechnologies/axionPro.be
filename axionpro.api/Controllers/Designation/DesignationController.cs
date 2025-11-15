@@ -67,7 +67,7 @@ namespace axionpro.api.Controllers.Designation
 
             if (!result.IsSucceeded)
             {
-                return Unauthorized(result);
+                return BadRequest(result);
             }
             return Ok(result);
         }
@@ -86,7 +86,7 @@ namespace axionpro.api.Controllers.Designation
 
             if (!result.IsSucceeded)
             {
-                return Unauthorized(result);
+                return BadRequest(result);
             }
             return Ok(result);
         }

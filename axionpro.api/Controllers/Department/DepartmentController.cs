@@ -117,7 +117,7 @@ namespace axionpro.api.Controllers.Department
 
             if (!result.IsSucceeded)
             {
-                return Unauthorized(result);
+                return BadRequest(result);
             }
             return Ok(result);
         }
