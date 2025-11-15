@@ -30,9 +30,9 @@ namespace axionpro.application.DTOS.Employee.Sensitive
         public bool hasAadharIdUploaded{ get; set; }
         public bool hasPassportIdUploaded { get; set; }
 
-        public string? passportDocPath { get; set; }
-        public string? panDocPath { get; set; }
-        public string? aadharDocPath { get; set; }
+        public string? passportFilePath { get; set; }
+        public string? panFilePath { get; set; }
+        public string? aadharFilePath { get; set; }
         public double? CompletionPercentage {  get; set; }
     }
 

@@ -155,9 +155,9 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 hasPanIdUploaded = e.hasPanIdUploaded,
                 hasAadharIdUploaded = e.hasAadharIdUploaded,
                 hasPassportIdUploaded = e.hasPassportIdUploaded,
-                panDocPath = e.panDocPath,
-                passportDocPath = e.passportDocPath,
-                aadharDocPath = e.aadharDocPath,
+                panFilePath = e.panFilePath,
+                passportFilePath = e.passportFilePath,
+                aadharFilePath = e.aadharFilePath,
                 CompletionPercentage = e.CompletionPercentage
             }).ToList();
         }
@@ -380,7 +380,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             return entities.Select(e => new GetEmployeeImageReponseDTO
             {
                 Id = SafeEncrypt(e.Id, encryptionService, tenantKey),
-                EmployeeImagePath = e.EmployeeImagePath ?? string.Empty,
+                FilePath = e.FilePath ?? string.Empty,
                 IsActive = e.IsActive,
                 IsPrimary = e.IsPrimary
             }).ToList();

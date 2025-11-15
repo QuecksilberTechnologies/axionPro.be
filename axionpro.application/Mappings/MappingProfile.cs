@@ -463,7 +463,7 @@ namespace axionpro.application.Mappings
      .ForMember(dest => dest.InfoVerifiedById, opt => opt.MapFrom(src => src.InfoVerifiedById.HasValue ? src.InfoVerifiedById.Value.ToString() : null))
     .ForMember(dest => dest.IsInfoVerified, opt => opt.MapFrom(src => src.IsInfoVerified))
     .ForMember(dest => dest.InfoVerifiedDateTime, opt => opt.MapFrom(src => src.InfoVerifiedDateTime))
-    .ForMember(dest => dest.ProofDocPath, opt => opt.MapFrom(src => src.ProofDocPath))    
+    .ForMember(dest => dest.FilePath, opt => opt.MapFrom(src => src.FilePath))    
     .ForMember(dest => dest.HasProofUploaded, opt => opt.MapFrom(src => src.HasProofUploaded));
 
 

@@ -72,7 +72,7 @@ namespace axionpro.persistance.Repositories
                         IsEditAllowed = bank.IsEditAllowed,
                         IsActive = bank.IsActive,
                         HasChequeDocUploaded = bank.HasChequeDocUploaded,
-                        CancelledChequeDocPath = bank.CancelledChequeDocPath,
+                        FilePath = bank.FilePath,
                       
                     })
                     .ToListAsync();
@@ -215,7 +215,7 @@ namespace axionpro.persistance.Repositories
                         IsInfoVerified = x.IsInfoVerified,
                         IsEditAllowed = x.IsEditAllowed,
                         HasChequeDocUploaded = x.HasChequeDocUploaded,
-                        CancelledChequeDocPath = x.CancelledChequeDocPath,
+                        FilePath = x.FilePath,
 
                         // ✅ Completion Percentage Calculation:
                         // Primary account → total 7 checks (including cheque upload)

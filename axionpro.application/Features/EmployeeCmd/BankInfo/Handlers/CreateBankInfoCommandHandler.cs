@@ -221,13 +221,13 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 bankEntity.IsInfoVerified = false;
                 bankEntity.IsPrimaryAccount = request.DTO.IsPrimaryAccount;
                 bankEntity.EmployeeId = decryptedActualEmployeeId;
-                bankEntity.DocType = 0;
+                bankEntity.FileType = 0;
 
                 if (HasChequeDocUploaded)
                 {
-                    bankEntity.DocType = 1;//image
-                    bankEntity.CancelledChequeDocPath = docPath;
-                    bankEntity.CancelledChequeDocName= docName;
+                    bankEntity.FileType = 1;//image
+                    bankEntity.FilePath = docPath;
+                    bankEntity.FileName= docName;
                     
                 }
                bankEntity.HasChequeDocUploaded=HasChequeDocUploaded;

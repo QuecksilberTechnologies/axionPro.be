@@ -259,7 +259,7 @@ namespace axionpro.persistance.Repositories
                     .Select(x => new GetEmployeeImageReponseDTO
                     {
                         Id = x.Id.ToString(),
-                        EmployeeImagePath = x.EmployeeImagePath,
+                        FilePath = x.FilePath,
                         IsActive = x.IsActive,
                         IsPrimary = x.IsPrimary,
                       
@@ -443,7 +443,7 @@ namespace axionpro.persistance.Repositories
            EmployeeTypeName = empType != null ? empType.TypeName : null,
            DepartmentName = department != null ? department.DepartmentName : null,
 
-           EmployeeImagePath = image != null ? image.EmployeeImagePath : null,
+           EmployeeImagePath = image != null ? image.FilePath : null,
            HasImagePicUploaded =
                (image != null && image.IsPrimary == true && image.HasImageUploaded == true)
        };
@@ -536,7 +536,7 @@ namespace axionpro.persistance.Repositories
                         .Where(i => i.EmployeeId == x.emp.Id
                           && i.IsSoftDeleted != true
                              && i.IsPrimary == true)
-                             .Select(i => i.EmployeeImagePath)
+                             .Select(i => i.FilePath)
                            .FirstOrDefault(),
 
                           HasImagePicUploaded = context.EmployeeImages

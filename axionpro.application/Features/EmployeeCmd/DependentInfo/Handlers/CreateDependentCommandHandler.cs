@@ -219,13 +219,13 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                 dependentEntity.IsEditAllowed = true;
                 dependentEntity.IsInfoVerified = false;
                 dependentEntity.EmployeeId = decryptedActualEmployeeId;
-                dependentEntity.DocType = 0;
+                dependentEntity.FileType = 0;
 
                 if (HasProofUploaded)
                 {
-                    dependentEntity.ProofDocName = docName;
-                    dependentEntity.ProofDocPath = docPath;
-                      dependentEntity.DocType = 2;//pdf
+                    dependentEntity.FileName = docName;
+                    dependentEntity.FilePath = docPath;
+                      dependentEntity.FileType = 2;//pdf
                 }
                 dependentEntity.HasProofUploaded = HasProofUploaded;
 

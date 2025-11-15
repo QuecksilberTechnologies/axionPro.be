@@ -9,7 +9,7 @@ public partial class EmployeeImage
 
     public long? TenantId { get; set; }
 
-    public string? EmployeeImagePath { get; set; }
+    public string? FilePath { get; set; }
     public string? FileName { get; set; }
 
     public long? EmployeeId { get; set; }

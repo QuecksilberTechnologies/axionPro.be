@@ -19,7 +19,7 @@ public partial class EmployeeBankDetail
     public string? BranchName { get; set; }
 
     public string? AccountType { get; set; }
-    public int DocType { get; set; }
+    public int FileType { get; set; }
 
 
     public string? UPIId { get; set; }
@@ -28,8 +28,8 @@ public partial class EmployeeBankDetail
 
     public long AddedById { get; set; }
     public bool HasChequeDocUploaded { get; set; }
-    public string? CancelledChequeDocName { get; set; }
-    public string? CancelledChequeDocPath { get; set; }   
+    public string? FileName { get; set; }
+    public string? FilePath { get; set; }   
     public DateTime AddedDateTime { get; set; }
 
     public long? UpdatedById { get; set; }

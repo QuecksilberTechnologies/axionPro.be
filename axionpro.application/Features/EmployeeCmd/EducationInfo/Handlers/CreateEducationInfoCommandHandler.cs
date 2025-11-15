@@ -180,7 +180,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                 if (HasEducationUploaded)
                 {
                     educationEntity.FileType = 2;//pdf
-                    educationEntity.EducationDocPath = docPath;
+                    educationEntity.FilePath = docPath;
                     educationEntity.FileName = FileName;
                    
                 }

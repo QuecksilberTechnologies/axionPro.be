@@ -1207,7 +1207,7 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("EmployeeImage", "AxionPro");
 
                 entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.EmployeeImagePath).HasMaxLength(500);
+                entity.Property(e => e.FilePath).HasMaxLength(500);
                 entity.Property(e => e.FileName).HasMaxLength(50);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.HasImageUploaded).HasDefaultValue(false);

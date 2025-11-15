@@ -35,9 +35,9 @@ public partial class EmployeeDependent
 
     public DateTime? DeletedDateTime { get; set; }
     public bool HasProofUploaded { get; set; }
-    public string? ProofDocName { get; set; }
-    public string? ProofDocPath { get; set; }
-    public int  DocType { get; set; }
+    public string? FileName { get; set; }
+    public string? FilePath { get; set; }
+    public int  FileType { get; set; }
     public bool? IsSoftDeleted { get; set; }
     public bool? IsEditAllowed { get; set; }
     public bool? IsActive { get; set; }

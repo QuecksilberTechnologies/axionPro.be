@@ -168,7 +168,7 @@ namespace axionpro.persistance.Repositories
                         ReasonOfEducationGap = edu.ReasonOfEducationGap,
                         StartDate = edu.StartDate,
                         EndDate = edu.EndDate,
-                        EducationDocPath = edu.EducationDocPath,
+                        FilecPath = edu.FilePath,
                         FileType = edu.FileType.ToString(),
                         FileName = edu.FileName,
                         IsActive = edu.IsActive

@@ -27,7 +27,7 @@ namespace axionpro.application.DTOS.Employee.Dependent
         public bool HasProofUploaded { get; set; }
         public bool HasUploadedAll { get; set; }
         public   double   CompletionPercentage { get; set; }
-        public string? ProofDocPath { get; set; }
+        public string? FilePath { get; set; }
 
         // 🔹 Info Verification
         public string? InfoVerifiedById { get; set; }

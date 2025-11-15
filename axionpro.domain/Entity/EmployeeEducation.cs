@@ -23,7 +23,7 @@ public partial class EmployeeEducation
 
     public string? GradeOrPercentage { get; set; }
 
-    public string? EducationDocPath { get; set; }
+    public string? FilePath { get; set; }
     public int? FileType { get; set; }
     public string? FileName { get; set; }
     public string? GpaorPercentage { get; set; }

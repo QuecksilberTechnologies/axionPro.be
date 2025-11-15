@@ -80,9 +80,9 @@ namespace axionpro.persistance.Repositories
                         hasPassportIdUploaded = !string.IsNullOrEmpty(x.PassportDocPath),
 
                         // 🔹 Document paths
-                        aadharDocPath = x.AadhaarDocPath,
-                        panDocPath = x.PanDocPath,
-                        passportDocPath = x.PassportDocPath,
+                        aadharFilePath = x.AadhaarDocPath,
+                        panFilePath = x.PanDocPath,
+                        passportFilePath = x.PassportDocPath,
 
                         // 🔹 Hardcoded/default flags
                         IsInfoVerified = x.IsInfoVerified ?? false,
@@ -233,9 +233,9 @@ namespace axionpro.persistance.Repositories
                                 hasPassportIdUploaded = identity.HasPassportIdUploaded,
                                 hasAadharIdUploaded = identity.HasAadhaarIdUploaded,
                                 hasPanIdUploaded = identity.HasPanIdUploaded,
-                                aadharDocPath = identity.AadhaarDocPath,
-                                panDocPath = identity.PanDocPath,
-                                passportDocPath = identity.PassportDocPath,
+                                aadharFilePath = identity.AadhaarDocPath,
+                                panFilePath = identity.PanDocPath,
+                                passportFilePath = identity.PassportDocPath,
 
                                 CompletionPercentage =
                             (

@@ -196,7 +196,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 if (HasImageUploaded)
                 {
                     entity.FileType = ImageType; //image
-                    entity.EmployeeImagePath = FilePath ;
+                    entity.FilePath = FilePath ;
                     entity.FileName = FileName ;
 
                 }

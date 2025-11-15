@@ -21,7 +21,7 @@ namespace axionpro.application.DTOS.Employee.Bank
         public string? BranchName { get; set; }
         public string? UPIId { get; set; }
         public bool HasChequeDocUploaded { get; set; }
-        public string? CancelledChequeDocPath { get; set; }
+        public string? FilePath { get; set; }
         public IFormFile? CancelledChequeFile { get; set; }
         public bool? IsPrimary { get; set; }
         public bool? IsEditAllowed { get; set; }
