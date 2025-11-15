@@ -1,4 +1,5 @@
 ﻿using axionpro.application.DTOS.Pagination;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
 
         public string? EmployeeId { get; set; }
         public bool IsActive { get; set; }
-        public bool IsPrimary { get; set; }
-        public int? ImageType { get; set; }
+        public int? FileType { get; set; }      
+        public IFormFile? ImageFile { get; set; }
     }
 }

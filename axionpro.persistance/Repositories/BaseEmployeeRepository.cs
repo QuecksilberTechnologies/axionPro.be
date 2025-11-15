@@ -732,7 +732,17 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-      
+        public Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> CreateImageAsync(EmployeeInsurancePolicy entity)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> CreateImageAsync(EmployeeImage entity)
+        {
+            throw new NotImplementedException();
+        }
+
+
 
 
 

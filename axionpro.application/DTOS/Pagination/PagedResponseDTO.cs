@@ -1,4 +1,5 @@
-﻿using System;
+﻿using axionpro.application.DTOS.Employee.BaseEmployee;
+using System;
 using System.Collections.Generic;
 
 namespace axionpro.application.DTOS.Pagination
@@ -17,7 +18,8 @@ namespace axionpro.application.DTOS.Pagination
             int pageSize,
             bool? hasUploadedAll = null,
             double? completionPercentage = null)
-        {
+            {
+
             Items = items ?? new List<T>();
             TotalCount = totalCount;
             PageNumber = pageNumber;
@@ -25,7 +27,10 @@ namespace axionpro.application.DTOS.Pagination
 
             HasUploadedAll = hasUploadedAll;
             CompletionPercentage = completionPercentage;
-        }
+           
+            }
+
+    
 
         public List<T> Items { get; set; }
         public int TotalCount { get; set; }
@@ -47,5 +52,10 @@ namespace axionpro.application.DTOS.Pagination
         // ✅ Nullable dynamic fields (additions)
         public bool? HasUploadedAll { get; set; }
         public double? CompletionPercentage { get; set; }
+        public class CompletionPercentageInfo
+        {
+            public double? AveragePercentage { get; set; }
+            public List<double>? Percentages { get; set; } // list of per-record percentages
+        }
     }
 }

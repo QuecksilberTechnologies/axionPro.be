@@ -4,42 +4,48 @@ using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
-using axionpro.application.DTOS.Employee.Dependent;
+using axionpro.application.Constants;
+using axionpro.application.DTOs.Department;
+using axionpro.application.DTOs.Employee;
+using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.Education;
+using axionpro.application.DTOS.Pagination;
+using axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-using axionpro.domain.Common;
 using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Drawing.Printing;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
+namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
-    public class CreateEducationInfoCommand : IRequest<ApiResponse<List<GetEducationResponseDTO>>>
+    public class GetEmployeeImageCommand : IRequest<ApiResponse<List<GetEmployeeImageReponseDTO>>>
     {
-        public CreateEducationRequestDTO DTO { get; }
+        public GetEmployeeImageRequestDTO DTO { get; set; }
 
-        public CreateEducationInfoCommand(CreateEducationRequestDTO dto)
+        public GetEmployeeImageCommand(GetEmployeeImageRequestDTO dto)
         {
             DTO = dto;
         }
     }
 
-    public class CreateEducationInfoCommandHandler : IRequestHandler<CreateEducationInfoCommand, ApiResponse<List<GetEducationResponseDTO>>>
+    public class CreateEmployeeImageCommandHandler : IRequestHandler<GetEmployeeImageCommand, ApiResponse<List<GetEmployeeImageReponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ILogger<CreateEducationInfoCommandHandler> _logger;
+        private readonly ILogger<CreateEmployeeImageCommandHandler> _logger;
         private readonly ITokenService _tokenService;
         private readonly IPermissionService _permissionService;
         private readonly IConfiguration _config;
@@ -47,11 +53,11 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
         private readonly IIdEncoderService _idEncoderService;
         private readonly IFileStorageService _fileStorageService;
 
-        public CreateEducationInfoCommandHandler(
+        public CreateEmployeeImageCommandHandler(
             IUnitOfWork unitOfWork,
             IMapper mapper,
             IHttpContextAccessor httpContextAccessor,
-            ILogger<CreateEducationInfoCommandHandler> logger,
+            ILogger<CreateEmployeeImageCommandHandler> logger,
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,
@@ -71,8 +77,9 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
             _fileStorageService = fileStorageService;
         }
 
-        public async Task<ApiResponse<List<GetEducationResponseDTO>>> Handle(CreateEducationInfoCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<List<GetEmployeeImageReponseDTO>>> Handle(GetEmployeeImageCommand request, CancellationToken cancellationToken)
         {
+            await _unitOfWork.BeginTransactionAsync();
             string? savedFullPath = null;  // 📂 File full path track karne ke liye
 
             try
@@ -81,34 +88,34 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                 var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
                     .ToString()?.Replace("Bearer ", "");
                 if (string.IsNullOrEmpty(bearerToken))
-                    return ApiResponse<List<GetEducationResponseDTO>>.Fail("Unauthorized: Token not found.");
+                    return ApiResponse<List<GetEmployeeImageReponseDTO>>.Fail("Unauthorized: Token not found.");
 
                 var secretKey = TokenKeyHelper.GetJwtSecret(_config);
                 var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
                 if (tokenClaims == null || tokenClaims.IsExpired)
-                    return ApiResponse<List<GetEducationResponseDTO>>.Fail("Invalid or expired token.");
+                    return ApiResponse<List<GetEmployeeImageReponseDTO>>.Fail("Invalid or expired token.");
 
                 // 🔹 STEP 2: Validate Active User
                 long loggedInEmpId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
                 if (loggedInEmpId < 1)
-                    return ApiResponse<List<GetEducationResponseDTO>>.Fail("Unauthorized or inactive user.");
+                    return ApiResponse<List<GetEmployeeImageReponseDTO>>.Fail("Unauthorized or inactive user.");
 
                 // 🔹 STEP 3: Decrypt Tenant + Employee
                 string tenantKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
                 if (string.IsNullOrEmpty(request.DTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
-                    return ApiResponse<List<GetEducationResponseDTO>>.Fail("User invalid.");
+                    return ApiResponse<List<GetEmployeeImageReponseDTO>>.Fail("User invalid.");
                 string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
                 long decryptedEmployeeId = _idEncoderService.DecodeId(EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId), finalKey);
                 long decryptedTenantId = _idEncoderService.DecodeId(EncryptionSanitizer.CleanEncodedInput(tokenClaims.TenantId), finalKey);
                 string actualEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId);
                 long decryptedActualEmployeeId = _idEncoderService.DecodeId(actualEmpId, finalKey);
-                          
+
 
 
                 if (decryptedTenantId <= 0 || decryptedEmployeeId <= 0)
                 {
                     _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
-                    return ApiResponse<List<GetEducationResponseDTO>>.Fail("Tenant or employee information missing.");
+                    return ApiResponse<List<GetEmployeeImageReponseDTO>>.Fail("Tenant or employee information missing.");
                 }
 
                 if (!(decryptedEmployeeId == loggedInEmpId))
@@ -118,34 +125,35 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                          decryptedEmployeeId, loggedInEmpId
                     );
 
-                    return ApiResponse<List<GetEducationResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
+                    return ApiResponse<List<GetEmployeeImageReponseDTO>>.Fail("Unauthorized: Employee mismatch.");
                 }
 
 
                 // 🔹 STEP 4: File Upload
-                string? docPath = null;
+                string? FilePath = null;
                 string? FileName = null;
-                bool HasEducationUploaded = false;
+                bool HasImageUploaded = false;
                 // 🔹 Tenant info from decoded values
                 long tenantId = decryptedTenantId;
+                int ImageType = 0;
 
-                string docFileName = EncryptionSanitizer.CleanEncodedInput(request.DTO.Degree.Trim().ToLower());
-                
+                string docFileName = EncryptionSanitizer.CleanEncodedInput(actualEmpId.Trim().ToLower());
+
                 if (docFileName != null)
                 {
                     // 🔹 File upload check
-                    if (request.DTO.EducationDocument != null && request.DTO.EducationDocument.Length > 0)
+                    if (request.DTO.ImageFile != null && request.DTO.ImageFile.Length > 0)
                     {
                         using (var ms = new MemoryStream())
                         {
-                            await request.DTO.EducationDocument.CopyToAsync(ms);
+                            await request.DTO.ImageFile.CopyToAsync(ms);
                             var fileBytes = ms.ToArray();
 
                             // 🔹 File naming convention (same pattern as asset)
-                            string fileName = $"EDU-{decryptedActualEmployeeId + "_"+docFileName}-{DateTime.UtcNow:yyMMddHHmmss}.pdf";
+                            string fileName = $"ProfileImage-{decryptedActualEmployeeId + "_" + docFileName}-{DateTime.UtcNow:yyMMddHHmmss}.png";
 
                             string fullFolderPath = _fileStorageService.GetEmployeeFolderPath(tenantId, decryptedActualEmployeeId, "education");
-                            
+
                             // 🔹 Store actual name for reference in DB
                             FileName = fileName;
 
@@ -155,50 +163,59 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                             // 🔹 If saved successfully, set relative path
                             if (!string.IsNullOrEmpty(savedFullPath))
                             {
-                                docPath = _fileStorageService.GetRelativePath(savedFullPath);
+                                FilePath = _fileStorageService.GetRelativePath(savedFullPath);
 
-                                HasEducationUploaded = true;
-                                    }
+                                HasImageUploaded = true;
+                                ImageType = 1;
 
-                          
+
+                            }
+
+
                         }
                     }
 
                 }
-                            
-              
-                // 🔹 STEP 5: Map DTO to Entity
-                var educationEntity = _mapper.Map<EmployeeEducation>(request.DTO);                  
-                educationEntity.EmployeeId = decryptedEmployeeId;                
-                educationEntity.AddedById = decryptedEmployeeId;
-                educationEntity.AddedDateTime = DateTime.UtcNow;
-                educationEntity.IsActive = true;
-                educationEntity.IsInfoVerified = false;
-                educationEntity.IsEditAllowed = true;               
-                educationEntity.FileType = 0;
-              
-                if (HasEducationUploaded)
+
+                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
+                if (!permissions.Contains("AddBankInfo"))
                 {
-                    educationEntity.FileType = 2;//pdf
-                    educationEntity.EducationDocPath = docPath;
-                    educationEntity.FileName = FileName;
-                   
+                    //  await _unitOfWork.RollbackTransactionAsync();
+                    //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
                 }
-                educationEntity.HasEducationDocUploded = HasEducationUploaded;
+                // 🧩 STEP 4: Call Repository to get data
+
+                // 3️⃣ DTO Configuration
+                var entity = _mapper.Map<EmployeeImage>(request.DTO);
+                // 🧩 STEP 5: Entity Mapping (join fields + base fields)
+                entity.AddedById = decryptedEmployeeId;
+                entity.AddedDateTime = DateTime.UtcNow;
+                entity.IsActive = true;             
+                entity.FileType = 0;
+
+                if (HasImageUploaded)
+                {
+                    entity.FileType = ImageType; //image
+                    entity.EmployeeImagePath = FilePath ;
+                    entity.FileName = FileName ;
+
+                }
+                entity.HasImageUploaded = HasImageUploaded;
 
 
-                // 🔹 STEP 6: Database Insert + File Validation
-                var responseDTO = await _unitOfWork.EmployeeEducationRepository.CreateAsync(educationEntity);
+                //   HttpRequestOptionsKey
 
+                // 4️⃣ Repository Operation
+                var responseDTO = await _unitOfWork.Employees.CreateImageAsync(entity);
                  
+                // 5️⃣ Encrypt Result Data
+                // var encryptedList = ProjectionHelper.ToGetBaseInfoResponseDTOs(responseDTO.Items, _idEncoderService, tenantKey);
 
-                // 🔹 STEP 7: Commit Transaction
+                // 6️⃣ Commit Transaction
                 await _unitOfWork.CommitTransactionAsync();
 
-                // 🔹 STEP 8: Projection + Encryption
-                var encryptedList = ProjectionHelper.ToGetEducationResponseDTOs(responseDTO, _idEncoderService, tenantKey);
-
-                return new ApiResponse<List<GetEducationResponseDTO>>
+                // 7️⃣ Final API Response
+                return new ApiResponse<List<GetEmployeeImageReponseDTO>>
                 {
                     IsSucceeded = true,
                     Message = $"{responseDTO.TotalCount} record(s) retrieved successfully.",
@@ -206,29 +223,14 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                     PageSize = responseDTO.PageSize,
                     TotalRecords = responseDTO.TotalCount,
                     TotalPages = responseDTO.TotalPages,
-                    Data = encryptedList
+                    Data = null,
                 };
             }
             catch (Exception ex)
             {
-                // ❌ Exception aane par rollback aur file cleanup
                 await _unitOfWork.RollbackTransactionAsync();
-
-                if (!string.IsNullOrEmpty(savedFullPath) && File.Exists(savedFullPath))
-                {
-                    try
-                    {
-                        File.Delete(savedFullPath);
-                        _logger.LogWarning("🗑️ File deleted due to exception rollback: {Path}", savedFullPath);
-                    }
-                    catch (Exception delEx)
-                    {
-                        _logger.LogError(delEx, "❌ Failed to delete file during rollback.");
-                    }
-                }
-
-                _logger.LogError(ex, "❌ Error while creating education info");
-                return ApiResponse<List<GetEducationResponseDTO>>.Fail("Internal server error while creating education info.");
+                _logger.LogError(ex, "Error while adding base employee info");
+                return ApiResponse<List<GetEmployeeImageReponseDTO>>.Fail("Failed to add base employee info.", new List<string> { ex.Message });
             }
         }
     }

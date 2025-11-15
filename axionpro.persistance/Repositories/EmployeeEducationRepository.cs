@@ -169,8 +169,8 @@ namespace axionpro.persistance.Repositories
                         StartDate = edu.StartDate,
                         EndDate = edu.EndDate,
                         EducationDocPath = edu.EducationDocPath,
-                        DocType = edu.DocType.ToString(),
-                        DocName = edu.DocName,
+                        FileType = edu.FileType.ToString(),
+                        FileName = edu.FileName,
                         IsActive = edu.IsActive
 
 

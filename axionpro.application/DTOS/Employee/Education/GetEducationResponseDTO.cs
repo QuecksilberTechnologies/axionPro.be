@@ -29,8 +29,8 @@ namespace axionpro.application.DTOS.Employee.Education
         public string? GPAOrPercentage { get; set; }
         public string? EducationDocPath { get; set; }
 
-        public string? DocType { get; set; }   
-        public string? DocName { get; set; }   
+        public string? FileType { get; set; }   
+        public string? FileName { get; set; }   
 
         public bool? EducationGap { get; set; }
 

@@ -10,6 +10,7 @@ public partial class EmployeeImage
     public long? TenantId { get; set; }
 
     public string? EmployeeImagePath { get; set; }
+    public string? FileName { get; set; }
 
     public long? EmployeeId { get; set; }
 
@@ -29,7 +30,7 @@ public partial class EmployeeImage
     public DateTime? UpdatedDateTime { get; set; }
     public DateTime? DeletedDateTime { get; set; }
    
-    public int? ImageType { get; set; }
+    public int? FileType { get; set; }
 
     public virtual Employee? Employee { get; set; }
 
