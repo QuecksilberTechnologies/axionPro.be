@@ -37,8 +37,7 @@ namespace axionpro.persistance.Repositories
         }
 
 
-
-        public async Task<GetIdentityResponseDTO> CreateAsync(EmployeePersonalDetail entity)
+        public async Task<List<GetIdentityResponseDTO>> CreateAsync(EmployeePersonalDetail entity)
         {
             try
             {
@@ -49,32 +48,80 @@ namespace axionpro.persistance.Repositories
                 if (entity.EmployeeId <= 0)
                     throw new ArgumentException("Invalid EmployeeId provided.");
 
-                // 2️⃣ Record Insert
+                // 2️⃣ Insert Record
                 await _context.EmployeePersonalDetails.AddAsync(entity);
                 await _context.SaveChangesAsync();
 
-                // 3️⃣ Fetch the latest record (since 1:1 relation, only one record expected)
-                var record = await _context.EmployeePersonalDetails
+                // 3️⃣ Fetch with SELECT Projection (FAST + CLEAN)
+                var responseList = await _context.EmployeePersonalDetails
                     .AsNoTracking()
-                    .Where(x => x.EmployeeId == entity.EmployeeId && x.IsSoftDeleted != true)
+                    .Where(x => x.EmployeeId == entity.EmployeeId
+                             && x.IsSoftDeleted != true
+                             && x.IsActive == true)
                     .OrderByDescending(x => x.Id)
-                    .FirstOrDefaultAsync();
+                    .Select(x => new GetIdentityResponseDTO
+                    {
+                        EmployeeId = x.EmployeeId.ToString(),
+                        AadhaarNumber = x.AadhaarNumber,
+                        PanNumber = x.PanNumber,
+                        PassportNumber = x.PassportNumber,
+                        DrivingLicenseNumber = x.DrivingLicenseNumber,
+                        VoterId = x.VoterId,
+                        BloodGroup = x.BloodGroup,
+                        MaritalStatus = x.MaritalStatus,
+                        Nationality = x.Nationality,
+                        EmergencyContactName = x.EmergencyContactName,
+                        EmergencyContactNumber = x.EmergencyContactNumber,
+                        EmergencyContactRelation = x.EmergencyContactRelation,
 
-                if (record == null)
-                    throw new Exception("Personal info record not found after insert.");
+                        // 🔹 Boolean flags for document presence
+                        hasAadharIdUploaded = !string.IsNullOrEmpty(x.AadhaarDocPath),
+                        hasPanIdUploaded = !string.IsNullOrEmpty(x.PanDocPath),
+                        hasPassportIdUploaded = !string.IsNullOrEmpty(x.PassportDocPath),
 
-                // 4️⃣ Mapping to DTO
-                var responseData = _mapper.Map<GetIdentityResponseDTO>(record);
+                        // 🔹 Document paths
+                        aadharDocPath = x.AadhaarDocPath,
+                        panDocPath = x.PanDocPath,
+                        passportDocPath = x.PassportDocPath,
 
-                // 5️⃣ Return Response
-                return responseData;
+                        // 🔹 Hardcoded/default flags
+                        IsInfoVerified = x.IsInfoVerified ?? false,
+                        IsEditAllowed = x.IsEditAllowed,  // business rule
+                     
+                        // 🔹 Completion % (Example logic)
+                        CompletionPercentage =
+                            (new[]
+                            {
+                        string.IsNullOrEmpty(x.AadhaarNumber) ? 0 : 1,
+                        string.IsNullOrEmpty(x.PanNumber) ? 0 : 1,                        
+                        string.IsNullOrEmpty(x.DrivingLicenseNumber) ? 0 : 1,
+                        string.IsNullOrEmpty(x.VoterId) ? 0 : 1,
+                        string.IsNullOrEmpty(x.BloodGroup) ? 0 : 1,
+                        string.IsNullOrEmpty(x.Nationality) ? 0 : 1,
+                        string.IsNullOrEmpty(x.EmergencyContactName) ? 0 : 1,
+                        string.IsNullOrEmpty(x.EmergencyContactRelation) ? 0 : 1,
+
+
+                          x.HasAadhaarIdUploaded ? 1 : 0,
+                          x.HasPanIdUploaded ? 1 : 0
+                            }.Sum() / 10.0) * 100
+                    })
+                    .Take(1)   // since only latest needed
+                    .ToListAsync();
+
+                return responseList;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error occurred while adding/fetching personal info for EmployeeId: {EmployeeId}", entity.EmployeeId);
+                _logger.LogError(ex,
+                    "❌ Error occurred while adding/fetching personal info for EmployeeId: {EmployeeId}",
+                    entity.EmployeeId);
+
                 throw new Exception($"Failed to add or fetch personal info: {ex.Message}");
             }
         }
+
+
 
         public async Task<PagedResponseDTO<GetIdentityResponseDTO>> GetInfo(GetIdentityRequestDTO dto, long employeeId, long id)
         {
@@ -170,13 +217,15 @@ namespace axionpro.persistance.Repositories
                 var query = from identity in baseQuery
                             select new GetIdentityResponseDTO
                             {
-                                Id = identity.Id.ToString(),
+                              
+                               
                                 EmployeeId = identity.EmployeeId.ToString(),
                                 BloodGroup = identity.BloodGroup,
                                 MaritalStatus = identity.MaritalStatus,
                                 Nationality = identity.Nationality,
                                 EmergencyContactName = identity.EmergencyContactName,
                                 EmergencyContactNumber = identity.EmergencyContactNumber,
+                                EmergencyContactRelation= identity.EmergencyContactRelation,
                                 PanNumber = identity.PanNumber,
                                 AadhaarNumber = identity.AadhaarNumber,
                                 PassportNumber = identity.PassportNumber,
@@ -187,7 +236,28 @@ namespace axionpro.persistance.Repositories
                                 aadharDocPath = identity.AadhaarDocPath,
                                 panDocPath = identity.PanDocPath,
                                 passportDocPath = identity.PassportDocPath,
+
+                                CompletionPercentage =
+                            (
+                        new[]
+                        {
+                            string.IsNullOrEmpty(identity.AadhaarNumber) ? 0 : 1,
+                            string.IsNullOrEmpty(identity.PanNumber) ? 0 : 1,
+                            string.IsNullOrEmpty(identity.DrivingLicenseNumber) ? 0 : 1,
+                            string.IsNullOrEmpty(identity.VoterId) ? 0 : 1,
+                            string.IsNullOrEmpty(identity.BloodGroup) ? 0 : 1,
+                            string.IsNullOrEmpty(identity.Nationality) ? 0 : 1,
+                            string.IsNullOrEmpty(identity.EmergencyContactName) ? 0 : 1,
+                            string.IsNullOrEmpty(identity.EmergencyContactRelation) ? 0 : 1,
+                            identity.HasAadhaarIdUploaded ? 1 : 0,
+                            identity.HasPanIdUploaded ? 1 : 0
+                        }.Sum() / 10.0
+                    ) * 100
+
                             };
+
+                // ✅ Calculate overall average percentage (nullable if no record)
+              
 
                 // 📜 Pagination
                 var pagedRecords = await query
@@ -195,6 +265,18 @@ namespace axionpro.persistance.Repositories
                     .Take(dto.PageSize)
                     .ToListAsync();
 
+                // 🔹 Overall average CompletionPercentage
+                double? averagePercentage = pagedRecords.Any()
+                    ? pagedRecords.Average(x => x.CompletionPercentage ?? 0)
+                    : (double?)null;
+
+                // 🔹 HasUploadedAllDocs based on pagedRecords
+                bool? hasUploadedAllDocs = pagedRecords.Any()
+                    ? pagedRecords.All(x => x.hasAadharIdUploaded && x.hasPanIdUploaded && x.hasPassportIdUploaded)
+                    : false;
+
+               
+ 
                 // 📦 Final Response
                 return new PagedResponseDTO<GetIdentityResponseDTO>
                 {
@@ -202,8 +284,8 @@ namespace axionpro.persistance.Repositories
                     TotalCount = totalRecords,
                     PageNumber = dto.PageNumber,
                     PageSize = dto.PageSize,
-                    CompletionPercentage = 75.5,
-                    HasUploadedAll= false,
+                    CompletionPercentage = averagePercentage,
+                    HasUploadedAll= hasUploadedAllDocs,
                 };
             }
             catch (Exception ex)
@@ -212,6 +294,7 @@ namespace axionpro.persistance.Repositories
                 throw new Exception($"Failed to fetch identity info: {ex.Message}");
             }
         }
+
 
         public Task<EmployeeContact> GetSingleRecordAsync(long Id, bool IsActive)
         {

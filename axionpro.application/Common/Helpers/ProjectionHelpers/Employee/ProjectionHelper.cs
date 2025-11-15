@@ -128,29 +128,40 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             }).ToList();
         }
 
-        public static List<GetIdentityResponseDTO> ToGetIdentityResponseDTOs(List<GetIdentityResponseDTO> entities, IEncryptionService encryptionService, string tenantKey)
+        public static List<GetIdentityResponseDTO> ToGetIdentityResponseDTOs(
+    List<GetIdentityResponseDTO> entities,
+    IIdEncoderService encryptionService,
+    string tenantKey)
         {
             if (entities == null || entities.Count == 0)
                 return new List<GetIdentityResponseDTO>();
 
             return entities.Select(e => new GetIdentityResponseDTO
             {
-                Id = SafeEncrypt(e.UserEmployeeId?.ToString(), encryptionService, tenantKey),
-                AadhaarNumber = e.AadhaarNumber ?? string.Empty,
-                PanNumber = e.PanNumber ?? string.Empty,
-                PassportNumber = e.PassportNumber ?? string.Empty,
-                DrivingLicenseNumber = e.DrivingLicenseNumber ?? string.Empty,
-                VoterId = e.VoterId ?? string.Empty,
-                BloodGroup = e.BloodGroup ?? string.Empty,
-                MaritalStatus = e.MaritalStatus ?? string.Empty,
-                Nationality = e.Nationality ?? string.Empty,
-                EmergencyContactName = e.EmergencyContactName ?? string.Empty,
-                EmergencyContactNumber = e.EmergencyContactNumber ?? string.Empty,
-          
-
-                
+                EmployeeId = encryptionService.EncodeString(e.EmployeeId, tenantKey),
+                AadhaarNumber = e.AadhaarNumber,
+                PanNumber = e.PanNumber,
+                PassportNumber = e.PassportNumber,
+                DrivingLicenseNumber = e.DrivingLicenseNumber,
+                VoterId = e.VoterId,
+                BloodGroup = e.BloodGroup,
+                MaritalStatus = e.MaritalStatus,
+                Nationality = e.Nationality,
+                EmergencyContactName = e.EmergencyContactName,
+                EmergencyContactNumber = e.EmergencyContactNumber,
+                EmergencyContactRelation = e.EmergencyContactRelation,
+                IsInfoVerified = e.IsInfoVerified,
+                IsEditAllowed = e.IsEditAllowed,                
+                hasPanIdUploaded = e.hasPanIdUploaded,
+                hasAadharIdUploaded = e.hasAadharIdUploaded,
+                hasPassportIdUploaded = e.hasPassportIdUploaded,
+                panDocPath = e.panDocPath,
+                passportDocPath = e.passportDocPath,
+                aadharDocPath = e.aadharDocPath,
+                CompletionPercentage = e.CompletionPercentage
             }).ToList();
         }
+
         public static List<GetAllEmployeeInfoResponseDTO> ToGetAllEmployeeInfoResponseDTOs(
      PagedResponseDTO<GetAllEmployeeInfoResponseDTO> entities,
       IIdEncoderService encoderService,

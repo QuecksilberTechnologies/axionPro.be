@@ -18,7 +18,7 @@ public interface IEmployeeIdentityRepository
 
 
     public Task<PagedResponseDTO<GetIdentityResponseDTO>> GetInfo(GetIdentityRequestDTO dto, long employeeId,long Id);
-    public Task<GetIdentityResponseDTO> CreateAsync(EmployeePersonalDetail entity);
+    public Task<List<GetIdentityResponseDTO>> CreateAsync(EmployeePersonalDetail entity);
     //  public Task<PagedResponseDTO<GetDependentResponseDTO>> AutoCreatedAsync(EmployeeContact entity);
     public Task<GetIdentityResponseDTO> GetSingleRecordAsync(long Id, bool IsActive);  // Ensure this returns 
 

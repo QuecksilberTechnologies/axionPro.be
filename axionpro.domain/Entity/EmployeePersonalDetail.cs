@@ -16,6 +16,8 @@ public partial class EmployeePersonalDetail
     public string? PassportNumber { get; set; }
 
     public string? DrivingLicenseNumber { get; set; }
+    public string? EmergencyContactRelation { get; set; }
+    
 
     public string? VoterId { get; set; }
     public bool HasPanIdUploaded { get; set; }
@@ -40,7 +42,7 @@ public partial class EmployeePersonalDetail
 
     public bool IsActive { get; set; }
 
-    public bool? IsEditAllowed { get; set; }
+    public bool IsEditAllowed { get; set; }
 
     public bool? IsSoftDeleted { get; set; }
 

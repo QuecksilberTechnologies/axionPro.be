@@ -163,7 +163,7 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
                 }
 
                 // 🔹 Step 6: Map or project entities to response DTO
-                var result = ProjectionHelper.ToGetIdentityResponseDTOs(entity.Items, _encryptionService, tenantKey);
+                var result = ProjectionHelper.ToGetIdentityResponseDTOs(entity.Items, _idEncoderService, tenantKey);
 
                 _logger.LogInformation("Successfully fetched identity info for EmployeeId: {EmployeeId}", request.DTO.EmployeeId);
 

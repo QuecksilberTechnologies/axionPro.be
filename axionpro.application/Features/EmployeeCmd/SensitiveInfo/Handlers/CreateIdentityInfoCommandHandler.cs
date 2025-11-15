@@ -106,14 +106,14 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
                 string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
                 //UserEmployeeId
                 string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
-                long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
+                request.DTO._UserEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
                 //Token TenantId
                 string tokenTenant = EncryptionSanitizer.CleanEncodedInput(tokenClaims.TenantId);
                 long decryptedTenantId = _idEncoderService.DecodeId(tokenTenant, finalKey);
                 //Id              
                 // Actual EmployeeId
                 string actualEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId);
-                long decryptedActualEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
+                 request.DTO._EmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
 
                 // 🧩 STEP 4: Validate all employee references
                 if (decryptedTenantId <= 0)
@@ -123,17 +123,17 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
                 }
 
 
-                if (decryptedTenantId <= 0 || decryptedEmployeeId <= 0)
+                if (decryptedTenantId <= 0 || request.DTO._UserEmployeeId <= 0)
                 {
                     _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
                     return ApiResponse<List<GetIdentityResponseDTO>>.Fail("Tenant or employee information missing.");
                 }
 
-                if (!(decryptedEmployeeId == loggedInEmpId))
+                if (!(request.DTO._UserEmployeeId == loggedInEmpId))
                 {
                     _logger.LogWarning(
                         "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
-                         decryptedEmployeeId, loggedInEmpId
+                         request.DTO._UserEmployeeId, loggedInEmpId
                     );
 
                     return ApiResponse<List<GetIdentityResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
@@ -182,8 +182,8 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
                     await request.DTO.AadhaarDocFile.CopyToAsync(ms);
                     var fileBytes = ms.ToArray();
 
-                    string fileName = $"Aadhaar-{decryptedEmployeeId}_{maskedAadhar}-{DateTime.UtcNow:yyMMddHHmmss}.png";
-                    string folderPath = _fileStorageService.GetEmployeeFolderPath(tenantId, decryptedEmployeeId, "identity");
+                    string fileName = $"Aadhaar-{request.DTO._UserEmployeeId}_{maskedAadhar}-{DateTime.UtcNow:yyMMddHHmmss}.png";
+                    string folderPath = _fileStorageService.GetEmployeeFolderPath(tenantId, request.DTO._UserEmployeeId, "identity");
 
                     aadharDocName = fileName;
                     savedFullPath = await _fileStorageService.SaveFileAsync(fileBytes, fileName, folderPath);
@@ -204,8 +204,8 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
                     await request.DTO.PanDocFile.CopyToAsync(ms);
                     var fileBytes = ms.ToArray();
 
-                    string fileName = $"PAN-{decryptedEmployeeId}_{maskedPan}-{DateTime.UtcNow:yyMMddHHmmss}.png";
-                    string folderPath = _fileStorageService.GetEmployeeFolderPath(tenantId, decryptedEmployeeId, "identity");
+                    string fileName = $"PAN-{request.DTO._UserEmployeeId}_{maskedPan}-{DateTime.UtcNow:yyMMddHHmmss}.png";
+                    string folderPath = _fileStorageService.GetEmployeeFolderPath(tenantId, request.DTO._UserEmployeeId, "identity");
 
                     panDocName = fileName;
                     savedFullPath = await _fileStorageService.SaveFileAsync(fileBytes, fileName, folderPath);
@@ -226,8 +226,8 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
                     await request.DTO.PassportDocFile.CopyToAsync(ms);
                     var fileBytes = ms.ToArray();
 
-                    string fileName = $"Passport-{decryptedEmployeeId}_{maskedPassport}-{DateTime.UtcNow:yyMMddHHmmss}.png";
-                    string folderPath = _fileStorageService.GetEmployeeFolderPath(tenantId, decryptedEmployeeId, "identity");
+                    string fileName = $"Passport-{request.DTO._UserEmployeeId}_{maskedPassport}-{DateTime.UtcNow:yyMMddHHmmss}.png";
+                    string folderPath = _fileStorageService.GetEmployeeFolderPath(tenantId, request.DTO._UserEmployeeId, "identity");
 
                     passportDocName = fileName;
                     savedFullPath = await _fileStorageService.SaveFileAsync(fileBytes, fileName, folderPath);
@@ -243,13 +243,13 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
                 var identityEntity = _mapper.Map<EmployeePersonalDetail>(request.DTO);
 
                 // ✅ Manual assignments (not part of DTO)
-                identityEntity.EmployeeId = decryptedEmployeeId;
-                identityEntity.AddedById = decryptedActualEmployeeId;
+                identityEntity.EmployeeId = request.DTO._UserEmployeeId ;
+                identityEntity.AddedById = request.DTO._EmployeeId;
                 identityEntity.AddedDateTime = DateTime.UtcNow;
                 identityEntity.IsActive = true;
                 identityEntity.IsEditAllowed = true;
                 identityEntity.IsInfoVerified = false;
-
+               
                 // 🪪 Document paths assignment (only if uploaded)
                 if (hasAadharIdUploaded)
                 {
@@ -274,13 +274,16 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
                 // 🧩 STEP 4: Save to Database
                 var savedResponse = await _unitOfWork.EmployeeIdentityRepository.CreateAsync(identityEntity);
 
+                var result = ProjectionHelper.ToGetIdentityResponseDTOs(savedResponse, _idEncoderService, tenantKey);
+
+
                 await _unitOfWork.CommitTransactionAsync();
 
                 return new ApiResponse<List<GetIdentityResponseDTO>>
                 {
                     IsSucceeded = true,
                     Message = "Identity info added successfully.",
-                    Data = null
+                    Data = result
                 };
             }
             catch (Exception ex)

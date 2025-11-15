@@ -476,7 +476,34 @@ namespace axionpro.application.Mappings
 
             #region 🔹 Personal Detail Mappings
             CreateMap<EmployeePersonalDetail, CreateIdentityRequestDTO>()
-              .ForMember(dest => dest.EmployeeId, opt => opt.Ignore());  
+       .ForMember(dest => dest._EmployeeId, opt => opt.MapFrom(src => src.EmployeeId))
+       .ForMember(dest => dest.AadhaarDocFile, opt => opt.Ignore())
+       .ForMember(dest => dest.PanDocFile, opt => opt.Ignore())
+       .ForMember(dest => dest.PassportDocFile, opt => opt.Ignore());
+
+            CreateMap<CreateIdentityRequestDTO, EmployeePersonalDetail>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())  // Primary key
+                .ForMember(dest => dest.AddedById, opt => opt.Ignore())
+                .ForMember(dest => dest.AddedDateTime, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedById, opt => opt.Ignore())
+                 
+                .ForMember(dest => dest.IsActive, opt => opt.Ignore())
+
+                // Simple 1-1 mapping
+                .ForMember(dest => dest.EmployeeId, opt => opt.MapFrom(src => src._EmployeeId))
+                
+                .ForMember(dest => dest.AadhaarNumber, opt => opt.MapFrom(src => src.AadhaarNumber))
+                .ForMember(dest => dest.PanNumber, opt => opt.MapFrom(src => src.PanNumber))
+                .ForMember(dest => dest.PassportNumber, opt => opt.MapFrom(src => src.PassportNumber))
+                .ForMember(dest => dest.DrivingLicenseNumber, opt => opt.MapFrom(src => src.DrivingLicenseNumber))
+                .ForMember(dest => dest.VoterId, opt => opt.MapFrom(src => src.VoterId))
+                .ForMember(dest => dest.BloodGroup, opt => opt.MapFrom(src => src.BloodGroup))
+                .ForMember(dest => dest.MaritalStatus, opt => opt.MapFrom(src => src.MaritalStatus))
+                .ForMember(dest => dest.Nationality, opt => opt.MapFrom(src => src.Nationality))
+                .ForMember(dest => dest.EmergencyContactName, opt => opt.MapFrom(src => src.EmergencyContactName))
+                .ForMember(dest => dest.EmergencyContactRelation, opt => opt.MapFrom(src => src.EmergencyContactRelation))
+                .ForMember(dest => dest.EmergencyContactNumber, opt => opt.MapFrom(src => src.EmergencyContactNumber));
+            
             #endregion
 
             #region 🔹 Experience Mappings
@@ -506,27 +533,8 @@ namespace axionpro.application.Mappings
             // Agar reverse mapping chahiye toh, isse bhi add kar sakte hain
 
 
-
-
-
-
-
-
-
-
             CreateMap<OrganizationHolidayCalendar, OrganizationHolidayCalendarDTO>();
                  CreateMap<OrganizationHolidayCalendarDTO, OrganizationHolidayCalendar>();
-
-
-
-
-
-
-
-
-
-
-
 
             // `Employee.OfficialEmail` ➝ `EmployeeInfoDTO.OfficialEmail`
 

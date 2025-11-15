@@ -31,12 +31,12 @@ namespace axionpro.api.Controllers.Employee
         /// Create new employee personal info record.
         /// </summary>
         [HttpPost("Create")]
-        public async Task<IActionResult> Createpersonalinfo([FromBody] CreateIdentityRequestDTO dto)
+        public async Task<IActionResult> Createpersonalinfo([FromForm] CreateIdentityRequestDTO dto)
         {
             try
             {
                 var command = new CreatePersonalInfoCommand(dto);
-                _logger.LogInfo("📩 Creating new employee personal info info...");
+                _logger.LogInfo("Creating new employee personal info info...");
 
                 var result = await _mediator.Send(command);
 
