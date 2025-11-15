@@ -5,6 +5,7 @@ using axionpro.application;
 using axionpro.infrastructure;
 using axionpro.persistance;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -113,7 +114,16 @@ try
 
     // ✅ Build the app
     var app = builder.Build();
-    app.UseStaticFiles(); // wwwroot ko public banata hai
+    // Enable static files
+    app.UseStaticFiles(); // For wwwroot folder
+
+    // Optional: agar aap specific folder ko custom path se expose karna chahte ho
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(
+            Path.Combine(builder.Environment.ContentRootPath, "wwwroot/uploads")),
+        RequestPath = "/uploads"
+    });
 
     // ✅ Middleware setup
     app.UseHttpsRedirection();
