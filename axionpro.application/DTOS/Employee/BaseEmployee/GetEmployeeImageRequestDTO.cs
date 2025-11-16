@@ -13,8 +13,9 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
     {
 
         public string? EmployeeId { get; set; }
+        public long? _EmployeeId { get; set; }
         public bool IsActive { get; set; }
-        
+          
        
     }
 }

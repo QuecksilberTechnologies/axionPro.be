@@ -45,11 +45,12 @@ namespace axionpro.application.Wrappers
 
         // ✅ Optional: Show only when not null
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public bool? IsPrimaryMarked { get; set; }
         public bool? HasAllDocUploaded { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public double? CompletionPercentage { get; set; }
-
+      
         // ❌ Fail Response
         public static ApiResponse<T> Fail(string message, List<string>? errors = null)
         {
@@ -116,6 +117,32 @@ namespace axionpro.application.Wrappers
                 TotalPages = totalPages,
                 HasAllDocUploaded = hasUploadedAll,
                 CompletionPercentage = completionPercentage
+            };
+        }
+        public static ApiResponse<T> SuccessPaginatedPercentageMarkPrimary(
+          T data,
+          int pageNumber,
+          int pageSize,
+          int totalRecords,
+          int totalPages,
+          string message = "",
+          bool? hasUploadedAll = null,
+          double? completionPercentage = null,
+          bool? isPrimaryMarked =null
+          )
+        {
+            return new ApiResponse<T>
+            {
+                IsSucceeded = true,
+                Message = message,
+                Data = data,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalRecords = totalRecords,
+                TotalPages = totalPages,
+                HasAllDocUploaded = hasUploadedAll,
+                CompletionPercentage = completionPercentage,
+                IsPrimaryMarked = isPrimaryMarked
             };
         }
     }

@@ -30,116 +30,116 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
             DTO = dTO;
         }
     }
-    public class GetExperienceInfoQueryHandler : IRequestHandler<GetExperienceInfoQuery, ApiResponse<List<GetExperienceResponseDTO>>>
-    {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ILogger<GetExperienceInfoQueryHandler> _logger;
-        private readonly ITokenService _tokenService;
-        private readonly IPermissionService _permissionService;
-        private readonly IConfiguration _config;
-        private readonly IEncryptionService _encryptionService;
+    //public class GetExperienceInfoQueryHandler : IRequestHandler<GetExperienceInfoQuery, ApiResponse<List<GetExperienceResponseDTO>>>
+    //{
+    //    private readonly IUnitOfWork _unitOfWork;
+    //    private readonly IMapper _mapper;
+    //    private readonly IHttpContextAccessor _httpContextAccessor;
+    //    private readonly ILogger<GetExperienceInfoQueryHandler> _logger;
+    //    private readonly ITokenService _tokenService;
+    //    private readonly IPermissionService _permissionService;
+    //    private readonly IConfiguration _config;
+    //    private readonly IEncryptionService _encryptionService;
 
-        public GetExperienceInfoQueryHandler(
-            IUnitOfWork unitOfWork,
-            IMapper mapper,
-            IHttpContextAccessor httpContextAccessor,
-            ILogger<GetExperienceInfoQueryHandler> logger,
-            ITokenService tokenService,
-            IPermissionService permissionService,
-            IConfiguration config,
-            IEncryptionService encryptionService)
-        {
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
-            _httpContextAccessor = httpContextAccessor;
-            _logger = logger;
-            _tokenService = tokenService;
-            _permissionService = permissionService;
-            _config = config;
-            _encryptionService = encryptionService;
-        }
+    //    public GetExperienceInfoQueryHandler(
+    //        IUnitOfWork unitOfWork,
+    //        IMapper mapper,
+    //        IHttpContextAccessor httpContextAccessor,
+    //        ILogger<GetExperienceInfoQueryHandler> logger,
+    //        ITokenService tokenService,
+    //        IPermissionService permissionService,
+    //        IConfiguration config,
+    //        IEncryptionService encryptionService)
+    //    {
+    //        _unitOfWork = unitOfWork;
+    //        _mapper = mapper;
+    //        _httpContextAccessor = httpContextAccessor;
+    //        _logger = logger;
+    //        _tokenService = tokenService;
+    //        _permissionService = permissionService;
+    //        _config = config;
+    //        _encryptionService = encryptionService;
+    //    }
 
-        public async Task<ApiResponse<List<GetExperienceResponseDTO>>> Handle(GetExperienceInfoQuery request, CancellationToken cancellationToken)
-        {
-            try
-            {
-                await _unitOfWork.BeginTransactionAsync();
-                // 🧩 STEP 1: Validate JWT Token
-                var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
-                    .ToString()?.Replace("Bearer ", "");
+    //    public async Task<ApiResponse<List<GetExperienceResponseDTO>>> Handle(GetExperienceInfoQuery request, CancellationToken cancellationToken)
+    //    {
+    //        try
+    //        {
+    //            await _unitOfWork.BeginTransactionAsync();
+    //            // 🧩 STEP 1: Validate JWT Token
+    //            var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
+    //                .ToString()?.Replace("Bearer ", "");
 
-                if (string.IsNullOrEmpty(bearerToken))
-                    return ApiResponse<List<GetExperienceResponseDTO>>.Fail("Unauthorized: Token not found.");
+    //            if (string.IsNullOrEmpty(bearerToken))
+    //                return ApiResponse<List<GetExperienceResponseDTO>>.Fail("Unauthorized: Token not found.");
 
-                var secretKey = TokenKeyHelper.GetJwtSecret(_config);
-                var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
+    //            var secretKey = TokenKeyHelper.GetJwtSecret(_config);
+    //            var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
 
-                if (tokenClaims == null || tokenClaims.IsExpired)
-                    return ApiResponse<List<GetExperienceResponseDTO>>.Fail("Invalid or expired token.");
+    //            if (tokenClaims == null || tokenClaims.IsExpired)
+    //                return ApiResponse<List<GetExperienceResponseDTO>>.Fail("Invalid or expired token.");
 
-                // 🧩 STEP 2: Validate Active User
-                long loggedInEmpId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
-                if (loggedInEmpId < 1)
-                {
-                    _logger.LogWarning("❌ Invalid or inactive user. LoginId: {LoginId}", tokenClaims.UserId);
-                    return ApiResponse<List<GetExperienceResponseDTO>>.Fail("Unauthorized or inactive user.");
-                }
+    //            // 🧩 STEP 2: Validate Active User
+    //            long loggedInEmpId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
+    //            if (loggedInEmpId < 1)
+    //            {
+    //                _logger.LogWarning("❌ Invalid or inactive user. LoginId: {LoginId}", tokenClaims.UserId);
+    //                return ApiResponse<List<GetExperienceResponseDTO>>.Fail("Unauthorized or inactive user.");
+    //            }
 
-                // 🧩 STEP 3: Tenant and Employee info validation from token
-                string tenantKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
+    //            // 🧩 STEP 3: Tenant and Employee info validation from token
+    //            string tenantKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
 
-                if (string.IsNullOrEmpty(request.DTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
-                {
-                    _logger.LogWarning("❌ Missing tenantKey or UserEmployeeId.");
-                    return ApiResponse<List<GetExperienceResponseDTO>>.Fail("User invalid.");
-                }
+    //            if (string.IsNullOrEmpty(request.DTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
+    //            {
+    //                _logger.LogWarning("❌ Missing tenantKey or UserEmployeeId.");
+    //                return ApiResponse<List<GetExperienceResponseDTO>>.Fail("User invalid.");
+    //            }
 
-                // Decrypt / convert values
-                long decryptedUserEmployeeId = Convert.ToInt64(_encryptionService.Decrypt(request.DTO.UserEmployeeId, tenantKey) ?? "0");
-                long decryptedActualEmployeeId = Convert.ToInt64(_encryptionService.Decrypt(request.DTO.EmployeeId, tenantKey) ?? "0");
-                long tokenEmployeeId = Convert.ToInt64(tokenClaims.EmployeeId ?? "0");
-                long decryptedTenantId = Convert.ToInt64(tokenClaims.TenantId ?? "0");
-                long Id = Convert.ToInt64(_encryptionService.Decrypt(request.DTO.Id, tenantKey) ?? "0");
+    //            // Decrypt / convert values
+    //            long decryptedUserEmployeeId = Convert.ToInt64(_encryptionService.Decrypt(request.DTO.UserEmployeeId, tenantKey) ?? "0");
+    //            long decryptedActualEmployeeId = Convert.ToInt64(_encryptionService.Decrypt(request.DTO.EmployeeId, tenantKey) ?? "0");
+    //            long tokenEmployeeId = Convert.ToInt64(tokenClaims.EmployeeId ?? "0");
+    //            long decryptedTenantId = Convert.ToInt64(tokenClaims.TenantId ?? "0");
+    //            long Id = Convert.ToInt64(_encryptionService.Decrypt(request.DTO.Id, tenantKey) ?? "0");
 
-                // 🧩 STEP 4: Validate all employee references
-                if (decryptedTenantId <= 0 || decryptedUserEmployeeId <= 0 || tokenEmployeeId <= 0)
-                {
-                    _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
-                    return ApiResponse<List<GetExperienceResponseDTO>>.Fail("Tenant or employee information missing.");
-                }
+    //            // 🧩 STEP 4: Validate all employee references
+    //            if (decryptedTenantId <= 0 || decryptedUserEmployeeId <= 0 || tokenEmployeeId <= 0)
+    //            {
+    //                _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
+    //                return ApiResponse<List<GetExperienceResponseDTO>>.Fail("Tenant or employee information missing.");
+    //            }
 
-                if (!(decryptedUserEmployeeId == tokenEmployeeId && tokenEmployeeId == loggedInEmpId))
-                {
-                    _logger.LogWarning(
-                        "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, TokenEmpId: {TokenEmp}, LoggedEmpId: {LoggedEmp}",
-                        decryptedUserEmployeeId, tokenEmployeeId, loggedInEmpId
-                    );
+    //            if (!(decryptedUserEmployeeId == tokenEmployeeId && tokenEmployeeId == loggedInEmpId))
+    //            {
+    //                _logger.LogWarning(
+    //                    "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, TokenEmpId: {TokenEmp}, LoggedEmpId: {LoggedEmp}",
+    //                    decryptedUserEmployeeId, tokenEmployeeId, loggedInEmpId
+    //                );
 
-                    return ApiResponse<List<GetExperienceResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
-                }
+    //                return ApiResponse<List<GetExperienceResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
+    //            }
 
-                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
-                if (!permissions.Contains("AddIdentityInfo"))
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<List<GetExperienceResponseDTO>>.Fail("You do not have permission to add identity info.");
-                }
+    //            var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
+    //            if (!permissions.Contains("AddIdentityInfo"))
+    //            {
+    //                await _unitOfWork.RollbackTransactionAsync();
+    //                return ApiResponse<List<GetExperienceResponseDTO>>.Fail("You do not have permission to add identity info.");
+    //            }
 
-                PagedResponseDTO<GetExperienceResponseDTO> Entity = await _unitOfWork.EmployeeExpereinceRepository.GetInfo(request.DTO, decryptedActualEmployeeId, Id);
-                if (Entity == null || !Entity.Items.Any())
-                    return ApiResponse<List<GetExperienceResponseDTO>>.Fail("No experience info found.");
+    //            PagedResponseDTO<GetExperienceResponseDTO> Entity = await _unitOfWork.EmployeeExpereinceRepository.GetInfo(request.DTO, decryptedActualEmployeeId, Id);
+    //            if (Entity == null || !Entity.Items.Any())
+    //                return ApiResponse<List<GetExperienceResponseDTO>>.Fail("No experience info found.");
 
-                var result = ProjectionHelper.ToGetExperienceResponseDTOs(Entity.Items, _encryptionService, tenantKey, request.DTO.EmployeeId );
+    //            var result = ProjectionHelper.ToGetExperienceResponseDTOs(Entity.Items, _encryptionService, tenantKey, request.DTO.EmployeeId );
 
-                return ApiResponse<List<GetExperienceResponseDTO>>.Success(result, "Experience info retrieved successfully.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while fetching Experience info for EmployeeId: {EmployeeId}", request.DTO?.EmployeeId);
-                return ApiResponse<List<GetExperienceResponseDTO>>.Fail("Failed to fetch experience info.", new List<string> { ex.Message });
-            }
-        }
-    }
+    //            return ApiResponse<List<GetExperienceResponseDTO>>.Success(result, "Experience info retrieved successfully.");
+    //        }
+    //        catch (Exception ex)
+    //        {
+    //            _logger.LogError(ex, "Error while fetching Experience info for EmployeeId: {EmployeeId}", request.DTO?.EmployeeId);
+    //            return ApiResponse<List<GetExperienceResponseDTO>>.Fail("Failed to fetch experience info.", new List<string> { ex.Message });
+    //        }
+    //    }
+    //}
 }

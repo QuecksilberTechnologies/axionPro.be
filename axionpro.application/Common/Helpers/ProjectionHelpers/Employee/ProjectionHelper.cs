@@ -404,19 +404,47 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         //    }).ToList();
         //}
 
-        public static List<GetEmployeeImageReponseDTO> ToGetEmployeeImageResponseDTOs(List<GetEmployeeImageReponseDTO> entities, IEncryptionService encryptionService, string tenantKey)
+      
+  public static List<GetEmployeeImageReponseDTO> ToGetEmployeeImageResponseDTOs(PagedResponseDTO<GetEmployeeImageReponseDTO> entities,
+            IIdEncoderService encoderService,
+                    string tenantKey)
         {
-            if (entities == null || entities.Count == 0)
+            if (entities == null || entities.Items == null || !entities.Items.Any())
                 return new List<GetEmployeeImageReponseDTO>();
 
-            return entities.Select(e => new GetEmployeeImageReponseDTO
+            var result = new List<GetEmployeeImageReponseDTO>();
+
+            foreach (var item in entities.Items) // now item is GetBankResponseDTO
             {
-                Id = SafeEncrypt(e.Id, encryptionService, tenantKey),
-                FilePath = e.FilePath ?? string.Empty,
-                IsActive = e.IsActive,
-                IsPrimary = e.IsPrimary
-            }).ToList();
+                if (item == null) continue;
+
+                // ✅ Encode Bank Record Id
+                if (long.TryParse(item.Id, out long rawId) && rawId > 0)
+                {
+                    item.Id = encoderService.EncodeId(rawId, tenantKey);
+                }
+
+                // ✅ Encode EmployeeId separately
+                if (long.TryParse(item.EmployeeId, out long empRawId) && empRawId > 0)
+                {
+                    item.EmployeeId = encoderService.EncodeId(empRawId, tenantKey);
+                }
+
+                // ✅ Optional cleanup (avoid nulls)
+                item.Id ??= string.Empty;
+                item.EmployeeId ??= string.Empty;
+                item.FilePath ??= string.Empty;
+                item.IsPrimary = item.IsPrimary;
+                item.IsActive = item.IsActive;
+                item.CompletionPercentage = item.CompletionPercentage;
+                result.Add(item);
+            }
+
+            return result;
         }
+
+
+       
 
     }
 

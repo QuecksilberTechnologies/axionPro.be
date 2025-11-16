@@ -220,69 +220,76 @@ namespace axionpro.persistance.Repositories
                 throw new Exception($"Failed to delete employee {id}: {ex.Message}", ex);
             }
         }
-
-
         public async Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> GetImage(GetEmployeeImageRequestDTO dto, long decryptedTenantId)
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
 
             try
             {
-                // 🧩 Step 1: Pagination Defaults
+                // Pagination defaults
                 int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
                 int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
 
-                
-                // 🧩 Step 3: Base Query (no TenantId filtering since not in table)
+                // Base query
                 var query = context.EmployeeImages
                     .AsNoTracking()
-                    .Where(x => x.IsSoftDeleted != true && x.TenantId== decryptedTenantId && x.IsActive== dto.IsActive);
+                    .Where(x => x.IsSoftDeleted != true &&
+                                x.TenantId == decryptedTenantId);
 
-                // 🧩 Step 4: Filter by EmployeeId or ImageId
-                if (long.TryParse(dto.EmployeeId, out long employeeId) && employeeId > 0)
-                    query = query.Where(x => x.EmployeeId == employeeId);
+                if (dto.IsActive)
+                    query = query.Where(x => x.IsActive == dto.IsActive);
 
-                if (long.TryParse(dto.Id, out long imageId) && imageId > 0)
-                    query = query.Where(x => x.Id == imageId);
+                if (dto._EmployeeId > 0)
+                    query = query.Where(x => x.EmployeeId == dto._EmployeeId);
 
-                // 🧩 Step 5: Sorting (default by Id DESC)
-                query = dto.SortOrder?.ToLower() == "asc"
-                    ? query.OrderBy(x => x.Id)
-                    : query.OrderByDescending(x => x.Id);
+                if (dto.Id_long > 0)
+                    query = query.Where(x => x.Id == dto.Id_long);
 
-                // 🧩 Step 6: Get total count before paging
+                // Safe sorting
+                bool isAscending =
+                    !string.IsNullOrWhiteSpace(dto.SortOrder) &&
+                    dto.SortOrder.Trim().Equals("asc", StringComparison.OrdinalIgnoreCase);
+
+                query = isAscending ? query.OrderBy(x => x.Id) : query.OrderByDescending(x => x.Id);
+
                 int totalCount = await query.CountAsync();
 
-                // 🧩 Step 7: Fetch paginated data
-                var data = await query
+                // Just check primary, don't load all rows
+                bool hasPrimary = await query.AnyAsync(x => x.IsPrimary == true);
+
+                double completionPercentage = hasPrimary ? 100 : 0;
+
+                // Paging
+                var pagedDataRaw = await query
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
-                    .Select(x => new GetEmployeeImageReponseDTO
-                    {
-                        Id = x.Id.ToString(),
-                        FilePath = x.FilePath,
-                        IsActive = x.IsActive,
-                        IsPrimary = x.IsPrimary,
-                      
-                    })
                     .ToListAsync();
 
-                // 🧩 Step 8: Return structured response
+                var pagedData = pagedDataRaw.Select(x => new GetEmployeeImageReponseDTO
+                {
+                    EmployeeId = x.EmployeeId.ToString(),
+                    Id = x.Id.ToString(),
+                    FilePath = x.FilePath,
+                    IsActive = x.IsActive,
+                    IsPrimary = x.IsPrimary,
+                    CompletionPercentage = completionPercentage
+                }).ToList();
+
                 return new PagedResponseDTO<GetEmployeeImageReponseDTO>
                 {
-                    Items = data,
+                    Items = pagedData,
                     TotalCount = totalCount,
                     PageNumber = pageNumber,
-                    PageSize = pageSize
+                    PageSize = pageSize,
+                    CompletionPercentage = completionPercentage,
+                    IsPrimaryMarked = hasPrimary
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error occurred while fetching employee images.");
-                throw new Exception($"Failed to fetch employee images: {ex.Message}");
+                throw;
             }
-       
-        
         }
 
 
@@ -792,7 +799,10 @@ namespace axionpro.persistance.Repositories
                     Items = responseData,
                     TotalCount = totalRecords,
                     PageNumber = pageNumber,
-                    PageSize = pageSize
+                    PageSize = pageSize,
+                    IsPrimaryMarked = hasPrimary,
+                    TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
+                   
                 };
             }
             catch (Exception ex)

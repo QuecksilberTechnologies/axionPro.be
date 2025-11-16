@@ -103,6 +103,10 @@ namespace axionpro.persistance.Data.Context
 
         public virtual DbSet<EmployeeExperience> EmployeeExperiences { get; set; }
 
+        public virtual DbSet<EmployeeExperienceDetail> EmployeeExperienceDetails { get; set; }
+
+        public virtual DbSet<EmployeeExperiencePayslipUpload> EmployeeExperiencePayslipUploads { get; set; }
+
         public virtual DbSet<EmployeeImage> EmployeeImages { get; set; }
 
         public virtual DbSet<EmployeeInsurancePolicy> EmployeeInsurancePolicies { get; set; }
@@ -1141,6 +1145,8 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.Degree).HasMaxLength(50);
                 entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
                 entity.Property(e => e.EducationGap).HasDefaultValue(false);
+                entity.Property(e => e.FileName).HasMaxLength(100);
+                entity.Property(e => e.FilePath).HasMaxLength(500);
                 entity.Property(e => e.GpaorPercentage)
                     .HasMaxLength(100)
                     .HasColumnName("GPAOrPercentage");
@@ -1151,7 +1157,6 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.Remark).HasMaxLength(100);
                 entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
             });
-
             modelBuilder.Entity<EmployeeExperience>(entity =>
             {
                 entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC071B15DEB3");
@@ -1159,45 +1164,107 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("EmployeeExperience", "AxionPro");
 
                 entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.CompanyName)
-                    .HasMaxLength(200)
-                    .IsUnicode(false);
+                entity.Property(e => e.Comment).HasMaxLength(500);
                 entity.Property(e => e.Ctc)
                     .HasColumnType("decimal(18, 2)")
                     .HasColumnName("CTC");
                 entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.ExperienceVerificationDateTime).HasColumnType("datetime");
-                entity.Property(e => e.InfoVerifiedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.IsExperienceVerified).HasDefaultValueSql("(NULL)");
-                entity.Property(e => e.JobTitle)
+                entity.Property(e => e.HasEpfaccount).HasColumnName("HasEPFAccount");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+            });
+
+            modelBuilder.Entity<EmployeeExperienceDetail>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC07A52190B4");
+
+                entity.ToTable("EmployeeExperienceDetail", "AxionPro");
+
+                entity.Property(e => e.ColleagueContactNumber)
+                    .HasMaxLength(15)
+                    .IsUnicode(false);
+                entity.Property(e => e.ColleagueDesignation).HasMaxLength(100);
+                entity.Property(e => e.ColleagueName)
                     .HasMaxLength(100)
                     .IsUnicode(false);
-                entity.Property(e => e.Location)
+                entity.Property(e => e.CompanyName)
                     .HasMaxLength(100)
                     .IsUnicode(false);
-                entity.Property(e => e.ReasonForLeaving)
-                    .HasMaxLength(500)
-                    .IsUnicode(false);
-                entity.Property(e => e.Remark).HasMaxLength(500);
-                entity.Property(e => e.ReportingManagerEmail)
+                entity.Property(e => e.Designation).HasMaxLength(50);
+                entity.Property(e => e.EmployeeCompanyCountryName)
                     .HasMaxLength(100)
                     .IsUnicode(false);
+                entity.Property(e => e.EmployeeCompanyDistrict)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+                entity.Property(e => e.EmployeeCompanyState)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+                entity.Property(e => e.EmployeeIdOfCompany)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+                entity.Property(e => e.ExperienceLetterDocName)
+                    .HasMaxLength(100)                    
+                    .IsUnicode(false);
+                entity.Property(e => e.BankStatementDocName)
+                    .HasMaxLength(100)                    
+                    .IsUnicode(false);
+                entity.Property(e => e.BankStatementDocPath).HasMaxLength(500);
+
+                entity.Property(e => e.Form50DocFilePath).HasMaxLength(500);
+                entity.Property(e => e.ExperienceLetterDocPath).HasMaxLength(500);
+                entity.Property(e => e.Form50DocFilePath).HasMaxLength(500);
+                entity.Property(e => e.Form50DocName)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+                entity.Property(e => e.GapCertificateDocName)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+                entity.Property(e => e.GapCertificateDocPath).HasMaxLength(500);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.IsWfh).HasColumnName("IsWFH");
+                entity.Property(e => e.JoiningLetterDocName)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+                entity.Property(e => e.JoiningLetterDocPath).HasMaxLength(500);
+                entity.Property(e => e.ReasonForLeaving).HasMaxLength(200);
+                entity.Property(e => e.ReasonOfGap).HasMaxLength(500);
+                entity.Property(e => e.Remark).HasMaxLength(200);
                 entity.Property(e => e.ReportingManagerName)
                     .HasMaxLength(100)
                     .IsUnicode(false);
                 entity.Property(e => e.ReportingManagerNumber)
-                    .HasMaxLength(20)
+                    .HasMaxLength(15)
                     .IsUnicode(false);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.WorkedWithContactNumber)
-                    .HasMaxLength(20)
+                entity.Property(e => e.VerificationEmail).HasMaxLength(50);
+
+                entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeExperienceDetails)
+                    .HasForeignKey(d => d.EmployeeId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_EmployeeExperienceUploadDoc_Employee");
+            });
+
+            modelBuilder.Entity<EmployeeExperiencePayslipUpload>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC07BDB4A1FB");
+
+                entity.ToTable("EmployeeExperiencePayslipUpload", "AxionPro");
+
+                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("(getdate())");
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.PayslipDocName)
+                    .HasMaxLength(200)
                     .IsUnicode(false);
-                entity.Property(e => e.WorkedWithDesignation)
-                    .HasMaxLength(100)
-                    .IsUnicode(false);
-                entity.Property(e => e.WorkedWithName)
-                    .HasMaxLength(100)
-                    .IsUnicode(false);
+                entity.Property(e => e.PayslipDocPath).HasMaxLength(500);
+
+                entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeExperiencePayslipUploads)
+                    .HasForeignKey(d => d.EmployeeId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_EmployeeExperiencePayslipUpload_Employee");
+
+                entity.HasOne(d => d.ExperienceDetail).WithMany(p => p.EmployeeExperiencePayslipUploads)
+                    .HasForeignKey(d => d.ExperienceDetailId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_EmployeeExperiencePayslipUpload_ExperienceDetail");
             });
 
             modelBuilder.Entity<EmployeeImage>(entity =>
@@ -1206,17 +1273,19 @@ namespace axionpro.persistance.Data.Context
 
                 entity.ToTable("EmployeeImage", "AxionPro");
 
+                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
                 entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.FilePath).HasMaxLength(500);
                 entity.Property(e => e.FileName).HasMaxLength(50);
+                entity.Property(e => e.FilePath).HasMaxLength(500);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.HasImageUploaded).HasDefaultValue(false);
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
 
                 entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeImages)
                     .HasForeignKey(d => d.EmployeeId)
                     .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_EmployeeImages_Employee");
             });
+
             modelBuilder.Entity<EmployeeInsurancePolicy>(entity =>
             {
                 entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC0705F48FB6");

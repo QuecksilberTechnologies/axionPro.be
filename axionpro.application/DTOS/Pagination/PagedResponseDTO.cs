@@ -24,14 +24,12 @@ namespace axionpro.application.DTOS.Pagination
             TotalCount = totalCount;
             PageNumber = pageNumber;
             PageSize = pageSize > 0 ? pageSize : 10; // fallback if invalid
-
             HasUploadedAll = hasUploadedAll;
             CompletionPercentage = completionPercentage;
+            IsPrimaryMarked = null;
            
             }
-
-    
-
+     
         public List<T> Items { get; set; }
         public int TotalCount { get; set; }
         public int PageNumber { get; set; }
@@ -51,6 +49,7 @@ namespace axionpro.application.DTOS.Pagination
 
         // ✅ Nullable dynamic fields (additions)
         public bool? HasUploadedAll { get; set; }
+        public bool? IsPrimaryMarked { get; set; }
         public double? CompletionPercentage { get; set; }
         public class CompletionPercentageInfo
         {

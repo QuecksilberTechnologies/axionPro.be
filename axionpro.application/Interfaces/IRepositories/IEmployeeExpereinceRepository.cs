@@ -26,8 +26,8 @@ public interface IEmployeeExpereinceRepository
 
     #region Employee-Experience-info
 
-    public Task<PagedResponseDTO<GetExperienceResponseDTO>> GetInfo(GetExperienceRequestDTO dto, long EmployeeId, long Id);
-    public Task<PagedResponseDTO<GetExperienceResponseDTO>> CreateAsync(EmployeeExperience dto);
+//    public Task<PagedResponseDTO<GetExperienceResponseDTO>> GetInfo(GetExperienceRequestDTO dto, long EmployeeId, long Id);
+  //  public Task<PagedResponseDTO<GetExperienceResponseDTO>> CreateAsync(EmployeeExperience dto);
 
 
     //  public Task<PagedResponseDTO<GetDependentResponseDTO>> AutoCreatedAsync(EmployeeContact entity);

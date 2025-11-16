@@ -2,6 +2,7 @@
 using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
+using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.Features.EmployeeCmd.EmployeeBase.Queries;
@@ -40,6 +41,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         private readonly IPermissionService _permissionService;
         private readonly IConfiguration _config;
         private readonly IEncryptionService _encryptionService;
+        private readonly IIdEncoderService _idEncoderService;
 
         public GetEmployeeImageQueryHandler(
             IUnitOfWork unitOfWork,
@@ -49,7 +51,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,
-            IEncryptionService encryptionService)
+            IEncryptionService encryptionService, IIdEncoderService idEncoderService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -59,15 +61,15 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             _permissionService = permissionService;
             _config = config;
             _encryptionService = encryptionService;
+            _idEncoderService = idEncoderService;
         }
 
         public async Task<ApiResponse<List<GetEmployeeImageReponseDTO>>> Handle(GetEmployeeImageQuery request, CancellationToken cancellationToken)
         {
             try
             {
-                // 🧩 STEP 1: Validate JWT Token
                 var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
-                    .ToString()?.Replace("Bearer ", "");
+                  .ToString()?.Replace("Bearer ", "");
 
                 if (string.IsNullOrEmpty(bearerToken))
                     return ApiResponse<List<GetEmployeeImageReponseDTO>>.Fail("Unauthorized: Token not found.");
@@ -89,57 +91,79 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // 🧩 STEP 3: Tenant and Employee info validation from token
                 string tenantKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
 
-                // ✅ simplified: agar tenantKey ya UserEmployeeId missing hai to fail
                 if (string.IsNullOrEmpty(request.DTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
                 {
                     _logger.LogWarning("❌ Missing tenantKey or UserEmployeeId.");
                     return ApiResponse<List<GetEmployeeImageReponseDTO>>.Fail("User invalid.");
                 }
 
-                long decryptedEmployeeId = Convert.ToInt64(_encryptionService.Decrypt(request.DTO.UserEmployeeId, tenantKey) ?? "0");
-                long decryptedTenantId = Convert.ToInt64(tokenClaims.TenantId ?? "0");
 
-                // ✅ simplified: dono valid hone chahiye
-                if (decryptedTenantId <= 0 || decryptedEmployeeId <= 0)
+
+                if (string.IsNullOrEmpty(request.DTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
                 {
-                    _logger.LogWarning("❌ Tenant or employee info missing in token.");
+                    _logger.LogWarning("❌ Missing tenantKey or UserEmployeeId.");
+                    return ApiResponse<List<GetEmployeeImageReponseDTO>>.Fail("User invalid.");
+                }
+
+                // Decrypt / convert values
+                string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
+                string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
+                request.DTO._UserEmployeeId =  _idEncoderService.DecodeId(UserEmpId, finalKey);
+                long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
+                request.DTO.Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
+                request.DTO.Id_long = _idEncoderService.DecodeId(request.DTO.Id, finalKey);
+
+
+                request.DTO.SortOrder = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortOrder);
+                request.DTO.SortBy = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortBy);
+
+                // 🧩 STEP 4: Validate all employee references
+
+
+                if (decryptedTenantId <= 0 || request.DTO._UserEmployeeId <= 0)
+                {
+                    _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
                     return ApiResponse<List<GetEmployeeImageReponseDTO>>.Fail("Tenant or employee information missing.");
                 }
 
-                // 🧩 STEP 5: Validate EmployeeId match between token and request
-                long requestEmployeeId = decryptedEmployeeId; // ✅ optimized: already decrypted value
-                if (requestEmployeeId != decryptedEmployeeId)
+                if (!(request.DTO._UserEmployeeId == loggedInEmpId))
                 {
-                    _logger.LogWarning("❌ EmployeeId mismatch. TokenEmployeeId: {TokenEmp}, RequestEmployeeId: {ReqEmp}",
-                        decryptedEmployeeId, requestEmployeeId);
-                    return ApiResponse<List<GetEmployeeImageReponseDTO>>.Fail("Unauthorized: Employee mismatch.");
+                    _logger.LogWarning(
+                        "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
+                         request.DTO._UserEmployeeId, loggedInEmpId
+                    );
                 }
-
-                // 🧩 STEP 6: Permission Check (optional)
-                var tokenPermissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
-                // if (tokenPermissions == null || !tokenPermissions.Contains("ViewEmployeeBase"))
-                //     return ApiResponse<List<GetBaseEmployeeResponseDTO>>.Fail("You do not have permission to view base employee info.");
-
+                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
+                if (!permissions.Contains("AddBankInfo"))
+                {
+                  //  await _unitOfWork.RollbackTransactionAsync();
+                    //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
+                }
                 // 🧩 STEP 10: Fetch Data from Repository
                 var entityPaged = await _unitOfWork.Employees.GetImage(request.DTO, decryptedTenantId);
 
                 if (entityPaged == null || !entityPaged.Items.Any())
                 {
-                    _logger.LogInformation("No images found for EmployeeId: {EmpId}", decryptedEmployeeId);
+                    _logger.LogInformation("No images found for EmployeeId: {EmpId}", request.DTO._UserEmployeeId);
                     return ApiResponse<List<GetEmployeeImageReponseDTO>>.Fail("No images found for the employee.");
                 }
 
                 // 🧩 STEP 8: Encrypt Ids and Map using ProjectionHelper (optimized)
-                var resultList = ProjectionHelper.ToGetEmployeeImageResponseDTOs(entityPaged.Items, _encryptionService, tenantKey);
+                var resultList = ProjectionHelper.ToGetEmployeeImageResponseDTOs(entityPaged, _idEncoderService, tenantKey);
 
                 // 🧩 STEP 9: Construct success response with pagination
-                return ApiResponse<List<GetEmployeeImageReponseDTO>>.SuccessPaginated(
+                return ApiResponse<List<GetEmployeeImageReponseDTO>>.SuccessPaginatedPercentageMarkPrimary(
                     data: resultList,
                     message: "Base Employee info retrieved successfully.",
                     pageNumber: entityPaged.PageNumber,
                     pageSize: entityPaged.PageSize,
                     totalRecords: entityPaged.TotalCount,
-                    totalPages: entityPaged.TotalPages
+                    totalPages: entityPaged.TotalPages,
+                    completionPercentage: entityPaged.CompletionPercentage,
+                    isPrimaryMarked: entityPaged.IsPrimaryMarked
+                  
+                     
+                    
                 );
             }
             catch (Exception ex)
