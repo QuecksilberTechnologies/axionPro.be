@@ -17,6 +17,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.Drawing;
 using System.Drawing.Printing;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks.Dataflow;
 
@@ -405,7 +406,7 @@ namespace axionpro.persistance.Repositories
         }
 
         public async Task<PagedResponseDTO<GetAllEmployeeInfoResponseDTO>> GetAllInfo(
-              GetAllEmployeeInfoRequestDTO dto,
+    GetAllEmployeeInfoRequestDTO dto,
     long decryptedTenantId)
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
@@ -415,184 +416,347 @@ namespace axionpro.persistance.Repositories
                 int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
                 int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
 
-                // 🔹 SAFE BASE QUERY
-                var query =
+                // -----------------------------------
+                // 1️⃣ BASE QUERY (High Performance)
+                // -----------------------------------
+                var baseQuery =
+                    from emp in context.Employees.AsNoTracking()
+                    where emp.TenantId == decryptedTenantId && emp.IsSoftDeleted != true
 
+                    join g in context.Genders on emp.GenderId equals g.Id into genderJoin
+                    from gender in genderJoin.DefaultIfEmpty()
 
-                       from emp in context.Employees.AsNoTracking()
-                        where emp.TenantId == decryptedTenantId && emp.IsSoftDeleted != true
+                    join d in context.Designations on emp.DesignationId equals d.Id into desigJoin
+                    from designation in desigJoin.DefaultIfEmpty()
 
-                      join g in context.Genders on emp.GenderId equals g.Id into genderJoin
-                      from gender in genderJoin.DefaultIfEmpty()
+                    join et in context.EmployeeTypes on emp.EmployeeTypeId equals et.Id into typeJoin
+                    from empType in typeJoin.DefaultIfEmpty()
 
-                     join d in context.Designations on emp.DesignationId equals d.Id into desigJoin
-                     from designation in desigJoin.DefaultIfEmpty()
+                    join dep in context.Departments on emp.DepartmentId equals dep.Id into deptJoin
+                    from department in deptJoin.DefaultIfEmpty()
 
-                       join et in context.EmployeeTypes on emp.EmployeeTypeId equals et.Id into typeJoin
-                      from empType in typeJoin.DefaultIfEmpty()
+                    select new
+                    {
+                        emp,
+                        GenderName = gender.GenderName ?? "",
+                        DesignationName = designation.DesignationName ?? "",
+                        EmployeeTypeName = empType.TypeName ?? "",
+                        DepartmentName = department.DepartmentName ?? ""
+                    };
 
-                      join dep in context.Departments on emp.DepartmentId equals dep.Id into deptJoin
-                       from department in deptJoin.DefaultIfEmpty()
-
-
-           // ⭐ FIXED IMAGE SELECTION
-       let image = context.EmployeeImages
-           .Where(i => i.EmployeeId == emp.Id && i.IsSoftDeleted != true)
-           .OrderByDescending(i => i.IsPrimary)
-           .ThenByDescending(i => i.HasImageUploaded)
-           .ThenByDescending(i => i.Id)
-           .FirstOrDefault()
-
-       select new
-       {
-           emp,
-           GenderName = gender != null ? gender.GenderName : null,
-           DesignationName = designation != null ? designation.DesignationName : null,
-           EmployeeTypeName = empType != null ? empType.TypeName : null,
-           DepartmentName = department != null ? department.DepartmentName : null,
-
-           EmployeeImagePath = image != null ? image.FilePath : null,
-           HasImagePicUploaded =
-               (image != null && image.IsPrimary == true && image.HasImageUploaded == true)
-       };
-                // 🔹 FILTERS
+                // -----------------------------------
+                // 2️⃣ FILTERS (Optimized)
+                // -----------------------------------
                 if (dto.Id_long > 0)
-                    query = query.Where(x => x.emp.Id == dto.Id_long);
+                    baseQuery = baseQuery.Where(x => x.emp.Id == dto.Id_long);
 
                 if (!string.IsNullOrWhiteSpace(dto.EmailId))
-                    query = query.Where(x => x.emp.OfficialEmail == dto.EmailId);
+                    baseQuery = baseQuery.Where(x => x.emp.OfficialEmail == dto.EmailId.Trim());
 
-                if (dto._DepartmentId >0 )
-                        query = query.Where(x => x.emp.DepartmentId == dto._DepartmentId);
+                if (dto._DepartmentId > 0)
+                    baseQuery = baseQuery.Where(x => x.emp.DepartmentId == dto._DepartmentId);
 
                 if (dto._DesignationId > 0)
-                    query = query.Where(x => x.emp.DepartmentId == dto._DepartmentId);
+                    baseQuery = baseQuery.Where(x => x.emp.DesignationId == dto._DesignationId);
 
                 if (dto._EmployeeTypeId > 0)
-                    query = query.Where(x => x.emp.EmployeeTypeId == dto._EmployeeTypeId);
-              
+                    baseQuery = baseQuery.Where(x => x.emp.EmployeeTypeId == dto._EmployeeTypeId);
+
                 if (dto._GenderId > 0)
-                    query = query.Where(x => x.emp.GenderId == dto._GenderId);
-
-
-                if (!string.IsNullOrWhiteSpace(dto.EmployementCode))
-                    query = query.Where(x => x.emp.EmployementCode.Contains(dto.EmployementCode));
+                    baseQuery = baseQuery.Where(x => x.emp.GenderId == dto._GenderId);
 
                 if (!string.IsNullOrWhiteSpace(dto.FirstName))
-                    query = query.Where(x => x.emp.FirstName.Contains(dto.FirstName));
+                    baseQuery = baseQuery.Where(x => x.emp.FirstName.Contains(dto.FirstName));
 
                 if (!string.IsNullOrWhiteSpace(dto.LastName))
-                    query = query.Where(x => x.emp.LastName.Contains(dto.LastName));
+                    baseQuery = baseQuery.Where(x => x.emp.LastName.Contains(dto.LastName));
 
-                if (dto.IsMarried.HasValue)
-                {
-                    bool married = dto.IsMarried.Value;
+                if (!string.IsNullOrWhiteSpace(dto.EmployementCode))
+                    baseQuery = baseQuery.Where(x => x.emp.EmployementCode.Contains(dto.EmployementCode));
 
-                    query = query.Where(x =>
-                        context.EmployeeDependents.Any(dep =>
-                            dep.EmployeeId == x.emp.Id && dep.IsMarried == married));
-                }
-             
-                
+                int totalCount = await baseQuery.CountAsync();
 
-                // 🔹 SORTING
-                bool isAsc = string.Equals(dto.SortOrder, "asc", StringComparison.OrdinalIgnoreCase);
-
-                query = dto.SortBy?.ToLower() switch
-                {
-                    "firstname" => isAsc ? query.OrderBy(x => x.emp.FirstName ?? "")
-                                         : query.OrderByDescending(x => x.emp.FirstName ?? ""),
-
-                    "lastname" => isAsc ? query.OrderBy(x => x.emp.LastName ?? "")
-                                        : query.OrderByDescending(x => x.emp.LastName ?? ""),
-
-
-
-                    _ => isAsc ? query.OrderBy(x => x.emp.Id)
-                               : query.OrderByDescending(x => x.emp.Id)
-                };
-
-                int totalCount = await query.CountAsync();
-
-                // 🔹 FINAL DTO SELECT
-                var records = await query
+                // -----------------------------------
+                // 3️⃣ PAGING
+                // -----------------------------------
+                var pagedEmployees = await baseQuery
+                    .OrderBy(x => x.emp.Id)
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
-                    .Select(x => new GetAllEmployeeInfoResponseDTO
+                    .ToListAsync();
+
+                // -----------------------------------
+                // 4️⃣ FETCH IMAGES (Optimized with Dictionary)
+                // -----------------------------------
+                var ids = pagedEmployees.Select(x => x.emp.Id).ToList();
+
+                var images = await context.EmployeeImages
+                    .Where(i => ids.Contains(i.EmployeeId) && i.IsSoftDeleted != true)
+                    .OrderByDescending(i => i.IsPrimary)
+                    .ThenByDescending(i => i.HasImageUploaded)
+                    .ThenByDescending(i => i.Id)
+                    .ToListAsync();
+
+                var imgLookup = images.GroupBy(i => i.EmployeeId)
+                                      .ToDictionary(g => g.Key, g => g.FirstOrDefault());
+
+                var hasPrimaryLookup = images.Where(i => i.IsPrimary == true)
+                                             .Select(i => i.EmployeeId)
+                                             .ToHashSet();
+
+                // -----------------------------------
+                // 5️⃣ BUILD OUTPUT (Optimized)
+                // -----------------------------------
+                var result = pagedEmployees.Select(x =>
+                {
+                    imgLookup.TryGetValue(x.emp.Id, out var img);
+
+                    bool hasPrimary = hasPrimaryLookup.Contains(x.emp.Id);
+
+                    int completed = new[]
+                    {
+                string.IsNullOrEmpty(x.emp.FirstName) ? 0 : 1,
+                string.IsNullOrEmpty(x.emp.LastName) ? 0 : 1,
+                x.emp.DateOfOnBoarding == null ? 0 : 1,
+                x.emp.DesignationId > 0 ? 1 : 0,
+                x.emp.DepartmentId > 0 ? 1 : 0,
+                string.IsNullOrEmpty(x.emp.OfficialEmail) ? 0 : 1,
+                x.emp.IsActive == true ? 1 : 0,
+                x.emp.IsEditAllowed == true ? 1 : 0,
+                x.emp.IsInfoVerified == true ? 1 : 0,
+                hasPrimary ? 1 : 0
+            }.Sum();
+
+                    return new GetAllEmployeeInfoResponseDTO
                     {
                         EmployeeId = x.emp.Id.ToString(),
                         EmployementCode = x.emp.EmployementCode,
                         FirstName = x.emp.FirstName,
                         LastName = x.emp.LastName,
-                        DateOfOnBoarding = x.emp.DateOfOnBoarding.ToString(),
+                        DateOfOnBoarding = x.emp.DateOfOnBoarding?.ToString(),
 
-                        // 🔹 Added IDs
                         GenderId = x.emp.GenderId.ToString(),
                         EmployeeTypeId = x.emp.EmployeeTypeId.ToString(),
                         DesignationId = x.emp.DesignationId.ToString(),
                         DepartmentId = x.emp.DepartmentId.ToString(),
 
-                        // Already existing names
                         GenderName = x.GenderName,
                         EmployeeTypeName = x.EmployeeTypeName,
                         DesignationName = x.DesignationName,
                         DepartmentName = x.DepartmentName,
+
                         OfficialEmail = x.emp.OfficialEmail,
-                        //EmployeeImagePath = x.EmployeeImagePath,
-                        //HasImagePicUploaded = x.HasImagePicUploaded,
-                        EmployeeImagePath = context.EmployeeImages
-                        .Where(i => i.EmployeeId == x.emp.Id
-                          && i.IsSoftDeleted != true
-                             && i.IsPrimary == true)
-                             .Select(i => i.FilePath)
-                           .FirstOrDefault(),
 
-                          HasImagePicUploaded = context.EmployeeImages
-                         .Any(i => i.EmployeeId == x.emp.Id
-                            && i.IsSoftDeleted != true
-                            && i.IsPrimary == true),
+                        EmployeeImagePath = img?.FilePath,
+                        HasImagePicUploaded = hasPrimary,
 
-                        CompletionPercentage = (
-                             new int[]
-                                {
-                               string.IsNullOrEmpty(x.emp.FirstName) ? 0 : 1,
-                               string.IsNullOrEmpty(x.emp.LastName) ? 0 : 1,
-                               x.emp.DateOfOnBoarding == null ? 0 : 1,
-                               x.emp.DesignationId > 0 ? 1 : 0,
-                               x.emp.DepartmentId > 0 ? 1 : 0,
-                              string.IsNullOrEmpty(x.emp.OfficialEmail) ? 0 : 1,
-                            x.emp.IsActive == true ? 1 : 0,
-                             x.emp.IsEditAllowed == true ? 1 : 0,
-                                  x.emp.IsInfoVerified == true ? 1 : 0,
-                                     // ⭐ Correct: if NO PRIMARY = incomplete
-                                       context.EmployeeImages.Any(i => i.EmployeeId == x.emp.Id
-                                     && i.IsSoftDeleted != true
-                                    && i.IsPrimary == true) ? 1 : 0
-                               }.Sum()
-                                       / 10.0
-                          ) * 100
+                        CompletionPercentage = (completed / 10.0) * 100
+                    };
+                }).ToList();
 
-                    })
-                    .ToListAsync();
-
-                 
-                // 🧩 Final paged response
                 return new PagedResponseDTO<GetAllEmployeeInfoResponseDTO>
                 {
-                    Items = records,  
+                    Items = result,
                     TotalCount = totalCount,
                     PageNumber = pageNumber,
                     PageSize = pageSize,
-                    TotalPages = (int)Math.Ceiling((double)totalCount / pageSize),
-
+                    TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
                 };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error occurred while fetching base employee info.");
-                throw new Exception($"Failed to fetch base employee info: {ex.Message}");
+                _logger.LogError(ex, "FAILED in GetAllInfo");
+
+                return new PagedResponseDTO<GetAllEmployeeInfoResponseDTO>
+                {
+                    Items = new List<GetAllEmployeeInfoResponseDTO>(),
+                    TotalCount = 0,
+                    PageNumber = dto.PageNumber,
+                    PageSize = dto.PageSize,
+                    TotalPages = 0
+                };
             }
         }
+
+
+        //public async Task<PagedResponseDTO<GetAllEmployeeInfoResponseDTO>> GetAllInfo(GetAllEmployeeInfoRequestDTO dto,
+        //        long decryptedTenantId)
+        // {
+        //    await using var context = await _contextFactory.CreateDbContextAsync();
+        //    try
+        //    {
+        //        int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
+        //        int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
+
+        //        // -----------------------------------
+        //        // 1️⃣ BASE QUERY
+        //        // -----------------------------------
+        //        var baseQuery =
+        //            from emp in context.Employees.AsNoTracking()
+        //            where emp.TenantId == decryptedTenantId && emp.IsSoftDeleted != true
+
+        //            join g in context.Genders on emp.GenderId equals g.Id into genderJoin
+        //            from gender in genderJoin.DefaultIfEmpty()
+
+        //            join d in context.Designations on emp.DesignationId equals d.Id into desigJoin
+        //            from designation in desigJoin.DefaultIfEmpty()
+
+        //            join et in context.EmployeeTypes on emp.EmployeeTypeId equals et.Id into typeJoin
+        //            from empType in typeJoin.DefaultIfEmpty()
+
+        //            join dep in context.Departments on emp.DepartmentId equals dep.Id into deptJoin
+        //            from department in deptJoin.DefaultIfEmpty()
+
+
+        //        select new
+        //            {
+        //                emp,
+        //                GenderName = gender.GenderName ?? "",
+        //                DesignationName = designation.DesignationName ?? "",
+        //                EmployeeTypeName = empType.TypeName ?? "",
+        //                DepartmentName = department.DepartmentName ?? ""
+        //            };
+
+        //        // -----------------------------------
+        //        // 2️⃣ FILTERS
+        //        // -----------------------------------
+        //        if (dto.Id_long > 0)
+        //            baseQuery = baseQuery.Where(x => x.emp.Id == dto.Id_long);
+
+        //        if (!string.IsNullOrWhiteSpace(dto.EmailId))
+        //            baseQuery = baseQuery.Where(x => x.emp.OfficialEmail == dto.EmailId);
+
+        //        if (dto._DepartmentId > 0)
+        //            baseQuery = baseQuery.Where(x => x.emp.DepartmentId == dto._DepartmentId);
+
+        //        if (dto._DesignationId > 0)
+        //            baseQuery = baseQuery.Where(x => x.emp.DesignationId == dto._DesignationId);
+
+        //        if (dto._EmployeeTypeId > 0)
+        //            baseQuery = baseQuery.Where(x => x.emp.EmployeeTypeId == dto._EmployeeTypeId);
+
+        //        if (dto._GenderId > 0)
+        //            baseQuery = baseQuery.Where(x => x.emp.GenderId == dto._GenderId);
+
+        //        if (!string.IsNullOrWhiteSpace(dto.FirstName))
+        //            baseQuery = baseQuery.Where(x => x.emp.FirstName.Contains(dto.FirstName));
+
+        //        if (!string.IsNullOrWhiteSpace(dto.LastName))
+        //            baseQuery = baseQuery.Where(x => x.emp.LastName.Contains(dto.LastName));
+
+        //        if (!string.IsNullOrWhiteSpace(dto.EmployementCode))
+        //            baseQuery = baseQuery.Where(x => x.emp.EmployementCode.Contains(dto.EmployementCode));
+
+        //        if (!string.IsNullOrWhiteSpace(dto.EmployeeTypeId))
+        //            baseQuery = baseQuery.Where(x => x.emp.EmployementCode.Contains(dto.EmployementCode));
+
+
+        //        int totalCount = await baseQuery.CountAsync();
+
+        //        // -----------------------------------
+        //        // 3️⃣ PAGING
+        //        // -----------------------------------
+        //        var pagedEmployees = await baseQuery
+        //            .OrderBy(x => x.emp.Id)
+        //            .Skip((pageNumber - 1) * pageSize)
+        //            .Take(pageSize)
+        //            .ToListAsync();
+
+        //        // -----------------------------------
+        //        // 4️⃣ FETCH IMAGES
+        //        // -----------------------------------
+        //        var ids = pagedEmployees.Select(x => x.emp.Id).ToList();
+
+        //        var images = await context.EmployeeImages
+        //            .Where(i => ids.Contains(i.EmployeeId) && i.IsSoftDeleted != true)
+        //            .ToListAsync();
+
+        //        // -----------------------------------
+        //        // 5️⃣ BUILD OUTPUT
+        //        // -----------------------------------
+        //        var result = pagedEmployees.Select(x =>
+        //        {
+        //            var img = images
+        //                .Where(i => i.EmployeeId == x.emp.Id)
+        //                .OrderByDescending(i => i.IsPrimary)
+        //                .ThenByDescending(i => i.HasImageUploaded)
+        //                .ThenByDescending(i => i.Id)
+        //                .FirstOrDefault();
+
+        //            bool hasPrimary = images.Any(i =>
+        //                i.EmployeeId == x.emp.Id &&
+        //                i.IsPrimary == true &&
+        //                i.IsSoftDeleted != true);
+
+        //            int completed = new[]
+        //            {
+        //        string.IsNullOrEmpty(x.emp.FirstName) ? 0 : 1,
+        //        string.IsNullOrEmpty(x.emp.LastName) ? 0 : 1,
+        //        x.emp.DateOfOnBoarding == null ? 0 : 1,
+        //        x.emp.DesignationId > 0 ? 1 : 0,
+        //        x.emp.DepartmentId > 0 ? 1 : 0,
+        //        string.IsNullOrEmpty(x.emp.OfficialEmail) ? 0 : 1,
+        //        x.emp.IsActive == true ? 1 : 0,
+        //        x.emp.IsEditAllowed == true ? 1 : 0,
+        //        x.emp.IsInfoVerified == true ? 1 : 0,
+        //        hasPrimary ? 1 : 0
+        //    }.Sum();
+
+        //            return new GetAllEmployeeInfoResponseDTO
+        //            {
+        //                EmployeeId = x.emp.Id.ToString(),
+        //                EmployementCode = x.emp.EmployementCode,
+        //                FirstName = x.emp.FirstName,
+        //                LastName = x.emp.LastName,
+        //                DateOfOnBoarding = x.emp.DateOfOnBoarding?.ToString(),
+
+
+        //                GenderId = x.emp.GenderId.ToString(),
+        //                EmployeeTypeId = x.emp.EmployeeTypeId.ToString(),
+
+        //                DesignationId = x.emp.DesignationId.ToString(),
+        //                DepartmentId = x.emp.DepartmentId.ToString(),
+
+        //                GenderName = x.GenderName,
+        //                EmployeeTypeName = x.EmployeeTypeName,
+        //                DesignationName = x.DesignationName,
+        //                DepartmentName = x.DepartmentName,
+        //                OfficialEmail = x.emp.OfficialEmail,
+
+
+        //                EmployeeImagePath = img?.FilePath,
+        //                HasImagePicUploaded = hasPrimary,
+
+        //                CompletionPercentage = (completed / 10.0) * 100
+        //            };
+        //        }).ToList();
+
+        //        return new PagedResponseDTO<GetAllEmployeeInfoResponseDTO>
+        //        {
+        //            Items = result,
+        //            TotalCount = totalCount,
+        //            PageNumber = pageNumber,
+        //            PageSize = pageSize,
+        //            TotalPages = (int)Math.Ceiling((double)totalCount / pageSize),
+
+
+        //        };
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "FAILED in GetAllInfo");
+
+        //        return new PagedResponseDTO<GetAllEmployeeInfoResponseDTO>
+        //        {
+        //            Items = new List<GetAllEmployeeInfoResponseDTO>(),
+        //            TotalCount = 0,
+        //            PageNumber = dto.PageNumber,
+        //            PageSize = dto.PageSize,
+        //            TotalPages = 0,
+        //              // ⭐ ALWAYS RETURNS VALID ERROR
+        //        };
+        //    }
+        //}
 
 
         public async Task<GetMinimalEmployeeResponseDTO> GetSingleRecordAsync(long id, bool isActive)

@@ -115,10 +115,21 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
                 request.DTO._UserEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
                 long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
+               
+                request.DTO.EmployeeTypeId = EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeTypeId);
+                request.DTO._EmployeeTypeId =SafeParser.TryParseInt(request.DTO.EmployeeTypeId);
+
+                request.DTO.DepartmentId = EncryptionSanitizer.CleanEncodedInput(request.DTO.DepartmentId);
+                request.DTO._DepartmentId = SafeParser.TryParseInt(request.DTO.DepartmentId);
+
+                request.DTO.DesignationId = EncryptionSanitizer.CleanEncodedInput(request.DTO.DesignationId);
+                request.DTO._DesignationId = SafeParser.TryParseInt(request.DTO._DesignationId);
+
+                request.DTO.GenderId = EncryptionSanitizer.CleanEncodedInput(request.DTO.GenderId);
+                request.DTO._GenderId = SafeParser.TryParseInt(request.DTO.GenderId);
+
                 request.DTO.Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
                 request.DTO.Id_long = _idEncoderService.DecodeId(request.DTO.Id, finalKey);
-
-
                 request.DTO.SortOrder = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortOrder);
                 request.DTO.SortBy = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortBy);
 

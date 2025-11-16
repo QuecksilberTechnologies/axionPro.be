@@ -12,7 +12,7 @@ public partial class EmployeeImage
     public string? FilePath { get; set; }
     public string? FileName { get; set; }
 
-    public long? EmployeeId { get; set; }
+    public long EmployeeId { get; set; }
 
     public bool IsActive { get; set; }
 
