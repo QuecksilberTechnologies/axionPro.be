@@ -172,9 +172,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 // 📁 Final Image URL build
                 if (!string.IsNullOrEmpty(item.EmployeeImagePath))
                     item.EmployeeImagePath = $"{baseUrl}{item.EmployeeImagePath}";
-                else
-                    item.EmployeeImagePath = $"{baseUrl}{defaultImg}";
-
+              
                 item.EmployementCode ??= string.Empty;
                 item.FirstName ??= string.Empty;
                 item.LastName ??= string.Empty;
@@ -435,8 +433,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 // 📁 Final Image URL build
                 if (!string.IsNullOrEmpty(item.FilePath))
                     item.FilePath = $"{baseUrl}{item.FilePath}";
-                else
-                    item.FilePath = $"{baseUrl}{defaultImg}";
+               
 
                 // These are already same — keeping for clarity
                 item.IsPrimary = item.IsPrimary;
