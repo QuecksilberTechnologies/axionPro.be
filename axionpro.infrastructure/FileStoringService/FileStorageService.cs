@@ -39,9 +39,10 @@ namespace axionpro.infrastructure.FileStoringService
    
 
         private string RootFolder => _config["FileSettings:RootFolder"] ?? string.Empty;
-        private string BaseUrl => _config["FileSettings:BaseUrl"] ?? string.Empty;
+        
         private string TenantFolder => _config["FileSettings:TenantFolder"] ?? string.Empty;
         private string DefaultFolder => _config["FileSettings:DefaultFolder"] ?? string.Empty;
+        private string BaseUrl => _config["FileSettings:BaseUrl"] ?? string.Empty;
         private string DefaultImage => _config["FileSettings:DefaultImage"] ?? string.Empty;
 
         public string GetTenantFolderPath(string tenantId, string subFolder)

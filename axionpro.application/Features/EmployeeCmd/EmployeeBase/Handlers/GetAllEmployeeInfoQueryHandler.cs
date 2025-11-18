@@ -164,7 +164,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     return ApiResponse<List<GetAllEmployeeInfoResponseDTO>>.Fail("No Base Employee info found.");
                 }
 
-                var resultList = ProjectionHelper.ToGetAllEmployeeInfoResponseDTOs(responseDTO, _idEncoderService, tenantKey);
+                var resultList = ProjectionHelper.ToGetAllEmployeeInfoResponseDTOs(responseDTO, _idEncoderService, tenantKey, _config);
 
                 return ApiResponse<List<GetAllEmployeeInfoResponseDTO>>.SuccessPaginatedPercentage(
                     data: resultList,

@@ -13,6 +13,7 @@ using axionpro.application.DTOS.Employee.Sensitive;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.domain.Entity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Win32.SafeHandles;
 using System;
 using System.Collections.Generic;
@@ -83,50 +84,36 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         /// Prevents double encryption by detecting pre-encrypted strings.
         /// </summary>
 
-        public static List<GetExperienceResponseDTO> ToGetExperienceResponseDTOs(List<GetExperienceResponseDTO> entities, IEncryptionService encryptionService, string tenantKey, string encryptedEmployeeId)
-        {
-            if (entities == null || entities.Count == 0)
-                return new List<GetExperienceResponseDTO>();
+        //public static List<GetExperienceResponseDTO> ToGetExperienceResponseDTOs(List<GetExperienceResponseDTO> entities, IEncryptionService encryptionService, string tenantKey, string encryptedEmployeeId)
+        //{
+        //    if (entities == null || entities.Count == 0)
+        //        return new List<GetExperienceResponseDTO>();
 
-            return entities.Select(e => new GetExperienceResponseDTO
-            {
-                Id = SafeEncrypt(e.UserEmployeeId, encryptionService, tenantKey),
-                EmployeeId = encryptedEmployeeId,
-                CompanyName = e.CompanyName ?? string.Empty,
-                JobTitle = e.JobTitle ?? string.Empty,
-                StartDate = e.StartDate,
-                EndDate = e.EndDate,
-                ReasonForLeaving = e.ReasonForLeaving ?? string.Empty,
-                Remark = e.Remark ?? string.Empty,
-                ExperienceTypeId = e.ExperienceTypeId,
-                Location = e.Location ?? string.Empty,
-                CTC = e.CTC,
-                ReportingManagerName = e.ReportingManagerName ?? string.Empty,
-                ReportingManagerNumber = e.ReportingManagerNumber ?? string.Empty,
-                ReportingManagerEmail = e.ReportingManagerEmail ?? string.Empty,
-                WorkedWithName = e.WorkedWithName ?? string.Empty,
-                WorkedWithContactNumber = e.WorkedWithContactNumber ?? string.Empty,
-                WorkedWithDesignation = e.WorkedWithDesignation ?? string.Empty,
-                ExperienceLetterPath = e.ExperienceLetterPath ?? string.Empty,
-                Comment = e.Comment ?? string.Empty,
-                AddedById = SafeEncrypt(e.AddedById, encryptionService, tenantKey),
-                AddedDateTime = e.AddedDateTime,
-                UpdatedById = SafeEncrypt(e.UpdatedById, encryptionService, tenantKey),
-                UpdatedDateTime = e.UpdatedDateTime,
-                DeletedDateTime = e.DeletedDateTime,
-                IsExperienceVerified = e.IsExperienceVerified,
-                ExperienceVerificationBy = SafeEncrypt(e.ExperienceVerificationBy, encryptionService, tenantKey),
-                ExperienceVerificationDateTime = e.ExperienceVerificationDateTime,
-                IsExperienceVerifiedByMail = e.IsExperienceVerifiedByMail,
-                IsExperienceVerifiedByCall = e.IsExperienceVerifiedByCall,
-                InfoVerifiedById = SafeEncrypt(e.InfoVerifiedById, encryptionService, tenantKey),
-                IsInfoVerified = e.IsInfoVerified,
-                InfoVerifiedDateTime = e.InfoVerifiedDateTime,
-                IsActive = e.IsActive,
-                IsEditAllowed = e.IsEditAllowed,
-                IsSoftDeleted = e.IsSoftDeleted
-            }).ToList();
-        }
+        //    return entities.Select(e => new GetExperienceResponseDTO
+        //    {
+        //        Id = SafeEncrypt(e.UserEmployeeId, encryptionService, tenantKey),
+        //        EmployeeId = encryptedEmployeeId,
+        //        CompanyName = e.CompanyName ?? string.Empty,
+        //        JobTitle = e.JobTitle ?? string.Empty,
+        //        StartDate = e.StartDate,
+        //        EndDate = e.EndDate,
+        //        ReasonForLeaving = e.ReasonForLeaving ?? string.Empty,
+        //        Remark = e.Remark ?? string.Empty,
+        //        ExperienceTypeId = e.ExperienceTypeId,
+        //        Location = e.Location ?? string.Empty,
+        //        CTC = e.CTC,
+        //        ReportingManagerName = e.ReportingManagerName ?? string.Empty,
+        //        ReportingManagerNumber = e.ReportingManagerNumber ?? string.Empty,
+        //        ReportingManagerEmail = e.ReportingManagerEmail ?? string.Empty,
+        //        WorkedWithName = e.WorkedWithName ?? string.Empty,
+        //        WorkedWithContactNumber = e.WorkedWithContactNumber ?? string.Empty,
+        //        WorkedWithDesignation = e.WorkedWithDesignation ?? string.Empty,
+        //        ExperienceLetterPath = e.ExperienceLetterPath ?? string.Empty,
+        //        Comment = e.Comment ?? string.Empty,
+        //        AddedById = SafeEncrypt(e.AddedById, encryptionService, tenantKey),
+          
+        //    }).ToList();
+        //}
 
         public static List<GetIdentityResponseDTO> ToGetIdentityResponseDTOs(
     List<GetIdentityResponseDTO> entities,
@@ -167,8 +154,10 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         public static List<GetAllEmployeeInfoResponseDTO> ToGetAllEmployeeInfoResponseDTOs(
      PagedResponseDTO<GetAllEmployeeInfoResponseDTO> entities,
       IIdEncoderService encoderService,
-      string tenantKey)
+      string tenantKey, IConfiguration configuration)
         {
+            string baseUrl = configuration["FileSettings:BaseUrl"] ?? string.Empty;
+            string defaultImg = configuration["FileSettings:DefaultImage"] ?? string.Empty;
             if (entities == null || !entities.Items.Any())
                 return new List<GetAllEmployeeInfoResponseDTO>();
 
@@ -178,13 +167,20 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 {
                     item.EmployeeId = encoderService.EncodeId(rawId, tenantKey);
                 }
+                item.EmployeeImagePath ??= string.Empty;
+
+                // 📁 Final Image URL build
+                if (!string.IsNullOrEmpty(item.EmployeeImagePath))
+                    item.EmployeeImagePath = $"{baseUrl}{item.EmployeeImagePath}";
+                else
+                    item.EmployeeImagePath = $"{baseUrl}{defaultImg}";
 
                 item.EmployementCode ??= string.Empty;
                 item.FirstName ??= string.Empty;
                 item.LastName ??= string.Empty;
                 item.MiddleName ??= string.Empty;
                 item.OfficialEmail ??= string.Empty;
-            }
+            } 
 
             return entities.Items;
         }
@@ -404,39 +400,49 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         //    }).ToList();
         //}
 
-      
-  public static List<GetEmployeeImageReponseDTO> ToGetEmployeeImageResponseDTOs(PagedResponseDTO<GetEmployeeImageReponseDTO> entities,
-            IIdEncoderService encoderService,
-                    string tenantKey)
+        public static List<GetEmployeeImageReponseDTO> ToGetEmployeeImageResponseDTOs(
+      PagedResponseDTO<GetEmployeeImageReponseDTO> entities,
+      IIdEncoderService encoderService,
+      string tenantKey,
+      IConfiguration configuration)
         {
             if (entities == null || entities.Items == null || !entities.Items.Any())
                 return new List<GetEmployeeImageReponseDTO>();
 
+            // 🔥 Base URL & Default Image — Correct Way
+            string baseUrl = configuration["FileSettings:BaseUrl"] ?? string.Empty;
+            string defaultImg = configuration["FileSettings:DefaultImage"] ?? string.Empty;
+
             var result = new List<GetEmployeeImageReponseDTO>();
 
-            foreach (var item in entities.Items) // now item is GetBankResponseDTO
+            foreach (var item in entities.Items)
             {
                 if (item == null) continue;
 
-                // ✅ Encode Bank Record Id
+                // 🔐 Encode Image Id
                 if (long.TryParse(item.Id, out long rawId) && rawId > 0)
-                {
                     item.Id = encoderService.EncodeId(rawId, tenantKey);
-                }
 
-                // ✅ Encode EmployeeId separately
+                // 🔐 Encode Employee Id
                 if (long.TryParse(item.EmployeeId, out long empRawId) && empRawId > 0)
-                {
                     item.EmployeeId = encoderService.EncodeId(empRawId, tenantKey);
-                }
 
-                // ✅ Optional cleanup (avoid nulls)
+                // 🧹 Null sanitization
                 item.Id ??= string.Empty;
                 item.EmployeeId ??= string.Empty;
                 item.FilePath ??= string.Empty;
+
+                // 📁 Final Image URL build
+                if (!string.IsNullOrEmpty(item.FilePath))
+                    item.FilePath = $"{baseUrl}{item.FilePath}";
+                else
+                    item.FilePath = $"{baseUrl}{defaultImg}";
+
+                // These are already same — keeping for clarity
                 item.IsPrimary = item.IsPrimary;
                 item.IsActive = item.IsActive;
                 item.CompletionPercentage = item.CompletionPercentage;
+
                 result.Add(item);
             }
 
@@ -444,7 +450,8 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         }
 
 
-       
+
+
 
     }
 

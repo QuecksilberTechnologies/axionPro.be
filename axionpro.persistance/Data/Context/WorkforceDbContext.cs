@@ -1169,7 +1169,7 @@ namespace axionpro.persistance.Data.Context
                     .HasColumnType("decimal(18, 2)")
                     .HasColumnName("CTC");
                 entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.HasEpfaccount).HasColumnName("HasEPFAccount");
+                entity.Property(e => e.HasEPFAccount).HasColumnName("HasEPFAccount");
                 entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
             });
 
@@ -1190,13 +1190,13 @@ namespace axionpro.persistance.Data.Context
                     .HasMaxLength(100)
                     .IsUnicode(false);
                 entity.Property(e => e.Designation).HasMaxLength(50);
-                entity.Property(e => e.EmployeeCompanyCountryName)
+                entity.Property(e => e.WorkingCountryId)
                     .HasMaxLength(100)
                     .IsUnicode(false);
-                entity.Property(e => e.EmployeeCompanyDistrict)
+                entity.Property(e => e.WorkingDistrictId)
                     .HasMaxLength(100)
                     .IsUnicode(false);
-                entity.Property(e => e.EmployeeCompanyState)
+                entity.Property(e => e.WorkingStateId)
                     .HasMaxLength(100)
                     .IsUnicode(false);
                 entity.Property(e => e.EmployeeIdOfCompany)
@@ -1210,10 +1210,10 @@ namespace axionpro.persistance.Data.Context
                     .IsUnicode(false);
                 entity.Property(e => e.BankStatementDocPath).HasMaxLength(500);
 
-                entity.Property(e => e.Form50DocFilePath).HasMaxLength(500);
+                entity.Property(e => e.TaxationDocFilePath).HasMaxLength(500);
                 entity.Property(e => e.ExperienceLetterDocPath).HasMaxLength(500);
-                entity.Property(e => e.Form50DocFilePath).HasMaxLength(500);
-                entity.Property(e => e.Form50DocName)
+                entity.Property(e => e.TaxationDocFilePath).HasMaxLength(500);
+                entity.Property(e => e.TaxationDocFileName)
                     .HasMaxLength(100)
                     .IsUnicode(false);
                 entity.Property(e => e.GapCertificateDocName)
@@ -1221,7 +1221,7 @@ namespace axionpro.persistance.Data.Context
                     .IsUnicode(false);
                 entity.Property(e => e.GapCertificateDocPath).HasMaxLength(500);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsWfh).HasColumnName("IsWFH");
+                entity.Property(e => e.IsWFH).HasColumnName("IsWFH");
                 entity.Property(e => e.JoiningLetterDocName)
                     .HasMaxLength(100)
                     .IsUnicode(false);
@@ -1236,6 +1236,34 @@ namespace axionpro.persistance.Data.Context
                     .HasMaxLength(15)
                     .IsUnicode(false);
                 entity.Property(e => e.VerificationEmail).HasMaxLength(50);
+                entity.Property(e => e.TaxationDocFileName)
+               .HasMaxLength(100)
+               .IsUnicode(false);
+                entity.Property(e => e.TaxationDocFilePath).HasMaxLength(500);
+                entity.Property(e => e.VerificationEmail).HasMaxLength(50);
+                entity.Property(e => e.VisaDocName)
+                    .HasMaxLength(200)
+                    .IsUnicode(false);
+                entity.Property(e => e.VisaDocPath)
+                    .HasMaxLength(500)
+                    .IsUnicode(false);
+                entity.Property(e => e.VisaType)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+                entity.Property(e => e.WorkPermitDocName)
+                    .HasMaxLength(200)
+                    .IsUnicode(false);
+                entity.Property(e => e.WorkPermitDocPath)
+                    .HasMaxLength(500)
+                    .IsUnicode(false);
+                entity.Property(e => e.WorkPermitNumber)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.HasOne(d => d.EmployeeExperience).WithMany(p => p.EmployeeExperienceDetails)
+               .HasForeignKey(d => d.EmployeeExperienceId)
+               .OnDelete(DeleteBehavior.Cascade)
+               .HasConstraintName("FK_ExperienceDetail_Experience");
 
                 entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeExperienceDetails)
                     .HasForeignKey(d => d.EmployeeId)

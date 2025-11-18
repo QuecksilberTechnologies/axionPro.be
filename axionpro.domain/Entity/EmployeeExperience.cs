@@ -24,10 +24,13 @@ public partial class EmployeeExperience
     public long? SoftDeletedById { get; set; }
 
     public DateTime? DeletedDateTime { get; set; }
-
     public bool? IsEditAllowed { get; set; }
+   
+    public bool IsFresher { get; set; }
 
     public bool? IsActive { get; set; }
 
-    public bool? HasEpfaccount { get; set; }
+    public bool? HasEPFAccount { get; set; }
+    public virtual ICollection<EmployeeExperienceDetail> EmployeeExperienceDetails { get; set; } = new List<EmployeeExperienceDetail>();
+
 }

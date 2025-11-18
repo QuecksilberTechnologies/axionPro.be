@@ -8,44 +8,90 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.DTOS.Employee.Experience
 {
-    public class GetExperienceResponseDTO: BaseRequest
+ 
+
+
+    public class GetExperienceResponseDTO
     {
-     
-        public string EmployeeId { get; set; } = string.Empty;
+        public string ExperienceId { get; set; }           // encrypted
+        public string EmployeeId { get; set; }             // encrypted
+        public string Ctc { get; set; }
+        public string Comment { get; set; }
+        public bool IsFresher { get; set; }
+        public bool IsGap { get; set; }
+        public bool IsActive { get; set; }
+        public DateTime? AddedDateTime { get; set; }
+
+        public List<GetExperienceDetailDTO> Details { get; set; } = new();
+    }
+    public class GetExperienceDetailDTO
+    {
+        public string? DetailId { get; set; }
+        public string? ExperienceId { get; set; }
+        public string? EmployeeId { get; set; }
+
+        // GAP
+        public bool IsAnyGap { get; set; }
+        public string? ReasonOfGap { get; set; }
+        public string? GapYearFrom { get; set; }
+        public string? GapYearTo { get; set; }
+        public string? GapCertificateDocName { get; set; }
+        public string? GapCertificateDocPath { get; set; }
+
+        // EXPERIENCE
         public string? CompanyName { get; set; }
-        public string? JobTitle { get; set; }
-        public DateTime? StartDate { get; set; }
-        public DateTime? EndDate { get; set; }
-        public string? ReasonForLeaving { get; set; }
-        public string? Remark { get; set; }
-        public bool? IsExperienceVerified { get; set; }
-        public string? ExperienceVerificationBy { get; set; }
-        public bool? IsSoftDeleted { get; set; }
-        public int? ExperienceTypeId { get; set; }
-        public string? Location { get; set; }
-        public decimal? CTC { get; set; }
+        public int? Experience { get; set; }
+        public bool? IsWFH { get; set; }
+        public string? WorkingCountryId { get; set; }
+        public string? WorkingStateId { get; set; }
+        public string? WorkingDistrictId { get; set; }
+
+        public string? EmployeeIdOfCompany { get; set; }
+
+        public string? ColleagueName { get; set; }
+        public string? ColleagueDesignation { get; set; }
+        public string? ColleagueContactNumber { get; set; }
         public string? ReportingManagerName { get; set; }
         public string? ReportingManagerNumber { get; set; }
-        public string? ReportingManagerEmail { get; set; }
-        public string? WorkedWithName { get; set; }
-        public string? WorkedWithContactNumber { get; set; }
-        public string? WorkedWithDesignation { get; set; }
-        public string? ExperienceLetterPath { get; set; }
-        public string? Comment { get; set; }
-        public string? AddedById { get; set; }
+        public string? VerificationEmail { get; set; }
+        public string? ReasonForLeaving { get; set; }
+        public string? Remark { get; set; }
+        public string? Designation { get; set; }
+
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+
+        // DOCS
+        public string? TaxationDocName { get; set; }
+        public string? TaxationDocFilePath { get; set; }
+        public string? ExperienceLetterDocName { get; set; }
+        public string? ExperienceLetterDocPath { get; set; }
+        public string? JoiningLetterDocName { get; set; }
+        public string? JoiningLetterDocPath { get; set; }
+        public string? BankStatementDocName { get; set; }
+        public string? BankStatementDocPath { get; set; }
+
         public DateTime? AddedDateTime { get; set; }
-        public string? UpdatedById { get; set; }
-        public DateTime? UpdatedDateTime { get; set; }
-      
-        public DateTime? DeletedDateTime { get; set; }
-        public bool? IsExperienceVerifiedByMail { get; set; }
-        public bool? IsExperienceVerifiedByCall { get; set; }
-        public string? InfoVerifiedById { get; set; }
-        public bool? IsInfoVerified { get; set; }
-        public DateTime? InfoVerifiedDateTime { get; set; }
-        public DateTime? ExperienceVerificationDateTime { get; set; }
-        public bool? IsEditAllowed { get; set; }
-        public bool? IsActive { get; set; }
+
+        // PAYSLIPS
+        public List<GetExperiencePayslipDTO> Payslips { get; set; } = new();
+    }
+
+    public class GetExperiencePayslipDTO
+    {
+        public string? PayslipId { get; set; }
+        public string? EmployeeId { get; set; }
+
+        public int Month { get; set; }
+        public int Year { get; set; }
+
+        public string? PayslipDocName { get; set; }
+        public string? PayslipDocPath { get; set; }
+
+        public bool IsActive { get; set; }
+        public bool HasUploadedPayslip { get; set; }
+
+        public DateTime? AddedDateTime { get; set; }
     }
 
 

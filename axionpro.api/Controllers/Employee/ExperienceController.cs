@@ -28,37 +28,31 @@ namespace axionpro.api.Controllers.Employee
             _logger = logger;
         }
 
-        /// <summary>
-        /// Create new employee experience record.
-        /// </summary>
-      //  [HttpPost("create")]
-        //public async Task<IActionResult> CreateExperience([FromBody] CreateExperienceRequestDTO dto)
-        //{
-        //    try
-        //    {
-        //        var command = new CreateExperienceInfoCommand(dto);
-        //        _logger.LogInfo("📩 Creating new employee experience info...");
+        // <summary>
+        // Create new employee experience record.
+        // </summary>
+        [HttpPost("create")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> CreateExperience([FromForm] CreateExperienceRequestDTO dto)
+        {
+            _logger.LogInfo("Received Experience Create Request for Employee: " + dto.EmployeeId);
 
-        //      //  var result = await _mediator.Send(command);
+            var command = new CreateExperienceInfoCommand(dto);
 
-        //        if (!result.IsSucceeded)
-        //            return BadRequest(result);
+            var result = await _mediator.Send(command);
 
-        //        return Ok(result);
-        //    }
-        //    catch (Exception ex)
-        //    {
+            if (!result.IsSucceeded)
+                return BadRequest(result);
 
-        //        return StatusCode(500, ApiResponse<string>.Fail("Internal server error.", new List<string> { ex.Message }));
-        //    }
-        //}
+            return Ok(result);
+        }
 
         /// <summary>
         /// Get all experience records (Paginated).
         /// </summary>
-      //  [HttpPost("get")]
-    //    [ProducesResponseType(StatusCodes.Status200OK)]
-    //    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //  [HttpPost("get")]
+        //    [ProducesResponseType(StatusCodes.Status200OK)]
+        //    [ProducesResponseType(StatusCodes.Status400BadRequest)]
         //public async Task<IActionResult> GetAllexperinceInfo([FromBody] GetExperienceRequestDTO commandDto)
         //{
         //    try
@@ -108,6 +102,6 @@ namespace axionpro.api.Controllers.Employee
         //            new List<string> { ex.Message });
         //        return StatusCode(500, errorResponse);
         //    }
-     // }
+        // }
     }
 }

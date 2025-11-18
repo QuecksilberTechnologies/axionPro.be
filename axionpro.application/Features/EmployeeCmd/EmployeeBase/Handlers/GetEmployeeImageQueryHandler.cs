@@ -149,7 +149,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 }
 
                 // 🧩 STEP 8: Encrypt Ids and Map using ProjectionHelper (optimized)
-                var resultList = ProjectionHelper.ToGetEmployeeImageResponseDTOs(entityPaged, _idEncoderService, tenantKey);
+                var resultList = ProjectionHelper.ToGetEmployeeImageResponseDTOs(entityPaged, _idEncoderService, tenantKey,  _config);
 
                 // 🧩 STEP 9: Construct success response with pagination
                 return ApiResponse<List<GetEmployeeImageReponseDTO>>.SuccessPaginatedPercentageMarkPrimary(
