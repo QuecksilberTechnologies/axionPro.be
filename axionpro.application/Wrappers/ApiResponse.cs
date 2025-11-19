@@ -29,6 +29,7 @@ namespace axionpro.application.Wrappers
         public string Message { get; set; } = string.Empty;
         public List<string> Errors { get; set; } = new();
         public T Data { get; set; }
+        public T Sections { get; set; }
 
         // ✅ Pagination (optional)
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -74,6 +75,25 @@ namespace axionpro.application.Wrappers
             };
         }
 
+        public static ApiResponse<T> Response(T section, string message = "")
+        {
+            return new ApiResponse<T>
+            {
+                IsSucceeded = true,
+                Message = message,
+                Sections = section
+            };
+        }
+
+        public static ApiResponse<T> Fail(T section, string message = "")
+        {
+            return new ApiResponse<T>
+            {
+                IsSucceeded = false,
+                Message = message,
+                Sections = section
+            };
+        }
         // ✅ Success with Pagination
         public static ApiResponse<T> SuccessPaginated(
             T data,

@@ -126,102 +126,83 @@ namespace axionpro.api.Controllers.Employee
 
 
 
-        /// <summary>
-        /// Get all employees profile completion percentage (STATIC SAMPLE).
-        /// </summary>
         [HttpGet("get-all-percentage")]
-        [ProducesResponseType(typeof(ApiResponse<EmployeeCompletionResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<EmployeeCompletionResponseDTO>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse<EmployeeCompletionResponseDTO>), StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<List<CompletionSectionDTO>>), StatusCodes.Status200OK)]
         public IActionResult GetAllEmployeePercentage([FromQuery] string employeeId)
         {
             try
             {
                 _logger.LogInfo("Fetching all employees percentage (STATIC).");
 
-                // ✔ STATIC SAMPLE DATA
-                var sample = new EmployeeCompletionResponseDTO
-                {
-                 //   EmployeeId = long.TryParse(employeeId, out var id) ? id : 0,   // or set employeeId directly as string
-                    Sections = new List<CompletionSectionDTO>
+                var sections = new List<CompletionSectionDTO>
+        {
+            new CompletionSectionDTO
             {
-                         new CompletionSectionDTO
-                {
-                    SectionName = "Basic",
-                    CompletionPercent = 85,
-
-                    IsInfoVerified = true,
-                    IsEditAllowed = true,
-                     IsSectionCreate = true,
-                },
-                new CompletionSectionDTO
-                {
-                    SectionName = "Bank",
-                    CompletionPercent = 85,
-                    
-                    IsInfoVerified = true,
-                    IsEditAllowed = true,
-                     IsSectionCreate = true,
-                },
-                new CompletionSectionDTO
-                {
-                    SectionName = "Contact",
-                    CompletionPercent = 100,
-                   
-                    IsInfoVerified = true,
-                    IsEditAllowed = false,
-                     IsSectionCreate = true,
-                },
-                new CompletionSectionDTO
-                {
-                    SectionName = "Image",
-                    CompletionPercent = null,                    
-                    IsInfoVerified = null,
-                    IsEditAllowed = null,
-                    IsSectionCreate = false,
-                },
-                new CompletionSectionDTO
-                {
-                    SectionName = "Experience",
-                    CompletionPercent = 75,
-                   
-                    IsInfoVerified = false,
-                    IsEditAllowed = true
-                },
-                   new CompletionSectionDTO
-                {
-                    SectionName = "Insurance",
-                    CompletionPercent = 95,
-
-                    IsInfoVerified = true,
-                    IsEditAllowed = true,
-                     IsSectionCreate = true,
-                },
-                      new CompletionSectionDTO
-                {
-                    SectionName = "Identity",
-                    CompletionPercent = 80,
-
-                    IsInfoVerified = true,
-                    IsEditAllowed = true,
-                     IsSectionCreate = true,
-                },
-                              
-                   new CompletionSectionDTO
-                   {
-                    SectionName = "Education",
-                    CompletionPercent = 40,
-
-                    IsInfoVerified = true,
-                    IsEditAllowed = true,
-                     IsSectionCreate = true,
-                   }
+                SectionName = "Basic",
+                CompletionPercent = 85,
+                IsInfoVerified = true,
+                IsEditAllowed = true,
+                IsSectionCreate = true,
+            },
+            new CompletionSectionDTO
+            {
+                SectionName = "Bank",
+                CompletionPercent = 85,
+                IsInfoVerified = true,
+                IsEditAllowed = true,
+                IsSectionCreate = true,
+            },
+            new CompletionSectionDTO
+            {
+                SectionName = "Contact",
+                CompletionPercent = 100,
+                IsInfoVerified = true,
+                IsEditAllowed = false,
+                IsSectionCreate = true,
+            },
+            new CompletionSectionDTO
+            {
+                SectionName = "Image",
+                CompletionPercent = null,
+                IsInfoVerified = null,
+                IsEditAllowed = null,
+                IsSectionCreate = false,
+            },
+            new CompletionSectionDTO
+            {
+                SectionName = "Experience",
+                CompletionPercent = 75,
+                IsInfoVerified = false,
+                IsEditAllowed = true,
+            },
+            new CompletionSectionDTO
+            {
+                SectionName = "Insurance",
+                CompletionPercent = 95,
+                IsInfoVerified = true,
+                IsEditAllowed = true,
+                IsSectionCreate = true,
+            },
+            new CompletionSectionDTO
+            {
+                SectionName = "Identity",
+                CompletionPercent = 80,
+                IsInfoVerified = true,
+                IsEditAllowed = true,
+                IsSectionCreate = true,
+            },
+            new CompletionSectionDTO
+            {
+                SectionName = "Education",
+                CompletionPercent = 40,
+                IsInfoVerified = true,
+                IsEditAllowed = true,
+                IsSectionCreate = true,
             }
-                };
+        };
 
-                // ✔ Wrap inside ApiResponse
-                var response = ApiResponse<EmployeeCompletionResponseDTO>.Success(sample, "Fetched successfully");
+                // 🔥 Correct use of ApiResponse
+                var response = ApiResponse<List<CompletionSectionDTO>>.Response(sections, "Fetched successfully");
 
                 return Ok(response);
             }
@@ -229,7 +210,7 @@ namespace axionpro.api.Controllers.Employee
             {
                 _logger.LogError($"Error while returning static completion: {ex.Message}");
 
-                var errorResponse = ApiResponse<EmployeeCompletionResponseDTO>.Fail(
+                var errorResponse = ApiResponse<List<CompletionSectionDTO>>.Fail(
                     "Unexpected error occurred.",
                     new List<string> { ex.Message }
                 );
