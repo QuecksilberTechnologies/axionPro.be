@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using axionpro.application.DTOS.Employee.Bank;
+using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.DTOS.Pagination;
  
 using axionpro.application.Interfaces.IEncryptionService;
@@ -93,7 +94,7 @@ namespace axionpro.persistance.Repositories
                 throw new Exception($"Failed to create bank info: {ex.Message}");
             }
         }
-
+       
         public async Task<PagedResponseDTO<GetBankResponseDTO>> AddCreatedAsync(EmployeeBankDetail entity)
         {
             try
@@ -289,10 +290,6 @@ namespace axionpro.persistance.Repositories
         }
 
 
-
-
-
-
         public async Task<GetBankResponseDTO> GetSingleRecordAsync(int id, bool isActive)
         {
             try
@@ -335,5 +332,95 @@ namespace axionpro.persistance.Repositories
             }
         }
 
+        public async  Task<CompletionSectionDTO> GetBankCompletionPercentageAsync(long employeeId)
+        {
+            try
+            {
+                var record = await _context.EmployeeBankDetails
+                    .AsNoTracking()
+                    .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted !=true)
+                    .OrderByDescending(x => x.IsPrimaryAccount)
+                    .Select(x => new
+                    {
+                        x.BankName,
+                        x.AccountNumber,
+                        x.IFSCCode,
+                        x.BranchName,
+                        x.AccountType,
+                        x.IsPrimaryAccount,
+                        x.HasChequeDocUploaded,
+                        x.IsInfoVerified,
+                        x.IsEditAllowed
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (record == null)
+                {
+                    return new CompletionSectionDTO
+                    {
+                        SectionName = "Bank",
+                        CompletionPercent = 0,
+                       
+                        IsInfoVerified = false,
+                        IsEditAllowed = true
+                    };
+                }
+
+                double completion = CalculateBankPercentage(record);
+
+                return new CompletionSectionDTO
+                {
+                    SectionName = "Bank",
+                    CompletionPercent = completion,                   
+                    IsInfoVerified = record.IsInfoVerified,
+                    IsEditAllowed = record.IsEditAllowed
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calculating bank completion");
+                return new CompletionSectionDTO
+                {
+                    SectionName = "Bank",
+                    CompletionPercent = 0,
+                   
+                    IsInfoVerified = false,
+                    IsEditAllowed = true
+                };
+            }
+        }
+
+
+        private double CalculateBankPercentage(dynamic record)
+        {
+            var completion = Math.Round(
+            (
+                record.IsPrimaryAccount
+                ? (new[]
+                {
+            string.IsNullOrEmpty(record.BankName) ? 0 : 1,
+            string.IsNullOrEmpty(record.AccountNumber) ? 0 : 1,
+            string.IsNullOrEmpty(record.IFSCCode) ? 0 : 1,
+            string.IsNullOrEmpty(record.BranchName) ? 0 : 1,
+            string.IsNullOrEmpty(record.AccountType) ? 0 : 1,
+            record.HasChequeDocUploaded ? 1 : 0,
+            1
+                }).Sum() / 7.0
+                : (new[]
+                {
+            string.IsNullOrEmpty(record.BankName) ? 0 : 1,
+            string.IsNullOrEmpty(record.AccountNumber) ? 0 : 1,
+            string.IsNullOrEmpty(record.IFSCCode) ? 0 : 1,
+            string.IsNullOrEmpty(record.BranchName) ? 0 : 1,
+            string.IsNullOrEmpty(record.AccountType) ? 0 : 1,
+            1
+                }).Sum() / 6.0
+            ) * 100, 0);
+
+            return (float)completion;
+        }
+
+      
+        
     }
 }

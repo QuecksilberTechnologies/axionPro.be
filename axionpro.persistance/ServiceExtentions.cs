@@ -98,8 +98,9 @@ namespace axionpro.persistance
             services.AddScoped<IEmployeeDependentRepository, EmployeeDependentRepository>();
             services.AddScoped<IEmployeeLeaveRepository, EmployeeLeaveRepository>();
             services.AddScoped<TenantEncryptionKeyRepository, TenantEncryptionKeyRepository>();
-         
-           
+            services.AddScoped<IEmployeeCompletionRepository, EmployeeCompletionRepository>();
+
+
 
 
 

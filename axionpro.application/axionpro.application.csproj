@@ -30,6 +30,7 @@
   </ItemGroup>
 	 
 	<ItemGroup>
+    <Folder Include="Common\PercentageHelper\" />
     <Folder Include="DTOS\BasicMenu\" />
     <Folder Include="DTOS\Employee\Emplo\" />
     <Folder Include="DTOS\NewFolder1\" />

@@ -3,6 +3,7 @@
 using axionpro.application.DTOs.Employee.AccessResponse;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
+using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.DTOS.Employee.Contact;
  
  
@@ -24,7 +25,7 @@ public interface IEmployeeBankRepository
     public Task< PagedResponseDTO<GetBankResponseDTO>> CreateAsync(EmployeeBankDetail entity);  // Ensure this returns 
     public Task<GetBankResponseDTO> GetSingleRecordAsync(int Id ,bool IsActive);  // Ensure this returns    
     public  Task<PagedResponseDTO<GetBankResponseDTO>> GetInfoAsync(GetBankReqestDTO dto, int id, long EmployeeId);
-
+    public  Task<CompletionSectionDTO> GetBankCompletionPercentageAsync(long employeeId);
 
 
     #endregion

@@ -21,7 +21,6 @@ public partial class EmployeeBankDetail
     public string? AccountType { get; set; }
     public int FileType { get; set; }
 
-
     public string? UPIId { get; set; }
 
     public bool IsPrimaryAccount { get; set; }
@@ -44,11 +43,11 @@ public partial class EmployeeBankDetail
 
     public long? InfoVerifiedById { get; set; }
 
-    public bool? IsInfoVerified { get; set; }
+    public bool IsInfoVerified { get; set; }
 
     public DateTime? InfoVerifiedDateTime { get; set; }
 
-    public bool? IsEditAllowed { get; set; }
+    public bool IsEditAllowed { get; set; }
 
     public bool IsActive { get; set; }
 

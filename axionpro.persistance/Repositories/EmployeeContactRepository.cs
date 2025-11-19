@@ -113,6 +113,63 @@ namespace axionpro.persistance.Repositories
                 throw new Exception($"Failed to fetch single Contact record: {ex.Message}");
             }
         }
+        public async Task<float> GetContactCompletionPercentageAsync(long employeeId)
+        {
+            try
+            {
+                // Only needed fields → PROJECTION ONLY → ultra light query
+                var record = await _context.EmployeeBankDetails
+                    .AsNoTracking()
+                    .Where(x => x.EmployeeId == employeeId && (x.IsSoftDeleted != true))
+                    .OrderByDescending(x => x.IsPrimaryAccount)  // primary ko first laao
+                    .Select(x => new
+                    {
+                        x.BankName,
+                        x.AccountNumber,
+                        x.IFSCCode,
+                        x.BranchName,
+                        x.AccountType,
+                        x.IsPrimaryAccount,
+                        x.HasChequeDocUploaded
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (record == null)
+                    return 0;
+
+                // 🧮 Completion % logic (same as your existing)
+                var completion = Math.Round(
+                (
+                    record.IsPrimaryAccount
+                    ? (new[]
+                    {
+                string.IsNullOrEmpty(record.BankName) ? 0 : 1,
+                string.IsNullOrEmpty(record.AccountNumber) ? 0 : 1,
+                string.IsNullOrEmpty(record.IFSCCode) ? 0 : 1,
+                string.IsNullOrEmpty(record.BranchName) ? 0 : 1,
+                string.IsNullOrEmpty(record.AccountType) ? 0 : 1,
+                record.HasChequeDocUploaded ? 1 : 0,
+                1
+                    }).Sum() / 7.0
+                    : (new[]
+                    {
+                string.IsNullOrEmpty(record.BankName) ? 0 : 1,
+                string.IsNullOrEmpty(record.AccountNumber) ? 0 : 1,
+                string.IsNullOrEmpty(record.IFSCCode) ? 0 : 1,
+                string.IsNullOrEmpty(record.BranchName) ? 0 : 1,
+                string.IsNullOrEmpty(record.AccountType) ? 0 : 1,
+                1
+                    }).Sum() / 6.0
+                ) * 100, 0);
+
+                return (int)completion;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calculating bank completion for EmployeeId {EmployeeId}", employeeId);
+                return 0;
+            }
+        }
 
         public async Task<PagedResponseDTO<GetContactResponseDTO>> GetInfo(GetContactRequestDTO dto, long EmployeeId, int id)
         {
