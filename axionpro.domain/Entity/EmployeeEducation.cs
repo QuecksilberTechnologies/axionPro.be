@@ -14,19 +14,18 @@ public partial class EmployeeEducation
     public string? InstituteName { get; set; }
 
     public string? Remark { get; set; }
+    public double GapYears { get; set; }
 
     public DateTime? StartDate { get; set; }
 
     public bool  HasEducationDocUploded { get; set; }
-
     public DateTime? EndDate { get; set; }
-
-    public string? GradeOrPercentage { get; set; }
-
+    public string? ScoreValue { get; set; }
+    public int? ScoreType { get; set; }
+    public string? GradeDivision { get; set; }
     public string? FilePath { get; set; }
     public int? FileType { get; set; }
-    public string? FileName { get; set; }
-    public string? GpaorPercentage { get; set; }
+    public string? FileName { get; set; } 
 
     public bool? EducationGap { get; set; }
 

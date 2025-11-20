@@ -51,10 +51,6 @@ namespace axionpro.application.DTOS.Pagination
         public bool? HasUploadedAll { get; set; }
         public bool? IsPrimaryMarked { get; set; }
         public double? CompletionPercentage { get; set; }
-        public class CompletionPercentageInfo
-        {
-            public double? AveragePercentage { get; set; }
-            public List<double>? Percentages { get; set; } // list of per-record percentages
-        }
+        
     }
 }

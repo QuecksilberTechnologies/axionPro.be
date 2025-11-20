@@ -69,7 +69,7 @@ namespace axionpro.persistance.Repositories
                     Items = responseData,
                     TotalCount = totalRecords,
                     PageNumber = 1,
-                    PageSize = 10,
+                    PageSize = 10,                        
                 };
             }
             catch (Exception ex)
@@ -81,18 +81,20 @@ namespace axionpro.persistance.Repositories
 
         public async Task<PagedResponseDTO<GetEducationResponseDTO>> GetInfo(GetEducationRequestDTO dto, long employeeId, long id)
         {
+            double averagePercentage = 0;
+            bool hasUploadedAll = false;
             try
             {
-                // 📄 Pagination Defaults
+                // Pagination defaults
                 int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
                 int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
 
-                // 📦 Sorting Defaults (case-insensitive)
-                string sortBy = !string.IsNullOrWhiteSpace(dto.SortBy) ? dto.SortBy.ToLower() : "id";
-                string sortOrder = !string.IsNullOrWhiteSpace(dto.SortOrder) ? dto.SortOrder.ToLower() : "desc";
-                bool isDescending = sortOrder.Equals("desc", StringComparison.OrdinalIgnoreCase);
+                string sortBy = dto.SortBy?.ToLower() ?? "id";
+                bool isDescending = (dto.SortOrder?.ToLower() ?? "desc") == "desc";
 
-                // 🧭 Base Query (with filters)
+                // ------------------------
+                // BASE QUERY
+                //-------------------------
                 var baseQuery = _context.EmployeeEducations
                     .AsNoTracking()
                     .Where(edu =>
@@ -101,17 +103,15 @@ namespace axionpro.persistance.Repositories
                         (edu.IsSoftDeleted != true)
                     );
 
+                // Filters
                 if (id > 0)
                     baseQuery = baseQuery.Where(x => x.Id == id);
 
                 if (!string.IsNullOrEmpty(dto.InstituteName))
-                    baseQuery = baseQuery.Where(x => x.InstituteName.ToLower().Contains(dto.InstituteName.ToLower()));
+                    baseQuery = baseQuery.Where(x => x.InstituteName.Contains(dto.InstituteName));
 
                 if (!string.IsNullOrEmpty(dto.Degree))
-                    baseQuery = baseQuery.Where(x => x.Degree.ToLower().Contains(dto.Degree.ToLower()));
-
-                if (!string.IsNullOrEmpty(dto.GradeOrPercentage))
-                    baseQuery = baseQuery.Where(x => x.GradeOrPercentage.ToLower().Contains(dto.GradeOrPercentage.ToLower()));
+                    baseQuery = baseQuery.Where(x => x.Degree.Contains(dto.Degree));               
 
                 if (dto.EducationGap.HasValue)
                     baseQuery = baseQuery.Where(x => x.EducationGap == dto.EducationGap);
@@ -122,83 +122,93 @@ namespace axionpro.persistance.Repositories
                 if (dto.IsEditAllowed.HasValue)
                     baseQuery = baseQuery.Where(x => x.IsEditAllowed == dto.IsEditAllowed);
 
-                // 🧩 Sorting Logic — clean & consistent
-                switch (sortBy)
+                // Sorting
+                baseQuery = sortBy switch
                 {
-                    case "degree":
-                        baseQuery = isDescending ? baseQuery.OrderByDescending(x => x.Degree) : baseQuery.OrderBy(x => x.Degree);
-                        break;
+                    "degree" => isDescending ? baseQuery.OrderByDescending(x => x.Degree) : baseQuery.OrderBy(x => x.Degree),
+                    "institutename" => isDescending ? baseQuery.OrderByDescending(x => x.InstituteName) : baseQuery.OrderBy(x => x.InstituteName),
+                    "haseducationdocuploded" => isDescending ? baseQuery.OrderByDescending(x => x.HasEducationDocUploded) : baseQuery.OrderBy(x => x.HasEducationDocUploded),
+                    "startdate" => isDescending ? baseQuery.OrderByDescending(x => x.StartDate) : baseQuery.OrderBy(x => x.StartDate),
+                    "enddate" => isDescending ? baseQuery.OrderByDescending(x => x.EndDate) : baseQuery.OrderBy(x => x.EndDate),
+                    _ => isDescending ? baseQuery.OrderByDescending(x => x.Id) : baseQuery.OrderBy(x => x.Id)
+                };
 
-                    case "institutename":
-                        baseQuery = isDescending ? baseQuery.OrderByDescending(x => x.InstituteName) : baseQuery.OrderBy(x => x.InstituteName);
-                        break;
-
-                    case "haseducationdocuploded":
-                        baseQuery = isDescending ? baseQuery.OrderByDescending(x => x.HasEducationDocUploded) : baseQuery.OrderBy(x => x.HasEducationDocUploded);
-                        break;
-
-                    case "startdate":
-                        baseQuery = isDescending ? baseQuery.OrderByDescending(x => x.StartDate) : baseQuery.OrderBy(x => x.StartDate);
-                        break;
-
-                    case "enddate":
-                        baseQuery = isDescending ? baseQuery.OrderByDescending(x => x.EndDate) : baseQuery.OrderBy(x => x.EndDate);
-                        break;
-
-                    default:
-                        baseQuery = isDescending ? baseQuery.OrderByDescending(x => x.Id) : baseQuery.OrderBy(x => x.Id);
-                        break;
-                }
-
-                // 📊 Total Count (before pagination)
+                // Count
                 var totalRecords = await baseQuery.CountAsync();
 
-                // 🧩 Apply projection + pagination on same query (to retain sorting)
-                var pagedRecords = await baseQuery
-                    .Select(edu => new GetEducationResponseDTO
-                    {
-                        Id = edu.Id.ToString(),
-                        EmployeeId = edu.EmployeeId.ToString(),   // required
-                        Degree = edu.Degree, // required
-                        InstituteName = edu.InstituteName, // required
-                        Remark = edu.Remark,
-                        GradeOrPercentage = edu.GradeOrPercentage, // required
-                        GPAOrPercentage = edu.GpaorPercentage, // required
-                        EducationGap = edu.EducationGap,   
-                        ReasonOfEducationGap = edu.ReasonOfEducationGap,
-                        StartDate = edu.StartDate,
-                        EndDate = edu.EndDate,
-                        FilecPath = edu.FilePath,
-                        FileType = edu.FileType.ToString(),
-                        FileName = edu.FileName,
-                        IsActive = edu.IsActive
-
-
-
-                    })
+                // Fetch
+                var eduList = await baseQuery
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync();
 
-                // 📦 Final Response
+                // ---------------------------------------
+                // MAPPING + PERCENTAGE IN SINGLE LOOP
+                // ---------------------------------------
+                List<GetEducationResponseDTO> finalList = new();
+                double totalPercentage = 0;
+
+                foreach (var edu in eduList)
+                {
+                    var dtoItem = new GetEducationResponseDTO
+                    {
+                        Id = edu.Id.ToString(),
+                        EmployeeId = edu.EmployeeId.ToString(),
+                        Degree = edu.Degree,
+                        InstituteName = edu.InstituteName,
+                        Remark = edu.Remark,
+                        ScoreValue = edu.ScoreValue,
+                        ScoreType = edu.ScoreType?.ToString(),
+                        GradeDivision = edu.GradeDivision,
+                        EducationGap = edu.EducationGap,
+                        ReasonOfEducationGap = edu.ReasonOfEducationGap,
+                        StartDate = edu.StartDate,
+                        EndDate = edu.EndDate,
+                        FilecPath = edu.FilePath,
+                        FileType = edu.FileType?.ToString(),
+                        FileName = edu.FileName,
+                        IsActive = edu.IsActive,
+                        IsEditAllowed = edu.IsEditAllowed,
+                        IsInfoVerified = edu.IsInfoVerified,
+                        InfoVerifiedById = edu.InfoVerifiedById?.ToString(),
+                        HasEducationDocUploded = edu.HasEducationDocUploded
+                    };
+
+                    // ⭐ Percentage calculation
+
+                    dtoItem.CompletionPercentage = CalculateEducationCompletion(dtoItem);
+
+                    // add to total
+                    totalPercentage += dtoItem.CompletionPercentage;
+
+                    finalList.Add(dtoItem);
+                }
+
+                // ⭐ Average percentage
+                    averagePercentage = finalList.Count == 0    ? 0 : Math.Round(totalPercentage / (double)finalList.Count, 0);
+                // ⭐ 2) GLOBAL AVERAGE Completion Percentage
+             
+                // ⭐ 3) ALL DOCUMENTS UPLOADED OR NOT?
+                   hasUploadedAll = finalList.All(x => x.HasEducationDocUploded == true);
+
+                // Final response
                 return new PagedResponseDTO<GetEducationResponseDTO>
                 {
-                    Items = pagedRecords,
+                    Items = finalList,
                     TotalCount = totalRecords,
                     PageNumber = pageNumber,
                     PageSize = pageSize,
                     TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
-                    CompletionPercentage = 80,
-                    HasUploadedAll = false,
-                   
-
-
+                    CompletionPercentage = averagePercentage,
+                    HasUploadedAll= hasUploadedAll
+                  
                 };
+
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error occurred while fetching education info for EmployeeId: {EmployeeId}", employeeId);
-                throw new Exception($"Failed to fetch education info: {ex.Message}");
+                _logger.LogError(ex, "Error fetching education info for EmployeeId: {EmployeeId}", employeeId);
+                throw new Exception($"Failed: {ex.Message}");
             }
         }
 
@@ -216,7 +226,28 @@ namespace axionpro.persistance.Repositories
         {
             throw new NotImplementedException();
         }
+        private double CalculateEducationCompletion(GetEducationResponseDTO edu)
+        {
+            int totalFields = 8;
+            int filled = 0;
+
+            if (!string.IsNullOrEmpty(edu.Degree)) filled++;
+            if (!string.IsNullOrEmpty(edu.InstituteName)) filled++;
+            if (edu.StartDate != null) filled++;
+            if (edu.EndDate != null) filled++;
+            if (!string.IsNullOrEmpty(edu.ScoreValue)) filled++;
+            if (!string.IsNullOrEmpty(edu.ScoreType)) filled++;
+            if (!string.IsNullOrEmpty(edu.GradeDivision)) filled++;
+            if (edu.HasEducationDocUploded) filled++;
+
+            return Math.Round((filled / (double)totalFields) * 100, 0);
+        }
+
+
+
     }
+
+
 
 }
 

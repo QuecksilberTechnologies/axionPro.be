@@ -10,7 +10,6 @@ namespace axionpro.application.DTOS.Employee.Education
 {
     public class CreateEducationRequestDTO
     {
-
         public string? UserEmployeeId { get; set; }
         public string? EmployeeId { get; set; }
         public string? Degree { get; set; }
@@ -18,17 +17,14 @@ namespace axionpro.application.DTOS.Employee.Education
         public string? Remark { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
-
-        public string? GradeOrPercentage { get; set; }
-        public string? GPAOrPercentage { get; set; }
+        public string? ScoreValue { get; set; }
+        public string? GradeDivision { get; set; }
+        public string? ScoreType { get; set; }
         public bool IsEducationGapBeforeDegree { get; set; }
+        public double GapYears { get; set; } = 0;
         public bool HasEducationDocUploded { get; set; }
         public string? ReasonOfEducationGap { get; set; }              
 
-        // 🔹 File related properties
-        
-
-        // 🔹 File itself
         public IFormFile? EducationDocument { get; set; }
     }
 

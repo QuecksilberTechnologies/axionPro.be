@@ -28,7 +28,11 @@ namespace axionpro.application.Wrappers
         public bool IsSucceeded { get; set; }
         public string Message { get; set; } = string.Empty;
         public List<string> Errors { get; set; } = new();
+
         public T Data { get; set; }
+
+        // ❗ Sections ab GET me show nahi hoga
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public T Sections { get; set; }
 
         // ✅ Pagination (optional)
@@ -44,14 +48,17 @@ namespace axionpro.application.Wrappers
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? TotalPages { get; set; }
 
-        // ✅ Optional: Show only when not null
+        // ❗ Optional flags — hide when null
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public bool? IsPrimaryMarked { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public bool? HasAllDocUploaded { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public double? CompletionPercentage { get; set; }
-      
+
+
         // ❌ Fail Response
         public static ApiResponse<T> Fail(string message, List<string>? errors = null)
         {
@@ -75,6 +82,7 @@ namespace axionpro.application.Wrappers
             };
         }
 
+        // ❗ Section-only response (cleaned)
         public static ApiResponse<T> Response(T section, string message = "")
         {
             return new ApiResponse<T>
@@ -94,6 +102,7 @@ namespace axionpro.application.Wrappers
                 Sections = section
             };
         }
+
         // ✅ Success with Pagination
         public static ApiResponse<T> SuccessPaginated(
             T data,
@@ -115,8 +124,33 @@ namespace axionpro.application.Wrappers
             };
         }
 
-        // ✅ Success with Pagination + Dynamic Completion Info
+        // ✅ Success with Pagination + Completion Info
         public static ApiResponse<T> SuccessPaginatedPercentage(
+            T Data,
+            int PageNumber,
+            int PageSize,
+            int TotalRecords,
+            int TotalPages,
+            string Message = "",
+            bool? HasUploadedAll = null,
+            double? CompletionPercentage = null)
+        {
+            return new ApiResponse<T>
+            {
+                IsSucceeded = true,
+                Message = Message,
+                Data = Data,
+                PageNumber = PageNumber,
+                PageSize = PageSize,
+                TotalRecords = TotalRecords,
+                TotalPages = TotalPages,
+                HasAllDocUploaded = HasUploadedAll,
+                CompletionPercentage = CompletionPercentage
+            };
+        }
+
+        // ✅ Success with Primary Mark
+        public static ApiResponse<T> SuccessPaginatedPercentageMarkPrimary(
             T data,
             int pageNumber,
             int pageSize,
@@ -124,32 +158,8 @@ namespace axionpro.application.Wrappers
             int totalPages,
             string message = "",
             bool? hasUploadedAll = null,
-            double? completionPercentage = null)
-        {
-            return new ApiResponse<T>
-            {
-                IsSucceeded = true,
-                Message = message,
-                Data = data,
-                PageNumber = pageNumber,
-                PageSize = pageSize,
-                TotalRecords = totalRecords,
-                TotalPages = totalPages,
-                HasAllDocUploaded = hasUploadedAll,
-                CompletionPercentage = completionPercentage
-            };
-        }
-        public static ApiResponse<T> SuccessPaginatedPercentageMarkPrimary(
-          T data,
-          int pageNumber,
-          int pageSize,
-          int totalRecords,
-          int totalPages,
-          string message = "",
-          bool? hasUploadedAll = null,
-          double? completionPercentage = null,
-          bool? isPrimaryMarked =null
-          )
+            double? completionPercentage = null,
+            bool? isPrimaryMarked = null)
         {
             return new ApiResponse<T>
             {

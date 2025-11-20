@@ -352,13 +352,64 @@ namespace axionpro.application.Mappings
 
             #region 🔹 Education Mappings
             CreateMap<EmployeeEducation, EmployeeEducationEditableFieldsDTO>().ReverseMap();
+            CreateMap<EmployeeEducation, GetEducationResponseDTO>()
+       .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
+       .ForMember(dest => dest.EmployeeId, opt => opt.MapFrom(src => src.EmployeeId.ToString()))
+       .ForMember(dest => dest.Degree, opt => opt.MapFrom(src => src.Degree))
+       .ForMember(dest => dest.InstituteName, opt => opt.MapFrom(src => src.InstituteName))
+       .ForMember(dest => dest.Remark, opt => opt.MapFrom(src => src.Remark))
+       .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate))
+       .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.EndDate))
+       .ForMember(dest => dest.ScoreValue, opt => opt.MapFrom(src => src.ScoreValue))
+       .ForMember(dest => dest.GradeDivision, opt => opt.MapFrom(src => src.GradeDivision))
+       .ForMember(dest => dest.ScoreType, opt => opt.MapFrom(src => src.ScoreType.ToString()))
+       .ForMember(dest => dest.FilecPath, opt => opt.MapFrom(src => src.FilePath))
+       .ForMember(dest => dest.FileType, opt => opt.MapFrom(src => src.FileType.ToString()))
+       .ForMember(dest => dest.FileName, opt => opt.MapFrom(src => src.FileName))
+       .ForMember(dest => dest.EducationGap, opt => opt.MapFrom(src => src.EducationGap))
+       .ForMember(dest => dest.IsEditAllowed, opt => opt.MapFrom(src => src.IsEditAllowed))
+       .ForMember(dest => dest.GapYears, opt => opt.MapFrom(src => src.GapYears))
+       .ForMember(dest => dest.IsInfoVerified, opt => opt.MapFrom(src => src.IsInfoVerified))
+       .ForMember(dest => dest.ReasonOfEducationGap, opt => opt.MapFrom(src => src.ReasonOfEducationGap))
+       .ForMember(dest => dest.InfoVerifiedById, opt => opt.MapFrom(src => src.InfoVerifiedById.ToString()))
+       .ForMember(dest => dest.HasEducationDocUploded, opt => opt.MapFrom(src => src.HasEducationDocUploded))
+       .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive));
+     
+
+
             CreateMap<EmployeeEducation, GetEducationResponseDTO>().ReverseMap();
+
             CreateMap<CreateEducationRequestDTO, EmployeeEducation>()
-           .ForMember(dest => dest.Id, opt => opt.Ignore())
-      .ForMember(dest => dest.EmployeeId, opt => opt.Ignore()) // decrypt करके manually assign करते हैं
-      .ForMember(dest => dest.AddedById, opt => opt.Ignore())
-      .ForMember(dest => dest.AddedDateTime, opt => opt.Ignore())
-      .ForMember(dest => dest.EducationGap, opt => opt.MapFrom((src=> src.IsEducationGapBeforeDegree)));
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
+                .ForMember(dest => dest.AddedById, opt => opt.Ignore())
+                .ForMember(dest => dest.AddedDateTime, opt => opt.Ignore())
+
+
+                // BOOL → BOOL
+                .ForMember(dest => dest.EducationGap,
+                           opt => opt.MapFrom(src => src.IsEducationGapBeforeDegree))
+                // BOOL → BOOL
+                .ForMember(dest => dest.GapYears,
+                           opt => opt.MapFrom(src => src.GapYears))
+
+                // ScoreValue → string
+                .ForMember(dest => dest.ScoreValue,
+                           opt => opt.MapFrom(src => src.ScoreValue != null
+                                ? src.ScoreValue.ToString()
+                                : null))
+
+                // GradeDivision → string
+                .ForMember(dest => dest.GradeDivision,
+                           opt => opt.MapFrom(src => src.GradeDivision != null
+                                ? src.GradeDivision.ToString()
+                                : null))
+
+                // ScoreType → string
+                .ForMember(dest => dest.ScoreType,
+                           opt => opt.MapFrom(src => src.ScoreType != null
+                                ? src.ScoreType.ToString()
+                                : null));
 
 
 

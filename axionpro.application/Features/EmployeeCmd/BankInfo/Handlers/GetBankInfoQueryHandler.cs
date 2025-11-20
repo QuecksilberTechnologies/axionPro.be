@@ -166,14 +166,14 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 
                 // ✅ Correct paginated return
                 return ApiResponse<List<GetBankResponseDTO>>.SuccessPaginatedPercentage(
-                    data: result,
-                    message: "Bank info retrieved successfully.",
-                    pageNumber: bankEntities.PageNumber,
-                    pageSize: bankEntities.PageSize,
-                    totalRecords: bankEntities.TotalCount,
-                    totalPages: bankEntities.TotalPages,
-                    hasUploadedAll : bankEntities.HasUploadedAll,
-                    completionPercentage: bankEntities.CompletionPercentage
+                    Data: result,
+                    Message: "Bank info retrieved successfully.",
+                    PageNumber: bankEntities.PageNumber,
+                    PageSize: bankEntities.PageSize,
+                    TotalRecords: bankEntities.TotalCount,
+                    TotalPages: bankEntities.TotalPages,
+                    HasUploadedAll : bankEntities.HasUploadedAll,
+                    CompletionPercentage: bankEntities.CompletionPercentage
 
                   
                 );

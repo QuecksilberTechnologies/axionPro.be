@@ -23,16 +23,20 @@ namespace axionpro.application.DTOS.Employee.Education
         public DateTime? StartDate { get; set; }
 
         public DateTime? EndDate { get; set; }
+        
+        public string? ScoreValue { get; set; }
+        public string? GradeDivision { get; set; }
 
-        public string? GradeOrPercentage { get; set; }
-
-        public string? GPAOrPercentage { get; set; }
+        public string? ScoreType { get; set; }
         public string? FilecPath { get; set; }
 
         public string? FileType { get; set; }   
         public string? FileName { get; set; }   
 
         public bool? EducationGap { get; set; }
+        public bool? IsEditAllowed { get; set; }
+        public bool? IsInfoVerified { get; set; }
+        public double GapYears { get; set; }
 
         public string? ReasonOfEducationGap { get; set; }
  
@@ -41,7 +45,7 @@ namespace axionpro.application.DTOS.Employee.Education
         public bool HasEducationDocUploded { get; set; } 
    
         public bool? IsActive { get; set; }
-        public double? CompletionPercentage { get; set; }
+        public double CompletionPercentage { get; set; }
 
 
     }

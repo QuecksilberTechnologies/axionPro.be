@@ -1147,10 +1147,9 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.EducationGap).HasDefaultValue(false);
                 entity.Property(e => e.FileName).HasMaxLength(100);
                 entity.Property(e => e.FilePath).HasMaxLength(500);
-                entity.Property(e => e.GpaorPercentage)
-                    .HasMaxLength(100)
-                    .HasColumnName("GPAOrPercentage");
-                entity.Property(e => e.GradeOrPercentage).HasMaxLength(50);
+            
+                entity.Property(e => e.ScoreValue).HasMaxLength(50);
+                entity.Property(e => e.GradeDivision).HasMaxLength(10);
                 entity.Property(e => e.InfoVerifiedDateTime).HasColumnType("datetime");
                 entity.Property(e => e.InstituteName).HasMaxLength(100);
                 entity.Property(e => e.ReasonOfEducationGap).HasMaxLength(255);

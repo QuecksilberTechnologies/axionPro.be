@@ -23,8 +23,11 @@ namespace axionpro.application.DTOS.Employee.Education
 
         public DateTime? EndDate { get; set; }
 
-        public string? GradeOrPercentage { get; set; } 
-       
+      
+        public string? ScoreValue { get; set; }
+      
+        public string? ScoreType { get; set; }
+
         public bool? EducationGap { get; set; }       
    
         public bool? IsInfoVerified { get; set; }     

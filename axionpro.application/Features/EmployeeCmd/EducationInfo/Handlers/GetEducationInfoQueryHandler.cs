@@ -180,7 +180,10 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                     PageSize = Entity.PageSize,
                     TotalRecords = Entity.TotalCount,
                     TotalPages = Entity.TotalPages,
-                    Data = encryptedResult
+                    Data = encryptedResult,
+                    CompletionPercentage = Entity.CompletionPercentage,
+                    HasAllDocUploaded = Entity.HasUploadedAll,
+                    
                 };
             }
             catch (Exception ex)

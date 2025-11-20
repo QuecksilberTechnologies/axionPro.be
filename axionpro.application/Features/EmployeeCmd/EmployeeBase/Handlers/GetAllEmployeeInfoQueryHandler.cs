@@ -167,14 +167,14 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 var resultList = ProjectionHelper.ToGetAllEmployeeInfoResponseDTOs(responseDTO, _idEncoderService, tenantKey, _config);
 
                 return ApiResponse<List<GetAllEmployeeInfoResponseDTO>>.SuccessPaginatedPercentage(
-                    data: resultList,
-                    message: "Base Employee info retrieved successfully.",
-                    pageNumber: responseDTO.PageNumber,
-                    pageSize: responseDTO.PageSize,
-                    totalRecords: responseDTO.TotalCount,
-                    totalPages: responseDTO.TotalPages,
-                    completionPercentage: responseDTO.CompletionPercentage,
-                    hasUploadedAll: responseDTO.HasUploadedAll
+                    Data: resultList,
+                    Message: "Base Employee info retrieved successfully.",
+                    PageNumber: responseDTO.PageNumber,
+                    PageSize: responseDTO.PageSize,
+                    TotalRecords: responseDTO.TotalCount,
+                    TotalPages: responseDTO.TotalPages,
+                    CompletionPercentage: responseDTO.CompletionPercentage,
+                    HasUploadedAll: responseDTO.HasUploadedAll
                 );
             }
             catch (Exception ex)
