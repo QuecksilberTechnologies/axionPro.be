@@ -1,12 +1,9 @@
-﻿using axionpro.application.DTOs.Employee;
-using axionpro.application.DTOS.Employee.BaseEmployee;
-using axionpro.application.DTOS.Employee.Education;
+﻿
 using axionpro.application.DTOS.Employee.Experience;
-using axionpro.application.DTOS.Employee.Sensitive;
-using axionpro.application.Features.EmployeeCmd.Contact.Command;
+
 using axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers;
 using axionpro.application.Interfaces.ILogger;
-using axionpro.application.Wrappers;
+
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 

@@ -9,14 +9,14 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.Features.EmployeeCmd.Contact.Command
 {
-    public class UpdateContactInfoCommand : IRequest<ApiResponse<bool>>
-    {
-        public GenricUpdateRequestDTO DTO{ get; set; }
+    //public class UpdateContactInfoCommand : IRequest<ApiResponse<bool>>
+    //{
+    //    public GenricUpdateRequestDTO DTO{ get; set; }
 
-        public UpdateContactInfoCommand(GenricUpdateRequestDTO dto)
-        {
-            DTO = dto;
-        }
+    //    public UpdateContactInfoCommand(GenricUpdateRequestDTO dto)
+    //    {
+    //        DTO = dto;
+    //    }
 
-    }
+    //}
 }

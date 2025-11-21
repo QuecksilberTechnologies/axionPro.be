@@ -32,8 +32,11 @@ namespace axionpro.application.Wrappers
         public T Data { get; set; }
 
         // ❗ Sections ab GET me show nahi hoga
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        // [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public T Sections { get; set; }
+
+        
 
         // ✅ Pagination (optional)
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -82,6 +85,25 @@ namespace axionpro.application.Wrappers
             };
         }
 
+        public static ApiResponse<T> UpdatedSuccess(string message = "")
+        {
+            return new ApiResponse<T>
+            {
+                IsSucceeded = true,
+                Message = message,
+                
+            };
+        }
+
+        public static ApiResponse<T> UpdatedFail( string message = "")
+        {
+            return new ApiResponse<T>
+            {
+                IsSucceeded = false,
+                Message = message,
+              
+            };
+        }
         // ❗ Section-only response (cleaned)
         public static ApiResponse<T> Response(T section, string message = "")
         {

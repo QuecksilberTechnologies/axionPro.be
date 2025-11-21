@@ -1,12 +1,8 @@
 ﻿ 
-using axionpro.application.DTOs.Employee;
-using axionpro.application.DTOs.EmployeeType;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
-using axionpro.application.DTOS.Employee.Type;
 using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
-using axionpro.application.Features.EmployeeCmd.EmployeeBase.Queries;
  
 using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
@@ -357,36 +353,36 @@ namespace axionpro.api.Controllers.Employee
         /// <summary>
         /// Updates employee details.
         /// </summary>
-        [HttpPost("update")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Update([FromBody] GenricUpdateRequestDTO dto)
-        {
-            try
-            {
-                _logger.LogInfo($"Updating employee record. EmployeeId: {dto.EncriptedId}");
+        //[HttpPost("update")]
+        //[ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        //[ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        //[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        //public async Task<IActionResult> Update([FromBody] GenricUpdateRequestDTO dto)
+        //{
+        //    try
+        //    {
+        //        _logger.LogInfo($"Updating employee record. EmployeeId: {dto.UserEmployeeId}");
 
-                var command = new UpdateEmployeeCommand(dto);
-                var result = await _mediator.Send(command);
+        //        var command = new UpdateEmployeeCommand(dto);
+        //        var result = await _mediator.Send(command);
 
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo($"Failed to update employee with Id: {dto.EncriptedId}");
-                    return BadRequest(result);
-                }
+        //        if (!result.IsSucceeded)
+        //        {
+        //            _logger.LogInfo($"Failed to update employee with Id: {dto.UserEmployeeId}");
+        //            return BadRequest(result);
+        //        }
 
-                _logger.LogInfo("Employee updated successfully.");
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error updating employee: {ex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while updating employee info.",
-                    new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
-        }
+        //        _logger.LogInfo("Employee updated successfully.");
+        //        return Ok(result);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError($"Error updating employee: {ex.Message}");
+        //        var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while updating employee info.",
+        //            new List<string> { ex.Message });
+        //        return StatusCode(500, errorResponse);
+        //    }
+        //}
     }
 }

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -11,31 +13,54 @@ namespace axionpro.application.DTOs.Employee
     /// post-request to update any employe info :edu/basic,personal,bank,exp 
     /// </summary>
 
-    public class GenricUpdateRequestDTO
+    public class GenericMultiFieldUpdateRequestDTO
     {
+        [Required]
+        [FromForm]
+        public string UserEmployeeId { get; set; } = null!;
 
+        public long _UserEmployeeId { get; set; }
 
         [Required]
-        public string EncriptedId { get; set; } = null!; ///Record Id          
-        public string EncriptedEmployeeId { get; set; } = null!; ///Record Id 
-        public long EmployeeId { get; set; } /// EmployeeId
-        public long Id { get; set; } /// EmployeeId
+        [FromForm]
+        public string EmployeeId { get; set; } = null!;
+
+        public long _EmployeeId { get; set; }
+
         [Required]
+        [FromForm]
+        public string Id { get; set; } = null!;
+
+        public long _Id { get; set; }
+
+        [Required]
+        [FromForm]
         public string EntityName { get; set; } = string.Empty;
-        /// <summary>
-        /// actual field name
-        /// </summary>
 
-        [Required]
-        public string FieldName { get; set; } = string.Empty;
-        /// <summary>
-        ///  new value which is going to update!
-        /// </summary>
+        // IMPORTANT 👇
+        [FromForm]
+        public List<FieldUpdateItemDTO> FieldsToUpdate { get; set; } = new();
 
-        [Required]
-        public object? FieldValue { get; set; }
-
-
-    
+        [FromForm]
+        public List<FileUpdateDTO> FilesToUpdate { get; set; } = new();
     }
+
+    public class FieldUpdateItemDTO
+    {
+        [FromForm]
+        public string FieldName { get; set; } = string.Empty;
+
+        [FromForm]
+        public string? FieldValue { get; set; }  // Required hata diya
+    }
+
+    public class FileUpdateDTO
+    {
+        [FromForm]
+        public string? FieldName { get; set; }
+
+        [FromForm]
+        public IFormFile? File { get; set; }
+    }
+
 }

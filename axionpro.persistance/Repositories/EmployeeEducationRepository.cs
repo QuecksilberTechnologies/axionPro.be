@@ -38,6 +38,8 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
+                await using var context = await _contextFactory.CreateDbContextAsync();
+
                 // ✅ 1️⃣ Validation
                 if (entity == null)
                     throw new ArgumentNullException(nameof(entity), "Dependent info entity cannot be null.");
@@ -46,11 +48,11 @@ namespace axionpro.persistance.Repositories
                     throw new ArgumentException("Invalid EmployeeId provided.");
 
                 // ✅ 2️⃣ Record insert karo
-                await _context.EmployeeEducations.AddAsync(entity);
-                await _context.SaveChangesAsync();
+                await context.EmployeeEducations.AddAsync(entity);
+                await context.SaveChangesAsync();
 
                 // ✅ 3️⃣ Fetch updated list (latest record ke sath)
-                var query = _context.EmployeeEducations
+                var query = context.EmployeeEducations
                     .AsNoTracking()
                     .Where(x => x.EmployeeId == entity.EmployeeId && x.IsSoftDeleted != true)
                     .OrderByDescending(x => x.Id);
@@ -212,20 +214,81 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public Task<EmployeeContact> GetSingleRecordAsync(long Id, bool IsActive)
+       
+
+   public async Task<bool> UpdateEmployeeFieldAsync(EmployeeEducation entity)
+{
+    await using var context = await _contextFactory.CreateDbContextAsync();
+
+    if (entity == null)
+        throw new ArgumentNullException(nameof(entity));
+
+    try
+    {
+        var db = context.EmployeeEducations;
+
+        db.Attach(entity);
+
+        var entry = context.Entry(entity);
+
+        foreach (var property in entry.Properties)
         {
-            throw new NotImplementedException();
+            if (property.CurrentValue == null || property.IsModified)
+                continue;
+
+            if (property.Metadata.Name == "Id" ||
+                property.Metadata.Name == "EmployeeId")
+                continue;
+
+            property.IsModified = true;
         }
 
-        public Task<bool> UpdateEmployeeFieldAsync(long Id, string entity, string fieldName, object? fieldValue, long updatedById)
+        entity.UpdatedDateTime = DateTime.UtcNow;
+        entry.Property(x => x.UpdatedDateTime).IsModified = true;
+
+        if (entity.UpdatedById != null)
+            entry.Property(x => x.UpdatedById).IsModified = true;
+
+        int rows = await context.SaveChangesAsync();
+
+        return rows > 0;   // ✔ Yahin final return
+    }
+    catch (DbUpdateConcurrencyException ex)
+    {
+        _logger.LogError(ex, "Concurrency error while updating EmployeeEducation record Id={Id}", entity.Id);
+        return false;
+    }
+    catch (DbUpdateException ex)
+    {
+        _logger.LogError(ex, "Database update error while updating EmployeeEducation Id={Id}", entity.Id);
+        return false;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Unknown error while updating EmployeeEducation Id={Id} EX={ex}", entity.Id,ex);
+        return false;
+    }
+}
+
+        public async Task<EmployeeEducation?> GetSingleRecordAsync(long Id, bool IsActive)
         {
-            throw new NotImplementedException();
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync();
+
+                return await context.EmployeeEducations
+                    .Where(x => x.Id == Id && x.IsActive == IsActive && x.IsSoftDeleted!=true)
+                    .FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error fetching education record. Id: {Id}, Error: {ex.Message}");
+                throw;
+            }
         }
 
-        Task<EmployeeEducation> IEmployeeEducationRepository.GetSingleRecordAsync(long Id, bool IsActive)
-        {
-            throw new NotImplementedException();
-        }
+      
+
         private double CalculateEducationCompletion(GetEducationResponseDTO edu)
         {
             int totalFields = 8;

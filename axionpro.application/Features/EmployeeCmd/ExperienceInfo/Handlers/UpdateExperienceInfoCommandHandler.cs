@@ -20,157 +20,157 @@ using System.Reflection;
 
 namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
 {
-    public class UpdateExperienceInfoCommand : IRequest<ApiResponse<bool>>
-    {
-        public GenricUpdateRequestDTO DTO { get; set; }
+    //public class UpdateExperienceInfoCommand : IRequest<ApiResponse<bool>>
+    //{
+    //    public GenricUpdateRequestDTO DTO { get; set; }
 
-        public UpdateExperienceInfoCommand(GenricUpdateRequestDTO dto)
-        {
-            DTO = dto;
-        }
+    //    public UpdateExperienceInfoCommand(GenricUpdateRequestDTO dto)
+    //    {
+    //        DTO = dto;
+    //    }
 
-    }
-    public class UpdateExperienceInfoCommandHandler : IRequestHandler<UpdateExperienceInfoCommand, ApiResponse<bool>>
-    {
-        private readonly IBaseEmployeeRepository _employeeRepository;
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly ILogger<UpdateExperienceInfoCommandHandler> _logger;
-        private readonly IMapper _mapper;
-        private readonly ITokenService _tokenService;
-        private readonly IPermissionService _permissionService;
-        private readonly IConfiguration _config;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IEncryptionService _encryptionService;
+    //}
+    //public class UpdateExperienceInfoCommandHandler : IRequestHandler<UpdateExperienceInfoCommand, ApiResponse<bool>>
+    //{
+    //    private readonly IBaseEmployeeRepository _employeeRepository;
+    //    private readonly IUnitOfWork _unitOfWork;
+    //    private readonly ILogger<UpdateExperienceInfoCommandHandler> _logger;
+    //    private readonly IMapper _mapper;
+    //    private readonly ITokenService _tokenService;
+    //    private readonly IPermissionService _permissionService;
+    //    private readonly IConfiguration _config;
+    //    private readonly IHttpContextAccessor _httpContextAccessor;
+    //    private readonly IEncryptionService _encryptionService;
 
-        public UpdateExperienceInfoCommandHandler(
-            IBaseEmployeeRepository employeeRepository,
-            IUnitOfWork unitOfWork,
-            ILogger<UpdateExperienceInfoCommandHandler> logger,
-            IMapper mapper,
-            ITokenService tokenService,
-            IPermissionService permissionService,
-            IConfiguration configuration,
-            IHttpContextAccessor httpContextAccessor,
-            IEncryptionService encryptionService)
-        {
-            _employeeRepository = employeeRepository;
-            _unitOfWork = unitOfWork;
-            _logger = logger;
-            _mapper = mapper;
-            _tokenService = tokenService;
-            _permissionService = permissionService;
-            _config = configuration;
-            _httpContextAccessor = httpContextAccessor;
-            _encryptionService = encryptionService;
-        }
+    //    public UpdateExperienceInfoCommandHandler(
+    //        IBaseEmployeeRepository employeeRepository,
+    //        IUnitOfWork unitOfWork,
+    //        ILogger<UpdateExperienceInfoCommandHandler> logger,
+    //        IMapper mapper,
+    //        ITokenService tokenService,
+    //        IPermissionService permissionService,
+    //        IConfiguration configuration,
+    //        IHttpContextAccessor httpContextAccessor,
+    //        IEncryptionService encryptionService)
+    //    {
+    //        _employeeRepository = employeeRepository;
+    //        _unitOfWork = unitOfWork;
+    //        _logger = logger;
+    //        _mapper = mapper;
+    //        _tokenService = tokenService;
+    //        _permissionService = permissionService;
+    //        _config = configuration;
+    //        _httpContextAccessor = httpContextAccessor;
+    //        _encryptionService = encryptionService;
+    //    }
 
-        public async Task<ApiResponse<bool>> Handle(UpdateExperienceInfoCommand request, CancellationToken cancellationToken)
-        {
-            try
-            {
-                // 🧱 Step 1: Validate JWT Token
-                var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString()?.Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(bearerToken))
-                    return ApiResponse<bool>.Fail("Unauthorized: Token not found.");
+    //    public async Task<ApiResponse<bool>> Handle(UpdateExperienceInfoCommand request, CancellationToken cancellationToken)
+    //    {
+    //        try
+    //        {
+    //            // 🧱 Step 1: Validate JWT Token
+    //            var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString()?.Replace("Bearer ", "");
+    //            if (string.IsNullOrEmpty(bearerToken))
+    //                return ApiResponse<bool>.Fail("Unauthorized: Token not found.");
 
-                var secretKey = _config["Jwt:Key"];
-                var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
+    //            var secretKey = _config["Jwt:Key"];
+    //            var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
 
-                if (tokenClaims == null || tokenClaims.IsExpired)
-                    return ApiResponse<bool>.Fail("Invalid or expired token.");
+    //            if (tokenClaims == null || tokenClaims.IsExpired)
+    //                return ApiResponse<bool>.Fail("Invalid or expired token.");
 
-                // 🧱 Step 2: Validate Logged-in User
-                long empId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
-                if (empId < 1)
-                {
-                    _logger.LogWarning("User validation failed for LoginId: {LoginId}", tokenClaims.UserId);
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<bool>.Fail("User is not authorized to perform this action.");
-                }
+    //            // 🧱 Step 2: Validate Logged-in User
+    //            long empId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
+    //            if (empId < 1)
+    //            {
+    //                _logger.LogWarning("User validation failed for LoginId: {LoginId}", tokenClaims.UserId);
+    //                await _unitOfWork.RollbackTransactionAsync();
+    //                return ApiResponse<bool>.Fail("User is not authorized to perform this action.");
+    //            }
 
-                // 🧱 Step 3: Permission Check
-                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
-                if (!permissions.Contains("EditExperienceInfo"))
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<bool>.Fail("You do not have permission to edit experience info.");
-                }
+    //            // 🧱 Step 3: Permission Check
+    //            var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
+    //            if (!permissions.Contains("EditExperienceInfo"))
+    //            {
+    //                await _unitOfWork.RollbackTransactionAsync();
+    //                return ApiResponse<bool>.Fail("You do not have permission to edit experience info.");
+    //            }
 
-                var tenantKey = tokenClaims.TenantEncriptionKey;
-                var dto = request.DTO;
+    //            var tenantKey = tokenClaims.TenantEncriptionKey;
+    //            var dto = request.DTO;
 
-                // 🧱 Step 4: Validation
-                if (string.IsNullOrWhiteSpace(dto.FieldName))
-                    return ApiResponse<bool>.Fail("Field name cannot be empty.");
+    //            // 🧱 Step 4: Validation
+    //            if (string.IsNullOrWhiteSpace(dto.FieldName))
+    //                return ApiResponse<bool>.Fail("Field name cannot be empty.");
 
-                if (!string.IsNullOrEmpty(dto.EncriptedId))
-                    dto.EmployeeId = EncryptionHelper1.DecryptId(_encryptionService, dto.EncriptedId, tenantKey);
+    //            if (!string.IsNullOrEmpty(dto.UserEmployeeId))
+    //                dto._EmployeeId = EncryptionHelper1.DecryptId(_encryptionService, dto.UserEmployeeId, tenantKey);
 
-                // 🧱 Step 5: Fetch Employee Experience record
-                var experienceEntity = await _employeeRepository.UpdateEmployeeFieldAsync(
-                    dto.EmployeeId, dto.EntityName, dto.FieldName, dto.FieldValue, dto.EmployeeId);
+    //            // 🧱 Step 5: Fetch Employee Experience record
+    //            var experienceEntity = await _employeeRepository.UpdateEmployeeFieldAsync(
+    //                dto._EmployeeId, dto.EntityName, dto.FieldName, dto.FieldValue, dto._EmployeeId);
 
-                if (experienceEntity == null)
-                    return ApiResponse<bool>.Fail("Employee experience record not found.");
+    //            if (experienceEntity == null)
+    //                return ApiResponse<bool>.Fail("Employee experience record not found.");
 
-                // 🧱 Step 6: Map DTO → Entity
-                var experience = _mapper.Map<EmployeeExperience>(experienceEntity);
+    //            // 🧱 Step 6: Map DTO → Entity
+    //            var experience = _mapper.Map<EmployeeExperience>(experienceEntity);
 
-                // 🧱 Step 7: Convert to Access Control DTO
-                var accessDto = EmployeeExperienceInfoMapperHelper.ConvertToAccessResponseDTO(experience);
+    //            // 🧱 Step 7: Convert to Access Control DTO
+    //            var accessDto = EmployeeExperienceInfoMapperHelper.ConvertToAccessResponseDTO(experience);
 
-                // 🧱 Step 8: Locate Field in Access DTO
-                var accessProp = typeof(GetExperienceAccessResponseDTO)
-                    .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                    .FirstOrDefault(p => string.Equals(p.Name, dto.FieldName, StringComparison.OrdinalIgnoreCase));
+    //            // 🧱 Step 8: Locate Field in Access DTO
+    //            var accessProp = typeof(GetExperienceAccessResponseDTO)
+    //                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+    //                .FirstOrDefault(p => string.Equals(p.Name, dto.FieldName, StringComparison.OrdinalIgnoreCase));
 
-                if (accessProp == null)
-                    return ApiResponse<bool>.Fail($"Field '{dto.FieldName}' does not exist.");
+    //            if (accessProp == null)
+    //                return ApiResponse<bool>.Fail($"Field '{dto.FieldName}' does not exist.");
 
-                var fieldWithAccess = accessProp.GetValue(accessDto);
-                var isReadOnlyProp = fieldWithAccess?.GetType().GetProperty("IsReadOnly");
-                bool isReadOnly = (bool?)isReadOnlyProp?.GetValue(fieldWithAccess) ?? false;
+    //            var fieldWithAccess = accessProp.GetValue(accessDto);
+    //            var isReadOnlyProp = fieldWithAccess?.GetType().GetProperty("IsReadOnly");
+    //            bool isReadOnly = (bool?)isReadOnlyProp?.GetValue(fieldWithAccess) ?? false;
 
-                if (isReadOnly)
-                    return ApiResponse<bool>.Fail($"Field '{dto.FieldName}' is read-only and cannot be modified.");
+    //            if (isReadOnly)
+    //                return ApiResponse<bool>.Fail($"Field '{dto.FieldName}' is read-only and cannot be modified.");
 
-                // 🧱 Step 9: Locate actual entity property
-                var entityProp = typeof(EmployeeExperience)
-                    .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                    .FirstOrDefault(p => string.Equals(p.Name, dto.FieldName, StringComparison.OrdinalIgnoreCase));
+    //            // 🧱 Step 9: Locate actual entity property
+    //            var entityProp = typeof(EmployeeExperience)
+    //                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+    //                .FirstOrDefault(p => string.Equals(p.Name, dto.FieldName, StringComparison.OrdinalIgnoreCase));
 
-                if (entityProp == null || !entityProp.CanWrite)
-                    return ApiResponse<bool>.Fail($"Field '{dto.FieldName}' is invalid or not writable.");
+    //            if (entityProp == null || !entityProp.CanWrite)
+    //                return ApiResponse<bool>.Fail($"Field '{dto.FieldName}' is invalid or not writable.");
 
-                // 🧱 Step 10: Safe type conversion
-                if (!TryConvertObjectToValue.TryConvertValue(dto.FieldValue, entityProp.PropertyType, out object? convertedValue))
-                {
-                    _logger.LogWarning("Conversion failed for field '{FieldName}' with value '{FieldValue}'", dto.FieldName, dto.FieldValue);
-                    return ApiResponse<bool>.Fail($"Value conversion failed for field '{dto.FieldName}'.");
-                }
+    //            // 🧱 Step 10: Safe type conversion
+    //            if (!TryConvertObjectToValue.TryConvertValue(dto.FieldValue, entityProp.PropertyType, out object? convertedValue))
+    //            {
+    //                _logger.LogWarning("Conversion failed for field '{FieldName}' with value '{FieldValue}'", dto.FieldName, dto.FieldValue);
+    //                return ApiResponse<bool>.Fail($"Value conversion failed for field '{dto.FieldName}'.");
+    //            }
 
-                // 🧱 Step 11: Apply value & audit
-                entityProp.SetValue(experience, convertedValue);
-                experience.UpdatedById = dto.EmployeeId;
-                experience.UpdatedDateTime = DateTime.UtcNow;
+    //            // 🧱 Step 11: Apply value & audit
+    //            entityProp.SetValue(experience, convertedValue);
+    //            experience.UpdatedById = dto._EmployeeId;
+    //            experience.UpdatedDateTime = DateTime.UtcNow;
 
-                // 🧱 Step 12: Save to DB
-                var updateStatus = await _unitOfWork.Employees.UpdateEmployeeFieldAsync(
-                    experience.Id, dto.EntityName, dto.FieldName, convertedValue, dto.EmployeeId);
+    //            // 🧱 Step 12: Save to DB
+    //            var updateStatus = await _unitOfWork.Employees.UpdateEmployeeFieldAsync(
+    //                experience.Id, dto.EntityName, dto.FieldName, convertedValue, dto._EmployeeId);
 
-                if (!updateStatus)
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<bool>.Fail("Failed to update employee experience record.");
-                }
+    //            if (!updateStatus)
+    //            {
+    //                await _unitOfWork.RollbackTransactionAsync();
+    //                return ApiResponse<bool>.Fail("Failed to update employee experience record.");
+    //            }
 
-                return ApiResponse<bool>.Success(true, $"Field '{dto.FieldName}' updated successfully.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error occurred while updating experience info.");
-                return ApiResponse<bool>.Fail("An unexpected error occurred.", new List<string> { ex.Message });
-            }
-        }
-    }
+    //            return ApiResponse<bool>.Success(true, $"Field '{dto.FieldName}' updated successfully.");
+    //        }
+    //        catch (Exception ex)
+    //        {
+    //            _logger.LogError(ex, "Unexpected error occurred while updating experience info.");
+    //            return ApiResponse<bool>.Fail("An unexpected error occurred.", new List<string> { ex.Message });
+    //        }
+    //    }
+    //}
 }

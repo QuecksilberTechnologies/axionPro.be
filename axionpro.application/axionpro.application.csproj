@@ -11,9 +11,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Features\EmployeeCmd\BaseInfo\**" />
     <Compile Remove="Features\EmployeeCmd\BasicInfo - Copy %283%29 - Copy %282%29\**" />
+    <Compile Remove="Features\EmployeeCmd\Commands\**" />
+    <EmbeddedResource Remove="Features\EmployeeCmd\BaseInfo\**" />
     <EmbeddedResource Remove="Features\EmployeeCmd\BasicInfo - Copy %283%29 - Copy %282%29\**" />
+    <EmbeddedResource Remove="Features\EmployeeCmd\Commands\**" />
+    <None Remove="Features\EmployeeCmd\BaseInfo\**" />
     <None Remove="Features\EmployeeCmd\BasicInfo - Copy %283%29 - Copy %282%29\**" />
+    <None Remove="Features\EmployeeCmd\Commands\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -42,8 +48,6 @@
     <Folder Include="Features\Cmd - Copy\Handlers\" />
     <Folder Include="Features\Cmd - Copy\Queries\" />
     <Folder Include="Features\DesignationCmd\Commands\" />
-    <Folder Include="Features\EmployeeCmd\Commands\" />
-    <Folder Include="Features\EmployeeCmd\BaseInfo\Queries\" />
     <Folder Include="Features\EmployeeCmd\DependentInfo\Queries\" />
     <Folder Include="Features\EmployeeCmd\EducationInfo\Queries\" />
     <Folder Include="Features\EmployeeCmd\EmployeeBase\Command\" />

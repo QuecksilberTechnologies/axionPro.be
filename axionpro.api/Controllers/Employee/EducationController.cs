@@ -1,5 +1,4 @@
 ﻿using axionpro.application.DTOs.Employee;
-using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers;
 using axionpro.application.Interfaces.ILogger;
@@ -84,23 +83,25 @@ namespace axionpro.api.Controllers.Employee
         /// <summary>
         /// Updates employee details.
         /// </summary>
-        [HttpPost("update")]
+        [HttpPost("update-education")]      
+
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Update([FromBody] GenricUpdateRequestDTO dto)
+        public async Task<IActionResult> UpdateEducation(GenericMultiFieldUpdateRequestDTO dto)
+
         {
             try
             {
-                _logger.LogInfo($"Updating employee-education record. EmployeeId: {dto.EmployeeId}");
+                _logger.LogInfo($"Updating employee-education record. EmployeeId: {dto._EmployeeId}");
 
                 var command = new UpdateEducationInfoCommand(dto);
                 var result = await _mediator.Send(command);
 
                 if (!result.IsSucceeded)
                 {
-                    _logger.LogInfo($"Failed to update employee-education with Id: {dto.EmployeeId}");
+                    _logger.LogInfo($"Failed to update employee-education with Id: {dto._EmployeeId}");
                     return BadRequest(result);
                 }
 
@@ -115,5 +116,7 @@ namespace axionpro.api.Controllers.Employee
                 return StatusCode(500, errorResponse);
             }
         }
+    
+    
     }
 }

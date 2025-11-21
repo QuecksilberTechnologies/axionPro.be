@@ -1,8 +1,10 @@
 ﻿using axionpro.application.Common.Attributes;
+using axionpro.application.DTOs.Employee.AccessControlReadOnlyType;
 using axionpro.application.DTOs.Employee.AccessResponse;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,7 +15,6 @@ namespace axionpro.application.Common.Helpers
         public static GetEducationAccessResponseDTO ConvertToAccessResponseDTO<T>(T source)
         {
             var result = new GetEducationAccessResponseDTO();
-
             var sourceProps = typeof(T).GetProperties();
             var targetProps = typeof(GetEducationAccessResponseDTO).GetProperties();
 
@@ -21,15 +22,19 @@ namespace axionpro.application.Common.Helpers
             {
                 try
                 {
-                    var targetProp = targetProps.FirstOrDefault(p => p.Name.Equals(sourceProp.Name, StringComparison.OrdinalIgnoreCase));
-                    if (targetProp == null) continue;
+                    var targetProp = targetProps.FirstOrDefault(p =>
+                        p.Name.Equals(sourceProp.Name, StringComparison.OrdinalIgnoreCase));
+
+                    if (targetProp == null || !targetProp.CanWrite)
+                        continue; // Skip if target property not found or readonly
 
                     var value = sourceProp.GetValue(source);
 
-                    var accessAttr = sourceProp.GetCustomAttributes(typeof(AccessControlAttribute), true)
-                                               .FirstOrDefault() as AccessControlAttribute;
-
+                    var sourceAttrProp = typeof(EmployeeEducationEditableFieldsDTO)
+                           .GetProperty(sourceProp.Name);
+                    var accessAttr = sourceAttrProp?.GetCustomAttribute<AccessControlAttribute>();
                     bool isReadOnly = accessAttr?.ReadOnly ?? false;
+
 
                     if (!targetProp.PropertyType.IsGenericType ||
                         targetProp.PropertyType.GetGenericTypeDefinition() != typeof(FieldWithAccess<>))
@@ -37,50 +42,26 @@ namespace axionpro.application.Common.Helpers
 
                     var targetGenericType = targetProp.PropertyType.GetGenericArguments()[0];
 
-                    // ✅ Handle null value for value types
-                    object? safeValue = value;
-                    if (safeValue == null)
-                    {
-                        if (targetGenericType.IsValueType && Nullable.GetUnderlyingType(targetGenericType) == null)
-                            safeValue = Activator.CreateInstance(targetGenericType); // default(int), etc.
-                    }
+                    // Safe value creation for value types
+                    object? safeValue;
+                    if (value == null && targetGenericType.IsValueType)
+                        safeValue = Activator.CreateInstance(targetGenericType);
                     else
-                    {
-                        try
-                        {
-                            var underlyingTargetType = Nullable.GetUnderlyingType(targetGenericType) ?? targetGenericType;
-
-                            if (!underlyingTargetType.IsAssignableFrom(safeValue.GetType()))
-                            {
-                                safeValue = Convert.ChangeType(safeValue, underlyingTargetType);
-                            }
-                        }
-                        catch (Exception convertEx)
-                        {
-                            Console.WriteLine($"⚠️ Conversion failed for property {sourceProp.Name}: {convertEx.Message}");
-                            continue; // Skip if can't convert
-                        }
-                    }
+                        safeValue = value;
 
                     var fieldType = typeof(FieldWithAccess<>).MakeGenericType(targetGenericType);
-                    var constructor = fieldType.GetConstructor(new[] { targetGenericType, typeof(bool) });
-                    if (constructor == null)
-                    {
-                        Console.WriteLine($"Constructor not found for property: {sourceProp.Name}");
-                        continue;
-                    }
+                    var instance = Activator.CreateInstance(fieldType, safeValue, isReadOnly);
 
-                    var instance = constructor.Invoke(new[] { safeValue!, isReadOnly });
                     targetProp.SetValue(result, instance);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"❌ Error mapping property '{sourceProp.Name}': {ex.Message}");
+                    // Log exact property causing issue
+                    Console.WriteLine($"Mapping failed for {sourceProp.Name}: {ex.Message}");
                 }
             }
 
             return result;
         }
-
     }
 }

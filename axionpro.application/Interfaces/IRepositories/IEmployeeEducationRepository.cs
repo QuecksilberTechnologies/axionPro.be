@@ -32,8 +32,8 @@ public interface IEmployeeEducationRepository
     //  public Task<PagedResponseDTO<GetDependentResponseDTO>> AutoCreatedAsync(EmployeeContact entity);
     public Task<EmployeeEducation> GetSingleRecordAsync(long Id, bool IsActive);  // Ensure this returns 
 
-    public Task<bool> UpdateEmployeeFieldAsync(long Id, string entity, string fieldName, object? fieldValue, long updatedById);
-
+   
+    public   Task<bool> UpdateEmployeeFieldAsync(EmployeeEducation entity);
 
     #endregion
 

@@ -9,14 +9,14 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Command
 {
-    public class UpdateDependentCommand : IRequest<ApiResponse<bool>>
-    {
-        public GenricUpdateRequestDTO DTO { get; set; }
+    //public class UpdateDependentCommand : IRequest<ApiResponse<bool>>
+    //{
+    //    public GenricUpdateRequestDTO DTO { get; set; }
 
-        public UpdateDependentCommand(GenricUpdateRequestDTO dto)
-        {
-            DTO = dto;
-        }
+    //    public UpdateDependentCommand(GenricUpdateRequestDTO dto)
+    //    {
+    //        DTO = dto;
+    //    }
 
-    }
+    //}
 }
