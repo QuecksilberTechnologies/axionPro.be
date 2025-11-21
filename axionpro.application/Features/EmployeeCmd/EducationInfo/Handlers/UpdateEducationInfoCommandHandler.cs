@@ -169,56 +169,63 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                 // --- 9) Iterate fields and apply updates IN MEMORY
                 // 9️⃣ Loop on each field coming from list
                 // Pre-built readonly map
+                // --- 1) Build read-only map once (DTO level)
+                // --- 1) Build read-only map once
                 var readOnlyMap = typeof(EmployeeEducationEditableFieldsDTO)
                     .GetProperties()
                     .ToDictionary(p => p.Name, p => p.GetCustomAttribute<AccessControlAttribute>()?.ReadOnly ?? false);
 
+                // --- 2) Check fields to update
+                List<string> readOnlyFieldsAttempted = new List<string>();
                 foreach (var item in dto.FieldsToUpdate)
                 {
                     string fieldName = item.FieldName.Trim();
 
-                    // ❗ Check if field exists in Access DTO
-                    var accessProp = typeof(GetEducationAccessResponseDTO)
-                        .GetProperty(fieldName, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
-
-                    if (accessProp == null)
-                    {
-                        await _unitOfWork.RollbackTransactionAsync();
-                        return ApiResponse<bool>.UpdatedFail($"Field '{fieldName}' not found.");
-                    }
-
-                    // ❗ Check if field is read-only
-                    var fieldAccessObj = accessProp.GetValue(accessDto);
-                    bool isReadOnly = (bool?)fieldAccessObj?
-                        .GetType().GetProperty("IsReadOnly")?.GetValue(fieldAccessObj) ?? false;
-
-                    if (isReadOnly)
-                    {
-                        await _unitOfWork.RollbackTransactionAsync();
-                        return ApiResponse<bool>.UpdatedFail($"Field '{fieldName}' is read-only.");
-                    }
-
-
-                    // 🟢 GET ENTITY PROPERTY (ACTUAL DB COLUMN)
+                    // Check if property exists in entity
                     var entityProp = typeof(EmployeeEducation)
                         .GetProperty(fieldName, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
 
                     if (entityProp == null)
-                    {
-                        await _unitOfWork.RollbackTransactionAsync();
-                        return ApiResponse<bool>.UpdatedFail($"Property '{fieldName}' not found in entity.");
-                    }
+                        continue; // ignore missing fields or you can log them
 
-                    // 🟢 Convert incoming value (string → int/datetime/bool/etc)
+                    // Check if read-only
+                    if (!readOnlyMap.TryGetValue(entityProp.Name, out var isReadOnly))
+                        isReadOnly = false;
+
+                    if (isReadOnly)
+                        readOnlyFieldsAttempted.Add(entityProp.Name);
+                }
+
+                // --- 3) Return comma-separated string of read-only fields
+                string readOnlyFieldsString = string.Join(", ", readOnlyFieldsAttempted);
+
+                // Agar koi read-only field attempt hua hai, use return kar do
+                if (readOnlyFieldsAttempted.Any())
+                {
+                    return ApiResponse<bool>.UpdatedFail($"These fields are read-only: {readOnlyFieldsString}");
+                }
+
+                // --- 4) Agar sab editable fields hain, yeh foreach continue karega entity update ke liye
+                foreach (var item in dto.FieldsToUpdate)
+                {
+                    string fieldName = item.FieldName.Trim();
+
+                    var entityProp = typeof(EmployeeEducation)
+                        .GetProperty(fieldName, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+
+                    if (entityProp == null) continue;
+
+                    // Convert value
                     if (!TryConvertObjectToValue.TryConvertValue(item.FieldValue, entityProp.PropertyType, out var convertedValue))
                     {
                         await _unitOfWork.RollbackTransactionAsync();
                         return ApiResponse<bool>.UpdatedFail($"Invalid value for '{fieldName}'.");
                     }
 
-                    // 🟢 APPLY VALUE INTO ENTITY (THIS IS MAIN UPDATE OPERATION)
+                    // Set value
                     entityProp.SetValue(existingRecord, convertedValue);
                 }
+
 
                 // --- 10) Update audit fields
                 existingRecord.UpdatedById = decryptedUserEmpId;
