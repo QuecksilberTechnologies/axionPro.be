@@ -41,8 +41,8 @@ namespace axionpro.application.DTOs.Employee
         [FromForm]
         public List<FieldUpdateItemDTO> FieldsToUpdate { get; set; } = new();
 
-        [FromForm]
-        public List<FileUpdateDTO> FilesToUpdate { get; set; } = new();
+          [FromForm]
+        public List<FileUpdateItemDTO> FilesToUpdate { get; set; } = new();
     }
 
     public class FieldUpdateItemDTO
@@ -51,16 +51,21 @@ namespace axionpro.application.DTOs.Employee
         public string FieldName { get; set; } = string.Empty;
 
         [FromForm]
-        public string? FieldValue { get; set; }  // Required hata diya
+        public string? FieldValue { get; set; }
+
+        [FromForm]
+        public IFormFile? FileValue { get; set; }
     }
 
-    public class FileUpdateDTO
+    public class FileUpdateItemDTO
     {
         [FromForm]
-        public string? FieldName { get; set; }
+        public string? FieldName { get; set; } 
 
         [FromForm]
-        public IFormFile? File { get; set; }
+        public IFormFile? FieldValue { get; set; }
     }
 
 }
+
+

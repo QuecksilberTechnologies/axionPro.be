@@ -217,7 +217,7 @@ namespace axionpro.persistance.Repositories
        
 
    public async Task<bool> UpdateEmployeeFieldAsync(EmployeeEducation entity)
-{
+ {
     await using var context = await _contextFactory.CreateDbContextAsync();
 
     if (entity == null)

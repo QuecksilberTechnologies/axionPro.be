@@ -17,10 +17,10 @@ namespace axionpro.application.DTOs.Employee.AccessControlReadOnlyType
         [AccessControl(ReadOnly = true)]
         public long EmployeeId { get; set; }
 
-        [AccessControl(ReadOnly = true)]
+        [AccessControl(ReadOnly = false)]
         public string? Degree { get; set; }
 
-        [AccessControl(ReadOnly = true)]
+        [AccessControl(ReadOnly = false)]
         public string? InstituteName { get; set; }
 
         [AccessControl(ReadOnly = false)]

@@ -151,7 +151,7 @@ namespace axionpro.infrastructure.FileStoringService
             return Path.Combine(tenantFolder);
         }
 
-        public string GenerateFilePath(string fullPathFolder, string fileName)
+        public string GenerateFullFilePath(string fullPathFolder, string fileName)
         {
             if (string.IsNullOrEmpty(fullPathFolder))
                 throw new ArgumentNullException(nameof(fullPathFolder));
