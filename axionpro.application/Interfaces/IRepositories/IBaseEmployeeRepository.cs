@@ -25,6 +25,15 @@ public interface IBaseEmployeeRepository
 
     #region Employee-Base-info
 
+    public Task<bool> UpdateVerifyEditStatusAsync(
+      string sectionType,
+      long EmployeeId,
+      bool? isVerified,
+      bool? isEditAllowed,
+      bool? isActive,
+      long userId, bool? IsActive // NEW : logged in admin user ID
+  );
+
     Task<GetLeaveBalanceToEmployeeResponseDTO> UpdateLeaveBalanceToEmployee(UpdateLeaveBalanceToEmployeeRequestDTO updateLeaveBalanceTo);  // Ensure this returns Task<Employee>   
 
      Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> GetInfo(GetBaseEmployeeRequestDTO dto, long  decryptedTenantId, long id);

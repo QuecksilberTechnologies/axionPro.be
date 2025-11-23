@@ -120,7 +120,23 @@ namespace axionpro.api.Controllers.Employee
             }
         }
 
+        /// <summary>
+        /// Bulk update section verification + edit permission status for an employee.
+        /// </summary>
+        [HttpPost("update-bulk")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> UpdateSectionStatusBulk( [FromBody] UpdateEmployeeSectionStatusRequestDTO dto)
+        {
+            if (dto == null)
+                return BadRequest(ApiResponse<bool>.Fail("Invalid or empty request."));
 
+            var command = new UpdateSectionBulkCommand(dto);
+            var result = await _mediator.Send(command);
+
+            return Ok(result);
+        }
+    
 
         [HttpGet("get-all-percentage")]
         [ProducesResponseType(typeof(ApiResponse<List<CompletionSectionDTO>>), StatusCodes.Status200OK)]

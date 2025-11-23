@@ -15,6 +15,7 @@ using axionpro.application.DTOS.Pagination;
  
 using axionpro.domain.Entity;
 using MediatR;
+using SkiaSharp;
 using System.Collections.Generic;
 
 

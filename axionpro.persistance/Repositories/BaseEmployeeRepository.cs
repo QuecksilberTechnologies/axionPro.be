@@ -105,6 +105,144 @@ namespace axionpro.persistance.Repositories
             }
         }
 
+        public async Task<bool> UpdateVerifyEditStatusAsync(string sectionType,long employeeId,bool? isVerified,bool? isEditAllowed,bool? isActive,long userId, bool? IsActive)
+        {
+            if (employeeId <= 0 || string.IsNullOrWhiteSpace(sectionType))
+                return false;
+
+            sectionType = sectionType.Trim().ToLowerInvariant();
+
+            DateTime now = DateTime.UtcNow;
+
+            // 🔥 COMMON LOCAL FUNCTION — ALL TABLES FOLLOW SAME PATTERN
+            async Task<bool> UpdateMainTable<TEntity>(DbSet<TEntity> dbSet)
+                where TEntity : class
+             {
+                var rows = await dbSet
+                    .Where(x => EF.Property<long>(x, "EmployeeId") == employeeId &&
+                                (bool?)EF.Property<bool?>(x, "IsSoftDeleted") != true)
+                    .ToListAsync();
+
+                if (rows.Count == 0)
+                    return false;
+
+                foreach (var row in rows)
+                {
+                    if (isVerified.HasValue)
+                        typeof(TEntity).GetProperty("IsInfoVerified")?.SetValue(row, isVerified.Value);
+
+                    if (isEditAllowed.HasValue)
+                        typeof(TEntity).GetProperty("IsEditAllowed")?.SetValue(row, isEditAllowed.Value);
+
+                    if (isActive.HasValue)
+                        typeof(TEntity).GetProperty("IsActive")?.SetValue(row, isActive.Value);
+
+                    typeof(TEntity).GetProperty("InfoVerifiedById")?.SetValue(row, userId);
+                    typeof(TEntity).GetProperty("InfoVerifiedDateTime")?.SetValue(row, now);
+                 
+                    typeof(TEntity).GetProperty("UpdatedById")?.SetValue(row, userId);
+                    typeof(TEntity).GetProperty("UpdatedDateTime")?.SetValue(row, now);
+                 
+                    if (IsActive.HasValue)
+                        typeof(TEntity).GetProperty("IsActive")?.SetValue(row, IsActive.Value);
+
+
+                }
+
+                return true;
+            }
+
+            bool mainUpdated = false;
+
+            switch (sectionType)
+            {
+                case "education":
+                    mainUpdated = await UpdateMainTable(_context.EmployeeEducations);
+                    break;
+
+                case "experience":
+                    mainUpdated = await UpdateMainTable(_context.EmployeeExperiences);
+
+                    if (mainUpdated)
+                    {
+                        // 🔥 ExperienceDetails update — SAME PATTERN — ONE extra hit only
+                        var details = await _context.EmployeeExperienceDetails
+                            .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
+                            .ToListAsync();
+
+                        if (details.Count > 0)
+                        {
+                            foreach (var d in details)
+                            {
+                                if (isVerified.HasValue) d.IsInfoVerified = isVerified.Value;
+                                if (isEditAllowed.HasValue) d.IsEditAllowed = isEditAllowed.Value;
+                                if (isActive.HasValue) d.IsActive = isActive.Value;
+                                d.UpdatedById= d.InfoVerifiedById = userId;
+                                d.UpdatedDateTime = d.InfoVerifiedDateTime = now;
+
+                            }
+                        }
+                    }
+                    break;
+
+                case "bank":
+                    mainUpdated = await UpdateMainTable(_context.EmployeeBankDetails);
+                    break;
+
+                default:
+                    return false;
+            }
+
+            if (mainUpdated)
+                await _context.SaveChangesAsync();
+
+            return mainUpdated;
+        }
+
+
+        private async Task<bool> UpdateTableAsync<TEntity>( DbSet<TEntity> table,  long employeeId,  bool? isVerified,  bool? isEditAllowed,  bool? isActive, long? userId) where TEntity : class
+        {
+            // FILTER → EmployeeId match + IsSoftDeleted != true
+            var entity = await table.FirstOrDefaultAsync(x =>
+                EF.Property<long>(x, "EmployeeId") == employeeId &&
+                (EF.Property<bool?>(x, "IsSoftDeleted") != true)
+            );
+
+            if (entity == null)
+                return false;
+
+            // --- Update IsInfoVerified ---
+            if (isVerified.HasValue)
+            {
+                typeof(TEntity).GetProperty("IsInfoVerified")?.SetValue(entity, isVerified.Value);
+
+                if (isVerified.Value == true)
+                {
+                    typeof(TEntity).GetProperty("InfoVerifiedDateTime")?.SetValue(entity, DateTime.UtcNow);
+                    typeof(TEntity).GetProperty("InfoVerifiedById")?.SetValue(entity, userId ?? 0);
+                }
+                else
+                {
+                    typeof(TEntity).GetProperty("InfoVerifiedDateTime")?.SetValue(entity, null);
+                    typeof(TEntity).GetProperty("InfoVerifiedById")?.SetValue(entity, null);
+                }
+            }
+
+            // --- Update IsEditAllowed ---
+            if (isEditAllowed.HasValue)
+                typeof(TEntity).GetProperty("IsEditAllowed")?.SetValue(entity, isEditAllowed.Value);
+
+            // --- Update IsActive ---
+            if (isActive.HasValue)
+                typeof(TEntity).GetProperty("IsActive")?.SetValue(entity, isActive.Value);
+
+            // --- UpdatedDateTime ---
+            typeof(TEntity).GetProperty("UpdatedDateTime")?.SetValue(entity, DateTime.UtcNow);
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
 
 
         public async Task<bool> Delete(string id, string tenantKey)
