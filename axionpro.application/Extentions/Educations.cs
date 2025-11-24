@@ -18,7 +18,7 @@ namespace axionpro.application.Extentions
                     SectionName = "Education",
                     CompletionPercent = 0,
                     IsInfoVerified = false,
-                    IsEditAllowed = true,
+                    IsEditAllowed = false,
                     IsSectionCreate = false
                 };
             }

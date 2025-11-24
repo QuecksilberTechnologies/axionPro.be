@@ -168,7 +168,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                         section.IsVerified,
                         section.IsEditAllowed,
                         true,                    // isActive default
-                        loggedInEmpId  , request.DTO.IsActive           // admin who verified
+                        loggedInEmpId          // admin who verified
                     );
 
                     if (!isUpdated)

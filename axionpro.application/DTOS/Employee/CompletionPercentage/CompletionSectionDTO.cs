@@ -33,8 +33,8 @@ namespace axionpro.application.DTOS.Employee.CompletionPercentage
         public bool? HasEducationDocUploded { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
-        public bool IsInfoVerified { get; set; }
-        public bool IsEditAllowed { get; set; }
+        public bool? IsInfoVerified { get; set; }
+        public bool? IsEditAllowed { get; set; }
     }
 
 }

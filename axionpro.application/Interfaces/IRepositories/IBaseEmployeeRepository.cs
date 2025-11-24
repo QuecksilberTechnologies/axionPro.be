@@ -32,7 +32,7 @@ public interface IBaseEmployeeRepository
       bool? isVerified,
       bool? isEditAllowed,
       bool? isActive,
-      long userId, bool? IsActive // NEW : logged in admin user ID
+      long userId // NEW : logged in admin user ID
   );
 
     Task<GetLeaveBalanceToEmployeeResponseDTO> UpdateLeaveBalanceToEmployee(UpdateLeaveBalanceToEmployeeRequestDTO updateLeaveBalanceTo);  // Ensure this returns Task<Employee>   

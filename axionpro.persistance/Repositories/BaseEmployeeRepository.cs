@@ -101,7 +101,7 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<bool> UpdateVerifyEditStatusAsync(string sectionType,long employeeId,bool? isVerified,bool? isEditAllowed,bool? isActive,long userId, bool? IsActive)
+        public async Task<bool> UpdateVerifyEditStatusAsync(string sectionType,long employeeId,bool? isVerified,bool? isEditAllowed,bool? isActive,long userId)
         {
             if (employeeId <= 0 || string.IsNullOrWhiteSpace(sectionType))
                 return false;
@@ -124,26 +124,30 @@ namespace axionpro.persistance.Repositories
 
                 foreach (var row in rows)
                 {
-                    if (isVerified.HasValue)
-                        typeof(TEntity).GetProperty("IsInfoVerified")?.SetValue(row, isVerified.Value);
+                    // NULL → FALSE conversion here
+                    typeof(TEntity).GetProperty("IsInfoVerified")?
+                        .SetValue(row, isVerified ?? false);
 
-                    if (isEditAllowed.HasValue)
-                        typeof(TEntity).GetProperty("IsEditAllowed")?.SetValue(row, isEditAllowed.Value);
+                    typeof(TEntity).GetProperty("IsEditAllowed")?
+                        .SetValue(row, isEditAllowed ?? false);
 
-                    if (isActive.HasValue)
-                        typeof(TEntity).GetProperty("IsActive")?.SetValue(row, isActive.Value);
+                    typeof(TEntity).GetProperty("IsActive")?
+                        .SetValue(row, isActive ?? false);
 
-                    typeof(TEntity).GetProperty("InfoVerifiedById")?.SetValue(row, userId);
-                    typeof(TEntity).GetProperty("InfoVerifiedDateTime")?.SetValue(row, now);
-                 
-                    typeof(TEntity).GetProperty("UpdatedById")?.SetValue(row, userId);
-                    typeof(TEntity).GetProperty("UpdatedDateTime")?.SetValue(row, now);
-                 
-                    if (IsActive.HasValue)
-                        typeof(TEntity).GetProperty("IsActive")?.SetValue(row, IsActive.Value);
+                    typeof(TEntity).GetProperty("InfoVerifiedById")?
+                        .SetValue(row, userId);
 
+                    typeof(TEntity).GetProperty("InfoVerifiedDateTime")?
+                        .SetValue(row, now);
 
+                  //  typeof(TEntity).GetProperty("UpdatedById")?
+                     //   .SetValue(row, userId);
+
+                //    typeof(TEntity).GetProperty("UpdatedDateTime")?
+                       // .SetValue(row, now);
                 }
+
+
 
                 return true;
             }
@@ -795,7 +799,10 @@ namespace axionpro.persistance.Repositories
                         ScoreType = x.ScoreType,
                         HasEducationDocUploded = x.HasEducationDocUploded,
                         StartDate = x.StartDate,
-                        EndDate = x.EndDate
+                        EndDate = x.EndDate,
+                        IsEditAllowed = x.IsEditAllowed,
+                        IsInfoVerified = x.IsInfoVerified
+
                     })
                     .ToListAsync();
 
