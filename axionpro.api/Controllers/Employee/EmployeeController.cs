@@ -137,16 +137,16 @@ namespace axionpro.api.Controllers.Employee
             return Ok(result);
         }
 
-
         [HttpGet("get-all-percentage")]
-        [ProducesResponseType(typeof(List<CompletionSectionDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<List<CompletionSectionDTO>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllEmployeePercentageAsync([FromQuery] string employeeId)
         {
             try
             {
                 if (string.IsNullOrWhiteSpace(employeeId))
                 {
-                    return BadRequest("Invalid EmployeeId.");
+                    _logger.LogInfo("Invalid EmployeeId received.");
+                    return BadRequest(ApiResponse<bool>.Fail("Invalid EmployeeId."));
                 }
 
                 _logger.LogInfo("Fetching employee completion percentage...");
@@ -154,21 +154,125 @@ namespace axionpro.api.Controllers.Employee
                 var query = new GetEmployeeProfileStatusQuery(employeeId);
                 var result = await _mediator.Send(query);
 
-                if (result == null || result.Count == 0)
+                if (!result.IsSucceeded)
                 {
-                    return NotFound("No completion data found.");
+                    _logger.LogInfo("Failed to fetch completion data.");
+                    return BadRequest(result);
                 }
 
-                return Ok(result);   // ✔ Direct list return
+                // ✔ Correct response mapping
+                var response = ApiResponse<List<CompletionSectionDTO>>
+                    .Response(result.Sections, "Fetched successfully");
+
+                _logger.LogInfo("Employee percentage fetched successfully.");
+
+                return Ok(response);   // ✔ Correct return
             }
             catch (Exception ex)
             {
-                _logger.LogInfo( "Error getting completion percentage.");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Internal Server Error");
+                _logger.LogError( "Error getting employee completion percentage.");
+
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    ApiResponse<bool>.Fail("Internal Server Error")
+                );
             }
         }
 
+
+        [HttpGet("get-all-percentage1")]
+        [ProducesResponseType(typeof(ApiResponse<List<CompletionSectionDTO>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<List<CompletionSectionDTO>>), StatusCodes.Status200OK)]
+        public IActionResult GetAllEmployeePercentage1([FromQuery] string employeeId)
+        {
+            try
+            {
+                _logger.LogInfo("Fetching all employees percentage (STATIC).");
+
+                var sections = new List<CompletionSectionDTO>
+        {
+            new CompletionSectionDTO
+            {
+                SectionName = "Basic",
+                CompletionPercent = 85,
+                IsInfoVerified = true,
+                IsEditAllowed = true,
+                IsSectionCreate = true,
+            },
+            new CompletionSectionDTO
+            {
+                SectionName = "Bank",
+                CompletionPercent = 85,
+                IsInfoVerified = true,
+                IsEditAllowed = true,
+                IsSectionCreate = true,
+            },
+            new CompletionSectionDTO
+            {
+                SectionName = "Contact",
+                CompletionPercent = 100,
+                IsInfoVerified = true,
+                IsEditAllowed = false,
+                IsSectionCreate = true,
+            },
+            new CompletionSectionDTO
+            {
+                SectionName = "Image",
+                CompletionPercent = null,
+                IsInfoVerified = null,
+                IsEditAllowed = null,
+                IsSectionCreate = false,
+            },
+            new CompletionSectionDTO
+            {
+                SectionName = "Experience",
+                CompletionPercent = 75,
+                IsInfoVerified = false,
+                IsEditAllowed = true,
+            },
+            new CompletionSectionDTO
+            {
+                SectionName = "Insurance",
+                CompletionPercent = 95,
+                IsInfoVerified = true,
+                IsEditAllowed = true,
+                IsSectionCreate = true,
+            },
+            new CompletionSectionDTO
+            {
+                SectionName = "Identity",
+                CompletionPercent = 80,
+                IsInfoVerified = true,
+                IsEditAllowed = true,
+                IsSectionCreate = true,
+            },
+            new CompletionSectionDTO
+            {
+                SectionName = "Education",
+                CompletionPercent = 40,
+                IsInfoVerified = true,
+                IsEditAllowed = true,
+                IsSectionCreate = true,
+            }
+        };
+
+                // 🔥 Correct use of ApiResponse
+                var response = ApiResponse<List<CompletionSectionDTO>>.Response(sections, "Fetched successfully");
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error while returning static completion: {ex.Message}");
+
+                var errorResponse = ApiResponse<List<CompletionSectionDTO>>.Fail(
+                    "Unexpected error occurred.",
+                    new List<string> { ex.Message }
+                );
+
+                return StatusCode(500, errorResponse);
+            }
+        }
 
 
         [HttpPost("Image/add")]
