@@ -4,6 +4,7 @@ using axionpro.application.DTOs.Department;
 using axionpro.application.DTOs.Employee.AccessResponse;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
+using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.DTOS.Employee.Contact;
 
 using axionpro.application.DTOS.Employee.Dependent;
@@ -49,7 +50,7 @@ public interface IBaseEmployeeRepository
      
       public Task<bool> UpdateEmployeeFieldAsync(long Id, string entity, string fieldName, object? fieldValue, long updatedById);
       public Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> GetImage(GetEmployeeImageRequestDTO dto, long decryptedTenantId);
-
+    public Task<List<CompletionSectionDTO>> GetEmployeeCompletionAsync(long employeeId);
     #endregion
 
 

@@ -217,8 +217,8 @@ namespace axionpro.persistance.Repositories
   
 
         public async Task<bool> UpdateEmployeeFieldAsync(EmployeeEducation entity)
- {
-    await using var context = await _contextFactory.CreateDbContextAsync();
+          {
+            await using var context = await _contextFactory.CreateDbContextAsync();
 
     if (entity == null)
         throw new ArgumentNullException(nameof(entity));
@@ -289,7 +289,7 @@ namespace axionpro.persistance.Repositories
 
       
 
-        private double CalculateEducationCompletion(GetEducationResponseDTO edu)
+        public double CalculateEducationCompletion(GetEducationResponseDTO edu)
         {
             int totalFields = 8;
             int filled = 0;
@@ -305,6 +305,7 @@ namespace axionpro.persistance.Repositories
 
             return Math.Round((filled / (double)totalFields) * 100, 0);
         }
+
 
 
 

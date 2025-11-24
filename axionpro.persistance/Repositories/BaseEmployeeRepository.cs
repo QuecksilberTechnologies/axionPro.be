@@ -2,8 +2,10 @@
 using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
+using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.DTOS.EmployeeLeavePolicyMap;
 using axionpro.application.DTOS.Pagination;
+using axionpro.application.Extentions;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
@@ -13,13 +15,7 @@ using Azure.Core;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.ComponentModel.DataAnnotations;
-using System.Drawing;
-using System.Drawing.Printing;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks.Dataflow;
+using System.Collections.Generic;
 
 namespace axionpro.persistance.Repositories
 {
@@ -715,6 +711,153 @@ namespace axionpro.persistance.Repositories
                 };
             }
         }
+
+
+
+        //public async Task<EmployeeProfileCompletionDTO> GetEmployeeCompletionAsync(long employeeId)
+        //{
+        //    if (employeeId <= 0)
+        //        return new EmployeeProfileCompletionDTO();
+
+        //    // Run all queries in parallel (fastest)
+        //    var bankTask = _context.EmployeeBankDetails
+        //        .AsNoTracking()
+        //        .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
+        //        .OrderByDescending(x => x.IsPrimaryAccount)
+        //        .Select(x => new
+        //        {
+        //            x.BankName,
+        //            x.AccountNumber,
+        //            x.IFSCCode,
+        //            x.BranchName,
+        //            x.AccountType,
+        //            x.IsPrimaryAccount,
+        //            x.HasChequeDocUploaded,
+        //            x.IsInfoVerified,
+        //            x.IsEditAllowed
+        //        })
+        //        .FirstOrDefaultAsync();
+
+        //    var eduTask = _context.EmployeeEducations
+        //        .AsNoTracking()
+        //        .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
+        //        .Select(x => new
+        //        {
+        //            x.Degree,
+        //            x.InstituteName,
+        //            x.StartDate,
+        //            x.EndDate,
+        //            x.IsInfoVerified,
+        //            x.IsEditAllowed
+        //        })
+        //        .ToListAsync();
+
+        //    //var expTask = _context.EmployeeExperienceDetails
+        //    //    .AsNoTracking()
+        //    //    .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
+        //    //    .Select(x => new
+        //    //    {
+        //    //        x.CompanyName,
+        //    //        x.StartDate,
+        //    //        x.EndDate,
+        //    //        x.HasExpLetterUploaded,
+        //    //        x.IsInfoVerified,
+        //    //        x.IsEditAllowed
+        //    //    })
+        //    //    .ToListAsync();
+
+        //    await Task.WhenAll(bankTask, eduTask);
+
+        //    return new EmployeeProfileCompletionDTO
+        //    {
+        //        Bank = _context.EmployeeEducations.CalculateEducationCompletion(bankTask.Result),
+        //        Education = _context.EmployeeEducations.c(eduTask.Result),
+        //        Experience = CalculateExperiencePercentage(expTask.Result)
+        //    };
+        //}
+
+        public async Task<List<CompletionSectionDTO>> GetEmployeeCompletionAsync(long employeeId)
+        {
+            try
+            {
+                // ❗If bad employeeId, return empty list safely
+                if (employeeId <= 0)
+                    return new List<CompletionSectionDTO>();
+
+                // 📚 Fetch education rows
+                var eduList = await _context.EmployeeEducations
+                    .AsNoTracking()
+                    .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
+                    .Select(x => new EducationRowDTO
+                    {
+                        Degree = x.Degree,
+                        InstituteName = x.InstituteName,
+                        ScoreType = x.ScoreType,
+                        HasEducationDocUploded = x.HasEducationDocUploded,
+                        StartDate = x.StartDate,
+                        EndDate = x.EndDate
+                    })
+                    .ToListAsync();
+
+                // 🧮 Calculate completion %
+                var educationSection = eduList.CalculateEducationCompletion();
+
+                return new List<CompletionSectionDTO> { educationSection };
+            }
+            catch (Exception ex)
+            {
+                // 🔥 Log error safely
+                _logger.LogError(ex,
+                    "Error in GetEmployeeCompletionAsync for EmployeeId: {EmployeeId}",
+                    employeeId);
+
+                // ❗Never throw — return empty list to avoid API crash
+                return new List<CompletionSectionDTO>();
+            }
+        }
+
+
+
+        // single object
+        //    public async Task<List<CompletionSectionDTO>> GetEmployeeCompletionAsync(long employeeId)
+        //    {
+        //        if (employeeId <= 0)
+        //            return new List<CompletionSectionDTO>();
+
+        //        var eduTask = _context.EmployeeEducations
+        //            .AsNoTracking()
+        //            .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted!=true)
+        //            .Select(x => new
+        //            {
+        //                x.Degree,
+        //                x.InstituteName,
+        //                x.ScoreType,
+        //                x.HasEducationDocUploded,
+        //                x.StartDate,
+        //                x.EndDate,
+        //                x.IsInfoVerified,
+        //                x.IsEditAllowed
+        //            })
+        //            .FirstOrDefaultAsync();
+
+        //        await Task.WhenAll(eduTask);
+
+        //        var edu = await eduTask;
+
+        //        return new List<CompletionSectionDTO>
+        //            {
+        //                  edu != null
+        //                   ? new List<dynamic> { edu }.CalculateEducationCompletion()
+        //                   : new CompletionSectionDTO
+        //            {
+        //            SectionName = "Education",
+        //            CompletionPercent = 0,
+        //            IsInfoVerified = false,
+        //            IsEditAllowed = true,
+        //            IsSectionCreate = false
+        //        }
+        //};
+        //    }
 
 
         //public async Task<PagedResponseDTO<GetAllEmployeeInfoResponseDTO>> GetAllInfo(GetAllEmployeeInfoRequestDTO dto,
