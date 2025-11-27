@@ -183,21 +183,18 @@ namespace axionpro.persistance.Repositories
                   
                   
 
-                    //  dtoItem.CompletionPercentage = CalculateEducationCompletion(dtoItem);
+                     dtoItem.CompletionPercentage = CalculateEducationCompletion(dtoItem);
 
                     // add to total
                     totalPercentage += dtoItem.CompletionPercentage;
 
                     finalList.Add(dtoItem);
                 }
-
-            //    var responseData = _mapper.Map<List<EmployeeEducation>>(finalList);
-
-              //  var educationSection = eduList.CalculateEducationCompletionDTO();
-                var educationSection1 = eduList.CalculateEducationCompletion();
+ 
+                var educationSection = eduList.CalculateEducationCompletion();
 
                 // ⭐ Average percentage
-                averagePercentage = finalList.Count == 0    ? 0 : Math.Round(totalPercentage / (double)finalList.Count, 0);
+                   averagePercentage = finalList.Count == 0    ? 0 : Math.Round(totalPercentage / (double)finalList.Count, 0);
                 // ⭐ 2) GLOBAL AVERAGE Completion Percentage
              
                 // ⭐ 3) ALL DOCUMENTS UPLOADED OR NOT?
@@ -211,7 +208,7 @@ namespace axionpro.persistance.Repositories
                     PageNumber = pageNumber,
                     PageSize = pageSize,
                     TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
-                    //CompletionPercentage = educationSection.CompletionPercent,
+                    CompletionPercentage = educationSection.CompletionPercent,
                     HasUploadedAll= hasUploadedAll
                   
                 };
