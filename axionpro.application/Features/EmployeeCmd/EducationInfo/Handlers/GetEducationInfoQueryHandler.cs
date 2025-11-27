@@ -48,6 +48,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
         private readonly IConfiguration _config;
         private readonly IEncryptionService _encryptionService;
         private readonly IIdEncoderService _idEncoderService;
+        private readonly IConfiguration _configuration;
 
 
         public GetEducationInfoQueryHandler(
@@ -58,7 +59,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,
-          IEncryptionService encryptionService, IIdEncoderService idEncoderService)
+          IEncryptionService encryptionService, IIdEncoderService idEncoderService, IConfiguration configuration)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -69,6 +70,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
             _config = config;
             _encryptionService = encryptionService;
             _idEncoderService = idEncoderService;
+            this._configuration = configuration;
         }
 
 
@@ -166,7 +168,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 
                 // 5️⃣ Projection + Encryption
              //   var encryptedResult = ProjectionHelper.ToGetEducationResponseDTOs(Entity.Items, _encryptionService, tenantKey, request.DTO.EmployeeId);
-                var encryptedResult = ProjectionHelper.ToGetEducationResponseDTOs(Entity, _idEncoderService, tenantKey);
+                var encryptedResult = ProjectionHelper.ToGetEducationResponseDTOs(Entity, _idEncoderService, tenantKey,  _configuration);
 
                 // 6️⃣ Commit Transaction
                 await _unitOfWork.CommitTransactionAsync();

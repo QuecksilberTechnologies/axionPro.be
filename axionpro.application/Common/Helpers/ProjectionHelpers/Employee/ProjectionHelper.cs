@@ -276,9 +276,12 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 
 
         public static List<GetEducationResponseDTO> ToGetEducationResponseDTOs(  PagedResponseDTO<GetEducationResponseDTO> entities, IIdEncoderService encryptionService,
-            string tenantKey
+            string tenantKey, IConfiguration configuration
            )
         {
+            string baseUrl = configuration["FileSettings:BaseUrl"] ?? string.Empty;
+            string defaultImg = configuration["FileSettings:DefaultImage"] ?? string.Empty;
+
             // 🔹 Null / Empty check
             if (entities == null || entities.Items == null || !entities.Items.Any())
                 return new List<GetEducationResponseDTO>();
@@ -289,11 +292,16 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             {
                 if (item == null) continue;
 
+                item.FilecPath ??= string.Empty;
                 // ✅ ID encrypt करो (अगर valid long है)
                 if (long.TryParse(item.Id, out long rawId) && rawId > 0)
                 {
                     item.Id = encryptionService.EncodeId(rawId, tenantKey);
                 }
+
+                // 📁 Final Image URL build
+                if (!string.IsNullOrEmpty(item.FilecPath))
+                    item.FilecPath = $"{baseUrl}{item.FilecPath}";
 
                 // ✅ EmployeeId encrypt करो
                 if (long.TryParse(item.EmployeeId, out long empRawId) && empRawId > 0)

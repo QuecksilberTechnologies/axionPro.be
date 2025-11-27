@@ -46,6 +46,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
         private readonly IEncryptionService _encryptionService;
         private readonly IIdEncoderService _idEncoderService;
         private readonly IFileStorageService _fileStorageService;
+        private readonly IConfiguration _configuration;
 
         public CreateEducationInfoCommandHandler(
             IUnitOfWork unitOfWork,
@@ -57,7 +58,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
             IConfiguration config,
             IEncryptionService encryptionService,
             IIdEncoderService idEncoderService,
-            IFileStorageService fileStorageService)
+            IFileStorageService fileStorageService, IConfiguration configuration)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -69,6 +70,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
             _encryptionService = encryptionService;
             _idEncoderService = idEncoderService;
             _fileStorageService = fileStorageService;
+            _configuration = configuration;
         }
 
         public async Task<ApiResponse<List<GetEducationResponseDTO>>> Handle(CreateEducationInfoCommand request, CancellationToken cancellationToken)
@@ -196,7 +198,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                 await _unitOfWork.CommitTransactionAsync();
 
                 // 🔹 STEP 8: Projection + Encryption
-                var encryptedList = ProjectionHelper.ToGetEducationResponseDTOs(responseDTO, _idEncoderService, tenantKey);
+                var encryptedList = ProjectionHelper.ToGetEducationResponseDTOs(responseDTO, _idEncoderService, tenantKey, _configuration);
 
                 return new ApiResponse<List<GetEducationResponseDTO>>
                 {

@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
+using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.DTOS.Pagination;
+using axionpro.application.Extentions;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IHashed;
@@ -177,8 +179,11 @@ namespace axionpro.persistance.Repositories
                     };
 
                     // ⭐ Percentage calculation
+                   
+                  
+                  
 
-                    dtoItem.CompletionPercentage = CalculateEducationCompletion(dtoItem);
+                    //  dtoItem.CompletionPercentage = CalculateEducationCompletion(dtoItem);
 
                     // add to total
                     totalPercentage += dtoItem.CompletionPercentage;
@@ -186,8 +191,13 @@ namespace axionpro.persistance.Repositories
                     finalList.Add(dtoItem);
                 }
 
+            //    var responseData = _mapper.Map<List<EmployeeEducation>>(finalList);
+
+              //  var educationSection = eduList.CalculateEducationCompletionDTO();
+                var educationSection1 = eduList.CalculateEducationCompletion();
+
                 // ⭐ Average percentage
-                    averagePercentage = finalList.Count == 0    ? 0 : Math.Round(totalPercentage / (double)finalList.Count, 0);
+                averagePercentage = finalList.Count == 0    ? 0 : Math.Round(totalPercentage / (double)finalList.Count, 0);
                 // ⭐ 2) GLOBAL AVERAGE Completion Percentage
              
                 // ⭐ 3) ALL DOCUMENTS UPLOADED OR NOT?
@@ -201,7 +211,7 @@ namespace axionpro.persistance.Repositories
                     PageNumber = pageNumber,
                     PageSize = pageSize,
                     TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
-                    CompletionPercentage = averagePercentage,
+                    //CompletionPercentage = educationSection.CompletionPercent,
                     HasUploadedAll= hasUploadedAll
                   
                 };
@@ -287,7 +297,50 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-      
+        public async Task<List<CompletionSectionDTO>> GetEmployeeCompletionAsync(long employeeId)
+        {
+            try
+            {
+                // ❗If bad employeeId, return empty list safely
+                if (employeeId <= 0)
+                    return new List<CompletionSectionDTO>();
+
+                // 📚 Fetch education rows
+                var eduList = await _context.EmployeeEducations
+                    .AsNoTracking()
+                    .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
+                    .Select(x => new EducationRowDTO
+                    {
+                        Degree = x.Degree,
+                        InstituteName = x.InstituteName,
+                        ScoreType = x.ScoreType,
+                        HasEducationDocUploded = x.HasEducationDocUploded,
+                        StartDate = x.StartDate,
+                        EndDate = x.EndDate,
+                        IsEditAllowed = x.IsEditAllowed,
+                        IsInfoVerified = x.IsInfoVerified
+
+                    })
+                    .ToListAsync();
+
+                // 🧮 Calculate completion %
+                var educationSection = eduList.CalculateEducationCompletion();
+
+                return new List<CompletionSectionDTO> { educationSection };
+            }
+            catch (Exception ex)
+            {
+                // 🔥 Log error safely
+                _logger.LogError(ex,
+                    "Error in GetEmployeeCompletionAsync for EmployeeId: {EmployeeId}",
+                    employeeId);
+
+                // ❗Never throw — return empty list to avoid API crash
+                return new List<CompletionSectionDTO>();
+            }
+        }
+
+
 
         public double CalculateEducationCompletion(GetEducationResponseDTO edu)
         {
