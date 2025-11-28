@@ -359,47 +359,44 @@ namespace axionpro.persistance.Repositories
                 throw new Exception($"Failed to delete employee {id}: {ex.Message}", ex);
             }
         }
+
         public async Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> GetImage(GetEmployeeImageRequestDTO dto, long decryptedTenantId)
         {
-            await using var context = await _contextFactory.CreateDbContextAsync();
-
             try
             {
-                // Pagination defaults
                 int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
                 int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
 
-                // Base query
-                var query = context.EmployeeImages
+                var query = _context.EmployeeImages
                     .AsNoTracking()
-                    .Where(x => x.IsSoftDeleted != true &&
-                                x.TenantId == decryptedTenantId);
+                    .Where(x =>
+                        x.IsSoftDeleted != true &&
+                        x.TenantId == decryptedTenantId &&
+                        x.EmployeeId == dto._EmployeeId &&
+                        x.IsPrimary == true);
 
                 if (dto.IsActive)
                     query = query.Where(x => x.IsActive == dto.IsActive);
 
-                if (dto._EmployeeId > 0)
-                    query = query.Where(x => x.EmployeeId == dto._EmployeeId);
-
-                if (dto.Id_long > 0)
-                    query = query.Where(x => x.Id == dto.Id_long);
-
-                // Safe sorting
-                bool isAscending =
-                    !string.IsNullOrWhiteSpace(dto.SortOrder) &&
-                    dto.SortOrder.Trim().Equals("asc", StringComparison.OrdinalIgnoreCase);
-
-                query = isAscending ? query.OrderBy(x => x.Id) : query.OrderByDescending(x => x.Id);
-
                 int totalCount = await query.CountAsync();
 
-                // Just check primary, don't load all rows
-                bool hasPrimary = await query.AnyAsync(x => x.IsPrimary == true);
+                // 🚨 No Data Condition — Safe Return
+                if (totalCount == 0)
+                {
+                    return new PagedResponseDTO<GetEmployeeImageReponseDTO>
+                    {
+                        Items = new List<GetEmployeeImageReponseDTO>(),
+                        TotalCount = 0,
+                        PageNumber = pageNumber,
+                        PageSize = pageSize,
+                        IsPrimaryMarked = false
+                    };
+                }
 
-                double completionPercentage = hasPrimary ? 100 : 0;
+                bool hasPrimary = await query.AnyAsync(x => x.HasImageUploaded == true);
 
-                // Paging
                 var pagedDataRaw = await query
+                    .OrderByDescending(x => x.Id)
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync();
@@ -411,7 +408,8 @@ namespace axionpro.persistance.Repositories
                     FilePath = x.FilePath,
                     IsActive = x.IsActive,
                     IsPrimary = x.IsPrimary,
-                    CompletionPercentage = completionPercentage
+                    HasImageUploaded = x.HasImageUploaded ,
+                    FileName = x.FileName
                 }).ToList();
 
                 return new PagedResponseDTO<GetEmployeeImageReponseDTO>
@@ -420,16 +418,97 @@ namespace axionpro.persistance.Repositories
                     TotalCount = totalCount,
                     PageNumber = pageNumber,
                     PageSize = pageSize,
-                    CompletionPercentage = completionPercentage,
                     IsPrimaryMarked = hasPrimary
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error occurred while fetching employee images.");
-                throw;
+
+                // 🔥 SAFE FALLBACK RETURN (no crash)
+                return new PagedResponseDTO<GetEmployeeImageReponseDTO>
+                {
+                    Items = new List<GetEmployeeImageReponseDTO>(),
+                    TotalCount = 0,
+                    PageNumber = dto.PageNumber,
+                    PageSize = dto.PageSize,
+                    IsPrimaryMarked = false
+                };
             }
         }
+
+
+        //public async Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> GetImage(GetEmployeeImageRequestDTO dto, long decryptedTenantId)
+        //{
+        //    await using var context = await _contextFactory.CreateDbContextAsync();
+
+        //    try
+        //    {
+        //        // Pagination defaults
+        //        int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
+        //        int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
+
+        //        // Base query
+        //        var query = context.EmployeeImages
+        //            .AsNoTracking()
+        //            .Where(x => x.IsSoftDeleted != true &&
+        //                        x.TenantId == decryptedTenantId);
+
+        //        if (dto.IsActive)
+        //            query = query.Where(x => x.IsActive == dto.IsActive);
+
+        //        if (dto._EmployeeId > 0)
+        //            query = query.Where(x => x.EmployeeId == dto._EmployeeId);
+
+        //        if (dto.Id_long > 0)
+        //            query = query.Where(x => x.Id == dto.Id_long);
+
+        //        // Safe sorting
+        //        bool isAscending =
+        //            !string.IsNullOrWhiteSpace(dto.SortOrder) &&
+        //            dto.SortOrder.Trim().Equals("asc", StringComparison.OrdinalIgnoreCase);
+
+        //        query = isAscending ? query.OrderBy(x => x.Id) : query.OrderByDescending(x => x.Id);
+
+        //        int totalCount = await query.CountAsync();
+
+        //        // Just check primary, don't load all rows
+        //        bool hasPrimary = await query.AnyAsync(x => x.IsPrimary == true);
+
+        //        double completionPercentage = hasPrimary ? 100 : 0;
+
+        //        // Paging
+        //        var pagedDataRaw = await query
+        //            .Skip((pageNumber - 1) * pageSize)
+        //            .Take(pageSize)
+        //            .ToListAsync();
+
+        //        var pagedData = pagedDataRaw.Select(x => new GetEmployeeImageReponseDTO
+        //        {
+        //            EmployeeId = x.EmployeeId.ToString(),
+        //            Id = x.Id.ToString(),
+        //            FilePath = x.FilePath,
+        //            IsActive = x.IsActive,
+        //            IsPrimary = x.IsPrimary,
+        //            CompletionPercentage = completionPercentage
+        //        }).ToList();
+
+        //        return new PagedResponseDTO<GetEmployeeImageReponseDTO>
+        //        {
+        //            Items = pagedData,
+        //            TotalCount = totalCount,
+        //            PageNumber = pageNumber,
+        //            PageSize = pageSize,
+        //            CompletionPercentage = completionPercentage,
+        //            IsPrimaryMarked = hasPrimary
+        //        };
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "❌ Error occurred while fetching employee images.");
+        //        throw;
+        //    }
+        //}
 
 
         public async Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> GetInfo(GetBaseEmployeeRequestDTO dto, long decryptedTenantId, long id)
@@ -807,7 +886,7 @@ namespace axionpro.persistance.Repositories
                     .ToListAsync();
 
                 // 🧮 Calculate completion %
-                var educationSection = eduList.CalculateEducationCompletion();
+                var educationSection = eduList.CalculateEducationCompletionDTO();
 
                 return new List<CompletionSectionDTO> { educationSection };
             }
@@ -1195,6 +1274,50 @@ namespace axionpro.persistance.Repositories
 
 
         #region Employee-Base-info
+
+        public async Task<EmployeeImage?> IsImageExist(long? id, bool isActive)
+        {
+            try
+            {
+                await using var context = await _contextFactory.CreateDbContextAsync();
+
+                return await context.EmployeeImages
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(img =>
+                        img.Id == id &&
+                        img.IsActive == isActive &&
+                        img.IsSoftDeleted != true &&
+                        img.IsPrimary == true
+                    );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"❌ Error while checking image existence for Id: {id}");
+                return null;
+            }
+        }
+
+
+        public async Task<bool> UpdateProfileImage(EmployeeImage employeeImageInfo)
+        {
+            try
+            {
+                await using var context = await _contextFactory.CreateDbContextAsync();
+
+                context.EmployeeImages.Update(employeeImageInfo);
+
+                return await context.SaveChangesAsync() > 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"❌ Error while updating employee image (Id: {employeeImageInfo?.Id})");
+                return false;
+            }
+        }
+
+
+
+
 
         public async Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> AddImageAsync(EmployeeImage entity)
         {

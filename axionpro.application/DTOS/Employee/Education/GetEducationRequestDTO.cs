@@ -22,7 +22,6 @@ namespace axionpro.application.DTOS.Employee.Education
         public DateTime? StartDate { get; set; }
 
         public DateTime? EndDate { get; set; }
-
       
         public string? ScoreValue { get; set; }
       
@@ -31,8 +30,7 @@ namespace axionpro.application.DTOS.Employee.Education
         public bool? EducationGap { get; set; }       
    
         public bool? IsInfoVerified { get; set; }     
-        public bool HasEducationDocUploded { get; set; }     
-        
+        public bool HasEducationDocUploded { get; set; }             
 
         public bool? IsEditAllowed { get; set; } 
 

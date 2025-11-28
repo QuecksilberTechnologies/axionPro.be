@@ -179,26 +179,21 @@ namespace axionpro.persistance.Repositories
                     };
 
                     // ⭐ Percentage calculation
-                   
-                  
-                  
 
-                     dtoItem.CompletionPercentage = CalculateEducationCompletion(dtoItem);
+                    // Local Function Call
+                    dtoItem.CompletionPercentage = CalculateEducationCompletion(dtoItem);
 
                     // add to total
                     totalPercentage += dtoItem.CompletionPercentage;
 
                     finalList.Add(dtoItem);
                 }
- 
-                var educationSection = eduList.CalculateEducationCompletion();
 
                 // ⭐ Average percentage
-                   averagePercentage = finalList.Count == 0    ? 0 : Math.Round(totalPercentage / (double)finalList.Count, 0);
-                // ⭐ 2) GLOBAL AVERAGE Completion Percentage
-             
+                var educationSection = eduList.CalculateEducationCompletion();
+
                 // ⭐ 3) ALL DOCUMENTS UPLOADED OR NOT?
-                   hasUploadedAll = finalList.All(x => x.HasEducationDocUploded == true);
+                hasUploadedAll = finalList.All(x => x.HasEducationDocUploded == true);
 
                 // Final response
                 return new PagedResponseDTO<GetEducationResponseDTO>
@@ -294,6 +289,58 @@ namespace axionpro.persistance.Repositories
             }
         }
 
+
+
+
+       public async Task<bool> DeleteAsync(long id, long UserEmployeeId)
+{
+    using var transaction = await _context.Database.BeginTransactionAsync();
+
+    try
+    {
+        // 🔹 Fetch record
+        var employee = await _context.EmployeeEducations
+            .FirstOrDefaultAsync(e => e.Id == id && e.IsSoftDeleted != true);
+
+        if (employee == null)
+        {
+            _logger.LogWarning($"⚠️ Record with ID {id} not found or already deleted.");
+            return false;
+        }
+
+        // 🔹 Update record
+        employee.IsSoftDeleted = true;
+        employee.SoftDeletedById = UserEmployeeId;
+        employee.UpdatedDateTime = DateTime.UtcNow; // optional audit tracking
+
+        _context.EmployeeEducations.Update(employee);
+
+        // 🔹 Check affected rows
+        int affected = await _context.SaveChangesAsync();
+
+        if (affected > 0)
+        {
+            await transaction.CommitAsync();
+            _logger.LogInformation($"✅ Record {id} successfully soft deleted.");
+            return true;  // update hua → true
+        }
+
+        await transaction.RollbackAsync();
+        _logger.LogWarning($"⚠️ No rows updated for ID: {id}");
+        return false;
+    }
+    catch (Exception ex)
+    {
+        await transaction.RollbackAsync();
+        _logger.LogError(ex, $"❌ Delete failed for ID {id}");
+        throw new Exception($"Failed to delete record {id}: {ex.Message}", ex);
+    }
+}
+
+
+
+
+
         public async Task<List<CompletionSectionDTO>> GetEmployeeCompletionAsync(long employeeId)
         {
             try
@@ -321,7 +368,7 @@ namespace axionpro.persistance.Repositories
                     .ToListAsync();
 
                 // 🧮 Calculate completion %
-                var educationSection = eduList.CalculateEducationCompletion();
+                var educationSection = eduList.CalculateEducationCompletionDTO();
 
                 return new List<CompletionSectionDTO> { educationSection };
             }

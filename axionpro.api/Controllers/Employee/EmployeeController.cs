@@ -3,7 +3,7 @@ using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
- 
+using axionpro.application.Features.EmployeeCmd.UpdateProfile.Handlers;
 using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
 using FluentValidation;
@@ -83,17 +83,49 @@ namespace axionpro.api.Controllers.Employee
             }
         }
 
-      
+
+
+        [HttpPost("profile/pic/update")]
+       
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        // [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> UpdateProfieImage([FromForm] UpdateEmployeeImageRequestDTO requestDto)
+        {
+            try
+            {
+                _logger.LogInfo("Update image.");
+
+                var command = new UpdateProfileImageCommand(requestDto);
+                var result = await _mediator.Send(command);
+
+                if (!result.IsSucceeded)
+                {
+                    _logger.LogInfo("No employees found or request failed.");
+                    return BadRequest(result);
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error while fetching employees: {ex.Message}");
+                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while fetching employee info.",
+                    new List<string> { ex.Message });
+                return StatusCode(500, errorResponse);
+            }
+        }
 
         /// <summary>
         /// Get all employees based on TenantId or filters.
         /// </summary>
-       
+
         [HttpGet("Image/get")]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+       // [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> GetAllEmployeeImage([FromQuery] GetEmployeeImageRequestDTO requestDto)
         {
             try
@@ -275,36 +307,36 @@ namespace axionpro.api.Controllers.Employee
         }
 
 
-        [HttpPost("Image/add")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> AddEmployeeImage([FromForm] CreateEmployeeImageRequestDTO requestDto)
-        {
-            try
-            {
-                _logger.LogInfo("add new image.");
+        //[HttpPost("Image/add")]
+        //[ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        //[ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        //[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        //public async Task<IActionResult> AddEmployeeImage([FromForm] CreateEmployeeImageRequestDTO requestDto)
+        //{
+        //    try
+        //    {
+        //        _logger.LogInfo("add new image.");
 
-                var command = new CreateEmployeeImageCommand(requestDto);
-                var result = await _mediator.Send(command);
+        //        var command = new CreateEmployeeImageCommand(requestDto);
+        //        var result = await _mediator.Send(command);
 
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo("No employees found or request failed.");
-                    return BadRequest(result);
-                }
+        //        if (!result.IsSucceeded)
+        //        {
+        //            _logger.LogInfo("No employees found or request failed.");
+        //            return BadRequest(result);
+        //        }
 
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error while fetching employees: {ex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while fetching employee info.",
-                    new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
-        }
+        //        return Ok(result);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError($"Error while fetching employees: {ex.Message}");
+        //        var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while fetching employee info.",
+        //            new List<string> { ex.Message });
+        //        return StatusCode(500, errorResponse);
+        //    }
+        //}
 
         /// <summary>
         /// Get all employees based on TenantId or filters.

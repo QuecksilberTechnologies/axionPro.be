@@ -204,10 +204,10 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 
                 // Null-safe defaults
                 item.FilePath ??= string.Empty;
-               
+
 
                 // 🔹 Ensure IsPrimary always returns true/false (avoid null)
-                item.IsPrimary = item.IsPrimary ?? false;
+                item.IsPrimary = item.IsPrimary ? true : false;
             }
 
             return entities;
@@ -426,8 +426,8 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 if (item == null) continue;
 
                 // 🔐 Encode Image Id
-                if (long.TryParse(item.Id, out long rawId) && rawId > 0)
-                    item.Id = encoderService.EncodeId(rawId, tenantKey);
+
+                item.Id = item.Id.ToString();
 
                 // 🔐 Encode Employee Id
                 if (long.TryParse(item.EmployeeId, out long empRawId) && empRawId > 0)

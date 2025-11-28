@@ -113,7 +113,9 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 request.DTO.Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
                 request.DTO.Id_long = _idEncoderService.DecodeId(request.DTO.Id, finalKey);
 
-
+                string EncodedEmployeeId = EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId);
+                request.DTO._EmployeeId = _idEncoderService.DecodeId(EncodedEmployeeId, finalKey);
+                
                 request.DTO.SortOrder = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortOrder);
                 request.DTO.SortBy = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortBy);
 

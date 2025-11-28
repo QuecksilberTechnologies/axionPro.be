@@ -28,6 +28,7 @@
     <Folder Include="Controllers\VerifyTenantEmail\" />
     <Folder Include="Properties\PublishProfiles\" />
     <Folder Include="wwwroot\" />
+    <Folder Include="wwwroot\uploads\tenants\317\employees\234\profile\" />
   </ItemGroup>
 
 </Project>
