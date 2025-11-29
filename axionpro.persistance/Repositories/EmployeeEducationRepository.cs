@@ -87,18 +87,21 @@ namespace axionpro.persistance.Repositories
         {
             double averagePercentage = 0;
             bool hasUploadedAll = false;
+
             try
             {
+                // -----------------
                 // Pagination defaults
+                // -----------------
                 int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
                 int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
 
                 string sortBy = dto.SortBy?.ToLower() ?? "id";
                 bool isDescending = (dto.SortOrder?.ToLower() ?? "desc") == "desc";
 
-                // ------------------------
-                // BASE QUERY
-                //-------------------------
+                // -----------------
+                // Base Query
+                // -----------------
                 var baseQuery = _context.EmployeeEducations
                     .AsNoTracking()
                     .Where(edu =>
@@ -107,7 +110,9 @@ namespace axionpro.persistance.Repositories
                         (edu.IsSoftDeleted != true)
                     );
 
+                // -----------------
                 // Filters
+                // -----------------
                 if (id > 0)
                     baseQuery = baseQuery.Where(x => x.Id == id);
 
@@ -115,7 +120,7 @@ namespace axionpro.persistance.Repositories
                     baseQuery = baseQuery.Where(x => x.InstituteName.Contains(dto.InstituteName));
 
                 if (!string.IsNullOrEmpty(dto.Degree))
-                    baseQuery = baseQuery.Where(x => x.Degree.Contains(dto.Degree));               
+                    baseQuery = baseQuery.Where(x => x.Degree.Contains(dto.Degree));
 
                 if (dto.EducationGap.HasValue)
                     baseQuery = baseQuery.Where(x => x.EducationGap == dto.EducationGap);
@@ -126,7 +131,9 @@ namespace axionpro.persistance.Repositories
                 if (dto.IsEditAllowed.HasValue)
                     baseQuery = baseQuery.Where(x => x.IsEditAllowed == dto.IsEditAllowed);
 
+                // -----------------
                 // Sorting
+                // -----------------
                 baseQuery = sortBy switch
                 {
                     "degree" => isDescending ? baseQuery.OrderByDescending(x => x.Degree) : baseQuery.OrderBy(x => x.Degree),
@@ -137,18 +144,19 @@ namespace axionpro.persistance.Repositories
                     _ => isDescending ? baseQuery.OrderByDescending(x => x.Id) : baseQuery.OrderBy(x => x.Id)
                 };
 
-                // Count
+                // -----------------
+                // Count & Fetch
+                // -----------------
                 var totalRecords = await baseQuery.CountAsync();
 
-                // Fetch
                 var eduList = await baseQuery
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync();
 
-                // ---------------------------------------
-                // MAPPING + PERCENTAGE IN SINGLE LOOP
-                // ---------------------------------------
+                // -----------------
+                // Mapping + Per Record Completion Calculation
+                // -----------------
                 List<GetEducationResponseDTO> finalList = new();
                 double totalPercentage = 0;
 
@@ -178,24 +186,30 @@ namespace axionpro.persistance.Repositories
                         HasEducationDocUploded = edu.HasEducationDocUploded
                     };
 
-                    // ⭐ Percentage calculation
-
-                    // Local Function Call
+                    // -----------------
+                    // Per-record completion calculation
+                    // -----------------
                     dtoItem.CompletionPercentage = CalculateEducationCompletion(dtoItem);
 
-                    // add to total
                     totalPercentage += dtoItem.CompletionPercentage;
 
                     finalList.Add(dtoItem);
                 }
 
-                // ⭐ Average percentage
+                // -----------------
+                // Average Percentage
+                // -----------------
+                averagePercentage = finalList.Count > 0 ? Math.Round(totalPercentage / finalList.Count, 0) : 0;
+
+                // Section-level completion
                 var educationSection = eduList.CalculateEducationCompletion();
 
-                // ⭐ 3) ALL DOCUMENTS UPLOADED OR NOT?
+                // All documents uploaded?
                 hasUploadedAll = finalList.All(x => x.HasEducationDocUploded == true);
 
-                // Final response
+                // -----------------
+                // Final Paged Response
+                // -----------------
                 return new PagedResponseDTO<GetEducationResponseDTO>
                 {
                     Items = finalList,
@@ -204,10 +218,8 @@ namespace axionpro.persistance.Repositories
                     PageSize = pageSize,
                     TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
                     CompletionPercentage = educationSection.CompletionPercent,
-                    HasUploadedAll= hasUploadedAll
-                  
+                    HasUploadedAll = hasUploadedAll
                 };
-
             }
             catch (Exception ex)
             {
@@ -216,7 +228,6 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-  
 
         public async Task<bool> UpdateEmployeeFieldAsync(EmployeeEducation entity)
           {
@@ -340,51 +351,7 @@ namespace axionpro.persistance.Repositories
 
 
 
-
-        public async Task<List<CompletionSectionDTO>> GetEmployeeCompletionAsync(long employeeId)
-        {
-            try
-            {
-                // ❗If bad employeeId, return empty list safely
-                if (employeeId <= 0)
-                    return new List<CompletionSectionDTO>();
-
-                // 📚 Fetch education rows
-                var eduList = await _context.EmployeeEducations
-                    .AsNoTracking()
-                    .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
-                    .Select(x => new EducationRowDTO
-                    {
-                        Degree = x.Degree,
-                        InstituteName = x.InstituteName,
-                        ScoreType = x.ScoreType,
-                        HasEducationDocUploded = x.HasEducationDocUploded,
-                        StartDate = x.StartDate,
-                        EndDate = x.EndDate,
-                        IsEditAllowed = x.IsEditAllowed,
-                        IsInfoVerified = x.IsInfoVerified
-
-                    })
-                    .ToListAsync();
-
-                // 🧮 Calculate completion %
-                var educationSection = eduList.CalculateEducationCompletionDTO();
-
-                return new List<CompletionSectionDTO> { educationSection };
-            }
-            catch (Exception ex)
-            {
-                // 🔥 Log error safely
-                _logger.LogError(ex,
-                    "Error in GetEmployeeCompletionAsync for EmployeeId: {EmployeeId}",
-                    employeeId);
-
-                // ❗Never throw — return empty list to avoid API crash
-                return new List<CompletionSectionDTO>();
-            }
-        }
-
-
+        // ⭐ Each Record Education Completion Calculation
 
         public double CalculateEducationCompletion(GetEducationResponseDTO edu)
         {

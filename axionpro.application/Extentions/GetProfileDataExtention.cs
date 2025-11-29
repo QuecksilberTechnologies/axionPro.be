@@ -11,86 +11,33 @@ namespace axionpro.application.Extentions
 {
     public static class GetProfileDataExtention
     {
+              // ------------------ EDUCATION ENTITY EXTENSION ------------------
         public static CompletionSectionDTO CalculateEducationCompletion(this IEnumerable<EmployeeEducation> items)
         {
             if (items == null || !items.Any())
-            {
-                return new CompletionSectionDTO
-                {
-                    SectionName = "Education",
-                    CompletionPercent = 0,
-                    IsInfoVerified = false,
-                    IsEditAllowed = false,
-                    IsSectionCreate = false
-                };
-            }
+                return CreateEmptyResponse("Education");
 
             int totalRows = items.Count();
-            double totalPercent = items.Sum(item =>
+            double totalPercent = 0;
+
+            foreach (var edu in items)
             {
-                int totalFields = 4;
+                int totalFields = 6;
                 int filled = 0;
 
-                if (!string.IsNullOrEmpty(item.Degree)) filled++;
-                if (!string.IsNullOrEmpty(item.InstituteName)) filled++;
-                if (item.StartDate != null) filled++;
-                if (item.EndDate != null) filled++;
+                if (!string.IsNullOrEmpty(edu.Degree)) filled++;
+                if (!string.IsNullOrEmpty(edu.InstituteName)) filled++;
+                if (edu.StartDate != null) filled++;
+                if (edu.EndDate != null) filled++;
+                if (edu.HasEducationDocUploded == true) filled++;
+                if (edu.ScoreType != null && edu.ScoreType != 0) filled++;
 
-                return Math.Round((filled / (double)totalFields) * 100, 0);
-            });
+
+                totalPercent += Math.Round((filled / (double)totalFields) * 100);
+            }
 
             var first = items.First();
-            double finalPercent = Math.Round(totalPercent / totalRows, 0);
-
-            return new CompletionSectionDTO
-            {
-                SectionName = "Education",
-                CompletionPercent = finalPercent,
-                IsInfoVerified = first.IsInfoVerified,
-                IsEditAllowed = first.IsEditAllowed,
-                IsSectionCreate = true
-            };
-        }
-
-        public static CompletionSectionDTO CalculateEducationCompletionDTO(this IEnumerable<GetEducationRequestDTO> items)
-        {
-            if (items == null || !items.Any())
-            {
-                return new CompletionSectionDTO
-                {
-                    SectionName = "Education",
-                    CompletionPercent = 0,
-                    IsInfoVerified = false,
-                    IsEditAllowed = false,
-                    IsSectionCreate = false
-                };
-            }
-
-            int totalRows = 0;
-            double totalPercent = 0;
-
-            foreach (var item in items)
-            {
-                dynamic edu = item;   // ⭐⭐ IMPORTANT FIX
-
-                totalRows++;
-
-                int totalFields = 4;
-                int filled = 0;
-
-                if (!string.IsNullOrEmpty((string?)edu.Degree)) filled++;
-                if (!string.IsNullOrEmpty((string?)edu.InstituteName)) filled++;
-                if (edu.StartDate != null) filled++;
-                if (edu.EndDate != null) filled++;
-
-                double percent = Math.Round((filled / (double)totalFields) * 100, 0);
-
-                totalPercent += percent;
-            }
-
-            dynamic first = items.First();
-
-            double finalPercent = Math.Round(totalPercent / totalRows, 0);
+            double finalPercent = Math.Round(totalPercent / totalRows);
 
             return new CompletionSectionDTO
             {
@@ -103,47 +50,33 @@ namespace axionpro.application.Extentions
         }
 
 
-
-
-        public static CompletionSectionDTO CalculateEducationCompletionDTO(this IEnumerable<dynamic> items)
+        // ------------------ EDUCATION DTO EXTENSION ------------------
+        public static CompletionSectionDTO CalculateEducationCompletionDTO(this IEnumerable<EducationRowDTO> items)
         {
             if (items == null || !items.Any())
-            {
-                return new CompletionSectionDTO
-                {
-                    SectionName = "Education",
-                    CompletionPercent = 0,
-                    IsInfoVerified = false,
-                    IsEditAllowed = false,
-                    IsSectionCreate = false
-                };
-            }
+                return CreateEmptyResponse("Education");
 
-            int totalRows = 0;
+            int totalRows = items.Count();
             double totalPercent = 0;
 
-            foreach (var item in items)
+            foreach (var edu in items)
             {
-                dynamic edu = item;   // ⭐⭐ IMPORTANT FIX
-
-                totalRows++;
-
-                int totalFields = 4;
+                int totalFields = 6;
                 int filled = 0;
 
-                if (!string.IsNullOrEmpty((string?)edu.Degree)) filled++;
-                if (!string.IsNullOrEmpty((string?)edu.InstituteName)) filled++;
+                if (!string.IsNullOrEmpty(edu.Degree)) filled++;
+                if (!string.IsNullOrEmpty(edu.InstituteName)) filled++;
                 if (edu.StartDate != null) filled++;
                 if (edu.EndDate != null) filled++;
+                if (edu.HasEducationDocUploded == true) filled++;
+                if (edu.ScoreType != null && edu.ScoreType != 0) filled++;
 
-                double percent = Math.Round((filled / (double)totalFields) * 100, 0);
 
-                totalPercent += percent;
+                totalPercent += Math.Round((filled / (double)totalFields) * 100);
             }
 
-            dynamic first = items.First();
-
-            double finalPercent = Math.Round(totalPercent / totalRows, 0);
+            var first = items.First();
+            double finalPercent = Math.Round(totalPercent / totalRows);
 
             return new CompletionSectionDTO
             {
@@ -205,14 +138,27 @@ namespace axionpro.application.Extentions
             };
         }
 
+        // ------------------ COMMON EMPTY FACTORY ------------------
+        private static CompletionSectionDTO CreateEmptyResponse(string sectionName)
+        {
+            return new CompletionSectionDTO
+            {
+                SectionName = sectionName,
+                CompletionPercent = 0,
+                IsInfoVerified = false,
+                IsEditAllowed = false,
+                IsSectionCreate = false
+            };
+        }
     }
-
-
-
-
 
 }
 
+
+
+
+
+ 
 
 
 
