@@ -59,21 +59,26 @@ namespace axionpro.persistance.Repositories
                     throw new ArgumentException("First name is required.");
 
 
-                EmployeeImage employeeImage = new EmployeeImage
+             
+                // 🔹 Insert Record
+                await _context.Employees.AddAsync(entity);
+
+
+                // 2️⃣ Insert record'
+                // Add Image before save (same transaction)
+                var employeeImage = new EmployeeImage
                 {
-                    EmployeeId = entity.Id,
-                    TenantId = entity.TenantId,                  
+                    Employee = entity,  // 🔥 instead of EmployeeId = entity.Id
+                    TenantId = entity.TenantId,
                     IsPrimary = true,
                     HasImageUploaded = false,
                     IsActive = true,
                     AddedById = entity.AddedById,
-                    AddedDateTime = DateTime.UtcNow
-                };
-                // 🔹 Insert Record
-                await _context.Employees.AddAsync(entity);
-                await _context.SaveChangesAsync();
+                    AddedDateTime = DateTime.UtcNow,
+                    FileType = 1
 
-                // 2️⃣ Insert record
+                };
+
                 await _context.EmployeeImages.AddAsync(employeeImage);
                 await _context.SaveChangesAsync();
 
