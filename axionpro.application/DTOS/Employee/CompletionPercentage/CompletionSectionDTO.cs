@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -33,6 +34,20 @@ namespace axionpro.application.DTOS.Employee.CompletionPercentage
         public bool? HasEducationDocUploded { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
+        public bool? IsInfoVerified { get; set; }
+        public bool? IsEditAllowed { get; set; }
+    }
+
+
+    public class BankRowDTO
+    {
+        public string? BankName { get; set; }
+        public string? AccountNumber { get; set; }
+        public string? AccountType { get; set; } // e.g., Savings, Current, etc.
+        public bool? IsPrimaryAccount { get; set; }        
+        public string? IFSCCode { get; set; }
+        public string? BranchName { get; set; }      
+        public bool HasChequeDocUploaded { get; set; }        
         public bool? IsInfoVerified { get; set; }
         public bool? IsEditAllowed { get; set; }
     }

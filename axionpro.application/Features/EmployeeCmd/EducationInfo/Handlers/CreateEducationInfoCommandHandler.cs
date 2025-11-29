@@ -171,7 +171,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
               
                 // 🔹 STEP 5: Map DTO to Entity
                 var educationEntity = _mapper.Map<EmployeeEducation>(request.DTO);                  
-                educationEntity.EmployeeId = decryptedEmployeeId;                
+                educationEntity.EmployeeId = decryptedActualEmployeeId;                
                 educationEntity.AddedById = decryptedEmployeeId;
                 educationEntity.AddedDateTime = DateTime.UtcNow;
                 educationEntity.IsActive = true;
