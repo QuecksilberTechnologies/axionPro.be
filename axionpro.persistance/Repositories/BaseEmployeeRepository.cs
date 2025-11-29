@@ -58,8 +58,23 @@ namespace axionpro.persistance.Repositories
                 if (string.IsNullOrWhiteSpace(entity.FirstName))
                     throw new ArgumentException("First name is required.");
 
+
+                EmployeeImage employeeImage = new EmployeeImage
+                {
+                    EmployeeId = entity.Id,
+                    TenantId = entity.TenantId,                  
+                    IsPrimary = true,
+                    HasImageUploaded = false,
+                    IsActive = true,
+                    AddedById = entity.AddedById,
+                    AddedDateTime = DateTime.UtcNow
+                };
                 // 🔹 Insert Record
                 await _context.Employees.AddAsync(entity);
+                await _context.SaveChangesAsync();
+
+                // 2️⃣ Insert record
+                await _context.EmployeeImages.AddAsync(employeeImage);
                 await _context.SaveChangesAsync();
 
                 // 🔹 Pagination Setup
