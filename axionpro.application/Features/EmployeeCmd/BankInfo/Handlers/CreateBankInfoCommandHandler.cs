@@ -237,7 +237,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                  
                 // 4. Pre-map projection + encrypt Ids (fast)
                 // If pagedResult.Items are entities:
-                var encryptedList = ProjectionHelper.ToGetBankResponseDTOs(responseDTO, _idEncoderService, tenantKey);
+                var encryptedList = ProjectionHelper.ToGetBankResponseDTOs(responseDTO, _idEncoderService, tenantKey, _config);
                
 
                 // 5. commit

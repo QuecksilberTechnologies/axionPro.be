@@ -114,17 +114,22 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
                 string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
                 long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
+                string actualEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId);
+                request.DTO.Id_long  = _idEncoderService.DecodeId(actualEmpId, finalKey);
                 long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
                 request.DTO.Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
                 long Id = _idEncoderService.DecodeId(request.DTO.Id, finalKey);
-
-
                 request.DTO.SortOrder = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortOrder);
                 request.DTO.SortBy = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortBy);
 
+                request.DTO.Id_int = SafeParser.TryParseInt(request.DTO.TypeId);
                 // 🧩 STEP 4: Validate all employee references
 
-
+                if (request.DTO.Id_long <= 0)
+                {
+                    _logger.LogWarning("❌ Employee information missing in request.");
+                    return ApiResponse<List<GetBaseEmployeeResponseDTO>>.Fail("Employee information missing.");
+                }
                 if (decryptedTenantId <= 0 || decryptedEmployeeId <= 0)
                 {
                     _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
@@ -138,10 +143,11 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                          decryptedEmployeeId, loggedInEmpId
                     );
                 }
+
                 var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
                 if (!permissions.Contains("AddBankInfo"))
                 {
-                    await _unitOfWork.RollbackTransactionAsync();
+                   // await _unitOfWork.RollbackTransactionAsync();
                     //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
                 }
                 // 🧩 STEP 4: Call Repository to get data
@@ -157,13 +163,17 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 var resultList = ProjectionHelper.ToGetBaseInfoResponseDTOs(responseDTO.Items, _idEncoderService, tenantKey);
 
                 // 🧩 STEP 8: Construct success response with pagination
-                return ApiResponse<List<GetBaseEmployeeResponseDTO>>.SuccessPaginated(
-                    data: resultList,
-                    message: "Base Employee info retrieved successfully.",
-                    pageNumber: responseDTO.PageNumber,
-                    pageSize: responseDTO.PageSize,
-                    totalRecords: responseDTO.TotalCount,
-                    totalPages: responseDTO.TotalPages
+                return ApiResponse<List<GetBaseEmployeeResponseDTO>>.SuccessPaginatedPercentage(
+                    Data: resultList,
+                    Message: "Base Employee info retrieved successfully.",
+                    PageNumber: responseDTO.PageNumber,
+                    PageSize: responseDTO.PageSize,
+                    TotalRecords: responseDTO.TotalCount,
+                    TotalPages: responseDTO.TotalPages,
+                      HasUploadedAll: null,
+                    CompletionPercentage: null
+
+
                 );
             }
             catch (Exception ex)

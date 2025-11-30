@@ -123,13 +123,12 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 string tokenTenant = EncryptionSanitizer.CleanEncodedInput(tokenClaims.TenantId);
                 long decryptedTenantId = _idEncoderService.DecodeId(tokenTenant, finalKey);
                 //Id
-                request.DTO.Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
-                long id = _idEncoderService.DecodeId(request.DTO.Id, finalKey);
-                int Id = SafeParser.TryParseInt(id);
+
+                request.DTO.Id_int = SafeParser.TryParseInt(request.DTO.Id_int);
                 // Actual EmployeeId
                 string actualEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId);
-                long decryptedActualEmployeeId = _idEncoderService.DecodeId(actualEmpId, finalKey);
-                if(decryptedActualEmployeeId<0)
+                request.DTO._EmployeeId = _idEncoderService.DecodeId(actualEmpId, finalKey);
+                if (request.DTO._EmployeeId < 0)
 
                 request.DTO.SortOrder = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortOrder);
                 request.DTO.SortBy = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortBy);
@@ -137,7 +136,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 // 🧩 STEP 4: Validate all employee references
 
 
-                if (decryptedTenantId <= 0 || decryptedEmployeeId <= 0 || decryptedActualEmployeeId <= 0)
+                if (decryptedTenantId <= 0 || decryptedEmployeeId <= 0 || request.DTO._EmployeeId <= 0)
                 {
                     _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
                     return ApiResponse<List<GetBankResponseDTO>>.Fail("Tenant or employee information missing.");
@@ -157,12 +156,12 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                     //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
                 }
                 // 🧩 STEP 4: Call Repository to get data GetBankReqestDTO dto, int id, long EmployeeId
-                var bankEntities = await _unitOfWork.EmployeeBankRepository.GetInfoAsync(request.DTO, Id , decryptedActualEmployeeId );
+                var bankEntities = await _unitOfWork.EmployeeBankRepository.GetInfoAsync(request.DTO );
                 if (bankEntities == null || !bankEntities.Items.Any())
                     return ApiResponse<List<GetBankResponseDTO>>.Fail("No bank info found.");
 
                 // 5️⃣ Projection (fastest approach)
-               var result = ProjectionHelper.ToGetBankResponseDTOs(bankEntities, _idEncoderService, tenantKey);
+               var result = ProjectionHelper.ToGetBankResponseDTOs(bankEntities, _idEncoderService, tenantKey, _config);
 
                 // ✅ Correct paginated return
                 return ApiResponse<List<GetBankResponseDTO>>.SuccessPaginatedPercentage(

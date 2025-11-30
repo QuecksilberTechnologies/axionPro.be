@@ -16,6 +16,10 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
             public string? MiddleName { get; set; }
             public string? FirstName { get; set; } = string.Empty;
             public string? GenderId { get; set; }
+            public string? DesignationName { get; set; }
+            public string? DepartmentName { get; set; }
+            public string? RoleName { get; set; }
+            public string? Type { get; set; }
             public DateTime? DateOfBirth { get; set; }
             public DateTime? DateOfOnBoarding { get; set; }
             public DateTime? DateOfExit { get; set; }
@@ -27,8 +31,9 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
             public bool IsActive { get; set; } = true;         
             public bool? IsEditAllowed { get; set; } 
             public bool? IsInfoVerified { get; set; }
-        
-        }
+        public double CompletionPercentage { get; set; }
+
+    }
     
 
 

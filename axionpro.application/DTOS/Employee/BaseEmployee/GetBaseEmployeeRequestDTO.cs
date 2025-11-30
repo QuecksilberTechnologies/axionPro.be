@@ -16,7 +16,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
     {
         /// <summary> TenantId Required</summary>       
         
-        public string? EmployementId { get; set; }
+        public string? EmployeeId { get; set; }
         public string? EmployementCode { get; set; }
 
         public string? LastName { get; set; }
@@ -31,6 +31,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
 
         public bool? HasPermanent { get; set; }
         public string? TypeId { get; set; }
+        public bool IsActive { get; set; }
         public bool? IsEditAllowed { get; set; }  
         public bool? IsInfoVerified { get; set; } 
 

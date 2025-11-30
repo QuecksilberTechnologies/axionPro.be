@@ -241,8 +241,12 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         }
         public static List<GetBankResponseDTO> ToGetBankResponseDTOs(  PagedResponseDTO<GetBankResponseDTO> entities,
     IIdEncoderService encoderService,
-    string tenantKey)
+        string tenantKey, IConfiguration configuration
+           )
         {
+            string baseUrl = configuration["FileSettings:BaseUrl"] ?? string.Empty;
+            string defaultImg = configuration["FileSettings:DefaultImage"] ?? string.Empty;
+
             if (entities == null || entities.Items == null || !entities.Items.Any())
                 return new List<GetBankResponseDTO>();
 
@@ -257,6 +261,11 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 {
                     item.Id = encoderService.EncodeId(rawId, tenantKey);
                 }
+                item.FilePath ??= string.Empty;
+                // 📁 Final Image URL build
+                if (!string.IsNullOrEmpty(item.FilePath))
+                    item.FilePath = $"{baseUrl}{item.FilePath}";
+
 
                 // ✅ Encode EmployeeId separately
                 if (long.TryParse(item.EmployeeId, out long empRawId) && empRawId > 0)

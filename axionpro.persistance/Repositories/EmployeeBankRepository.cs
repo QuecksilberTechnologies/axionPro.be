@@ -143,7 +143,7 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<PagedResponseDTO<GetBankResponseDTO>> GetInfoAsync(GetBankReqestDTO dto, int id, long employeeId)
+        public async Task<PagedResponseDTO<GetBankResponseDTO>> GetInfoAsync(GetBankReqestDTO dto)
         {
             try
             {
@@ -157,14 +157,14 @@ namespace axionpro.persistance.Repositories
                 // ✅ Base query - fetch all bank details of the employee which are not soft deleted
                 IQueryable<EmployeeBankDetail> query = _context.EmployeeBankDetails
                     .AsNoTracking()
-                    .Where(x => x.EmployeeId == employeeId && (x.IsSoftDeleted == false || x.IsSoftDeleted == null));
+                    .Where(x => x.EmployeeId == dto._EmployeeId && (x.IsSoftDeleted == false || x.IsSoftDeleted == null));
 
                 // ✅ Dynamic Filters
-                if (id > 0)
-                    query = query.Where(x => x.Id == id);
+                if (dto.Id_int > 0)
+                    query = query.Where(x => x.Id == dto.Id_int);
 
-                if (dto.IsActive.HasValue)
-                    query = query.Where(x => x.IsActive == dto.IsActive.Value);
+                if (dto.IsActive)
+                    query = query.Where(x => x.IsActive == dto.IsActive);
 
                 if (dto.HasChequeDocUploaded == true)
                     query = query.Where(x => x.HasChequeDocUploaded == dto.HasChequeDocUploaded);
@@ -284,7 +284,7 @@ namespace axionpro.persistance.Repositories
             catch (Exception ex)
             {
                 // ❌ Exception logging
-                _logger.LogError(ex, "❌ Error fetching bank info for EmployeeId {EmployeeId}", employeeId);
+                _logger.LogError(ex, "❌ Error fetching bank info for EmployeeId");
                 throw new Exception($"Failed to fetch bank information: {ex.Message}");
             }
         }

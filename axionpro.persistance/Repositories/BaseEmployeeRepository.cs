@@ -16,6 +16,8 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 
 namespace axionpro.persistance.Repositories
 {
@@ -23,7 +25,7 @@ namespace axionpro.persistance.Repositories
     public class BaseEmployeeRepository : IBaseEmployeeRepository
     {
         private readonly WorkforceDbContext _context;
-        private readonly IMapper _mapper;
+        private readonly IMapper _mapper;                           
         private readonly ILogger<BaseEmployeeRepository> _logger;
         private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
         private readonly IPasswordService _passwordService;
@@ -124,7 +126,7 @@ namespace axionpro.persistance.Repositories
         public async Task<bool> UpdateVerifyEditStatusAsync(string sectionType,long employeeId,bool? isVerified,bool? isEditAllowed,bool? isActive,long userId)
         {
             if (employeeId <= 0 || string.IsNullOrWhiteSpace(sectionType))
-                return false;
+                return false;   
 
             sectionType = sectionType.Trim().ToLowerInvariant();
 
@@ -544,16 +546,20 @@ namespace axionpro.persistance.Repositories
                 // 🧩 Step 2: Base query (Tenant + Active filter)
                 var query = context.Employees
                     .AsNoTracking()
-                    .Where(x => x.TenantId == decryptedTenantId && x.IsSoftDeleted != true);
+                    .Where(x => x.TenantId == decryptedTenantId && x.IsSoftDeleted == null || x.IsSoftDeleted==false);
                 
                 // 🧩 Step 3: Safe parse helpers (convert string → long safely)
                    
-                int designationId = SafeParser.TryParseInt(dto.DesignationId); 
-                int typeId = SafeParser.TryParseInt(dto.Id);
+                int designationId = SafeParser.TryParseInt(dto.DesignationId);
+
 
                 // 🧩 Step 4: Dynamic filters (null-safe + condition-based)
-                if (id > 0)
-                    query = query.Where(x => x.Id == id);
+                if (dto.Id_long > 0)
+                    query = query.Where(x => x.Id == dto.Id_long );
+                // yaha par id_long check kar rahe hai or 0 record aa raha hai, 
+
+                if (dto.IsActive)
+                    query = query.Where(x => x.IsActive == dto.IsActive);
 
                 if (!string.IsNullOrWhiteSpace(dto.EmployementCode))
                     query = query.Where(x => x.EmployementCode.Contains(dto.EmployementCode));
@@ -570,13 +576,11 @@ namespace axionpro.persistance.Repositories
                 if (dto.DateOfBirth.HasValue)
                     query = query.Where(x => x.DateOfBirth == dto.DateOfBirth);
 
-               
-
                 if (designationId > 0)
                     query = query.Where(x => x.DesignationId == designationId);
 
-                if (typeId > 0)
-                    query = query.Where(x => x.EmployeeTypeId == typeId);
+                if (dto.Id_int > 0)
+                    query = query.Where(x => x.EmployeeTypeId == dto.Id_int);
 
                 if (dto.HasPermanent.HasValue)
                     query = query.Where(x => x.HasPermanent == dto.HasPermanent);
@@ -601,29 +605,64 @@ namespace axionpro.persistance.Repositories
                 int totalCount = await query.CountAsync();
 
                 var records = await query
-                    .Skip((pageNumber - 1) * pageSize)
-                    .Take(pageSize)
-                    .Select(x => new GetBaseEmployeeResponseDTO
-                    {
-                        Id = x.Id.ToString(),
-                        EmployementCode = x.EmployementCode,
-                        LastName = x.LastName,
-                        MiddleName = x.MiddleName,
-                        FirstName = x.FirstName,
-                        GenderId = x.GenderId.ToString(),
-                        DateOfBirth = x.DateOfBirth,
-                        DateOfOnBoarding = x.DateOfOnBoarding,
-                        DateOfExit = x.DateOfExit,
-                        DesignationId = x.DesignationId.ToString(),
-                        EmployeeTypeId = x.EmployeeTypeId.ToString(),
-                        DepartmentId = x.DepartmentId.ToString(),
-                        OfficialEmail = x.OfficialEmail,
-                        HasPermanent = x.HasPermanent,
-                        IsActive = x.IsActive,
-                        IsEditAllowed = x.IsEditAllowed,
-                        IsInfoVerified = x.IsInfoVerified
-                    })
-                    .ToListAsync();
+     .Skip((pageNumber - 1) * pageSize)
+     .Take(pageSize)
+     .Select(x => new GetBaseEmployeeResponseDTO
+     {
+         Id = x.Id.ToString(),
+         EmployementCode = x.EmployementCode,
+         LastName = x.LastName,
+         MiddleName = x.MiddleName,
+         FirstName = x.FirstName,
+         GenderId = x.GenderId.ToString(),
+         DateOfBirth = x.DateOfBirth,
+         DateOfOnBoarding = x.DateOfOnBoarding,
+         DateOfExit = x.DateOfExit,
+         DesignationId = x.DesignationId.ToString(),
+         EmployeeTypeId = x.EmployeeTypeId.ToString(),
+         DepartmentId = x.DepartmentId.ToString(),
+         OfficialEmail = x.OfficialEmail,
+         HasPermanent = x.HasPermanent,
+         IsActive = x.IsActive,
+         IsEditAllowed = x.IsEditAllowed,
+         IsInfoVerified = x.IsInfoVerified,
+
+         // ⭐ New Fields (JOIN base lookup)
+         DesignationName = context.Designations
+             .Where(d => d.Id == x.DesignationId)
+             .Select(d => d.DesignationName)
+             .FirstOrDefault(),
+
+         DepartmentName = context.Departments
+             .Where(dep => dep.Id == x.DepartmentId)
+             .Select(dep => dep.DepartmentName)
+             .FirstOrDefault(),
+         Type = context.EmployeeTypes
+             .Where(ty => ty.Id == x.EmployeeTypeId)
+             .Select(name => name.TypeName)
+             .FirstOrDefault(),
+
+         //RoleName = context.Roles
+         //    .Where(r => r.Id == x.ro)
+         //    .Select(r => r.Name)
+         // .FirstOrDefault()
+         // 🔥 Base Employee Completion Calculation
+         CompletionPercentage = Math.Round(
+             (
+                 (string.IsNullOrWhiteSpace(x.FirstName) ? 0 : 1) +
+                 (string.IsNullOrWhiteSpace(x.LastName) ? 0 : 1) +
+                 (x.GenderId > 0 ? 1 : 0) +
+                 (x.DateOfBirth != null ? 1 : 0) +
+                 (x.DateOfOnBoarding != null ? 1 : 0) +
+                 (x.DesignationId > 0 ? 1 : 0) +
+                 (x.DepartmentId > 0 ? 1 : 0) +
+                 (!string.IsNullOrWhiteSpace(x.OfficialEmail) ? 1 : 0) +
+                 (x.HasPermanent ? 1 : 0) +
+                 (x.IsActive ? 1 : 0)
+             ) / 10.0 * 100, 0)
+     })
+     .ToListAsync();
+
 
                 // 🧩 Step 7: Final paged response
                 return new PagedResponseDTO<GetBaseEmployeeResponseDTO>
@@ -631,7 +670,9 @@ namespace axionpro.persistance.Repositories
                     Items = records,
                     TotalCount = totalCount,
                     PageNumber = pageNumber,
-                    TotalPages = (int)Math.Ceiling((double)totalCount/pageSize)
+                    TotalPages = (int)Math.Ceiling((double)totalCount/pageSize),
+                    CompletionPercentage = 0, // Placeholder
+                   
 
                 };
             }
@@ -641,7 +682,7 @@ namespace axionpro.persistance.Repositories
                 throw new Exception($"Failed to fetch base employee info: {ex.Message}");
             }
         }
-
+ 
         public async Task<PagedResponseDTO<GetAllEmployeeInfoResponseDTO>> GetAllInfo(
     GetAllEmployeeInfoRequestDTO dto,
     long decryptedTenantId)
