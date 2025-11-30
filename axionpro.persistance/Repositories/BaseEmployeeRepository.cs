@@ -641,6 +641,11 @@ namespace axionpro.persistance.Repositories
              .Where(ty => ty.Id == x.EmployeeTypeId)
              .Select(name => name.TypeName)
              .FirstOrDefault(),
+         // ⭐ New Fields (JOIN base lookup)
+         GenderName = context.Genders
+             .Where(g => g.Id == x.GenderId)
+             .Select(g => g.GenderName)
+             .FirstOrDefault(),
 
          //RoleName = context.Roles
          //    .Where(r => r.Id == x.ro)

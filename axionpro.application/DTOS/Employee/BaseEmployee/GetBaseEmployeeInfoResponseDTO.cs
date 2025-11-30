@@ -24,6 +24,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
             public DateTime? DateOfOnBoarding { get; set; }
             public DateTime? DateOfExit { get; set; }
             public string? DesignationId { get; set; }
+            public string? GenderName { get; set; }
             public string? EmployeeTypeId { get; set; }
             public string? DepartmentId { get; set; }
             public string? OfficialEmail { get; set; }

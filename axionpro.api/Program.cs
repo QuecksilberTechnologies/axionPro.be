@@ -140,9 +140,9 @@ try
 
     app.MapControllers();
 
- //   // ✅ Dynamic port (for hosting like Heroku)
-   var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-  app.Urls.Add($"http://*:{port}");
+ // //  // ✅ Dynamic port (for hosting like Heroku)
+ //  var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+ // app.Urls.Add($"http://*:{port}");
 
     app.Run();
     
