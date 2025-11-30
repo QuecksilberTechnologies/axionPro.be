@@ -18,6 +18,9 @@ namespace axionpro.application.DTOS.Employee.Contact
             public string AlternateNumber { get; set; } = string.Empty;      // Optional alternate number
             public  string Email { get; set; } = string.Empty;               // Email ID
             public bool? IsPrimary { get; set; }              // Is this the primary contact?
+            public string? CountryName { get; set; }               // Country
+            public string? StateName { get; set; }               // Country
+            public string? DistrictName { get; set; }               // Country
             public string? CountryId { get; set; }               // Country
             public string? StateId { get; set; }                // State
             public string? DistrictId { get; set; }             // District

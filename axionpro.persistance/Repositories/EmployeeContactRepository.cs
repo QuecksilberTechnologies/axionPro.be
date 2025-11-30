@@ -265,7 +265,20 @@ namespace axionpro.persistance.Repositories
                             Description = contact.Description,
                             InfoVerifiedById = contact.InfoVerifiedById?.ToString(),
                             InfoVerifiedDateTime = contact.InfoVerifiedDateTime,
+                            CountryName = _context.Countries
+                               .Where(c => c.Id == contact.CountryId)
+                               .Select(cn =>cn.CountryName )
+                               .FirstOrDefault(),
 
+                            StateName = _context.States
+                               .Where(c => c.Id == contact.StateId)
+                               .Select(cn => cn.StateName)
+                               .FirstOrDefault(),
+
+                            DistrictName = _context.Districts
+                               .Where(d => d.Id == contact.DistrictId)
+                               .Select(dn => dn.DistrictName)
+                               .FirstOrDefault(),
                             // ⭐ Final Completion
                             CompletionPercentage = completion
                         };
