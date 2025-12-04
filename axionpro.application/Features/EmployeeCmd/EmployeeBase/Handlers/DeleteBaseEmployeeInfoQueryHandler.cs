@@ -2,7 +2,6 @@
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.DTOS.Employee.Type;
-using axionpro.application.Features.EmployeeCmd.EmployeeBase.Queries;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;

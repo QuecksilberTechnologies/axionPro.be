@@ -51,6 +51,7 @@
     <Folder Include="Features\EmployeeCmd\DependentInfo\Queries\" />
     <Folder Include="Features\EmployeeCmd\EducationInfo\Queries\" />
     <Folder Include="Features\EmployeeCmd\EmployeeBase\Command\" />
+    <Folder Include="Features\EmployeeCmd\EmployeeBase\Queries\" />
     <Folder Include="Features\EmployeeCmd\ExperienceInfo\Command\" />
     <Folder Include="Features\EmployeeCmd\Handlers\NewFolder\" />
     <Folder Include="Features\EmployeeCmd\SensitiveInfo\Command\" />

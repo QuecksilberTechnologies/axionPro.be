@@ -1,9 +1,13 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers;
+using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
+using axionpro.application.Common.Helpers.EncryptionHelper;
+using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.DTOs.Employee;
 using axionpro.application.DTOs.Employee.AccessControlReadOnlyType;
 using axionpro.application.DTOs.Employee.AccessResponse;
+using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
@@ -19,6 +23,165 @@ using System.Reflection;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
+
+
+    public class UpdateEmployeeCommand : IRequest<ApiResponse<bool>>
+    {
+        public UpdateEmployeeRequestDTO DTO { get; set; }
+
+        public UpdateEmployeeCommand(UpdateEmployeeRequestDTO dto)
+        {
+            DTO = dto;
+        }
+
+    }
+    public class UpdateBaseEmployeeCommandHandler : IRequestHandler<UpdateEmployeeCommand, ApiResponse<bool>>
+    {
+        private readonly IBaseEmployeeRepository _employeeRepository;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger<UpdateBaseEmployeeCommandHandler> _logger;
+        private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IConfiguration _config;
+        private readonly IEncryptionService _encryptionService;
+        private readonly IIdEncoderService _idEncoderService;
+
+        public UpdateBaseEmployeeCommandHandler(
+            IBaseEmployeeRepository employeeRepository,
+            IUnitOfWork unitOfWork,
+            ILogger<UpdateBaseEmployeeCommandHandler> logger,
+            IMapper mapper,
+            IConfiguration config,
+            IHttpContextAccessor httpContextAccessor,
+            IEncryptionService encryptionService,
+            IIdEncoderService idEncoderService)
+        {
+            _employeeRepository = employeeRepository;
+            _unitOfWork = unitOfWork;
+            _logger = logger;
+            _mapper = mapper;
+            _config = config;
+            _httpContextAccessor = httpContextAccessor;
+            _encryptionService = encryptionService;
+            _idEncoderService = idEncoderService;
+        }
+
+        public async Task<ApiResponse<bool>> Handle(UpdateEmployeeCommand request, CancellationToken cancellationToken)
+        {
+            await _unitOfWork.BeginTransactionAsync();
+
+            try
+            {
+                // ---------- TOKEN VALIDATION ----------
+                var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString()?.Replace("Bearer ", "");
+                if (string.IsNullOrEmpty(bearerToken))
+                    return ApiResponse<bool>.Fail("Unauthorized: Token missing.");
+
+                var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, TokenKeyHelper.GetJwtSecret(_config));
+                if (tokenClaims == null || tokenClaims.IsExpired)
+                    return ApiResponse<bool>.Fail("Invalid or expired token.");
+
+                long loggedInEmpId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
+                if (loggedInEmpId <= 0)
+                    return ApiResponse<bool>.Fail("Unauthorized request.");
+
+                string finalKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
+                finalKey = EncryptionSanitizer.CleanEncodedInput(finalKey);
+
+                long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
+
+
+                //  = SafeParser.TryParseLong(tokenClaims.TenantId) ;
+
+
+                // ---------- Decode IDs ----------
+
+                request.DTO._UserEmployeeId = _idEncoderService.DecodeId(request.DTO.UserEmployeeId, finalKey);
+                request.DTO.Id_long = _idEncoderService.DecodeId(request.DTO.Id, finalKey);
+
+                if (request.DTO._UserEmployeeId != loggedInEmpId)
+                    return ApiResponse<bool>.Fail("Unauthorized update request.");
+
+                if (decryptedTenantId <= 0)
+                    return ApiResponse<bool>.Fail("Unauthorized tenant id.");
+                               
+
+                // ---------- FETCH Existing Employee ----------
+                var existingEmployee = await _unitOfWork.Employees.GetByIdAsync(request.DTO.Id_long, decryptedTenantId , true);
+
+
+                if (existingEmployee == null)
+                    return ApiResponse<bool>.Fail("Employee not found.");
+
+                // ---------- APPLY UPDATE (ONLY IF VALUE PROVIDED) ----------
+                if (!string.IsNullOrWhiteSpace(request.DTO.FirstName))
+                    existingEmployee.FirstName = request.DTO.FirstName.Trim();
+
+                if (!string.IsNullOrWhiteSpace(request.DTO.MiddleName))
+                    existingEmployee.MiddleName = request.DTO.MiddleName.Trim();
+
+                if (!string.IsNullOrWhiteSpace(request.DTO.LastName))
+                    existingEmployee.LastName = request.DTO.LastName.Trim();
+
+                if (!string.IsNullOrWhiteSpace(request.DTO.Description))
+                    existingEmployee.Description = request.DTO.Description?.Trim();
+
+                if (request.DTO.DateOfBirth.HasValue)
+                    existingEmployee.DateOfBirth = request.DTO.DateOfBirth.Value;
+
+                //if (request.DTO.DateOfOnBoarding.HasValue)
+                //    existingEmployee.DateOfOnBoarding = request.DTO.DateOfOnBoarding.Value;
+
+                //// Only update if > 0
+                //if (SafeParser.TryParseInt(request.DTO.DesignationId) > 0)
+                //    existingEmployee.DesignationId = SafeParser.TryParseInt(request.DTO.DesignationId);
+
+                //if (SafeParser.TryParseInt(request.DTO.DepartmentId) > 0)
+                //    existingEmployee.DepartmentId = SafeParser.TryParseInt(request.DTO.DepartmentId);
+
+                if (SafeParser.TryParseInt(request.DTO.GenderId) > 0)
+                    existingEmployee.GenderId = SafeParser.TryParseInt(request.DTO.GenderId);
+
+
+                //if (SafeParser.TryParseInt(request.DTO.EmployeeTypeId) > 0)
+                //    existingEmployee.EmployeeTypeId = SafeParser.TryParseInt(request.DTO.EmployeeTypeId);
+
+                // Boolean fields (overwrite allowed)
+                //existingEmployee.IsActive = request.DTO.IsActive;
+                //existingEmployee.HasPermanent = request.DTO.HasPermanent;
+
+                // ---------- AUDIT ----------
+                existingEmployee.UpdatedById = loggedInEmpId;
+                existingEmployee.UpdatedDateTime = DateTime.UtcNow;
+
+                // ---------- SAVE ----------
+                await _unitOfWork.Employees.UpdateEmployeeAsync(existingEmployee, decryptedTenantId);
+                await _unitOfWork.CommitTransactionAsync();
+
+                return ApiResponse<bool>.Success(true, "Employee updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                _logger.LogError(ex, "Error updating employee");
+                return ApiResponse<bool>.Fail("Unexpected error.", new List<string> { ex.Message });
+            }
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     //public class UpdateEmployeeCommand : IRequest<ApiResponse<bool>>
     //{
@@ -97,7 +260,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 
     //            var DTO = request.updateBaseEmployeeRequestDTO;
     //            var tenantKey = tokenClaims.TenantEncriptionKey;
-                            
+
 
     //            // 🧱 Step 4: Validate DTO Input
     //            if (DTO == null)
@@ -106,7 +269,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
     //            if (!string.IsNullOrEmpty(DTO.EmployeeId))
     //                DTO._EmployeeId = EncryptionHelper1.DecryptId(_encryptionService, DTO.EmployeeId, tenantKey);
 
-              
+
 
     //            if (string.IsNullOrWhiteSpace(DTO.FieldName))
     //                return ApiResponse<bool>.Fail("Field name cannot be empty.");

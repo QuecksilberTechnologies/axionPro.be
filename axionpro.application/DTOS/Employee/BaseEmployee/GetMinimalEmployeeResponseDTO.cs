@@ -23,9 +23,17 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         public string? OfficialEmail { get; set; }
         public bool IsActive { get; set; }
         public bool IsSoftDeleted { get; set; }
+        public bool? IsEditAllowed { get; set; }
         public bool HasPermanent { get; set; }
         public int GenderId { get; set; }
         public string? GenderName { get; set; }
+        public string? Remark { get; set; }
+        public DateTime? DateOfBirth { get; set; }
+        public DateTime? DateOfOnBoarding { get; set; }
+        public long? UpdateById { get; set; }
+        public DateTime? UpdateByDateTime { get; set; }
+       
+      
     }
 
 }
