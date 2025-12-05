@@ -1,10 +1,15 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers;
+using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
+using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.DTOs.Employee.AccessControlReadOnlyType;
 using axionpro.application.DTOs.Employee.AccessResponse;
+using axionpro.application.DTOS.Employee.BaseEmployee;
+using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.Features.EmployeeCmd.BankInfo.Handlers;
 using axionpro.application.Features.EmployeeCmd.Contact.Command;
+using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
@@ -16,10 +21,221 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.ComponentModel.DataAnnotations;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
 {
+
+
+
+    public class UpdateEmployeeContactCommand : IRequest<ApiResponse<bool>>
+    {
+        public UpdateContactRequestDTO DTO { get; set; }
+
+        public UpdateEmployeeContactCommand(UpdateContactRequestDTO dto)
+        {
+            DTO = dto;
+        }
+
+    }
+    public class UpdateContactInfoCommandHandler : IRequestHandler<UpdateEmployeeContactCommand, ApiResponse<bool>>
+    {
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger<UpdateContactInfoCommandHandler> _logger;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IConfiguration _config;
+        private readonly IIdEncoderService _idEncoderService;
+
+        public UpdateContactInfoCommandHandler(
+            IUnitOfWork unitOfWork,
+            ILogger<UpdateContactInfoCommandHandler> logger,
+            IConfiguration config,
+            IHttpContextAccessor httpContextAccessor,
+            IIdEncoderService idEncoderService)
+        {
+            _unitOfWork = unitOfWork;
+            _logger = logger;
+            _config = config;
+            _httpContextAccessor = httpContextAccessor;
+            _idEncoderService = idEncoderService;
+        }
+
+        public async Task<ApiResponse<bool>> Handle(UpdateEmployeeContactCommand request, CancellationToken cancellationToken)
+        {
+            await _unitOfWork.BeginTransactionAsync();
+
+            try
+            {
+                // ---------- TOKEN VALIDATION ----------
+                var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
+                    .ToString()?.Replace("Bearer ", "");
+
+                if (string.IsNullOrEmpty(bearerToken))
+                    return ApiResponse<bool>.Fail("Unauthorized: Token missing.");
+
+                var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, TokenKeyHelper.GetJwtSecret(_config));
+                if (tokenClaims == null || tokenClaims.IsExpired)
+                    return ApiResponse<bool>.Fail("Invalid or expired token.");
+
+                long loggedInEmpId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
+                if (loggedInEmpId <= 0)
+                    return ApiResponse<bool>.Fail("Unauthorized request.");
+
+                // ---------- DECODE IDS ----------
+                string finalKey = EncryptionSanitizer.CleanEncodedInput(tokenClaims.TenantEncriptionKey ?? "");
+                long tenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
+
+                request.DTO._UserEmployeeId = _idEncoderService.DecodeId(request.DTO.UserEmployeeId, finalKey);
+                request.DTO.Id_long = SafeParser.TryParseLong(request.DTO.Id);
+
+                if (request.DTO._UserEmployeeId != loggedInEmpId)
+                    return ApiResponse<bool>.Fail("Unauthorized: Access denied.");
+
+                if (tenantId <= 0)
+                    return ApiResponse<bool>.Fail("Invalid tenant identity.");
+
+
+                // ---------- FETCH Existing Record ----------
+                var existing = await _unitOfWork.EmployeeContactRepository.GetSingleRecordAsync(request.DTO.Id_long, true);
+
+                if (existing == null)
+                    return ApiResponse<bool>.Fail("Employee contact record not found.");
+
+
+                // ---------- APPLY UPDATE ONLY IF Provided ----------
+
+                // Contact Type
+                if (!string.IsNullOrWhiteSpace(request.DTO.ContactType))
+                {
+                    var type = SafeParser.TryParseInt(request.DTO.ContactType);
+                    if (type <= 0) return ApiResponse<bool>.Fail("Invalid contact type.");
+                    existing.ContactType = type;
+                }
+
+                // Contact Number – update if provided
+                if (request.DTO.ContactNumber != null)
+                {
+                    var clean = request.DTO.ContactNumber.Trim();
+
+                    if (!string.IsNullOrWhiteSpace(clean))
+                    {
+                        if (!Regex.IsMatch(clean, @"^[0-9]{10}$"))
+                            return ApiResponse<bool>.Fail("Invalid contact number format.");
+
+                        existing.ContactNumber = clean;
+                    }
+                }
+
+                // Alternate Number – update only if provided
+                if (request.DTO.AlternateNumber != null)
+                {
+                    var clean = request.DTO.AlternateNumber.Trim();
+                    if (!string.IsNullOrWhiteSpace(clean))
+                    {
+                        if (!Regex.IsMatch(clean, @"^[0-9]{10}$"))
+                            return ApiResponse<bool>.Fail("Invalid alternate number format.");
+
+                        existing.AlternateNumber = clean;
+                    }
+                }
+
+                // Email – update only if provided
+                if (request.DTO.Email != null)
+                {
+                    var clean = request.DTO.Email.Trim();
+                    if (!string.IsNullOrWhiteSpace(clean))
+                    {
+                        if (!Regex.IsMatch(clean, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+                            return ApiResponse<bool>.Fail("Invalid email format.");
+
+                        existing.Email = clean;
+                    }
+                }
+
+
+                // Primary Contact Logic
+                if (request.DTO.IsPrimary.HasValue)
+                {
+                    if (request.DTO.IsPrimary == true)
+                    {
+                        var oldPrimary = await _unitOfWork.EmployeeContactRepository.GetPrimaryLocationAsync(existing.EmployeeId, true);
+
+                        if (oldPrimary != null && oldPrimary.Id != existing.Id)
+                        {
+                            oldPrimary.IsPrimary = false;
+                            oldPrimary.UpdatedById = loggedInEmpId;
+                            oldPrimary.UpdatedDateTime = DateTime.UtcNow;
+
+                            if (!await _unitOfWork.EmployeeContactRepository.UpdateContactAsync(oldPrimary))
+                            {
+                                await _unitOfWork.RollbackTransactionAsync();
+                                return ApiResponse<bool>.Fail("Failed to update existing primary contact.");
+                            }
+                        }
+                    }
+
+                    existing.IsPrimary = request.DTO.IsPrimary.Value;
+                }
+
+                // Country / State / District (update only if supplied)
+                if (!string.IsNullOrWhiteSpace(request.DTO.CountryId))
+                    existing.CountryId = SafeParser.TryParseInt(request.DTO.CountryId);
+
+                if (!string.IsNullOrWhiteSpace(request.DTO.StateId))
+                    existing.StateId = SafeParser.TryParseInt(request.DTO.StateId);
+
+                if (!string.IsNullOrWhiteSpace(request.DTO.DistrictId))
+                    existing.DistrictId = SafeParser.TryParseInt(request.DTO.DistrictId);
+
+
+                // Free Text Fields (update only if provided)
+                if (request.DTO.HouseNo != null)
+                    existing.HouseNo = string.IsNullOrWhiteSpace(request.DTO.HouseNo) ? existing.HouseNo : request.DTO.HouseNo.Trim();
+
+                if (request.DTO.Street != null)
+                    existing.Street = string.IsNullOrWhiteSpace(request.DTO.Street) ? existing.Street : request.DTO.Street.Trim();
+
+                if (request.DTO.LandMark != null)
+                    existing.LandMark = string.IsNullOrWhiteSpace(request.DTO.LandMark) ? existing.LandMark : request.DTO.LandMark.Trim();
+
+                if (request.DTO.Address != null)
+                    existing.Address = string.IsNullOrWhiteSpace(request.DTO.Address) ? existing.Address : request.DTO.Address.Trim();
+
+                if (request.DTO.Description != null)
+                    existing.Description = string.IsNullOrWhiteSpace(request.DTO.Description) ? existing.Description : request.DTO.Description.Trim();
+
+
+                // ---------- AUDIT ----------
+                existing.UpdatedById = loggedInEmpId;
+                existing.UpdatedDateTime = DateTime.UtcNow;
+
+
+                // ---------- SAVE ----------
+                bool isSuccess = await _unitOfWork.EmployeeContactRepository.UpdateContactAsync(existing);
+
+                if (!isSuccess)
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                    return ApiResponse<bool>.Fail("Failed to update employee contact.");
+                }
+
+                await _unitOfWork.CommitTransactionAsync();
+                return ApiResponse<bool>.Success(true, "Employee contact updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                _logger.LogError(ex, "Error updating employee contact");
+                return ApiResponse<bool>.Fail("Unexpected error occurred.", new List<string> { ex.Message });
+            }
+        }
+
+
+    }
+
+
     //public class UpdateContactInfoCommandHandler : IRequestHandler<UpdateContactInfoCommand, ApiResponse<bool>>
     //{ 
     //    private readonly IUnitOfWork _unitOfWork;

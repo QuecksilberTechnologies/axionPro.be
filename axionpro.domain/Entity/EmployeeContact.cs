@@ -5,13 +5,13 @@ namespace axionpro.domain.Entity;
 
 public partial class EmployeeContact
 {
-    public int Id { get; set; }
+    public long Id { get; set; }
 
     public long EmployeeId { get; set; }
 
     public int? ContactType { get; set; }
 
-    public string ContactNumber { get; set; } = null!;
+    public string? ContactNumber { get; set; } 
 
     public string? AlternateNumber { get; set; }
 

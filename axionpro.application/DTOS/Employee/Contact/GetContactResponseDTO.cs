@@ -13,10 +13,10 @@ namespace axionpro.application.DTOS.Employee.Contact
            public string? Id { get; set; }
             public string? EmployeeId { get; set; }          // e.g. "Mobile", "Office", "Home"
             public string? ContactType { get; set; }          // e.g. "Mobile", "Office", "Home"
-            public  string? ContactLocation{ get; set; }
+            
             public string? ContactNumber { get; set; }  =  string.Empty;     // Primary number
-            public string AlternateNumber { get; set; } = string.Empty;      // Optional alternate number
-            public  string Email { get; set; } = string.Empty;               // Email ID
+            public string? AlternateNumber { get; set; } = string.Empty;      // Optional alternate number
+            public  string? Email { get; set; } = string.Empty;               // Email ID
             public bool? IsPrimary { get; set; }              // Is this the primary contact?
             public string? CountryName { get; set; }               // Country
             public string? StateName { get; set; }               // Country

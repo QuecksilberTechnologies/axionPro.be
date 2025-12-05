@@ -220,73 +220,87 @@ namespace axionpro.persistance.Repositories
                 var totalRecords = await baseQuery.CountAsync();
 
                 // ⭐ Check if employee has ANY primary contact
-                bool hasPrimary = baseQuery.Any(x => x.IsPrimary == true);
+                bool hasPrimary = await baseQuery.AnyAsync(x => x.IsPrimary == true);
 
-                // 🔹 Fetch and map
-                var data = baseQuery
-                    .AsEnumerable()
-                    .Select(contact =>
-                    {
-                        // ⭐ Primary Rule
-                        int primaryValue = hasPrimary ? (contact.IsPrimary.HasValue ? 1 : 0) : 0;
-
-                        // ⭐ Completion Calculation
-                        double completion = (
-                            (new[]
-                            {
-                        string.IsNullOrEmpty(contact.Address) ? 0 : 1,
-                        string.IsNullOrEmpty(contact.CountryId?.ToString()) ? 0 : 1,
-                        string.IsNullOrEmpty(contact.StateId?.ToString()) ? 0 : 1,
-                        string.IsNullOrEmpty(contact.DistrictId?.ToString()) ? 0 : 1,
-                        string.IsNullOrEmpty(contact.ContactNumber) ? 0 : 1,
-                        string.IsNullOrEmpty(contact.Email) ? 0 : 1,
-                        primaryValue
-                            }).Sum() / 7.0
-                        ) * 100;
-
-                        return new GetContactResponseDTO
-                        {
-                            Id = contact.Id.ToString(),
-                            EmployeeId = contact.EmployeeId.ToString(),
-                            Address = contact.Address,
-                            LandMark = contact.LandMark,
-                            CountryId = contact.CountryId?.ToString(),
-                            StateId = contact.StateId?.ToString(),
-                            DistrictId = contact.DistrictId?.ToString(),
-                            IsPrimary = contact.IsPrimary,
-                            IsActive = contact.IsActive,
-                            IsInfoVerified = contact.IsInfoVerified,
-                            IsEditAllowed = contact.IsEditAllowed,
-                            ContactType = contact.ContactType?.ToString(),
-                            ContactNumber = contact.ContactNumber,
-                            AlternateNumber = contact.AlternateNumber,
-                            Email = contact.Email,
-                            Remark = contact.Remark,
-                            Description = contact.Description,
-                            InfoVerifiedById = contact.InfoVerifiedById?.ToString(),
-                            InfoVerifiedDateTime = contact.InfoVerifiedDateTime,
-                            CountryName = _context.Countries
-                               .Where(c => c.Id == contact.CountryId)
-                               .Select(cn =>cn.CountryName )
-                               .FirstOrDefault(),
-
-                            StateName = _context.States
-                               .Where(c => c.Id == contact.StateId)
-                               .Select(cn => cn.StateName)
-                               .FirstOrDefault(),
-
-                            DistrictName = _context.Districts
-                               .Where(d => d.Id == contact.DistrictId)
-                               .Select(dn => dn.DistrictName)
-                               .FirstOrDefault(),
-                            // ⭐ Final Completion
-                            CompletionPercentage = completion
-                        };
-                    })
-                    .DistinctBy(x => x.Id)
+                // 🔹 Fetch Contacts (Before Mapping)
+                var list = await baseQuery
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
-                    .ToList();
+                    .ToListAsync();
+
+                // 🔹 Extract Related IDs To Avoid DB Query Inside Loop
+                var countryIds = list.Where(x => x.CountryId.HasValue).Select(x => x.CountryId.Value).Distinct().ToList();
+                var stateIds = list.Where(x => x.StateId.HasValue).Select(x => x.StateId.Value).Distinct().ToList();
+                var districtIds = list.Where(x => x.DistrictId.HasValue).Select(x => x.DistrictId.Value).Distinct().ToList();
+
+                // 🔹 Get Names in Single DB Call (Not in loop)
+                var countryMap = _context.Countries
+                    .Where(c => countryIds.Contains(c.Id))
+                    .ToDictionary(c => c.Id, c => c.CountryName);
+
+                var stateMap = _context.States
+                    .Where(s => stateIds.Contains(s.Id))
+                    .ToDictionary(s => s.Id, s => s.StateName);
+
+                var districtMap = _context.Districts
+                    .Where(d => districtIds.Contains(d.Id))
+                    .ToDictionary(d => d.Id, d => d.DistrictName);
+
+                // 🔹 Mapping + Completion Score
+                var data = list.Select(contact =>
+                {
+                    int primaryValue = hasPrimary ? (contact.IsPrimary == true ? 1 : 0) : 0;
+
+                    double completion = (
+                        (new[]
+                        {
+                  string.IsNullOrWhiteSpace(contact.Address) ? 0 : 1,
+                   contact.CountryId.HasValue ? 1 : 0,
+                  contact.StateId.HasValue ? 1 : 0,
+                  contact.DistrictId.HasValue ? 1 : 0,
+                  string.IsNullOrWhiteSpace(contact.LandMark) ? 0 : 1,
+                  string.IsNullOrWhiteSpace(contact.Street) ? 0 : 1,
+                  string.IsNullOrWhiteSpace(contact.HouseNo) ? 0 : 1,
+                  string.IsNullOrWhiteSpace(contact.Email) ? 0 : 1,
+                   primaryValue
+                        }).Sum() / 9.0
+                    ) * 100;
+
+                    return new GetContactResponseDTO
+                    {
+                        Id = contact.Id.ToString(),
+                        EmployeeId = contact.EmployeeId.ToString(),
+                        Address = contact.Address,
+                        LandMark = contact.LandMark,
+                        HouseNo = contact.HouseNo,
+                        Street = contact.Street, 
+
+                        CountryId = contact.CountryId?.ToString(),
+                        StateId = contact.StateId?.ToString(),
+                        DistrictId = contact.DistrictId?.ToString(),
+                        IsPrimary = contact.IsPrimary,
+                        IsActive = contact.IsActive,
+                        IsInfoVerified = contact.IsInfoVerified,
+                        IsEditAllowed = contact.IsEditAllowed,
+                        ContactType = contact.ContactType?.ToString(),
+                        ContactNumber = contact.ContactNumber,
+                        AlternateNumber = contact.AlternateNumber,
+                        Email = contact.Email,
+                        Remark = contact.Remark,
+                        Description = contact.Description,
+                        InfoVerifiedById = contact.InfoVerifiedById?.ToString(),
+                        InfoVerifiedDateTime = contact.InfoVerifiedDateTime,
+
+                        // 🔹 Get Names (From Cached Dictionaries)
+                        CountryName = contact.CountryId.HasValue && countryMap.ContainsKey(contact.CountryId.Value) ? countryMap[contact.CountryId.Value] : null,
+                        StateName = contact.StateId.HasValue && stateMap.ContainsKey(contact.StateId.Value) ? stateMap[contact.StateId.Value] : null,
+                        DistrictName = contact.DistrictId.HasValue && districtMap.ContainsKey(contact.DistrictId.Value) ? districtMap[contact.DistrictId.Value] : null,
+
+                        CompletionPercentage = completion
+                    };
+                })
+                .DistinctBy(x => x.Id) // safety
+                .ToList();
 
                 // ⭐ Average completion for page
                 double averagePercentage = data.Count > 0
@@ -317,17 +331,69 @@ namespace axionpro.persistance.Repositories
             throw new NotImplementedException();
         }
 
-       
-        public Task<bool> UpdateFieldAsync(long Id, string entity, string fieldName, object? fieldValue, long updatedById)
+
+        public async Task<bool> UpdateContactAsync(EmployeeContact employeeContact)
         {
-            throw new NotImplementedException();
+            try
+            {
+               
+ 
+                int affectedRows = await _context.SaveChangesAsync();
+
+                if (affectedRows > 0)
+                {
+                    _logger.LogInformation("✔ Contact record updated successfully");
+
+                    return true;
+                }
+
+                // 🚧 No Row Updated means something unexpected (maybe no actual new values)
+                _logger.LogWarning("⚠ No changes detected | ContactId: {Id}", employeeContact.Id);
+                return false;
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                _logger.LogError(ex, "❌ Concurrency conflict while updating Contact record | Id: {Id}", employeeContact.Id);
+                throw new Exception("Record update failed due to concurrency conflict. Please retry.");
+            }
+            catch (DbUpdateException dbEx)
+            {
+                _logger.LogError(dbEx, "❌ Database error during update | Id: {Id}", employeeContact.Id);
+                throw new Exception("Database error while updating Contact record.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error occurred while updating Contact record | Id: {Id}", employeeContact.Id);
+                throw new Exception($"Unexpected update failure: {ex.Message}");
+            }
         }
 
-        public Task<EmployeeContact> GetSingleRecordAsync(long Id, bool IsActive)
+        public async Task<EmployeeContact?> GetPrimaryLocationAsync( long employeeId,  bool isActive, bool track = true )
         {
-            throw new NotImplementedException();
+            {
+                IQueryable<EmployeeContact> query = _context.EmployeeContacts.Where(x => x.IsSoftDeleted != true && x.EmployeeId == employeeId);
+
+                if (!track)
+                    query = query.AsNoTracking();
+
+                return await query.FirstOrDefaultAsync(x => x.IsActive == isActive && x.IsPrimary== true);
+            }
+
         }
 
-       
+        public async Task<EmployeeContact?> GetSingleRecordAsync(long id, bool track = true)
+        {
+            {
+                IQueryable<EmployeeContact> query = _context.EmployeeContacts.Where(x => x.Id == id && x.IsSoftDeleted != true);
+
+                if (!track)
+                    query = query.AsNoTracking();
+
+                return await query.FirstOrDefaultAsync(x => x.Id == id);
+            }
+
+        }
+
+
     }
 }

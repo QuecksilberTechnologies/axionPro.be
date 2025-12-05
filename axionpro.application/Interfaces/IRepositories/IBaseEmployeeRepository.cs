@@ -40,13 +40,13 @@ public interface IBaseEmployeeRepository
      Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> GetInfo(GetBaseEmployeeRequestDTO dto, long  decryptedTenantId, long id);
      Task<PagedResponseDTO<GetAllEmployeeInfoResponseDTO>> GetAllInfo(GetAllEmployeeInfoRequestDTO dto, long decryptedTenantId);
 
-    public Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> CreateAsync(Employee entity);
-    public Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> AddImageAsync(EmployeeImage entity);
+       public Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> CreateAsync(Employee entity);
+       public Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> AddImageAsync(EmployeeImage entity);
     
       public Task<GetMinimalEmployeeResponseDTO> GetSingleRecordAsync(long Id, bool IsActive);  // Ensure this returns 
       public Task<EmployeeImage> IsImageExist(long? Id, bool IsActive);  // Ensure this returns 
       public Task<bool>  UpdateProfileImage(EmployeeImage employeeImageInfo);
-    public Task<Employee?> GetByIdAsync(long id, long tenantId, bool track = true);
+      public Task<Employee?> GetByIdAsync(long id, long tenantId, bool track = true);
       public Task<bool> DeleteAsync(long id);
       public  Task<long> AutoCreated(Employee entity);
      

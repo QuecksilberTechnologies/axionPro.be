@@ -27,10 +27,11 @@ public interface IEmployeeContactRepository
     #region Employee-Contact-info
     public Task<PagedResponseDTO<GetContactResponseDTO>> GetInfo(GetContactRequestDTO dto, long EmployeeId, int Id);  
     public Task<PagedResponseDTO<GetContactResponseDTO>> CreateAsync(EmployeeContact entity);
-    public Task<PagedResponseDTO<GetContactResponseDTO>> AutoCreatedAsync(EmployeeContact entity);
-    public Task<EmployeeContact> GetSingleRecordAsync(long Id, bool IsActive);  // Ensure this returns 
+    public Task<PagedResponseDTO<GetContactResponseDTO>> AutoCreatedAsync(EmployeeContact entity);  
+    public  Task<EmployeeContact?> GetSingleRecordAsync(long id, bool track = true);// Ensure this returns 
+    public  Task<EmployeeContact?> GetPrimaryLocationAsync(long employeeId, bool isActive, bool track = true);// Ensure this returns 
 
-    public Task<bool> UpdateFieldAsync(long Id, string entity, string fieldName, object? fieldValue, long updatedById);
+    public Task<bool> UpdateContactAsync(EmployeeContact employeeContact);
 
 
     #endregion

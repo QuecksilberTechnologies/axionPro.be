@@ -122,40 +122,40 @@ namespace axionpro.api.Controllers.Employee
         }
 
 
-       
+
         /// <summary>
         /// Updates employee details.
         /// </summary>
-    //    [HttpPost("update")]
-    //    [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-    //    [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
-    //    [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
-    //    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    //    public async Task<IActionResult> UpdateContact([FromBody] GenricUpdateRequestDTO dto)
-    //    {
-    //        try
-    //        {
-    //            _logger.LogInfo($"Updating employee-contact record. EmployeeId: {dto._EmployeeId}");
+        [HttpPost("update")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> UpdateContact([FromBody] UpdateContactRequestDTO dto)
+        {
+            try
+            {
+                _logger.LogInfo($"Updating employee-contact record. EmployeeId: {dto.Id}");
 
-    //            var command = new UpdateContactInfoCommand(dto);
-    //            var result = await _mediator.Send(command);
+                var command = new UpdateEmployeeContactCommand(dto);
+                var result = await _mediator.Send(command);
 
-    //            if (!result.IsSucceeded)
-    //            {
-    //                _logger.LogInfo($"Failed to update employee-contact with Id: {dto._EmployeeId}");
-    //                return BadRequest(result);
-    //            }
+                if (!result.IsSucceeded)
+                {
+                    _logger.LogInfo($"Failed to update employee-contact with Id: {dto.Id}");
+                    return BadRequest(result);
+                }
 
-    //            _logger.LogInfo("Employee-contact updated successfully.");
-    //            return Ok(result);
-    //        }
-    //        catch (Exception ex)
-    //        {
-    //            _logger.LogError($"Error updating employee-contact: {ex.Message}");
-    //            var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while updating employee-contact info.",
-    //                new List<string> { ex.Message });
-    //            return StatusCode(500, errorResponse);
-    //        }
-    //    }
+                _logger.LogInfo("Employee-contact updated successfully.");
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error updating employee-contact: {ex.Message}");
+                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while updating employee-contact info.",
+                    new List<string> { ex.Message });
+                return StatusCode(500, errorResponse);
+            }
+        }
     }
 }

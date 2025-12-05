@@ -166,6 +166,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 _logger.LogError(ex, "Error updating employee");
                 return ApiResponse<bool>.Fail("Unexpected error.", new List<string> { ex.Message });
             }
+        
         }
     }
 
