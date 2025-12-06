@@ -3,20 +3,13 @@ using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.EncryptionHelper;
-using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
-using axionpro.application.DTOs.Department;
 using axionpro.application.DTOS.Common;
-using axionpro.application.DTOS.Employee.Dependent;
-using axionpro.application.DTOS.Employee.Education;
-using axionpro.application.DTOS.Employee.Sensitive;
-using axionpro.application.DTOS.Pagination;
-using axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers;
+using axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.ITokenService;
+using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -24,34 +17,36 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
+using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 
-namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
+namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
 {
-    public class DeleteEducationInfoQuery : IRequest<ApiResponse<bool>>
+    public class DeleteContactQuery : IRequest<ApiResponse<bool>>
     {
-        public DeleteRequestDTO DTO { get; set; }
+        public DeleteRequestDTO DTO;
 
-        public DeleteEducationInfoQuery(DeleteRequestDTO dTO)
+        public DeleteContactQuery(DeleteRequestDTO dto)
         {
-            DTO = dTO;
+            DTO = dto;
         }
     }
-    public class DeleteEducationInfoQueryHandler : IRequestHandler<DeleteEducationInfoQuery, ApiResponse<bool>>
+
+    public class DeleteContactInfoQueryHandler : IRequestHandler<DeleteContactQuery, ApiResponse<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ILogger<DeleteEducationInfoQueryHandler> _logger;
+        private readonly ILogger<DeleteContactInfoQueryHandler> _logger;
         private readonly IPermissionService _permissionService;
         private readonly IConfiguration _config;
         private readonly IEncryptionService _encryptionService;
         private readonly IIdEncoderService _idEncoderService;
 
-        public DeleteEducationInfoQueryHandler(
+        public DeleteContactInfoQueryHandler(
             IUnitOfWork unitOfWork,
             IHttpContextAccessor httpContextAccessor,
-            ILogger<DeleteEducationInfoQueryHandler> logger,
+            ILogger<DeleteContactInfoQueryHandler> logger,
             IPermissionService permissionService,
             IConfiguration config,
             IEncryptionService encryptionService,
@@ -66,7 +61,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
             _idEncoderService = idEncoderService;
         }
 
-        public async Task<ApiResponse<bool>> Handle(DeleteEducationInfoQuery request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<bool>> Handle(DeleteContactQuery request, CancellationToken cancellationToken)
         {
             await _unitOfWork.BeginTransactionAsync();
 
@@ -103,14 +98,26 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 
                 if (decryptedEmployeeId != loggedInEmpId)
                     return ApiResponse<bool>.Fail("Unauthorized: Employee mismatch.");
-
+                  long rowId = SafeParser.TryParseLong(request.DTO.Id);
+                if (rowId <= 0)
+                    return ApiResponse<bool>.Fail("Invalid record ID.");
                 // 3️⃣ Permission Check
                 var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
-                if (!permissions.Contains("Education"))
-                    return ApiResponse<bool>.Fail("Access denied: You do not have permission to delete education info.");
+                //if (!permissions.Contains("Education"))
+                //    return ApiResponse<bool>.Fail("Access denied: You do not have permission to delete education info.");
+
+                var existing = await _unitOfWork.EmployeeContactRepository.GetSingleRecordAsync(rowId, true);
+
+                if (existing == null)
+                    return ApiResponse<bool>.Fail("Employee contact record not found.");
+
+                existing.DeletedDateTime = DateTime.UtcNow;
+                existing.SoftDeletedById = decryptedEmployeeId;
+                existing.IsSoftDeleted= true;
+                existing.IsActive= false;
 
                 // 4️⃣ Delete Record
-                var isSuccess = await _unitOfWork.EmployeeEducationRepository.DeleteAsync(decryptedRecordId, decryptedEmployeeId);
+                var isSuccess = await _unitOfWork.EmployeeContactRepository.DeleteAsync(existing);
 
                 if (!isSuccess)
                 {
@@ -130,11 +137,8 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                 return ApiResponse<bool>.Fail("Error deleting record.", new List<string> { ex.Message });
             }
         }
-    
-    
     }
-
-
-
-
 }
+
+
+ 

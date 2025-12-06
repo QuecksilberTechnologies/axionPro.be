@@ -34,9 +34,7 @@ namespace axionpro.application.DTOS.Employee.Contact
         public string? Street { get; set; }
         public string? Address { get; set; }
 
-
-        // 🔹 Optional/Metadata
-        public string? Remark { get; set; }
+ 
         public string? Description { get; set; }
 
 

@@ -331,6 +331,41 @@ namespace axionpro.persistance.Repositories
             throw new NotImplementedException();
         }
 
+        public async Task<bool> DeleteAsync(EmployeeContact employeeContact)
+        {
+            try
+            {
+
+
+                int affectedRows = await _context.SaveChangesAsync();
+
+                if (affectedRows > 0)
+                {
+                    _logger.LogInformation("✔ Contact record updated successfully");
+
+                    return true;
+                }
+
+                // 🚧 No Row Updated means something unexpected (maybe no actual new values)
+                _logger.LogWarning("⚠ No changes detected | ContactId: {Id}", employeeContact.Id);
+                return false;
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                _logger.LogError(ex, "❌ Concurrency conflict while updating Contact record | Id: {Id}", employeeContact.Id);
+                throw new Exception("Record update failed due to concurrency conflict. Please retry.");
+            }
+            catch (DbUpdateException dbEx)
+            {
+                _logger.LogError(dbEx, "❌ Database error during update | Id: {Id}", employeeContact.Id);
+                throw new Exception("Database error while updating Contact record.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error occurred while updating Contact record | Id: {Id}", employeeContact.Id);
+                throw new Exception($"Unexpected update failure: {ex.Message}");
+            }
+        }
 
         public async Task<bool> UpdateContactAsync(EmployeeContact employeeContact)
         {

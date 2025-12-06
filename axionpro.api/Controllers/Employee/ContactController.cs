@@ -1,9 +1,12 @@
 ﻿
 
- 
+
+using axionpro.application.DTOs.test.dummy;
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.Contact;
  
 using axionpro.application.Features.EmployeeCmd.Contact.Handlers;
+using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
 using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
 using FluentValidation;
@@ -153,6 +156,41 @@ namespace axionpro.api.Controllers.Employee
             {
                 _logger.LogError($"Error updating employee-contact: {ex.Message}");
                 var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while updating employee-contact info.",
+                    new List<string> { ex.Message });
+                return StatusCode(500, errorResponse);
+            }
+        }
+
+        /// <summary>
+        /// Deletes employee record by Id.
+        /// </summary>
+        [HttpDelete("delete")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> Delete([FromQuery] DeleteRequestDTO dto)
+        {
+            try
+            {
+                _logger.LogInfo($"Deleting employee with Id: {dto.Id}");
+
+                var command = new DeleteContactQuery(dto);
+                var result = await _mediator.Send(command);
+
+                if (!result.IsSucceeded)
+                {
+                    _logger.LogInfo($"Failed to delete employee with Id: {dto.UserEmployeeId}");
+                    return BadRequest(result);
+                }
+
+                _logger.LogInfo("Employee deleted successfully.");
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error deleting employee: {ex.Message}");
+                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while deleting employee.",
                     new List<string> { ex.Message });
                 return StatusCode(500, errorResponse);
             }

@@ -17,7 +17,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace axionpro.application.Features.EmployeeCmd.UpdateProfile.Handlers
+namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
     public class UpdateProfileImageCommand : IRequest<ApiResponse<bool>>
     {
@@ -139,7 +139,7 @@ namespace axionpro.application.Features.EmployeeCmd.UpdateProfile.Handlers
                         }
 
                         // Create new file name
-                        string newFileName = ($"pic-{employeeImageInfo.EmployeeId}-{DateTime.UtcNow:yyMMddHHmmss}.png").Trim();
+                        string newFileName = $"pic-{employeeImageInfo.EmployeeId}-{DateTime.UtcNow:yyMMddHHmmss}.png".Trim();
 
                         // Save new file
                         using var ms = new MemoryStream();

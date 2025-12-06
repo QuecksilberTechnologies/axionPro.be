@@ -11,6 +11,7 @@ namespace axionpro.application.DTOS.Location
         public int Id { get; set; }
 
         public string CountryName { get; set; } = null!;
+        public string CountryCode { get; set; } = null!;
 
         public bool? IsActive { get; set; }
     }

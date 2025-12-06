@@ -32,6 +32,7 @@ public interface IEmployeeContactRepository
     public  Task<EmployeeContact?> GetPrimaryLocationAsync(long employeeId, bool isActive, bool track = true);// Ensure this returns 
 
     public Task<bool> UpdateContactAsync(EmployeeContact employeeContact);
+    public Task<bool> DeleteAsync(EmployeeContact employeeContact);
 
 
     #endregion
