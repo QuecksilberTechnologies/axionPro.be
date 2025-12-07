@@ -87,10 +87,12 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
                 string finalKey = EncryptionSanitizer.CleanEncodedInput(tokenClaims.TenantEncriptionKey ?? "");
                 long tenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
 
-                request.DTO._UserEmployeeId = _idEncoderService.DecodeId(request.DTO.UserEmployeeId, finalKey);
-                request.DTO.Id_long = SafeParser.TryParseLong(request.DTO.Id);
-
-                if (request.DTO._UserEmployeeId != loggedInEmpId)
+                request.DTO.Prop.UserEmployeeId = _idEncoderService.DecodeId(request.DTO.UserEmployeeId, finalKey);
+                request.DTO.Prop.RowId_long = SafeParser.TryParseLong(request.DTO.Id);
+                 if(request.DTO.Prop.RowId_long <= 0)
+                    return ApiResponse<bool>.Fail("Invalid contact identity.");
+                // ---------- AUTHORIZATION CHECK ----------
+                if (request.DTO.Prop.UserEmployeeId != loggedInEmpId)
                     return ApiResponse<bool>.Fail("Unauthorized: Access denied.");
 
                 if (tenantId <= 0)
@@ -98,7 +100,7 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
 
 
                 // ---------- FETCH Existing Record ----------
-                var existing = await _unitOfWork.EmployeeContactRepository.GetSingleRecordAsync(request.DTO.Id_long, true);
+                var existing = await _unitOfWork.EmployeeContactRepository.GetSingleRecordAsync(request.DTO.Prop.RowId_long, true);
 
                 if (existing == null)
                     return ApiResponse<bool>.Fail("Employee contact record not found.");

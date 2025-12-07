@@ -88,7 +88,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 string finalKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
                 finalKey = EncryptionSanitizer.CleanEncodedInput(finalKey);
 
-                long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
+                request.DTO.Prop.TenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
 
 
                 //  = SafeParser.TryParseLong(tokenClaims.TenantId) ;
@@ -96,18 +96,18 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 
                 // ---------- Decode IDs ----------
 
-                request.DTO._UserEmployeeId = _idEncoderService.DecodeId(request.DTO.UserEmployeeId, finalKey);
-                request.DTO.Id_long = _idEncoderService.DecodeId(request.DTO.Id, finalKey);
+                request.DTO.Prop.UserEmployeeId = _idEncoderService.DecodeId(request.DTO.UserEmployeeId, finalKey);
+                request.DTO.Prop.RowId_long = _idEncoderService.DecodeId(request.DTO.Id, finalKey);
 
-                if (request.DTO._UserEmployeeId != loggedInEmpId)
+                if (request.DTO.Prop.UserEmployeeId != loggedInEmpId)
                     return ApiResponse<bool>.Fail("Unauthorized update request.");
 
-                if (decryptedTenantId <= 0)
+                if (request.DTO.Prop.TenantId <= 0)
                     return ApiResponse<bool>.Fail("Unauthorized tenant id.");
                                
 
                 // ---------- FETCH Existing Employee ----------
-                var existingEmployee = await _unitOfWork.Employees.GetByIdAsync(request.DTO.Id_long, decryptedTenantId , true);
+                var existingEmployee = await _unitOfWork.Employees.GetByIdAsync(request.DTO.Prop.UserEmployeeId ,request.DTO.Prop.TenantId, true);
 
 
                 if (existingEmployee == null)
@@ -155,7 +155,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 existingEmployee.UpdatedDateTime = DateTime.UtcNow;
 
                 // ---------- SAVE ----------
-                await _unitOfWork.Employees.UpdateEmployeeAsync(existingEmployee, decryptedTenantId);
+                await _unitOfWork.Employees.UpdateEmployeeAsync(existingEmployee, request.DTO.Prop.TenantId);
                 await _unitOfWork.CommitTransactionAsync();
 
                 return ApiResponse<bool>.Success(true, "Employee updated successfully.");

@@ -230,58 +230,37 @@ namespace axionpro.persistance.Repositories
 
 
         public async Task<bool> UpdateEmployeeFieldAsync(EmployeeEducation entity)
-          {
+        {
             await using var context = await _contextFactory.CreateDbContextAsync();
 
-    if (entity == null)
-        throw new ArgumentNullException(nameof(entity));
+            try
+            {
+                if (entity == null)
+                    throw new ArgumentNullException(nameof(entity));
 
-    try
-    {
-        var db = context.EmployeeEducations;
+                context.EmployeeEducations.Update(entity);
 
-        db.Attach(entity);
+                int affectedRows = await context.SaveChangesAsync();
 
-        var entry = context.Entry(entity);
-
-        foreach (var property in entry.Properties)
-        {
-            if (property.CurrentValue == null || property.IsModified)
-                continue;
-
-            if (property.Metadata.Name == "Id" ||
-                property.Metadata.Name == "EmployeeId")
-                continue;
-
-            property.IsModified = true;
+                return affectedRows > 0;
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                _logger.LogError(ex, "⚠ Concurrency conflict while updating EmployeeEducation Id={Id}", entity.Id);
+                return false;
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "⚠ Database update failure for EmployeeEducation Id={Id}", entity.Id);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Unexpected error while updating EmployeeEducation Id={Id}", entity.Id);
+                return false;
+            }
         }
 
-        entity.UpdatedDateTime = DateTime.UtcNow;
-        entry.Property(x => x.UpdatedDateTime).IsModified = true;
-
-        if (entity.UpdatedById != null)
-            entry.Property(x => x.UpdatedById).IsModified = true;
-
-        int rows = await context.SaveChangesAsync();
-
-        return rows > 0;   // ✔ Yahin final return
-    }
-    catch (DbUpdateConcurrencyException ex)
-    {
-        _logger.LogError(ex, "Concurrency error while updating EmployeeEducation record Id={Id}", entity.Id);
-        return false;
-    }
-    catch (DbUpdateException ex)
-    {
-        _logger.LogError(ex, "Database update error while updating EmployeeEducation Id={Id}", entity.Id);
-        return false;
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Unknown error while updating EmployeeEducation Id={Id} EX={ex}", entity.Id,ex);
-        return false;
-    }
-}
 
         public async Task<EmployeeEducation?> GetSingleRecordAsync(long Id, bool IsActive)
         {

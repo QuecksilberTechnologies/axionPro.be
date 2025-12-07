@@ -10,6 +10,14 @@
 	  
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Optimize>False</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <Optimize>False</Optimize>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Remove="Features\EmployeeCmd\BaseInfo\**" />
     <Compile Remove="Features\EmployeeCmd\BasicInfo - Copy %283%29 - Copy %282%29\**" />

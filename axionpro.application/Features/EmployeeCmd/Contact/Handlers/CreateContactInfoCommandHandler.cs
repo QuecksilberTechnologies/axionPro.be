@@ -105,7 +105,7 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
                 string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
                 //UserEmployeeId
                 string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
-                long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
+                request.DTO.Prop.UserEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
                 //Token TenantId
                 string tokenTenant = EncryptionSanitizer.CleanEncodedInput(tokenClaims.TenantId);
                 long decryptedTenantId = _idEncoderService.DecodeId(tokenTenant, finalKey);
@@ -122,17 +122,17 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
                 }
 
 
-                if (decryptedTenantId <= 0 || decryptedEmployeeId <= 0)
+                if (decryptedTenantId <= 0 || request.DTO.Prop.UserEmployeeId <= 0)
                 {
                     _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
                     return ApiResponse<List<GetContactResponseDTO>>.Fail("Tenant or employee information missing.");
                 }
 
-                if (!(decryptedEmployeeId == loggedInEmpId))
+                if (!(request.DTO.Prop.UserEmployeeId == loggedInEmpId))
                 {
                     _logger.LogWarning(
                         "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
-                         decryptedEmployeeId, loggedInEmpId
+                           request.DTO.Prop.UserEmployeeId, loggedInEmpId
                     );
 
                     return ApiResponse<List<GetContactResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
@@ -150,7 +150,7 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
 
 
                 // 3. Prepare entity from DTO
-                mappedData.AddedById = decryptedEmployeeId;
+                mappedData.AddedById = request.DTO.Prop.UserEmployeeId;
                 mappedData.AddedDateTime = DateTime.UtcNow;
                 mappedData.IsActive = true;
                 mappedData.IsEditAllowed = false;

@@ -1,4 +1,5 @@
-﻿using axionpro.application.DTOS.Pagination;
+﻿using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Pagination;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,8 +11,8 @@ namespace axionpro.application.DTOS.Employee.Contact
     public class CreateContactRequestDTO
     {
 
-        public string? UserEmployeeId { get; set; }
-        public string? EmployeeId { get; set; }      
+        public string UserEmployeeId { get; set; } = string.Empty;
+        public string EmployeeId { get; set; } = string.Empty;
 
         // 🔹 Contact Info
         public string? ContactType { get; set; }          // e.g. Personal, Work, Emergency
@@ -28,7 +29,8 @@ namespace axionpro.application.DTOS.Employee.Contact
         public string? LandMark { get; set; }
         public string? Street { get; set; }
         public string? Address { get; set; }
-      
+       
+         public ExtraPropRequestDTO? Prop { get; set; }
 
         // 🔹 Optional/Metadata
         public string? Remark { get; set; }

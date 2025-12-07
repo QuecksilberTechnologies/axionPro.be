@@ -59,12 +59,12 @@ namespace axionpro.infrastructure.FileStoringService
             if (string.IsNullOrWhiteSpace(fullPath)) return string.Empty;
 
             var relative = fullPath.Replace(RootFolder, "").TrimStart('\\', '/');
-            return $"uploads/{relative.Replace("\\", "/")}";
+            return $"{relative.Replace("\\", "/")}";
         }
 
         public string GetPublicUrl(string relativePath)
         {
-            return $"{BaseUrl}{relativePath}".Replace("\\", "/");
+            return $"{BaseUrl}uploads/{relativePath}".Replace("\\", "/");
         }
 
         // ✅ Default Image Path Helper

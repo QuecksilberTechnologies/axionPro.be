@@ -89,19 +89,19 @@ namespace axionpro.api.Controllers.Employee
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> UpdateEducation(GenericMultiFieldUpdateRequestDTO dto)
+        public async Task<IActionResult> UpdateEducation(UpdateEducationRequestDTO dto)
 
         {
             try
             {
-                _logger.LogInfo($"Updating employee-education record. EmployeeId: {dto._EmployeeId}");
+                _logger.LogInfo($"Updating employee-education record. EmployeeId: {dto.EmployeeId}");
 
                 var command = new UpdateEducationInfoCommand(dto);
                 var result = await _mediator.Send(command);
 
                 if (!result.IsSucceeded)
                 {
-                    _logger.LogInfo($"Failed to update employee-education with Id: {dto._EmployeeId}");
+                    _logger.LogInfo($"Failed to update employee-education with Id: {dto.EmployeeId}");
                     return BadRequest(result);
                 }
 

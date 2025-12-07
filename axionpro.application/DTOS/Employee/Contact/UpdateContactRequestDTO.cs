@@ -1,4 +1,5 @@
-﻿using System;
+﻿using axionpro.application.DTOS.Common;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -11,12 +12,8 @@ namespace axionpro.application.DTOS.Employee.Contact
     {
 
         [Required]
-        public string? UserEmployeeId { get; set; }
-        public long _UserEmployeeId { get; set; }
-        [Required]
-
-        public string Id { get; set; } = string.Empty;
-        public long Id_long { get; set; }
+        public string UserEmployeeId { get; set; } = string.Empty;
+        public string Id { get; set; } = string.Empty;      
 
         // 🔹 Contact Info
         public string? ContactType { get; set; }          // e.g. Personal, Work, Emergency
@@ -32,11 +29,9 @@ namespace axionpro.application.DTOS.Employee.Contact
         public string? HouseNo { get; set; }
         public string? LandMark { get; set; }
         public string? Street { get; set; }
-        public string? Address { get; set; }
-
- 
+        public string? Address { get; set; } 
         public string? Description { get; set; }
-
+        public ExtraPropRequestDTO? Prop { get; set; }
 
     }
 

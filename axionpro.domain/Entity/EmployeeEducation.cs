@@ -21,7 +21,7 @@ public partial class EmployeeEducation
     public bool  HasEducationDocUploded { get; set; }
     public DateTime? EndDate { get; set; }
     public string? ScoreValue { get; set; }
-    public int? ScoreType { get; set; }
+    public int? ScoreType { get; set; } // 1=GPA, 2=Percentage, 3=CGPA, etc.
     public string? GradeDivision { get; set; }
     public string? FilePath { get; set; }
     public int? FileType { get; set; }
