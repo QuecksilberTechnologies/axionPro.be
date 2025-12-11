@@ -56,7 +56,7 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
         private readonly IConfiguration _config;
         private readonly IEncryptionService _encryptionService;
         private readonly IIdEncoderService _idEncoderService;
-        ICommonRequestService _commonRequestService;
+        private readonly ICommonRequestService _commonRequestService;
 
         public CreateDesignationCommandHandler(
             IUnitOfWork unitOfWork,

@@ -17,6 +17,6 @@ namespace axionpro.application.DTOs.Designation
         public string? Description { get; set; }
         public bool? IsActive { get; set; }
      
-
+        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
     }
 }

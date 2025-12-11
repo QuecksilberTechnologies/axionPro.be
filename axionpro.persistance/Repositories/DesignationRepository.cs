@@ -195,8 +195,8 @@ namespace axionpro.persistance.Repositories
                     orderby des.Id descending
                     select new GetDesignationResponseDTO
                     {
-                        Id = des.Id.ToString(),
-                        DepartmentId = des.DepartmentId.ToString(),
+                        Id = des.Id,
+                        DepartmentId = des.DepartmentId,
                         DesignationName = des.DesignationName,
                         DepartmentName = dep != null ? dep.DepartmentName : string.Empty,
                         Description = des.Description,
@@ -222,23 +222,18 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<bool> DeleteDesignationAsync(DeleteDesignationRequestDTO dto, long EmployeeId, int id)
+        public async Task<bool> DeleteDesignationAsync(DeleteDesignationRequestDTO dto)
         {
             try
             {
                 // 🧩 1️⃣ Validate input
-                if (dto == null || dto.Id == "0")
-                {
-                    _logger.LogWarning("⚠️ DeleteDesignationAsync called with invalid DesignationId.");
-                    throw new ArgumentException("Invalid DesignationId for deletion.");
-                }
                
 
                 await using var context = await _contextFactory.CreateDbContextAsync();
 
                 // 🧩 2️⃣ Fetch existing Designation
                 var existingEntity = await context.Designations
-                    .FirstOrDefaultAsync(d => d.Id == id && (d.IsSoftDeleted != true));
+                    .FirstOrDefaultAsync(d => d.Id == dto.Id && (d.IsSoftDeleted != true));
 
                 if (existingEntity == null)
                 {
@@ -249,14 +244,14 @@ namespace axionpro.persistance.Repositories
                 // 🧩 3️⃣ Perform soft delete
                 existingEntity.IsSoftDeleted = true;
                 existingEntity.IsActive = false;
-                existingEntity.SoftDeletedById = EmployeeId;
+                existingEntity.SoftDeletedById = dto.Prop.UserEmployeeId;
                 existingEntity.SoftDeletedDateTime = DateTime.UtcNow;
-                existingEntity.Id = id;
+                existingEntity.Id = dto.Id;
 
                 context.Designations.Update(existingEntity);
                 await context.SaveChangesAsync();
 
-                _logger.LogInformation("✅ Designation Id: {Id} soft deleted successfully by EmployeeId: {EmpId}", dto.Id, EmployeeId);
+                _logger.LogInformation("✅ Designation Id: {Id} soft deleted successfully by EmployeeId: {EmpId}", dto.Id, dto.Prop.UserEmployeeId);
                 return true;
             }
             catch (Exception ex)
@@ -364,7 +359,7 @@ namespace axionpro.persistance.Repositories
 
 
 
-        public async Task<bool> UpdateDesignationAsync(UpdateDesignationRequestDTO dto, long employeeId, int id)
+        public async Task<bool> UpdateDesignationAsync(UpdateDesignationRequestDTO dto)
         {
             try
             {
@@ -381,11 +376,11 @@ namespace axionpro.persistance.Repositories
 
                 // 🧩 2️⃣ Fetch existing record
                 var existingEntity = await context.Designations
-                    .FirstOrDefaultAsync(d => d.Id == id && (d.IsSoftDeleted != true));
+                    .FirstOrDefaultAsync(d => d.Id == dto.Id && (d.IsSoftDeleted != true));
 
                 if (existingEntity == null)
                 {
-                    _logger.LogWarning("❌ Designation not found for Id: {Id}", id);
+                    _logger.LogWarning("❌ Designation not found for Id: {Id}", dto.Id);
                     return false;
                 }
 
@@ -398,7 +393,7 @@ namespace axionpro.persistance.Repositories
                 if (dto.IsActive.HasValue)
                     existingEntity.IsActive = dto.IsActive.Value;
 
-                existingEntity.UpdatedById = employeeId;
+                existingEntity.UpdatedById = dto.Prop.UserEmployeeId;
                 existingEntity.UpdatedDateTime = DateTime.UtcNow;
 
                 // 🧩 4️⃣ Save Changes
@@ -406,7 +401,7 @@ namespace axionpro.persistance.Repositories
                 await context.SaveChangesAsync();
 
                 _logger.LogInformation("✅ Designation '{Name}' (Id: {Id}) updated successfully by EmployeeId: {EmployeeId}",
-                    existingEntity.DesignationName, existingEntity.Id, employeeId);
+                    existingEntity.DesignationName, existingEntity.Id, dto.Prop.UserEmployeeId);
 
                 return true;
             }

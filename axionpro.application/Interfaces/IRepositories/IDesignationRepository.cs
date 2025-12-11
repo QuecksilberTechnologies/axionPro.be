@@ -23,9 +23,9 @@ namespace axionpro.application.Interfaces.IRepositories
 
         Task<int> AutoCreateDesignationAsync(List<Designation> designations, int departmentId);       
         Task<PagedResponseDTO<GetDesignationResponseDTO>> CreateAsync(CreateDesignationRequestDTO dto);     
-        Task<bool> DeleteDesignationAsync(DeleteDesignationRequestDTO   designation, long EmployeeId,int id);       
+        Task<bool> DeleteDesignationAsync(DeleteDesignationRequestDTO   designation);       
         Task<PagedResponseDTO<GetDesignationResponseDTO>> GetAsync(GetDesignationRequestDTO dTO);    
-        Task<bool> UpdateDesignationAsync(UpdateDesignationRequestDTO designation, long EmployeeId,int id); 
+        Task<bool> UpdateDesignationAsync(UpdateDesignationRequestDTO designation); 
         Task<bool> CheckDuplicateValueAsync(long destrictedTenantId, string value);
         Task<GetSingleDesignationResponseDTO?> GetByIdAsync(GetSingleDesignationRequestDTO dto);
 

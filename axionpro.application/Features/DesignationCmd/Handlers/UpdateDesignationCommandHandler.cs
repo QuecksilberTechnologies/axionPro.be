@@ -7,6 +7,7 @@ using axionpro.application.DTOs.Designation;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
+using axionpro.application.Interfaces.IRequestValidation;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using MediatR;
@@ -43,6 +44,7 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
         private readonly IConfiguration _config;
         private readonly IEncryptionService _encryptionService;
         private readonly IIdEncoderService _idEncoderService;
+        private readonly ICommonRequestService _commonRequestService;
 
         public UpdateDesignationCommandHandler(
             IMapper mapper,
@@ -52,7 +54,7 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,
-            IEncryptionService encryptionService, IIdEncoderService idEncoderService)
+            IEncryptionService encryptionService, IIdEncoderService idEncoderService, ICommonRequestService commonRequestService)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
@@ -63,85 +65,40 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
             _config = config;
             _encryptionService = encryptionService;
             _idEncoderService = idEncoderService;
+            _commonRequestService = commonRequestService;
         }
 
         public async Task<ApiResponse<bool>> Handle(UpdateDesignationCommand request, CancellationToken cancellationToken)
         {
             try
             {
-                // 🧩 STEP 1: Validate JWT Token
-                var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
-                    .ToString()?.Replace("Bearer ", "");
+                //  COMMON VALIDATION (Mandatory)
+                var validation = await _commonRequestService.ValidateRequestAsync(request.DTO.UserEmployeeId);
 
-                if (string.IsNullOrEmpty(bearerToken))
-                    return ApiResponse<bool>.Fail("Unauthorized: Token not found.");
+                if (!validation.Success)
+                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
 
-                var secretKey = TokenKeyHelper.GetJwtSecret(_config);
-                var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
-
-                if (tokenClaims == null || tokenClaims.IsExpired)
-                    return ApiResponse<bool>.Fail("Invalid or expired token.");
-
-                // 🧩 STEP 2: Validate Active User
-                long loggedInEmpId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
-                if (loggedInEmpId < 1)
-                {
-                    _logger.LogWarning("❌ Invalid or inactive user. LoginId: {LoginId}", tokenClaims.UserId);
-                    return ApiResponse<bool>.Fail("Unauthorized or inactive user.");
-                }
-
-                // 🧩 STEP 3: Decrypt Employee and Tenant
-                string tenantKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
-
-                if (string.IsNullOrEmpty(request.DTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
-                {
-                    _logger.LogWarning("❌ Missing tenantKey or UserEmployeeId.");
-                    return ApiResponse<bool>.Fail("User invalid.");
-                }
-
-                string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
-                string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
-                long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
-                long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
-                string Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
-                int id =  SafeParser.TryParseInt(Id);               
-                if(id<=0)
-                {
-                    _logger.LogWarning("❌  Id not correct.");
-                    return ApiResponse<bool>.Fail("Tenant or employee information missing.");
-                }
-                // 🧩 STEP 4: Validate all employee references
+                // Assign decoded values coming from CommonRequestService
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
 
 
-                if (decryptedEmployeeId <= 0 || decryptedEmployeeId <= 0)
-                {
-                    _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
-                    return ApiResponse<bool>.Fail("Tenant or employee information missing.");
-                }
+                // ✅ Create  using repository
+                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
 
-                if (!(decryptedEmployeeId == loggedInEmpId))
-                {
-                    _logger.LogWarning(
-                        "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
-                         decryptedEmployeeId, loggedInEmpId
-                    );
 
-                    return ApiResponse<bool>.Fail("Unauthorized: Employee mismatch.");
-                }
-                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
                 if (!permissions.Contains("AddBankInfo"))
                 {
-                    await _unitOfWork.RollbackTransactionAsync();
+                    // await _unitOfWork.RollbackTransactionAsync();
                     //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
                 }
-
                 // 🧩 STEP 5: Validate name and existence
                 string? designationName = request.DTO.DesignationName?.Trim();
                 if (string.IsNullOrWhiteSpace(designationName))
                     return ApiResponse<bool>.Fail("Designation name should not be empty.");
  
                 // 🧩 STEP 6: Update in repository
-                bool isUpdated = await _unitOfWork.DesignationRepository.UpdateDesignationAsync(request.DTO, decryptedEmployeeId,id);
+                bool isUpdated = await _unitOfWork.DesignationRepository.UpdateDesignationAsync(request.DTO);
 
                 if (!isUpdated)
                 {
