@@ -28,7 +28,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
       
         public DateTime? DateOfBirth { get; set; }
          
-        public string? GenderId { get; set; }     
+        public int? GenderId { get; set; }     
 
         [MaxLength(300)]
         public string? Remark { get; set; }
