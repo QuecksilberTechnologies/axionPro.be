@@ -101,8 +101,8 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                 if (request.DTO.Prop.TenantId <= 0 || request.DTO.Prop.UserEmployeeId <= 0)
                     return ApiResponse<bool>.Fail("Invalid decoded identity.");
 
-                request.DTO.Prop.RowId_long  = SafeParser.TryParseLong(request.DTO.Id);
-                if (request.DTO.Prop.RowId_long <= 0)
+                request.DTO.Prop.RowId  = SafeParser.TryParseLong(request.DTO.Id);
+                if (request.DTO.Prop.RowId <= 0)
                     return ApiResponse<bool>.Fail("Invalid record reference.");
 
 
@@ -113,7 +113,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 
 
                 // ------------------------ FETCH EXISTING RECORD ------------------------
-                var existing = await _unitOfWork.EmployeeEducationRepository.GetSingleRecordAsync(request.DTO.Prop.RowId_long, true);
+                var existing = await _unitOfWork.EmployeeEducationRepository.GetSingleRecordAsync(request.DTO.Prop.RowId, true);
 
                 if (existing == null)
                     return ApiResponse<bool>.UpdatedFail("Education record not found.");

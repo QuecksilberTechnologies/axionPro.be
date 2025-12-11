@@ -1,4 +1,5 @@
 ﻿
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Pagination;
 using System;
 using System.Collections.Generic;
@@ -35,6 +36,7 @@ namespace axionpro.application.DTOS.Employee.Education
         public bool? IsEditAllowed { get; set; } 
 
         public bool? IsActive { get; set; }
+        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
     }
 
 

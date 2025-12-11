@@ -4,6 +4,7 @@ using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.BaseEmployee;
  
 using axionpro.application.Interfaces;
@@ -71,6 +72,9 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
                   .ToString()?.Replace("Bearer ", "");
 
+                request.DTO.Prop ??= new ExtraPropRequestDTO();
+
+
                 if (string.IsNullOrEmpty(bearerToken))
                     return ApiResponse<List<GetEmployeeImageReponseDTO>>.Fail("Unauthorized: Token not found.");
 
@@ -108,13 +112,11 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // Decrypt / convert values
                 string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
                 string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
-                request.DTO._UserEmployeeId =  _idEncoderService.DecodeId(UserEmpId, finalKey);
-                long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
-                request.DTO.Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
-                request.DTO.Id_long = _idEncoderService.DecodeId(request.DTO.Id, finalKey);
-
-                string EncodedEmployeeId = EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId);
-                request.DTO._EmployeeId = _idEncoderService.DecodeId(EncodedEmployeeId, finalKey);
+                request.DTO.Prop.UserEmployeeId =  _idEncoderService.DecodeId(UserEmpId, finalKey);
+                request.DTO.Prop.TenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
+                string _Id= EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId);
+                request.DTO.Prop.EmployeeId = _idEncoderService.DecodeId(_Id, finalKey);
+                
                 
                 request.DTO.SortOrder = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortOrder);
                 request.DTO.SortBy = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortBy);
@@ -122,17 +124,17 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // 🧩 STEP 4: Validate all employee references
 
 
-                if (decryptedTenantId <= 0 || request.DTO._UserEmployeeId <= 0)
+                if (request.DTO.Prop.TenantId <= 0 || request.DTO.Prop.UserEmployeeId <= 0)
                 {
                     _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
                     return ApiResponse<List<GetEmployeeImageReponseDTO>>.Fail("Tenant or employee information missing.");
                 }
 
-                if (!(request.DTO._UserEmployeeId == loggedInEmpId))
+                if (!(request.DTO.Prop.TenantId == loggedInEmpId))
                 {
                     _logger.LogWarning(
                         "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
-                         request.DTO._UserEmployeeId, loggedInEmpId
+                         request.DTO.Prop.TenantId, loggedInEmpId
                     );
                 }
                 var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
@@ -142,11 +144,11 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
                 }
                 // 🧩 STEP 10: Fetch Data from Repository
-                var entityPaged = await _unitOfWork.Employees.GetImage(request.DTO, decryptedTenantId);
+                var entityPaged = await _unitOfWork.Employees.GetImage(request.DTO);
 
                 if (entityPaged == null || !entityPaged.Items.Any())
                 {
-                    _logger.LogInformation("No images found for EmployeeId: {EmpId}", request.DTO._UserEmployeeId);
+                    _logger.LogInformation("No images found for EmployeeId: {EmpId}", request.DTO.Prop.EmployeeId);
                     return ApiResponse<List<GetEmployeeImageReponseDTO>>.Fail("No images found for the employee.");
                 }
 

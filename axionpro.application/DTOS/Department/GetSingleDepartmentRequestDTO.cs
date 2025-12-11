@@ -8,7 +8,7 @@ namespace axionpro.application.DTOS.Department
 {
     public class GetSingleDepartmentRequestDTO
     {
-        public required string UsertId { get; set; }
+        
         public required int Id { get; set; } 
      
     }

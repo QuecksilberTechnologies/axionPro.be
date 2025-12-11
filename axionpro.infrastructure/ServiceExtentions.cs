@@ -7,10 +7,12 @@ using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.IQRService;
 using axionpro.application.Interfaces.IRepositories;
+using axionpro.application.Interfaces.IRequestValidation;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.domain.Entity;
 using axionpro.infrastructure.BackgroundJob;
 using axionpro.infrastructure.CacheMemory;
+using axionpro.infrastructure.CommonRequest;
 using axionpro.infrastructure.EncryptionService;
 using axionpro.infrastructure.FileStoringService;
 using axionpro.infrastructure.Logging;
@@ -44,7 +46,8 @@ namespace axionpro.infrastructure
             services.AddScoped<IFileStorageService, FileStorageService>();
             services.AddScoped<IPasswordService, PasswordService>();
             services.AddScoped<ITokenService, TokenService>();
-            
+            services.AddScoped<ICommonRequestService, CommonRequestService>();
+
 
             // ✅ Add missing repository registration
             services.AddScoped<IPermissionRepository, PermissionRepository>();

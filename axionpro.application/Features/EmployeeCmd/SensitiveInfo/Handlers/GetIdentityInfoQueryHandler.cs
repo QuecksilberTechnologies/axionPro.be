@@ -5,6 +5,7 @@ using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.DTOs.Department;
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.DTOS.Employee.Sensitive;
@@ -78,6 +79,8 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
                 // 🧩 STEP 1: Validate JWT Token
                 var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
                     .ToString()?.Replace("Bearer ", "");
+                request.DTO.Prop ??= new ExtraPropRequestDTO();
+
 
                 if (string.IsNullOrEmpty(bearerToken))
                     return ApiResponse<List<GetIdentityResponseDTO>>.Fail("Unauthorized: Token not found.");
@@ -109,32 +112,27 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
                 string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
                 //UserEmployeeId
                 string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
-                long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
+                request.DTO.Prop.UserEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
                 //Token TenantId
                 string tokenTenant = EncryptionSanitizer.CleanEncodedInput(tokenClaims.TenantId);
-                long decryptedTenantId = _idEncoderService.DecodeId(tokenTenant, finalKey);
+                request.DTO.Prop.TenantId = _idEncoderService.DecodeId(tokenTenant, finalKey);
                 //Id              
                 // Actual EmployeeId
                 string actualEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId);
-                long decryptedActualEmployeeId = _idEncoderService.DecodeId(actualEmpId, finalKey);
-                request.DTO.Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
-                long id = _idEncoderService.DecodeId(request.DTO.Id, finalKey);
-                int Id = SafeParser.TryParseInt(id);
+                request.DTO.Prop.EmployeeId = _idEncoderService.DecodeId(actualEmpId, finalKey);
+               // 🧩 STEP 4: Validate all employee references
 
-                // 🧩 STEP 4: Validate all employee references
-
-
-                if (decryptedTenantId <= 0 || decryptedEmployeeId <= 0)
+                if (request.DTO.Prop.TenantId <= 0 || request.DTO.Prop.EmployeeId <= 0)
                 {
                     _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
                     return ApiResponse<List<GetIdentityResponseDTO>>.Fail("Tenant or employee information missing.");
                 }
 
-                if (!(decryptedEmployeeId == loggedInEmpId))
+                if (!(request.DTO.Prop.EmployeeId == loggedInEmpId))
                 {
                     _logger.LogWarning(
                         "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
-                         decryptedEmployeeId, loggedInEmpId
+                         request.DTO.Prop.EmployeeId, loggedInEmpId
                     );
 
                     return ApiResponse<List<GetIdentityResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
@@ -154,7 +152,7 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
 
                 // 4️⃣ Fetch Data from Repository
                 // 4️⃣ Fetch from repository
-                var entity = await _unitOfWork.EmployeeIdentityRepository.GetInfo(request.DTO, decryptedActualEmployeeId, Id);
+                var entity = await _unitOfWork.EmployeeIdentityRepository.GetInfo(request.DTO);
 
                 if (entity == null || !entity.Items.Any())
                 {

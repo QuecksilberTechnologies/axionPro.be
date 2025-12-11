@@ -14,10 +14,11 @@ namespace axionpro.application.DTOS.Pagination
         public string? SortBy { get; set; }
         public string? SortOrder { get; set; } = "desc";
         public string? UserEmployeeId { get; set; } 
-        public long _UserEmployeeId { get; set; }       
-        public string Id { get; set; } = string.Empty;
-        public long Id_long { get; set; }
-        public int Id_int { get; set; }
+ 
+        //public long _UserEmployeeId { get; set; }       
+         //  public string Id { get; set; } = string.Empty;
+        //public long Id_long { get; set; }
+        //public int Id_int { get; set; }
 
     }
 

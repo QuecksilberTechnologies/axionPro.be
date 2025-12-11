@@ -1,4 +1,5 @@
-﻿using axionpro.application.DTOS.Pagination;
+﻿using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Pagination;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,9 +10,11 @@ namespace axionpro.application.DTOs.Role
 {
     public class GetRoleRequestDTO:BaseRequest
     {      
-       public string? RoleType { get; set; }
+        public int Id { get; set; }
+        public int RoleType { get; set; }
         public bool IsActive{ get; set; } = true;  
         public string? RoleName { get; set; }
+        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
 
     }
 }

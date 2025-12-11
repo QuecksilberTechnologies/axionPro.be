@@ -88,8 +88,8 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
                 long tenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
 
                 request.DTO.Prop.UserEmployeeId = _idEncoderService.DecodeId(request.DTO.UserEmployeeId, finalKey);
-                request.DTO.Prop.RowId_long = SafeParser.TryParseLong(request.DTO.Id);
-                 if(request.DTO.Prop.RowId_long <= 0)
+                request.DTO.Prop.RowId = SafeParser.TryParseLong(request.DTO.Id);
+                 if(request.DTO.Prop.RowId <= 0)
                     return ApiResponse<bool>.Fail("Invalid contact identity.");
                 // ---------- AUTHORIZATION CHECK ----------
                 if (request.DTO.Prop.UserEmployeeId != loggedInEmpId)
@@ -100,7 +100,7 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
 
 
                 // ---------- FETCH Existing Record ----------
-                var existing = await _unitOfWork.EmployeeContactRepository.GetSingleRecordAsync(request.DTO.Prop.RowId_long, true);
+                var existing = await _unitOfWork.EmployeeContactRepository.GetSingleRecordAsync(request.DTO.Prop.RowId, true);
 
                 if (existing == null)
                     return ApiResponse<bool>.Fail("Employee contact record not found.");

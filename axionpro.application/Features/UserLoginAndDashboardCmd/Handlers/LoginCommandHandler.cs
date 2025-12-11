@@ -206,8 +206,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                         userRoleDTOs.Remove(primaryRole); // Remove primary from list
 
                     // 🎯 Extract secondary role IDs
-                    List<int> secondaryRoleIds = userRoleDTOs?.Where(ur => !string.IsNullOrWhiteSpace(ur.RoleId) && int.TryParse(ur.RoleId, out _)).Select(ur => int.Parse(ur.RoleId))
-                           .Distinct().ToList() ?? new List<int>();
+                    List<int> secondaryRoleIds = userRoleDTOs?.Where(ur => ur.RoleId > 0).Select(ur => ur.RoleId).Distinct().ToList()?? new List<int>();
 
 
                     string secondaryRolesCsv = secondaryRoleIds.Any()
@@ -321,35 +320,39 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 string finalKey = EncryptionSanitizer.SuperSanitize(tenantEncryptionKey.EncryptionKey);
                 string encriptedEmployeeId = _idEncoderService.EncodeId(tempEmployeeId, finalKey);
                 string encriptedTenantId = _idEncoderService.EncodeId(tempTenantId, finalKey);
-                // ✅ Decrypt same encrypted string
-                            
-               
-              
-               
+                // ✅ Decrypt same encrypted string             
+          
+                string? ProfileImagePath = $"{_configuration["FileSettings:BaseUrl"] ?? string.Empty}{await _unitOfWork.Employees.ProfileImage(empId) ?? null}";
+
                 //string Decrut = (_encryptionService.Decrypt(tempEmployeeId.ToString(), tenantEncryptionKey.EncryptionKey));
 
                 GetEmployeeLoginInfoResponseDTO? employeeInfo = _mapper.Map<GetEmployeeLoginInfoResponseDTO>(empMinimalResponse);
                 employeeInfo.IsPasswordChangeRequired = IsPasswordChange;
                 employeeInfo.UserPrimaryRole = primaryRole;
-                employeeInfo.RoleTypeId = roleInfo.Role.RoleType.ToString();
+                employeeInfo.RoleTypeId = roleInfo.Role.RoleType;
                 employeeInfo.RoleTypeName = roleInfo.Role.RoleName;
                 employeeInfo.EmployeeId = encriptedEmployeeId.Trim();
                 employeeInfo.UserSecondryRoles = userRoleDTOs;
-
+                employeeInfo.ProfileImageLink = ProfileImagePath;
                 var tenant = await _unitOfWork.TenantRepository.GetByIdAsync(dto.TenantId);
-
                 GetRoleRequestDTO getRoleRequestDTO = new GetRoleRequestDTO
                 {
-                    Id = (employeeInfo.UserPrimaryRole?.RoleId)?.ToString() ?? "0"
+                    Id = employeeInfo.UserPrimaryRole?.RoleId ?? 0,
+                    RoleType = roleInfo.Role.RoleType,
+                    IsActive = true,
+
+                    Prop = new ()
+                    {
+                        TenantId = dto.TenantId
+                    }
+
                 };
-
-
-                int id = 0 ;
+                 
                 // ✅ Get role list (filtered by roleId)
-                var roleTypeList = await _unitOfWork.RoleRepository.GetAsync(getRoleRequestDTO, dto.TenantId,  id);
+                var roleTypeList = await _unitOfWork.RoleRepository.GetAsync(getRoleRequestDTO);
 
                 // ✅ Select specific role
-                var roleType = roleTypeList.Items.FirstOrDefault(r => r.Id.Trim() == getRoleRequestDTO.Id.Trim() && r.IsActive == true);
+                var roleType = roleTypeList.Items.FirstOrDefault(r => r.Id == employeeInfo.UserPrimaryRole.RoleId && r.IsActive == true);
                  
                 // ✅ Get tenant info (await lagana mat bhoolna)
 
@@ -365,9 +368,9 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                     };
                 }
 
-             
 
-           
+
+
                 // ✅ Step 4: Prepare employee info 
                 employeeInfo.TenantName = tenant?.CompanyName ?? string.Empty;
 
@@ -380,7 +383,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                     UserId = request.RequestLoginDTO.LoginId,
                     EmployeeId = encriptedEmployeeId.Trim().ToString(), // long
                     RoleId = employeeInfo.UserPrimaryRole.RoleId.ToString(), // long
-                    RoleTypeId = employeeInfo.RoleTypeId ?? "0",
+                    RoleTypeId = employeeInfo.RoleTypeId.ToString() ?? "0",
                     RoleTypeName = employeeInfo.RoleTypeName ?? "",
                     EmployeeTypeId =  employeeInfo.EmployeeTypeId.ToString()??"0",
                     GenderId = empMinimalResponse.GenderId.ToString(),
@@ -395,8 +398,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                // 🔐 Step 3: Generate tokens
                  var token = await _tokenService.GenerateToken(getTokenInfoDTO);
                  var refreshToken = await _tokenService.GenerateRefreshToken();
-
-                await _refreshTokenRepository.SaveOrUpdateRefreshToken(
+                 await _refreshTokenRepository.SaveOrUpdateRefreshToken(
                     loginRequest.LoginId.ToString(),
                     token,
                     ConstantValues.ExpireTokenDate,

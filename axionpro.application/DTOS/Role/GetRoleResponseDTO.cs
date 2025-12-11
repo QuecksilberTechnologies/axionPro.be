@@ -9,9 +9,9 @@ namespace axionpro.application.DTOs.Role
 {
     public class GetRoleResponseDTO 
     {
-         public string Id { get; set; }
+         public int Id { get; set; }
         public string RoleName { get; set; } = string.Empty; // Default value        
-        public string RoleType { get; set; }          
+        public int RoleType { get; set; }          
         public string? RoleTypeName { get; set; }          
         public bool IsActive { get; set; } = false; // Default false
         public string? Remark { get; set; } = string.Empty; // Default false

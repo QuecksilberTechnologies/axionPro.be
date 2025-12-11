@@ -1,4 +1,6 @@
-﻿using axionpro.application.DTOS.Pagination;
+﻿using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Pagination;
+using MediatR;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -32,13 +34,13 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         public DateTime? DateOfBirth { get; set; }
 
         [Required]
-        public string DesignationId { get; set; }
+        public int DesignationId { get; set; }
 
         [Required]
-        public string DepartmentId { get; set; }
+        public int DepartmentId { get; set; }
 
         [Required]
-        public string? EmployeeTypeId { get; set; }
+        public int EmployeeTypeId { get; set; }
 
         [Required]
         public string? GenderId { get; set; }
@@ -59,13 +61,14 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
 
         public DateTime? DateOfOnBoarding { get; set; }
  
-        public string? RoleId { get; set; }
+        public int RoleId { get; set; }
 
         
-        public string? ReferalId { get; set; }    
+        public string? ReferalId { get; set; }
 
-  
-       
+        public ExtraPropRequestDTO Prop = new ExtraPropRequestDTO();
+
+
     }
 
 

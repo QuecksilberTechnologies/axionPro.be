@@ -38,7 +38,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
       
         public string? Description { get; set; }
 
-        public ExtraPropRequestDTO? Prop { get; set; }
+        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
     }
 
 }

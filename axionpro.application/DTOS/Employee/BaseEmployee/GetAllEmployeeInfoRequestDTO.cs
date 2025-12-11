@@ -1,4 +1,5 @@
 ﻿using axionpro.application.Common.Helpers.Converters;
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Pagination;
 using System;
 using System.Collections.Generic;
@@ -18,23 +19,19 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         /// <summary> TenantId Required</summary>       
 
   
+        public string? EmployeeId { get; set; }
         public string? EmployementCode { get; set; }
         public string? LastName { get; set; } 
         public string? FirstName { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public DateTime? DateOfOnBoarding { get; set; }
-        public string? GenderId { get; set; } // user se yeh string mei aayegi mujhe isko int mei change karna hai or aage forward karna hai parameter mei 
-        public bool? IsMarried { get; set; }
-        public string? DepartmentId { get; set; }
-        public string? DesignationId { get; set; }
-        public string? EmployeeTypeId { get; set; }
-        public int? _EmployeeTypeId { get; set; }
-        public int? _GenderId { get; set; }
-        public int  _DesignationId { get; set; }
-        public int? _DepartmentId { get; set; }
+        public bool? IsMarried { get; set; }   
+        public int? EmployeeTypeId { get; set; }       
+        public int? GenderId { get; set; }
+        public int  DesignationId { get; set; }
+        public int? DepartmentId { get; set; }
         public string? EmailId { get; set; }
-
-
+        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
 
 
 

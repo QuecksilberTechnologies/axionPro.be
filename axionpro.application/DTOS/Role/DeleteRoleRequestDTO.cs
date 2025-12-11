@@ -1,4 +1,5 @@
-﻿using axionpro.application.DTOS.Pagination;
+﻿using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Pagination;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,9 +12,10 @@ namespace axionpro.application.DTOs.Role
     {
 
 
-        public required string Id { get; set; } // यूज़र ID जिसने ऐड किया
+        public required int Id { get; set; } // यूज़र ID जिसने ऐड किया
 
         public required string UserEmployeeId { get; set; }
+        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
 
 
     }

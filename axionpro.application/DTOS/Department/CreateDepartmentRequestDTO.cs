@@ -1,4 +1,5 @@
-﻿using axionpro.application.DTOS.Pagination;
+﻿using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Pagination;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +17,8 @@ namespace axionpro.application.DTOs.Department
         public string? Description { get; set; }          
         public bool IsActive { get; set; } = true;  
         public string? Remark { get; set; }  
+
+        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
 
   
     }

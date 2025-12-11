@@ -4,7 +4,8 @@ using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
-using axionpro.application.DTOs.Department; 
+using axionpro.application.DTOs.Department;
+using axionpro.application.DTOS.Common;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
@@ -74,6 +75,11 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                 // 🧩 STEP 1: Validate JWT Token
                 var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
                     .ToString()?.Replace("Bearer ", "");
+              
+                if (request.DTO.Prop == null)
+                {
+                    request.DTO.Prop = new ExtraPropRequestDTO();
+                }
 
                 if (string.IsNullOrEmpty(bearerToken))
                     return ApiResponse<List<GetDepartmentResponseDTO>>.Fail("Unauthorized: Token not found.");
@@ -103,26 +109,25 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
 
                 string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
                 string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
-                long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
-                long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
-                request.DTO.Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
-                int id = SafeParser.TryParseInt(request.DTO.Id);           
+                request.DTO.Prop.UserEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
+                request.DTO.Prop.TenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);                        
                 request.DTO.SortOrder = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortOrder);
                 request.DTO.SortBy = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortBy);
                 // 🧩 STEP 4: Validate all employee references
 
+               
 
-                if (decryptedTenantId <= 0 || decryptedEmployeeId <= 0)
+                if (request.DTO.Prop.UserEmployeeId <= 0 || request.DTO.Prop.TenantId <= 0)
                 {
                     _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
                     return ApiResponse<List<GetDepartmentResponseDTO>>.Fail("Tenant or employee information missing.");
                 }
 
-                if (!(decryptedEmployeeId == loggedInEmpId))
+                if (!(request.DTO.Prop.UserEmployeeId == loggedInEmpId))
                 {
                     _logger.LogWarning(
                         "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
-                         decryptedEmployeeId, loggedInEmpId
+                         request.DTO.Prop.UserEmployeeId, loggedInEmpId
                     );
 
                     return ApiResponse<List<GetDepartmentResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
@@ -136,7 +141,7 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                     //return ApiResponse<List<GetDepartmentResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
                 }
                 
-                var responseDTO = await _unitOfWork.DepartmentRepository.GetAsync(request.DTO,  decryptedTenantId, id);
+                var responseDTO = await _unitOfWork.DepartmentRepository.GetAsync(request.DTO);
 
                 if (responseDTO.Items == null || !responseDTO.Items.Any())
                 {

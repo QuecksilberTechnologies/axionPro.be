@@ -29,11 +29,11 @@ public partial class Employee
 
     public DateTime? DateOfExit { get; set; }
 
-    public int? DesignationId { get; set; }
+    public int DesignationId { get; set; }
 
-    public int? EmployeeTypeId { get; set; }
+    public int EmployeeTypeId { get; set; }
 
-    public int? DepartmentId { get; set; }
+    public int DepartmentId { get; set; }
 
     public string OfficialEmail { get; set; }= string.Empty;
 

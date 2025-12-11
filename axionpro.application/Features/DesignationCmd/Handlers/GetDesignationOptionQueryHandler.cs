@@ -11,6 +11,7 @@ using axionpro.application.DTOS.Role;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
+using axionpro.application.Interfaces.IRequestValidation;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using MediatR;
@@ -46,7 +47,8 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
         private readonly IConfiguration _config;
         private readonly IEncryptionService _encryptionService;
         private readonly IIdEncoderService _idEncoderService    ;
-      
+        private readonly ICommonRequestService _commonRequestService;
+
 
 
         public GetDesignationOptionQueryHandler(
@@ -57,7 +59,7 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,
-           IEncryptionService encryptionService, IIdEncoderService idEncoderService)
+           IEncryptionService encryptionService, IIdEncoderService idEncoderService, ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -68,46 +70,29 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
             _config = config;
             _encryptionService = encryptionService;
             _idEncoderService = idEncoderService;
+            _commonRequestService = commonRequestService;
         }
 
         public async Task<ApiResponse<List<GetDesignationOptionResponseDTO>>> Handle(GetDesignationOptionQuery request, CancellationToken cancellationToken)
         {
             try
             {
-                var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
-                    .ToString()?.Replace("Bearer ", "");
+                var validation = await _commonRequestService.ValidateRequestAsync(request.OptionDTO.UserEmployeeId);
 
-                if (string.IsNullOrEmpty(bearerToken))
-                    return ApiResponse<List<GetDesignationOptionResponseDTO>>.Fail("Unauthorized: Token not found.");
+                if (!validation.Success)
+                    return ApiResponse<List<GetDesignationOptionResponseDTO>>.Fail(validation.ErrorMessage);
 
-                var secretKey = TokenKeyHelper.GetJwtSecret(_config);
-                var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
+                // Assign decoded values coming from CommonRequestService
+                request.OptionDTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.OptionDTO.Prop.TenantId = validation.TenantId;
+ 
+ 
 
-                if (tokenClaims == null || tokenClaims.IsExpired)
-                    return ApiResponse<List<GetDesignationOptionResponseDTO>>.Fail("Invalid or expired token.");
-
-
-                string tenantKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
-
-                if (string.IsNullOrEmpty(request.OptionDTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
-                {
-                    _logger.LogWarning("❌ Missing tenantKey or UserEmployeeId.");
-                    return ApiResponse<List<GetDesignationOptionResponseDTO>>.Fail("User invalid.");
-                }
-
-                string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
-                string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.OptionDTO.UserEmployeeId);
-                long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
-                long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
-
-                if (decryptedTenantId <= 0)
-                    return ApiResponse<List<GetDesignationOptionResponseDTO>>.Fail("Unauthorized: Tenant not found.");
-
-                var departments = await _unitOfWork.DesignationRepository.GetOptionAsync(request.OptionDTO, decryptedTenantId);
+                var departments = await _unitOfWork.DesignationRepository.GetOptionAsync(request.OptionDTO);
 
                 if (departments.Data == null || !departments.Data.Any())
                 {
-                    _logger.LogWarning("No departments found for tenant ID: {TenantId}", decryptedTenantId);
+                    _logger.LogWarning("No departments found for tenant ID: {TenantId}", request.OptionDTO.Prop.TenantId);
 
                     return new ApiResponse<List<GetDesignationOptionResponseDTO>>
                     {
@@ -118,7 +103,7 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                 }
 
                 _logger.LogInformation("Successfully retrieved {Count} departments for tenant {TenantId}.",
-                    departments.Data.Count, decryptedTenantId);
+                    departments.Data.Count, request.OptionDTO.Prop.TenantId);
 
                 return new ApiResponse<List<GetDesignationOptionResponseDTO>>
                 {

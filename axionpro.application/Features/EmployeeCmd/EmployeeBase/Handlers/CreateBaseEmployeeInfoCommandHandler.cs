@@ -7,6 +7,7 @@ using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.Department;
 using axionpro.application.DTOs.Employee;
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces;
@@ -76,6 +77,10 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 
             try
             {
+                if (request.DTO.Prop == null)
+                {
+                    request.DTO.Prop = new ExtraPropRequestDTO();
+                }
                 // 🧩 STEP 1: Validate JWT Token
                 var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
                     .ToString()?.Replace("Bearer ", "");
@@ -108,8 +113,8 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 
                 string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
                 string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
-                long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);               
-                long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
+                request.DTO.Prop.UserEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
+                request.DTO.Prop.TenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
                 int designationId = SafeParser.TryParseInt(request.DTO.DesignationId);
                 int departmentId = SafeParser.TryParseInt(request.DTO.DepartmentId);
                 int genderId = SafeParser.TryParseInt(request.DTO.GenderId);                
@@ -137,17 +142,17 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // 🧩 STEP 4: Validate all employee references
 
 
-                if (decryptedTenantId <= 0 || decryptedEmployeeId <= 0)
+                if (request.DTO.Prop.UserEmployeeId <= 0 || request.DTO.Prop.TenantId <= 0)
                 {
                     _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
                     return ApiResponse<List<GetBaseEmployeeResponseDTO>>.Fail("Tenant or employee information missing.");
                 }
 
-                if (!(decryptedEmployeeId == loggedInEmpId))
+                if (!(request.DTO.Prop.UserEmployeeId == loggedInEmpId))
                 {
                     _logger.LogWarning(
                         "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
-                         decryptedEmployeeId, loggedInEmpId
+                          request.DTO.Prop.UserEmployeeId, loggedInEmpId
                     );
 
                     return ApiResponse<List<GetBaseEmployeeResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
@@ -165,19 +170,19 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 var entity = _mapper.Map<Employee>(request.DTO);
                 // 🧩 STEP 5: Entity Mapping (join fields + base fields)
 
-                entity.AddedById = decryptedEmployeeId;
+                entity.AddedById = request.DTO.Prop.UserEmployeeId;
                 entity.AddedDateTime = DateTime.UtcNow;
                 entity.IsActive = true;
                 entity.IsInfoVerified = false;
                 entity.IsEditAllowed = true;
                 entity.InfoVerifiedById = null;
-                entity.TenantId = decryptedTenantId;
+                entity.TenantId = request.DTO.Prop.TenantId;
                 entity.DesignationId = designationId;
                 entity.DepartmentId = departmentId;
                 entity.ReferalId = refrenceId;
                 entity.EmployeeTypeId = employeeTypeId;
                 entity.GenderId = genderId;
-                entity.EmployementCode = $"{decryptedTenantId}/{datePart}/{timePart}-{randomSuffix}";
+                entity.EmployementCode = $"{request.DTO.Prop.TenantId}/{datePart}/{timePart}-{randomSuffix}";
               //   HttpRequestOptionsKey
 
                 // 4️⃣ Repository Operation

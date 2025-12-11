@@ -30,7 +30,7 @@ namespace axionpro.application.DTOS.Employee.Contact
         public string? Street { get; set; }
         public string? Address { get; set; }
        
-         public ExtraPropRequestDTO? Prop { get; set; }
+         public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
 
         // 🔹 Optional/Metadata
         public string? Remark { get; set; }

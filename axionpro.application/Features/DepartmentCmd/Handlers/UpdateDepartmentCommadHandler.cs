@@ -4,6 +4,7 @@ using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.DTOs.Department;
+using axionpro.application.DTOS.Common;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
@@ -73,6 +74,10 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                 var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
                     .ToString()?.Replace("Bearer ", "");
 
+                if (request.DTO.Prop == null)
+                {
+                    request.DTO.Prop = new ExtraPropRequestDTO();
+                }
                 if (string.IsNullOrEmpty(bearerToken))
                     return ApiResponse<bool>.Fail("Unauthorized: Token not found.");
 
@@ -99,28 +104,27 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
 
                 string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
                 string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
-                long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
-                long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
-                string Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
-
-                int id = SafeParser.TryParseInt(Id);
-                if (id <= 0)
+                request.DTO.Prop.UserEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
+                request.DTO.Prop.TenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
+                  
+                
+                if  (request.DTO.Id <= 0)
                 {
                     _logger.LogWarning("❌  Id not correct.");
                     return ApiResponse<bool>.Fail("Tenant or employee information missing.");
                 }
 
-                if (decryptedEmployeeId <= 0 || decryptedEmployeeId <= 0)
+                if (request.DTO.Prop.UserEmployeeId <= 0 || request.DTO.Prop.TenantId <= 0)
                 {
                     _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
                     return ApiResponse<bool>.Fail("Tenant or employee information missing.");
                 }
 
-                if (!(decryptedEmployeeId == loggedInEmpId))
+                if (!(request.DTO.Prop.UserEmployeeId == loggedInEmpId))
                 {
                     _logger.LogWarning(
                         "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
-                         decryptedEmployeeId, loggedInEmpId
+                         request.DTO.Prop.UserEmployeeId, loggedInEmpId
                     );
 
                     return ApiResponse<bool>.Fail("Unauthorized: Employee mismatch.");
@@ -138,7 +142,7 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                     return new ApiResponse<bool>
                     {
                         IsSucceeded = false,
-                        Message = "Designation name should not be empty or whitespace.",
+                        Message = "Department name should not be empty or whitespace.",
                         Data = false
                     };
                 }
@@ -154,11 +158,11 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                     };
 
                 }
-                var isUpdated = await _unitOfWork.DepartmentRepository.UpdateAsync(request.DTO, decryptedEmployeeId,id);
+                var isUpdated = await _unitOfWork.DepartmentRepository.UpdateAsync(request.DTO);
 
                 if (!isUpdated)
                 {
-                    _logger.LogWarning("Department update failed or no record found. DepartmentId: {DepartmentId}", request.DTO.Id, request.DTO.Id);
+                    _logger.LogWarning("Department update failed or no record found. DepartmentId: {DepartmentId}", request.DTO.Id);
 
                     return new ApiResponse<bool>
                     {

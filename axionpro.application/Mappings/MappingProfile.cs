@@ -315,13 +315,9 @@ namespace axionpro.application.Mappings
       ))
       .ForMember(dest => dest.Remark, opt => opt.MapFrom(src => src.Remark)) // ✅ Added
       .ReverseMap()
-      .ForMember(dest => dest.Id, opt => opt.MapFrom(src =>
-          string.IsNullOrEmpty(src.Id) ? 0 : Convert.ToInt32(src.Id)
-      ))
-      .ForMember(dest => dest.RoleType, opt => opt.MapFrom(src =>
-          string.IsNullOrEmpty(src.RoleType) ? 0 : Convert.ToInt32(src.RoleType)
-      ))
-      .ForMember(dest => dest.Remark, opt => opt.MapFrom(src => src.Remark)); // ✅ Added
+       .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+        .ForMember(dest => dest.RoleType, opt => opt.MapFrom(src => src.RoleType))
+       .ForMember(dest => dest.Remark, opt => opt.MapFrom(src => src.Remark)); // ✅ Added
 
 
 
@@ -466,33 +462,43 @@ namespace axionpro.application.Mappings
             #endregion
 
             #region 🔹 Base Employee Mappings
+
             CreateMap<Employee, CreateBaseEmployeeRequestDTO>().ReverseMap();
+
             CreateMap<Employee, GetBaseEmployeeResponseDTO>()
-         .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id != null ? src.Id.ToString() : string.Empty))
-         .ForMember(dest => dest.EmployementCode, opt => opt.MapFrom(src => src.EmployementCode))
-         .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.LastName))
-         .ForMember(dest => dest.MiddleName, opt => opt.MapFrom(src => src.MiddleName))
-         .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FirstName))
-         .ForMember(dest => dest.GenderId, opt => opt.MapFrom(src => src.GenderId.ToString()))
-         .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth))
-         .ForMember(dest => dest.DateOfOnBoarding, opt => opt.MapFrom(src => src.DateOfOnBoarding))
-         .ForMember(dest => dest.DateOfExit, opt => opt.MapFrom(src => src.DateOfExit))
-         .ForMember(dest => dest.DesignationId, opt => opt.MapFrom(src => src.DesignationId != null ? src.DesignationId.ToString() : null))
-         .ForMember(dest => dest.EmployeeTypeId, opt => opt.MapFrom(src => src.EmployeeTypeId != null ? src.EmployeeTypeId.ToString() : null))
-         .ForMember(dest => dest.DepartmentId, opt => opt.MapFrom(src => src.DepartmentId != null ? src.DepartmentId.ToString() : null))
-         .ForMember(dest => dest.OfficialEmail, opt => opt.MapFrom(src => src.OfficialEmail))
-         .ForMember(dest => dest.HasPermanent, opt => opt.MapFrom(src => src.HasPermanent))
-         .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
-         .ForMember(dest => dest.IsEditAllowed, opt => opt.MapFrom(src => src.IsEditAllowed))
-         .ForMember(dest => dest.IsInfoVerified, opt => opt.MapFrom(src => src.IsInfoVerified))         
-         .ReverseMap();
-            
-            
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id)) // already int -> no need tostring
+                .ForMember(dest => dest.EmployementCode, opt => opt.MapFrom(src => src.EmployementCode))
+                .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.LastName))
+                .ForMember(dest => dest.MiddleName, opt => opt.MapFrom(src => src.MiddleName))
+                .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FirstName))
+                .ForMember(dest => dest.GenderId, opt => opt.MapFrom(src => src.GenderId)) // int
+                .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth))
+                .ForMember(dest => dest.DateOfOnBoarding, opt => opt.MapFrom(src => src.DateOfOnBoarding))
+                .ForMember(dest => dest.DateOfExit, opt => opt.MapFrom(src => src.DateOfExit))
+                .ForMember(dest => dest.DesignationId, opt => opt.MapFrom(src => src.DesignationId))  // int now
+                .ForMember(dest => dest.EmployeeTypeId, opt => opt.MapFrom(src => src.EmployeeTypeId)) // int now
+                .ForMember(dest => dest.DepartmentId, opt => opt.MapFrom(src => src.DepartmentId)) // int now
+                .ForMember(dest => dest.OfficialEmail, opt => opt.MapFrom(src => src.OfficialEmail))
+                .ForMember(dest => dest.HasPermanent, opt => opt.MapFrom(src => src.HasPermanent))
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
+                .ForMember(dest => dest.IsEditAllowed, opt => opt.MapFrom(src => src.IsEditAllowed))
+                .ForMember(dest => dest.IsInfoVerified, opt => opt.MapFrom(src => src.IsInfoVerified))
+                .ReverseMap();
+
+            #endregion
+
+
+
+        
+         //.ForMember(dest => dest.DesignationId, opt => opt.MapFrom(src => src.DesignationId != null ? src.DesignationId.ToString() : null))
+         //.ForMember(dest => dest.EmployeeTypeId, opt => opt.MapFrom(src => src.EmployeeTypeId != null ? src.EmployeeTypeId.ToString() : null))
+         //.ForMember(dest => dest.DepartmentId, opt => opt.MapFrom(src => src.DepartmentId != null ? src.DepartmentId.ToString() : null))
+   
             
             CreateMap<GetMinimalEmployeeResponseDTO, CreateBaseEmployeeRequestDTO>().ReverseMap();
             CreateMap<GetMinimalEmployeeResponseDTO, GetBaseEmployeeResponseDTO>().ReverseMap();
             CreateMap<GetMinimalEmployeeResponseDTO, EmployeeInfoEditableFieldsDTO>().ReverseMap();
-            #endregion
+         
 
             #region Dependent
             CreateMap<CreateDependentRequestDTO, EmployeeDependent>()
@@ -569,23 +575,20 @@ namespace axionpro.application.Mappings
             #endregion
 
             #region 🔹 Login / Info Mappings
+
             CreateMap<GetEmployeeLoginInfoResponseDTO, LoginResponseDTO>()
                 .ForMember(dest => dest.EmployeeInfo, opt => opt.MapFrom(src => src));
-
             CreateMap<GetMinimalEmployeeResponseDTO, GetEmployeeLoginInfoResponseDTO>()
-     .ForMember(dest => dest.EmployeeId, opt => opt.MapFrom(src => src.Id.ToString()))
-     .ForMember(dest => dest.EmployeeFullName, opt => opt.MapFrom(src =>
-         $"{src.FirstName} {(string.IsNullOrWhiteSpace(src.MiddleName) ? "" : src.MiddleName + " ")}{src.LastName}".Trim()))
-     .ForMember(dest => dest.EmployeeTypeId, opt => opt.MapFrom(src =>
-         src.EmployeeTypeId.HasValue ? src.EmployeeTypeId.Value.ToString() : null))
-     .ForMember(dest => dest.DepartmentId, opt => opt.MapFrom(src =>
-         src.DepartmentId.HasValue ? src.DepartmentId.Value.ToString() : null))
-     .ForMember(dest => dest.DesignationId, opt => opt.MapFrom(src =>
-         src.DesignationId.HasValue ? src.DesignationId.Value.ToString() : null))
-     .ForMember(dest => dest.OfficialEmail, opt => opt.MapFrom(src => src.OfficialEmail ?? null));
+                .ForMember(dest => dest.EmployeeId, opt => opt.MapFrom(src => src.Id))  // now int
+                .ForMember(dest => dest.EmployeeFullName, opt => opt.MapFrom(src =>
+                    $"{src.FirstName} {(string.IsNullOrWhiteSpace(src.MiddleName) ? "" : src.MiddleName + " ")}{src.LastName}".Trim()))
+                .ForMember(dest => dest.EmployeeTypeId, opt => opt.MapFrom(src => src.EmployeeTypeId)) // now int?
+                .ForMember(dest => dest.DepartmentId, opt => opt.MapFrom(src => src.DepartmentId))
+                .ForMember(dest => dest.DesignationId, opt => opt.MapFrom(src => src.DesignationId))
+
+                .ForMember(dest => dest.OfficialEmail, opt => opt.MapFrom(src => src.OfficialEmail));
 
             #endregion
-
 
             // Agar reverse mapping chahiye toh, isse bhi add kar sakte hain
 

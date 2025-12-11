@@ -328,22 +328,22 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             return result;
         }
 
-        public static List<GetDepartmentResponseDTO> ToGetDepartmentResponseDTOs(List<GetDepartmentResponseDTO> entities, IIdEncoderService idEncoderService, string tenantKey)
-        {
-            if (entities == null || entities.Count == 0)
-                return new List<GetDepartmentResponseDTO>();
+        //public static List<GetDepartmentResponseDTO> ToGetDepartmentResponseDTOs(List<GetDepartmentResponseDTO> entities, IIdEncoderService idEncoderService, string tenantKey)
+        //{
+        //    if (entities == null || entities.Count == 0)
+        //        return new List<GetDepartmentResponseDTO>();
 
-            return entities.Select(e => new GetDepartmentResponseDTO
-            {
+        //    return entities.Select(e => new GetDepartmentResponseDTO
+        //    {
 
-                Id = idEncoderService.EncodeString(e.Id, tenantKey),
-                //AddedById = idEncoderService.EncodeId(SafeParser.TryParseLong(e.AddedById), tenantKey),
-                //UpdatedById = idEncoderService.EncodeId(SafeParser.TryParseLong(e.UpdatedById), tenantKey),
-                DepartmentName = e.DepartmentName ?? string.Empty,
-                Description = e.Description ?? string.Empty,
-                IsActive = e.IsActive
-            }).ToList();
-        }
+        //        Id =  e.,
+        //        //AddedById = idEncoderService.EncodeId(SafeParser.TryParseLong(e.AddedById), tenantKey),
+        //        //UpdatedById = idEncoderService.EncodeId(SafeParser.TryParseLong(e.UpdatedById), tenantKey),
+        //        DepartmentName = e.DepartmentName ?? string.Empty,
+        //        Description = e.Description ?? string.Empty,
+        //        IsActive = e.IsActive
+        //    }).ToList();
+        //}
 
         public static List<GetContactResponseDTO> ToGetContactResponseDTOs(PagedResponseDTO<GetContactResponseDTO> entities,
             IIdEncoderService encoderService,

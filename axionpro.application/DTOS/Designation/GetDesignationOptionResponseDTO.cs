@@ -8,8 +8,8 @@ namespace axionpro.application.DTOS.Designation
 {
     public class GetDesignationOptionResponseDTO
     {
-        public string? Id {  get; set; }
-        public string? DepartmentId { get; set; }        
+        public int Id {  get; set; }
+        public int DepartmentId { get; set; }        
         public string? DesignationName { get; set; }       
        
     }

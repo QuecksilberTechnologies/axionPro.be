@@ -76,6 +76,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
                     .ToString()?.Replace("Bearer ", "");
 
+
                 if (string.IsNullOrEmpty(bearerToken))
                     return ApiResponse<List<GetAllEmployeeInfoResponseDTO>>.Fail("Unauthorized: Token not found.");
 
@@ -113,40 +114,26 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // Decrypt / convert values
                 string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
                 string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
-                request.DTO._UserEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
-                long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
-               
-                request.DTO.EmployeeTypeId = EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeTypeId);
-                request.DTO._EmployeeTypeId =SafeParser.TryParseInt(request.DTO.EmployeeTypeId);
-
-                request.DTO.DepartmentId = EncryptionSanitizer.CleanEncodedInput(request.DTO.DepartmentId);
-                request.DTO._DepartmentId = SafeParser.TryParseInt(request.DTO.DepartmentId);
-
-                request.DTO.DesignationId = EncryptionSanitizer.CleanEncodedInput(request.DTO.DesignationId);
-                request.DTO._DesignationId = SafeParser.TryParseInt(request.DTO._DesignationId);
-
-                request.DTO.GenderId = EncryptionSanitizer.CleanEncodedInput(request.DTO.GenderId);
-                request.DTO._GenderId = SafeParser.TryParseInt(request.DTO.GenderId);
-
-                request.DTO.Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
-                request.DTO.Id_long = _idEncoderService.DecodeId(request.DTO.Id, finalKey);
+                request.DTO.Prop.UserEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
+                request.DTO.Prop.TenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
+                 request.DTO.Prop.EmployeeId = _idEncoderService.DecodeId(request.DTO.EmployeeId, finalKey);
                 request.DTO.SortOrder = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortOrder);
                 request.DTO.SortBy = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortBy);
 
                 // 🧩 STEP 4: Validate all employee references
 
 
-                if (decryptedTenantId <= 0 || request.DTO._UserEmployeeId <= 0)
+                if (request.DTO.Prop.TenantId <= 0 || request.DTO.Prop.UserEmployeeId <= 0)
                 {
                     _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
                     return ApiResponse<List<GetAllEmployeeInfoResponseDTO>>.Fail("Tenant or employee information missing.");
                 }
 
-                if (!(request.DTO._UserEmployeeId == loggedInEmpId))
+                if (!(request.DTO.Prop.UserEmployeeId == loggedInEmpId))
                 {
                     _logger.LogWarning(
                         "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
-                         request.DTO._UserEmployeeId, loggedInEmpId
+                         request.DTO.Prop.UserEmployeeId, loggedInEmpId
                     );
                 }
                 var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
@@ -157,10 +144,10 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 }
                 // 🧩 STEP 4: Call Repository to get data
                 // 🧩 STEP 4: Call Repository to get data
-                PagedResponseDTO <GetAllEmployeeInfoResponseDTO> responseDTO = await _unitOfWork.Employees.GetAllInfo(request.DTO, decryptedTenantId);
+                PagedResponseDTO <GetAllEmployeeInfoResponseDTO> responseDTO = await _unitOfWork.Employees.GetAllInfo(request.DTO);
                 if (responseDTO == null || !responseDTO.Items.Any())
                 {
-                    _logger.LogInformation("No Base Employee info found for EmployeeId: {EmpId}", request.DTO._UserEmployeeId );
+                    _logger.LogInformation("No Base Employee info found for EmployeeId: {EmpId}", request.DTO.Prop.UserEmployeeId );
                     return ApiResponse<List<GetAllEmployeeInfoResponseDTO>>.Fail("No Base Employee info found.");
                 }
 

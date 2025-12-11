@@ -24,7 +24,7 @@ using axionpro.application.DTOS.AssetDTO.category;
 namespace axionpro.persistance.Repositories
 {
     public class AssetCategoryRepository : IAssetCategoryRepository
-{
+    {
         private readonly WorkforceDbContext _context;
         private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
         private readonly IMapper _mapper;
@@ -126,99 +126,99 @@ namespace axionpro.persistance.Repositories
         /// </summary>
         /// <param name="Dto">AddCategoryRequestDTO containing TenantId, CategoryName, EmployeeId, etc.</param>
         /// <returns>List of GetCategoryResponseDTO after successful insertion.</returns>
-        public async Task<List<GetCategoryResponseDTO>> AddAsync(AddCategoryReqestDTO? Dto)
-        {
-            try
-            {
-                // ✅ 1️⃣ Basic validation
-                if (Dto == null)
-                {
-                    _logger.LogWarning("AddAsync called with null DTO.");
-                    throw new ArgumentNullException(nameof(Dto), "Request data cannot be null.");
-                }
+        //public async Task<List<GetCategoryResponseDTO>> AddAsync(AddCategoryReqestDTO? Dto)
+        //{
+        //    try
+        //    {
+        //        // ✅ 1️⃣ Basic validation
+        //        if (Dto == null)
+        //        {
+        //            _logger.LogWarning("AddAsync called with null DTO.");
+        //            throw new ArgumentNullException(nameof(Dto), "Request data cannot be null.");
+        //        }
 
-                if (Dto.TenantId <= 0)
-                {
-                    _logger.LogWarning("Invalid TenantId provided in AddAsync: {TenantId}", Dto.TenantId);
-                    throw new ArgumentException("TenantId must be greater than zero.", nameof(Dto.TenantId));
-                }
+        //        if (Dto.TenantId <= 0)
+        //        {
+        //            _logger.LogWarning("Invalid TenantId provided in AddAsync: {TenantId}", Dto.TenantId);
+        //            throw new ArgumentException("TenantId must be greater than zero.", nameof(Dto.TenantId));
+        //        }
 
-                if (string.IsNullOrWhiteSpace(Dto.CategoryName))
-                {
-                    _logger.LogWarning("CategoryName is missing in AddAsync request for TenantId: {TenantId}", Dto.TenantId);
-                    throw new ArgumentException("CategoryName cannot be null or empty.", nameof(Dto.CategoryName));
-                }
+        //        if (string.IsNullOrWhiteSpace(Dto.CategoryName))
+        //        {
+        //            _logger.LogWarning("CategoryName is missing in AddAsync request for TenantId: {TenantId}", Dto.TenantId);
+        //            throw new ArgumentException("CategoryName cannot be null or empty.", nameof(Dto.CategoryName));
+        //        }
 
-                await using var context = await _contextFactory.CreateDbContextAsync();
+        //        await using var context = await _contextFactory.CreateDbContextAsync();
 
-                _logger.LogInformation(
-                    "Attempting to insert new Asset Category for TenantId: {TenantId}, CategoryName: {CategoryName}",
-                    Dto.TenantId, Dto.CategoryName);
+        //        _logger.LogInformation(
+        //            "Attempting to insert new Asset Category for TenantId: {TenantId}, CategoryName: {CategoryName}",
+        //            Dto.TenantId, Dto.CategoryName);
 
-                // ✅ 2️⃣ Duplicate check
-                var existingCategory = await context.AssetCategories
-                    .FirstOrDefaultAsync(ac =>
-                        ac.TenantId == Dto.TenantId &&
-                        ac.CategoryName.ToLower() == Dto.CategoryName.ToLower() &&
-                        ac.IsSoftDeleted == false);
+        //        // ✅ 2️⃣ Duplicate check
+        //        var existingCategory = await context.AssetCategories
+        //            .FirstOrDefaultAsync(ac =>
+        //                ac.TenantId == Dto.TenantId &&
+        //                ac.CategoryName.ToLower() == Dto.CategoryName.ToLower() &&
+        //                ac.IsSoftDeleted == false);
 
-                if (existingCategory != null)
-                {
-                    _logger.LogWarning(
-                        "Duplicate Asset Category detected for TenantId: {TenantId}, CategoryName: {CategoryName}",
-                        Dto.TenantId, Dto.CategoryName);
+        //        if (existingCategory != null)
+        //        {
+        //            _logger.LogWarning(
+        //                "Duplicate Asset Category detected for TenantId: {TenantId}, CategoryName: {CategoryName}",
+        //                Dto.TenantId, Dto.CategoryName);
 
-                    throw new InvalidOperationException(
-                        $"Category '{Dto.CategoryName}' already exists for TenantId {Dto.TenantId}.");
-                }
+        //            throw new InvalidOperationException(
+        //                $"Category '{Dto.CategoryName}' already exists for TenantId {Dto.TenantId}.");
+        //        }
 
-                // ✅ 3️⃣ Map DTO → Entity
-                var newCategory = new AssetCategory
-                {
-                    TenantId = Dto.TenantId,
-                    CategoryName = Dto.CategoryName.Trim(),
-                    Remark = Dto.Remark?.Trim(),
-                    IsActive = Dto.IsActive,
-                    IsSoftDeleted = false,
-                    AddedById = Dto.EmployeeId,
-                    AddedDateTime = DateTime.UtcNow
-                };
+        //        // ✅ 3️⃣ Map DTO → Entity
+        //        var newCategory = new AssetCategory
+        //        {
+        //            TenantId = Dto.TenantId,
+        //            CategoryName = Dto.CategoryName.Trim(),
+        //            Remark = Dto.Remark?.Trim(),
+        //            IsActive = Dto.IsActive,
+        //            IsSoftDeleted = false,
+        //            AddedById = Dto.EmployeeId,
+        //            AddedDateTime = DateTime.UtcNow
+        //        };
 
-                // ✅ 4️⃣ Save record
-                await context.AssetCategories.AddAsync(newCategory);
-                await context.SaveChangesAsync();
+        //        // ✅ 4️⃣ Save record
+        //        await context.AssetCategories.AddAsync(newCategory);
+        //        await context.SaveChangesAsync();
 
-                _logger.LogInformation(
-                    "✅ Asset Category added successfully with Id: {Id}, TenantId: {TenantId}",
-                    newCategory.Id, Dto.TenantId);
+        //        _logger.LogInformation(
+        //            "✅ Asset Category added successfully with Id: {Id}, TenantId: {TenantId}",
+        //            newCategory.Id, Dto.TenantId);
 
-                // ✅ 5️⃣ Fetch updated list and map
-                var categories = await GetAllAssetCategoryAsync(Dto.TenantId, Dto.IsActive);
-                var mappedResponse = _mapper.Map<List<GetCategoryResponseDTO>>(categories);
+        //        // ✅ 5️⃣ Fetch updated list and map
+        //        var categories = await GetAllAssetCategoryAsync(Dto.TenantId, Dto.IsActive);
+        //        var mappedResponse = _mapper.Map<List<GetCategoryResponseDTO>>(categories);
 
-                return mappedResponse.OrderByDescending(r => r.Id).ToList();
-            }
-            catch (ArgumentNullException ex)
-            {
-                _logger.LogWarning(ex, "⚠️ Null input detected while adding Asset Category.");
-                throw;
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogWarning(ex, "⚠️ Invalid input data while adding Asset Category for TenantId: {TenantId}", Dto?.TenantId);
-                throw;
-            }
-            catch (InvalidOperationException ex)
-            {
-                _logger.LogWarning(ex, "⚠️ Duplicate category detected for TenantId: {TenantId}", Dto?.TenantId);
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Unexpected error occurred while adding Asset Category for TenantId: {TenantId}", Dto?.TenantId);
-                throw;
-            }
-        }
+        //        return mappedResponse.OrderByDescending(r => r.Id).ToList();
+        //    }
+        //    catch (ArgumentNullException ex)
+        //    {
+        //        _logger.LogWarning(ex, "⚠️ Null input detected while adding Asset Category.");
+        //        throw;
+        //    }
+        //    catch (ArgumentException ex)
+        //    {
+        //        _logger.LogWarning(ex, "⚠️ Invalid input data while adding Asset Category for TenantId: {TenantId}", Dto?.TenantId);
+        //        throw;
+        //    }
+        //    catch (InvalidOperationException ex)
+        //    {
+        //        _logger.LogWarning(ex, "⚠️ Duplicate category detected for TenantId: {TenantId}", Dto?.TenantId);
+        //        throw;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "❌ Unexpected error occurred while adding Asset Category for TenantId: {TenantId}", Dto?.TenantId);
+        //        throw;
+        //    }
+        //}
 
         /// <summary>
         /// Updates an existing Asset Category record for a specific tenant.
@@ -435,9 +435,12 @@ namespace axionpro.persistance.Repositories
                 throw; // bubble up
             }
         }
- 
-          
+
+        public Task<List<GetCategoryResponseDTO>> AddAsync(AddCategoryReqestDTO? dtO)
+        {
+            throw new NotImplementedException();
         }
+    }
     }
 
  

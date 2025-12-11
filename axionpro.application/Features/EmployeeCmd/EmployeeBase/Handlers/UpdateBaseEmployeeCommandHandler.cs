@@ -97,7 +97,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // ---------- Decode IDs ----------
 
                 request.DTO.Prop.UserEmployeeId = _idEncoderService.DecodeId(request.DTO.UserEmployeeId, finalKey);
-                request.DTO.Prop.RowId_long = _idEncoderService.DecodeId(request.DTO.Id, finalKey);
+                request.DTO.Prop.RowId = _idEncoderService.DecodeId(request.DTO.Id, finalKey);
 
                 if (request.DTO.Prop.UserEmployeeId != loggedInEmpId)
                     return ApiResponse<bool>.Fail("Unauthorized update request.");

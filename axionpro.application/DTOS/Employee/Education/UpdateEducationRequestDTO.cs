@@ -26,6 +26,6 @@ namespace axionpro.application.DTOS.Employee.Education
         public bool? HasEducationDocUploded { get; set; }
         public string? ReasonOfEducationGap { get; set; }
         public IFormFile? EducationDocument { get; set; }
-        public ExtraPropRequestDTO? Prop { get; set; }
+        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
     }
 }

@@ -38,7 +38,7 @@ namespace axionpro.api.Controllers.Designation
         [HttpGet("get")]
         public async Task<IActionResult> GetAllDesignationAsyc([FromQuery] GetDesignationRequestDTO designationRequestDTO)
         {
-            _logger.LogInfo($"Received request to get designation from userId: {designationRequestDTO.Id}");
+         //   _logger.LogInfo($"Received request to get designation from userId: {designationRequestDTO.Id}");
 
             var command = new GetDesignationQuery(designationRequestDTO);
             var result = await _mediator.Send(command);

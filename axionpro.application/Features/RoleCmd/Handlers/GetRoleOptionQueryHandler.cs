@@ -4,12 +4,15 @@ using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.DTOs.Department;
+using axionpro.application.DTOs.Designation;
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Designation;
 using axionpro.application.DTOS.Role;
 using axionpro.application.Features.DepartmentCmd.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
+using axionpro.application.Interfaces.IRequestValidation;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using MediatR;
@@ -45,6 +48,8 @@ namespace axionpro.application.Features.RoleCmd.Handlers
         private readonly IConfiguration _config;
         private readonly IIdEncoderService _idEncoderService;
         private readonly IEncryptionService _encryptionService;
+        private readonly ICommonRequestService _commonRequestService;
+
 
         public GetRoleOptionQueryHandler(
             IUnitOfWork unitOfWork,
@@ -54,6 +59,7 @@ namespace axionpro.application.Features.RoleCmd.Handlers
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,
+            ICommonRequestService commonRequestService,
             IEncryptionService encryptionService, IIdEncoderService idEncoderService)
         {
             _unitOfWork = unitOfWork;
@@ -65,48 +71,32 @@ namespace axionpro.application.Features.RoleCmd.Handlers
             _config = config;
             _encryptionService = encryptionService;
             _idEncoderService = idEncoderService;
+            _commonRequestService = commonRequestService;
         }
 
         public async Task<ApiResponse<List<GetRoleOptionResponseDTO>>> Handle(GetRoleOptionQuery request, CancellationToken cancellationToken)
         {
             try
             {
+                // 1️⃣ COMMON VALIDATION (Mandatory)
+                var validation = await _commonRequestService.ValidateRequestAsync(request.OptionDTO.UserEmployeeId);
 
-                // 🧩 STEP 1: Validate JWT Token
-                var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
-                    .ToString()?.Replace("Bearer ", "");
+                if (!validation.Success)
+                    return ApiResponse<List<GetRoleOptionResponseDTO>>.Fail(validation.ErrorMessage);
 
-                if (string.IsNullOrEmpty(bearerToken))
-                    return ApiResponse<List<GetRoleOptionResponseDTO>>.Fail("Unauthorized: Token not found.");
-
-                var secretKey = TokenKeyHelper.GetJwtSecret(_config);
-                var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
-
-                if (tokenClaims == null || tokenClaims.IsExpired)
-                    return ApiResponse<List<GetRoleOptionResponseDTO>>.Fail("Invalid or expired token.");
+                // Assign decoded values coming from CommonRequestService
+                request.OptionDTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.OptionDTO.Prop.TenantId = validation.TenantId;
  
- 
-                string tenantKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
 
-                if (string.IsNullOrEmpty(request.OptionDTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
-                {
-                    _logger.LogWarning("❌ Missing tenantKey or UserEmployeeId.");
-                    return ApiResponse<List<GetRoleOptionResponseDTO>>.Fail("User invalid.");
-                }
-
-                string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
-                string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.OptionDTO.UserEmployeeId);
-                long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
-                long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);       
-
-                if (decryptedTenantId <= 0)
+                if (request.OptionDTO.Prop.UserEmployeeId <= 0)
                     return ApiResponse<List<GetRoleOptionResponseDTO>>.Fail("Unauthorized: Tenant not found.");
 
-                var response = await _unitOfWork.RoleRepository.GetOptionAsync(request.OptionDTO, decryptedTenantId);
+                var response = await _unitOfWork.RoleRepository.GetOptionAsync(request.OptionDTO);
 
                 if (response.Data == null || !response.Data.Any())
                 {
-                    _logger.LogWarning("No departments found for tenant ID: {TenantId}", decryptedTenantId);
+                    _logger.LogWarning("No departments found for tenant ID: {TenantId}", request.OptionDTO.Prop.UserEmployeeId);
 
                     return new ApiResponse<List<GetRoleOptionResponseDTO>>
                     {
@@ -117,7 +107,7 @@ namespace axionpro.application.Features.RoleCmd.Handlers
                 }
 
                 _logger.LogInformation("Successfully retrieved {Count} departments for tenant {TenantId}.",
-                    response.Data.Count, decryptedTenantId);
+                    response.Data.Count, request.OptionDTO.Prop.UserEmployeeId);
 
                 return ApiResponse<List<GetRoleOptionResponseDTO>>.Success( response.Data, "✅ Role options fetched successfully.");
                 //return new ApiResponse<List<GetRoleOptionResponseDTO>>

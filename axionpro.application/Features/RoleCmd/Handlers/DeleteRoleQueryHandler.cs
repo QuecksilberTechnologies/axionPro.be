@@ -1,16 +1,18 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.axionpro.application.Configuration;
+using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.EncryptionHelper;
-using axionpro.application.DTOs.Role;
-using axionpro.application.Interfaces;
-using axionpro.application.Interfaces.IEncryptionService;
  
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.DTOs.Department;
+using axionpro.application.DTOs.Role;
  
 using axionpro.application.Features.DepartmentCmd.Handlers;
+using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
+using axionpro.application.Interfaces.IRequestValidation;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using MediatR;
@@ -20,7 +22,6 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using axionpro.application.Common.Helpers.Converters;
 
 namespace axionpro.application.Features.RoleCmd.Handlers
 {
@@ -45,6 +46,7 @@ namespace axionpro.application.Features.RoleCmd.Handlers
         private readonly IEncryptionService _encryptionService;
         private readonly IPermissionService _permissionService;
         private readonly IIdEncoderService _idEncoderService;
+        private readonly ICommonRequestService _commonRequestService;
 
         public DeleteRoleQueryHandler(
             IUnitOfWork unitOfWork,
@@ -54,7 +56,7 @@ namespace axionpro.application.Features.RoleCmd.Handlers
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,
-            IEncryptionService encryptionService, IIdEncoderService idEncoderService)
+            IEncryptionService encryptionService, IIdEncoderService idEncoderService, ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -65,98 +67,48 @@ namespace axionpro.application.Features.RoleCmd.Handlers
             _config = config;
             _encryptionService = encryptionService;
             _idEncoderService = idEncoderService;
+            _commonRequestService = commonRequestService;
         }
 
         public async Task<ApiResponse<bool>> Handle(DeleteRoleQuery request, CancellationToken cancellationToken)
         {
             try
             {
-                // 🧩 STEP 1: Validate Request
-                if (request == null || request.DTO == null)
-                {
-                    _logger.LogWarning("⚠️ DeleteRoleCommand received null request or DTO.");
-                    return ApiResponse<bool>.Fail("Invalid delete request.");
-                }
+                //  COMMON VALIDATION (Mandatory)
+                var validation = await _commonRequestService.ValidateRequestAsync(request.DTO.UserEmployeeId);
 
-                // 🧩 STEP 2: Validate JWT Token
-                var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
-                    .ToString()?.Replace("Bearer ", "");
+                if (!validation.Success)
+                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
 
-                if (string.IsNullOrEmpty(bearerToken))
-                    return ApiResponse<bool>.Fail("Unauthorized: Token not found.");
-
-                var secretKey = TokenKeyHelper.GetJwtSecret(_config);
-                var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
-
-                if (tokenClaims == null || tokenClaims.IsExpired)
-                    return ApiResponse<bool>.Fail("Invalid or expired token.");
-
-                // 🧩 STEP 3: Validate Active User
-                long loggedInEmpId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
-                if (loggedInEmpId < 1)
-                {
-                    _logger.LogWarning("❌ Invalid or inactive user. LoginId: {LoginId}", tokenClaims.UserId);
-                    return ApiResponse<bool>.Fail("Unauthorized or inactive user.");
-                }
-
-                // 🧩 STEP 4: Tenant and Employee info from token
-                string tenantKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
-                if (string.IsNullOrEmpty(request.DTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
-                {
-                    _logger.LogWarning("❌ Missing tenantKey or UserEmployeeId.");
-                    return ApiResponse<bool>.Fail("Invalid user or tenant context.");
-                }
-
-                string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
-                string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
-                long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
-                long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
-                string Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
-                
-                // 🧩 STEP 4: Validate all employee references
-
-                int id = SafeParser.TryParseInt(request.DTO.Id);
-                if (id <= 0)
-                {
-                    return ApiResponse<bool>.Fail("Invalid role id.");
-
-                }
+                // Assign decoded values coming from CommonRequestService
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
 
 
-                if (decryptedEmployeeId <= 0 || decryptedEmployeeId <= 0)
-                {
-                    _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
-                    return ApiResponse<bool>.Fail("Tenant or employee information missing.");
-                }
+                // ✅ Create  using repository
+                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
 
-                if (!(decryptedEmployeeId == loggedInEmpId))
-                {
-                    _logger.LogWarning(
-                        "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
-                         decryptedEmployeeId, loggedInEmpId
-                    );
 
-                    return ApiResponse<bool>.Fail("Unauthorized: Employee mismatch.");
-                }
-                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
                 if (!permissions.Contains("AddBankInfo"))
                 {
-                    //  await _unitOfWork.RollbackTransactionAsync();
+                    // await _unitOfWork.RollbackTransactionAsync();
                     //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
                 }
 
+
+
                 // 🧩 STEP 5: Validate RoleId
-                if (request.DTO.Id ==null)
+                if (request.DTO.Id <=0 )
                 {
                     _logger.LogWarning("⚠️ Invalid RoleId for delete operation: {RoleId}", request.DTO.Id);
                     return ApiResponse<bool>.Fail("Invalid RoleId. It must be greater than zero.");
                 }
                
-                _logger.LogInformation("🗑️ Attempting to delete RoleId: {RoleId} for TenantId: {TenantId}", request.DTO.Id, decryptedTenantId);
+                _logger.LogInformation("🗑️ Attempting to delete RoleId: {RoleId} for TenantId: {TenantId}", request.DTO.Id,  request.DTO.Prop.TenantId);
 
                 // 🧩 STEP 6: Repository call
 
-                bool isDeleted = await _unitOfWork.RoleRepository.DeleteAsync(request.DTO, decryptedEmployeeId, id);
+                bool isDeleted = await _unitOfWork.RoleRepository.DeleteAsync(request.DTO, request.DTO.Prop.UserEmployeeId, request.DTO.Id);
 
                 if (!isDeleted)
                 {
@@ -167,7 +119,7 @@ namespace axionpro.application.Features.RoleCmd.Handlers
                 // 🧩 STEP 7: Commit transaction
                 await _unitOfWork.CommitTransactionAsync();
 
-                _logger.LogInformation("✅ Role deleted successfully. RoleId: {RoleId}, TenantId: {TenantId}", request.DTO.Id, decryptedTenantId);
+                _logger.LogInformation("✅ Role deleted successfully. RoleId: {RoleId}, TenantId: {TenantId}", request.DTO.Id, request.DTO.Prop.TenantId);
 
                 return new ApiResponse<bool>
                 {

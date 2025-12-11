@@ -88,31 +88,79 @@ namespace axionpro.persistance.Repositories
                 const int pageNumber = 1;
                 const int pageSize = 10;
 
-                // 🔹 Fetch recent list for same tenant
-                var query = _context.Employees
-                    .AsNoTracking()
-                    .Where(x => x.TenantId == entity.TenantId && x.IsSoftDeleted != true)
-                    .OrderByDescending(x => x.Id);
+                // 🔹 Base query (WITH JOINS + SELECT DTO)
+                var query = (from e in _context.Employees
 
+                             join d in _context.Designations on e.DesignationId equals d.Id into des
+                             from d in des.DefaultIfEmpty()
+
+                             join dep in _context.Departments on e.DepartmentId equals dep.Id into dept
+                             from dep in dept.DefaultIfEmpty()
+
+                             //join r in _context.Roles on e.UserRoles.FirstOrDefault equals r.Id into roleTbl
+                             //from r in roleTbl.DefaultIfEmpty()
+
+                             join g in _context.Genders on e.GenderId equals g.Id into gen
+                             from g in gen.DefaultIfEmpty()
+
+                             where e.TenantId == entity.TenantId && e.IsSoftDeleted != true
+                             orderby e.Id descending
+
+                             select new GetBaseEmployeeResponseDTO
+                             {
+                                 Id = e.Id.ToString(),
+                                 EmployementCode = e.EmployementCode,
+                                 FirstName = e.FirstName,
+                                 LastName = e.LastName,
+                                 MiddleName = e.MiddleName,
+
+                                 GenderId = e.GenderId,
+                                 GenderName = g.GenderName,
+
+                                 DesignationId = e.DesignationId,
+                                 DesignationName = d.DesignationName,
+
+                                 DepartmentId = e.DepartmentId,
+                                 DepartmentName = dep.DepartmentName,
+
+                               //  RoleName = r.RoleName,
+                                 OfficialEmail = e.OfficialEmail,
+                                 EmployeeTypeId = e.EmployeeTypeId,
+
+                                 DateOfBirth = e.DateOfBirth,
+                                 DateOfOnBoarding = e.DateOfOnBoarding,
+                                 DateOfExit = e.DateOfExit,
+
+                                 IsActive = e.IsActive,
+                                 HasPermanent = e.HasPermanent,
+                                 IsEditAllowed = e.IsEditAllowed,
+                                 IsInfoVerified = e.IsInfoVerified,
+                             })
+                             .AsNoTracking();
+
+
+                // 🔹 Count
                 int totalCount = await query.CountAsync();
 
+                // 🔹 Paging
                 var pagedData = await query
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync();
 
-                // 🔹 Map to DTO
-                var mappedData = _mapper.Map<List<GetBaseEmployeeResponseDTO>>(pagedData);
+                // 👉 NOTE: Yaha AutoMapper nahi chahiye, data already DTO me hai.
+                // var mappedData = _mapper.Map<List<GetBaseEmployeeResponseDTO>>(pagedData);
 
                 // 🔹 Prepare paged response
                 var result = new PagedResponseDTO<GetBaseEmployeeResponseDTO>
                 {
-                    Items = mappedData,
+                    Items = pagedData,
                     TotalCount = totalCount,
                     PageNumber = pageNumber,
                     PageSize = pageSize,
                     TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
                 };
+
 
                 return result;
             }
@@ -382,7 +430,38 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> GetImage(GetEmployeeImageRequestDTO dto, long decryptedTenantId)
+        public async Task<string?> ProfileImage(long employeeId)
+        {
+            try
+            {
+                // Fetch latest primary active image
+                var image = await _context.EmployeeImages
+                    .AsNoTracking()
+                    .Where(x => x.EmployeeId == employeeId
+                            && x.IsActive == true
+                            && x.IsPrimary == true
+                            && x.IsSoftDeleted != true)
+                    .OrderByDescending(x => x.AddedDateTime) // latest preference
+                    .Select(x => x.FilePath) // Only fetch needed column (performance)
+                    .FirstOrDefaultAsync();
+
+                // If no image found → return default placeholder
+                return string.IsNullOrWhiteSpace(image)
+                    ? null
+                    : image;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"❌ Error fetching profile image for EmployeeId: {employeeId}");
+
+                // Fail-safe fallback → never throw
+                return "/assets/images/default-profile.png";
+            }
+        }
+
+
+
+        public async Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> GetImage(GetEmployeeImageRequestDTO dto)
         {
             try
             {
@@ -393,8 +472,8 @@ namespace axionpro.persistance.Repositories
                     .AsNoTracking()
                     .Where(x =>
                         x.IsSoftDeleted != true &&
-                        x.TenantId == decryptedTenantId &&
-                        x.EmployeeId == dto._EmployeeId &&
+                        x.TenantId == dto.Prop.TenantId &&
+                        x.EmployeeId == dto.Prop.EmployeeId &&
                         x.IsPrimary == true);
 
                 if (dto.IsActive)
@@ -533,7 +612,7 @@ namespace axionpro.persistance.Repositories
         //}
 
 
-        public async Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> GetInfo(GetBaseEmployeeRequestDTO dto, long decryptedTenantId, long id)
+        public async Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> GetInfo(GetBaseEmployeeRequestDTO dto)
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
           
@@ -546,7 +625,7 @@ namespace axionpro.persistance.Repositories
                 // 🧩 Step 2: Base query (Tenant + Active filter)
                 var query = context.Employees
                     .AsNoTracking()
-                    .Where(x => x.TenantId == decryptedTenantId && x.IsSoftDeleted == null || x.IsSoftDeleted==false);
+                    .Where(x => x.TenantId == dto.Prop.TenantId && x.IsSoftDeleted == null || x.IsSoftDeleted==false);
                 
                 // 🧩 Step 3: Safe parse helpers (convert string → long safely)
                    
@@ -554,8 +633,8 @@ namespace axionpro.persistance.Repositories
 
 
                 // 🧩 Step 4: Dynamic filters (null-safe + condition-based)
-                if (dto.Id_long > 0)
-                    query = query.Where(x => x.Id == dto.Id_long );
+                if (dto.Prop.EmployeeId > 0)
+                    query = query.Where(x => x.Id == dto.Prop.EmployeeId);
                 // yaha par id_long check kar rahe hai or 0 record aa raha hai, 
 
                 if (dto.IsActive)
@@ -579,8 +658,8 @@ namespace axionpro.persistance.Repositories
                 if (designationId > 0)
                     query = query.Where(x => x.DesignationId == designationId);
 
-                if (dto.Id_int > 0)
-                    query = query.Where(x => x.EmployeeTypeId == dto.Id_int);
+                if (dto.TypeId > 0)
+                    query = query.Where(x => x.EmployeeTypeId == dto.TypeId);
 
                 if (dto.HasPermanent.HasValue)
                     query = query.Where(x => x.HasPermanent == dto.HasPermanent);
@@ -614,13 +693,13 @@ namespace axionpro.persistance.Repositories
          LastName = x.LastName,
          MiddleName = x.MiddleName,
          FirstName = x.FirstName,
-         GenderId = x.GenderId.ToString(),
+         GenderId = x.GenderId,
          DateOfBirth = x.DateOfBirth,
          DateOfOnBoarding = x.DateOfOnBoarding,
          DateOfExit = x.DateOfExit,
-         DesignationId = x.DesignationId.ToString(),
-         EmployeeTypeId = x.EmployeeTypeId.ToString(),
-         DepartmentId = x.DepartmentId.ToString(),
+         DesignationId = x.DesignationId,
+         EmployeeTypeId = x.EmployeeTypeId,
+         DepartmentId = x.DepartmentId,
          OfficialEmail = x.OfficialEmail,
          HasPermanent = x.HasPermanent,
          IsActive = x.IsActive,
@@ -688,9 +767,7 @@ namespace axionpro.persistance.Repositories
             }
         }
  
-        public async Task<PagedResponseDTO<GetAllEmployeeInfoResponseDTO>> GetAllInfo(
-    GetAllEmployeeInfoRequestDTO dto,
-    long decryptedTenantId)
+        public async Task<PagedResponseDTO<GetAllEmployeeInfoResponseDTO>> GetAllInfo( GetAllEmployeeInfoRequestDTO dto)
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
 
@@ -704,7 +781,7 @@ namespace axionpro.persistance.Repositories
                 // -----------------------------------
                 var baseQuery =
                     from emp in context.Employees.AsNoTracking()
-                    where emp.TenantId == decryptedTenantId && emp.IsSoftDeleted != true
+                    where emp.TenantId == dto.Prop.TenantId && emp.IsSoftDeleted != true
 
                     join g in context.Genders on emp.GenderId equals g.Id into genderJoin
                     from gender in genderJoin.DefaultIfEmpty()
@@ -730,23 +807,23 @@ namespace axionpro.persistance.Repositories
                 // -----------------------------------
                 // 2️⃣ FILTERS (Optimized)
                 // -----------------------------------
-                if (dto.Id_long > 0)
-                    baseQuery = baseQuery.Where(x => x.emp.Id == dto.Id_long);
+                if (dto.Prop.EmployeeId > 0)
+                    baseQuery = baseQuery.Where(x => x.emp.Id == dto.Prop.EmployeeId);
 
                 if (!string.IsNullOrWhiteSpace(dto.EmailId))
                     baseQuery = baseQuery.Where(x => x.emp.OfficialEmail == dto.EmailId.Trim());
 
-                if (dto._DepartmentId > 0)
-                    baseQuery = baseQuery.Where(x => x.emp.DepartmentId == dto._DepartmentId);
+                if (dto.DepartmentId > 0)
+                    baseQuery = baseQuery.Where(x => x.emp.DepartmentId == dto.DepartmentId);
 
-                if (dto._DesignationId > 0)
-                    baseQuery = baseQuery.Where(x => x.emp.DesignationId == dto._DesignationId);
+                if (dto.DesignationId > 0)
+                    baseQuery = baseQuery.Where(x => x.emp.DesignationId == dto.DesignationId);
 
-                if (dto._EmployeeTypeId > 0)
-                    baseQuery = baseQuery.Where(x => x.emp.EmployeeTypeId == dto._EmployeeTypeId);
+                if (dto.EmployeeTypeId > 0)
+                    baseQuery = baseQuery.Where(x => x.emp.EmployeeTypeId == dto.EmployeeTypeId);
 
-                if (dto._GenderId > 0)
-                    baseQuery = baseQuery.Where(x => x.emp.GenderId == dto._GenderId);
+                if (dto.GenderId > 0)
+                    baseQuery = baseQuery.Where(x => x.emp.GenderId == dto.GenderId);
 
                 if (!string.IsNullOrWhiteSpace(dto.FirstName))
                     baseQuery = baseQuery.Where(x => x.emp.FirstName.Contains(dto.FirstName));
@@ -818,10 +895,10 @@ namespace axionpro.persistance.Repositories
                         LastName = x.emp.LastName,
                         DateOfOnBoarding = x.emp.DateOfOnBoarding?.ToString(),
 
-                        GenderId = x.emp.GenderId.ToString(),
-                        EmployeeTypeId = x.emp.EmployeeTypeId.ToString(),
-                        DesignationId = x.emp.DesignationId.ToString(),
-                        DepartmentId = x.emp.DepartmentId.ToString(),
+                        GenderId = x.emp.GenderId,
+                        EmployeeTypeId = x.emp.EmployeeTypeId,
+                        DesignationId = x.emp.DesignationId,
+                        DepartmentId = x.emp.DepartmentId,
 
                         GenderName = x.GenderName,
                         EmployeeTypeName = x.EmployeeTypeName,

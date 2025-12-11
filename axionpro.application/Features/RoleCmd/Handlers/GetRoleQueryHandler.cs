@@ -10,6 +10,7 @@ using axionpro.application.DTOs.Role;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
+using axionpro.application.Interfaces.IRequestValidation;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using MediatR;
@@ -45,7 +46,9 @@ namespace axionpro.application.Features.RoleCmd.Handlers
         private readonly IEncryptionService _encryptionService;
         private readonly IPermissionService _permissionService;
         private readonly IIdEncoderService _idEncoderService;
+        private readonly ICommonRequestService _commonRequestService;
        
+
 
         public GetRoleQueryHandler(
             IUnitOfWork unitOfWork,
@@ -56,7 +59,8 @@ namespace axionpro.application.Features.RoleCmd.Handlers
             IConfiguration config,
             IEncryptionService encryptionService,
             IPermissionService permissionService,
-            IIdEncoderService idEncoderService)
+            IIdEncoderService idEncoderService,
+            ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -67,90 +71,41 @@ namespace axionpro.application.Features.RoleCmd.Handlers
             _encryptionService = encryptionService;
             _permissionService = permissionService;
             _idEncoderService = idEncoderService;
-
+            _commonRequestService = commonRequestService;
         }
 
         public async Task<ApiResponse<List<GetRoleResponseDTO>>> Handle(GetRoleQuery request, CancellationToken cancellationToken)
         {
             try
             {
-                // 🧩 STEP 1: Validate Request
-                if (request == null || request.DTO == null)
-                {
-                    _logger.LogWarning("⚠️ GetRoleQuery received null or invalid request.");
-                    return ApiResponse<List<GetRoleResponseDTO>>.Fail("Invalid request data.");
-                }
+                //  COMMON VALIDATION (Mandatory)
+                var validation = await _commonRequestService.ValidateRequestAsync(request.DTO.UserEmployeeId);
 
-                // 🧩 STEP 2: Validate JWT Token
-                var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
-                    .ToString()?.Replace("Bearer ", "");
+                if (!validation.Success)
+                    return ApiResponse<List<GetRoleResponseDTO>>.Fail(validation.ErrorMessage);
 
-                if (string.IsNullOrEmpty(bearerToken))
-                    return ApiResponse<List<GetRoleResponseDTO>>.Fail("Unauthorized: Token not found.");
-
-                var secretKey = TokenKeyHelper.GetJwtSecret(_config);
-                var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
-
-                if (tokenClaims == null || tokenClaims.IsExpired)
-                    return ApiResponse<List<GetRoleResponseDTO>>.Fail("Invalid or expired token.");
-
-                // 🧩 STEP 3: Validate Active User
-                long loggedInEmpId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
-                if (loggedInEmpId < 1)
-                {
-                    _logger.LogWarning("❌ Invalid or inactive user. LoginId: {LoginId}", tokenClaims.UserId);
-                    return ApiResponse<List<GetRoleResponseDTO>>.Fail("Unauthorized or inactive user.");
-                }
-
-                // 🧩 STEP 4: Decrypt Tenant & Employee info
-                string tenantKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
-                if (string.IsNullOrEmpty(request.DTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
-                {
-                    _logger.LogWarning("❌ Missing tenantKey or UserEmployeeId in GetRoleQuery.");
-                    return ApiResponse<List<GetRoleResponseDTO>>.Fail("Invalid user context.");
-                }
-                string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
-                string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
-                long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
-                long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
-                request.DTO.Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
-                int id = SafeParser.TryParseInt(request.DTO.Id);
-                 request.DTO.RoleType = EncryptionSanitizer.CleanEncodedInput(request.DTO.RoleType);
-                 request.DTO.SortOrder = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortOrder);
-                 request.DTO.SortBy = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortBy);
-
-                // 🧩 STEP 4: Validate all employee references
+                // Assign decoded values coming from CommonRequestService
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
 
 
-                if (decryptedTenantId <= 0 || decryptedEmployeeId <= 0)
-                {
-                    _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
-                    return ApiResponse<List<GetRoleResponseDTO>>.Fail("Tenant or employee information missing.");
-                }
+                // ✅ Create  using repository
+                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
 
-                if (!(decryptedEmployeeId == loggedInEmpId))
-                {
-                    _logger.LogWarning(
-                        "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
-                         decryptedEmployeeId, loggedInEmpId
-                    );
 
-                    return ApiResponse<List<GetRoleResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
-                }
-                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
                 if (!permissions.Contains("AddBankInfo"))
                 {
-                    //  await _unitOfWork.RollbackTransactionAsync();
+                    // await _unitOfWork.RollbackTransactionAsync();
                     //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
                 }
-             
 
-                
-                var responseDTO = await _unitOfWork.RoleRepository.GetAsync(request.DTO, decryptedTenantId, id );
+
+
+                var responseDTO = await _unitOfWork.RoleRepository.GetAsync(request.DTO );
 
                 if (responseDTO.Items == null || !responseDTO.Items.Any())
                 {
-                    _logger.LogInformation("⚠️ No roles found for TenantId: {TenantId}", decryptedTenantId);
+                    _logger.LogInformation("⚠️ No roles found for TenantId: {TenantId}", request.DTO.Prop.TenantId);
                     return new ApiResponse<List<GetRoleResponseDTO>>
                     {
                         IsSucceeded = true,
@@ -168,7 +123,7 @@ namespace axionpro.application.Features.RoleCmd.Handlers
 
                 // 🧩 STEP 7: Success response
                 _logger.LogInformation("✅ {Count} roles retrieved successfully for TenantId: {TenantId}",
-                    responseDTO.TotalCount, decryptedTenantId);
+                    responseDTO.TotalCount, request.DTO.Prop.TenantId);
 
                 return new ApiResponse<List<GetRoleResponseDTO>>
                 {

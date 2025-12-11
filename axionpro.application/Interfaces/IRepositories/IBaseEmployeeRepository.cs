@@ -37,8 +37,8 @@ public interface IBaseEmployeeRepository
 
     Task<GetLeaveBalanceToEmployeeResponseDTO> UpdateLeaveBalanceToEmployee(UpdateLeaveBalanceToEmployeeRequestDTO updateLeaveBalanceTo);  // Ensure this returns Task<Employee>   
 
-     Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> GetInfo(GetBaseEmployeeRequestDTO dto, long  decryptedTenantId, long id);
-     Task<PagedResponseDTO<GetAllEmployeeInfoResponseDTO>> GetAllInfo(GetAllEmployeeInfoRequestDTO dto, long decryptedTenantId);
+     Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> GetInfo(GetBaseEmployeeRequestDTO dto);
+     Task<PagedResponseDTO<GetAllEmployeeInfoResponseDTO>> GetAllInfo(GetAllEmployeeInfoRequestDTO dto);
 
        public Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> CreateAsync(Employee entity);
        public Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> AddImageAsync(EmployeeImage entity);
@@ -51,7 +51,8 @@ public interface IBaseEmployeeRepository
       public  Task<long> AutoCreated(Employee entity);
      
       public Task<bool> UpdateEmployeeAsync(Employee entity, long tenantId);
-      public Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> GetImage(GetEmployeeImageRequestDTO dto, long decryptedTenantId);
+      public Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> GetImage(GetEmployeeImageRequestDTO dto);
+           public  Task<string?> ProfileImage(long employeeId);
     public Task<List<CompletionSectionDTO>> GetEmployeeCompletionAsync(long employeeId);
     #endregion
 

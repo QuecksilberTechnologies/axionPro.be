@@ -269,7 +269,7 @@ public class RoleRepository : IRoleRepository
 
 
 
-    public async Task<bool> UpdateAsync(UpdateRoleRequestDTO requestDTO, long employeeId)
+    public async Task<bool> UpdateAsync(UpdateRoleRequestDTO requestDTO)
     {
         if (requestDTO == null)
         {
@@ -281,15 +281,8 @@ public class RoleRepository : IRoleRepository
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
 
-            int id = SafeParser.TryParseInt(requestDTO.Id);
-            if (id <= 0)
-            {
-                _logger.LogWarning("⚠️ UpdateAsync called with invalid RoleId: {RoleId}", requestDTO.Id);
-                return false;
-            }
-
             var existingRole = await context.Roles
-                .FirstOrDefaultAsync(r => r.Id == id && (r.IsSoftDeleted != true));
+                .FirstOrDefaultAsync(r => r.Id == requestDTO.Id && r.IsSoftDeleted != true);
 
             if (existingRole == null)
             {
@@ -299,66 +292,71 @@ public class RoleRepository : IRoleRepository
 
             bool isModified = false;
 
-            // ✅ RoleName
-            if (!string.IsNullOrWhiteSpace(requestDTO.RoleName) && requestDTO.RoleName != existingRole.RoleName)
+            // 🔹 RoleName
+            if (!string.IsNullOrWhiteSpace(requestDTO.RoleName) &&
+                requestDTO.RoleName.Trim() != existingRole.RoleName)
             {
-                existingRole.RoleName = requestDTO.RoleName;
+                existingRole.RoleName = requestDTO.RoleName.Trim();
                 isModified = true;
             }
 
-            // ✅ RoleType (Handle type mismatch safely)
-            if (!string.IsNullOrWhiteSpace(requestDTO.RoleType))
+            // 🔹 RoleType
+            if (requestDTO.RoleType != existingRole.RoleType)
             {
-                int newRoleType = SafeParser.TryParseInt(requestDTO.RoleType);
-                if (newRoleType != existingRole.RoleType)
-                {
-                    existingRole.RoleType = newRoleType;
-                    isModified = true;
-                }
+                existingRole.RoleType = requestDTO.RoleType;
+                isModified = true;
             }
 
-            // ✅ Remark
-            if (requestDTO.Remark != null && requestDTO.Remark != existingRole.Remark)
+            // 🔹 Remark
+            if (requestDTO.Remark != existingRole.Remark)
             {
                 existingRole.Remark = requestDTO.Remark;
                 isModified = true;
             }
 
-
-            // ✅ IsActive
-            if (requestDTO.IsActive.HasValue && requestDTO.IsActive.Value != existingRole.IsActive)
+            // 🔹 IsActive
+            if (requestDTO.IsActive.HasValue &&
+                requestDTO.IsActive.Value != existingRole.IsActive)
             {
                 existingRole.IsActive = requestDTO.IsActive.Value;
                 isModified = true;
             }
 
-            // ✅ Audit Fields (always update)
-            existingRole.UpdatedById = employeeId;
-            existingRole.UpdatedDateTime = DateTime.UtcNow;
 
-            // ✅ Save only if modified
+            // 🔥🔥 NEW — Update audit fields only when something changes
             if (isModified)
             {
-                var changes = await context.SaveChangesAsync();
-                if (changes > 0)
+                existingRole.UpdatedById = requestDTO.Prop.UserEmployeeId;
+                existingRole.UpdatedDateTime = DateTime.UtcNow;
+
+                var affected = await context.SaveChangesAsync();
+
+                if (affected > 0)
                 {
-                    _logger.LogInformation("✅ Role with ID {RoleId} updated successfully.", requestDTO.Id);
+                    _logger.LogInformation(
+                        "✅ Role updated successfully. ID: {RoleId}, UpdatedBy: {UpdatedById}",
+                        requestDTO.Id, requestDTO.Prop.UserEmployeeId
+                    );
                     return true;
                 }
 
-                _logger.LogInformation("ℹ️ No database changes detected for Role ID {RoleId}.", requestDTO.Id);
-                return true; // No change but still OK
+                _logger.LogInformation("ℹ️ Update called but no DB changes detected. ID: {RoleId}", requestDTO.Id);
+            }
+            else
+            {
+                _logger.LogInformation("🔹 No changes found for Role ID {RoleId}.", requestDTO.Id);
+                return false;
             }
 
-            _logger.LogInformation("🔹 No changes detected for Role ID {RoleId}. Returning success.", requestDTO.Id);
             return true;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "💥 Error occurred while updating role with ID {RoleId}", requestDTO.Id);
+            _logger.LogError(ex, "💥 Error while updating Role ID {RoleId}", requestDTO.Id);
             return false;
         }
     }
+
 
     public async Task<GetSingleRoleResponseDTO?> GetByIdAsync1(GetSingleRoleRequestDTO dto)
     {
@@ -408,25 +406,12 @@ public class RoleRepository : IRoleRepository
     {
         try
         {
-            // 🧩 Step 1️⃣ - Validate Input
-            if (dto == null)
-            {
-                _logger.LogWarning("⚠️ DeleteAsync called with null DTO.");
-                return false;
-            }
-
-            // 🧩 Step 2️⃣ - Validate ID
-            if (string.IsNullOrWhiteSpace(dto.Id))
-            {
-                _logger.LogWarning("⚠️ DeleteAsync called with empty RoleId.");
-                return false;
-            }
-                   
+            
             await using var context = await _contextFactory.CreateDbContextAsync();
 
             // 🧩 Step 3️⃣ - Fetch Role
             var role = await context.Roles
-                .FirstOrDefaultAsync(r => r.Id == id && (r.IsSoftDeleted == null || r.IsSoftDeleted == false));
+                .FirstOrDefaultAsync(r => r.Id == id && (r.IsSoftDeleted != true));
 
             if (role == null)
             {
@@ -465,7 +450,7 @@ public class RoleRepository : IRoleRepository
     }
 
     # region Create-Complted
-    public async Task<PagedResponseDTO<GetRoleResponseDTO>> CreateAsync(CreateRoleRequestDTO dto, long tenantId, long employeeId)
+    public async Task<PagedResponseDTO<GetRoleResponseDTO>> CreateAsync(CreateRoleRequestDTO dto)
     {
         var response = new PagedResponseDTO<GetRoleResponseDTO>();
 
@@ -480,33 +465,34 @@ public class RoleRepository : IRoleRepository
             // ✅ Duplicate check
             bool isDuplicate = await _context.Roles
                 .AnyAsync(r => r.RoleName.ToLower() == dto.RoleName.ToLower()
-                            && r.TenantId == tenantId
+                            && r.TenantId == dto.Prop.TenantId
                             && r.IsSoftDeleted != true);
 
             if (isDuplicate)
             {
-                _logger.LogWarning("⚠️ Role '{RoleName}' already exists for TenantId: {TenantId}", dto.RoleName, tenantId);
+                _logger.LogWarning("⚠️ Role '{RoleName}' already exists for TenantId: {TenantId}", dto.RoleName, dto.Prop.TenantId);
                 return response;
             }
 
             // ✅ Create new Role entity
             var role = new Role
             {
-                TenantId = tenantId,
-                AddedById = employeeId,
+                TenantId = dto.Prop.TenantId,
+                AddedById = dto.Prop.UserEmployeeId,
                 AddedDateTime = DateTime.UtcNow,
                 IsSoftDeleted = false,
                 RoleName = dto.RoleName?.Trim(),
                 RoleType = dto.RoleType,
                 IsActive = dto.IsActive,
-                IsSystemDefault = false
+                IsSystemDefault = false,
+                Remark = dto.Remark,
             };
 
             await _context.Roles.AddAsync(role);
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("✅ Role '{RoleName}' created successfully for TenantId: {TenantId} by EmployeeId: {EmployeeId}",
-                dto.RoleName, tenantId, employeeId);
+                dto.RoleName, dto.Prop.TenantId, dto.Prop.UserEmployeeId);
 
             // ✅ Static pagination setup
             int pageNumber = 1;
@@ -514,11 +500,11 @@ public class RoleRepository : IRoleRepository
 
             // ✅ Get total count dynamically
             int totalCount = await _context.Roles
-                .CountAsync(r => r.TenantId == tenantId && r.IsSoftDeleted != true);
+                .CountAsync(r => r.TenantId == dto.Prop.TenantId && r.IsSoftDeleted != true);
 
             // ✅ Fetch paged data (Top 10 latest)
             var rolesFromDb = await _context.Roles
-                .Where(r => r.TenantId == tenantId && r.IsSoftDeleted != true)
+                .Where(r => r.TenantId == dto.Prop.TenantId && r.IsSoftDeleted != true)
                 .OrderByDescending(r => r.AddedDateTime)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
@@ -528,13 +514,13 @@ public class RoleRepository : IRoleRepository
             // ✅ Map manually to DTOs
             var roles = rolesFromDb.Select(r => new GetRoleResponseDTO
             {
-                Id = r.Id.ToString(),
+                Id = r.Id,
                 RoleName = r.RoleName,
-                RoleType = r.RoleType.ToString(),
+                RoleType = r.RoleType,
                 RoleTypeName = r.RoleType == 1 ? "Super-Admin"
                              : r.RoleType == 2 ? "Employee"
                              : r.RoleType == 3 ? "Manager"
-                             : "Unknown",
+                             : "Guest",
                 IsActive = r.IsActive,
                Remark = r.Remark,
 
@@ -551,7 +537,7 @@ public class RoleRepository : IRoleRepository
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Error creating role '{RoleName}' for TenantId: {TenantId}", dto?.RoleName, tenantId);
+            _logger.LogError(ex, "❌ Error creating role '{RoleName}' for TenantId: {TenantId}", dto?.RoleName, dto.Prop.TenantId);
             response.Items = new List<GetRoleResponseDTO>();
             response.TotalCount = 0;
             response.PageNumber = 1;
@@ -563,56 +549,50 @@ public class RoleRepository : IRoleRepository
 
    # endregion
 
-    public async Task<PagedResponseDTO<GetRoleResponseDTO>> GetAsync(GetRoleRequestDTO request, long tenantId, int id)
+    public async Task<PagedResponseDTO<GetRoleResponseDTO>> GetAsync(GetRoleRequestDTO dto)
     {
         var response = new PagedResponseDTO<GetRoleResponseDTO>();
 
         try
         {
-            if (request == null)
+            if (dto == null)
             {
                 _logger.LogWarning("⚠️ GetAsync called with null request DTO.");
                 return response;
             }
 
             await using var context = await _contextFactory.CreateDbContextAsync();
-          
-            int roleType = 0;
-            
-            if (!string.IsNullOrWhiteSpace(request.RoleType))
-            {
-                roleType = SafeParser.TryParseInt(request.RoleType);
-            }          
-                              
+
+            int roleType = dto.RoleType;
 
             var query = context.Roles
-                .Where(r => r.TenantId == tenantId && (r.IsSoftDeleted != true))
+                .Where(r => r.TenantId == dto.Prop.TenantId && (r.IsSoftDeleted != true))
                 .AsQueryable();
 
             // ✅ Optional Filters
-            if (id > 0)
-                query = query.Where(r => r.Id == id);
+            if (dto.Id > 0)
+                query = query.Where(r => r.Id == dto.Id);
 
          
 
-            if (!string.IsNullOrWhiteSpace(request.RoleName))
-                query = query.Where(r => r.RoleName.ToLower().Contains(request.RoleName.ToLower()));
+            if (!string.IsNullOrWhiteSpace(dto.RoleName))
+                query = query.Where(r => r.RoleName.ToLower().Contains(dto.RoleName.ToLower()));
 
-            if (request.IsActive == true)
-                query = query.Where(r => r.IsActive == request.IsActive);
+            if (dto.IsActive == true)
+                query = query.Where(r => r.IsActive == dto.IsActive);
 
             if (roleType > 0)
                 query = query.Where(r => r.RoleType == roleType);
 
             // ✅ Sorting
 
-            query = request.SortBy?.ToLower() switch
+            query = dto.SortBy?.ToLower() switch
             {
-                "rolename" => request.SortOrder?.ToLower() == "asc"
+                "rolename" => dto.SortOrder?.ToLower() == "asc"
                     ? query.OrderBy(x => x.RoleName)
                     : query.OrderByDescending(x => x.RoleName),
 
-                "roletype" => request.SortOrder?.ToLower() == "asc"
+                "roletype" => dto.SortOrder?.ToLower() == "asc"
                     ? query.OrderBy(x => x.RoleType)
                     : query.OrderByDescending(x => x.RoleType),
 
@@ -622,23 +602,23 @@ public class RoleRepository : IRoleRepository
             // ✅ Pagination
             var totalRecords = await query.CountAsync();
             var roles = await query
-                .Skip((request.PageNumber - 1) * request.PageSize)
-                .Take(request.PageSize)
+                .Skip((dto.PageNumber - 1) * dto.PageSize)
+                .Take(dto.PageSize)
                 .ToListAsync();
 
             var mappedList = _mapper.Map<List<GetRoleResponseDTO>>(roles);
 
             response.Items = mappedList;
             response.TotalCount = totalRecords;
-            response.PageNumber = request.PageNumber;
-            response.PageSize = request.PageSize;
-            response.TotalPages = (int)Math.Ceiling((double)totalRecords / request.PageSize);
+            response.PageNumber = dto.PageNumber;
+            response.PageSize = dto.PageSize;
+            response.TotalPages = (int)Math.Ceiling((double)totalRecords / dto.PageSize);
 
-            _logger.LogInformation("✅ Retrieved {Count} roles for TenantId: {TenantId}", mappedList.Count, tenantId);
+            _logger.LogInformation("✅ Retrieved {Count} roles for TenantId: {TenantId}", mappedList.Count, dto.Prop.TenantId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Error fetching roles for TenantId: {TenantId}", tenantId);
+            _logger.LogError(ex, "❌ Error fetching roles for TenantId: {TenantId}", dto.Prop.TenantId);
             new List<GetRoleResponseDTO>();
         }
 
@@ -646,38 +626,31 @@ public class RoleRepository : IRoleRepository
     }
 
     #region Option-Complete
-    public async Task<ApiResponse<List<GetRoleOptionResponseDTO?>>> GetOptionAsync(GetRoleOptionRequestDTO dto, long tenantId)
+    public async Task<ApiResponse<List<GetRoleOptionResponseDTO?>>> GetOptionAsync(GetRoleOptionRequestDTO dto)
     {
         var response = new ApiResponse<List<GetRoleOptionResponseDTO?>>();
 
         try
         {
             using var context = _contextFactory.CreateDbContext();
-
-            // ✅ Parse RoleType safely
-            int roleType = 0;
-            if (!string.IsNullOrWhiteSpace(dto.RoleType))
-                roleType = SafeParser.TryParseInt(dto.RoleType);
-
+             
             // ✅ Base Query
             var query = context.Roles
-                .Where(x => x.TenantId == tenantId && x.IsSoftDeleted != true && x.IsActive);
-
-          
+                .Where(x => x.TenantId == dto.Prop.TenantId && x.IsSoftDeleted != true && x.IsActive);        
 
             // ✅ Conditional filter (apply only if roleType > 0)
-            if (roleType > 0)
-                query = query.Where(x => x.RoleType == roleType);
+            if (dto.RoleType > 0)
+                query = query.Where(x => x.RoleType == dto.RoleType);
 
             // ✅ Projection
             var roles = await query
                 .OrderBy(x => x.RoleName)
                 .Select(r => new GetRoleOptionResponseDTO
                 {
-                    Id = r.Id.ToString(),
+                    Id = r.Id,
                     RoleName = r.RoleName,
                     RoleType = r.RoleType,                      
-                   // IsActive = r.IsActive
+                    IsActive = r.IsActive
                     
                 })
                 .AsNoTracking()
@@ -693,7 +666,7 @@ public class RoleRepository : IRoleRepository
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Error fetching role options for TenantId {TenantId}", tenantId);
+            _logger.LogError(ex, "❌ Error fetching role options for TenantId {TenantId}", dto.Prop.TenantId);
 
             return new ApiResponse<List<GetRoleOptionResponseDTO?>>
             {

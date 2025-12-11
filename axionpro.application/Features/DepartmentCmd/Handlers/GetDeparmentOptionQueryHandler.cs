@@ -4,6 +4,7 @@ using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.DTOs.Department;
+using axionpro.application.DTOs.Designation;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Department;
 using axionpro.application.DTOS.Designation;
@@ -11,6 +12,7 @@ using axionpro.application.Features.DesignationCmd.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
+using axionpro.application.Interfaces.IRequestValidation;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using MediatR;
@@ -46,7 +48,7 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
         private readonly IConfiguration _config;
         private readonly IEncryptionService _encryptionService;
         private readonly IIdEncoderService _idEncoderService;
-
+        private readonly ICommonRequestService _commonRequestService;
 
 
         public GetDepartmentOptionQueryHandler(
@@ -57,7 +59,7 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,
-           IEncryptionService encryptionService, IIdEncoderService idEncoderService)
+           IEncryptionService encryptionService, IIdEncoderService idEncoderService, ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -68,6 +70,7 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
             _config = config;
             _encryptionService = encryptionService;
             _idEncoderService = idEncoderService;
+            _commonRequestService = commonRequestService;
         }
 
 
@@ -75,40 +78,20 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
         {
             try
             {
-                var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
-                   .ToString()?.Replace("Bearer ", "");
+                var validation = await _commonRequestService.ValidateRequestAsync(request.OptionDTO.UserEmployeeId);
 
-                if (string.IsNullOrEmpty(bearerToken))
-                    return ApiResponse<List<GetDepartmentOptionResponse>>.Fail("Unauthorized: Token not found.");
+                if (!validation.Success)
+                    return ApiResponse<List<GetDepartmentOptionResponse>>.Fail(validation.ErrorMessage);
 
-                var secretKey = TokenKeyHelper.GetJwtSecret(_config);
-                var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
+                // Assign decoded values coming from CommonRequestService
+                request.OptionDTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.OptionDTO.Prop.TenantId = validation.TenantId; 
 
-                if (tokenClaims == null || tokenClaims.IsExpired)
-                    return ApiResponse<List<GetDepartmentOptionResponse>>.Fail("Invalid or expired token.");
-
-
-                string tenantKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
-
-                if (string.IsNullOrEmpty(request.OptionDTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
-                {
-                    _logger.LogWarning("❌ Missing tenantKey or UserEmployeeId.");
-                    return ApiResponse<List<GetDepartmentOptionResponse>>.Fail("User invalid.");
-                }
-
-                string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
-                string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.OptionDTO.UserEmployeeId);
-                long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
-                long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
-
-                if (decryptedTenantId <= 0)
-                    return ApiResponse<List<GetDepartmentOptionResponse>>.Fail("Unauthorized: Tenant not found.");
-
-                var departments = await _unitOfWork.DepartmentRepository.GetOptionAsync(request.OptionDTO, decryptedTenantId);
+                var departments = await _unitOfWork.DepartmentRepository.GetOptionAsync(request.OptionDTO);
 
                 if (departments.Data == null || !departments.Data.Any())
                 {
-                    _logger.LogWarning("No departments found for tenant ID: {TenantId}", decryptedTenantId);
+                    _logger.LogWarning("No departments found for tenant ID: {TenantId}", request.OptionDTO.Prop.TenantId);
 
                     return new ApiResponse<List<GetDepartmentOptionResponse>>
                     {
@@ -119,7 +102,7 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                 }
 
                 _logger.LogInformation("Successfully retrieved {Count} departments for tenant {TenantId}.",
-                    departments.Data.Count, decryptedTenantId);
+                    departments.Data.Count, request.OptionDTO.Prop.TenantId);
 
                 return new ApiResponse<List<GetDepartmentOptionResponse>>
                 {
@@ -141,4 +124,6 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
             }
         }
     }
+
+
 }

@@ -126,20 +126,20 @@ namespace axionpro.persistance.Repositories
 
 
 
-        public async Task<PagedResponseDTO<GetIdentityResponseDTO>> GetInfo(GetIdentityRequestDTO dto, long employeeId, long id)
+        public async Task<PagedResponseDTO<GetIdentityResponseDTO>> GetInfo(GetIdentityRequestDTO dto)
         {
             try
             {
                 // 🧭 Base Query (Active & SoftDelete check)
                 var baseQuery = _context.EmployeePersonalDetails
                     .AsNoTracking()
-                    .Where(identity => identity.EmployeeId == employeeId
+                    .Where(identity => identity.EmployeeId == dto.Prop.EmployeeId
                                        && identity.IsActive == dto.IsActive
                                        && identity.IsSoftDeleted != true);
 
                 // 🗺️ Optional Filters
-                if (!string.IsNullOrWhiteSpace(dto.Id) && long.TryParse(dto.Id, out long parsedId) && parsedId > 0)
-                    baseQuery = baseQuery.Where(x => x.Id == parsedId);
+                if (dto.Prop.RowId >0)
+                    baseQuery = baseQuery.Where(x => x.Id == dto.Prop.RowId);
 
                 if (!string.IsNullOrWhiteSpace(dto.BloodGroup))
                     baseQuery = baseQuery.Where(x => x.BloodGroup.ToLower().Contains(dto.BloodGroup.ToLower()));
@@ -300,7 +300,7 @@ namespace axionpro.persistance.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error occurred while fetching identity info for EmployeeId: {EmployeeId}", employeeId);
+                _logger.LogError(ex, "❌ Error occurred while fetching identity info for EmployeeId: {EmployeeId}", dto.Prop.EmployeeId);
                 throw new Exception($"Failed to fetch identity info: {ex.Message}");
             }
         }

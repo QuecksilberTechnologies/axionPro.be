@@ -18,7 +18,7 @@ namespace axionpro.application.DTOS.Department
     public class GetDepartmentOptionResponse 
     {
 
-        public  string?  Id { get; set; }
+        public  int  Id { get; set; }
         public string DepartmentName { get; set; } = string.Empty;
        // public bool IsActive { get; set; }
     

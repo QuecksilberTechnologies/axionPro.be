@@ -11,6 +11,7 @@ namespace axionpro.application.DTOS.Common
         public string? UserEmployeeId { get; set; }  
         public  DateTime? TodaysDate { get; set; }        
       
-    
+        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
+
     }
 }

@@ -87,18 +87,18 @@ namespace axionpro.api.Controllers.Leave
                 });
             }
 
-            _logger.LogInformation("Received request to delete LeaveType Id: {Id} by UserId: {UserId}", request.Id, request.UserId);
+         //   _logger.LogInformation("Received request to delete LeaveType Id: {Id} by UserId: {UserId}", request.Id, request.UserId);
 
             var command = new DeleteLeavePolicyCommand(request);
             var result = await _mediator.Send(command);
 
             if (!result.IsSucceeded)
             {
-                _logger.LogWarning("Failed to delete LeaveType Id: {Id}", request.Id);
+         //       _logger.LogWarning("Failed to delete LeaveType Id: {Id}", request.Id);
                 return BadRequest(result);
             }
 
-            _logger.LogInformation("Successfully deleted LeaveType Id: {Id}", request.Id);
+         //   _logger.LogInformation("Successfully deleted LeaveType Id: {Id}", request.Id);
             return Ok(result);
         }
 

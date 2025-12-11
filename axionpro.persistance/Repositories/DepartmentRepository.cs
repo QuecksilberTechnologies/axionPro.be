@@ -64,7 +64,7 @@ namespace axionpro.persistance.Repositories
         }
 
 
-        public async Task<PagedResponseDTO<GetDepartmentResponseDTO>> GetAsync(GetDepartmentRequestDTO request, long tenantId, int id)
+        public async Task<PagedResponseDTO<GetDepartmentResponseDTO>> GetAsync(GetDepartmentRequestDTO request)
         {
             var response = new PagedResponseDTO<GetDepartmentResponseDTO>();
 
@@ -80,12 +80,12 @@ namespace axionpro.persistance.Repositories
 
                 // ✅ Base Query
                 var query = context.Departments
-                    .Where(d => d.TenantId == tenantId && d.IsSoftDeleted != true)
+                    .Where(d => d.TenantId == request.Prop.TenantId && d.IsSoftDeleted != true)
                     .AsQueryable();
 
                 // ✅ Optional Filters
-                if (id > 0)
-                    query = query.Where(d => d.Id == id);
+                if (request.Id > 0)
+                    query = query.Where(d => d.Id == request.Id);
 
                 if (!string.IsNullOrWhiteSpace(request.DepartmentName))
                     query = query.Where(d => d.DepartmentName.ToLower().Contains(request.DepartmentName.ToLower()));
@@ -149,7 +149,7 @@ namespace axionpro.persistance.Repositories
         /// </returns>
         /// <exception cref="ArgumentNullException">Thrown when the input DTO is null.</exception>
         /// <exception cref="Exception">Thrown when any error occurs during database operations.</exception>
-        public async Task<PagedResponseDTO<GetDepartmentResponseDTO>> CreateAsync(CreateDepartmentRequestDTO dto, long tenantId, long employeeId)
+        public async Task<PagedResponseDTO<GetDepartmentResponseDTO>> CreateAsync(CreateDepartmentRequestDTO dto)
         {
             var result = new PagedResponseDTO<GetDepartmentResponseDTO>();
 
@@ -161,7 +161,7 @@ namespace axionpro.persistance.Repositories
                 // 🧩 1️⃣ Validate Input
                 if (dto == null)
                 {
-                    _logger.LogWarning("⚠️ CreateAsync called with null Department DTO for TenantId: {TenantId}", tenantId);
+                    _logger.LogWarning("⚠️ CreateAsync called with null Department DTO for TenantId: {TenantId}", dto.Prop.TenantId);
                     throw new ArgumentNullException(nameof(dto), "Department object cannot be null.");
                 }
 
@@ -170,13 +170,13 @@ namespace axionpro.persistance.Repositories
                 // 🧩 2️⃣ Check for Duplicate Department (case-insensitive)
                 bool exists = await context.Departments
                     .AnyAsync(d =>
-                        d.TenantId == tenantId &&
+                        d.TenantId == dto.Prop.TenantId &&
                         EF.Functions.Like(d.DepartmentName.ToLower(), dto.DepartmentName.ToLower()) &&
                         (d.IsSoftDeleted != true));
 
                 if (exists)
                 {
-                    _logger.LogWarning("⚠️ Department '{Name}' already exists for TenantId {TenantId}.", dto.DepartmentName, tenantId);
+                    _logger.LogWarning("⚠️ Department '{Name}' already exists for TenantId {TenantId}.", dto.DepartmentName, dto.Prop.TenantId);
 
                     result.Items = new List<GetDepartmentResponseDTO>();
                     result.TotalCount = 0;
@@ -187,8 +187,8 @@ namespace axionpro.persistance.Repositories
 
                 // 🧩 3️⃣ Map DTO → Entity
                 var entity = _mapper.Map<Department>(dto);
-                entity.TenantId = tenantId;
-                entity.AddedById = employeeId;
+                entity.TenantId = dto.Prop.TenantId;
+                entity.AddedById = dto.Prop.UserEmployeeId;
                 entity.AddedDateTime = DateTime.UtcNow;
                 entity.IsActive = true;
                 entity.IsSoftDeleted = false;
@@ -199,12 +199,12 @@ namespace axionpro.persistance.Repositories
                 await context.SaveChangesAsync();
 
                 _logger.LogInformation("✅ Department '{Name}' created successfully with Id: {Id} for TenantId: {TenantId}",
-                    dto.DepartmentName, entity.Id, tenantId);
+                    dto.DepartmentName, entity.Id, dto.Prop.TenantId);
 
                 // 🧩 5️⃣ Fetch latest 10 active departments (newest first)
                 var query = context.Departments
                     .AsNoTracking()
-                    .Where(d => d.TenantId == tenantId && (d.IsSoftDeleted !=true))
+                    .Where(d => d.TenantId == dto.Prop.TenantId && (d.IsSoftDeleted !=true))
                     .OrderByDescending(d => d.Id);
 
                 int totalCount = await query.CountAsync();
@@ -228,7 +228,7 @@ namespace axionpro.persistance.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error while creating department for TenantId {TenantId}: {Message}", tenantId, ex.Message);
+                _logger.LogError(ex, "❌ Error while creating department for TenantId {TenantId}: {Message}", dto.Prop.TenantId, ex.Message);
                 throw new Exception("An error occurred while creating the department.", ex);
             }
         }
@@ -239,13 +239,10 @@ namespace axionpro.persistance.Repositories
         /// </summary>
         /// <param name="department">The DTO containing updated department details.</param>
         /// <returns>True if update succeeds; otherwise false.</returns>
-        public async Task<bool> UpdateAsync(UpdateDepartmentRequestDTO requestDTO, long EmployeeId, int Id)
+        public async Task<bool> UpdateAsync(UpdateDepartmentRequestDTO requestDTO)
         {
             try
             {
-
-
-
                 // 🔹 Step 1: Input validation
                 if (requestDTO == null)
                 {
@@ -256,7 +253,7 @@ namespace axionpro.persistance.Repositories
 
                 // 🔹 Step 2: Fetch existing department
                 var existing = await _context.Departments
-                    .FirstOrDefaultAsync(d => d.Id == Id && d.IsSoftDeleted != true);
+                    .FirstOrDefaultAsync(d => d.Id == requestDTO.Id && d.IsSoftDeleted != true);
 
 
                 if (existing == null)
@@ -280,7 +277,7 @@ namespace axionpro.persistance.Repositories
                     if (requestDTO.IsActive.HasValue)
                         existing.IsActive = requestDTO.IsActive.Value;
 
-                    existing.UpdatedById = EmployeeId;
+                    existing.UpdatedById = requestDTO.Prop.UserEmployeeId;
                     existing.UpdatedDateTime = DateTime.UtcNow;
 
                     // Optional: Handle TenantIndustryId only if present
@@ -311,17 +308,11 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                // ✅ Null aur invalid ID validation
-                if (dto == null || dto.Id == "0")
-                {
-                    _logger.LogWarning("Invalid DeleteDepartmentRequestDTO or Id: {Id}", dto?.Id);
-                    return false;
-                }
-
+              
 
                 // ✅ Record fetch with safety check
                 var department = await _context.Departments
-                    .FirstOrDefaultAsync(d => d.Id == id && d.IsSoftDeleted != true);
+                    .FirstOrDefaultAsync(d => d.Id == dto.Id && d.IsSoftDeleted != true);
 
                 if (department == null)
                 {
@@ -412,7 +403,7 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<ApiResponse<List<GetDepartmentOptionResponse?>>> GetOptionAsync(GetOptionRequestDTO dto, long tenantId)
+        public async Task<ApiResponse<List<GetDepartmentOptionResponse?>>> GetOptionAsync(GetOptionRequestDTO dto)
         {
             {
                 var response = new ApiResponse<List<GetDepartmentOptionResponse?>>();
@@ -425,7 +416,7 @@ namespace axionpro.persistance.Repositories
 
 
                     var query = context.Departments
-                        .Where(x => x.TenantId == tenantId && x.IsSoftDeleted != true && x.IsActive == true);
+                        .Where(x => x.TenantId == dto.Prop.TenantId && x.IsSoftDeleted != true && x.IsActive == true);
 
 
                     // ✅ Projection
@@ -433,7 +424,7 @@ namespace axionpro.persistance.Repositories
                         .OrderBy(x => x.DepartmentName)
                         .Select(r => new GetDepartmentOptionResponse
                         {
-                            Id = r.Id.ToString(),
+                            Id = r.Id,
                             DepartmentName = r.DepartmentName.ToString(),
 
                             // IsActive = r.IsActive

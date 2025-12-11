@@ -10,9 +10,9 @@ namespace axionpro.application.DTOS.Employee.CompletionPercentage
 
     public class EmployeeProfileCompletionDTO
     {
-        public CompletionSectionDTO Bank { get; set; }
-        public CompletionSectionDTO Education { get; set; }
-        public CompletionSectionDTO Experience { get; set; }
+        public CompletionSectionDTO? Bank { get; set; }
+        public CompletionSectionDTO? Education { get; set; }
+        public CompletionSectionDTO? Experience { get; set; }
     }
 
 

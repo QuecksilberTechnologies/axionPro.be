@@ -6,6 +6,7 @@ using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.DTOs.Department;
 using axionpro.application.DTOs.Designation;
+using axionpro.application.DTOS.Common;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
@@ -70,6 +71,10 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                 var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
                     .ToString()?.Replace("Bearer ", "");
 
+                if (request.DTO.Prop == null)
+                {
+                    request.DTO.Prop = new ExtraPropRequestDTO();
+                }
                 if (string.IsNullOrEmpty(bearerToken))
                     return ApiResponse<List<GetDepartmentResponseDTO>>.Fail("Unauthorized: Token not found.");
 
@@ -98,25 +103,25 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
 
                 string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
                 string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
-                long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
-                long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
+                request.DTO.Prop.UserEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
+                request.DTO.Prop.TenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
                 
 
 
                 // 🧩 STEP 4: Validate all employee references
 
 
-                if (decryptedTenantId <= 0 || decryptedEmployeeId <= 0)
+                if (request.DTO.Prop.UserEmployeeId <= 0 || request.DTO.Prop.TenantId <= 0)
                 {
                     _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
                     return ApiResponse<List<GetDepartmentResponseDTO>>.Fail("Tenant or employee information missing.");
                 }
 
-                if (!(decryptedEmployeeId == loggedInEmpId))
+                if (!(request.DTO.Prop.UserEmployeeId == loggedInEmpId))
                 {
                     _logger.LogWarning(
                         "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
-                         decryptedEmployeeId, loggedInEmpId
+                          request.DTO.Prop.UserEmployeeId, loggedInEmpId
                     );
 
                     return ApiResponse<List<GetDepartmentResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
@@ -140,12 +145,12 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                 }
 
                 // 🧩 STEP 6: Create Department
-                var responseDTO = await _unitOfWork.DepartmentRepository.CreateAsync(request.DTO, decryptedTenantId, decryptedEmployeeId);
+                var responseDTO = await _unitOfWork.DepartmentRepository.CreateAsync(request.DTO);
 
                 // 🧩 STEP 7: Validate Response
                 if (responseDTO.Items == null || !responseDTO.Items.Any())
                 {
-                    _logger.LogWarning("❌ Department creation failed or empty result. TenantId: {TenantId}", decryptedTenantId);
+                    _logger.LogWarning("❌ Department creation failed or empty result. TenantId: {TenantId}", request.DTO.Prop.UserEmployeeId);
                     return ApiResponse<List<GetDepartmentResponseDTO>>.Fail("No department was created. Please try again.");
                 }
 

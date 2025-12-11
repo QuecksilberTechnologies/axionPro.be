@@ -1,4 +1,5 @@
-﻿using axionpro.application.DTOS.Pagination;
+﻿using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Pagination;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -26,15 +27,13 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         public DateTime? DateOfBirth { get; set; }
 
         public DateTime? DateOfOnBoarding { get; set; }
-
         public string? DesignationId { get; set; }  
-
         public bool? HasPermanent { get; set; }
-        public string? TypeId { get; set; }
+        public int TypeId { get; set; }
         public bool IsActive { get; set; }
         public bool? IsEditAllowed { get; set; }  
-        public bool? IsInfoVerified { get; set; } 
-
+        public bool? IsInfoVerified { get; set; }
+        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
 
 
     }

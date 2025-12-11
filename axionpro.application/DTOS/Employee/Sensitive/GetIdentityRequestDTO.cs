@@ -1,4 +1,5 @@
-﻿using axionpro.application.DTOS.Pagination;
+﻿using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Pagination;
 using System;
 using System;
 using System.Collections.Generic;
@@ -22,5 +23,6 @@ namespace axionpro.application.DTOS.Employee.Sensitive
         public bool? HasAadhaarIdUploaded { get; set; }
         public bool? HasPanIdUploaded { get; set; }
         public bool? HasPassportIdUploaded { get; set; }
+        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
     }
 }

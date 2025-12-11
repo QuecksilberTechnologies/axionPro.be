@@ -19,13 +19,13 @@ namespace axionpro.application.Interfaces.IRepositories
     public interface IRoleRepository
         {
         Task<GetSingleRoleResponseDTO?> GetByIdAsync1(GetSingleRoleRequestDTO dto);
-        Task<ApiResponse<List<GetRoleOptionResponseDTO?>>> GetOptionAsync(GetRoleOptionRequestDTO dto, long tenantId);
+        Task<ApiResponse<List<GetRoleOptionResponseDTO?>>> GetOptionAsync(GetRoleOptionRequestDTO dto);
 
         Task<bool> DeleteAsync(DeleteRoleRequestDTO requestDTO, long EmployeeId, int id);
-        Task<PagedResponseDTO<GetRoleResponseDTO>> CreateAsync(CreateRoleRequestDTO dto, long TenantId, long EmployeeId);
-        Task<PagedResponseDTO<GetRoleResponseDTO>> GetAsync(GetRoleRequestDTO request, long tenantId , int Id);
+        Task<PagedResponseDTO<GetRoleResponseDTO>> CreateAsync(CreateRoleRequestDTO dto);
+        Task<PagedResponseDTO<GetRoleResponseDTO>> GetAsync(GetRoleRequestDTO dto);
               
-        Task<bool> UpdateAsync(UpdateRoleRequestDTO requestDTO, long EmployeeId); 
+        Task<bool> UpdateAsync(UpdateRoleRequestDTO requestDTO); 
         Task<Role> AutoCreatedSingleTenantRoleAsync(Role role);
         Task<int> AutoCreatedForTenantRoleAsync(List<Role> roles);
         Task<int> AutoCreateUserRoleAndAutomatedRolePermissionMappingAsync(long? TenantId, long employeeId, int role);

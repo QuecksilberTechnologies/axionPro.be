@@ -6,12 +6,14 @@ using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.DTOs.Department;
 using axionpro.application.DTOs.Designation;
+using axionpro.application.DTOs.Role;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.IRepositories;
+using axionpro.application.Interfaces.IRequestValidation;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using MediatR;
@@ -54,6 +56,7 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
         private readonly IConfiguration _config;
         private readonly IEncryptionService _encryptionService;
         private readonly IIdEncoderService _idEncoderService;
+        ICommonRequestService _commonRequestService;
 
         public CreateDesignationCommandHandler(
             IUnitOfWork unitOfWork,
@@ -63,7 +66,7 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,
-                IEncryptionService encryptionService, IIdEncoderService idEncoderService)
+                IEncryptionService encryptionService, IIdEncoderService idEncoderService, ICommonRequestService commonRequestService)
         {
 
             _unitOfWork = unitOfWork;
@@ -75,74 +78,30 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
             _config = config;
             _encryptionService = encryptionService;
             _idEncoderService = idEncoderService;   
+            _commonRequestService = commonRequestService;
         }
         public async Task<ApiResponse<List<GetDesignationResponseDTO>>> Handle(CreateDesignationCommand request, CancellationToken cancellationToken)
         {
             try
             {
-                // 🧩 STEP 1: Validate JWT Token
-                var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
-                    .ToString()?.Replace("Bearer ", "");
+                //  COMMON VALIDATION (Mandatory)
+                var validation = await _commonRequestService.ValidateRequestAsync(request.DTO.UserEmployeeId);
 
-                if (string.IsNullOrEmpty(bearerToken))
-                    return ApiResponse<List<GetDesignationResponseDTO>>.Fail("Unauthorized: Token not found.");
+                if (!validation.Success)
+                    return ApiResponse<List<GetDesignationResponseDTO>>.Fail(validation.ErrorMessage);
 
-                var secretKey = TokenKeyHelper.GetJwtSecret(_config);
-                var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
-
-                if (tokenClaims == null || tokenClaims.IsExpired)
-                    return ApiResponse<List<GetDesignationResponseDTO>>.Fail("Invalid or expired token.");
-
-                // 🧩 STEP 2: Validate Active User
-                long loggedInEmpId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
-                if (loggedInEmpId < 1)
-                {
-                    _logger.LogWarning("❌ Invalid or inactive user. LoginId: {LoginId}", tokenClaims.UserId);
-                    return ApiResponse<List<GetDesignationResponseDTO>>.Fail("Unauthorized or inactive user.");
-                }
-
-                // 🧩 STEP 3: Tenant and Employee info validation from token
-                string tenantKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
-
-                if (string.IsNullOrEmpty(request.DTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
-                {
-                    _logger.LogWarning("❌ Missing tenantKey or UserEmployeeId.");
-                    return ApiResponse<List<GetDesignationResponseDTO>>.Fail("User invalid.");
-                }
-
-                // Decrypt / convert values
-
-                string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
-                string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
-                long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
-                long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
-                request.DTO.DepartmentId = EncryptionSanitizer.CleanEncodedInput(request.DTO.DepartmentId);
-                //  string Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
-                // request.DTO.Id = (_idEncoderService.DecodeString(Id, finalKey)).ToString();
+                // Assign decoded values coming from CommonRequestService
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
 
 
+                // ✅ Create  using repository
+                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
 
-
-                if (decryptedTenantId <= 0 || decryptedEmployeeId <= 0)
-                {
-                    _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
-                    return ApiResponse<List<GetDesignationResponseDTO>>.Fail("Tenant or employee information missing.");
-                }
-
-                if (!(decryptedEmployeeId == loggedInEmpId))
-                {
-                    _logger.LogWarning(
-                        "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
-                         decryptedEmployeeId, loggedInEmpId
-                    );
-
-                    return ApiResponse<List<GetDesignationResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
-                }
-               
-                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
+                
                 if (!permissions.Contains("AddBankInfo"))
                 {
-                    await _unitOfWork.RollbackTransactionAsync();
+                   // await _unitOfWork.RollbackTransactionAsync();
                     //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
                 }
 
@@ -160,7 +119,7 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                 request.DTO.DesignationName = designationName;
 
                 // ✅ Check duplicate
-                bool isDuplicate = await  _unitOfWork.DesignationRepository .CheckDuplicateValueAsync(decryptedTenantId, designationName);
+                bool isDuplicate = await  _unitOfWork.DesignationRepository .CheckDuplicateValueAsync(request.DTO.Prop.UserEmployeeId, designationName);
 
                 if (isDuplicate)
                 {
@@ -173,7 +132,7 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                 }
 
                 // ✅ Create designation using repository
-                var responseDTO = await _unitOfWork.DesignationRepository.CreateAsync(request.DTO, decryptedTenantId, decryptedEmployeeId);
+                var responseDTO = await _unitOfWork.DesignationRepository.CreateAsync(request.DTO);
 
                 if (responseDTO == null || responseDTO.Items == null || !responseDTO.Items.Any())
                 {

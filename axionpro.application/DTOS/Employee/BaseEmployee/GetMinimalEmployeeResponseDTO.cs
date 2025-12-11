@@ -14,12 +14,12 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         public string? MiddleName { get; set; }
         public string? LastName { get; set; }
         public string EmployementCode { get; set; } = null!;
-        public int? EmployeeTypeId { get; set; }
+        public int EmployeeTypeId { get; set; }
         public string? EmployeeTypeName { get; set; }
         public string? DepartmentName { get; set; }
         public string? DesignationName { get; set; }
-        public int? DepartmentId { get; set; }
-        public int? DesignationId { get; set; }
+        public int DepartmentId { get; set; }
+        public int DesignationId { get; set; }
         public string? OfficialEmail { get; set; }
         public bool IsActive { get; set; }
         public bool IsSoftDeleted { get; set; }

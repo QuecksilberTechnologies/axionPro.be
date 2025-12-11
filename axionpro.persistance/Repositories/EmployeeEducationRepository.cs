@@ -83,7 +83,7 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<PagedResponseDTO<GetEducationResponseDTO>> GetInfo(GetEducationRequestDTO dto, long employeeId, long id)
+        public async Task<PagedResponseDTO<GetEducationResponseDTO>> GetInfo(GetEducationRequestDTO dto)
         {
             double averagePercentage = 0;
             bool hasUploadedAll = false;
@@ -105,7 +105,7 @@ namespace axionpro.persistance.Repositories
                 var baseQuery = _context.EmployeeEducations
                     .AsNoTracking()
                     .Where(edu =>
-                        edu.EmployeeId == employeeId &&
+                        edu.EmployeeId == dto.Prop.EmployeeId &&
                         (dto.IsActive == null || edu.IsActive == dto.IsActive) &&
                         (edu.IsSoftDeleted != true)
                     );
@@ -113,8 +113,9 @@ namespace axionpro.persistance.Repositories
                 // -----------------
                 // Filters
                 // -----------------
-                if (id > 0)
-                    baseQuery = baseQuery.Where(x => x.Id == id);
+
+                //if (dto.Prop.RowId > 0)
+                //    baseQuery = baseQuery.Where(x => x.Id == dto.Prop.RowId);
 
                 if (!string.IsNullOrEmpty(dto.InstituteName))
                     baseQuery = baseQuery.Where(x => x.InstituteName.Contains(dto.InstituteName));
@@ -223,7 +224,7 @@ namespace axionpro.persistance.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching education info for EmployeeId: {EmployeeId}", employeeId);
+                _logger.LogError(ex, "Error fetching education info for EmployeeId: {EmployeeId}", dto.Prop.EmployeeId);
                 throw new Exception($"Failed: {ex.Message}");
             }
         }

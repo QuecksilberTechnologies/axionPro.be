@@ -14,9 +14,6 @@ namespace axionpro.application.DTOS.Designation
         public string? DesignationName { get; set; }
         public string? Description { get; set; }
         public bool IsActive { get; set; }
-        public DateTime AddedDateTime { get; set; }
-        public string AddedById { get; set; }
-        public DateTime? UpdatedDateTime { get; set; }
-        public string? UpdatedById { get; set; }
+    
     }
 }
