@@ -100,7 +100,7 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
 
                     return new ApiResponse<List<GetDesignationResponseDTO>>
                     {
-                        IsSucceeded = true,
+                        IsSucceeded = false,
                         Message = "No records found.",
                         Data = new List<GetDesignationResponseDTO>(),
                         PageNumber = request.DTO.PageNumber,

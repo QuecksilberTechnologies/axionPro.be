@@ -263,97 +263,96 @@ namespace axionpro.persistance.Repositories
 
 
         #region Get-Complete
-        //public async Task<PagedResponseDTO<GetDesignationResponseDTO>> GetAsync(GetDesignationRequestDTO request)
-        //{
-        //    var response = new PagedResponseDTO<GetDesignationResponseDTO>();
+        public async Task<PagedResponseDTO<GetDesignationResponseDTO>> GetAsync(GetDesignationRequestDTO request)
+        {
+            var response = new PagedResponseDTO<GetDesignationResponseDTO>();
 
-        //    try
-        //    {
-        //        if (request == null)
-        //        {
-        //            _logger.LogWarning("⚠️ GetAsync called with null request DTO.");
-        //            return response;
-        //        }
+            try
+            {
+                if (request == null)
+                {
+                    _logger.LogWarning("⚠️ GetAsync called with null request DTO.");
+                    return response;
+                }
 
-        //        await using var context = await _contextFactory.CreateDbContextAsync();
-
-               
-
-        //        // ✅ Base query (join with Department)
-        //        var query =
-        //            from des in context.Designations
-        //            join dep in context.Departments
-        //                on des.DepartmentId equals dep.Id into deptGroup
-        //            from dept in deptGroup.DefaultIfEmpty()
-        //            where des.TenantId == request.Prop.TenantId
-        //                  && des.IsSoftDeleted != true
-        //                  && (dept == null || (dept.IsSoftDeleted != true && dept.IsActive == true))
-        //            select new
-        //            {
-        //                des,
-        //                DepartmentName = dept != null ? dept.DepartmentName : string.Empty
-        //            };
-
-                 
-        //        // ✅ Optional Filters
-        //        if (request.DepartmentId > 0)
-        //            query = query.Where(x => x.des.Id == id);
-
-        //        if (!string.IsNullOrWhiteSpace(request.DesignationName))
-        //            query = query.Where(x => x.des.DesignationName.ToLower().Contains(request.DesignationName.ToLower()));
-
-        //        if (request.IsActive.HasValue)
-        //            query = query.Where(x => x.des.IsActive == request.IsActive.Value);
-
-        //        if (departmentId > 0)
-        //            query = query.Where(x => x.des.DepartmentId == departmentId);
+                await using var context = await _contextFactory.CreateDbContextAsync();
 
 
-        //        // ✅ Sorting
-        //        query = request.SortBy?.ToLower() switch
-        //        {
-        //            "designationname" => request.SortOrder?.ToLower() == "asc"
-        //                ? query.OrderBy(x => x.des.DesignationName)
-        //                : query.OrderByDescending(x => x.des.DesignationName),
 
-        //            "departmentname" => request.SortOrder?.ToLower() == "asc"
-        //                ? query.OrderBy(x => x.DepartmentName)
-        //                : query.OrderByDescending(x => x.DepartmentName),
+                // ✅ Base query (join with Department)
+                var query =
+                    from des in context.Designations
+                    join dep in context.Departments
+                        on des.DepartmentId equals dep.Id into deptGroup
+                    from dept in deptGroup.DefaultIfEmpty()
+                    where des.TenantId == request.Prop.TenantId
+                          && des.IsSoftDeleted != true
+                          && (dept == null || (dept.IsSoftDeleted != true && dept.IsActive == true))
+                    select new
+                    {
+                        des,
+                        DepartmentName = dept != null ? dept.DepartmentName : string.Empty
+                    };
 
-        //            _ => query.OrderByDescending(x => x.des.Id) // Default sort by Id descending
-        //        };
 
-        //        // ✅ Pagination
-        //        var totalRecords = await query.CountAsync();
-        //        var designations = await query
-        //            .Skip((request.PageNumber - 1) * request.PageSize)
-        //            .Take(request.PageSize)
-        //            .ToListAsync();
+                // ✅ Optional Filters
+                if (request.DepartmentId > 0)
+                    query = query.Where(x => x.des.DepartmentId == request.DepartmentId);
 
-        //        // ✅ Mapping to DTO (manual mapping with DepartmentName)
-        //        var mappedList = designations.Select(x =>
-        //        {
-        //            var dto = _mapper.Map<GetDesignationResponseDTO>(x.des);
-        //            dto.DepartmentName = x.DepartmentName ?? string.Empty;
-        //            return dto;
-        //        }).ToList();
+                if (!string.IsNullOrWhiteSpace(request.DesignationName))
+                    query = query.Where(x => x.des.DesignationName.ToLower()
+                                 .Contains(request.DesignationName.ToLower()));
 
-        //        response.Items = mappedList;
-        //        response.TotalCount = totalRecords;
-        //        response.PageNumber = request.PageNumber;
-        //        response.PageSize = request.PageSize;
-        //        response.TotalPages = (int)Math.Ceiling((double)totalRecords / request.PageSize);
+                if (request.IsActive.HasValue)
+                    query = query.Where(x => x.des.IsActive == request.IsActive.Value);
 
-        //        _logger.LogInformation("✅ Retrieved {Count} designations for TenantId: {TenantId}", mappedList.Count, tenantId);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "❌ Error fetching designations for TenantId: {TenantId}", tenantId);
-        //        response.Items = new List<GetDesignationResponseDTO>();
-        //    }
 
-        //    return response;
-        //}
+
+                // ✅ Sorting
+                query = request.SortBy?.ToLower() switch
+                {
+                    "designationname" => request.SortOrder?.ToLower() == "asc"
+                        ? query.OrderBy(x => x.des.DesignationName)
+                        : query.OrderByDescending(x => x.des.DesignationName),
+
+                    "departmentname" => request.SortOrder?.ToLower() == "asc"
+                        ? query.OrderBy(x => x.DepartmentName)
+                        : query.OrderByDescending(x => x.DepartmentName),
+
+                    _ => query.OrderByDescending(x => x.des.Id) // Default sort by Id descending
+                };
+
+                // ✅ Pagination
+                var totalRecords = await query.CountAsync();
+                var designations = await query
+                    .Skip((request.PageNumber - 1) * request.PageSize)
+                    .Take(request.PageSize)
+                    .ToListAsync();
+
+                // ✅ Mapping to DTO (manual mapping with DepartmentName)
+                var mappedList = designations.Select(x =>
+                {
+                    var dto = _mapper.Map<GetDesignationResponseDTO>(x.des);
+                    dto.DepartmentName = x.DepartmentName ?? string.Empty;
+                    return dto;
+                }).ToList();
+
+                response.Items = mappedList;
+                response.TotalCount = totalRecords;
+                response.PageNumber = request.PageNumber;
+                response.PageSize = request.PageSize;
+                response.TotalPages = (int)Math.Ceiling((double)totalRecords / request.PageSize);
+
+                _logger.LogInformation("✅ Retrieved {Count} designations for TenantId: {TenantId}", mappedList.Count, request.Prop.TenantId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error fetching designations for TenantId: {TenantId}", request.Prop.TenantId);
+                response.Items = new List<GetDesignationResponseDTO>();
+            }
+
+            return response;
+        }
 
         #endregion
 
@@ -507,10 +506,7 @@ namespace axionpro.persistance.Repositories
         
         }
 
-        public Task<PagedResponseDTO<GetDesignationResponseDTO>> GetAsync(GetDesignationRequestDTO dTO)
-        {
-            throw new NotImplementedException();
-        }
+        
     }
 
 
