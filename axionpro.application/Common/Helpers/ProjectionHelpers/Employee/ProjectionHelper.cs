@@ -167,7 +167,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 {
                     item.EmployeeId = encoderService.EncodeId(rawId, tenantKey);
                 }
-                item.EmployeeImagePath ??= string.Empty;
+                item.EmployeeImagePath ??= null;
 
                 // 📁 Final Image URL build
                 if (!string.IsNullOrEmpty(item.EmployeeImagePath))
