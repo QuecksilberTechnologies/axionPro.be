@@ -26,7 +26,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         public DateTime? DateOfBirth { get; set; }
         public DateTime? DateOfOnBoarding { get; set; }
         public bool? IsMarried { get; set; }   
-        public int? EmployeeTypeId { get; set; }       
+        public int EmployeeTypeId { get; set; }       
         public int? GenderId { get; set; }
         public int  DesignationId { get; set; }
         public int? DepartmentId { get; set; }

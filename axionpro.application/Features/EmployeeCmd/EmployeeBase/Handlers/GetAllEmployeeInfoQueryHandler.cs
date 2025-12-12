@@ -5,6 +5,7 @@ using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.DTOs.Designation;
+using axionpro.application.DTOs.Role;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Pagination; 
  
@@ -12,6 +13,7 @@ using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.IRepositories;
+using axionpro.application.Interfaces.IRequestValidation;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using MediatR;
@@ -44,6 +46,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         private readonly IConfiguration _config;
         private readonly IEncryptionService _encryptionService;
         private readonly IIdEncoderService _idEncoderService;
+        private readonly ICommonRequestService _commonRequestService;
 
         public GetAllEmployeeInfoQueryHandler(
             IUnitOfWork unitOfWork,
@@ -53,7 +56,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,
-            IEncryptionService encryptionService, IIdEncoderService idEncoderService)
+            IEncryptionService encryptionService, IIdEncoderService idEncoderService, ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -64,94 +67,41 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             _config = config;
             _encryptionService = encryptionService;
             _idEncoderService = idEncoderService;
+            _commonRequestService = commonRequestService;
         }
 
         public async Task<ApiResponse<List<GetAllEmployeeInfoResponseDTO>>> Handle(GetAllEmployeeInfoQuery request, CancellationToken cancellationToken)
         {
             try
             {
-                // 🧩 STEP 1: Validate JWT Token
+                // 1️⃣ COMMON VALIDATION (Mandatory)
+                var validation = await _commonRequestService.ValidateRequestAsync(request.DTO.UserEmployeeId);
 
-                // 🧩 STEP 1: Validate JWT Token
-                var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
-                    .ToString()?.Replace("Bearer ", "");
+                if (!validation.Success)
+                    return ApiResponse<List<GetAllEmployeeInfoResponseDTO>>.Fail(validation.ErrorMessage);
 
-
-                if (string.IsNullOrEmpty(bearerToken))
-                    return ApiResponse<List<GetAllEmployeeInfoResponseDTO>>.Fail("Unauthorized: Token not found.");
-
-                var secretKey = TokenKeyHelper.GetJwtSecret(_config);
-                var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
-
-                if (tokenClaims == null || tokenClaims.IsExpired)
-                    return ApiResponse<List<GetAllEmployeeInfoResponseDTO>>.Fail("Invalid or expired token.");
-
-                // 🧩 STEP 2: Validate Active User
-                long loggedInEmpId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
-                if (loggedInEmpId < 1)
-                {
-                    _logger.LogWarning("❌ Invalid or inactive user. LoginId: {LoginId}", tokenClaims.UserId);
-                    return ApiResponse<List<GetAllEmployeeInfoResponseDTO>>.Fail("Unauthorized or inactive user.");
-                }
-
-                // 🧩 STEP 3: Tenant and Employee info validation from token
-                string tenantKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
-
-                if (string.IsNullOrEmpty(request.DTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
-                {
-                    _logger.LogWarning("❌ Missing tenantKey or UserEmployeeId.");
-                    return ApiResponse<List<GetAllEmployeeInfoResponseDTO>>.Fail("User invalid.");
-                }
+                // Assign decoded values coming from CommonRequestService
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
 
 
-
-                if (string.IsNullOrEmpty(request.DTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
-                {
-                    _logger.LogWarning("❌ Missing tenantKey or UserEmployeeId.");
-                    return ApiResponse<List<GetAllEmployeeInfoResponseDTO>>.Fail("User invalid.");
-                }
-
-                // Decrypt / convert values
-                string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
-                string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
-                request.DTO.Prop.UserEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
-                request.DTO.Prop.TenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
-                 request.DTO.Prop.EmployeeId = _idEncoderService.DecodeId(request.DTO.EmployeeId, finalKey);
-                request.DTO.SortOrder = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortOrder);
-                request.DTO.SortBy = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortBy);
-
-                // 🧩 STEP 4: Validate all employee references
-
-
-                if (request.DTO.Prop.TenantId <= 0 || request.DTO.Prop.UserEmployeeId <= 0)
-                {
-                    _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
-                    return ApiResponse<List<GetAllEmployeeInfoResponseDTO>>.Fail("Tenant or employee information missing.");
-                }
-
-                if (!(request.DTO.Prop.UserEmployeeId == loggedInEmpId))
-                {
-                    _logger.LogWarning(
-                        "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
-                         request.DTO.Prop.UserEmployeeId, loggedInEmpId
-                    );
-                }
-                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
+                // ✅ Create  using repository
+                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
                 if (!permissions.Contains("AddBankInfo"))
                 {
-                    await _unitOfWork.RollbackTransactionAsync();
+                    //await _unitOfWork.RollbackTransactionAsync();
                     //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
                 }
-                // 🧩 STEP 4: Call Repository to get data
-                // 🧩 STEP 4: Call Repository to get data
-                PagedResponseDTO <GetAllEmployeeInfoResponseDTO> responseDTO = await _unitOfWork.Employees.GetAllInfo(request.DTO);
+
+
+                PagedResponseDTO<GetAllEmployeeInfoResponseDTO> responseDTO = await _unitOfWork.Employees.GetAllInfo(request.DTO);
                 if (responseDTO == null || !responseDTO.Items.Any())
                 {
                     _logger.LogInformation("No Base Employee info found for EmployeeId: {EmpId}", request.DTO.Prop.UserEmployeeId );
                     return ApiResponse<List<GetAllEmployeeInfoResponseDTO>>.Fail("No Base Employee info found.");
                 }
 
-                var resultList = ProjectionHelper.ToGetAllEmployeeInfoResponseDTOs(responseDTO, _idEncoderService, tenantKey, _config);
+                var resultList = ProjectionHelper.ToGetAllEmployeeInfoResponseDTOs(responseDTO, _idEncoderService, validation.Claims.TenantEncriptionKey, _config);
 
                 return ApiResponse<List<GetAllEmployeeInfoResponseDTO>>.SuccessPaginatedPercentage(
                     Data: resultList,
@@ -166,7 +116,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "🔥 Error while fetching Base Employee info for EmployeeId: {EmployeeId}", request.DTO?.UserEmployeeId);
+                _logger.LogError(ex, "Error while fetching Base Employee info for EmployeeId: {EmployeeId}", request.DTO?.UserEmployeeId);
                 return ApiResponse<List<GetAllEmployeeInfoResponseDTO>>.Fail("An unexpected error occurred.", new List<string> { ex.Message });
             }
         }
