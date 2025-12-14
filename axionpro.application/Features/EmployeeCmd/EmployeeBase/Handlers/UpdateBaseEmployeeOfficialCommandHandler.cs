@@ -117,6 +117,8 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // ---------- 4️⃣ APPLY OFFICIAL UPDATES (SAFE) ----------
                 // ---------- APPLY OFFICIAL UPDATE (CONSISTENT PATTERN) ----------
 
+                // 5️⃣ APPLY UPDATES (ONLY IF PROVIDED)
+
                 if (request.DTO.DesignationId.HasValue)
                     existingEmployee.DesignationId = request.DTO.DesignationId.Value;
 
@@ -128,55 +130,47 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 
                 if (request.DTO.GenderId.HasValue)
                     existingEmployee.GenderId = request.DTO.GenderId.Value;
-               
-                if (!string.IsNullOrEmpty(request.DTO.Remark))
+
+                if (!string.IsNullOrWhiteSpace(request.DTO.Remark))
                     existingEmployee.Remark = request.DTO.Remark;
 
                 if (request.DTO.IsEditAllowed.HasValue)
-                {
-                     existingEmployee.IsEditAllowed = request.DTO.IsEditAllowed.Value;
-
-                }
-                   
+                    existingEmployee.IsEditAllowed = request.DTO.IsEditAllowed.Value;
 
                 if (request.DTO.IsInfoVerified.HasValue)
                 {
-                    if (request.DTO.IsInfoVerified == true)
-                    {
-                        existingEmployee.InfoVerifiedDateTime = DateTime.Now;
-                        existingEmployee.InfoVerifiedById = request.DTO.Prop.UserEmployeeId;
-
-
-                    }
-
                     existingEmployee.IsInfoVerified = request.DTO.IsInfoVerified.Value;
-                }
 
+                    if (request.DTO.IsInfoVerified.Value)
+                    {
+                        existingEmployee.InfoVerifiedById = validation.UserEmployeeId;
+                        existingEmployee.InfoVerifiedDateTime = DateTime.UtcNow;
+                    }
+                }
 
                 if (request.DTO.DateOfBirth.HasValue)
                     existingEmployee.DateOfBirth = request.DTO.DateOfBirth.Value;
 
                 if (request.DTO.DateOfOnBoarding.HasValue)
                     existingEmployee.DateOfOnBoarding = request.DTO.DateOfOnBoarding.Value;
-               
+
                 if (request.DTO.DateOfExit.HasValue)
                     existingEmployee.DateOfExit = request.DTO.DateOfExit.Value;
-
 
                 if (request.DTO.HasPermanent.HasValue)
                     existingEmployee.HasPermanent = request.DTO.HasPermanent.Value;
 
                 if (request.DTO.IsActive.HasValue)
                     existingEmployee.IsActive = request.DTO.IsActive.Value;
-                
-                // ---------- AUDIT ----------
-                existingEmployee.UpdatedById = request.DTO.Prop.UserEmployeeId;
-                existingEmployee.UpdatedDateTime = DateTime.UtcNow;
-           
 
-                // ---------- SAVE ----------
+                // 6️⃣ AUDIT
+                existingEmployee.UpdatedById = validation.UserEmployeeId;
+                existingEmployee.UpdatedDateTime = DateTime.UtcNow;
+
+                // 7️⃣ SAVE
                 await _unitOfWork.Employees.UpdateEmployeeAsync(existingEmployee, request.DTO.Prop.TenantId);
                 await _unitOfWork.CommitTransactionAsync();
+               
 
                 return ApiResponse<bool>.Success(true, "Employee updated successfully.");
             }

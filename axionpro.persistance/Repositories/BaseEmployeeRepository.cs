@@ -1452,42 +1452,9 @@ namespace axionpro.persistance.Repositories
         }
 
 
-        public async Task<bool> UpdateEmployeeAsync(Employee entity, long tenantId)
+        public async Task<bool> UpdateEmployeeAsync(Employee entity, long tenantId)      
         {
-            // Basic validation
-            if (entity == null || entity.Id <= 0)
-                throw new ArgumentException("Invalid employee entity.");
-
-            // Find the employee by Id and TenantId
-            var existingEmployee = await _context.Employees
-                .FirstOrDefaultAsync(e => e.Id == entity.Id  && (e.IsSoftDeleted == null || e.IsSoftDeleted == false));
-
-            if (existingEmployee == null)
-                throw new InvalidOperationException("Employee not found.");
-
-            // Update fields (example: update only a few fields, expand as needed)
-            existingEmployee.FirstName = entity.FirstName;
-            existingEmployee.LastName = entity.LastName;
-            existingEmployee.MiddleName = entity.MiddleName;
-            existingEmployee.EmployementCode = entity.EmployementCode;
-            existingEmployee.GenderId = entity.GenderId;
-            existingEmployee.DateOfBirth = entity.DateOfBirth;
-            existingEmployee.DateOfOnBoarding = entity.DateOfOnBoarding;
-            existingEmployee.DateOfExit = entity.DateOfExit;
-            existingEmployee.DesignationId = entity.DesignationId;
-            existingEmployee.EmployeeTypeId = entity.EmployeeTypeId;
-            existingEmployee.DepartmentId = entity.DepartmentId;
-            existingEmployee.OfficialEmail = entity.OfficialEmail;
-            existingEmployee.HasPermanent = entity.HasPermanent;
-            existingEmployee.IsActive = entity.IsActive;
-            existingEmployee.Remark = entity.Remark;
-            existingEmployee.Description = entity.Description;
-            existingEmployee.IsEditAllowed = entity.IsEditAllowed;
-            existingEmployee.IsInfoVerified = entity.IsInfoVerified;
-            existingEmployee.UpdatedById = entity.UpdatedById;
-
-
-            // Save changes
+            _context.Employees.Update(entity);
             await _context.SaveChangesAsync();
             return true;
         }
