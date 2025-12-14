@@ -1460,7 +1460,7 @@ namespace axionpro.persistance.Repositories
 
             // Find the employee by Id and TenantId
             var existingEmployee = await _context.Employees
-                .FirstOrDefaultAsync(e => e.Id == entity.Id && e.TenantId == tenantId && (e.IsSoftDeleted == null || e.IsSoftDeleted == false));
+                .FirstOrDefaultAsync(e => e.Id == entity.Id  && (e.IsSoftDeleted == null || e.IsSoftDeleted == false));
 
             if (existingEmployee == null)
                 throw new InvalidOperationException("Employee not found.");

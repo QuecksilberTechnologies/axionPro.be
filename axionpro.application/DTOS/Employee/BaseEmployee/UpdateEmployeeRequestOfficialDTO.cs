@@ -13,6 +13,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
     {
         [Required]
         public string UserEmployeeId { get; set; } = default!;
+        public string EmployeeId { get; set; } = default!;
 
         // ---- Official / Admin controlled ----
         public int? DesignationId { get; set; }

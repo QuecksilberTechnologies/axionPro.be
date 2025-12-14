@@ -457,11 +457,7 @@ namespace axionpro.persistance.Repositories
                 existingBank.HasChequeDocUploaded = true;
                 existingBank.FileType = 1;
             }
-
-
-
-
-            // -----------------------------
+                        // ----------------------------
             // 4️⃣ Primary & Cheque flags
             // -----------------------------
             if (dto.IsPrimaryAccount)
