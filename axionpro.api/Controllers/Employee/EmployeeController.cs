@@ -316,12 +316,11 @@ namespace axionpro.api.Controllers.Employee
         /// <summary>
         /// Deletes employee record by Id.
         /// </summary>
-        [HttpDelete("delete")]
+        [HttpDelete("delete-all")]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Delete([FromQuery] DeleteRequestDTO dto)
+        public async Task<IActionResult> Delete([FromQuery] DeleteBaseEmployeeRequestDTO dto)
         {
             try
             {
@@ -345,6 +344,48 @@ namespace axionpro.api.Controllers.Employee
                 var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while deleting employee.",
                     new List<string> { ex.Message });
                 return StatusCode(500, errorResponse);
+            }
+        }
+        /// <summary>
+        /// Activate or deactivate employee and all related records by Employee Id.
+        /// </summary>
+        [HttpPut("update-status")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> UpdateEmployeeStatus(
+            [FromQuery] ActivateAllEmployeeRequestDTO dto)
+        {
+            try
+            {
+                _logger.LogInfo(
+                    $"Updating employee active status. EmployeeId: {dto.EmployeeId}, IsActive: {dto.IsActive}");
+
+                var command = new ActivateAllEmployeeQuery(dto);
+                var result = await _mediator.Send(command);
+
+                if (!result.IsSucceeded)
+                {
+                    _logger.LogInfo(
+                        $"Failed to update employee status. UserEmployeeId: {dto.UserEmployeeId}");
+                    return BadRequest(result);
+                }
+
+                _logger.LogInfo(
+                    $"Employee {(dto.IsActive ? "activated" : "deactivated")} successfully.");
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError( "Error while updating employee active status.");
+
+                var errorResponse = ApiResponse<bool>.Fail(
+                    "An unexpected error occurred while updating employee status.",
+                    new List<string> { ex.Message }
+                );
+
+                return StatusCode(StatusCodes.Status500InternalServerError, errorResponse);
             }
         }
 

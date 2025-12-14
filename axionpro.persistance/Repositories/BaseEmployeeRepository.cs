@@ -452,81 +452,247 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-
-
-        public async Task<bool> DeleteAsync(long id)
+        public async Task<bool> ActivateAllEmployeeAsync(Employee employee, bool isActive)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
 
             try
             {
-                // 🔹 Main Employee record
-                var employee = await _context.Employees
-                    .FirstOrDefaultAsync(e => e.Id == id && (e.IsSoftDeleted == null || e.IsSoftDeleted == false));
-
                 if (employee == null)
-                {
-                    _logger.LogWarning($"⚠️ Employee with ID {id} not found or already deleted.");
-                    return false;
-                }
+                    throw new Exception("Employee not found.");
 
-                // 🔹 Soft delete main Employee
-                employee.IsSoftDeleted = true;
+                // 🔹 EMPLOYEE (MASTER)
+                employee.IsActive = isActive;
+                employee.IsEditAllowed = false;
+                employee.IsInfoVerified = false;
+                employee.UpdatedById = employee.Id;
                 employee.UpdatedDateTime = DateTime.UtcNow;
 
-                _context.Employees.Update(employee);
-
-                // 🔹 Related Employee Details
+                // 🔹 BANK DETAILS
                 var bankDetails = await _context.EmployeeBankDetails
-                    .Where(d => d.EmployeeId == id && (d.IsSoftDeleted == null || d.IsSoftDeleted == false))
+                    .Where(x => x.EmployeeId == employee.Id && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
                     .ToListAsync();
 
-                foreach (var detail in bankDetails)
+                foreach (var bank in bankDetails)
                 {
-                    detail.IsSoftDeleted = true;
-                    detail.UpdatedDateTime = DateTime.UtcNow;
-                }
-
-                _context.EmployeeBankDetails.UpdateRange(bankDetails);
-
-                // 🔹 Related Bank Info
-                var bankInfos = await _context.EmployeeContacts
-                    .Where(b => b.EmployeeId == id && (b.IsSoftDeleted == null || b.IsSoftDeleted == false))
-                    .ToListAsync();
-
-                foreach (var bank in bankInfos)
-                {
-                    bank.IsSoftDeleted = true;
+                    bank.IsActive = isActive;
+                    bank.IsEditAllowed = false;
+                    bank.IsInfoVerified = false;
+                    bank.UpdatedById = employee.Id;
                     bank.UpdatedDateTime = DateTime.UtcNow;
                 }
 
-                _context.EmployeeContacts.UpdateRange(bankInfos);
-
-                // 🔹 Related Address
-                var addresses = await _context.EmployeeContacts
-                    .Where(a => a.EmployeeId == id && (a.IsSoftDeleted == null || a.IsSoftDeleted == false))
+                // 🔹 CONTACT DETAILS
+                var contacts = await _context.EmployeeContacts
+                    .Where(x => x.EmployeeId == employee.Id && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
                     .ToListAsync();
 
-                foreach (var addr in addresses)
+                foreach (var contact in contacts)
                 {
-                    addr.IsSoftDeleted = true;
-                    addr.UpdatedDateTime = DateTime.UtcNow;
+                    contact.IsActive = isActive;
+                    contact.IsEditAllowed = false;
+                    contact.IsInfoVerified = false;
+                    contact.UpdatedById = employee.Id;
+                    contact.UpdatedDateTime = DateTime.UtcNow;
                 }
 
-                _context.EmployeeContacts.UpdateRange(addresses);
+                // 🔹 DEPENDENT DETAILS
+                var dependents = await _context.EmployeeDependents
+                    .Where(x => x.EmployeeId == employee.Id && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
+                    .ToListAsync();
 
-                // 🔹 Save changes in single transaction
+                foreach (var dep in dependents)
+                {
+                    dep.IsActive = isActive;
+                    dep.IsEditAllowed = false;
+                    dep.IsInfoVerified = false;
+                    dep.UpdatedById = employee.Id;
+                    dep.UpdatedDateTime = DateTime.UtcNow;
+                }
+
+                // 🔹 IMAGE DETAILS
+                var images = await _context.EmployeeImages
+                    .Where(x => x.EmployeeId == employee.Id && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
+                    .ToListAsync();
+
+                foreach (var img in images)
+                {
+                    img.IsActive = isActive;
+                    img.UpdateById = employee.Id;
+                    img.UpdatedDateTime = DateTime.UtcNow;
+                }
+
+                // 🔹 EDUCATION DETAILS
+                var educations = await _context.EmployeeEducations
+                    .Where(x => x.EmployeeId == employee.Id && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
+                    .ToListAsync();
+
+                foreach (var edu in educations)
+                {
+                    edu.IsActive = isActive;
+                    edu.IsEditAllowed = false;
+                    edu.IsInfoVerified = false;
+                    edu.UpdatedById = employee.Id;
+                    edu.UpdatedDateTime = DateTime.UtcNow;
+                }
+
+                // 🔹 PERSONAL / IDENTITY DETAILS
+                var identities = await _context.EmployeePersonalDetails
+                    .Where(x => x.EmployeeId == employee.Id && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
+                    .ToListAsync();
+
+                foreach (var iden in identities)
+                {
+                    iden.IsActive = isActive;
+                    iden.IsEditAllowed = false;
+                    iden.IsInfoVerified = false;
+                    iden.UpdatedById = employee.Id;
+                    iden.UpdatedDateTime = DateTime.UtcNow;
+                }
+
+                // 🔹 SAVE ONCE
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                _logger.LogInformation($"✅ Employee {id} and related records soft deleted successfully.");
+                _logger.LogInformation(
+                    $"Employee {employee.Id} {(isActive ? "activated" : "deactivated")} successfully."
+                );
+
                 return true;
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                _logger.LogError(ex, $"❌ Failed to delete employee and related records for ID {id}");
-                throw new Exception($"Failed to delete employee {id}: {ex.Message}", ex);
+                _logger.LogError(ex, $"Failed to update IsActive status for employee {employee?.Id}");
+                throw;
+            }
+        }
+
+        public async Task<bool> DeleteAllAsync(Employee employee)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+
+
+                if (employee == null)
+                    throw new Exception("Employee not found.");
+
+                employee.IsSoftDeleted = true;
+                employee.SoftDeletedById = employee.Id;
+                employee.DeletedDateTime = DateTime.UtcNow;
+                employee.IsActive = false;
+                employee.IsEditAllowed = false;
+                employee.IsInfoVerified = false;
+
+                // 🔹 BANK DETAILS
+                var bankDetails = await _context.EmployeeBankDetails
+                    .Where(x => x.EmployeeId == employee.Id
+                        && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
+                    .ToListAsync();
+
+                foreach (var bank in bankDetails)
+                {
+                    bank.IsSoftDeleted = employee.IsSoftDeleted;
+                    bank.SoftDeletedById = employee.SoftDeletedById;
+                    bank.DeletedDateTime = employee.DeletedDateTime;
+                    bank.IsActive = employee.IsActive;
+                    bank.IsEditAllowed = employee.IsEditAllowed ?? false;
+                    bank.IsInfoVerified = employee.IsInfoVerified ?? false;
+
+                }
+
+                // 🔹 CONTACT DETAILS
+                var contacts = await _context.EmployeeContacts
+                    .Where(x => x.EmployeeId == employee.Id
+                        && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
+                    .ToListAsync();
+
+                foreach (var contact in contacts)
+                {
+                    contact.IsSoftDeleted = employee.IsSoftDeleted;
+                    contact.SoftDeletedById = employee.SoftDeletedById;
+                    contact.DeletedDateTime = employee.DeletedDateTime;
+                    contact.IsActive = employee.IsActive;
+                    contact.IsEditAllowed = employee.IsEditAllowed ?? false;
+                    contact.IsInfoVerified = employee.IsInfoVerified ?? false;
+                }
+
+                // 🔹 Dependant DETAILS
+                var dependants = await _context.EmployeeDependents
+                    .Where(x => x.EmployeeId == employee.Id
+                        && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
+                    .ToListAsync();
+
+                foreach (var dep in dependants)
+                {
+                    dep.IsSoftDeleted = employee.IsSoftDeleted;
+                    dep.SoftDeletedById = employee.SoftDeletedById;
+                    dep.DeletedDateTime = employee.DeletedDateTime;
+                    dep.IsActive = employee.IsActive;
+                    dep.IsEditAllowed = employee.IsEditAllowed ?? false;
+                    dep.IsInfoVerified = employee.IsInfoVerified ?? false;
+                }
+                // 🔹 Images DETAILS
+                var images = await _context.EmployeeImages
+                    .Where(x => x.EmployeeId == employee.Id
+                        && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
+                    .ToListAsync();
+
+                foreach (var img in images)
+                {
+                    img.IsSoftDeleted = employee.IsSoftDeleted ?? false;
+                    img.SoftDeletedById = employee.SoftDeletedById;
+                    img.DeletedDateTime = employee.DeletedDateTime;
+                    img.IsActive = employee.IsActive;
+
+                }
+
+                // 🔹 Education DETAILS
+                var educations = await _context.EmployeeEducations
+                    .Where(x => x.EmployeeId == employee.Id
+                        && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
+                    .ToListAsync();
+
+                foreach (var edu in educations)
+                {
+                    edu.IsSoftDeleted = employee.IsSoftDeleted;
+                    edu.SoftDeletedById = employee.SoftDeletedById;
+                    edu.DeletedDateTime = employee.DeletedDateTime;
+                    edu.IsActive = employee.IsActive;
+                    edu.IsEditAllowed = employee.IsEditAllowed ?? false;
+                    edu.IsInfoVerified = employee.IsInfoVerified ?? false;
+                }
+                // 🔹 Identity DETAILS
+                var identites = await _context.EmployeePersonalDetails
+                    .Where(x => x.EmployeeId == employee.Id
+                        && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
+                    .ToListAsync();
+
+                foreach (var iden in identites)
+                {
+                    iden.IsSoftDeleted = employee.IsSoftDeleted;
+                    iden.SoftDeletedById = employee.SoftDeletedById;
+                    iden.DeletedDateTime = employee.DeletedDateTime;
+                    iden.IsActive = employee.IsActive;
+                    iden.IsEditAllowed = employee.IsEditAllowed ?? false;
+                    iden.IsInfoVerified = employee.IsInfoVerified ?? false;
+                }
+
+                // 🔹 SAVE ONCE
+                await _context.SaveChangesAsync();
+                //  await transaction.CommitAsync();
+
+                _logger.LogInformation($"Employee {employee.SoftDeletedById} soft deleted successfully.");
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, $"Failed to soft delete employee {employee.SoftDeletedById}");
+                throw;
             }
         }
 
