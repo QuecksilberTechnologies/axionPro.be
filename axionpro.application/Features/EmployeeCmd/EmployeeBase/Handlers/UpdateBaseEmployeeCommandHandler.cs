@@ -4,6 +4,7 @@ using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
+using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOs.Employee;
 using axionpro.application.DTOs.Employee.AccessControlReadOnlyType;
 using axionpro.application.DTOs.Employee.AccessResponse;
@@ -88,6 +89,11 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // Assign decoded values coming from CommonRequestService
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
+                request.DTO.Prop.EmployeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
+                 request.DTO.EmployeeId,
+                 validation.Claims.TenantEncriptionKey,
+                _idEncoderService
+                );
 
 
                 // ✅ Create  using repository
@@ -99,7 +105,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 }
 
                    // ---------- FETCH Existing Employee ----------
-                var existingEmployee = await _unitOfWork.Employees.GetByIdAsync(request.DTO.Prop.UserEmployeeId ,request.DTO.Prop.TenantId, true);
+                var existingEmployee = await _unitOfWork.Employees.GetByIdAsync(request.DTO.Prop.EmployeeId ,request.DTO.Prop.TenantId, true);
 
 
                 if (existingEmployee == null)

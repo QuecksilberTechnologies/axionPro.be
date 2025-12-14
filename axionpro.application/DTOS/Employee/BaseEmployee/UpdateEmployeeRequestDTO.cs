@@ -15,7 +15,8 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         [Required]
         public string? UserEmployeeId { get; set; }
 
-        public string Id { get; set; } = string.Empty;
+        [Required]
+        public string EmployeeId { get; set; } = string.Empty;
 
         [MaxLength(100)]
       
