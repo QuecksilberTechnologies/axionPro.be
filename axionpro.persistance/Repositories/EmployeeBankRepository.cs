@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
+using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.DTOS.Pagination;
  
 using axionpro.application.Interfaces.IEncryptionService;
@@ -38,63 +40,108 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                // 🔹 Step 1: Record insert
+                // -----------------------------
+                // 1️⃣ Insert Record
+                // -----------------------------
                 await _context.EmployeeBankDetails.AddAsync(entity);
                 await _context.SaveChangesAsync();
 
-                // 🔹 Step 2: Default pagination setup
+                // -----------------------------
+                // 2️⃣ Pagination defaults
+                // -----------------------------
                 int pageNumber = 1;
                 int pageSize = 10;
 
-                // 🔹 Step 3: Fetch latest records (orderby Id desc)
+                // -----------------------------
+                // 3️⃣ Base Query (latest first)
+                // -----------------------------
                 var baseQuery = _context.EmployeeBankDetails
                     .AsNoTracking()
-                    .Where(x => x.EmployeeId == entity.EmployeeId)
+                    .Where(x =>
+                        x.EmployeeId == entity.EmployeeId &&
+                        (x.IsSoftDeleted == false || x.IsSoftDeleted == null)
+                    )
                     .OrderByDescending(x => x.Id);
 
-                var totalRecords = await baseQuery.CountAsync();
+                int totalRecords = await baseQuery.CountAsync();
 
-                // 🔹 Step 4: Pagination logic
-                var pagedData = await baseQuery
+                // -----------------------------
+                // 4️⃣ Pagination + Projection
+                // -----------------------------
+                var records = await baseQuery
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .Select(bank => new GetBankResponseDTO
                     {
-                        Id = bank.Id.ToString(),
+                        Id = bank.Id ?? 0,
                         EmployeeId = bank.EmployeeId.ToString(),
                         BankName = bank.BankName,
                         AccountNumber = bank.AccountNumber,
                         AccountType = bank.AccountType,
-                        IsPrimaryAccount = bank.IsPrimaryAccount,
-                        IsInfoVerified = bank.IsInfoVerified,
                         IFSCCode = bank.IFSCCode,
                         BranchName = bank.BranchName,
-                        IsPrimary = bank.IsPrimaryAccount,
+                        IsPrimaryAccount = bank.IsPrimaryAccount,
+                        IsInfoVerified = bank.IsInfoVerified,
                         IsEditAllowed = bank.IsEditAllowed,
                         IsActive = bank.IsActive,
                         HasChequeDocUploaded = bank.HasChequeDocUploaded,
-                        FilePath = bank.FilePath,
-                      
+                        FilePath = bank.FilePath
                     })
                     .ToListAsync();
 
-                // 🔹 Step 5: Final Response DTO
+                // -----------------------------
+                // 5️⃣ Per-record Completion %
+                // -----------------------------
+                foreach (var record in records)
+                {
+                    record.CompletionPercentage = CalculateBankPercentage(record);
+                }
+
+                // -----------------------------
+                // 6️⃣ Section-level Completion
+                // -----------------------------
+
+                // 🔹 Average (UI progress)
+                double completionPercentage = records.Any()
+                    ? Math.Round(records.Average(x => x.CompletionPercentage), 0)
+                    : 0;
+
+                // 🔹 Primary document rule
+                bool hasUploadedAllDocs = false;
+
+                var primaryBank = records.FirstOrDefault(x => x.IsPrimaryAccount == true);
+                if (primaryBank != null)
+                {
+                    hasUploadedAllDocs = primaryBank.HasChequeDocUploaded;
+                }
+
+                // -----------------------------
+                // 7️⃣ Final Response
+                // -----------------------------
                 return new PagedResponseDTO<GetBankResponseDTO>
                 {
-                    Items = pagedData ?? new List<GetBankResponseDTO>(),
+                    Items = records,
                     TotalCount = totalRecords,
                     PageNumber = pageNumber,
                     PageSize = pageSize,
+                    TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
 
+                    // 🔥 IMPORTANT (same as GetInfo)
+                    CompletionPercentage = completionPercentage,
+                    HasUploadedAll = hasUploadedAllDocs
                 };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error occurred while creating bank record for EmployeeId: {EmployeeId}", entity.EmployeeId);
+                _logger.LogError(
+                    ex,
+                    "❌ Error occurred while creating bank record for EmployeeId: {EmployeeId}",
+                    entity.EmployeeId
+                );
                 throw new Exception($"Failed to create bank info: {ex.Message}");
             }
         }
-       
+
         public async Task<PagedResponseDTO<GetBankResponseDTO>> AddCreatedAsync(EmployeeBankDetail entity)
         {
             try
@@ -143,151 +190,318 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        //public async Task<PagedResponseDTO<GetBankResponseDTO>> GetInfoAsync(GetBankReqestDTO dto)
-        //{
-        //    try
-        //    {
-        //        // ✅ Default pagination setup
-        //        int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
-        //        int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
-        //        string sortBy = dto.SortBy?.ToLower() ?? "id";
-        //        string sortOrder = dto.SortOrder?.ToLower() ?? "desc";
-        //        bool isDescending = sortOrder == "desc";
+        public async Task<bool> ResetPrimaryAccountAsync(long employeeId)
+        {
+            try
+            {
+                var primaries = await _context.EmployeeBankDetails
+                    .Where(x =>
+                        x.EmployeeId == employeeId &&
+                        x.IsPrimaryAccount == true &&
+                        x.IsSoftDeleted != true)
+                    .ToListAsync();
 
-        //        // ✅ Base query - fetch all bank details of the employee which are not soft deleted
-        //        IQueryable<EmployeeBankDetail> query = _context.EmployeeBankDetails
-        //            .AsNoTracking()
-        //            .Where(x => x.EmployeeId == dto._EmployeeId && (x.IsSoftDeleted == false || x.IsSoftDeleted == null));
+                if (!primaries.Any())
+                    return true; // nothing to reset
 
-        //        // ✅ Dynamic Filters
-        //        if (dto.Id_int > 0)
-        //            query = query.Where(x => x.Id == dto.Id_int);
+                foreach (var item in primaries)
+                {
+                    item.IsPrimaryAccount = false;
+                    item.UpdatedDateTime = DateTime.UtcNow;
+                      item.UpdatedById = employeeId; // if available
+                }
 
-        //        if (dto.IsActive)
-        //            query = query.Where(x => x.IsActive == dto.IsActive);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // optional logger
+                _logger?.LogError(ex,
+                    "❌ Failed to reset primary bank accounts for EmployeeId: {EmployeeId}",
+                    employeeId);
 
-        //        if (dto.HasChequeDocUploaded == true)
-        //            query = query.Where(x => x.HasChequeDocUploaded == dto.HasChequeDocUploaded);
+                return false;
+            }
+        }
 
-        //        if (dto.IsPrimaryAccount.HasValue)
-        //            query = query.Where(x => x.IsPrimaryAccount == dto.IsPrimaryAccount.Value);
 
-        //        if (dto.IsInfoVerified.HasValue)
-        //            query = query.Where(x => x.IsInfoVerified == dto.IsInfoVerified.Value);
 
-        //        if (dto.IsEditAllowed.HasValue)
-        //            query = query.Where(x => x.IsEditAllowed == dto.IsEditAllowed.Value);
+        public async Task<PagedResponseDTO<GetBankResponseDTO>> GetInfoAsync(GetBankReqestDTO dto)
+        {
+            try
+            {
+                // -----------------------------
+                // 1️⃣ Pagination & Sorting
+                // -----------------------------
+                int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
+                int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
 
-        //        if (!string.IsNullOrEmpty(dto.AccountType))
-        //            query = query.Where(x => x.AccountType.ToLower().Contains(dto.AccountType.ToLower()));
+                string sortBy = dto.SortBy?.ToLower() ?? "id";
+                bool isDescending = (dto.SortOrder?.ToLower() ?? "desc") == "desc";
 
-        //        // ✅ Dynamic Sorting
-        //        query = sortBy switch
-        //        {
-        //            "bankname" => isDescending ? query.OrderByDescending(x => x.BankName) : query.OrderBy(x => x.BankName),
-        //            "accountnumber" => isDescending ? query.OrderByDescending(x => x.AccountNumber) : query.OrderBy(x => x.AccountNumber),
-        //            "branchname" => isDescending ? query.OrderByDescending(x => x.BranchName) : query.OrderBy(x => x.BranchName),
-        //            "accounttype" => isDescending ? query.OrderByDescending(x => x.AccountType) : query.OrderBy(x => x.AccountType),
-        //            "haschequedocuploaded" => isDescending ? query.OrderByDescending(x => x.HasChequeDocUploaded) : query.OrderBy(x => x.HasChequeDocUploaded),
-        //            _ => isDescending ? query.OrderByDescending(x => x.Id) : query.OrderBy(x => x.Id)
-        //        };
+                // -----------------------------
+                // 2️⃣ Base Query
+                // -----------------------------
+                IQueryable<EmployeeBankDetail> query = _context.EmployeeBankDetails
+                    .AsNoTracking()
+                    .Where(x =>
+                        x.EmployeeId == dto.Prop.EmployeeId &&
+                        (x.IsSoftDeleted == false || x.IsSoftDeleted == null)
+                    );
 
-        //        // ✅ Total record count before pagination
-        //        int totalCount = await query.CountAsync();
+                // -----------------------------
+                // 3️⃣ Filters
+                // -----------------------------
+                if (dto.Id.HasValue && dto.Id.Value > 0)
+                    query = query.Where(x => x.Id == dto.Id.Value);
 
-        //        // 📄 Apply pagination + projection + conditional completion %
-        //        // 📄 Apply pagination + projection + conditional completion %
-        //        var records = await query
-        //            .Skip((pageNumber - 1) * pageSize)
-        //            .Take(pageSize)
-        //            .Select(x => new GetBankResponseDTO
-        //            {
-        //                Id = x.Id.ToString(),
-        //                EmployeeId = x.EmployeeId.ToString(),
-        //                BankName = x.BankName,
-        //                AccountNumber = x.AccountNumber,
-        //                IFSCCode = x.IFSCCode,
-        //                IsPrimary = x.IsPrimaryAccount,
-        //                UPIId = x.UPIId,
-        //                BranchName = x.BranchName,
-        //                AccountType = x.AccountType,
-        //                IsPrimaryAccount = x.IsPrimaryAccount,
-        //                IsActive = x.IsActive,
-        //                IsInfoVerified = x.IsInfoVerified,
-        //                IsEditAllowed = x.IsEditAllowed,
-        //                HasChequeDocUploaded = x.HasChequeDocUploaded,
-        //                FilePath = x.FilePath,
+                if (dto.IsActive)
+                    query = query.Where(x => x.IsActive == dto.IsActive);
 
-        //                // ✅ Completion Percentage Calculation:
-        //                // Primary account → total 7 checks (including cheque upload)
-        //                // Non-primary account → total 6 checks (excluding cheque upload)
-        //                CompletionPercentage = Math.Round(
-        //                    (
-        //                        x.IsPrimaryAccount
-        //                        ? (new[]
-        //                        {
-        //            // --- Fields considered for primary account completeness ---
-        //            string.IsNullOrEmpty(x.BankName) ? 0 : 1,
-        //            string.IsNullOrEmpty(x.AccountNumber) ? 0 : 1,
-        //            string.IsNullOrEmpty(x.IFSCCode) ? 0 : 1,
-        //            string.IsNullOrEmpty(x.BranchName) ? 0 : 1,
-        //            string.IsNullOrEmpty(x.AccountType) ? 0 : 1,
-        //            x.HasChequeDocUploaded ? 1 : 0, /* ✅ Only for primary */      1 // ✅ Itself is primary
-        //                        }).Sum() / 7.0
-        //                        : (new[]
-        //                        {
-        //            // --- Fields considered for non-primary account completeness ---
-        //            string.IsNullOrEmpty(x.BankName) ? 0 : 1,
-        //            string.IsNullOrEmpty(x.AccountNumber) ? 0 : 1,
-        //            string.IsNullOrEmpty(x.IFSCCode) ? 0 : 1,
-        //            string.IsNullOrEmpty(x.BranchName) ? 0 : 1,
-        //            string.IsNullOrEmpty(x.AccountType) ? 0 : 1,
-        //            1 // ✅ Account is valid but non-primary → exclude cheque
-        //                        }).Sum() / 6.0
-        //                    ) * 100, 0)
-        //            })
-        //            .ToListAsync();
+                if (dto.HasChequeDocUploaded)
+                    query = query.Where(x => x.HasChequeDocUploaded == dto.HasChequeDocUploaded);
 
-        //        // --- post-processing section ---
+                if (dto.IsPrimaryAccount.HasValue)
+                    query = query.Where(x => x.IsPrimaryAccount == dto.IsPrimaryAccount.Value);
 
-        //        // ✅ Calculate overall average percentage (nullable if no record)
-        //        double? averagePercentage = records.Any()
-        //            ? records.Average(r => r.CompletionPercentage)
-        //            : (double?)null;
+                if (dto.IsInfoVerified.HasValue)
+                    query = query.Where(x => x.IsInfoVerified == dto.IsInfoVerified.Value);
 
-        //        // ✅ Determine if all required cheque docs are uploaded for primary accounts only
-        //        bool? hasUploadedAllDocs;
-        //        var primaryRecords = records.Where(r => r.IsPrimaryAccount == true).ToList();
-        //        if (primaryRecords.Any())
-        //        {
-        //            // true only if every primary account has uploaded cheque document
-        //            hasUploadedAllDocs = primaryRecords.All(r => r.HasChequeDocUploaded == true);
-        //        }
-        //        else
-        //        {
-        //            // no primary account present => treat as false
-        //            hasUploadedAllDocs = false;
-        //        }
+                if (dto.IsEditAllowed.HasValue)
+                    query = query.Where(x => x.IsEditAllowed == dto.IsEditAllowed.Value);
 
-        //        // 📦 Return paged response
-        //        return new PagedResponseDTO<GetBankResponseDTO>
-        //        {
-        //            Items = records,
-        //            TotalCount = totalCount,
-        //            PageNumber = pageNumber,
-        //            PageSize = pageSize,
-        //            TotalPages = (int)Math.Ceiling((double)totalCount / pageSize),
-        //            HasUploadedAll = hasUploadedAllDocs,
-        //            CompletionPercentage = averagePercentage
-        //        };
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // ❌ Exception logging
-        //        _logger.LogError(ex, "❌ Error fetching bank info for EmployeeId");
-        //        throw new Exception($"Failed to fetch bank information: {ex.Message}");
-        //    }
-        //}
+                if (!string.IsNullOrWhiteSpace(dto.AccountType))
+                    query = query.Where(x => x.AccountType.Contains(dto.AccountType));
+
+                // -----------------------------
+                // 4️⃣ Sorting
+                // -----------------------------
+                query = sortBy switch
+                {
+                    "bankname" => isDescending ? query.OrderByDescending(x => x.BankName) : query.OrderBy(x => x.BankName),
+                    "accountnumber" => isDescending ? query.OrderByDescending(x => x.AccountNumber) : query.OrderBy(x => x.AccountNumber),
+                    "branchname" => isDescending ? query.OrderByDescending(x => x.BranchName) : query.OrderBy(x => x.BranchName),
+                    "accounttype" => isDescending ? query.OrderByDescending(x => x.AccountType) : query.OrderBy(x => x.AccountType),
+                    "haschequedocuploaded" => isDescending ? query.OrderByDescending(x => x.HasChequeDocUploaded) : query.OrderBy(x => x.HasChequeDocUploaded),
+                    _ => isDescending ? query.OrderByDescending(x => x.Id) : query.OrderBy(x => x.Id)
+                };
+
+                // -----------------------------
+                // 5️⃣ Count
+                // -----------------------------
+                int totalCount = await query.CountAsync();
+
+                // -----------------------------
+                // 6️⃣ Pagination + Mapping
+                // -----------------------------
+                var records = await query
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(x => new GetBankResponseDTO
+                    {
+                        Id = x.Id ?? 0,
+                        EmployeeId = x.EmployeeId.ToString(),
+                        BankName = x.BankName,
+                        AccountNumber = x.AccountNumber,
+                        IFSCCode = x.IFSCCode,
+                        BranchName = x.BranchName,
+                        AccountType = x.AccountType,
+                        IsPrimaryAccount = x.IsPrimaryAccount,
+                        IsActive = x.IsActive,
+                        IsInfoVerified = x.IsInfoVerified,
+                        IsEditAllowed = x.IsEditAllowed,
+                        HasChequeDocUploaded = x.HasChequeDocUploaded,
+                        FilePath = x.FilePath
+                    })
+                    .ToListAsync();
+
+                // -----------------------------
+                // 7️⃣ Completion % (Per Record)
+                // -----------------------------
+                foreach (var record in records)
+                {
+                    record.CompletionPercentage = CalculateBankPercentage(record);
+                }
+
+                // -----------------------------
+                // 8️⃣ Section-level Completion (PRIMARY BASED)
+                // -----------------------------
+                // -----------------------------
+                // 8️⃣ Section-level Completion (STRICT PRIMARY RULE)
+                // -----------------------------
+               
+                // -----------------------------
+                // 8️⃣ Section-level Completion
+                // -----------------------------
+
+                // 🔹 1. AVERAGE COMPLETION (ALWAYS)
+                double completionPercentage = records.Any()
+                    ? Math.Round(records.Average(x => x.CompletionPercentage), 0)
+                    : 0;
+
+                // 🔹 2. PRIMARY DOCUMENT RULE
+                bool hasUploadedAllDocs = false;
+
+                var primaryBank = records.FirstOrDefault(x => x.IsPrimaryAccount == true);
+
+                if (primaryBank != null)
+                {
+                    hasUploadedAllDocs = primaryBank.HasChequeDocUploaded;
+                }
+                else
+                {
+                    // primary hi nahi hai = rule fail
+                    hasUploadedAllDocs = false;
+                }
+
+
+                // -----------------------------
+                // 9️⃣ Final Response
+                // -----------------------------
+                return new PagedResponseDTO<GetBankResponseDTO>
+                {
+                    Items = records,
+                    TotalCount = totalCount,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    TotalPages = (int)Math.Ceiling((double)totalCount / pageSize),
+
+                    // 🔥 IMPORTANT (HRMS RULE)
+                    CompletionPercentage = completionPercentage,
+                    HasUploadedAll = hasUploadedAllDocs
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error fetching bank info for EmployeeId: {EmployeeId}", dto.Prop.EmployeeId);
+                throw new Exception($"Failed to fetch bank information: {ex.Message}");
+            }
+        }
+        public double CalculateBankPercentage(GetBankResponseDTO record)
+        {
+            if (record == null) return 0;
+
+            int totalFields = 6;
+            int filled = 0;
+
+            if (!string.IsNullOrWhiteSpace(record.BankName)) filled++;
+            if (!string.IsNullOrWhiteSpace(record.AccountNumber)) filled++;
+            if (!string.IsNullOrWhiteSpace(record.IFSCCode)) filled++;
+            if (!string.IsNullOrWhiteSpace(record.BranchName)) filled++;
+            if (!string.IsNullOrWhiteSpace(record.AccountType)) filled++;
+
+            // 🔥 CRITICAL RULE
+            // Document counts ONLY IF primary
+            if (record.IsPrimaryAccount)
+            {
+                if (record.HasChequeDocUploaded)
+                    filled++;
+               
+            }
+            else
+            {
+                // non-primary: document irrelevant
+                filled++;
+            }
+
+            return Math.Round((filled * 100.0) / totalFields, 0);
+        }
+
+        public async Task<bool> UpdateAsync(UpdateBankReqestDTO dto)
+        {
+            // -----------------------------
+            // 1️⃣ Basic validation
+            // -----------------------------
+            if (dto == null || dto.Id <= 0)
+                throw new ArgumentException("Invalid bank request.");
+
+            // -----------------------------
+            // 2️⃣ Fetch existing record
+            // -----------------------------
+            var existingBank = await _context.EmployeeBankDetails
+                .FirstOrDefaultAsync(x =>
+                    x.Id == dto.Id &&
+                    (x.IsSoftDeleted == null || x.IsSoftDeleted == false));
+
+            if (existingBank == null)
+                throw new InvalidOperationException("Employee bank record not found.");
+
+            // -----------------------------
+            // 3️⃣ Update ONLY provided fields
+            // -----------------------------
+            if (!string.IsNullOrWhiteSpace(dto.BankName))
+                existingBank.BankName = dto.BankName.Trim();
+
+            if (!string.IsNullOrWhiteSpace(dto.AccountNumber))
+                existingBank.AccountNumber = dto.AccountNumber.Trim();
+
+            if (!string.IsNullOrWhiteSpace(dto.IFSCCode))
+                existingBank.IFSCCode = dto.IFSCCode.Trim();
+
+            if (!string.IsNullOrWhiteSpace(dto.BranchName))
+                existingBank.BranchName = dto.BranchName.Trim();
+
+            if (!string.IsNullOrWhiteSpace(dto.AccountType))
+                existingBank.AccountType = dto.AccountType.Trim();
+
+            if (!string.IsNullOrWhiteSpace(dto.UPIId))
+                existingBank.UPIId = dto.UPIId.Trim();
+
+            if (!string.IsNullOrWhiteSpace(dto.FileName))
+                existingBank.FileName = dto.FileName.Trim();
+
+            if (!string.IsNullOrWhiteSpace(dto.FilePath))
+            {
+                existingBank.FilePath = dto.FilePath.Trim();
+                existingBank.HasChequeDocUploaded = true;
+                existingBank.FileType = 1;
+            }
+
+
+
+
+            // -----------------------------
+            // 4️⃣ Primary & Cheque flags
+            // -----------------------------
+            if (dto.IsPrimaryAccount)
+            {
+                // 🔹 Step 1: Reset all existing primary accounts of this employee
+                var existingPrimaries = await _context.EmployeeBankDetails
+                    .Where(x =>
+                        x.EmployeeId == dto.Prop.EmployeeId &&
+                        (x.IsSoftDeleted == null || x.IsSoftDeleted == false) &&
+                        x.IsPrimaryAccount == true)
+                    .ToListAsync();
+
+                foreach (var item in existingPrimaries)
+                {
+                    item.IsPrimaryAccount = false;
+                }
+
+                // 🔹 Step 2: Mark current record as primary
+                existingBank.IsPrimaryAccount = true;
+            }
+            else
+                existingBank.IsPrimaryAccount = dto.IsPrimaryAccount;
+
+
+            // CancelledChequeFile aaya hai matlab document uploaded
+            if (dto.CancelledChequeFile != null && dto.CancelledChequeFile.Length > 0)
+                existingBank.HasChequeDocUploaded = true;
+
+            // -----------------------------
+            // 5️⃣ Audit fields
+            // -----------------------------
+            existingBank.UpdatedById = dto.Prop.UserEmployeeId;
+            existingBank.UpdatedDateTime = DateTime.UtcNow;
+
+            // -----------------------------
+            // 6️⃣ Save
+            // -----------------------------
+            await _context.SaveChangesAsync();
+            return true;
+        }
 
 
         public async Task<GetBankResponseDTO> GetSingleRecordAsync(int id, bool isActive)
@@ -302,7 +516,7 @@ namespace axionpro.persistance.Repositories
                     .Where(b => b.Id == id && b.IsActive == isActive && (b.IsSoftDeleted !=true))
                     .Select(b => new GetBankResponseDTO
                     {
-                        Id = b.Id.ToString(),
+                        Id = b.Id??0,
                         EmployeeId = b.EmployeeId.ToString(),
                         BankName = b.BankName,
                         AccountNumber = b.AccountNumber,
@@ -311,7 +525,16 @@ namespace axionpro.persistance.Repositories
                         AccountType = b.AccountType,                       
                         IsPrimaryAccount = b.IsPrimaryAccount,
                         IsActive = b.IsActive,
-                       
+                        HasChequeDocUploaded = b.HasChequeDocUploaded,
+                        FilePath = b.FilePath,
+                        UPIId = b.UPIId,
+                        IsInfoVerified = b.IsInfoVerified,
+                        IsEditAllowed = b.IsEditAllowed,
+                        FileName = b.FileName,
+                        FileType = b.FileType
+
+
+
                     })
                     .FirstOrDefaultAsync();
 
@@ -359,19 +582,18 @@ namespace axionpro.persistance.Repositories
                     return new CompletionSectionDTO
                     {
                         SectionName = "Bank",
-                        CompletionPercent = 0,
-                       
+                        CompletionPercent = 0,                       
                         IsInfoVerified = false,
                         IsEditAllowed = true
                     };
                 }
 
-                double completion = CalculateBankPercentage(record);
+              //  double completion = CalculateBankPercentage(record);
 
                 return new CompletionSectionDTO
                 {
                     SectionName = "Bank",
-                    CompletionPercent = completion,                   
+                  //  CompletionPercent = completion,                   
                     IsInfoVerified = record.IsInfoVerified,
                     IsEditAllowed = record.IsEditAllowed
                 };
@@ -391,38 +613,12 @@ namespace axionpro.persistance.Repositories
         }
 
 
-        private double CalculateBankPercentage(dynamic record)
-        {
-            var completion = Math.Round(
-            (
-                record.IsPrimaryAccount
-                ? (new[]
-                {
-            string.IsNullOrEmpty(record.BankName) ? 0 : 1,
-            string.IsNullOrEmpty(record.AccountNumber) ? 0 : 1,
-            string.IsNullOrEmpty(record.IFSCCode) ? 0 : 1,
-            string.IsNullOrEmpty(record.BranchName) ? 0 : 1,
-            string.IsNullOrEmpty(record.AccountType) ? 0 : 1,
-            record.HasChequeDocUploaded ? 1 : 0,
-            1
-                }).Sum() / 7.0
-                : (new[]
-                {
-            string.IsNullOrEmpty(record.BankName) ? 0 : 1,
-            string.IsNullOrEmpty(record.AccountNumber) ? 0 : 1,
-            string.IsNullOrEmpty(record.IFSCCode) ? 0 : 1,
-            string.IsNullOrEmpty(record.BranchName) ? 0 : 1,
-            string.IsNullOrEmpty(record.AccountType) ? 0 : 1,
-            1
-                }).Sum() / 6.0
-            ) * 100, 0);
+       
 
-            return (float)completion;
-        }
 
-        public Task<PagedResponseDTO<GetBankResponseDTO>> GetInfoAsync(GetBankReqestDTO dto)
-        {
-            throw new NotImplementedException();
-        }
+       
+
+
+      
     }
 }

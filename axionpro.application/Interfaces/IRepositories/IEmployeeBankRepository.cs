@@ -26,6 +26,10 @@ public interface IEmployeeBankRepository
     public Task<GetBankResponseDTO> GetSingleRecordAsync(int Id ,bool IsActive);  // Ensure this returns    
     public  Task<PagedResponseDTO<GetBankResponseDTO>> GetInfoAsync(GetBankReqestDTO dto);
     public  Task<CompletionSectionDTO> GetBankCompletionPercentageAsync(long employeeId);
+    public Task<bool> ResetPrimaryAccountAsync(long employeeId);
+
+    public Task<bool> UpdateAsync(UpdateBankReqestDTO entity);
+
 
 
     #endregion

@@ -84,6 +84,7 @@ namespace axionpro.api.Controllers.Employee
 
 
 
+
         [HttpPost("profile/pic/update")]
        
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
@@ -354,7 +355,7 @@ namespace axionpro.api.Controllers.Employee
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+   
         public async Task<IActionResult> Update([FromBody] UpdateEmployeeRequestDTO dto)
         {
             try
@@ -362,6 +363,40 @@ namespace axionpro.api.Controllers.Employee
                 _logger.LogInfo($"Updating employee record. EmployeeId: {dto.UserEmployeeId}");
 
                 var command = new UpdateEmployeeCommand(dto);
+                var result = await _mediator.Send(command);
+
+                if (!result.IsSucceeded)
+                {
+                    _logger.LogInfo($"Failed to update employee with Id: {dto.UserEmployeeId}");
+                    return BadRequest(result);
+                }
+
+                _logger.LogInfo("Employee updated successfully.");
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error updating employee: {ex.Message}");
+                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while updating employee info.",
+                    new List<string> { ex.Message });
+                return StatusCode(500, errorResponse);
+            }
+        }
+        /// <summary>
+        // Updates employee details.
+        // </summary>
+        [HttpPost("official/update")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+   
+        public async Task<IActionResult> OfficialUpdate([FromBody] UpdateEmployeeRequestOfficialDTO dto)
+        {
+            try
+            {
+                _logger.LogInfo($"Updating employee record. EmployeeId: {dto.UserEmployeeId}");
+
+                var command = new UpdateBaseEmployeeOfficialCommand(dto);
                 var result = await _mediator.Send(command);
 
                 if (!result.IsSucceeded)

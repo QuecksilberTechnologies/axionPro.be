@@ -167,7 +167,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 {
                     item.EmployeeId = encoderService.EncodeId(rawId, tenantKey);
                 }
-                item.EmployeeImagePath ??= string.Empty;
+                item.EmployeeImagePath ??= null;
 
                 // 📁 Final Image URL build
                 if (!string.IsNullOrEmpty(item.EmployeeImagePath))
@@ -215,7 +215,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 
 
         public static List<GetBaseEmployeeResponseDTO> ToGetBaseInfoResponseDTOs(List<GetBaseEmployeeResponseDTO> entities,
-      IIdEncoderService encoderService,
+        IIdEncoderService encoderService,
       string tenantKey)
         {
             if (entities == null || !entities.Any())
@@ -240,7 +240,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             return entities;
         }
         public static List<GetBankResponseDTO> ToGetBankResponseDTOs(  PagedResponseDTO<GetBankResponseDTO> entities,
-    IIdEncoderService encoderService,
+         IIdEncoderService encoderService,
         string tenantKey, IConfiguration configuration
            )
         {
@@ -256,11 +256,9 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             {
                 if (item == null) continue;
 
-                // ✅ Encode Bank Record Id
-                if (long.TryParse(item.Id, out long rawId) && rawId > 0)
-                {
-                    item.Id = encoderService.EncodeId(rawId, tenantKey);
-                }
+                
+                   
+                
                 item.FilePath ??= string.Empty;
                 // 📁 Final Image URL build
                 if (!string.IsNullOrEmpty(item.FilePath))
@@ -268,14 +266,17 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 
 
                 // ✅ Encode EmployeeId separately
-                if (long.TryParse(item.EmployeeId, out long empRawId) && empRawId > 0)
+                
+                if (long.TryParse(item.EmployeeId, out long rawId) && rawId > 0)
                 {
-                    item.EmployeeId = encoderService.EncodeId(empRawId, tenantKey);
+                    item.EmployeeId = encoderService.EncodeId(rawId, tenantKey);
+
                 }
+
 
                 // ✅ Optional cleanup (avoid nulls)
                 item.EmployeeId ??= string.Empty;
-                item.Id ??= string.Empty;
+              //  item.Id ??= 0;
 
                 result.Add(item);
             }

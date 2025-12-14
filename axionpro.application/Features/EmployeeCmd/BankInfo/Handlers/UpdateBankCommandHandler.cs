@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.Converters;
+using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOs.Employee;
 using axionpro.application.DTOs.Employee.AccessControlReadOnlyType;
 using axionpro.application.DTOs.Employee.AccessResponse;
@@ -8,8 +9,10 @@ using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
+using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.IRepositories;
+using axionpro.application.Interfaces.IRequestValidation;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
@@ -21,184 +24,250 @@ using System.Reflection;
 
 namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 {
-    //public class UpdateBankCommand : IRequest<ApiResponse<bool>>
-    //{
-    //    public GenricUpdateRequestDTO DTO { get; set; }
+    public class UpdateBankCommand : IRequest<ApiResponse<bool>>
+    {
+        public UpdateBankReqestDTO DTO { get; set; }
 
-    //    public UpdateBankCommand(GenricUpdateRequestDTO dto)
-    //    {
-    //        DTO = dto;
-    //    }
+        public UpdateBankCommand(UpdateBankReqestDTO dto)
+        {
+            DTO = dto;
+        }
 
-    //}
-    //public class UpdateBankCommandHandler : IRequestHandler<UpdateBankCommand, ApiResponse<bool>>
-    //{
-       
-    //    private readonly IUnitOfWork _unitOfWork;
-    //    private readonly ILogger<UpdateBankCommandHandler> _logger;
-    //    private readonly IMapper _mapper;
-    //    private readonly ITokenService _tokenService;
-    //    private readonly IPermissionService _permissionService;
-    //    private readonly IConfiguration _config;
-    //    private readonly IHttpContextAccessor _httpContextAccessor;
-    //    private readonly IEncryptionService _encryptionService;
-       
+    }
+    public class UpdateBankCommandHandler : IRequestHandler<UpdateBankCommand, ApiResponse<bool>>
+    {
 
-    //    public UpdateBankCommandHandler(
-    //        IBaseEmployeeRepository employeeRepository,
-    //        IUnitOfWork unitOfWork,
-    //        ILogger<UpdateBankCommandHandler> logger,
-    //        IMapper mapper,
-    //        ITokenService tokenService,
-    //        IPermissionService permissionRepository,
-    //        IConfiguration configuration,
-    //        IHttpContextAccessor httpContextAccessor, IEncryptionService encryptionService)
-    //    {
-            
-    //        _unitOfWork = unitOfWork;
-    //        _logger = logger;
-    //        _mapper = mapper;
-    //        _tokenService = tokenService;
-    //        _permissionService = permissionRepository;
-    //        _config = configuration;
-    //        _httpContextAccessor = httpContextAccessor;
-    //        _encryptionService = encryptionService;
-    //    }
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger<UpdateBankCommandHandler> _logger;
+        private readonly IMapper _mapper;
+        private readonly ITokenService _tokenService;
+        private readonly IPermissionService _permissionService;
+        private readonly IConfiguration _config;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IEncryptionService _encryptionService;
+        private readonly ICommonRequestService _commonRequestService;
+        private readonly IFileStorageService _fileStorageService;
+        private readonly IIdEncoderService _idEncoderService;
+        public UpdateBankCommandHandler(
+            IBaseEmployeeRepository employeeRepository,
+            IUnitOfWork unitOfWork,
+            ILogger<UpdateBankCommandHandler> logger,
+            IMapper mapper,
+            ITokenService tokenService,
+            IPermissionService permissionRepository,
+            IConfiguration configuration,
+            IHttpContextAccessor httpContextAccessor, IEncryptionService encryptionService ,  ICommonRequestService commonRequestService, IFileStorageService fileStorageService,
+             IIdEncoderService idEncoderService
+            )
+        {
 
-    //    public async Task<ApiResponse<bool>> Handle(UpdateBankCommand request, CancellationToken cancellationToken)
-    //    {
-    //        try
-    //        {
-    //            // 🧱 Step 1: Validate JWT Token
-    //            var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
-    //                .ToString()?.Replace("Bearer ", "");
+            _unitOfWork = unitOfWork;
+            _logger = logger;
+            _mapper = mapper;
+            _tokenService = tokenService;
+            _permissionService = permissionRepository;
+            _config = configuration;
+            _httpContextAccessor = httpContextAccessor;
+            _encryptionService = encryptionService;
+            _commonRequestService = commonRequestService;
+            _fileStorageService = fileStorageService;
+            _idEncoderService = idEncoderService;
 
-    //            if (string.IsNullOrEmpty(bearerToken))
-    //            {
-    //                _logger.LogWarning("Unauthorized access: Missing Bearer token.");
-    //                return ApiResponse<bool>.Fail("Unauthorized: Token not found.");
-    //            }
+        }
 
-    //            var secretKey = _config["Jwt:Key"];
-    //            var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
+        public async Task<ApiResponse<bool>> Handle(UpdateBankCommand request, CancellationToken cancellationToken)
+        {
+            await _unitOfWork.BeginTransactionAsync();
 
-    //            if (tokenClaims == null || tokenClaims.IsExpired)
-    //            {
-    //                _logger.LogWarning("Invalid or expired JWT token.");
-    //                return ApiResponse<bool>.Fail("Invalid or expired token.");
-    //            }
+            try
+            {
+                // -------------------------------------------------
+                // 1️⃣ COMMON VALIDATION
+                // -------------------------------------------------
+                var validation = await _commonRequestService
+                    .ValidateRequestAsync(request.DTO.UserEmployeeId);
 
-    //            // 🧱 Step 2: Validate Logged-in User
-    //            long empId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
-    //            if (empId < 1)
-    //            {
-    //                _logger.LogWarning("User validation failed for LoginId: {LoginId}", tokenClaims.UserId);
-    //                await _unitOfWork.RollbackTransactionAsync();
-    //                return ApiResponse<bool>.Fail("User is not authorized to perform this action.");
-    //            }
+                if (!validation.Success)
+                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
 
-    //            // 🧱 Step 3: Permission Check
-    //            var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
-    //            if (permissions == null || !permissions.Contains("AddBankInfo"))
-    //            {
-    //                _logger.LogWarning("Permission denied for RoleId: {RoleId}", tokenClaims.RoleId);
-    //                await _unitOfWork.RollbackTransactionAsync();
-    //                return ApiResponse<bool>.Fail("You do not have permission to update bank info.");
-    //            }
-    //            var tenantKey = tokenClaims.TenantEncriptionKey;
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
+                request.DTO.Prop.EmployeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
+                request.DTO.EmployeeId,
+                validation.Claims.TenantEncriptionKey,
+                _idEncoderService
+            );
 
-    //            var dto = request.DTO;
+                // -------------------------------------------------
+                // 2️⃣ PERMISSION CHECK
+                // -------------------------------------------------
+                var permissions = await _permissionService
+                    .GetPermissionsAsync(validation.RoleId);
 
-    //            // 🧱 Step 4: Validate DTO Input
-    //            if (dto == null)
-    //                return ApiResponse<bool>.Fail("Invalid request: DTO cannot be null.");
-    //          //  string encriptedEmployeeId = _encryptionService.Encrypt(request.DTO.EncriptedEmployeeId, tenantKey);
+                if (!permissions.Contains("UpdateBankInfo")){
+                   // return ApiResponse<bool>.Fail("You do not have permission to update bank info.");
+                   }
 
-    //               string encriptedEmployeeId = _encryptionService.Decrypt(request.DTO.EmployeeId, tenantKey);
+                // -------------------------------------------------
+                // 3️⃣ FETCH EXISTING BANK RECORD
+                // -------------------------------------------------
+                var bank = await _unitOfWork.EmployeeBankRepository
+                    .GetSingleRecordAsync(request.DTO.Id, true);
 
-    //            if (!string.IsNullOrEmpty(request.DTO.EmployeeId))
-    //                request.DTO._EmployeeId = EncryptionHelper1.DecryptId(_encryptionService, request.DTO.EmployeeId, tenantKey);
+                if (bank == null)
+                    return ApiResponse<bool>.Fail("Employee bank record not found.");
 
-    //            if (!string.IsNullOrEmpty(request.DTO.UserEmployeeId))
-    //                request.DTO.Id = (int)EncryptionHelper1.DecryptId(_encryptionService, request.DTO.UserEmployeeId, tenantKey);
+                var dto = request.DTO;
 
+                // -------------------------------------------------
+                // 4️⃣ PARTIAL FIELD UPDATES
+                // -------------------------------------------------
+                if (!string.IsNullOrWhiteSpace(dto.BankName))
+                    bank.BankName = dto.BankName.Trim();
 
+                if (!string.IsNullOrWhiteSpace(dto.AccountNumber))
+                    bank.AccountNumber = dto.AccountNumber.Trim();
 
-    //            if (string.IsNullOrWhiteSpace(dto.FieldName))
-    //                return ApiResponse<bool>.Fail("Field name is required.");
+                if (!string.IsNullOrWhiteSpace(dto.IFSCCode))
+                    bank.IFSCCode = dto.IFSCCode.Trim();
 
-    //            // 🧱 Step 5: Fetch Existing Bank Record
+                if (!string.IsNullOrWhiteSpace(dto.BranchName))
+                    bank.BranchName = dto.BranchName.Trim();
 
+                if (!string.IsNullOrWhiteSpace(dto.AccountType))
+                    bank.AccountType = dto.AccountType.Trim();
 
-    //            //var existingRecord = await _unitOfWork.EmployeeBankRepository.GetSingleRecordAsync(request.DTO.Id, true);
-    //            EmployeeBankDetail existingRecord = new EmployeeBankDetail(); 
+                if (!string.IsNullOrWhiteSpace(dto.UPIId))
+                    bank.UPIId = dto.UPIId.Trim();
 
-    //            if (existingRecord == null)
-    //            {
-    //                _logger.LogInformation("No bank record found for Id: {Id}", dto.UserEmployeeId);
-    //                return ApiResponse<bool>.Fail("Employee bank info not found.");
-    //            }
+                // -------------------------------------------------
+                // 5️⃣ PRIMARY ACCOUNT BUSINESS RULE
+                // -------------------------------------------------
+               if (dto.IsPrimaryAccount)
+                 {
+                //    // 🔴 Cancelled cheque mandatory
+                //    if (dto.CancelledChequeFile == null && !bank.HasChequeDocUploaded)
+                //        return ApiResponse<bool>.Fail("Cancelled cheque is mandatory for primary bank account.");
 
-    //            // 🧱 Step 6: Map DTO → Entity
-    //            var bankEntity = _mapper.Map<EmployeeBankDetail>(existingRecord);
+                //    //// 🔹 Reset all existing primaries
+                //    //bool resetDone = await _unitOfWork.EmployeeBankRepository
+                //    //    .ResetPrimaryAccountAsync(request.DTO.Prop.EmployeeId);
 
-    //            // 🧱 Step 7: Access Control Check
-    //            var accessDto = EmployeeBankInfoMapperHelper.ConvertToAccessResponseDTO(bankEntity);
+                //    //if (!resetDone)
+                //    //    return ApiResponse<bool>.Fail("Failed to reset existing primary bank accounts.");
 
-    //            var accessProp = typeof(GetBankAccessResponseDTO)
-    //                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-    //                .FirstOrDefault(p => string.Equals(p.Name, dto.FieldName, StringComparison.OrdinalIgnoreCase));
+                     bank.IsPrimaryAccount = true;
+                 }
+                else { 
+                     bank.IsPrimaryAccount = false;
+                }
 
-    //            if (accessProp == null)
-    //                return ApiResponse<bool>.Fail($"Field '{dto.FieldName}' does not exist.");
+                // -------------------------------------------------
+                // 6️⃣ FILE HANDLING (OPTIONAL)
+                // -------------------------------------------------
 
-    //            var fieldWithAccess = accessProp.GetValue(accessDto);
-    //            var isReadOnlyProp = fieldWithAccess?.GetType().GetProperty("IsReadOnly");
-    //            bool isReadOnly = (bool?)isReadOnlyProp?.GetValue(fieldWithAccess) ?? false;
+                // ------------------------ FILE HANDLING (OPTIONAL) ------------------------
+                if (request.DTO.CancelledChequeFile is { Length: > 0 })
+                {
+                    try
+                    {
+                        if (!string.IsNullOrWhiteSpace(bank.FileName))
+                        {
+                            string oldPath = bank.FilePath; // This may be URL or relative path
 
-    //            if (isReadOnly)
-    //            {
-    //                _logger.LogWarning("Attempt to modify read-only field: {Field}", dto.FieldName);
-    //                return ApiResponse<bool>.Fail($"Field '{dto.FieldName}' is read-only and cannot be updated.");
-    //            }
+                            bool fileDeleted = false;
 
-    //            // 🧱 Step 8: Reflect actual property and convert value
-    //            var entityProp = typeof(EmployeeBankDetail)
-    //                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-    //                .FirstOrDefault(p => string.Equals(p.Name, dto.FieldName, StringComparison.OrdinalIgnoreCase));
+                            // Case 1: Physical local/server file path
+                            string physicalFullPath = _fileStorageService.GetRelativePath(oldPath);
 
-    //            if (entityProp == null || !entityProp.CanWrite)
-    //                return ApiResponse<bool>.Fail($"Property '{dto.FieldName}' is not valid or not writable.");
+                            if (!string.IsNullOrWhiteSpace(physicalFullPath) && File.Exists(physicalFullPath))
+                            {
+                                File.Delete(physicalFullPath);
+                                fileDeleted = true;
+                                _logger.LogInformation("📌 Local/Server education document deleted: {File}", physicalFullPath);
+                            }
 
-    //            if (!TryConvertObjectToValue.TryConvertValue(dto.FieldValue, entityProp.PropertyType, out object? convertedValue))
-    //            {
-    //                _logger.LogWarning("Value conversion failed for {Field} with input '{Value}'", dto.FieldName, dto.FieldValue);
-    //                return ApiResponse<bool>.Fail($"Value conversion failed for property '{dto.FieldName}'.");
-    //            }
+                            // Case 2: Remote CDN/HTTP/Cloud File
+                            if (!fileDeleted && Uri.TryCreate(oldPath, UriKind.Absolute, out Uri? uri)
+                                && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp))
+                            {
+                                using var client = new HttpClient();
+                                var response = await client.DeleteAsync(uri);
 
-    //            // 🧱 Step 9: Apply Update
-    //            entityProp.SetValue(bankEntity, convertedValue);
-    //            bankEntity.UpdatedById = dto._EmployeeId;
-    //            bankEntity.UpdatedDateTime = DateTime.UtcNow;
+                                if (response.IsSuccessStatusCode)
+                                {
+                                    fileDeleted = true;
+                                    _logger.LogInformation("🌍 Remote bank document deleted: {File}", uri);
+                                }
+                                else
+                                {
+                                    _logger.LogWarning("⚠️ Remote bank file delete attempt failed for: {File}", uri);
+                                }
+                            }
 
-    //            var updateStatus = await _unitOfWork.Employees.UpdateEmployeeFieldAsync(
-    //                existingRecord.Id, dto.EntityName, dto.FieldName, convertedValue, dto._EmployeeId);
+                            if (!fileDeleted)
+                                _logger.LogWarning("⚠️ Delete attempted but file not found: {File}", oldPath);
+                        }
 
-    //            if (!updateStatus)
-    //            {
-    //                _logger.LogError("Failed to update EmployeeBankDetail for Id: {Id}", dto.UserEmployeeId);
-    //                return ApiResponse<bool>.Fail("Failed to update employee bank record.");
-    //            }
+                        // Now upload new file
+                        using var ms = new MemoryStream();
+                        await request.DTO.CancelledChequeFile.CopyToAsync(ms);
 
-    //            _logger.LogInformation("Field '{Field}' updated successfully for BankId: {Id}", dto.FieldName, dto.UserEmployeeId);
-    //            return ApiResponse<bool>.Success(true, $"Field '{dto.FieldName}' updated successfully.");
-    //        }
-    //        catch (Exception ex)
-    //        {
-    //            _logger.LogError(ex, "Unexpected error while updating employee bank field.");
-    //            return ApiResponse<bool>.Fail("An unexpected error occurred.", new List<string> { ex.Message });
-    //        }
-    //    }
-    //}
+                        string newFileName = $"Cheque-{bank.EmployeeId}-{DateTime.UtcNow:yyMMddHHmmss}.pdf";
+
+                        string folderPath = _fileStorageService.GetEmployeeFolderPath(
+                            request.DTO.Prop.TenantId,
+                             request.DTO.Prop.EmployeeId,
+                            "bank"
+                        );
+
+                        string savedPath = await _fileStorageService.SaveFileAsync(ms.ToArray(), newFileName, folderPath);
+
+                        bank.FilePath = _fileStorageService.GetRelativePath(savedPath);
+                        bank.FileName = newFileName;
+                        bank.HasChequeDocUploaded = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "❌ Error replacing bank document for employee {Emp}", request.DTO.Prop.EmployeeId);
+                        return ApiResponse<bool>.Fail("File upload failed, please try again.");
+                    }
+
+                }
+ 
+
+                 var responseData = _mapper.Map<UpdateBankReqestDTO>(bank);
+                   responseData.Prop.UserEmployeeId = request.DTO.Prop.UserEmployeeId;
+                   responseData.Prop.EmployeeId = request.DTO.Prop.EmployeeId;
+                
+                //responseData.UpdatedDateTime = DateTime.UtcNow;
+
+                // -------------------------------------------------
+                // 7️⃣ SAVE CHANGES
+                // -------------------------------------------------
+                bool isSucess =   await _unitOfWork.EmployeeBankRepository.UpdateAsync(responseData);
+                if (!isSucess)
+                    return ApiResponse<bool>.Fail("Failed to update bank information.");
+                await _unitOfWork.CommitAsync();
+                await _unitOfWork.CommitTransactionAsync();
+
+                return ApiResponse<bool>.Success(true, "Bank information updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+
+                _logger.LogError(ex,
+                    "❌ Error updating bank info. BankId: {Id}",
+                    request.DTO.Id);
+
+                return ApiResponse<bool>.Fail(
+                    "Unexpected error occurred while updating bank info.",
+                    new List<string> { ex.Message }
+                );
+            }
+        }
+
+    }
 
 }

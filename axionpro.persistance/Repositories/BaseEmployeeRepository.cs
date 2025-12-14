@@ -105,6 +105,9 @@ namespace axionpro.persistance.Repositories
 
                              where e.TenantId == entity.TenantId && e.IsSoftDeleted != true
                              orderby e.Id descending
+                             join et in _context.EmployeeTypes  on e.EmployeeTypeId equals et.Id into empType
+                             from et in empType.DefaultIfEmpty()
+
 
                              select new GetBaseEmployeeResponseDTO
                              {
@@ -123,7 +126,11 @@ namespace axionpro.persistance.Repositories
                                  DepartmentId = e.DepartmentId,
                                  DepartmentName = dep.DepartmentName,
 
-                               //  RoleName = r.RoleName,
+                                
+                                 Type = et.TypeName,
+
+
+                                 //  RoleName = r.RoleName,
                                  OfficialEmail = e.OfficialEmail,
                                  EmployeeTypeId = e.EmployeeTypeId,
 
@@ -170,6 +177,99 @@ namespace axionpro.persistance.Repositories
                 throw new Exception($"Failed to add employee: {ex.Message}");
             }
         }
+
+
+        public async Task<GetBaseEmployeeResponseDTO> CreateEmployeeAsync(Employee entity)
+        {
+            try
+            {
+                // 🔹 Validation
+                if (entity == null)
+                    throw new ArgumentNullException(nameof(entity));
+
+                if (string.IsNullOrWhiteSpace(entity.FirstName))
+                    throw new ArgumentException("First name is required.");
+
+                // 🔹 Insert Employee
+                await _context.Employees.AddAsync(entity);
+
+                // 🔹 Insert Employee Image (same transaction)
+                var employeeImage = new EmployeeImage
+                {
+                    Employee = entity,   // 🔥 Correct
+                    TenantId = entity.TenantId,
+                    IsPrimary = true,
+                    HasImageUploaded = false,
+                    IsActive = true,
+                    AddedById = entity.AddedById,
+                    AddedDateTime = DateTime.UtcNow,
+                    FileType = 1
+                };
+
+                await _context.EmployeeImages.AddAsync(employeeImage);
+
+                // 🔹 Save once
+                await _context.SaveChangesAsync();
+
+                // 🔹 Fetch ONLY newly created employee
+                var result = await (
+                    from e in _context.Employees
+
+                    join d in _context.Designations on e.DesignationId equals d.Id into des
+                    from d in des.DefaultIfEmpty()
+
+                    join dep in _context.Departments on e.DepartmentId equals dep.Id into dept
+                    from dep in dept.DefaultIfEmpty()
+
+                    join g in _context.Genders on e.GenderId equals g.Id into gen
+                    from g in gen.DefaultIfEmpty()
+
+                    where e.Id == entity.Id && e.TenantId == entity.TenantId
+
+                    select new GetBaseEmployeeResponseDTO
+                    {
+                        Id = e.Id.ToString(),
+                        EmployementCode = e.EmployementCode,
+
+                        FirstName = e.FirstName,
+                        MiddleName = e.MiddleName,
+                        LastName = e.LastName,
+
+                        GenderId = e.GenderId,
+                        GenderName = g.GenderName,
+
+                        DesignationId = e.DesignationId,
+                        DesignationName = d.DesignationName,
+
+                        DepartmentId = e.DepartmentId,
+                        DepartmentName = dep.DepartmentName,
+
+                        OfficialEmail = e.OfficialEmail,
+                        EmployeeTypeId = e.EmployeeTypeId,
+                        
+                        DateOfBirth = e.DateOfBirth,
+                        DateOfOnBoarding = e.DateOfOnBoarding,
+                        DateOfExit = e.DateOfExit,
+
+                        IsActive = e.IsActive,
+                        HasPermanent = e.HasPermanent,
+                        IsEditAllowed = e.IsEditAllowed,
+                        IsInfoVerified = e.IsInfoVerified
+                    }
+                ).AsNoTracking().FirstOrDefaultAsync();
+
+                if (result == null)
+                    throw new Exception("Employee created but fetch failed.");
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error while creating employee for TenantId {TenantId}", entity?.TenantId);
+                throw;
+            }
+        }
+
 
         public async Task<bool> UpdateVerifyEditStatusAsync(string sectionType,long employeeId,bool? isVerified,bool? isEditAllowed,bool? isActive,long userId)
         {
@@ -766,8 +866,8 @@ namespace axionpro.persistance.Repositories
                 throw new Exception($"Failed to fetch base employee info: {ex.Message}");
             }
         }
- 
-        public async Task<PagedResponseDTO<GetAllEmployeeInfoResponseDTO>> GetAllInfo( GetAllEmployeeInfoRequestDTO dto)
+
+        public async Task<PagedResponseDTO<GetAllEmployeeInfoResponseDTO>> GetAllInfo(GetAllEmployeeInfoRequestDTO dto)
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
 
@@ -776,37 +876,42 @@ namespace axionpro.persistance.Repositories
                 int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
                 int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
 
-                // -----------------------------------
-                // 1️⃣ BASE QUERY (High Performance)
-                // -----------------------------------
+                // ----------------------------------------------------
+                // 1️⃣ BASE QUERY (LEFT JOIN + ASNO TRACKING)
+                // ----------------------------------------------------
                 var baseQuery =
                     from emp in context.Employees.AsNoTracking()
+
+                    join gender in context.Genders
+                        on emp.GenderId equals (long?)gender.Id into genderJoin
+                    from g in genderJoin.DefaultIfEmpty()
+
+                    join designation in context.Designations
+                        on emp.DesignationId equals (long?)designation.Id into desigJoin
+                    from d in desigJoin.DefaultIfEmpty()
+
+                    join empType in context.EmployeeTypes
+                        on emp.EmployeeTypeId equals (long?)empType.Id into typeJoin
+                    from et in typeJoin.DefaultIfEmpty()
+
+                    join department in context.Departments
+                        on emp.DepartmentId equals (long?)department.Id into deptJoin
+                    from dep in deptJoin.DefaultIfEmpty()
+
                     where emp.TenantId == dto.Prop.TenantId && emp.IsSoftDeleted != true
-
-                    join g in context.Genders on emp.GenderId equals g.Id into genderJoin
-                    from gender in genderJoin.DefaultIfEmpty()
-
-                    join d in context.Designations on emp.DesignationId equals d.Id into desigJoin
-                    from designation in desigJoin.DefaultIfEmpty()
-
-                    join et in context.EmployeeTypes on emp.EmployeeTypeId equals et.Id into typeJoin
-                    from empType in typeJoin.DefaultIfEmpty()
-
-                    join dep in context.Departments on emp.DepartmentId equals dep.Id into deptJoin
-                    from department in deptJoin.DefaultIfEmpty()
 
                     select new
                     {
                         emp,
-                        GenderName = gender.GenderName ?? "",
-                        DesignationName = designation.DesignationName ?? "",
-                        EmployeeTypeName = empType.TypeName ?? "",
-                        DepartmentName = department.DepartmentName ?? ""
+                        GenderName = g.GenderName ?? "",
+                        DesignationName = d.DesignationName ?? "",
+                        EmployeeTypeName = et.TypeName ?? "",
+                        DepartmentName = dep.DepartmentName ?? ""
                     };
 
-                // -----------------------------------
-                // 2️⃣ FILTERS (Optimized)
-                // -----------------------------------
+                // ----------------------------------------------------
+                // 2️⃣ FILTERS  (Optimized)
+                // ----------------------------------------------------
                 if (dto.Prop.EmployeeId > 0)
                     baseQuery = baseQuery.Where(x => x.emp.Id == dto.Prop.EmployeeId);
 
@@ -819,8 +924,9 @@ namespace axionpro.persistance.Repositories
                 if (dto.DesignationId > 0)
                     baseQuery = baseQuery.Where(x => x.emp.DesignationId == dto.DesignationId);
 
-                if (dto.EmployeeTypeId > 0)
-                    baseQuery = baseQuery.Where(x => x.emp.EmployeeTypeId == dto.EmployeeTypeId);
+                // ⭐⭐⭐ IMPORTANT FIX ⭐⭐⭐
+                if (dto.EmployeeTypeId.HasValue && dto.EmployeeTypeId.Value > 0)
+                    baseQuery = baseQuery.Where(x => x.emp.EmployeeTypeId == dto.EmployeeTypeId.Value);
 
                 if (dto.GenderId > 0)
                     baseQuery = baseQuery.Where(x => x.emp.GenderId == dto.GenderId);
@@ -836,18 +942,18 @@ namespace axionpro.persistance.Repositories
 
                 int totalCount = await baseQuery.CountAsync();
 
-                // -----------------------------------
+                // ----------------------------------------------------
                 // 3️⃣ PAGING
-                // -----------------------------------
+                // ----------------------------------------------------
                 var pagedEmployees = await baseQuery
                     .OrderBy(x => x.emp.Id)
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync();
 
-                // -----------------------------------
-                // 4️⃣ FETCH IMAGES (Optimized with Dictionary)
-                // -----------------------------------
+                // ----------------------------------------------------
+                // 4️⃣ IMAGES (Optimized)
+                // ----------------------------------------------------
                 var ids = pagedEmployees.Select(x => x.emp.Id).ToList();
 
                 var images = await context.EmployeeImages
@@ -857,20 +963,21 @@ namespace axionpro.persistance.Repositories
                     .ThenByDescending(i => i.Id)
                     .ToListAsync();
 
-                var imgLookup = images.GroupBy(i => i.EmployeeId)
-                                      .ToDictionary(g => g.Key, g => g.FirstOrDefault());
+                var imgLookup = images
+                    .GroupBy(i => i.EmployeeId)
+                    .ToDictionary(g => g.Key, g => g.FirstOrDefault());
 
-                var hasPrimaryLookup = images.Where(i => i.IsPrimary == true)
-                                             .Select(i => i.EmployeeId)
-                                             .ToHashSet();
+                var hasPrimaryLookup = images
+                    .Where(i => i.IsPrimary == true)
+                    .Select(i => i.EmployeeId)
+                    .ToHashSet();
 
-                // -----------------------------------
-                // 5️⃣ BUILD OUTPUT (Optimized)
-                // -----------------------------------
+                // ----------------------------------------------------
+                // 5️⃣ BUILD OUTPUT
+                // ----------------------------------------------------
                 var result = pagedEmployees.Select(x =>
                 {
                     imgLookup.TryGetValue(x.emp.Id, out var img);
-
                     bool hasPrimary = hasPrimaryLookup.Contains(x.emp.Id);
 
                     int completed = new[]
@@ -906,7 +1013,6 @@ namespace axionpro.persistance.Repositories
                         DepartmentName = x.DepartmentName,
 
                         OfficialEmail = x.emp.OfficialEmail,
-
                         EmployeeImagePath = img?.FilePath,
                         HasImagePicUploaded = hasPrimary,
 
@@ -1376,7 +1482,6 @@ namespace axionpro.persistance.Repositories
             existingEmployee.IsActive = entity.IsActive;
             existingEmployee.Remark = entity.Remark;
             existingEmployee.Description = entity.Description;
-
             existingEmployee.IsEditAllowed = entity.IsEditAllowed;
             existingEmployee.IsInfoVerified = entity.IsInfoVerified;
             existingEmployee.UpdatedById = entity.UpdatedById;

@@ -361,3 +361,20 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/AxionPro.sln
+/axionpro.api/Secrets/axionpro-teststorage-b59b45113275.json
+
+# ===============================
+# Ignore Secrets / Credentials
+# ===============================
+axionpro.api/Secrets/*.json
+**/Secrets/*.json
+/axionpro.api/Secrets/axionpro-teststorage-b59b45113275.json
+/axionpro.api/Secrets/axionpro-teststorage-b59b45113275.json
+
+
+# ===============================
+# Ignore Secrets / Credentials
+# ===============================
+axionpro.api/Secrets/*.json
+**/Secrets/*.json

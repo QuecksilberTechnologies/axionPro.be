@@ -419,6 +419,7 @@ namespace axionpro.application.Mappings
      .ForMember(dest => dest.TenantId, opt => opt.Ignore()).ReverseMap();
 
             #endregion
+            CreateMap<UpdateBankReqestDTO, GetBankResponseDTO>().ReverseMap();
 
             CreateMap<CreateBankRequestDTO, EmployeeBankDetail>()
            .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())

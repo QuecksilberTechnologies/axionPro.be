@@ -8,7 +8,6 @@ public partial class UserRole
     public long Id { get; set; }
 
     public long? EmployeeId { get; set; }
-
    
     public int? RoleId { get; set; }
 

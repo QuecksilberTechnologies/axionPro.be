@@ -1,4 +1,5 @@
 ﻿using axionpro.application.Common.Helpers;
+using axionpro.application.Interfaces.IRepositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +18,7 @@ namespace axionpro.application.Common.Models.Security
         public long TenantId { get; set; }
         public int RoleId { get; set; }
 
+        
         public TokenClaimsModel? Claims { get; set; }
     }
 }

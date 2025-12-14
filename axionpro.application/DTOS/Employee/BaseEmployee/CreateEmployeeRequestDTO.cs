@@ -17,10 +17,8 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         [Required]
         public string UserEmployeeId { get; set; } 
 
-
-        [Required]
-        
-        public string EmployeeDocumentId { get; set; }
+ 
+        public int? EmployeeDocumentId { get; set; }
        
         [Required]
         [MaxLength(100)]
@@ -43,7 +41,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         public int EmployeeTypeId { get; set; }
 
         [Required]
-        public string? GenderId { get; set; }
+        public int GenderId { get; set; }
 
         //[Required]
         public required bool HasPermanent { get; set; }
@@ -64,7 +62,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         public int RoleId { get; set; }
 
         
-        public string? ReferalId { get; set; }
+        public int? ReferalId { get; set; }
 
         public ExtraPropRequestDTO Prop = new ExtraPropRequestDTO();
 

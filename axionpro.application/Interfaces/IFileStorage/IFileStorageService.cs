@@ -1,7 +1,10 @@
-﻿using System;
+﻿using axionpro.domain.Entity;
+using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -23,5 +26,13 @@ namespace axionpro.application.Interfaces.IFileStorage
         string GetDefaultImagePath();
         string GetDefaultImageUrl();
 
+    }
+    // Application/Interfaces/IFileService.cs
+    public interface IFileService
+    {
+        Task<FileRecord> UploadAsync(IFormFile file, string tenantEncoded, string employeeEncoded, string category, bool isSensitive);
+        Task<(Stream Stream, string ContentType, string FileName)> GetFileStreamAsync(Guid fileId, ClaimsPrincipal user);
+        Task<string> GetSignedUrlAsync(Guid fileId, TimeSpan ttl, ClaimsPrincipal user);
+        Task DeleteAsync(Guid fileId);
     }
 }

@@ -1,4 +1,5 @@
-﻿using axionpro.application.DTOS.Pagination;
+﻿using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Pagination;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -28,10 +29,7 @@ namespace axionpro.application.DTOS.Employee.Bank
         public bool IsPrimaryAccount { get; set; }= false;        
         public IFormFile? CancelledChequeFile { get; set; }
 
-
-
-
-
+        public ExtraPropRequestDTO Prop = new ExtraPropRequestDTO();
 
     }
 

@@ -4,6 +4,7 @@ using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
+using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
@@ -14,6 +15,7 @@ using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
+using axionpro.application.Interfaces.IRequestValidation;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
@@ -25,6 +27,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -52,6 +55,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
         private readonly IEncryptionService _encryptionService;
         private readonly IIdEncoderService _idEncoderService;
         private readonly IFileStorageService _fileStorageService;
+        private readonly ICommonRequestService _commonRequestService;
 
         public CreateBankInfoCommandHandler(
             IUnitOfWork unitOfWork,
@@ -62,8 +66,8 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
             IPermissionService permissionService,
             IConfiguration config,
             IEncryptionService encryptionService, IIdEncoderService idEncoderService
-            ,IFileStorageService fileStorageService
-            )
+            ,IFileStorageService fileStorageService,
+             ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -75,89 +79,41 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
             _encryptionService = encryptionService;
             _idEncoderService = idEncoderService;
             _fileStorageService = fileStorageService;
+            _commonRequestService = commonRequestService;
 
         }
 
 
         public async Task<ApiResponse<List<GetBankResponseDTO>>> Handle(CreateBankInfoCommand request, CancellationToken cancellationToken)
-        {
-            await _unitOfWork.BeginTransactionAsync();
-            string? savedFullPath = null;  // 📂 File full path track karne ke liye
+        {         
 
 
             try
             {
+                await _unitOfWork.BeginTransactionAsync();
+                string? savedFullPath = null;  // 📂 File full path track karne ke liye
 
-                // 🧩 STEP 1: Validate JWT Token
-                var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
-                    .ToString()?.Replace("Bearer ", "");
+                // 1️ COMMON VALIDATION (Mandatory)
+                var validation = await _commonRequestService.ValidateRequestAsync(request.DTO.UserEmployeeId);
 
-                if (string.IsNullOrEmpty(bearerToken))
-                    return ApiResponse<List<GetBankResponseDTO>>.Fail("Unauthorized: Token not found.");
+                if (!validation.Success)
+                    return ApiResponse<List<GetBankResponseDTO>>.Fail(validation.ErrorMessage);
 
-                var secretKey = TokenKeyHelper.GetJwtSecret(_config);
-                var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
+                // Assign decoded values coming from CommonRequestService
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
+                request.DTO.Prop.EmployeeId= RequestCommonHelper.DecodeOnlyEmployeeId(
+                  request.DTO.EmployeeId,                 
+                  validation.Claims.TenantEncriptionKey,
+                  _idEncoderService
+              );
 
-                if (tokenClaims == null || tokenClaims.IsExpired)
-                    return ApiResponse<List<GetBankResponseDTO>>.Fail("Invalid or expired token.");
-
-                // 🧩 STEP 2: Validate Active User
-                long loggedInEmpId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
-                if (loggedInEmpId < 1)
-                {
-                    _logger.LogWarning("❌ Invalid or inactive user. LoginId: {LoginId}", tokenClaims.UserId);
-                    return ApiResponse<List<GetBankResponseDTO>>.Fail("Unauthorized or inactive user.");
-                }
-
-                // 🧩 STEP 3: Decrypt Tenant and Employee
-                string tenantKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
-
-                if (string.IsNullOrEmpty(request.DTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
-                {
-                    _logger.LogWarning("❌ Missing tenantKey or UserEmployeeId.");
-                    return ApiResponse<List<GetBankResponseDTO>>.Fail("User invalid.");
-                }
-
-                 string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
-                //UserEmployeeId
-                string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
-                long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
-                //Token TenantId
-                string tokenTenant = EncryptionSanitizer.CleanEncodedInput(tokenClaims.TenantId);
-                long decryptedTenantId = _idEncoderService.DecodeId(tokenTenant, finalKey);
-                //Id              
-                // Actual EmployeeId
-                string actualEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId);
-                long decryptedActualEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
-
-               // 🧩 STEP 4: Validate all employee references
-                if (decryptedTenantId <= 0 )
-                {
-                    _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
-                    return ApiResponse<List<GetBankResponseDTO>>.Fail("Tenant or employee information missing.");
-                }
-
-
-                if (decryptedTenantId <= 0 || decryptedEmployeeId <= 0)
-                {
-                    _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
-                    return ApiResponse<List<GetBankResponseDTO>>.Fail("Tenant or employee information missing.");
-                }
-
-                if (!(decryptedEmployeeId == loggedInEmpId))
-                {
-                    _logger.LogWarning(
-                        "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
-                         decryptedEmployeeId, loggedInEmpId
-                    );
-
-                    return ApiResponse<List<GetBankResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
-                }
-
-                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
+         
+                // ✅ Create  using repository
+                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
                 if (!permissions.Contains("AddBankInfo"))
                 {
-                    //  await _unitOfWork.RollbackTransactionAsync();
+                    //await _unitOfWork.RollbackTransactionAsync();
                     //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
                 }
                 // 🧩 STEP 4: Call Repository to get data          
@@ -165,9 +121,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 // 🔹 STEP 4: File Upload
                 string? docPath = null;
                 string? docName = null;
-
-                // 🔹 Tenant info from decoded values
-                long tenantId = decryptedTenantId;
+ 
                 bool HasChequeDocUploaded = false;
                 if (string.IsNullOrWhiteSpace(request.DTO.BankName))
                 {
@@ -181,6 +135,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 
                 }
 
+
                 string? docFileName = null;
              
                     // 🔹 File upload check
@@ -193,8 +148,10 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                             var fileBytes = ms.ToArray();
 
                             // 🔹 File naming convention (same pattern as asset)
-                            string fileName = $"Cheque-{decryptedActualEmployeeId + "_" + docFileName}-{DateTime.UtcNow:yyMMddHHmmss}.png";
-                            string fullFolderPath = _fileStorageService.GetEmployeeFolderPath(tenantId, decryptedActualEmployeeId, "bank");              
+                            string fileName = $"Cheque-{request.DTO.Prop.EmployeeId + "_" + docFileName}-{DateTime.UtcNow:yyMMddHHmmss}.png";
+                        // string fileName = $"ProfileImage-{decryptedActualEmployeeId + "_" + docFileName}-{DateTime.UtcNow:yyMMddHHmmss}.png";
+                      
+                        string fullFolderPath = _fileStorageService.GetEmployeeFolderPath(request.DTO.Prop.TenantId, request.DTO.Prop.EmployeeId, "bank");              
 
                             // 🔹 Store actual name for reference in DB
                             docName = fileName;
@@ -202,10 +159,11 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                             // 🔹 Save file physically
                             savedFullPath = await _fileStorageService.SaveFileAsync(fileBytes, fileName, fullFolderPath);
 
-                            // 🔹 If saved successfully, set relative path
-                            if (!string.IsNullOrEmpty(savedFullPath))
+                        // 🔹 If saved successfully, set relative path
+                        if (!string.IsNullOrEmpty(savedFullPath))
                             {
                                 docPath = _fileStorageService.GetRelativePath(savedFullPath);
+                            
                                  HasChequeDocUploaded = true;
                             }
                         }
@@ -214,13 +172,13 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 
 
                 var bankEntity = _mapper.Map<EmployeeBankDetail>(request.DTO); // use mapper for create mapping
-                bankEntity.AddedById = decryptedEmployeeId;
+                bankEntity.AddedById = request.DTO.Prop.UserEmployeeId;
                 bankEntity.AddedDateTime = DateTime.UtcNow;
                 bankEntity.IsActive = true;
                 bankEntity.IsEditAllowed = false;
                 bankEntity.IsInfoVerified = false;
                 bankEntity.IsPrimaryAccount = request.DTO.IsPrimaryAccount;
-                bankEntity.EmployeeId = decryptedActualEmployeeId;
+                bankEntity.EmployeeId = request.DTO.Prop.EmployeeId;
                 bankEntity.FileType = 0;
 
                 if (HasChequeDocUploaded)
@@ -237,7 +195,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                  
                 // 4. Pre-map projection + encrypt Ids (fast)
                 // If pagedResult.Items are entities:
-                var encryptedList = ProjectionHelper.ToGetBankResponseDTOs(responseDTO, _idEncoderService, tenantKey, _config);
+                var encryptedList = ProjectionHelper.ToGetBankResponseDTOs(responseDTO, _idEncoderService, validation.Claims.TenantEncriptionKey, _config);
                
 
                 // 5. commit

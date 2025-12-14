@@ -6,7 +6,7 @@ namespace axionpro.domain.Entity;
 
 public partial class EmployeeBankDetail
 {
-    public int Id { get; set; }
+    public int? Id { get; set; }
 
     public long EmployeeId { get; set; }
 

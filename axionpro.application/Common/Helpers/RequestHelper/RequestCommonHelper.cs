@@ -59,6 +59,23 @@ namespace axionpro.application.Common.Helpers.RequestHelper
             return (userId, tenantId);
         }
 
+        public static long  DecodeOnlyEmployeeId(
+           string encodedEmpId,         
+           string tenantKey,
+           IIdEncoderService encoder)
+        {
+           
+
+            long userId = encoder.DecodeId(
+                EncryptionSanitizer.CleanEncodedInput(encodedEmpId),
+                tenantKey
+            );
+
+           
+
+            return (userId);
+        }
+
         public static string? Clean(string? value)
         {
             return EncryptionSanitizer.CleanEncodedInput(value);

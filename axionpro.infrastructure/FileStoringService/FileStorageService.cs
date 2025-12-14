@@ -1,4 +1,6 @@
 ﻿using axionpro.application.Interfaces.IFileStorage;
+using axionpro.domain.Entity;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -6,6 +8,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
 using System.Runtime.Versioning;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -165,6 +168,9 @@ namespace axionpro.infrastructure.FileStoringService
         }
 
     }
+
+   
+
 
 
 }

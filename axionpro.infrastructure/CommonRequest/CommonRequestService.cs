@@ -81,7 +81,7 @@ namespace axionpro.infrastructure.CommonRequest
                     LoggedInEmployeeId = loggedInId,
                     UserEmployeeId = decoded.UserEmpId,
                     TenantId = decoded.TenantId,
-                    RoleId = SafeParser.TryParseInt(claims.RoleId),
+                    RoleId = SafeParser.TryParseInt(claims.RoleId),                   
                     Claims = claims
                 };
             }

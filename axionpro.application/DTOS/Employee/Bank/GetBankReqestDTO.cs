@@ -1,4 +1,5 @@
-﻿using axionpro.application.DTOS.Pagination;
+﻿using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Pagination;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -11,8 +12,9 @@ namespace axionpro.application.DTOS.Employee.Bank
     public class GetBankReqestDTO: BaseRequest
     {
 
-        public  long _EmployeeId { get; set; }
+     
         public string? EmployeeId { get; set; } // e.g., Savings, Current, etc.
+        public int? Id {get; set; } // e.g., Savings, Current, etc.
         public string? AccountType { get; set; } // e.g., Savings, Current, etc.      
         public bool? IsPrimaryAccount { get; set; }
         public bool HasChequeDocUploaded { get; set; }
@@ -20,6 +22,7 @@ namespace axionpro.application.DTOS.Employee.Bank
         public bool? IsInfoVerified { get; set; }
         public bool? IsEditAllowed { get; set; }
 
+        public ExtraPropRequestDTO Prop = new ExtraPropRequestDTO();
 
     }
 
