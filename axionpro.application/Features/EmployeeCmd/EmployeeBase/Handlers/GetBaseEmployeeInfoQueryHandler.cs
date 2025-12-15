@@ -4,6 +4,7 @@ using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
+using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOs.Designation;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.BaseEmployee;
@@ -83,8 +84,13 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // Assign decoded values coming from CommonRequestService
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
+                request.DTO.Prop.EmployeeId = RequestCommonHelper.DecodeOnlyEmployeeId(request.DTO.EmployeeId, validation.Claims.TenantEncriptionKey, _idEncoderService );
 
-
+                if (request.DTO.Prop.EmployeeId<=0)
+                {
+                    _logger.LogInformation("Invalid EmployeeId provided in the request.");
+                    return ApiResponse<List<GetBaseEmployeeResponseDTO>>.Fail("Invalid EmployeeId provided.");
+                }
                 // ✅ Create  using repository
                 var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
                 if (!permissions.Contains("AddBankInfo"))
