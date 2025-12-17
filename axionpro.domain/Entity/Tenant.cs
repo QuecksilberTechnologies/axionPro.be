@@ -92,3 +92,4 @@ public partial class Tenant
 
     public virtual ICollection<TicketType> TicketTypes { get; set; } = new List<TicketType>();
 }
+

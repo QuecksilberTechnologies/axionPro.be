@@ -1142,7 +1142,7 @@ namespace axionpro.persistance.Repositories
                 // 3️⃣ PAGING
                 // ----------------------------------------------------
                 var pagedEmployees = await baseQuery
-                    .OrderBy(x => x.emp.Id)
+                    .OrderBy(x => x.emp.Id).OrderByDescending(x => x.emp.AddedDateTime)
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync();

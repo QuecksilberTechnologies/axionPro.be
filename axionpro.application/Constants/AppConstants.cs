@@ -1,5 +1,6 @@
 ﻿using axionpro.application.Interfaces;
 using axionpro.domain.Entity;
+using MediatR;
 using System.Runtime.ConstrainedExecution;
 
 namespace axionpro.application.Constants
@@ -46,8 +47,8 @@ namespace axionpro.application.Constants
         public static readonly int RoleTypeAdmin = 1;
         public static readonly int RoleTypeEmployee = 2;
         public static readonly int RoleTypeManager = 3;
-    
 
+    
 
         public static readonly string TenantHRRoleCode = "TENANT_HR";
         public static readonly string TenantHRRoleType = "TENANT_OPERATIONAL";
@@ -66,9 +67,14 @@ namespace axionpro.application.Constants
         public static readonly bool IsByDefaultFalse = false;         
         public static readonly long SystemUserIdByDefaultZero = 0; // For system-generated entries
         public static readonly string DefaultPassword = "Guest@123"; // For system-generated entries
-       
 
-                                                               //   public static readonly DateOnly SystemOnlyTodaysDate= DateOnly.MaxValue;
+
+
+        #region Email Templates
+        public static readonly string WelcomeEmail = "WELCOME_EMAIL";
+        #endregion
+
+        //   public static readonly DateOnly SystemOnlyTodaysDate= DateOnly.MaxValue;
 
         //int adminRoleId = await _unitOfWork.RoleRepository.GetRoleIdByRoleInfoAsync(role);
         //public static readonly string RoleCode = "Super-Admin";
@@ -76,5 +82,5 @@ namespace axionpro.application.Constants
         //public static readonly string AdminRoleRemark = "This is an auto-generated Admin account by AI for the initial setup of the tenant.";
 
     }
-    
+
 }

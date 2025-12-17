@@ -6,31 +6,44 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.DTOS.Token
 {
-    
-        public class GetTokenInfoDTO
-        {
+
+    public class GetTokenInfoDTO
+    {
+        // 🔐 Identity
         public string UserId { get; set; } = string.Empty;
-        public string? EmployeeId { get; set; }  
-        public string RoleId { get; set; }  
-        public string GenderId { get; set; }  
-        public bool HasPermanent { get; set; }  
-        public string GenderName { get; set; }  
-        public string? RoleTypeId { get; set; }    
-        public string RoleTypeName { get; set; } = string.Empty;
-        public string EmployeeTypeId { get; set; }    
-        public string EmployeeTypeName { get; set; }    
-        public string? TenantId { get; set; }    
+        public string? EmployeeId { get; set; }
         public string Email { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
+
+        // 🏢 Tenant
+        public string? TenantId { get; set; }
+        public string TenantEncriptionKey { get; set; } = null!;
+
+        // 👤 Role & Type
+        public string RoleId { get; set; } = string.Empty;
+        public string RoleTypeId { get; set; } = string.Empty;
+        public string RoleTypeName { get; set; } = string.Empty;
+
+        public string EmployeeTypeId { get; set; } = string.Empty;
+        public string EmployeeTypeName { get; set; } = string.Empty;
+
+        // 👥 Profile
+        public string GenderId { get; set; } = string.Empty;
+        public string GenderName { get; set; } = string.Empty;
+        public bool HasPermanent { get; set; }
+
+        // 🔐 Token Control
+        public string TokenPurpose { get; set; } = "Auth";
+        public DateTime IssuedAt { get; set; }
         public DateTime? Expiry { get; set; }
         public bool IsExpired { get; set; }
-       // public List<string> Permissions { get; set; } = new();
-        public string  TenantEncriptionKey { get; set; } = null!;
-      
+        public int TokenVersion { get; set; }
+        public bool IsFirstLogin { get; set; }
 
-
+        // 🌐 Context
+        public string ClientType { get; set; } = "Web";
+        // public List<string> Permissions { get; set; } = new();
     }
-
 
 
 }

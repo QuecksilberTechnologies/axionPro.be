@@ -24,15 +24,13 @@ namespace axionpro.persistance.Repositories
 
         public async Task<TenantEmailConfig?> GetActiveEmailConfigAsync(long? tenantId)
         {
-            try
-            {
-                return await _context.TenantEmailConfigs.FirstOrDefaultAsync(x => x.TenantId == tenantId && x.IsActive);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while fetching email config for TenantId: {TenantId}", tenantId);
-                return null;
-            }
+            return await _context.TenantEmailConfigs
+                .Include(x => x.Tenant)          // 🔥 YAHI LINE IMPORTANT HAI
+                .Include(x => x.Tenant.TenantProfiles) // logo etc ke liye
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x =>
+                    x.TenantId == tenantId &&
+                    x.IsActive  && x.Tenant.IsSoftDeleted!=true);
         }
 
         public Task<TenantEmailConfig?> UpdateEmailConfigAsync(long? tenantId)

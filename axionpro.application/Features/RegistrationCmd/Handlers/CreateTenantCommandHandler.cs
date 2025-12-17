@@ -43,12 +43,10 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
         private readonly ITenantRepository _tenantRepository;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ILogger<CreateTenantCommandHandler> _logger;
-        private readonly ITokenService _tokenService;
+        private readonly ILogger<CreateTenantCommandHandler> _logger;    
         private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly IEncryptionService _encryptionService;
-
-
+        private readonly ITokenService _tokenService;
         private readonly IPasswordService _passwordService;
 
         public CreateTenantCommandHandler(
@@ -90,7 +88,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
 
                 // Inside Handle() method
                 string? hashedPassword = _passwordService.HashPassword( ConstantValues.DefaultPassword);
-                       hashedPassword = hashedPassword?.Trim();
+                        hashedPassword = hashedPassword?.Trim();
 
                 // Step 3️⃣: Map DTO to Entity
                 var tenantEntity = _mapper.Map<Tenant>(request.TenantCreateRequestDTO);
@@ -463,9 +461,9 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
               
            // Assume request.TenantCreateRequestDTO ke andar ye fields available hain
                 var firstName = request.TenantCreateRequestDTO.ContactPersonName;
-
                 var email = request.TenantCreateRequestDTO.TenantEmail;
                 var loginId = request.TenantCreateRequestDTO.TenantEmail; // assuming loginId = email
+
 
                 var placeholderData = new Dictionary<string, string>
                                            {
@@ -482,8 +480,8 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
   <body style='font-family: Arial, sans-serif; padding: 20px;'>
     <h2 style='color: #2E86C1;'>Dear {{UserName}},</h2>
     <p style='font-size: 16px;'>
-      This is a <strong>verification link</strong> sent by <em>Axion-Pro</em>.
-      The link will expire in <strong>5 minutes</strong>.
+      This is a <strong>verification link</strong> sent by <em>@Tenant Name</em>.
+      The link will expire in <strong>15 minutes</strong>.
     </p>
     <p>
       <a href='http://localhost:4200/registration-verify?token={{token}}'

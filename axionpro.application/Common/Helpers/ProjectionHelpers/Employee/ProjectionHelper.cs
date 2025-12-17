@@ -215,9 +215,9 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 
 
         public static GetBaseEmployeeResponseDTO? ToGetBaseInfoResponseDTO(
-            GetBaseEmployeeResponseDTO? entity,
-          IIdEncoderService encoderService,
-               string tenantKey)
+                 GetBaseEmployeeResponseDTO? entity,
+                 IIdEncoderService encoderService,
+                 string tenantKey)
         {
             if (entity == null)
                 return null;
