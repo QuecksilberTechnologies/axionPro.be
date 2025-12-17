@@ -1211,7 +1211,7 @@ namespace axionpro.persistance.Repositories
                         OfficialEmail = x.emp.OfficialEmail,
                         EmployeeImagePath = img?.FilePath,
                         HasImagePicUploaded = hasPrimary,
-
+                        IsActive = x.emp.IsActive,
                         CompletionPercentage = (completed / 10.0) * 100
                     };
                 }).ToList();
