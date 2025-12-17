@@ -251,15 +251,11 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<long> ValidateActiveUserLoginOnlyAsync(string? loginId)
+        public async Task<long> ValidateActiveUserLoginOnlyAsync(string loginId)
         {
             try
             {
-                if (string.IsNullOrEmpty(loginId))
-                {
-                    _logger.LogWarning("LoginId is null or empty.");
-                    return -1; // Invalid input case
-                }
+             
                 await using var context = await _contextFactory.CreateDbContextAsync();
 
                 _logger.LogInformation("Validating user login for LoginId: {LoginId}", loginId);
@@ -283,7 +279,7 @@ namespace axionpro.persistance.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while validating user login for LoginId: {LoginId}");
+                _logger.LogError(ex, "An error occurred while validating user login for LoginId: {LoginId}", loginId);
                 return -1;  // Error Case
             }
         }

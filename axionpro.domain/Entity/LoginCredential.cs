@@ -13,7 +13,7 @@ public partial class LoginCredential
 
     public string LoginId { get; set; } = null!;
 
-    public string? Password { get; set; }
+    public  string? Password { get; set; } 
 
     public bool HasFirstLogin { get; set; }
 
@@ -52,4 +52,6 @@ public partial class LoginCredential
     public virtual ICollection<ForgotPasswordOTPDetail> ForgotPasswordRequests { get; set; } = new List<ForgotPasswordOTPDetail>();
 
     public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+    public virtual Employee? Employee { get; set; }
+
 }

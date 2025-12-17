@@ -49,6 +49,28 @@ namespace axionpro.persistance.Repositories
 
 
 
+        public async Task<Employee> CreateEmployeeAsync( Employee employee, LoginCredential loginCredential)
+        {
+            await _context.Employees.AddAsync(employee);
+
+            var employeeImage = new EmployeeImage
+            {
+                Employee = employee,
+                TenantId = employee.TenantId,
+                IsPrimary = true,
+                HasImageUploaded = false,
+                IsActive = true,
+                AddedById = employee.AddedById,
+                AddedDateTime = DateTime.UtcNow,
+                FileType = 1
+            };
+
+            await _context.EmployeeImages.AddAsync(employeeImage);
+            await _context.LoginCredentials.AddAsync(loginCredential);
+            await _context.SaveChangesAsync();
+            return employee;
+        }
+
         public async Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> CreateAsync(Employee entity)
         {
             try
@@ -270,7 +292,15 @@ namespace axionpro.persistance.Repositories
             }
         }
 
+        //public async Task<Employee?> IsEmployeeExist(string EmployeeCode, long tenantId, bool track = true)
+        //{
+        //    IQueryable<Employee> query = _context.Employees.Where(x => x.TenantId == tenantId && x.IsSoftDeleted != true);
 
+        //    if (!track)
+        //        query = query.AsNoTracking();
+
+        //    return await query.FirstOrDefaultAsync(x => x.EmployementCode == EmployeeCode);
+        //}
         public async Task<bool> UpdateVerifyEditStatusAsync(string sectionType,long employeeId,bool? isVerified,bool? isEditAllowed,bool? isActive,long userId)
         {
             if (employeeId <= 0 || string.IsNullOrWhiteSpace(sectionType))
@@ -877,7 +907,7 @@ namespace axionpro.persistance.Repositories
         //    }
         //}
 
-
+    
         public async Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> GetInfo(GetBaseEmployeeRequestDTO dto)
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
@@ -1722,7 +1752,7 @@ namespace axionpro.persistance.Repositories
             if (!track)
                 query = query.AsNoTracking();
 
-            return await query.FirstOrDefaultAsync(x => x.Id == id);
+              return await query.FirstOrDefaultAsync(x => x.Id == id);
         }
 
         public async Task<bool> UpdateProfileImage(EmployeeImage employeeImageInfo)
@@ -1742,6 +1772,116 @@ namespace axionpro.persistance.Repositories
             }
         }
 
+
+       
+      public async Task<GetBaseEmployeeResponseDTO> CreateEmployeeAsync(
+    Employee employee,
+    LoginCredential loginCredential,
+    UserRole userRole)
+{
+    // 1️⃣ Save entities
+    await _context.Employees.AddAsync(employee);
+
+    var employeeImage = new EmployeeImage
+    {
+        Employee = employee,
+        TenantId = employee.TenantId,
+        IsPrimary = true,
+        HasImageUploaded = false,
+        IsActive = true,
+        AddedById = employee.AddedById,
+        AddedDateTime = DateTime.UtcNow,
+        FileType = 1
+    };
+
+    await _context.EmployeeImages.AddAsync(employeeImage);
+    await _context.LoginCredentials.AddAsync(loginCredential);
+    await _context.UserRoles.AddAsync(userRole);
+
+    await _context.SaveChangesAsync();
+
+    // 2️⃣ Fetch with joins (Single source of truth)
+    var result =
+        await (from emp in _context.Employees.AsNoTracking()
+               where emp.Id == employee.Id
+
+               join d in _context.Designations
+                   on emp.DesignationId equals d.Id into desigJoin
+               from desig in desigJoin.DefaultIfEmpty()
+
+               join g in _context.Genders
+                   on emp.GenderId equals g.Id into genderJoin
+               from gender in genderJoin.DefaultIfEmpty()
+
+               join dept in _context.Departments
+                   on emp.DepartmentId equals dept.Id into deptJoin
+               from department in deptJoin.DefaultIfEmpty()
+
+               join ur in _context.UserRoles
+                   on emp.Id equals ur.EmployeeId
+
+               join r in _context.Roles
+                   on ur.RoleId equals r.Id
+
+               join t in _context.EmployeeTypes
+                   on emp.EmployeeTypeId equals t.Id into empTypeJoin
+               from empType in empTypeJoin.DefaultIfEmpty()
+
+
+               select new GetBaseEmployeeResponseDTO
+               {
+                   Id = emp.Id.ToString(),
+                   EmployementCode = emp.EmployementCode,
+                   FirstName = emp.FirstName,
+                   MiddleName = emp.MiddleName,
+                   LastName = emp.LastName,
+                   OfficialEmail = emp.OfficialEmail,
+
+                   GenderId = emp.GenderId,
+                   GenderName = gender != null ? gender.GenderName : null,
+
+                   DesignationId = emp.DesignationId,
+                   DesignationName = desig != null ? desig.DesignationName : null,
+
+                   DepartmentId = emp.DepartmentId,
+                   DepartmentName = department != null ? department.DepartmentName : null,
+
+                   RoleId    = r.Id,
+
+                   RoleType = r.RoleType,
+                   RoleName = r.RoleName,
+
+                   EmployeeTypeId = emp.EmployeeTypeId,
+                   Type = empType != null ? empType.TypeName : null,
+                   DateOfBirth = emp.DateOfBirth,
+                   DateOfOnBoarding = emp.DateOfOnBoarding,
+                   DateOfExit = emp.DateOfExit,
+
+                   IsActive = emp.IsActive,
+                   IsEditAllowed = emp.IsEditAllowed,
+                   IsInfoVerified = emp.IsInfoVerified,
+               }).FirstOrDefaultAsync();
+            if (result != null)
+            {
+                int completed =
+                    (!string.IsNullOrWhiteSpace(result.FirstName) ? 1 : 0) +
+                    (!string.IsNullOrWhiteSpace(result.LastName) ? 1 : 0) +
+                    (result.GenderId > 0 ? 1 : 0) +
+                    (result.DateOfBirth != null ? 1 : 0) +
+                    (result.DateOfOnBoarding != null ? 1 : 0) +
+                    (result.DesignationId > 0 ? 1 : 0) +
+                    (result.DepartmentId > 0 ? 1 : 0) +
+                    (!string.IsNullOrWhiteSpace(result.OfficialEmail) ? 1 : 0) +
+                    (result.HasPermanent == true ? 1 : 0) +
+                    (result.IsActive ? 1 : 0);
+
+                result.CompletionPercentage =
+                    Math.Round(completed / 10.0 * 100, 0);
+            }
+
+
+            return result!;
+}
 
 
 
@@ -1817,8 +1957,12 @@ namespace axionpro.persistance.Repositories
             }
         }
 
+        public Task<Employee?> IsEmployeeExist(string EmployeeCode, long tenantId, bool track = true)
+        {
+            throw new NotImplementedException();
+        }
 
-
+       
     }
 
 

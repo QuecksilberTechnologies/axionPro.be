@@ -10,9 +10,9 @@ namespace axionpro.application.Interfaces.IRepositories
 {
     public interface IUserLoginReopsitory
     {
-        Task<LoginCredential> AuthenticateUser(LoginRequestDTO loginRequest);
+        Task<LoginCredential> AuthenticateUser(string loginId);
         Task<long> CreateUser(LoginCredential loginRequest);
-        Task<bool> UpdateNewPassword(LoginCredential setRequest);
+        Task<bool> UpdatePassword(long empId, string password, long UpdatedById);
         Task<bool> SetNewPassword(LoginCredential setRequest);
         Task<LoginCredential> GetEmployeeIdByUserLogin(string userLoing);
        

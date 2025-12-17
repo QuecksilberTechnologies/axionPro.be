@@ -92,7 +92,7 @@ namespace axionpro.application.Features.VerifyEmailCmd.Handlers
                 }
 
                 // ✅ Directly try to get EmployeeId. If not found, email doesn't exist.
-                LoginCredential employeeRecord = await _unitOfWork.UserLoginRepository.GetEmployeeIdByUserLogin(userInfo.UserId);
+                LoginCredential employeeRecord = await _unitOfWork.UserLoginRepository.AuthenticateUser(userInfo.UserId);
 
                 if (employeeRecord.EmployeeId == 0)
                 {

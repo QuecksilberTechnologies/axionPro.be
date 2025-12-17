@@ -547,7 +547,49 @@ public class RoleRepository : IRoleRepository
         }
     }
 
-   # endregion
+    #endregion
+
+    public async Task<List<GetRoleResponseDTO>> GetRoleAsync(
+     long tenantId,
+     int roleTypeId,
+     bool isActive)
+    {
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var query = context.Roles
+                .AsNoTracking()
+                .Where(r =>
+                    r.TenantId == tenantId &&
+                    r.IsActive == isActive &&
+                    (r.IsSoftDeleted == null || r.IsSoftDeleted == false));
+
+            // Optional filter
+            if (roleTypeId > 0)
+                query = query.Where(r => r.RoleType == roleTypeId);
+
+            var result = await query
+                .Select(r => new GetRoleResponseDTO
+                {
+                    Id = r.Id,
+                    RoleName = r.RoleName,
+                    RoleType = r.RoleType,
+                    IsActive = r.IsActive
+                })
+                .ToListAsync();
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "❌ Error fetching roles for TenantId: {TenantId}",
+                tenantId);
+
+            return new List<GetRoleResponseDTO>();
+        }
+    }
 
     public async Task<PagedResponseDTO<GetRoleResponseDTO>> GetAsync(GetRoleRequestDTO dto)
     {

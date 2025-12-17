@@ -214,7 +214,33 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         }
 
 
-        public static List<GetBaseEmployeeResponseDTO> ToGetBaseInfoResponseDTOs(List<GetBaseEmployeeResponseDTO> entities,
+        public static GetBaseEmployeeResponseDTO? ToGetBaseInfoResponseDTO(
+            GetBaseEmployeeResponseDTO? entity,
+          IIdEncoderService encoderService,
+               string tenantKey)
+        {
+            if (entity == null)
+                return null;
+
+            // ✅ Sirf Id encode karo
+            if (!string.IsNullOrWhiteSpace(entity.Id) &&
+                long.TryParse(entity.Id, out long rawId) &&
+                rawId > 0)
+            {
+                entity.Id = encoderService.EncodeId(rawId, tenantKey);
+            }
+
+            // ✅ Baaki sab as-it-is (optional null safety)
+            entity.EmployementCode ??= string.Empty;
+            entity.FirstName ??= string.Empty;
+            entity.LastName ??= string.Empty;
+            entity.MiddleName ??= string.Empty;
+            entity.OfficialEmail ??= string.Empty;
+
+            return entity;
+        }
+
+        public static List<GetBaseEmployeeResponseDTO> ToGetBaseInfoListResponseDTOs(List<GetBaseEmployeeResponseDTO> entities,
         IIdEncoderService encoderService,
       string tenantKey)
         {

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.DTOs.UserLogin
 {
-    public class UpdateLoginPasswordResponseDTO
+    public class UpdatePasswordResponseDTO
     {
         public bool Success { get; set; }
         //public string? Token { get; set; }

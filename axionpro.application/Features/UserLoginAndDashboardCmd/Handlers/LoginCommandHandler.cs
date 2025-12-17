@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.EncryptionHelper;
+using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Constants;
  
 using axionpro.application.DTOs.Employee;
@@ -13,6 +14,7 @@ using axionpro.application.DTOs.SubscriptionModule;
 using axionpro.application.DTOs.Tenant;
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.DTOs.UserRole;
+using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Token;
 using axionpro.application.Features.UserLoginAndDashboardCmd.Commands;
@@ -20,6 +22,7 @@ using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
+using axionpro.application.Interfaces.IRequestValidation;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
  
@@ -41,6 +44,20 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 {
+    public class LoginCommand : IRequest<ApiResponse<LoginResponseDTO>>
+    {
+        public LoginRequestDTO DTO { get; set; }
+
+
+        public LoginCommand(LoginRequestDTO loginRequestDTO)
+        {
+            DTO = loginRequestDTO;
+        }
+
+
+
+    }
+
     public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<LoginResponseDTO>>
     {
         private readonly IMapper _mapper;
@@ -53,9 +70,10 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
         private readonly IConfiguration _configuration;
         private readonly IEncryptionService _encryptionService;
         private readonly  IIdEncoderService _idEncoderService;
+        private readonly ICommonRequestService _commonRequestService;
 
         public LoginCommandHandler(IMapper mapper, IUnitOfWork unitOfWork, ITokenService tokenService, IRefreshTokenRepository refreshTokenRepository, ILogger<LoginCommandHandler> logger, ICommonRepository iCommonRepository, IPasswordService passwordService,
-            IConfiguration configuration, IEncryptionService encryptionService, IIdEncoderService idEncoderService)
+            IConfiguration configuration, IEncryptionService encryptionService, IIdEncoderService idEncoderService, ICommonRequestService commonRequestService)
         {
             _logger = logger;
             _mapper = mapper;
@@ -67,58 +85,72 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
             _configuration = configuration;
             _encryptionService = encryptionService; // 👈 same name use karo
             _idEncoderService = idEncoderService;
-
+            _commonRequestService = commonRequestService;
+     
         }
         public async Task<ApiResponse<LoginResponseDTO>> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
             try
             {
-
-                var loginRequest = new LoginRequestDTO
+                await _unitOfWork.BeginTransactionAsync();
+              
+                if (string.IsNullOrEmpty(request.DTO.LoginId) && string.IsNullOrEmpty(request.DTO.Password))
                 {
-                    LoginId = request.RequestLoginDTO.LoginId,
-                    Password = request.RequestLoginDTO.Password,
-                    IpAddressLocal = request.RequestLoginDTO.IpAddressLocal,
-                    IpAddressPublic = request.RequestLoginDTO.IpAddressPublic,
-                    LoginDevice = request.RequestLoginDTO.LoginDevice,
-                    MacAddress = request.RequestLoginDTO.MacAddress,
-                    Latitude = request.RequestLoginDTO.Latitude,
-                    Longitude = request.RequestLoginDTO.Longitude
-                      
-                };
+                    _logger.LogWarning(" LoginId and Password is not null or empty.");
+                    return ApiResponse<LoginResponseDTO>.Fail("LoginId and Password cann't be empty");
 
-
-                //string convertedTenantId1 = "317".ToString();
-                //string EncriptedTenantKey1 = _encryptionService.GenerateKey();
-
-                //TenantEncryptionKey tenantEncryptionKey1 = new TenantEncryptionKey()
-                //{
-                //    IsActive = true,
-                //    TenantId = 317L,
-                //    EncryptionKey = EncriptedTenantKey1,
-
-                //};
-                //var insertedRecord = _unitOfWork.TenantEncryptionKeyRepository.AddAsync(tenantEncryptionKey1);
-
-
+                }
+                string? savedFullPath = null;  // 📂 File full path track karne ke liye
 
                 // 🔐 Step 1: Validate if user exists
-                long empId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(loginRequest.LoginId);
-                _logger.LogInformation("Validation result for LoginId {LoginId}: EmployeeId = {empId}", loginRequest.LoginId, empId);
+                long empId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(request.DTO.LoginId);
+                _logger.LogInformation("Validation result for LoginId {LoginId}: EmployeeId = {empId}", request.DTO.LoginId, empId);
 
                 if (empId < 1)
                 {
-                    _logger.LogWarning("User validation failed for LoginId: {LoginId}", loginRequest.LoginId);
+                    _logger.LogWarning("User validation failed for LoginId: {LoginId}", request.DTO.LoginId);
                     await _unitOfWork.RollbackTransactionAsync();
                     return ApiResponse<LoginResponseDTO>.Fail("User is not authenticated or authorized to perform this action.");
                 }
-             
-                // 🔐 Step 2: Authenticate credentials 
-                var user = await _unitOfWork.UserLoginRepository.AuthenticateUser(loginRequest);
-                if (user == null)
+                             
+
+
+                var loginRequest = new LoginRequestDTO
+                {
+                    LoginId = request.DTO.LoginId,
+                    Password = request.DTO.Password,
+                    IpAddressLocal = request.DTO.IpAddressLocal,
+                    IpAddressPublic = request.DTO.IpAddressPublic,
+                    LoginDevice = request.DTO.LoginDevice,
+                    MacAddress = request.DTO.MacAddress,
+                    Latitude = request.DTO.Latitude,
+                    Longitude = request.DTO.Longitude,  
+                };
+               
+                // 🔐 Authenticate user
+                var user = await _unitOfWork.UserLoginRepository.AuthenticateUser(loginRequest.LoginId);
+
+                if (user == null || string.IsNullOrWhiteSpace(user.Password))
                 {
                     return ApiResponse<LoginResponseDTO>.Fail(ConstantValues.invalidCredential);
                 }
+
+                // 🔑 Verify password
+                if (!_passwordService.VerifyPassword(user.Password, loginRequest.Password))
+                {
+                    return ApiResponse<LoginResponseDTO>.Fail(ConstantValues.invalidCredential);
+                }
+                
+                //if (!passwordMatch)
+                //{
+                //    _logger.LogWarning("🚫 Login failed: Incorrect password for LoginId: {LoginId}", loginRequest.LoginId);
+                //    return null;
+                //}
+
+
+
+                _logger.LogInformation("✅ User authenticated successfully for LoginId: {LoginId}", loginRequest.LoginId);
+
                 bool? IsPasswordChange = user.IsPasswordChangeRequired;
 
 
@@ -380,7 +412,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 {
                     TenantEncriptionKey = finalKey,
                     TenantId = encriptedTenantId,
-                    UserId = request.RequestLoginDTO.LoginId,
+                    UserId = request.DTO.LoginId,
                     EmployeeId = encriptedEmployeeId.Trim().ToString(), // long
                     RoleId = employeeInfo.UserPrimaryRole.RoleId.ToString(), // long
                     RoleTypeId = employeeInfo.RoleTypeId.ToString() ?? "0",
@@ -388,7 +420,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                     EmployeeTypeId =  employeeInfo.EmployeeTypeId.ToString()??"0",
                     GenderId = empMinimalResponse.GenderId.ToString(),
                     GenderName = empMinimalResponse.GenderName,                  
-                    Email = request.RequestLoginDTO.LoginId ,
+                    Email = request.DTO.LoginId ,
                     FullName = empMinimalResponse.FirstName + ("-" + empMinimalResponse.LastName) ?? " Unknown",
                     Expiry = DateTime.UtcNow.AddMinutes(15)
                 };

@@ -38,9 +38,11 @@ public interface IBaseEmployeeRepository
     Task<GetLeaveBalanceToEmployeeResponseDTO> UpdateLeaveBalanceToEmployee(UpdateLeaveBalanceToEmployeeRequestDTO updateLeaveBalanceTo);  // Ensure this returns Task<Employee>   
 
      Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> GetInfo(GetBaseEmployeeRequestDTO dto);
-     Task<PagedResponseDTO<GetAllEmployeeInfoResponseDTO>> GetAllInfo(GetAllEmployeeInfoRequestDTO dto);
+      Task<PagedResponseDTO<GetAllEmployeeInfoResponseDTO>> GetAllInfo(GetAllEmployeeInfoRequestDTO dto);
+      Task<Employee?> IsEmployeeExist(string EmployeeCode, long tenantId, bool track = true);
 
        public Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> CreateAsync(Employee entity);
+       public Task<GetBaseEmployeeResponseDTO> CreateEmployeeAsync(Employee entity, LoginCredential loginCredential,UserRole userRole);
        public Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> AddImageAsync(EmployeeImage entity);
     
       public Task<GetMinimalEmployeeResponseDTO> GetSingleRecordAsync(long Id, bool IsActive);  // Ensure this returns 

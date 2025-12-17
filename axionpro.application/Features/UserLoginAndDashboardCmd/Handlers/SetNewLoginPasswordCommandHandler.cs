@@ -19,7 +19,7 @@ using static System.Net.WebRequestMethods;
 
 namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 {
-    public class SetNewLoginPasswordCommandHandler : IRequestHandler<SetNewLoginPasswordCommand, ApiResponse<UpdateLoginPasswordResponseDTO>>
+    public class SetNewLoginPasswordCommandHandler : IRequestHandler<ResetLoginPasswordCommand, ApiResponse<UpdatePasswordResponseDTO>>
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
@@ -39,7 +39,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
           
         }
 
-        public async Task<ApiResponse<UpdateLoginPasswordResponseDTO>> Handle(SetNewLoginPasswordCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<UpdatePasswordResponseDTO>> Handle(ResetLoginPasswordCommand request, CancellationToken cancellationToken)
         {
             try
             {
@@ -52,7 +52,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 {
                     _logger.LogWarning("User not found or not authorized.");
                     await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<UpdateLoginPasswordResponseDTO>.Fail("User is not authenticated or authorized to perform this action.");
+                    return ApiResponse<UpdatePasswordResponseDTO>.Fail("User is not authenticated or authorized to perform this action.");
                 }
 
                 long userId = await _unitOfWork.CommonRepository.ValidateActiveUserCrendentialOnlyAsync(loginId);
@@ -64,25 +64,25 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 
                 if (existingOtpEntry == null)
                 {
-                    return ApiResponse<UpdateLoginPasswordResponseDTO>.Fail("No OTP found or it has expired.");
+                    return ApiResponse<UpdatePasswordResponseDTO>.Fail("No OTP found or it has expired.");
                 }
 
                 // 🔄 Step 3: Match OTP
                 if (existingOtpEntry.Otp != request.dto.Otp)
                 {
-                    return ApiResponse<UpdateLoginPasswordResponseDTO>.Fail("Invalid OTP entered.");
+                    return ApiResponse<UpdatePasswordResponseDTO>.Fail("Invalid OTP entered.");
                 }
 
                 // 🔄 Step 4: Check expiry
                 if (existingOtpEntry.OtpexpireDateTime <= DateTime.Now)
                 {
-                    return ApiResponse<UpdateLoginPasswordResponseDTO>.Fail("OTP has expired. Please request a new one.");
+                    return ApiResponse<UpdatePasswordResponseDTO>.Fail("OTP has expired. Please request a new one.");
                 }
 
                 // 🔐 Step 5: Confirm OTP is validated and not used
                 if (!existingOtpEntry.IsValidate || existingOtpEntry.IsUsed)
                 {
-                    return ApiResponse<UpdateLoginPasswordResponseDTO>.Fail("OTP is either not validated or already used.");
+                    return ApiResponse<UpdatePasswordResponseDTO>.Fail("OTP is either not validated or already used.");
                 }
 
                 // ✅ Step 6: Set new password
@@ -101,7 +101,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                     _logger.LogWarning("Password update failed for LoginId: {LoginId}", loginId);
                     await _unitOfWork.RollbackTransactionAsync();
 
-                    return ApiResponse<UpdateLoginPasswordResponseDTO>.Fail("Password could not be updated. Please try again.");
+                    return ApiResponse<UpdatePasswordResponseDTO>.Fail("Password could not be updated. Please try again.");
                 }
 
                 // 🔄 Step 7: Mark OTP as used
@@ -110,19 +110,19 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 await _unitOfWork.ForgotPasswordOtpRepository.UpdateOTPAsync(existingOtpEntry);
               
 
-                var response = new UpdateLoginPasswordResponseDTO
+                var response = new UpdatePasswordResponseDTO
                 {
                     Success = true
                 };
 
-                return ApiResponse<UpdateLoginPasswordResponseDTO>.Success(response);
+                return ApiResponse<UpdatePasswordResponseDTO>.Success(response);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred in SetNewLoginPasswordCommandHandler.Handle.");
                 await _unitOfWork.RollbackTransactionAsync();
 
-                return ApiResponse<UpdateLoginPasswordResponseDTO>.Fail("An error occurred while setting the password. Please try again later.");
+                return ApiResponse<UpdatePasswordResponseDTO>.Fail("An error occurred while setting the password. Please try again later.");
             }
         }
 

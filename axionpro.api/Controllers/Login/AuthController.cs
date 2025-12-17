@@ -2,6 +2,7 @@
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.DTOS.Token;
 using axionpro.application.DTOS.Token.ems.application.DTOs.UserLogin;
+using axionpro.application.DTOS.UserLogin;
 using axionpro.application.Features.UserLoginAndDashboardCmd.Commands;
 using axionpro.application.Features.UserLoginAndDashboardCmd.Handlers;
 using axionpro.application.Interfaces.ILogger;
@@ -135,13 +136,13 @@ namespace axionpro.api.Controllers.Login
         // ...
 
         [HttpPost("update-login-password")] 
-        public async Task<IActionResult> SetLoginPassword([FromBody] LoginRequestDTO request)
+        public async Task<IActionResult> SetLoginPassword([FromBody] UpdatePasswordRequestDTO request)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(request.LoginId) || string.IsNullOrWhiteSpace(request.Password))
+                if (string.IsNullOrWhiteSpace(request.LoginId) || string.IsNullOrWhiteSpace(request.OldPassword))
                 {
-                    return BadRequest(new ApiResponse<UpdateLoginPasswordResponseDTO>
+                    return BadRequest(new ApiResponse<UpdatePasswordResponseDTO>
                     {
                         IsSucceeded = false,
                         Message = "LoginId and Password are required.",
@@ -163,7 +164,7 @@ namespace axionpro.api.Controllers.Login
             {
                 _logger.LogError( "Exception occurred while setting login password.");
 
-                return StatusCode(500, new ApiResponse<UpdateLoginPasswordResponseDTO>
+                return StatusCode(500, new ApiResponse<UpdatePasswordResponseDTO>
                 {
                     IsSucceeded = false,
                     Message = "Internal server error occurred.",
@@ -226,7 +227,7 @@ namespace axionpro.api.Controllers.Login
             {
                 _logger.LogError("Exception occurred while setting login password.");
 
-                return StatusCode(500, new ApiResponse<UpdateLoginPasswordResponseDTO>
+                return StatusCode(500, new ApiResponse<UpdatePasswordResponseDTO>
                 {
                     IsSucceeded = false,
                     Message = "Internal server error occurred.",
@@ -240,12 +241,12 @@ namespace axionpro.api.Controllers.Login
         }
 
         [HttpPost("set-login-new-password")]
-        public async Task<IActionResult> ValidateForgotPasswordOtp([FromBody] NewLoginPasswordRequestDTO request)
+        public async Task<IActionResult> ValidateForgotPasswordOtp([FromBody] ResetLoginPasswordRequestDTO request)
         {
             try
             {
 
-                var command = new SetNewLoginPasswordCommand(request);
+                var command = new ResetLoginPasswordCommand(request);
 
 
                 var result = await _mediator.Send(command);
@@ -259,7 +260,7 @@ namespace axionpro.api.Controllers.Login
             {
                 _logger.LogError("Exception occurred while setting login password.");
 
-                return StatusCode(500, new ApiResponse<UpdateLoginPasswordResponseDTO>
+                return StatusCode(500, new ApiResponse<UpdatePasswordResponseDTO>
                 {
                     IsSucceeded = false,
                     Message = "Internal server error occurred.",
@@ -293,7 +294,7 @@ namespace axionpro.api.Controllers.Login
             {
                 _logger.LogError("Exception occurred while setting login password.");
 
-                return StatusCode(500, new ApiResponse<UpdateLoginPasswordResponseDTO>
+                return StatusCode(500, new ApiResponse<UpdatePasswordResponseDTO>
                 {
                     IsSucceeded = false,
                     Message = "Internal server error occurred.",

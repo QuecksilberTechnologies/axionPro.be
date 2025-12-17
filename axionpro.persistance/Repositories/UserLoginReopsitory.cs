@@ -37,43 +37,22 @@ namespace axionpro.persistance.Repositories
             _configuration = configuration;
         }
 
-        public async Task<LoginCredential?> AuthenticateUser(LoginRequestDTO loginRequest)
+        public async Task<LoginCredential?> AuthenticateUser(string loginId)
         {
             try
             {
                 await using var context = await _contextFactory.CreateDbContextAsync();
 
-                _logger.LogInformation("🔐 Authenticating user with LoginId: {LoginId}", loginRequest.LoginId);
+                _logger.LogInformation("🔐 Authenticating user with LoginId: {LoginId}", loginId);
 
                 var user = await context.LoginCredentials
-                    .FirstOrDefaultAsync(u => u.LoginId == loginRequest.LoginId);
+                    .FirstOrDefaultAsync(u => u.LoginId == loginId && (u.IsActive==true && u.IsSoftDeleted!=true));
 
-                if (user == null)
-                {
-                    _logger.LogWarning("❌ Login failed: No user found for LoginId: {LoginId}", loginRequest.LoginId);
-                    return null;
-                }
-
-                if (string.IsNullOrWhiteSpace(user.Password))
-                {
-                    _logger.LogWarning("⚠️ Login failed: User {LoginId} has no password stored", loginRequest.LoginId);
-                    return null;
-                }
-
-                var passwordMatch =  _passwordService.VerifyPassword( user.Password, loginRequest.Password);
-
-                if (!passwordMatch)
-                {
-                    _logger.LogWarning("🚫 Login failed: Incorrect password for LoginId: {LoginId}", loginRequest.LoginId);
-                    return null;
-                }
-
-                _logger.LogInformation("✅ User authenticated successfully for LoginId: {LoginId}", loginRequest.LoginId);
                 return user;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "💥 Exception occurred while authenticating LoginId: {LoginId}", loginRequest.LoginId);
+                _logger.LogError(ex, "💥 Exception occurred while authenticating LoginId: {LoginId}", loginId);
                 throw;
             }
         }
@@ -86,9 +65,7 @@ namespace axionpro.persistance.Repositories
                 {
                     _logger?.LogError("DbContext is null in CreateUser.");
                     throw new ArgumentNullException(nameof(_context), "DbContext is not initialized.");
-                }
-
-               
+                }               
 
                 await _context.LoginCredentials.AddAsync(loginRequest); // Add LoginCredential
                 await _context.SaveChangesAsync(); // Save changes
@@ -106,7 +83,7 @@ namespace axionpro.persistance.Repositories
 
         public async Task<LoginCredential> GetEmployeeIdByUserLogin(string userLogin)
         {
-            var login = await _context.LoginCredentials.FirstOrDefaultAsync(x => x.LoginId == userLogin && x.IsActive == true);
+            var login = await _context.LoginCredentials.FirstOrDefaultAsync(x => x.LoginId == userLogin && x.IsSoftDeleted !=true);
 
             if (login == null)
                 return null;
@@ -115,41 +92,32 @@ namespace axionpro.persistance.Repositories
             return login;
 
         }
-        public async Task<bool> UpdateNewPassword(LoginCredential setRequest)
+        public async Task<bool> UpdatePassword(long empId, string password, long updatedById)
         {
-            try
-            {
+            var user = await _context.LoginCredentials
+                .FirstOrDefaultAsync(x =>
+                    x.EmployeeId == empId &&
+                    x.IsActive == true &&
+                    x.IsSoftDeleted != true);
 
-                var user = await _context.LoginCredentials
-                    .FirstOrDefaultAsync(x =>
-                        x.LoginId == setRequest.LoginId &&
-                        x.IsActive == true &&
-                        x.HasFirstLogin == true &&// ✅ Only allow update if it's first login
-                        x.IsPasswordChangeRequired == true);
-
-                if (user == null)
-                {
-                    return false; // User not found or first login already done
-                }
-
-                user.Password = setRequest.Password;
-                user.HasFirstLogin = false; 
-                user.IsPasswordChangeRequired = false; 
-                // Mark as password updated
-                                            // user.UpdatedById = setRequest.UpdatedById;
-                                            // user.UpdatedDateTime = DateTime.UtcNow;
-
-                _context.LoginCredentials.Update(user);
-                await _context.SaveChangesAsync();
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while updating password for LoginId: {LoginId}", setRequest.LoginId);
+            if (user == null)
                 return false;
-            }
+
+            // 🔒 If same password, no update
+            if (user.Password == password)
+                return false;
+
+            user.Password = password;
+            user.UpdatedById = updatedById;
+            user.UpdatedDateTime = DateTime.UtcNow;
+            user.HasFirstLogin = false;
+            user.IsPasswordChangeRequired = false;
+
+            var rowsAffected = await _context.SaveChangesAsync();
+
+            return rowsAffected > 0;
         }
+
 
 
         public async Task<bool> SetNewPassword(LoginCredential setRequest)
@@ -191,6 +159,8 @@ namespace axionpro.persistance.Repositories
             // Secure hashing and comparison logic should be implemented here
             return providedPassword == storedPassword;
         }
+
+ 
     }
 
 }

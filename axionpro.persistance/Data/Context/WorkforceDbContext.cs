@@ -1896,6 +1896,10 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.Remark).HasMaxLength(255);
                 entity.Property(e => e.UpdatedById).HasDefaultValue(0L);
                 entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.HasOne(d => d.Employee).WithMany(p => p.LoginCredentials)
+                   .HasForeignKey(d => d.EmployeeId)
+                   .OnDelete(DeleteBehavior.Cascade)
+                   .HasConstraintName("FK_LoginCredential_Employee");
             });
 
             modelBuilder.Entity<MealAllowancePolicyByDesignation>(entity =>

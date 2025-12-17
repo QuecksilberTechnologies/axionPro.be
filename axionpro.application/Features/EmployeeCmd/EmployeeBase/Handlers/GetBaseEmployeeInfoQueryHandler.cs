@@ -108,7 +108,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 }
 
               
-                var resultList = ProjectionHelper.ToGetBaseInfoResponseDTOs(responseDTO.Items, _idEncoderService, validation.Claims.TenantEncriptionKey);
+                var resultList = ProjectionHelper.ToGetBaseInfoListResponseDTOs(responseDTO.Items, _idEncoderService, validation.Claims.TenantEncriptionKey);
 
                 // 🧩 STEP 8: Construct success response with pagination
                 return ApiResponse<List<GetBaseEmployeeResponseDTO>>.SuccessPaginatedPercentage(

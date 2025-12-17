@@ -1,14 +1,27 @@
 ﻿using AutoMapper;
+using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.Employee;
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.DTOs.UserRole;
+using axionpro.application.DTOS.Employee.Bank;
+using axionpro.application.DTOS.UserLogin;
+using axionpro.application.Features.EmployeeCmd.BankInfo.Handlers;
+using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
 using axionpro.application.Features.UserLoginAndDashboardCmd.Commands;
-using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.IEncryptionService;
+using axionpro.application.Interfaces.IFileStorage;
+using axionpro.application.Interfaces.IHashed;
+using axionpro.application.Interfaces.IPermission;
+using axionpro.application.Interfaces.IRequestValidation;
+using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity.Data;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -19,87 +32,130 @@ using System.Xml.Linq;
 
 namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 {
-    public class UpdateLoginPasswordCommandHandler : IRequestHandler<UpdateLoginPasswordCommand, ApiResponse<UpdateLoginPasswordResponseDTO>>
-{
-    private readonly IMapper _mapper;
-    private readonly IUnitOfWork _unitOfWork;
-    private readonly ITokenService _tokenService;
-    private readonly IRefreshTokenRepository _refreshTokenRepository;
-    private readonly ILogger<UpdateLoginPasswordCommandHandler> _logger;
-
-    public UpdateLoginPasswordCommandHandler(
-        IMapper mapper,
-        IUnitOfWork unitOfWork,
-        ITokenService tokenService,
-        IRefreshTokenRepository refreshTokenRepository,
-        ILogger<UpdateLoginPasswordCommandHandler> logger)
+    public class UpdateLoginPasswordCommand : IRequest<ApiResponse<UpdatePasswordResponseDTO>>
     {
-        _logger = logger;
-        _mapper = mapper;
-        _unitOfWork = unitOfWork;
-        _tokenService = tokenService;
-        _refreshTokenRepository = refreshTokenRepository;
-    }
+        public UpdatePasswordRequestDTO? DTO { get; set; }
 
-    public async Task<ApiResponse<UpdateLoginPasswordResponseDTO>> Handle(UpdateLoginPasswordCommand request, CancellationToken cancellationToken)
+
+        public UpdateLoginPasswordCommand(UpdatePasswordRequestDTO? setLoginPasswordRequest)
+        {
+            this.DTO = setLoginPasswordRequest;
+        }
+
+
+
+    }
+    public class UpdateLoginPasswordCommandHandler : IRequestHandler<UpdateLoginPasswordCommand, ApiResponse<UpdatePasswordResponseDTO>>
+{
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ILogger<UpdateLoginPasswordCommandHandler> _logger;
+        private readonly ITokenService _tokenService;
+        private readonly IPermissionService _permissionService;
+        private readonly IConfiguration _config;
+        private readonly IEncryptionService _encryptionService;
+        private readonly IIdEncoderService _idEncoderService;
+        private readonly IFileStorageService _fileStorageService;
+        private readonly ICommonRequestService _commonRequestService;
+        private readonly IPasswordService _passwordService;
+
+        public UpdateLoginPasswordCommandHandler(
+           IUnitOfWork unitOfWork,
+            IMapper mapper,
+            IHttpContextAccessor httpContextAccessor,
+            ILogger<UpdateLoginPasswordCommandHandler> logger,
+            ITokenService tokenService,
+            IPermissionService permissionService,
+            IConfiguration config,
+            IEncryptionService encryptionService, IIdEncoderService idEncoderService, ICommonRequestService commonRequestService,
+            IPasswordService passwordService, IFileStorageService fileStorageService)
+        {
+            _unitOfWork = unitOfWork;
+            _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
+            _logger = logger;
+            _tokenService = tokenService;
+            _permissionService = permissionService;
+            _config = config;
+            _encryptionService = encryptionService;
+            _idEncoderService = idEncoderService;
+            _commonRequestService = commonRequestService;
+            _passwordService = passwordService;
+            _fileStorageService = fileStorageService;
+        }
+
+        public async Task<ApiResponse<UpdatePasswordResponseDTO>> Handle(UpdateLoginPasswordCommand request, CancellationToken cancellationToken)
     {
         try
         {
-            var loginId = request.setLoginPasswordRequest.LoginId;
+                await _unitOfWork.BeginTransactionAsync();
+               
+                // 1️ COMMON VALIDATION (Mandatory)
+                var validation = await _commonRequestService.ValidateRequestAsync(request.DTO.UserEmployeeId);
 
-            long empId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(loginId);
+                if (!validation.Success)
+                    return ApiResponse<UpdatePasswordResponseDTO>.Fail(validation.ErrorMessage);
 
-            _logger.LogInformation("Validation result for LoginId {LoginId}: {EmpId}", loginId, empId);
+                // Assign decoded values coming from CommonRequestService
+                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                 request.DTO.Prop.TenantId = validation.TenantId;
+                 request.DTO.Prop.EmployeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
+                 request.DTO.EmployeeId, validation.Claims.TenantEncriptionKey,
+                  _idEncoderService
+              );
 
-            if (empId < 1)
-            {
-                _logger.LogWarning("User not found or not authorized.");
-                await _unitOfWork.RollbackTransactionAsync();
+                // 🔐 Authenticate user
+                var user = await _unitOfWork.UserLoginRepository.AuthenticateUser(request.DTO.LoginId);
 
-                return new ApiResponse<UpdateLoginPasswordResponseDTO>
+                if (user == null || string.IsNullOrWhiteSpace(user.Password))
                 {
-                    IsSucceeded = false,
-                    Message = "User is not authenticated or authorized to perform this action.",
-                    Data = null
-                };
-            }
+                    return ApiResponse<UpdatePasswordResponseDTO>.Fail(ConstantValues.invalidCredential);
+                }
 
-                //   var loginCredential = _mapper.Map<LoginCredential>(request.setLoginPasswordRequest);
-                LoginCredential loginCredential = new LoginCredential();
-                loginCredential.EmployeeId = empId; ;
-                loginCredential.TenantId = request.setLoginPasswordRequest.TenantId;
-                loginCredential.LoginId = request.setLoginPasswordRequest.LoginId;
-                loginCredential.Password = request.setLoginPasswordRequest.Password;
+                // 🔑 Verify password
+                if (!_passwordService.VerifyPassword(user.Password, request.DTO.OldPassword))
+                {
+                    return ApiResponse<UpdatePasswordResponseDTO>.Fail("Old password not corrected");
+                }
+
+                // Inside Handle() method 
+                string? hashedPassword = _passwordService.HashPassword(request.DTO.NewPassword);
+                if(string.IsNullOrEmpty(hashedPassword))
+                {
+                    _logger.LogWarning("Password hashing failed for LoginId: {LoginId}", request.DTO.LoginId);
+                    return new ApiResponse<UpdatePasswordResponseDTO>
+                    {
+                        IsSucceeded = false,
+                        Message = "An error occurred while processing your request. Please try again.",
+                        Data = null
+                    };
+                }
+                hashedPassword = hashedPassword.Trim();
+
+
+               
                 // Just in case EmployeeId not mapped from request, ensure it is set
                   
 
-            bool isUpdated = await _unitOfWork.UserLoginRepository.UpdateNewPassword(loginCredential);
+            bool isUpdated = await _unitOfWork.UserLoginRepository.UpdatePassword(request.DTO.Prop.EmployeeId, hashedPassword, request.DTO.Prop.UserEmployeeId);
 
-            if (!isUpdated)
-            {
-                _logger.LogWarning("Password update failed for LoginId: {LoginId}", loginId);
-                await _unitOfWork.RollbackTransactionAsync();
-
-                return new ApiResponse<UpdateLoginPasswordResponseDTO>
+                if (!isUpdated)
                 {
-                    IsSucceeded = false,
-                    Message = "Password could not be updated. Please check if this is your first login.",
-                    Data = null
-                };
-            }
+                    await _unitOfWork.RollbackTransactionAsync();
+                    return ApiResponse<UpdatePasswordResponseDTO>.Fail("Password could not be updated.");
+                }
 
-            var response = new UpdateLoginPasswordResponseDTO
-            {
-                Success = true,
-               
-            };
+                // ✅ COMMIT HERE
+                await _unitOfWork.CommitTransactionAsync();
 
-            return new ApiResponse<UpdateLoginPasswordResponseDTO>
-            {
-                IsSucceeded = true,
-                Message = "Password has been set successfully.",
-                Data = response
-            };
+                return ApiResponse<UpdatePasswordResponseDTO>.Success(
+                    new UpdatePasswordResponseDTO { Success = true },
+                    "Password has been set successfully."
+                );
+
+
+            
         }
         catch (Exception ex)
         {
@@ -107,7 +163,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 
             await _unitOfWork.RollbackTransactionAsync();
 
-            return new ApiResponse<UpdateLoginPasswordResponseDTO>
+            return new ApiResponse<UpdatePasswordResponseDTO>
             {
                 IsSucceeded = false,
                 Message = "An error occurred while setting the password. Please try again later.",

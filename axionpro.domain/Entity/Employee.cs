@@ -92,6 +92,7 @@ public partial class Employee
     public virtual ICollection<EmployeeDependent> EmployeeDependents { get; set; } = new List<EmployeeDependent>();
 
     public virtual ICollection<EmployeeImage> EmployeeImages { get; set; } = new List<EmployeeImage>();
+    public virtual ICollection<LoginCredential> LoginCredentials { get; set; } = new List<LoginCredential>();
 
     public virtual ICollection<EmployeeExperienceDetail> EmployeeExperienceDetails { get; set; } = new List<EmployeeExperienceDetail>();
 

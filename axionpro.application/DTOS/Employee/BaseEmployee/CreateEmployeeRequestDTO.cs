@@ -16,7 +16,6 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
 
         [Required]
         public string UserEmployeeId { get; set; } 
-
  
         public int? EmployeeDocumentId { get; set; }
        

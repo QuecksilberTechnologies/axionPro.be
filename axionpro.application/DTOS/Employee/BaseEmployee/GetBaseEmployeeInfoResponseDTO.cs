@@ -19,6 +19,8 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
             public string? DesignationName { get; set; }
             public string? DepartmentName { get; set; }
             public string? RoleName { get; set; }
+            public int? RoleId { get; set; }
+            public int? RoleType { get; set; }
             public string? Type { get; set; }
             public DateTime? DateOfBirth { get; set; }
             public DateTime? DateOfOnBoarding { get; set; }

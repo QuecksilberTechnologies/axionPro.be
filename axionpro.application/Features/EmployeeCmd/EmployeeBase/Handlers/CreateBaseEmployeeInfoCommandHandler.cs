@@ -7,6 +7,7 @@ using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.Department;
 using axionpro.application.DTOs.Employee;
+using axionpro.application.DTOs.UserLogin;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Pagination;
@@ -21,6 +22,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Eventing.Reader;
@@ -29,7 +31,7 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
-    public class CreateBaseEmployeeInfoCommand : IRequest<ApiResponse<List<GetBaseEmployeeResponseDTO>>>
+    public class CreateBaseEmployeeInfoCommand : IRequest<ApiResponse<GetBaseEmployeeResponseDTO>>
     {
         public CreateBaseEmployeeRequestDTO DTO { get; set; }
 
@@ -39,119 +41,163 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         }
     }
 
-    public class CreateBaseEmployeeInfoCommandHandler : IRequestHandler<CreateBaseEmployeeInfoCommand, ApiResponse<List<GetBaseEmployeeResponseDTO>>>
+    public class CreateBaseEmployeeInfoCommandHandler
+   : IRequestHandler<CreateBaseEmployeeInfoCommand, ApiResponse<GetBaseEmployeeResponseDTO>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<CreateBaseEmployeeInfoCommandHandler> _logger;
-        private readonly ITokenService _tokenService;
-        private readonly IPermissionService _permissionService;
-        private readonly IConfiguration _config;
-        private readonly IEncryptionService _encryptionService;
-        private readonly IIdEncoderService _idEncoderService;
         private readonly ICommonRequestService _commonRequestService;
-
-
+        private readonly IPermissionService _permissionService;
+        private readonly IIdEncoderService _idEncoderService;
         public CreateBaseEmployeeInfoCommandHandler(
             IUnitOfWork unitOfWork,
             IMapper mapper,
-            IHttpContextAccessor httpContextAccessor,
             ILogger<CreateBaseEmployeeInfoCommandHandler> logger,
-            ITokenService tokenService,
+            ICommonRequestService commonRequestService,
             IPermissionService permissionService,
-            IConfiguration config,
-            IEncryptionService encryptionService, IIdEncoderService idEncoderService, 
-            ICommonRequestService commonRequestService)
+            IIdEncoderService idEncoderService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _httpContextAccessor = httpContextAccessor;
             _logger = logger;
-            _tokenService = tokenService;
-            _permissionService = permissionService;
-            _config = config;
-            _encryptionService = encryptionService ;
-            _idEncoderService = idEncoderService ;
             _commonRequestService = commonRequestService;
+            _permissionService = permissionService;
+            _idEncoderService = idEncoderService;
         }
 
-        public async Task<ApiResponse<List<GetBaseEmployeeResponseDTO>>> Handle(CreateBaseEmployeeInfoCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<GetBaseEmployeeResponseDTO>> Handle(CreateBaseEmployeeInfoCommand request,CancellationToken cancellationToken)
         {
             await _unitOfWork.BeginTransactionAsync();
 
             try
             {
-
-                // 1️ COMMON VALIDATION (Mandatory)
-                var validation = await _commonRequestService.ValidateRequestAsync(request.DTO.UserEmployeeId);
+                // 1️⃣ Common validation
+                var validation = await _commonRequestService
+                    .ValidateRequestAsync(request.DTO.UserEmployeeId);
 
                 if (!validation.Success)
-                    return ApiResponse<List<GetBaseEmployeeResponseDTO>>.Fail(validation.ErrorMessage);
+                    return ApiResponse<GetBaseEmployeeResponseDTO>
+                        .Fail(validation.ErrorMessage);
 
-                // Assign decoded values coming from CommonRequestService
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
+                // 2️⃣ Permission check
+                var permissions = await _permissionService
+                    .GetPermissionsAsync(validation.RoleId);
 
-                // ✅ Create  using repository
-                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
-                if (!permissions.Contains("AddBankInfo"))
+                if (!permissions.Contains("AddEmployee"))
                 {
-                    //await _unitOfWork.RollbackTransactionAsync();
-                    //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
+                   // return ApiResponse<GetBaseEmployeeResponseDTO>
+                    //    .Fail("You do not have permission to add employee.");
                 }
 
-                // 🧩 STEP 4: Call Repository to get data
+                // 3️⃣ Check existing login
+                var existingUser =
+                    await _unitOfWork.UserLoginRepository
+                        .GetEmployeeIdByUserLogin(request.DTO.OfficialEmail);
 
-                // 3️⃣ DTO Configuration
-                var entity = _mapper.Map<Employee>(request.DTO);
-                // 🧩 STEP 5: Entity Mapping (join fields + base fields)
+                if (existingUser != null)
+                    return ApiResponse<GetBaseEmployeeResponseDTO>
+                        .Fail("User already exists.");
 
-                entity.AddedById = request.DTO.Prop.UserEmployeeId;
-                entity.AddedDateTime = DateTime.UtcNow;
-                entity.IsActive = true;
-                entity.IsInfoVerified = false;
-                entity.IsEditAllowed = true;
-                entity.InfoVerifiedById = null;
-                entity.TenantId = request.DTO.Prop.TenantId;
-                entity.DesignationId = request.DTO.DesignationId;
-                entity.DepartmentId = request.DTO.DepartmentId;
-                entity.EmployeeTypeId = request.DTO.EmployeeTypeId;
-                entity.GenderId = request.DTO.GenderId;
-                var datePart = DateTime.UtcNow.ToString("yyyyMMdd");
-                var timePart = DateTime.UtcNow.ToString("HHmmss");
-                var randomSuffix = Path.GetRandomFileName().Replace(".", "").Substring(0, 4).ToUpper();
-                entity.EmployementCode = $"{request.DTO.Prop.TenantId}/{datePart}/{timePart}-{randomSuffix}";
-              //   HttpRequestOptionsKey
+                // 4️⃣ Map Employee
+                var employee = _mapper.Map<Employee>(request.DTO);
+                employee.TenantId = request.DTO.Prop.TenantId;
+                employee.AddedById = request.DTO.Prop.UserEmployeeId;
+                employee.AddedDateTime = DateTime.UtcNow;              
+                employee.Remark = "Initial info created during employee creation";
+                employee.IsActive = true;
+                employee.IsInfoVerified = false;
+                employee.IsEditAllowed = true;
+                employee.IsSoftDeleted = false;
+                employee.DateOfOnBoarding = DateTime.UtcNow;
 
-                // 4️⃣ Repository Operation
-                var responseDTO = await _unitOfWork.Employees.CreateAsync(entity);
-                 
-                // 5️⃣ Encrypt Result Data
-                 var encryptedList = ProjectionHelper.ToGetBaseInfoResponseDTOs(responseDTO.Items, _idEncoderService, validation.Claims.TenantEncriptionKey);
 
-                // 6️⃣ Commit Transaction
-                await _unitOfWork.CommitTransactionAsync();
+                employee.EmployementCode = $"EMP-{employee.TenantId}-{DateTime.UtcNow:yy/MM/dd}-{Random.Shared.Next(1000, 9999)}";
 
-                // 7️⃣ Final API Response
-                return new ApiResponse<List<GetBaseEmployeeResponseDTO>>
+                // 5️⃣ Create LoginCredential (FK relation)
+                var loginCredential = new LoginCredential
                 {
-                    IsSucceeded = true,
-                    Message = $"{responseDTO.TotalCount} record(s) retrieved successfully.",
-                    PageNumber = responseDTO.PageNumber,
-                    PageSize = responseDTO.PageSize,
-                    TotalRecords = responseDTO.TotalCount,
-                    TotalPages = responseDTO.TotalPages,
-                    Data = encryptedList,
+                    TenantId = employee.TenantId,
+                    LoginId = request.DTO.OfficialEmail,
+                    Password = null,
+                    HasFirstLogin = true,
+                    IsPasswordChangeRequired = true,
+                    IsActive = true,
+                    IsSoftDeleted = false,
+                    AddedById = employee.AddedById,
+                    AddedDateTime = DateTime.UtcNow,
+                    Employee = employee, // 🔥 FK handled automatically
+                    Remark = "Initial login credential created during employee creation",
                 };
+
+                if (request.DTO.RoleId <= 0)
+                {
+                    var roleinfo = await _unitOfWork.RoleRepository
+                        .GetRoleAsync(request.DTO.Prop.TenantId,
+                                      ConstantValues.RoleTypeEmployee,
+                                      true);
+
+                    var defaultRole = roleinfo.FirstOrDefault();
+
+                    if (defaultRole == null)
+                        return ApiResponse<GetBaseEmployeeResponseDTO>
+                            .Fail("Default employee role not configured.");
+
+                    request.DTO.RoleId = defaultRole.Id;
+                }
+
+
+                UserRole userRole = new UserRole
+                {
+                    Employee = employee,
+                    RoleId = request.DTO.RoleId,   
+                    RoleStartDate = DateTime.UtcNow,
+                    AddedById =request.DTO.Prop.UserEmployeeId,
+                    AddedDateTime = DateTime.UtcNow,
+                    IsActive = true,
+                    IsSoftDeleted = false,
+                    IsPrimaryRole = true,
+                    AssignedById = request.DTO.Prop.UserEmployeeId,
+                    AssignedDateTime = DateTime.UtcNow,
+                    ApprovalRequired = false,
+                    ApprovalStatus = "Approved",
+                    Remark = "Initial role assignment during employee creation",
+                    
+
+
+
+                };
+
+
+                // 6️⃣ Save
+                var savedEmployee =  await _unitOfWork.Employees.CreateEmployeeAsync(employee, loginCredential, userRole);
+
+                await _unitOfWork.CommitTransactionAsync();
+                // 5️⃣ Encrypt Result Data
+                var encryptedList = ProjectionHelper.ToGetBaseInfoResponseDTO(savedEmployee, _idEncoderService, validation.Claims.TenantEncriptionKey);
+
+
+                // 7️⃣ Response
+                return ApiResponse<GetBaseEmployeeResponseDTO>.Success(
+                   encryptedList,
+                    "Employee created successfully."
+                );
             }
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackTransactionAsync();
-                _logger.LogError(ex, "Error while adding base employee info");
-                return ApiResponse<List<GetBaseEmployeeResponseDTO>>.Fail("Failed to add base employee info.", new List<string> { ex.Message });
+                _logger.LogError(ex, "Error while creating employee");
+
+                return ApiResponse<GetBaseEmployeeResponseDTO>
+                    .Fail("Failed to create employee.");
             }
         }
     }
+
+
 }
+
+
