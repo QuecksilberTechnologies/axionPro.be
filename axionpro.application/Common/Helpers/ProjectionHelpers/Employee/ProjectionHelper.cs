@@ -223,19 +223,20 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 return null;
 
             // ✅ Sirf Id encode karo
-            if (!string.IsNullOrWhiteSpace(entity.Id) &&
-                long.TryParse(entity.Id, out long rawId) &&
-                rawId > 0)
-            {
+            if (!string.IsNullOrWhiteSpace(entity.Id) && long.TryParse(entity.Id, out long rawId) && rawId > 0)
+             {
                 entity.Id = encoderService.EncodeId(rawId, tenantKey);
-            }
+             }
 
-            // ✅ Baaki sab as-it-is (optional null safety)
-            entity.EmployementCode ??= string.Empty;
+            entity.OfficialEmail = encoderService.EncodeString(entity.OfficialEmail, tenantKey);
+            entity.EmployementCode = encoderService.EncodeString(entity.EmployementCode, tenantKey);
+            entity.EmployementCode = encoderService.EncodeString(entity.EmployementCode, tenantKey);
+
+            // ✅ Baaki sab as-it-is (optional null safety)          
             entity.FirstName ??= string.Empty;
             entity.LastName ??= string.Empty;
             entity.MiddleName ??= string.Empty;
-            entity.OfficialEmail ??= string.Empty;
+           
 
             return entity;
         }

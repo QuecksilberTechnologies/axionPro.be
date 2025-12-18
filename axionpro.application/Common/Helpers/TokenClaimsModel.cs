@@ -14,6 +14,17 @@ namespace axionpro.application.Common.Helpers
         public string? RoleId { get; set; }
         public DateTime? Expiry { get; set; }
         public bool IsExpired { get; set; }
+        // 🔥 ADD THESE
+        public string? EmployeeId { get; set; }
+        public string? TokenPurpose { get; set; }
+        public string? Email { get; set; }
+        
+
+
+
     }
+
+
+
 
 }

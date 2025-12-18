@@ -422,7 +422,10 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                     GenderName = empMinimalResponse.GenderName,                  
                     Email = request.DTO.LoginId ,
                     FullName = empMinimalResponse.FirstName + ("-" + empMinimalResponse.LastName) ?? " Unknown",
-                    Expiry = DateTime.UtcNow.AddMinutes(15)
+                    Expiry = DateTime.UtcNow.AddMinutes(15),
+                    TokenPurpose = "Login",
+                    
+                   
                 };
             
 

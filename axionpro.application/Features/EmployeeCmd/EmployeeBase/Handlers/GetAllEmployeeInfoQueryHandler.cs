@@ -93,7 +93,6 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
                 }
 
-
                 PagedResponseDTO<GetAllEmployeeInfoResponseDTO> responseDTO = await _unitOfWork.Employees.GetAllInfo(request.DTO);
                 if (responseDTO == null || !responseDTO.Items.Any())
                 {

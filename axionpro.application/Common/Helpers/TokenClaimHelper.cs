@@ -1,69 +1,95 @@
 ﻿using axionpro.application.DTOS.Token;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace axionpro.application.Common.Helpers
+public static class TokenClaimHelper
 {
-    public static class TokenClaimHelper
+    /// <summary>
+    /// Extracts and validates JWT token claims
+    /// Used for Login / Invite / SetPassword / ResetPassword flows
+    /// </summary>
+    public static GetTokenInfoDTO? ExtractClaims(string token, string? secretKey)
     {
-        public static GetTokenInfoDTO? ExtractClaims(string token, string? secretKey)
+        // 🔒 Secret key validation
+        if (string.IsNullOrEmpty(secretKey))
+            throw new ArgumentNullException(nameof(secretKey), "Secret key cannot be null or empty.");
+
+        // 🔒 Token validation
+        if (string.IsNullOrWhiteSpace(token))
+            return null;
+
+        try
         {
-            if (string.IsNullOrEmpty(secretKey))
-                throw new ArgumentNullException(nameof(secretKey), "Secret key cannot be null or empty.");
+            var tokenHandler = new JwtSecurityTokenHandler();
 
-            if (string.IsNullOrWhiteSpace(token))
-                return null;
-
+            // ✅ Detect Base64 OR plain text secret key automatically
+            byte[] key;
             try
             {
-                var tokenHandler = new JwtSecurityTokenHandler();
+                key = Convert.FromBase64String(secretKey);
+            }
+            catch
+            {
+                key = Encoding.UTF8.GetBytes(secretKey);
+            }
 
-                // ✅ Automatically detect whether key is Base64 or plain text
-                byte[] key;
-                try
-                {
-                    key = Convert.FromBase64String(secretKey);
-                }
-                catch
-                {
-                    key = Encoding.UTF8.GetBytes(secretKey);
-                }
-
-                var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
+            // 🔐 Validate token signature & expiry
+            var principal = tokenHandler.ValidateToken(
+                token,
+                new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     ValidateIssuer = false,
                     ValidateAudience = false,
-                    ClockSkew = TimeSpan.Zero
-                }, out SecurityToken validatedToken);
+                    ClockSkew = TimeSpan.Zero // ⏱️ No extra grace time
+                },
+                out SecurityToken validatedToken
+            );
 
-                var jwtToken = (JwtSecurityToken)validatedToken;
+            var jwtToken = (JwtSecurityToken)validatedToken;
 
-                var dto = new GetTokenInfoDTO
-                {
-                    UserId = principal.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value ?? string.Empty,
-                    EmployeeId = principal.Claims.FirstOrDefault(c => c.Type == "EmployeeId")?.Value ?? "0",
-                    RoleId = principal.Claims.FirstOrDefault(c => c.Type == "RoleId")?.Value ?? "0",
-                    RoleTypeId = principal.Claims.FirstOrDefault(c => c.Type == "RoleTypeId")?.Value ?? "0",
-                    EmployeeTypeId = principal.Claims.FirstOrDefault(c => c.Type == "EmployeeTypeId")?.Value ?? "0",
-                    TenantId = principal.Claims.FirstOrDefault(c => c.Type == "TenantId")?.Value ?? "0",
-                    Email = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value ?? string.Empty,
-                    TenantEncriptionKey = principal.Claims.FirstOrDefault(c => c.Type == "TenantEncriptionKey")?.Value ?? string.Empty,
-                    FullName = principal.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value ?? string.Empty,
-                    Expiry = jwtToken.ValidTo,
-                    IsExpired = jwtToken.ValidTo < DateTime.UtcNow
-                };
-
-                return dto;
-            }
-            catch(Exception ex)
+            // ✅ Map token claims to DTO
+            var dto = new GetTokenInfoDTO
             {
-                return null;
-            }
+                // 🔹 User / Employee
+                UserId = principal.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value ?? string.Empty,
+                EmployeeId = principal.Claims.FirstOrDefault(c => c.Type == "EmployeeId")?.Value ?? "0",
+
+                // 🔹 Role info
+                RoleId = principal.Claims.FirstOrDefault(c => c.Type == "RoleId")?.Value ?? "0",
+                RoleTypeId = principal.Claims.FirstOrDefault(c => c.Type == "RoleTypeId")?.Value ?? "0",
+                EmployeeTypeId = principal.Claims.FirstOrDefault(c => c.Type == "EmployeeTypeId")?.Value ?? "0",
+
+                // 🔹 Tenant info
+                TenantId = principal.Claims.FirstOrDefault(c => c.Type == "TenantId")?.Value ?? "0",
+                TenantEncriptionKey = principal.Claims
+                    .FirstOrDefault(c => c.Type == "TenantEncriptionKey")?.Value ?? string.Empty,
+
+                // 🔹 User info
+                Email = principal.Claims
+                    .FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value ?? string.Empty,
+                FullName = principal.Claims
+                    .FirstOrDefault(c => c.Type == "FullName")?.Value ?? string.Empty,
+
+                // 🔥 IMPORTANT: Token purpose (Login / SetPassword / ResetPassword)
+                // 👉 Invite flow ke liye mandatory
+                TokenPurpose = principal.Claims
+                 .FirstOrDefault(c => c.Type == "TokenPurpose")?.Value ?? string.Empty,
+
+                // ⏱️ Expiry handling
+                Expiry = jwtToken.ValidTo,
+                IsExpired = jwtToken.ValidTo < DateTime.UtcNow
+            };
+
+            return dto;
+        }
+        catch (Exception)
+        {
+            // ❌ Invalid token / signature / expired / tampered
+            return null;
         }
     }
 }

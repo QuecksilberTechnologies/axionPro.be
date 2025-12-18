@@ -195,14 +195,11 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 
               // 9️⃣ Generate Set-Password Token
               var getTokenInfoDTO = new GetTokenInfoDTO
-              {
-                  UserId = savedEmployee.Id.ToString(),
-                  EmployeeId = savedEmployee.Id.ToString(),
-                  Email = savedEmployee.OfficialEmail!,
-                  FullName = $"{savedEmployee.FirstName} {savedEmployee.LastName}",
-                  TenantId = validation.TenantId.ToString(),
-                  TenantEncriptionKey = validation.Claims.TenantEncriptionKey,
-                  TokenPurpose = "SetPassword",
+              {                   
+                  EmployeeId = responseDto.Id,
+                  Email = responseDto.OfficialEmail!,
+                  FullName = $"{savedEmployee.FirstName} {savedEmployee.LastName}",                   
+                  TokenPurpose = _idEncoderService.EncodeString("SetPassword", validation.Claims.TenantEncriptionKey),
                   IssuedAt = DateTime.UtcNow,
                   Expiry = DateTime.UtcNow.AddMinutes(30),
                   IsFirstLogin = true

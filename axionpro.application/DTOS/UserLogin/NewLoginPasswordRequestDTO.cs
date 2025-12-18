@@ -8,9 +8,9 @@ namespace axionpro.application.DTOs.UserLogin
 {
     public class NewLoginPasswordRequestDTO
     {
-        public string LoginId {  get; set; }
-        public  string Otp { get; set; }
-        public string Password { get; set; }
+        public string Token { get; set; } = string.Empty;   // 🔐 Email se aaya hua token
+        public string NewPassword { get; set; } = string.Empty;
+        public string ConfirmPassword { get; set; } = string.Empty;
 
     }
 }

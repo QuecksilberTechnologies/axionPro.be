@@ -37,7 +37,13 @@ namespace axionpro.application.Common.Helpers.RequestHelper
                 TenantEncriptionKey = rawClaims.TenantEncriptionKey,
                 RoleId = rawClaims.RoleId,
                 Expiry = rawClaims.Expiry,
-                IsExpired = rawClaims.IsExpired
+                IsExpired = rawClaims.IsExpired,
+                TokenPurpose = rawClaims.TokenPurpose,
+                EmployeeId = rawClaims.EmployeeId,
+                Email = rawClaims.Email
+
+
+
             };
         }
 
@@ -66,7 +72,7 @@ namespace axionpro.application.Common.Helpers.RequestHelper
         {
            
 
-            long userId = encoder.DecodeId(
+                long userId = encoder.DecodeId(
                 EncryptionSanitizer.CleanEncodedInput(encodedEmpId),
                 tenantKey
             );

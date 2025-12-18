@@ -628,8 +628,7 @@ namespace axionpro.application.Mappings
 
             //CreateMap<EmailTemplate, EmailTemplateDTO>();
             CreateMap<EmailTemplate, EmailTemplateDTO>().ReverseMap();
-            CreateMap<LoginCredential, SetLoginPasswordRequestDTO>().ReverseMap();
-
+            
             CreateMap<Tenant, DTOs.Registration.TenantRequestDTO>().ReverseMap();
             CreateMap<LoginCredential, GetMinimalEmployeeResponseDTO>().ReverseMap();
 

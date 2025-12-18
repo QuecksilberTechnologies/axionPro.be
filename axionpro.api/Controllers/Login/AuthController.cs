@@ -177,6 +177,48 @@ namespace axionpro.api.Controllers.Login
 
         }
 
+        [HttpPost("create-new-password")]
+        public async Task<IActionResult> CreateLoginPassword([FromBody] NewLoginPasswordRequestDTO request)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(request.NewPassword) || string.IsNullOrWhiteSpace(request.NewPassword))
+                {
+                    return BadRequest(new ApiResponse<UpdatePasswordResponseDTO>
+                    {
+                        IsSucceeded = false,
+                        Message = "Password not matched!",
+                        Data = null
+                    });
+                }
+
+                var command = new NewLoginPasswordCommand(request);
+
+
+                var result = await _mediator.Send(command);
+
+                if (!result.IsSucceeded)
+                    return BadRequest(result);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Exception occurred while setting login password.");
+
+                return StatusCode(500, new ApiResponse<UpdatePasswordResponseDTO>
+                {
+                    IsSucceeded = false,
+                    Message = "Internal server error occurred.",
+                    Data = null
+                });
+            }
+
+
+
+
+        }
+
         //[HttpGet("get-page-type")]        
         //public async Task<IActionResult> GetPageTypes([FromQuery] PageTypeEnumRequestDTO request)
         //{
@@ -240,38 +282,38 @@ namespace axionpro.api.Controllers.Login
 
         }
 
-        [HttpPost("set-login-new-password")]
-        public async Task<IActionResult> ValidateForgotPasswordOtp([FromBody] ResetLoginPasswordRequestDTO request)
-        {
-            try
-            {
+        //[HttpPost("set-login-new-password")]
+        //public async Task<IActionResult> ValidateForgotPasswordOtp([FromBody] ResetLoginPasswordRequestDTO request)
+        //{
+        //    try
+        //    {
 
-                var command = new ResetLoginPasswordCommand(request);
-
-
-                var result = await _mediator.Send(command);
-
-                if (!result.IsSucceeded)
-                    return BadRequest(result);
-
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Exception occurred while setting login password.");
-
-                return StatusCode(500, new ApiResponse<UpdatePasswordResponseDTO>
-                {
-                    IsSucceeded = false,
-                    Message = "Internal server error occurred.",
-                    Data = null
-                });
-            }
+        //        var command = new ResetLoginPasswordCommand(request);
 
 
+        //        var result = await _mediator.Send(command);
+
+        //        if (!result.IsSucceeded)
+        //            return BadRequest(result);
+
+        //        return Ok(result);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError("Exception occurred while setting login password.");
+
+        //        return StatusCode(500, new ApiResponse<UpdatePasswordResponseDTO>
+        //        {
+        //            IsSucceeded = false,
+        //            Message = "Internal server error occurred.",
+        //            Data = null
+        //        });
+        //    }
 
 
-        }
+
+
+        //}
 
 
         [HttpPost("validate-forgot-password-otp")]
