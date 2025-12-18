@@ -93,6 +93,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     return ApiResponse<GetBaseEmployeeResponseDTO>
                         .Fail(validation.ErrorMessage);
 
+                
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
@@ -197,15 +198,21 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
               var getTokenInfoDTO = new GetTokenInfoDTO
               {                   
                   EmployeeId = responseDto.Id,
-                  Email = responseDto.OfficialEmail!,
+                  Email = savedEmployee.OfficialEmail!,
                   FullName = $"{savedEmployee.FirstName} {savedEmployee.LastName}",                   
-                  TokenPurpose = _idEncoderService.EncodeString("SetPassword", validation.Claims.TenantEncriptionKey),
+                  TokenPurpose = _idEncoderService.EncodeId_int(ConstantValues.SetPassword, validation.Claims.TenantEncriptionKey),
                   IssuedAt = DateTime.UtcNow,
                   Expiry = DateTime.UtcNow.AddMinutes(30),
-                  IsFirstLogin = true
-              };
+                  IsFirstLogin = true,
+                  TenantEncriptionKey = validation.Claims.TenantEncriptionKey,
+                  ClientType = "Web",
+                  TenantId = validation.TenantId.ToString(),
 
-              var token = await _tokenService.GenerateToken(getTokenInfoDTO);
+
+              }; 
+
+
+                var token = await _tokenService.GenerateToken(getTokenInfoDTO);
 
               EmailTemplate templates = await _unitOfWork.EmailTemplateRepository.GetTemplateByCodeAsync(ConstantValues.WelcomeEmail);
    
@@ -219,10 +226,10 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                                       {
                                           ["UserName"] = getTokenInfoDTO.FullName,                                        
                                           ["LinkExpiryMinutes"] = "30",
-                                          ["VerificationUrl"] = $"{baseUrl}/registration-verify?token={token}"
+                                          ["VerificationUrl"] = $"{baseUrl}/auth/set-password?token={token}"
                                       });
 
-                // 🔟 Response
+                // 🔟 Responseauth/set-password
                 if (!isSent)
                 {
                     await _unitOfWork.RollbackTransactionAsync();

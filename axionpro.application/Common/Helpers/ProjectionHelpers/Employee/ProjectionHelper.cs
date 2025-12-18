@@ -61,12 +61,12 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 // ✅ Sirf Id encode karo (agar valid hai)
                 if (long.TryParse(item.Id, out long rawId) && rawId > 0)
                 {
-                    item.Id = encoderService.EncodeId(rawId, tenantKey);
+                    item.Id = encoderService.EncodeId_long(rawId, tenantKey);
                 }
                 // ✅ Encode EmployeeId separately
                 if (long.TryParse(item.EmployeeId, out long empRawId) && empRawId > 0)
                 {
-                    item.EmployeeId = encoderService.EncodeId(empRawId, tenantKey);
+                    item.EmployeeId = encoderService.EncodeId_long(empRawId, tenantKey);
                 }
 
                 // ✅ Optional cleanup (avoid nulls)
@@ -165,7 +165,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             {
                 if (long.TryParse(item.EmployeeId, out long rawId) && rawId > 0)
                 {
-                    item.EmployeeId = encoderService.EncodeId(rawId, tenantKey);
+                    item.EmployeeId = encoderService.EncodeId_long(rawId, tenantKey);
                 }
                 item.EmployeeImagePath ??= null;
 
@@ -199,7 +199,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                     long.TryParse(item.Id, out long rawId) &&
                     rawId > 0)
                 {
-                    item.Id = encoderService.EncodeId(rawId, tenantKey);
+                    item.Id = encoderService.EncodeId_long(rawId, tenantKey);
                 }
 
                 // Null-safe defaults
@@ -225,17 +225,17 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             // ✅ Sirf Id encode karo
             if (!string.IsNullOrWhiteSpace(entity.Id) && long.TryParse(entity.Id, out long rawId) && rawId > 0)
              {
-                entity.Id = encoderService.EncodeId(rawId, tenantKey);
+                entity.Id = encoderService.EncodeId_long(rawId, tenantKey);
              }
 
-            entity.OfficialEmail = encoderService.EncodeString(entity.OfficialEmail, tenantKey);
-            entity.EmployementCode = encoderService.EncodeString(entity.EmployementCode, tenantKey);
-            entity.EmployementCode = encoderService.EncodeString(entity.EmployementCode, tenantKey);
+    
 
             // ✅ Baaki sab as-it-is (optional null safety)          
             entity.FirstName ??= string.Empty;
             entity.LastName ??= string.Empty;
             entity.MiddleName ??= string.Empty;
+            entity.OfficialEmail ??= string.Empty;
+            entity.EmployementCode ??= string.Empty;
            
 
             return entity;
@@ -253,7 +253,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 // ✅ Sirf Id encode karo (agar valid hai)
                 if (long.TryParse(item.Id, out long rawId) && rawId > 0)
                 {
-                    item.Id = encoderService.EncodeId(rawId, tenantKey);
+                    item.Id = encoderService.EncodeId_long(rawId, tenantKey);
                 }
 
                 // ✅ Optional null-safe cleanup (lightweight safety)
@@ -296,7 +296,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 
                 if (long.TryParse(item.EmployeeId, out long rawId) && rawId > 0)
                 {
-                    item.EmployeeId = encoderService.EncodeId(rawId, tenantKey);
+                    item.EmployeeId = encoderService.EncodeId_long(rawId, tenantKey);
 
                 }
 
@@ -333,7 +333,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 // ✅ ID encrypt करो (अगर valid long है)
                 if (long.TryParse(item.Id, out long rawId) && rawId > 0)
                 {
-                    item.Id = encryptionService.EncodeId(rawId, tenantKey);
+                    item.Id = encryptionService.EncodeId_long(rawId, tenantKey);
                 }
 
                 // 📁 Final Image URL build
@@ -343,7 +343,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 // ✅ EmployeeId encrypt करो
                 if (long.TryParse(item.EmployeeId, out long empRawId) && empRawId > 0)
                 {
-                    item.EmployeeId = encryptionService.EncodeId(empRawId, tenantKey);
+                    item.EmployeeId = encryptionService.EncodeId_long(empRawId, tenantKey);
                 }
 
                 // ✅ Optional cleanup (null safety)
@@ -389,13 +389,13 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 // ✅ Encode Bank Record Id
                 if (long.TryParse(item.Id, out long rawId) && rawId > 0)
                 {
-                    item.Id = encoderService.EncodeId(rawId, tenantKey);
+                    item.Id = encoderService.EncodeId_long(rawId, tenantKey);
                 }
 
                 // ✅ Encode EmployeeId separately
                 if (long.TryParse(item.EmployeeId, out long empRawId) && empRawId > 0)
                 {
-                    item.EmployeeId = encoderService.EncodeId(empRawId, tenantKey);
+                    item.EmployeeId = encoderService.EncodeId_long(empRawId, tenantKey);
                 }
 
                 // ✅ Optional cleanup (avoid nulls)
@@ -468,7 +468,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 
                 // 🔐 Encode Employee Id
                 if (long.TryParse(item.EmployeeId, out long empRawId) && empRawId > 0)
-                    item.EmployeeId = encoderService.EncodeId(empRawId, tenantKey);
+                    item.EmployeeId = encoderService.EncodeId_long(empRawId, tenantKey);
 
                 // 🧹 Null sanitization
                 item.Id ??= string.Empty;

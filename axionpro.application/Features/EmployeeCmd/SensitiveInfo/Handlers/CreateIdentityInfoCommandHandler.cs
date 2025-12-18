@@ -106,14 +106,14 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
                 string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
                 //UserEmployeeId
                 string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
-                request.DTO._UserEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
+                request.DTO._UserEmployeeId = _idEncoderService.DecodeId_long(UserEmpId, finalKey);
                 //Token TenantId
                 string tokenTenant = EncryptionSanitizer.CleanEncodedInput(tokenClaims.TenantId);
-                long decryptedTenantId = _idEncoderService.DecodeId(tokenTenant, finalKey);
+                long decryptedTenantId = _idEncoderService.DecodeId_long(tokenTenant, finalKey);
                 //Id              
                 // Actual EmployeeId
                 string actualEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId);
-                 request.DTO._EmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
+                 request.DTO._EmployeeId = _idEncoderService.DecodeId_long(UserEmpId, finalKey);
 
                 // 🧩 STEP 4: Validate all employee references
                 if (decryptedTenantId <= 0)

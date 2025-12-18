@@ -90,10 +90,10 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
                 string sanitizedKey = EncryptionSanitizer.SuperSanitize(tenantKey);
 
                 // Decode IDs
-                long decryptedEmployeeId = _idEncoderService.DecodeId(
+                long decryptedEmployeeId = _idEncoderService.DecodeId_long(
                     EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId), sanitizedKey);
 
-                long decryptedRecordId = _idEncoderService.DecodeId(
+                long decryptedRecordId = _idEncoderService.DecodeId_long(
                     EncryptionSanitizer.CleanEncodedInput(request.DTO.Id), sanitizedKey);
 
                 if (decryptedEmployeeId != loggedInEmpId)

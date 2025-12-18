@@ -85,9 +85,9 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
 
                 // ---------- DECODE IDS ----------
                 string finalKey = EncryptionSanitizer.CleanEncodedInput(tokenClaims.TenantEncriptionKey ?? "");
-                long tenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
+                long tenantId = _idEncoderService.DecodeId_long(tokenClaims.TenantId, finalKey);
 
-                request.DTO.Prop.UserEmployeeId = _idEncoderService.DecodeId(request.DTO.UserEmployeeId, finalKey);
+                request.DTO.Prop.UserEmployeeId = _idEncoderService.DecodeId_long(request.DTO.UserEmployeeId, finalKey);
                 request.DTO.Prop.RowId = SafeParser.TryParseLong(request.DTO.Id);
                  if(request.DTO.Prop.RowId <= 0)
                     return ApiResponse<bool>.Fail("Invalid contact identity.");

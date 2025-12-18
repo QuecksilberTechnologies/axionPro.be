@@ -94,9 +94,9 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 
                  string finalKey = EncryptionSanitizer.CleanEncodedInput(tokenClaims.TenantEncriptionKey);
                 // request.DTO.Prop.TenantId =  SafeParser.TryParseLong(tokenClaims.TenantId);
-                 request.DTO.Prop.UserEmployeeId = _idEncoderService.DecodeId(EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId), finalKey);
+                 request.DTO.Prop.UserEmployeeId = _idEncoderService.DecodeId_long(EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId), finalKey);
 
-                request.DTO.Prop.TenantId = _idEncoderService.DecodeId(EncryptionSanitizer.CleanEncodedInput( tokenClaims.TenantId), finalKey);
+                request.DTO.Prop.TenantId = _idEncoderService.DecodeId_long(EncryptionSanitizer.CleanEncodedInput( tokenClaims.TenantId), finalKey);
 
                 if (request.DTO.Prop.TenantId <= 0 || request.DTO.Prop.UserEmployeeId <= 0)
                     return ApiResponse<bool>.Fail("Invalid decoded identity.");

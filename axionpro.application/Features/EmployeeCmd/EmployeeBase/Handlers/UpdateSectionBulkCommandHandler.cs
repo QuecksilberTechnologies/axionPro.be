@@ -131,7 +131,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // STEP 3: DECODE MAIN USER EMPLOYEE ID
                 // ------------------------------------
                 string cleanedUserId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
-                long employeeId = _idEncoderService.DecodeId(cleanedUserId, tenantKey);
+                long employeeId = _idEncoderService.DecodeId_long(cleanedUserId, tenantKey);
 
                 if (employeeId != loggedInEmpId)
                     return ApiResponse<bool>.Fail("User mismatch.");
@@ -153,7 +153,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     // DECODE SECTION EMPLOYEE ID (YOUR STYLE)
                     // ------------------------------------
                     string cleanedSectionId = EncryptionSanitizer.CleanEncodedInput(section.EmployeeId);
-                    long decodedEmployeeId = _idEncoderService.DecodeId(cleanedSectionId, tenantKey);
+                    long decodedEmployeeId = _idEncoderService.DecodeId_long(cleanedSectionId, tenantKey);
 
                     if (decodedEmployeeId <= 0)
                         return ApiResponse<bool>.Fail("Invalid EmployeeId in section.");

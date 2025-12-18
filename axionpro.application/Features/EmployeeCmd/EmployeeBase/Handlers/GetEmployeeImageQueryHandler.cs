@@ -112,10 +112,10 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // Decrypt / convert values
                 string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
                 string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
-                request.DTO.Prop.UserEmployeeId =  _idEncoderService.DecodeId(UserEmpId, finalKey);
-                request.DTO.Prop.TenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
+                request.DTO.Prop.UserEmployeeId =  _idEncoderService.DecodeId_long(UserEmpId, finalKey);
+                request.DTO.Prop.TenantId = _idEncoderService.DecodeId_long(tokenClaims.TenantId, finalKey);
                 string _Id= EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId);
-                request.DTO.Prop.EmployeeId = _idEncoderService.DecodeId(_Id, finalKey);
+                request.DTO.Prop.EmployeeId = _idEncoderService.DecodeId_long(_Id, finalKey);
                 
                 
                 request.DTO.SortOrder = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortOrder);

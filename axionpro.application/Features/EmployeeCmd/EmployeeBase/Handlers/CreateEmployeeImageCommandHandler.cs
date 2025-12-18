@@ -105,10 +105,10 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 if (string.IsNullOrEmpty(request.DTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
                     return ApiResponse<List<GetEmployeeImageReponseDTO>>.Fail("User invalid.");
                 string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
-                long decryptedEmployeeId = _idEncoderService.DecodeId(EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId), finalKey);
-                long decryptedTenantId = _idEncoderService.DecodeId(EncryptionSanitizer.CleanEncodedInput(tokenClaims.TenantId), finalKey);
+                long decryptedEmployeeId = _idEncoderService.DecodeId_long(EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId), finalKey);
+                long decryptedTenantId = _idEncoderService.DecodeId_long(EncryptionSanitizer.CleanEncodedInput(tokenClaims.TenantId), finalKey);
                 string actualEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId);
-                long decryptedActualEmployeeId = _idEncoderService.DecodeId(actualEmpId, finalKey);
+                long decryptedActualEmployeeId = _idEncoderService.DecodeId_long(actualEmpId, finalKey);
 
 
 

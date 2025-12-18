@@ -18,7 +18,7 @@ namespace axionpro.infrastructure.EncryptionService
         }
 
         // ✅ Encode numeric ID
-        public string EncodeId(long id, string tenantKey)
+        public string EncodeId_long(long id, string tenantKey)
         {
             if (id <= 0)
                 return string.Empty;
@@ -27,9 +27,10 @@ namespace axionpro.infrastructure.EncryptionService
             var hashids = new Hashids(salt, 8, "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890");
             return hashids.EncodeLong(id);
         }
+      
 
         // ✅ Decode numeric ID
-        public long DecodeId(string encodedId, string tenantKey)
+        public long DecodeId_long(string encodedId, string tenantKey)
         {
             if (string.IsNullOrWhiteSpace(encodedId))
                 return 0;
@@ -41,7 +42,48 @@ namespace axionpro.infrastructure.EncryptionService
             return decoded.Length > 0 ? decoded[0] : 0;
         }
 
+        // ✅ Decode numeric ID int
+        public int DecodeId_int(string encodedId, string tenantKey)
+        {
+            if (string.IsNullOrWhiteSpace(encodedId))
+                return 0;
+
+            var salt = GetSalt(tenantKey);
+            var hashids = new Hashids(
+                salt,
+                8,
+                "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+            );
+
+            var decoded = hashids.DecodeLong(encodedId);
+
+            if (decoded.Length == 0)
+                return 0;
+
+            // Overflow protection
+            if (decoded[0] > int.MaxValue)
+                throw new OverflowException("Decoded value exceeds Int32 range.");
+
+            return (int)decoded[0];
+        }
+
+        public string EncodeId_int(int id, string tenantKey)
+        {
+            if (id <= 0)
+                return string.Empty;
+
+            var salt = GetSalt(tenantKey);
+            var hashids = new Hashids(
+                salt,
+                8, // length
+                "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+            );
+
+            return hashids.EncodeLong((int)id);
+        }
+
         // ✅ Encode string → string (convert string to bytes → numeric → encode)
+
         public string EncodeString(string input, string tenantKey)
         {
             if (string.IsNullOrWhiteSpace(input))

@@ -4,6 +4,7 @@ using axionpro.application.DTOS.Token;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
@@ -12,6 +13,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Model;
 
 namespace axionpro.infrastructure.Token
 {
@@ -69,6 +71,11 @@ namespace axionpro.infrastructure.Token
                     claims.Add(new Claim("EmployeeTypeName", user.EmployeeTypeName ?? string.Empty));
                     claims.Add(new Claim("RoleTypeName", user.RoleTypeName ?? string.Empty));
                     claims.Add(new Claim("HasPermanent", user.HasPermanent.ToString()));
+                    claims.Add(new Claim("TokenPurpose", user.TokenPurpose.ToString()));
+                    claims.Add(new Claim("IssuedAt", user.HasPermanent.ToString()));
+                    claims.Add(new Claim("ClientType", user.HasPermanent.ToString()));
+
+  
                 }
                 catch (Exception innerEx)
                 {

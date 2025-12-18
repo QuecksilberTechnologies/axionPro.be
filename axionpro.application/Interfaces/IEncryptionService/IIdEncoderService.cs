@@ -10,8 +10,10 @@ namespace axionpro.application.Interfaces.IEncryptionService
     {
 
 
-            string EncodeId(long id, string tenantKey);
-             long DecodeId(string? encodedId, string tenantKey);
+            string EncodeId_long(long id, string tenantKey);
+             long DecodeId_long(string? encodedId, string tenantKey);
+             int DecodeId_int(string? encodedId, string tenantKey);
+              string EncodeId_int(int id, string tenantKey);
             string EncodeString(string input, string tenantKey);
             string DecodeString(string input, string tenantKey);
 

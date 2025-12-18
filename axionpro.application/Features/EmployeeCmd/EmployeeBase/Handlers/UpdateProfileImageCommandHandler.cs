@@ -88,9 +88,9 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     // -----------------------------------------------
                     string finalKey = EncryptionSanitizer.SuperSanitize(tokenClaims.TenantEncriptionKey);
 
-                    request.DTO._UserEmployeeId = _idEncoderService.DecodeId(dto.UserEmployeeId, finalKey);
+                    request.DTO._UserEmployeeId = _idEncoderService.DecodeId_long(dto.UserEmployeeId, finalKey);
 
-                    long decryptedTenantId = _idEncoderService.DecodeId(
+                    long decryptedTenantId = _idEncoderService.DecodeId_long(
                         EncryptionSanitizer.CleanEncodedInput(tokenClaims.TenantId), finalKey);
 
                     request.DTO._Id = SafeParser.TryParseLong(dto.Id ?? dto.Id);

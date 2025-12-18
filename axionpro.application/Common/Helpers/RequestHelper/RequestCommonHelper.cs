@@ -34,7 +34,7 @@ namespace axionpro.application.Common.Helpers.RequestHelper
             {
                 UserId = rawClaims.UserId,
                 TenantId = rawClaims.TenantId,
-                TenantEncriptionKey = rawClaims.TenantEncriptionKey,
+                TenantEncriptionKey =  EncryptionSanitizer.SuperSanitize(rawClaims.TenantEncriptionKey),
                 RoleId = rawClaims.RoleId,
                 Expiry = rawClaims.Expiry,
                 IsExpired = rawClaims.IsExpired,
@@ -55,12 +55,9 @@ namespace axionpro.application.Common.Helpers.RequestHelper
         {
             string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
 
-            long userId = encoder.DecodeId(
-                EncryptionSanitizer.CleanEncodedInput(encodedUserId),
-                finalKey
-            );
+            long userId = encoder.DecodeId_long(    EncryptionSanitizer.CleanEncodedInput(encodedUserId),   finalKey );
 
-            long tenantId = encoder.DecodeId(encTenantId, finalKey);
+            long tenantId = encoder.DecodeId_long(encTenantId, finalKey);
 
             return (userId, tenantId);
         }
@@ -72,7 +69,7 @@ namespace axionpro.application.Common.Helpers.RequestHelper
         {
            
 
-                long userId = encoder.DecodeId(
+                long userId = encoder.DecodeId_long(
                 EncryptionSanitizer.CleanEncodedInput(encodedEmpId),
                 tenantKey
             );

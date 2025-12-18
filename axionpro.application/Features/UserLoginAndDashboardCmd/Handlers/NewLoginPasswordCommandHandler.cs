@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.RequestHelper;
+using axionpro.application.Constants;
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -91,16 +92,20 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 return ApiResponse<UpdatePasswordResponseDTO>
                     .Fail("Password and confirm password do not match.");
 
-            // 2️⃣ Validate token & extract claims
+             
             var claims = RequestCommonHelper.ValidateAndExtractClaims(dto.Token, _config);
 
             if (claims == null)
                 return ApiResponse<UpdatePasswordResponseDTO>
-                    .Fail("Invalid or expired token.");
+                    .Fail("Invalid or expired token.");      
 
-            if (claims.TokenPurpose != "SetPassword")
+            int tokenPurpose = _idEncoderService.DecodeId_int(EncryptionSanitizer.CleanEncodedInput(claims.TokenPurpose), claims.TenantEncriptionKey);
+          
+
+            if (tokenPurpose != ConstantValues.SetPassword)
                 return ApiResponse<UpdatePasswordResponseDTO>
                     .Fail("Invalid token purpose.");
+
 
             // 3️⃣ Decode EmployeeId
             long employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
@@ -108,14 +113,11 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 claims.TenantEncriptionKey!,
                 _idEncoderService);
 
-            string S_mail = EncryptionSanitizer.SuperSanitize(claims.Email);
-
-            claims.Email = _idEncoderService.DecodeString((EncryptionSanitizer.CleanEncodedInput(S_mail)), claims.TenantEncriptionKey);
-
+           
 
             // 4️⃣ Fetch login credential
             var loginCredential =
-                await _unitOfWork.UserLoginRepository.GetEmployeeIdByUserLogin(claims.Email);
+                await _unitOfWork.UserLoginRepository.GetEmployeeIdByUserLogin(claims.Email.Trim());
 
             if (loginCredential == null)
                 return ApiResponse<UpdatePasswordResponseDTO>

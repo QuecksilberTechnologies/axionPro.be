@@ -350,8 +350,8 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 }
 
                 string finalKey = EncryptionSanitizer.SuperSanitize(tenantEncryptionKey.EncryptionKey);
-                string encriptedEmployeeId = _idEncoderService.EncodeId(tempEmployeeId, finalKey);
-                string encriptedTenantId = _idEncoderService.EncodeId(tempTenantId, finalKey);
+                string encriptedEmployeeId = _idEncoderService.EncodeId_long(tempEmployeeId, finalKey);
+                string encriptedTenantId = _idEncoderService.EncodeId_long(tempTenantId, finalKey);
                 // ✅ Decrypt same encrypted string             
           
                 string? ProfileImagePath = $"{_configuration["FileSettings:BaseUrl"] ?? string.Empty}{await _unitOfWork.Employees.ProfileImage(empId) ?? null}";

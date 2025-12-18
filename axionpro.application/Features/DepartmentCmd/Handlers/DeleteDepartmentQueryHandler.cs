@@ -100,8 +100,8 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
 
                 string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
                 string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
-                long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
-                long decryptedTenantId = _idEncoderService.DecodeId(tokenClaims.TenantId, finalKey);
+                long decryptedEmployeeId = _idEncoderService.DecodeId_long(UserEmpId, finalKey);
+                long decryptedTenantId = _idEncoderService.DecodeId_long(tokenClaims.TenantId, finalKey);
             
                  
 
