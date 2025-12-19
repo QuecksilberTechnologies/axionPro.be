@@ -38,7 +38,7 @@ namespace axionpro.application.Features.TenantCmd.Handlers
                 _logger.LogInformation("Fetching tenant information for TenantId: {TenantId}", request.TenantId);
 
                 // ✅ Step 1: Repository call
-                var tenantEntity = await _tenantRepository.GetByIdAsync(request.TenantId);
+                var tenantEntity = await _tenantRepository.GetByIdAsync(request.TenantId, true);
 
                 // ✅ Step 2: Check null
                 if (tenantEntity == null)

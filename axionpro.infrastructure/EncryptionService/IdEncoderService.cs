@@ -23,7 +23,7 @@ namespace axionpro.infrastructure.EncryptionService
             if (id <= 0)
                 return string.Empty;
 
-            var salt = GetSalt(tenantKey);
+            var salt = GetSalt(GlobalSalt);
             var hashids = new Hashids(salt, 8, "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890");
             return hashids.EncodeLong(id);
         }
@@ -35,7 +35,7 @@ namespace axionpro.infrastructure.EncryptionService
             if (string.IsNullOrWhiteSpace(encodedId))
                 return 0;
 
-            var salt = GetSalt(tenantKey);
+            var salt = GetSalt(GlobalSalt);
             var hashids = new Hashids(salt, 8, "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890");
 
             var decoded = hashids.DecodeLong(encodedId);
@@ -48,7 +48,7 @@ namespace axionpro.infrastructure.EncryptionService
             if (string.IsNullOrWhiteSpace(encodedId))
                 return 0;
 
-            var salt = GetSalt(tenantKey);
+            var salt = GetSalt(GlobalSalt);
             var hashids = new Hashids(
                 salt,
                 8,
@@ -72,7 +72,7 @@ namespace axionpro.infrastructure.EncryptionService
             if (id <= 0)
                 return string.Empty;
 
-            var salt = GetSalt(tenantKey);
+            var salt = GetSalt(GlobalSalt);
             var hashids = new Hashids(
                 salt,
                 8, // length
@@ -92,7 +92,7 @@ namespace axionpro.infrastructure.EncryptionService
             var bytes = Encoding.UTF8.GetBytes(input);
             long numericValue = BitConverter.ToInt64(PadBytes(bytes), 0);
 
-            var salt = GetSalt(tenantKey);
+            var salt = GetSalt(GlobalSalt);
             var hashids = new Hashids(salt, 8, "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890");
             return hashids.EncodeLong(numericValue);
         }

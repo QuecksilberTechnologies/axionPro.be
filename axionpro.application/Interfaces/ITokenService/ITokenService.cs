@@ -1,4 +1,5 @@
-﻿using axionpro.application.DTOs.Employee;
+﻿using axionpro.application.Common.Helpers;
+using axionpro.application.DTOs.Employee;
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.DTOS.Token;
 using System;
@@ -20,7 +21,7 @@ namespace axionpro.application.Interfaces.ITokenService
         Task<string> GetUserInfoFromToken(string token);
         DateTime? GetExpiryFromToken(string token);
         Task<GetTokenInfoDTO?> GetUserInfoByLoginIdAsync(string loginId);
-
+        public TokenClaimsModel? ValidateAndExtractClaims(string token);
     }
 
 

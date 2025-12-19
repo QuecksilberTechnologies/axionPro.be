@@ -12,4 +12,11 @@ namespace axionpro.application.Interfaces.ICacheService
         Task<T?> GetAsync<T>(string key);
         Task RemoveAsync(string key);
     }
+
+    public interface ITenantKeyCache
+    {
+        string? Get(long tenantId);
+        void Set(long tenantId, string encryptedKey);
+        void Remove(long tenantId);
+    }
 }

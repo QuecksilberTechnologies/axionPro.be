@@ -10,7 +10,7 @@ namespace axionpro.application.Interfaces.IRepositories
 {
     public interface ITenantRepository
     {
-        Task<Tenant> GetByIdAsync(long? id);
+        Task<Tenant> GetByIdAsync(long? id, bool isactive);
         Task<bool> CheckTenantByEmail(string email);
         Task<Tenant> GetByCodeAsync(string tenantCode);
         Task<List<Tenant>> GetAllTenantBySubscriptionIdAsync(Tenant tenant);

@@ -38,56 +38,47 @@ namespace axionpro.infrastructure.MailService
             throw new NotImplementedException();
         }
         //  public Task<bool> SendTemplatedEmailAsync(string templateCode, string toEmail, long? TenantId, Dictionary<string, string> placeholders)
-
         public async Task<bool> SendTemplatedEmailAsync(
-    string templateCode,
-    string toEmail,
-    long? tenantId,
-    Dictionary<string, string> placeholders)
+      string templateCode,
+      string toEmail,
+      long? tenantId,
+      Dictionary<string, string> placeholders)
         {
             try
             {
-                // 1️⃣ Get Email Template
+                // 1️⃣ Template
                 var template = await _templateRepo.GetTemplateByCodeAsync(templateCode);
                 if (template == null || !template.IsActive)
                 {
-                    _logger.LogWarning("Email template not found or inactive | Code={Code}", templateCode);
+                    _logger.LogWarning("Email template missing | Code={Code}", templateCode);
                     return false;
                 }
 
-                // 2️⃣ Get SMTP + Tenant config (SINGLE DB HIT)
+                // 2️⃣ SMTP + Tenant
                 var config = await _configRepo.GetActiveEmailConfigAsync(tenantId);
                 if (config == null || config.Tenant == null)
                 {
-                    _logger.LogWarning("Email config or tenant not found | TenantId={TenantId}", tenantId);
+                    _logger.LogWarning("SMTP config missing | TenantId={TenantId}", tenantId);
                     return false;
                 }
 
                 var tenant = config.Tenant;
 
-                // 3️⃣ Tenant branding (SAFE)
-                string tenantName = tenant.CompanyName;
-
-                string? tenantLogoUrl = tenant.TenantProfiles
-                    .Select(x => x.LogoUrl)
-                    .FirstOrDefault();
-
-                tenantLogoUrl ??= "https://cdn.axionpro.com/default-logo.png";
-
-                // 4️⃣ System placeholders
+                // 3️⃣ Placeholders
                 var finalPlaceholders = new Dictionary<string, string>
                 {
-                    ["TenantName"] = tenantName,
-                    ["TenantLogoUrl"] = tenantLogoUrl,
+                    ["TenantName"] = tenant.CompanyName,
+                    ["TenantLogoUrl"] = tenant.TenantProfiles.Select(x => x.LogoUrl)
+                                            .FirstOrDefault()
+                                            ?? "https://cdn.axionpro.com/default-logo.png",
                     ["SupportEmail"] = tenant.TenantEmail,
                     ["Year"] = DateTime.UtcNow.Year.ToString()
                 };
 
-                // handler ke placeholders override kar sakte hain
                 foreach (var kv in placeholders)
                     finalPlaceholders[kv.Key] = kv.Value;
 
-                // 5️⃣ Render subject & body
+                // 4️⃣ Render
                 var subject = EmailTemplateRenderer.RenderBody(
                     template.Subject ?? string.Empty,
                     finalPlaceholders);
@@ -96,12 +87,14 @@ namespace axionpro.infrastructure.MailService
                     template.Body ?? string.Empty,
                     finalPlaceholders);
 
-                // 6️⃣ Build email
+                // 5️⃣ Build message (🔥 CRITICAL FIX)
                 var message = new MimeMessage();
 
+                // 🚨 ALWAYS SAME AS SMTP USER
+                message.From.Clear();
                 message.From.Add(new MailboxAddress(
-                    template.FromName ?? config.FromName ?? "AxionPro",
-                    template.FromEmail ?? config.FromEmail));
+                    config.FromName ?? "AxionPro",
+                    config.SmtpUsername));
 
                 message.To.Add(MailboxAddress.Parse(toEmail));
 
@@ -111,61 +104,69 @@ namespace axionpro.infrastructure.MailService
                 message.Subject = subject;
                 message.Body = new BodyBuilder { HtmlBody = body }.ToMessageBody();
 
-                // 7️⃣ Send email
+                // 6️⃣ SMTP SEND (FULLY BLOCKING FLOW)
                 using var smtp = new SmtpClient();
+
+                smtp.Timeout = 20000; // 20 sec HARD WAIT
+
                 await smtp.ConnectAsync(
                     config.SmtpHost,
                     config.SmtpPort ?? 587,
-                    SecureSocketOptions.StartTlsWhenAvailable);
+                    SecureSocketOptions.StartTls);
+
+                if (!smtp.IsConnected)
+                    throw new Exception("SMTP not connected");
 
                 await smtp.AuthenticateAsync(
                     config.SmtpUsername,
                     Decrypt(config.SmtpPasswordEncrypted ?? string.Empty));
 
+                if (!smtp.IsAuthenticated)
+                    throw new Exception("SMTP authentication failed");
+
+                // 🔥 SERVER ACK WAIT
                 await smtp.SendAsync(message);
+
+                // 🔥 NOOP ensures server pipeline flushed
+                await smtp.NoOpAsync();
 
                 await smtp.DisconnectAsync(true);
 
-                    _logger.LogInformation(
-                    "Email SENT successfully | Template={TemplateCode} | To={To}",
+                _logger.LogInformation(
+                    "SMTP ACCEPTED | Template={Template} | To={To} | Server={Host}",
                     templateCode,
-                    toEmail);
+                    toEmail,
+                    config.SmtpHost);
 
-                return true; // ✅ SMTP accepted the mail
+                return true; // ✅ ACCEPTED BY SMTP SERVER
             }
             catch (SmtpCommandException ex)
             {
-                // SMTP ne explicitly reject kiya
                 _logger.LogError(ex,
-                    "SMTP command failed | StatusCode={StatusCode} | Template={TemplateCode} | To={To}",
+                    "SMTP REJECTED | Status={Status} | To={To}",
                     ex.StatusCode,
-                    templateCode,
                     toEmail);
 
                 return false;
             }
             catch (SmtpProtocolException ex)
             {
-                // SMTP protocol / handshake issue
                 _logger.LogError(ex,
-                    "SMTP protocol error | Template={TemplateCode} | To={To}",
-                    templateCode,
+                    "SMTP PROTOCOL FAILURE | To={To}",
                     toEmail);
 
                 return false;
             }
             catch (Exception ex)
             {
-                // Any unexpected error
                 _logger.LogError(ex,
-                    "Email send FAILED | Template={TemplateCode} | To={To}",
-                    templateCode,
+                    "EMAIL FAILED | To={To}",
                     toEmail);
 
                 return false;
             }
-
         }
+
         private string Decrypt(string encrypted)
         {
             // 🔐 real encryption service yahan inject karna

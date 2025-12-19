@@ -366,7 +366,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 employeeInfo.EmployeeId = encriptedEmployeeId.Trim();
                 employeeInfo.UserSecondryRoles = userRoleDTOs;
                 employeeInfo.ProfileImageLink = ProfileImagePath;
-                var tenant = await _unitOfWork.TenantRepository.GetByIdAsync(dto.TenantId);
+                var tenant = await _unitOfWork.TenantRepository.GetByIdAsync(dto.TenantId, true );
                 GetRoleRequestDTO getRoleRequestDTO = new GetRoleRequestDTO
                 {
                     Id = employeeInfo.UserPrimaryRole?.RoleId ?? 0,

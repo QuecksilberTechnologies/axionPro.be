@@ -153,13 +153,13 @@ namespace axionpro.persistance.Repositories
             throw new NotImplementedException();
         }
 
-        public async Task<Tenant> GetByIdAsync(long? id)
+        public async Task<Tenant> GetByIdAsync(long? id, bool i)
         {
 
 
             var tenant = await _context.Tenants
               .Where(t => t.Id == id
-                       && (t.IsActive == true && t.IsSoftDeleted!=true))
+                       && (t.IsActive == i && t.IsSoftDeleted!=true))
               .FirstOrDefaultAsync();
  
 

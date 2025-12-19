@@ -59,7 +59,9 @@ namespace axionpro.infrastructure
             services.AddScoped<IEncryptionService, AesEncryptionService>();
             services.AddScoped<IIdEncoderService, IdEncoderService>();
             services.AddScoped<ICacheService, CacheService>();
-
+            services.AddScoped<ITenantKeyCache, TenantKeyMemoryCache>();
+            services.AddScoped<ITenantKeyResolver, TenantKeyResolver>();
+        
 
 
 

@@ -1,4 +1,5 @@
-﻿using axionpro.application.DTOs.Employee;
+﻿using axionpro.application.Common.Helpers;
+using axionpro.application.DTOs.Employee;
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.DTOS.Token;
 using axionpro.application.Interfaces;
@@ -58,7 +59,7 @@ namespace axionpro.infrastructure.Token
                 {
                     claims.Add(new Claim("UserId", user.UserId?.ToString() ?? string.Empty));
                     claims.Add(new Claim("EmployeeId", user.EmployeeId?.ToString() ?? string.Empty));
-                    claims.Add(new Claim("RoleId", user.RoleId.ToString()?? string.Empty));
+                    claims.Add(new Claim("RoleId", user.RoleId.ToString() ?? string.Empty));
                     claims.Add(new Claim("RoleTypeId", user.RoleTypeId.ToString() ?? string.Empty));
                     claims.Add(new Claim("EmployeeTypeId", user.EmployeeTypeId.ToString() ?? string.Empty));
                     claims.Add(new Claim("TenantId", user.TenantId?.ToString() ?? string.Empty));
@@ -75,7 +76,7 @@ namespace axionpro.infrastructure.Token
                     claims.Add(new Claim("IssuedAt", user.HasPermanent.ToString()));
                     claims.Add(new Claim("ClientType", user.HasPermanent.ToString()));
 
-  
+
                 }
                 catch (Exception innerEx)
                 {
@@ -204,6 +205,43 @@ namespace axionpro.infrastructure.Token
                 return string.Empty;
             }
         }
+        public TokenClaimsModel? ValidateAndExtractClaims(string token)
+        {
+            try
+            {
+                var handler = new JwtSecurityTokenHandler();
+                var key = Encoding.UTF8.GetBytes(_configuration["JWTSettings:Secret"]);
+
+                var principal = handler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidIssuer = _configuration["JWTSettings:Issuer"],
+                    ValidAudience = _configuration["JWTSettings:Audience"],
+                    ClockSkew = TimeSpan.Zero
+                }, out SecurityToken validatedToken);
+
+                var jwt = (JwtSecurityToken)validatedToken;
+
+                return new TokenClaimsModel
+                {
+                    UserId = principal.FindFirst("UserId")?.Value,
+                    TenantId = principal.FindFirst("TenantId")?.Value,
+                    EmployeeId = principal.FindFirst("EmployeeId")?.Value,
+                    RoleId = principal.FindFirst("RoleId")?.Value,
+                    Email = principal.FindFirst(ClaimTypes.Email)?.Value,
+                    Expiry = jwt.ValidTo,
+                    IsExpired = jwt.ValidTo < DateTime.UtcNow,
+                    TokenPurpose = principal.FindFirst("TokenPurpose")?.Value
+                };
+            }
+            catch
+            {
+                return null;
+            }
+        }
 
         public async Task<GetTokenInfoDTO?> GetUserInfoByLoginIdAsync(string loginId)
         {
@@ -235,7 +273,7 @@ namespace axionpro.infrastructure.Token
 
                 // ✅ Step 4: Get user roles
                 var roles = await _unitOfWork.UserRoleRepository.GetEmployeeRolesWithDetailsByIdAsync(empId, userMin.TenantId);
-                var roleInfo = roles?.FirstOrDefault(r => r.IsPrimaryRole==true);
+                var roleInfo = roles?.FirstOrDefault(r => r.IsPrimaryRole == true);
                 if (roleInfo == null)
                 {
                     _logger.LogWarning($"Primary role not found for EmployeeId: {empId}");
@@ -267,4 +305,22 @@ namespace axionpro.infrastructure.Token
         }
     }
 }
+   
+
+   
+//claims.Add(new Claim("UserId", user.UserId ?? ""));
+//claims.Add(new Claim("EmployeeId", user.EmployeeId ?? ""));
+//claims.Add(new Claim("RoleId", user.RoleId ?? ""));
+//claims.Add(new Claim("RoleTypeId", user.RoleTypeId ?? ""));
+//claims.Add(new Claim("EmployeeTypeId", user.EmployeeTypeId ?? ""));
+//claims.Add(new Claim("TenantId", user.TenantId ?? ""));
+//claims.Add(new Claim(ClaimTypes.Email, user.Email ?? ""));
+//claims.Add(new Claim("FullName", user.FullName ?? ""));
+//claims.Add(new Claim("TokenPurpose", user.TokenPurpose ?? "AUTH"));
+
+//claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
+//claims.Add(new Claim(JwtRegisteredClaimNames.Iat,
+//    DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(),
+//    ClaimValueTypes.Integer64));
+
 

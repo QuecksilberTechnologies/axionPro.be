@@ -1,4 +1,5 @@
 ﻿using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICacheService;
 using axionpro.application.Interfaces.IContext;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces.ITokenService;
@@ -99,7 +100,7 @@ namespace axionpro.persistance
             services.AddScoped<IEmployeeLeaveRepository, EmployeeLeaveRepository>();
             services.AddScoped<TenantEncryptionKeyRepository, TenantEncryptionKeyRepository>();
             services.AddScoped<IEmployeeCompletionRepository, EmployeeCompletionRepository>();
-
+           
 
 
 

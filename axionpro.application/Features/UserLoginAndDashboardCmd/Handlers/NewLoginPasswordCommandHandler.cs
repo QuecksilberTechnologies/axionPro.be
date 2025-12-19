@@ -97,10 +97,12 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 
             if (claims == null)
                 return ApiResponse<UpdatePasswordResponseDTO>
-                    .Fail("Invalid or expired token.");      
+                    .Fail("Invalid or expired token.");
+
+      
 
             int tokenPurpose = _idEncoderService.DecodeId_int(EncryptionSanitizer.CleanEncodedInput(claims.TokenPurpose), claims.TenantEncriptionKey);
-          
+            
 
             if (tokenPurpose != ConstantValues.SetPassword)
                 return ApiResponse<UpdatePasswordResponseDTO>
