@@ -410,7 +410,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 // ✅ Step 5: Prepare token info DTO
                 GetTokenInfoDTO getTokenInfoDTO = new GetTokenInfoDTO()
                 {
-                    TenantEncriptionKey = finalKey,
+                     TenantEncriptionKey = finalKey,
                     TenantId = encriptedTenantId,
                     UserId = request.DTO.LoginId,
                     EmployeeId = encriptedEmployeeId.Trim().ToString(), // long
@@ -423,7 +423,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                     Email = request.DTO.LoginId ,
                     FullName = empMinimalResponse.FirstName + ("-" + empMinimalResponse.LastName) ?? " Unknown",
                     Expiry = DateTime.UtcNow.AddMinutes(15),
-                    TokenPurpose = "Login",
+                    TokenPurpose = ConstantValues.Auth.ToString(),
                     
                    
                 };

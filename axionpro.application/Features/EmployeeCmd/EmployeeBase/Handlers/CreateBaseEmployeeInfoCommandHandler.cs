@@ -206,9 +206,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                   IsFirstLogin = true,
                   TenantEncriptionKey = validation.Claims.TenantEncriptionKey,
                   ClientType = "Web",
-                  TenantId = validation.TenantId.ToString(),
-
-
+                  
               }; 
 
 

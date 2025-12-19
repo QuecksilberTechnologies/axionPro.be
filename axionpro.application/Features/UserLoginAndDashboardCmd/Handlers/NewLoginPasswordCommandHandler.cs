@@ -123,6 +123,11 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 return ApiResponse<UpdatePasswordResponseDTO>
                     .Fail("Login account not found.");
             // Inside Handle() method 
+            if (loginCredential.IsPasswordChangeRequired == false || loginCredential.HasFirstLogin==false)
+            {
+                return ApiResponse<UpdatePasswordResponseDTO>
+                    .Fail("Token expired");
+            }
             string? hashedPassword = _passwordService.HashPassword(request.DTO.NewPassword);
             if (string.IsNullOrEmpty(hashedPassword))
             {
