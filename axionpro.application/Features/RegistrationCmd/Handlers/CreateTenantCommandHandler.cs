@@ -301,6 +301,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                     IsEditAllowed = ConstantValues.IsByDefaultTrue,
                     IsInfoVerified = ConstantValues.IsByDefaultFalse,
                     GenderId = request.TenantCreateRequestDTO.GenderId,
+                    EmployeeTypeId = ConstantValues.ParmanentEmployeeType,
                     AddedById = newTenantId,
                     AddedDateTime = DateTime.Now,
                     UpdatedById = null,
@@ -429,6 +430,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 {
                     TenantId = newTenantId
                 };
+
                 long newTenantProfileId = await _unitOfWork.TenantRepository.AddTenantProfileAsync(tenantProfile);
 
                 if (!long.TryParse(createdEmployee.Id, out long employeeId) || employeeId <= 0)
@@ -443,13 +445,13 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                     };
                 }
 
-
                 //  long newLoginId = await _unitOfWork.UserLoginRepository.CreateUser(loginCredential);
 
 
                 var UserRoleAndPermissionId =
                     await _unitOfWork.RoleRepository.AutoCreateUserRoleAndAutomatedRolePermissionMappingAsync(
                         newTenantId, employeeId, createdAdminRole);
+                string EncriptedEmployeeId = _idEncoderService.EncodeId_long(employeeId, null);
 
                 if (UserRoleAndPermissionId <= 0)
                 {
@@ -465,56 +467,43 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 string EmplType = ConstantValues.ParmanentEmployeeType.ToString();
                 GetTokenInfoDTO getTokenInfoDTO = new GetTokenInfoDTO()
                 {
-                    // ✅ Email is string already
-                    UserId = tenantEntity.TenantEmail,       // ✅ Email is string already
-                    EmployeeId = EncriptedTenantId,                 // ✅ Keep as long
-                    RoleId = createdAdminRole.ToString(),               // ✅ Keep as long
-                    RoleTypeId = ConstantValues.RoleTypeAdmin.ToString(),                            // ✅ string
-                    EmployeeTypeId = ConstantValues.ParmanentEmployeeType.ToString(),                 // ✅ string
-                    TenantId = EncriptedTenantId,                  // ✅ Keep as long
-                    Email = tenantEntity.TenantEmail,
-                    FullName = $"{request.TenantCreateRequestDTO.ContactPersonName}", // ✅ Construct properly
-                    Expiry = DateTime.UtcNow.AddMinutes(30), // ✅ Token expiry after 30 minutes                  
+                    TokenPurpose = _idEncoderService.EncodeId_int(ConstantValues.SetPassword, ""),
+                    Expiry = DateTime.UtcNow.AddMinutes(30),
                     IsFirstLogin = true,
-                    IssuedAt = DateTime.UtcNow,
-                    TokenPurpose = ConstantValues.SetPassword.ToString()
+                    ClientType = "Web",
+                    EmployeeId = EncriptedEmployeeId,
+                    Email = tenantEntity.TenantEmail,// ✅ Keep as long
+                    FullName = $"{request.TenantCreateRequestDTO.ContactPersonName}", // ✅ Construct properly       // ✅ Keep as long
+                    TenantId = EncriptedTenantId, 
+                    IssuedAt = DateTime.UtcNow       
+                    
+                         
+                   };
 
-
-                };
 
                 string token = await _tokenService.GenerateToken(getTokenInfoDTO);
-                // 9️⃣ EMAIL (🔥 OUTSIDE TRANSACTION, FAILURE ≠ API FAILURE)
-                _ = Task.Run(async () =>
+
+                await _unitOfWork.CommitTransactionAsync(); // DB ka kaam complete
+
+                try
                 {
-                    try
-                    {
-                        string baseUrl = _configuration["FrontEndWebURL:BaseUrl"] ?? string.Empty;
-                        var emailService = _scopeFactory.CreateScope().ServiceProvider
-                        .GetRequiredService<IEmailService>();
+                    string baseUrl = _configuration["FrontEndWebURL:BaseUrl"] ?? string.Empty;
 
-                       
-                            await emailService.SendTemplatedEmailAsync(
-                            ConstantValues.WelcomeEmail,
-                            request.TenantCreateRequestDTO.TenantEmail!,
-                            newTenantId,
-                            new Dictionary<string, string>
-                            {
-                                ["UserName"] = request.TenantCreateRequestDTO.ContactPersonName,
-                                ["VerificationUrl"] = $"{baseUrl}/auth/set-password?token={token}",
-                                ["LinkExpiryMinutes"] = "30"
-                            });
-                        // Step 12️⃣: Commit Transaction
-
-                        //
-
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Email send failed (non-blocking)");
-                    }
-                });
-
-                await _unitOfWork.CommitTransactionAsync();
+                    await _emailService.SendTemplatedEmailAsync(
+                        ConstantValues.WelcomeEmail,
+                        request.TenantCreateRequestDTO.TenantEmail!,
+                        newTenantId,
+                        new Dictionary<string, string>
+                        {
+                            ["UserName"] = request.TenantCreateRequestDTO.ContactPersonName,
+                            ["VerificationUrl"] = $"{baseUrl}/auth/set-password?token={token}",
+                            ["LinkExpiryMinutes"] = "30"
+                        });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Email send failed (non-blocking)");
+                }
 
                 // Step 13️⃣: Return Response (Decrypted Email for display)
                 return new ApiResponse<TenantCreateResponseDTO>

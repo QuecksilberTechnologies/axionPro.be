@@ -24,6 +24,7 @@ using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using SkiaSharp;
@@ -57,14 +58,16 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         private readonly ITokenService _tokenService;
         private readonly IEmailService _emailService;
         private readonly IConfiguration  _configuration;
-       
+        private readonly IServiceScopeFactory _scopeFactory;
+
         public CreateBaseEmployeeInfoCommandHandler(
             IUnitOfWork unitOfWork,
             IMapper mapper,
             ILogger<CreateBaseEmployeeInfoCommandHandler> logger,
             ICommonRequestService commonRequestService,
             IPermissionService permissionService,
-            IIdEncoderService idEncoderService, ITokenService tokenService, IEmailService emailService, IConfiguration configuration)
+            IIdEncoderService idEncoderService, ITokenService tokenService, IEmailService emailService, IConfiguration configuration, 
+            IServiceScopeFactory scopeFactory)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -75,6 +78,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             _tokenService = tokenService;
             _emailService = emailService;
             _configuration = configuration;
+            _scopeFactory = scopeFactory;
         }
 
         public async Task<ApiResponse<GetBaseEmployeeResponseDTO>> Handle(
@@ -193,21 +197,23 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     EmployeeId = responseDto.Id,
                     Email = savedEmployee.OfficialEmail!,
                     FullName = $"{savedEmployee.FirstName} {savedEmployee.LastName}",
-                    TokenPurpose = _idEncoderService.EncodeId_int(
-                        ConstantValues.SetPassword,
-                        validation.Claims.TenantEncriptionKey),
+                    TokenPurpose = _idEncoderService.EncodeId_int( ConstantValues.SetPassword,""),                       
                     IssuedAt = DateTime.UtcNow,
                     Expiry = DateTime.UtcNow.AddMinutes(30),
                     IsFirstLogin = true,                   
-                    ClientType = "Web",
+                    ClientType = "Web"
+                   
                 };
            string token=   await  _tokenService.GenerateToken(getTokenInfoDTO);
                 // 9️⃣ EMAIL (🔥 OUTSIDE TRANSACTION, FAILURE ≠ API FAILURE)
-                _ = Task.Run(async () =>
+             
+                await _unitOfWork.CommitTransactionAsync(); // DB ka kaam complete
+
+                try
                 {
-                    try
-                    {
                         string baseUrl = _configuration["FrontEndWebURL:BaseUrl"] ?? string.Empty;
+                        var emailService = _scopeFactory.CreateScope().ServiceProvider
+                       .GetRequiredService<IEmailService>();
 
                         await _emailService.SendTemplatedEmailAsync(
                             ConstantValues.WelcomeEmail,
@@ -224,7 +230,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     {
                         _logger.LogError(ex, "Email send failed (non-blocking)");
                     }
-                });
+                
 
                 return ApiResponse<GetBaseEmployeeResponseDTO>
                     .Success(responseDto, "Employee created successfully further process please check mail and click the link!");
