@@ -409,7 +409,7 @@ public class UnitOfWork : IUnitOfWork
     {
         get
         {
-            return _tenantRepository ??= new TenantRepository(_context, _loggerFactory.CreateLogger<TenantRepository>());
+            return _tenantRepository ??= new TenantRepository(_context, _loggerFactory.CreateLogger<TenantRepository>(), _contextFactory);
         }
     }
 

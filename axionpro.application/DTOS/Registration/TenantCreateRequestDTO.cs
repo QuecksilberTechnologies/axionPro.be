@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.DTOs.Registration
 {
-    public class TenantRequestDTO
+    public class TenantCreateRequestDTO
     {
        
         public int SubscriptionPlanId { get; set; } 

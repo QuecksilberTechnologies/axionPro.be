@@ -2,9 +2,11 @@
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Interfaces.IEmail;
 using axionpro.application.Interfaces.IRepositories;
+using axionpro.persistance.Data.Context;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MimeKit;
@@ -17,15 +19,16 @@ namespace axionpro.infrastructure.MailService
         private readonly ITenantEmailConfigRepository _configRepo;
         private readonly IEmailTemplateRepository _templateRepo;
         private readonly ILogger<EmailService> _logger;
-
+        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
         public EmailService(
             ITenantEmailConfigRepository configRepo,
             IEmailTemplateRepository templateRepo,
-            ILogger<EmailService> logger)
+            ILogger<EmailService> logger, IDbContextFactory<WorkforceDbContext> contextFactory)
         {
             _configRepo = configRepo;
             _templateRepo = templateRepo;
             _logger = logger;
+            _contextFactory = contextFactory;
         }
 
         public Task<bool> SendEmailAsync(string toEmail, string subject, string body, string token, long? TenantId)
@@ -55,7 +58,7 @@ namespace axionpro.infrastructure.MailService
                 }
 
                 // 2️⃣ SMTP + Tenant
-                var config = await _configRepo.GetActiveEmailConfigAsync(tenantId);
+                var config = await _configRepo.GetActiveEmailConfigAsync(317);
                 if (config == null || config.Tenant == null)
                 {
                     _logger.LogWarning("SMTP config missing | TenantId={TenantId}", tenantId);
@@ -107,7 +110,7 @@ namespace axionpro.infrastructure.MailService
                 // 6️⃣ SMTP SEND (FULLY BLOCKING FLOW)
                 using var smtp = new SmtpClient();
 
-                smtp.Timeout = 20000; // 20 sec HARD WAIT
+              
 
                 await smtp.ConnectAsync(
                     config.SmtpHost,

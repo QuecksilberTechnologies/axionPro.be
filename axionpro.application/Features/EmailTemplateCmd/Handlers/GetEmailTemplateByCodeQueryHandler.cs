@@ -2,6 +2,7 @@
 using axionpro.application.DTOs.EmailTemplate;
 using axionpro.application.Features.EmailTemplateCmd.Queries;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.IContext;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
@@ -18,7 +19,7 @@ namespace axionpro.application.Features.EmailTemplateCmd.Handlers
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetEmailTemplateByCodeQueryHandler> _logger;
-
+        
         public GetEmailTemplateByCodeQueryHandler(
             IMapper mapper,
             IUnitOfWork unitOfWork,

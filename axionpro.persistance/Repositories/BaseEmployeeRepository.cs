@@ -75,6 +75,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
+
                 // 🔹 Basic Validation
                 if (entity == null)
                     throw new ArgumentNullException(nameof(entity), "Employee entity cannot be null.");

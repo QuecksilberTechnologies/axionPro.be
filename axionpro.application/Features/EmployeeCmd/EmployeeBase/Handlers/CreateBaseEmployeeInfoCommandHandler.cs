@@ -12,6 +12,7 @@ using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.DTOS.Token;
+using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEmail;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -77,175 +78,161 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         }
 
         public async Task<ApiResponse<GetBaseEmployeeResponseDTO>> Handle(
-        CreateBaseEmployeeInfoCommand request,
-        CancellationToken cancellationToken)
+     CreateBaseEmployeeInfoCommand request,
+     CancellationToken cancellationToken)
         {
             await _unitOfWork.BeginTransactionAsync();
 
             try
             {
-               
                 // 1️⃣ Common validation
                 var validation = await _commonRequestService
                     .ValidateRequestAsync(request.DTO.UserEmployeeId);
 
-              if (!validation.Success)
+                if (!validation.Success)
                     return ApiResponse<GetBaseEmployeeResponseDTO>
                         .Fail(validation.ErrorMessage);
 
-                
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
-                // 2️⃣ Permission check
-                 var permissions = await _permissionService
-                  .GetPermissionsAsync(validation.RoleId);
+                // 2️⃣ Permission check (optional)
+                var permissions = await _permissionService
+                    .GetPermissionsAsync(validation.RoleId);
 
-                if (!permissions.Contains("AddEmployee"))
-                {
-                  //  return ApiResponse<GetBaseEmployeeResponseDTO>
-                   // .Fail("You do not have permission to add employee.");
-                }
-              // 3️⃣ Check existing login
-              var existingUser =
-                  await _unitOfWork.UserLoginRepository
-                      .GetEmployeeIdByUserLogin(request.DTO.OfficialEmail);
+                // 3️⃣ Check existing login
+                var existingUser = await _unitOfWork.UserLoginRepository
+                    .GetEmployeeIdByUserLogin(request.DTO.OfficialEmail);
 
-              if (existingUser != null)
-                  return ApiResponse<GetBaseEmployeeResponseDTO>
-                      .Fail("User already exists.");
-
-              // 4️⃣ Map Employee
-              var employee = _mapper.Map<Employee>(request.DTO);
-              employee.TenantId = validation.TenantId;
-              employee.AddedById = validation.UserEmployeeId;
-              employee.AddedDateTime = DateTime.UtcNow;
-              employee.DateOfOnBoarding = DateTime.UtcNow;
-              employee.IsActive = true;
-              employee.IsInfoVerified = false;
-              employee.IsEditAllowed = true;
-              employee.IsSoftDeleted = false;
-              employee.Remark = "Initial info created during employee creation";
-
-              // ✅ Safer & readable EmploymentCode
-              employee.EmployementCode =
-                  $"EMP-{employee.TenantId}-{DateTime.UtcNow:yyMMdd}-{Guid.NewGuid().ToString("N")[..4].ToUpper()}";
-
-              // 5️⃣ LoginCredential
-              var loginCredential = new LoginCredential
-              {
-                  TenantId = employee.TenantId,
-                  LoginId = request.DTO.OfficialEmail,
-                  Password = null,
-                  HasFirstLogin = true,
-                  IsPasswordChangeRequired = true,
-                  IsActive = true,
-                  IsSoftDeleted = false,
-                  AddedById = employee.AddedById,
-                  AddedDateTime = DateTime.UtcNow,
-                  Employee = employee,
-                  Remark = "Initial login credential created during employee creation"
-              };
-
-              // 6️⃣ Default Role
-              if (request.DTO.RoleId <= 0)
-              {
-                  var roles = await _unitOfWork.RoleRepository
-                      .GetRoleAsync(validation.TenantId,
-                                    ConstantValues.RoleTypeEmployee,
-                                    true);
-
-                  var defaultRole = roles.FirstOrDefault();
-                  if (defaultRole == null)
-                      return ApiResponse<GetBaseEmployeeResponseDTO>
-                          .Fail("Default employee role not configured.");
-
-                  request.DTO.RoleId = defaultRole.Id;
-              }
-
-              var userRole = new UserRole
-              {
-                  Employee = employee,
-                  RoleId = request.DTO.RoleId,
-                  RoleStartDate = DateTime.UtcNow,
-                  AddedById = validation.UserEmployeeId,
-                  AddedDateTime = DateTime.UtcNow,
-                  IsActive = true,
-                  IsSoftDeleted = false,
-                  IsPrimaryRole = true,
-                  AssignedById = validation.UserEmployeeId,
-                  AssignedDateTime = DateTime.UtcNow,
-                  ApprovalRequired = false,
-                  ApprovalStatus = "Approved",
-                  Remark = "Initial role assignment during employee creation"
-              };
-
-              // 7️⃣ Save
-              var savedEmployee =
-                  await _unitOfWork.Employees
-                      .CreateEmployeeAsync(employee, loginCredential, userRole);
-
-              await _unitOfWork.CommitTransactionAsync();
-
-              // 8️⃣ Encode response
-              var responseDto =
-                  ProjectionHelper.ToGetBaseInfoResponseDTO(
-                      savedEmployee,
-                      _idEncoderService,
-                      validation.Claims.TenantEncriptionKey);
-
-              // 9️⃣ Generate Set-Password Token
-              var getTokenInfoDTO = new GetTokenInfoDTO
-              {                   
-                  EmployeeId = responseDto.Id,
-                  Email = savedEmployee.OfficialEmail!,
-                  FullName = $"{savedEmployee.FirstName} {savedEmployee.LastName}",                   
-                  TokenPurpose = _idEncoderService.EncodeId_int(ConstantValues.SetPassword, validation.Claims.TenantEncriptionKey),
-                  IssuedAt = DateTime.UtcNow,
-                  Expiry = DateTime.UtcNow.AddMinutes(30),
-                  IsFirstLogin = true,
-                  TenantEncriptionKey = validation.Claims.TenantEncriptionKey,
-                  ClientType = "Web",
-                  
-              }; 
-
-
-                var token = await _tokenService.GenerateToken(getTokenInfoDTO);
-
-              EmailTemplate templates = await _unitOfWork.EmailTemplateRepository.GetTemplateByCodeAsync(ConstantValues.WelcomeEmail);
-   
-                // 🔔 (Optional) send email with token link here
-                
-                var safeToken = EncryptionSanitizer.SuperSanitize(token);
-                
-                string baseUrl = _configuration["FrontEndWebURL:BaseUrl"] ?? string.Empty;
-                 bool isSent=  await _emailService.SendTemplatedEmailAsync( ConstantValues.WelcomeEmail, request.DTO.OfficialEmail!,validation.TenantId, 
-                    new Dictionary<string, string>                                    
-                                      {
-                                          ["UserName"] = getTokenInfoDTO.FullName,                                        
-                                          ["LinkExpiryMinutes"] = "30",
-                                          ["VerificationUrl"] = $"{baseUrl}/auth/set-password?token={token}"
-                                      });
-
-                // 🔟 Responseauth/set-password
-                if (!isSent)
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    _logger.LogError( "Error while creating employee");
-
+                if (existingUser != null)
                     return ApiResponse<GetBaseEmployeeResponseDTO>
-                        .Fail("Failed to create employee.");
+                        .Fail("User already exists.");
+
+
+                // 3️⃣ Map Employee
+                var employee = _mapper.Map<Employee>(request.DTO);
+                employee.TenantId = validation.TenantId;
+                employee.AddedById = validation.UserEmployeeId;
+                employee.AddedDateTime = DateTime.UtcNow;
+                employee.DateOfOnBoarding = DateTime.UtcNow;
+                employee.IsActive = true;
+                employee.IsInfoVerified = false;
+                employee.IsEditAllowed = true;
+                employee.IsSoftDeleted = false;
+                employee.Remark = "Initial info created during employee creation";
+
+                employee.EmployementCode =
+                    $"EMP-{employee.TenantId}-{DateTime.UtcNow:yyMMdd}-{Guid.NewGuid().ToString("N")[..4].ToUpper()}";
+                // 5️⃣ LoginCredential
+                var loginCredential = new LoginCredential
+                {
+                    TenantId = employee.TenantId,
+                    LoginId = request.DTO.OfficialEmail,
+                    Password = null,
+                    HasFirstLogin = true,
+                    IsPasswordChangeRequired = true,
+                    IsActive = true,
+                    IsSoftDeleted = false,
+                    AddedById = employee.AddedById,
+                    AddedDateTime = DateTime.UtcNow,
+                    Employee = employee,
+                    Remark = "Initial login credential created during employee creation"
+                };
+
+                // 6️⃣ Default Role
+                if (request.DTO.RoleId <= 0)
+                {
+                    var roles = await _unitOfWork.RoleRepository
+                        .GetRoleAsync(validation.TenantId,
+                                      ConstantValues.RoleTypeEmployee,
+                                      true);
+
+                    var defaultRole = roles.FirstOrDefault();
+                    if (defaultRole == null)
+                        return ApiResponse<GetBaseEmployeeResponseDTO>
+                            .Fail("Default employee role not configured.");
+
+                    request.DTO.RoleId = defaultRole.Id;
                 }
-                    return ApiResponse<GetBaseEmployeeResponseDTO>.Success(
-                    responseDto,
-                    "Employee created successfully."
-                );
-                
+
+                var userRole = new UserRole
+                {
+                    Employee = employee,
+                    RoleId = request.DTO.RoleId,
+                    RoleStartDate = DateTime.UtcNow,
+                    AddedById = validation.UserEmployeeId,
+                    AddedDateTime = DateTime.UtcNow,
+                    IsActive = true,
+                    IsSoftDeleted = false,
+                    IsPrimaryRole = true,
+                    AssignedById = validation.UserEmployeeId,
+                    AssignedDateTime = DateTime.UtcNow,
+                    ApprovalRequired = false,
+                    ApprovalStatus = "Approved",
+                    Remark = "Initial role assignment during employee creation"
+                };
+
+                // 7️⃣ Save + COMMIT (🔥 ONLY DB)
+                var savedEmployee = await _unitOfWork.Employees
+                    .CreateEmployeeAsync(employee, loginCredential, userRole);
+
+                await _unitOfWork.CommitTransactionAsync();
+                // 7️⃣ Response DTO
+                var responseDto =
+                    ProjectionHelper.ToGetBaseInfoResponseDTO(
+                        savedEmployee,
+                        _idEncoderService,
+                        validation.Claims.TenantEncriptionKey);
+
+        
+                              
+
+                // 9️⃣ Generate Set-Password Token (AS-IT-IS)
+                var getTokenInfoDTO = new GetTokenInfoDTO
+                {
+                    EmployeeId = responseDto.Id,
+                    Email = savedEmployee.OfficialEmail!,
+                    FullName = $"{savedEmployee.FirstName} {savedEmployee.LastName}",
+                    TokenPurpose = _idEncoderService.EncodeId_int(
+                        ConstantValues.SetPassword,
+                        validation.Claims.TenantEncriptionKey),
+                    IssuedAt = DateTime.UtcNow,
+                    Expiry = DateTime.UtcNow.AddMinutes(30),
+                    IsFirstLogin = true,                   
+                    ClientType = "Web",
+                };
+           string token=   await  _tokenService.GenerateToken(getTokenInfoDTO);
+                // 9️⃣ EMAIL (🔥 OUTSIDE TRANSACTION, FAILURE ≠ API FAILURE)
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        string baseUrl = _configuration["FrontEndWebURL:BaseUrl"] ?? string.Empty;
+
+                        await _emailService.SendTemplatedEmailAsync(
+                            ConstantValues.WelcomeEmail,
+                            savedEmployee.OfficialEmail!,
+                            validation.TenantId,
+                            new Dictionary<string, string>
+                            {
+                                ["UserName"] = savedEmployee.FirstName,
+                                ["VerificationUrl"] = $"{baseUrl}/auth/set-password?token={token}",
+                                ["LinkExpiryMinutes"] = "30"
+                            });
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Email send failed (non-blocking)");
+                    }
+                });
+
+                return ApiResponse<GetBaseEmployeeResponseDTO>
+                    .Success(responseDto, "Employee created successfully further process please check mail and click the link!");
             }
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackTransactionAsync();
-                _logger.LogError(ex, "Error while creating employee");
+                _logger.LogError(ex, "Employee creation failed");
 
                 return ApiResponse<GetBaseEmployeeResponseDTO>
                     .Fail("Failed to create employee.");
@@ -257,4 +244,4 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 
 }
 
-
+ 

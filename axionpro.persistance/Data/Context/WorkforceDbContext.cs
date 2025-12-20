@@ -2367,7 +2367,7 @@ namespace axionpro.persistance.Data.Context
 
                 entity.ToTable("Tenant", "AxionPro");
 
-                entity.HasIndex(e => e.TenantCode, "UQ_Tenant_TenantCode").IsUnique();
+                entity.HasIndex(e => e.TenantCode);
 
                 entity.HasIndex(e => e.TenantEmail, "UQ__Tenant__F7C944DD7E3D53D9").IsUnique();
 

@@ -155,6 +155,7 @@ namespace axionpro.persistance.Repositories
 
             try
             {
+
                 const int pageNumber = 1;
                 const int pageSize = 10;
 
@@ -364,14 +365,16 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
+                await using var context = await _contextFactory.CreateDbContextAsync();
+
                 if (departments == null || !departments.Any())
                 {
                     _logger.LogWarning("Department seed list is null or empty. Seeding aborted.");
                     return -1;
                 }
 
-                await _context.Departments.AddRangeAsync(departments);
-                int insertedCount = await _context.SaveChangesAsync();
+                await context.Departments.AddRangeAsync(departments);
+                int insertedCount = await context.SaveChangesAsync();
 
                 if (insertedCount != departments.Count)
                 {
@@ -382,7 +385,7 @@ namespace axionpro.persistance.Repositories
                 long tenantId = departments.FirstOrDefault()?.TenantId ?? 0;
 
                 // ✅ Fetch the inserted Executive Office department's ID
-                var executiveOfficeDeptId = await _context.Departments
+                var executiveOfficeDeptId = await context.Departments
                     .Where(d => d.IsExecutiveOffice == true && !d.IsSoftDeleted == true && d.TenantId == tenantId)
                     .Select(d => d.Id)
                     .FirstOrDefaultAsync();

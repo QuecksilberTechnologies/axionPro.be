@@ -24,6 +24,8 @@ using axionpro.domain.Entity;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity.Data;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -32,10 +34,21 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using static System.Formats.Asn1.AsnWriter;
 
 
 namespace axionpro.application.Features.RegistrationCmd.Handlers
 {
+    public class CreateTenantCommand : IRequest<ApiResponse<TenantCreateResponseDTO>>
+    {
+        public TenantCreateRequestDTO TenantCreateRequestDTO { get; set; }
+
+        public CreateTenantCommand(TenantCreateRequestDTO createRequestDTO)
+        {
+            TenantCreateRequestDTO = createRequestDTO;
+        }
+
+    }
     public class CreateTenantCommandHandler : IRequestHandler<CreateTenantCommand, ApiResponse<TenantCreateResponseDTO>>
     {
         private readonly IEmailService _emailService;
@@ -48,14 +61,17 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
         private readonly IEncryptionService _encryptionService;
         private readonly ITokenService _tokenService;
         private readonly IPasswordService _passwordService;
+        private readonly IIdEncoderService _idEncoderService;
+        private readonly IConfiguration _configuration;
+        private readonly IServiceScopeFactory _scopeFactory;
 
         public CreateTenantCommandHandler(
             ITenantRepository tenantRepository, ITokenService tokenService, IRefreshTokenRepository refreshTokenRepository,
             IMapper mapper,
             IUnitOfWork unitOfWork,
             ILogger<CreateTenantCommandHandler> logger, IEmailService emailService, ICommonRepository commonRepository,
-            IPasswordService passwordService, IEncryptionService encryptionService
-            )
+            IPasswordService passwordService, IEncryptionService encryptionService, IIdEncoderService idEncoderService  
+          , IConfiguration configuration, IServiceScopeFactory scopeFactory  )
 
         {
             _encryptionService = encryptionService;
@@ -68,6 +84,9 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
             _refreshTokenRepository = refreshTokenRepository;
             _commonRepository = commonRepository;
              _passwordService = passwordService;
+            _idEncoderService = idEncoderService;
+            _configuration = configuration;
+            _scopeFactory = scopeFactory;
         }
         public async Task<ApiResponse<TenantCreateResponseDTO>> Handle(CreateTenantCommand request, CancellationToken cancellationToken)
         {
@@ -87,9 +106,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 }
 
                 // Inside Handle() method
-                string? hashedPassword = _passwordService.HashPassword( ConstantValues.DefaultPassword);
-                        hashedPassword = hashedPassword?.Trim();
-
+                string? hashedPassword = null;
                 // Step 3️⃣: Map DTO to Entity
                 var tenantEntity = _mapper.Map<Tenant>(request.TenantCreateRequestDTO);
 
@@ -204,7 +221,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                     };
                 }
 
-                   string convertedTenantId= newTenantId.ToString();
+                   //string convertedTenantId= newTenantId.ToString();
                    string EncriptedTenantKey = _encryptionService.GenerateKey();
 
                 TenantEncryptionKey tenantEncryptionKey = new TenantEncryptionKey()
@@ -271,10 +288,12 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 // Step 5️⃣: Create Employee for Tenant
                 var employee = new Employee
                 {
-                    Id = newTenantId,
+                     
                     // 🔒 Encrypt Official Email before saving
                     OfficialEmail = tenantEntity.TenantEmail,
+                    TenantId = newTenantId,
                     HasPermanent = ConstantValues.IsByDefaultTrue,
+                    FirstName = request.TenantCreateRequestDTO.ContactPersonName.Trim(),
                     IsActive = ConstantValues.IsByDefaultTrue,
                     DepartmentId = insertedAdminDepartment,
                     EmployementCode = $"{newTenantId}/{datePart}/{timePart}-{randomSuffix}",
@@ -290,40 +309,30 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                     DeletedDateTime = null,
                     IsSoftDeleted = null,
                 };
+                // Step 8️⃣: Create LoginCredential
+                var loginCredential = new LoginCredential
+                {
+                    TenantId = newTenantId,
 
-                var createdEmployee = await _unitOfWork.Employees.CreateAsync(employee);
-                long employeeId = 22;// createdEmployee?.Items?.FirstOrDefault()?.Id ?? 0;
-                if (employeeId == 0)
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return new ApiResponse<TenantCreateResponseDTO>
-                    {
-                        IsSucceeded = false,
-                        Message = "Employee creation failed.",
-                        Data = null
-                    };
-                }
-                string EncriptedTenantId = _encryptionService.Encrypt(convertedTenantId, EncriptedTenantKey);
-                string EncriptedEmployeeId = _encryptionService.Encrypt(employeeId.ToString(), EncriptedTenantKey);
-                if (string.IsNullOrEmpty(EncriptedTenantId))
-                {
-                    _logger.LogWarning("Tenant ID encryption failed for TenantId: {TenantId}", newTenantId);
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return new ApiResponse<TenantCreateResponseDTO>
-                    {
-                        IsSucceeded = false,
-                        Message = "An error occurred while encrypting tenant ID.",
-                        Data = null
-                    };
-                }
+                    // 🔒 Encrypt LoginId (Email) before saving
+                    LoginId = tenantEntity.TenantEmail,
 
-                // Step 6️⃣: Create TenantProfile
-                var tenantProfile = new TenantProfile
-                {
-                    TenantId = newTenantId
+                    Employee = employee,
+                    IsActive = ConstantValues.IsByDefaultTrue,
+
+                    // 🔒 Encrypt Default Password before saving (for secure storage)
+                    Password = hashedPassword,
+                    HasFirstLogin = ConstantValues.IsByDefaultTrue,
+                    IsSoftDeleted = ConstantValues.IsByDefaultFalse,
+                    IsPasswordChangeRequired = ConstantValues.IsByDefaultTrue,
+                    Remark = ConstantValues.TenantAllRoleRemark,
+                    AddedById = newTenantId,
+                    AddedDateTime = DateTime.Now,
+                    UpdatedById = null,
+                    UpdatedDateTime = null,
+                    SoftDeletedById = null,
+                    DeletedDateTime = null
                 };
-                long newTenantProfileId = await _unitOfWork.TenantRepository.AddTenantProfileAsync(tenantProfile);
-
                 // Step 7️⃣: Create Admin, HR, and Employee Roles
                 var rolesToCreate = new List<Role>();
                 var roleConfigs = new List<(string RoleName, int RoleType)>
@@ -369,61 +378,74 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                     };
                 }
 
-                // Step 8️⃣: Create LoginCredential
-                var loginCredential = new LoginCredential
-                {
-                    TenantId = newTenantId,
-
-                    // 🔒 Encrypt LoginId (Email) before saving
-                    LoginId = tenantEntity.TenantEmail,
-
-                    EmployeeId = employeeId,
-                    IsActive = ConstantValues.IsByDefaultTrue,
-
-                    // 🔒 Encrypt Default Password before saving (for secure storage)
-                    Password = hashedPassword,
-                    HasFirstLogin = ConstantValues.IsByDefaultTrue,
-                    IsSoftDeleted = ConstantValues.IsByDefaultFalse,
-                    IsPasswordChangeRequired = ConstantValues.IsByDefaultTrue,
-                    Remark = ConstantValues.TenantAllRoleRemark,
-                    AddedById = newTenantId,
-                    AddedDateTime = DateTime.Now,
-                    UpdatedById = null,
-                    UpdatedDateTime = null,
-                    SoftDeletedById = null,
-                    DeletedDateTime = null
-                };
-
-                long newLoginId = await _unitOfWork.UserLoginRepository.CreateUser(loginCredential);
 
                 // Step 9️⃣: Assign Role to Employee
                 UserRole userRole = new UserRole
                 {
-                    EmployeeId = employeeId,
+                   Employee = employee,
                     RoleId = createdAdminRole,
                     IsPrimaryRole = ConstantValues.IsByDefaultTrue,
                     IsActive = ConstantValues.IsByDefaultTrue,
-                    AddedById = employeeId,
+                    AddedById = 0,
                     AddedDateTime = DateTime.Now,
                     AssignedDateTime = DateTime.Now,
                     Remark = ConstantValues.TenantAllRoleRemark,
-                    AssignedById = employeeId,
+                    AssignedById = 0,
                     RoleStartDate = DateTime.Now,
                     ApprovalRequired = ConstantValues.IsByDefaultFalse
                 };
 
-                int roleId = (int)await _unitOfWork.UserRoleRepository.AddUserRoleAsync(userRole);
+                //int roleId = (int)await _unitOfWork.UserRoleRepository.AddUserRoleAsync(userRole);
 
-                if (roleId <= 0)
+                //if (roleId <= 0)
+                //{
+                //    await _unitOfWork.RollbackTransactionAsync();
+                //    return new ApiResponse<TenantCreateResponseDTO>
+                //    {
+                //        IsSucceeded = false,
+                //        Message = "User role assignment failed.",
+                //        Data = null
+                //    };
+                //}
+                var createdEmployee = await _unitOfWork.Employees.CreateEmployeeAsync(employee, loginCredential, userRole);
+              
+                string EncriptedTenantId = _idEncoderService.EncodeId_long(newTenantId, null);
+                //string EncriptedTenantId = _encryptionService.Encrypt(convertedTenantId, EncriptedTenantKey);
+                //string EncriptedEmployeeId = _encryptionService.Encrypt(employeeId.ToString(), EncriptedTenantKey);
+                //if (string.IsNullOrEmpty(EncriptedTenantId))
+                //{
+                //    _logger.LogWarning("Tenant ID encryption failed for TenantId: {TenantId}", newTenantId);
+                //    await _unitOfWork.RollbackTransactionAsync();
+                //    return new ApiResponse<TenantCreateResponseDTO>
+                //    {
+                //        IsSucceeded = false,
+                //        Message = "An error occurred while encrypting tenant ID.",
+                //        Data = null
+                //    };
+                //}
+
+                // Step 6️⃣: Create TenantProfile
+                var tenantProfile = new TenantProfile
                 {
+                    TenantId = newTenantId
+                };
+                long newTenantProfileId = await _unitOfWork.TenantRepository.AddTenantProfileAsync(tenantProfile);
+
+                if (!long.TryParse(createdEmployee.Id, out long employeeId) || employeeId <= 0)
+                {
+                    _logger.LogError("Error occurred while creating employee.");
                     await _unitOfWork.RollbackTransactionAsync();
                     return new ApiResponse<TenantCreateResponseDTO>
                     {
                         IsSucceeded = false,
-                        Message = "User role assignment failed.",
+                        Message = "An error occurred while creating the employee.",
                         Data = null
                     };
                 }
+
+
+                //  long newLoginId = await _unitOfWork.UserLoginRepository.CreateUser(loginCredential);
+
 
                 var UserRoleAndPermissionId =
                     await _unitOfWork.RoleRepository.AutoCreateUserRoleAndAutomatedRolePermissionMappingAsync(
@@ -443,69 +465,55 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 string EmplType = ConstantValues.ParmanentEmployeeType.ToString();
                 GetTokenInfoDTO getTokenInfoDTO = new GetTokenInfoDTO()
                 {
-                    TenantEncriptionKey = EncriptedTenantKey,       // ✅ Email is string already
+                    // ✅ Email is string already
                     UserId = tenantEntity.TenantEmail,       // ✅ Email is string already
-                    EmployeeId = EncriptedEmployeeId,                 // ✅ Keep as long
+                    EmployeeId = EncriptedTenantId,                 // ✅ Keep as long
                     RoleId = createdAdminRole.ToString(),               // ✅ Keep as long
                     RoleTypeId = ConstantValues.RoleTypeAdmin.ToString(),                            // ✅ string
                     EmployeeTypeId = ConstantValues.ParmanentEmployeeType.ToString(),                 // ✅ string
                     TenantId = EncriptedTenantId,                  // ✅ Keep as long
                     Email = tenantEntity.TenantEmail,
                     FullName = $"{request.TenantCreateRequestDTO.ContactPersonName}", // ✅ Construct properly
-                    Expiry = DateTime.UtcNow.AddMinutes(15)  // ✅ Token expiry after 15 minutes
+                    Expiry = DateTime.UtcNow.AddMinutes(30), // ✅ Token expiry after 30 minutes                  
+                    IsFirstLogin = true,
+                    IssuedAt = DateTime.UtcNow,
+                    TokenPurpose = ConstantValues.SetPassword.ToString()
+
+
                 };
- 
 
-                // 🔐 Step 3: Generate tokens
-                var token = await _tokenService.GenerateToken(getTokenInfoDTO);
-              
-           // Assume request.TenantCreateRequestDTO ke andar ye fields available hain
-                var firstName = request.TenantCreateRequestDTO.ContactPersonName;
-                var email = request.TenantCreateRequestDTO.TenantEmail;
-                var loginId = request.TenantCreateRequestDTO.TenantEmail; // assuming loginId = email
+                string token = await _tokenService.GenerateToken(getTokenInfoDTO);
+                // 9️⃣ EMAIL (🔥 OUTSIDE TRANSACTION, FAILURE ≠ API FAILURE)
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        string baseUrl = _configuration["FrontEndWebURL:BaseUrl"] ?? string.Empty;
+                        var emailService = _scopeFactory.CreateScope().ServiceProvider
+                        .GetRequiredService<IEmailService>();
 
+                       
+                            await emailService.SendTemplatedEmailAsync(
+                            ConstantValues.WelcomeEmail,
+                            request.TenantCreateRequestDTO.TenantEmail!,
+                            newTenantId,
+                            new Dictionary<string, string>
+                            {
+                                ["UserName"] = request.TenantCreateRequestDTO.ContactPersonName,
+                                ["VerificationUrl"] = $"{baseUrl}/auth/set-password?token={token}",
+                                ["LinkExpiryMinutes"] = "30"
+                            });
+                        // Step 12️⃣: Commit Transaction
 
-                var placeholderData = new Dictionary<string, string>
-                                           {
-                                             { "UserName", $"{firstName}" },
-                                              { "LoginId", loginId }
-                                            };
+                        //
 
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Email send failed (non-blocking)");
+                    }
+                });
 
-
-
-                // Step 11️⃣: Send Verification Email
-                string emailBodyTemplate = @"
-<html>
-  <body style='font-family: Arial, sans-serif; padding: 20px;'>
-    <h2 style='color: #2E86C1;'>Dear {{UserName}},</h2>
-    <p style='font-size: 16px;'>
-      This is a <strong>verification link</strong> sent by <em>@Tenant Name</em>.
-      The link will expire in <strong>15 minutes</strong>.
-    </p>
-    <p>
-      <a href='http://localhost:4200/registration-verify?token={{token}}'
-         style='display:inline-block; background-color:#2E86C1; color:white;
-         padding:10px 15px; text-decoration:none; border-radius:5px;'>
-         Click here to verify
-      </a>
-    </p>
-    <p style='font-size: 14px; color: gray;'>
-      Regards,<br/>
-      <b>Axion-Pro Team</b>
-    </p>
-  </body>
-</html>";
-
-                bool isSent = await _emailService.SendEmailAsync(
-                    toEmail: tenantEntity.TenantEmail,
-                    subject: "Verification Email",
-                    body: emailBodyTemplate,
-                    token: token,
-                    TenantId: newTenantId
-                );
-
-                // Step 12️⃣: Commit Transaction
                 await _unitOfWork.CommitTransactionAsync();
 
                 // Step 13️⃣: Return Response (Decrypted Email for display)
@@ -515,18 +523,9 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                     Message = "Employee registration successful.",
                     Data = new TenantCreateResponseDTO
                     {
-                        Success = true,
-                        EmployeeId = employeeId,
-                        TenantId = newTenantId,
-                        TenantProfileId = newTenantProfileId,
-
-                        // 🔓 Send Decrypted Email in response (readable to UI)
-                        LoginId = tenantEntity.TenantEmail,
-                        EmailSent = isSent,
-
-                        // Do not decrypt password — security reason, only send default value label
-                        Password = ConstantValues.DefaultPassword,
-                        RoleId = roleId
+                        Success = true,                   
+                        EmailSent = true,
+ 
                     }
                 };
 

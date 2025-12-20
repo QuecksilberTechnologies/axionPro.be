@@ -16,10 +16,13 @@ namespace axionpro.persistance.Repositories
     {
         private readonly WorkforceDbContext? _context;
         private readonly ILogger? _logger;
-        public TenantRepository(WorkforceDbContext? context, ILogger<TenantRepository>? logger)
+        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+
+        public TenantRepository(WorkforceDbContext? context, ILogger<TenantRepository>? logger, IDbContextFactory<WorkforceDbContext> contextFactory)
         {
             _context = context;
             _logger = logger;
+            _contextFactory = contextFactory;
         }
 
         public async Task<List<Tenant>> GetAllTenantBySubscriptionIdAsync(Tenant tenant)
@@ -32,9 +35,10 @@ namespace axionpro.persistance.Repositories
                     _logger.LogWarning("Tenant filter is null while fetching tenants.");
                     return new List<Tenant>();
                 }
+                await using var context = await _contextFactory.CreateDbContextAsync();
 
                 // ✅ Build base query
-                IQueryable<Tenant> query = _context.Tenants.Where(x => x.IsActive == true);
+                IQueryable<Tenant> query = context.Tenants.Where(x => x.IsActive == true);
 
                 // ✅ Apply dynamic filters based on non-null or non-empty values
                 if (!string.IsNullOrWhiteSpace(tenant.CompanyName))
@@ -80,17 +84,19 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
+                await using var context = await _contextFactory.CreateDbContextAsync();
+
                 tenant.AddedById = tenant.Id;
                 tenant.IsActive = true;
                 tenant.AddedDateTime = DateTime.Now;
-                if (_context == null)
+                if (context == null)
                 {
                     _logger?.LogError("DbContext is null in AddAsync.");
-                    throw new ArgumentNullException(nameof(_context), "DbContext is not initialized.");
+                    throw new ArgumentNullException(nameof(context), "DbContext is not initialized.");
                 }
 
-                await _context.Tenants.AddAsync(tenant); // `Tenants` is DbSet<Tenant>
-                await _context.SaveChangesAsync(); // Save changes to DB
+                await context.Tenants.AddAsync(tenant); // `Tenants` is DbSet<Tenant>
+                await context.SaveChangesAsync(); // Save changes to DB
 
                 _logger?.LogInformation("Tenant created successfully with ID: {TenantId}", tenant.Id);
 
@@ -107,15 +113,17 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
+                await using var context = await _contextFactory.CreateDbContextAsync();
+
                 tenantProfile.Id = 0;
-                if (_context == null)
+                if (context == null)
                 {
                     _logger?.LogError("DbContext is null in AddAsync.");
-                    throw new ArgumentNullException(nameof(_context), "DbContext is not initialized.");
+                    throw new ArgumentNullException(nameof(context), "DbContext is not initialized.");
                 }
 
-                await _context.TenantProfiles.AddAsync(tenantProfile); // `Tenants` is DbSet<Tenant>
-                await _context.SaveChangesAsync(); // Save changes to DB
+                await context.TenantProfiles.AddAsync(tenantProfile); // `Tenants` is DbSet<Tenant>
+                await context.SaveChangesAsync(); // Save changes to DB
 
                 _logger?.LogInformation("TenantProfile created successfully with ID: {TenantId}", tenantProfile.Id);
 
@@ -130,9 +138,11 @@ namespace axionpro.persistance.Repositories
 
         public async Task<bool> CheckTenantByEmail(string email)
         {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
             try
             {
-                return await Task.FromResult(_context.Tenants.Any(t => t.TenantEmail == email));
+                return await Task.FromResult(context.Tenants.Any(t => t.TenantEmail == email));
             }
             catch (Exception ex)
             {

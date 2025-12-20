@@ -2,6 +2,7 @@
 using axionpro.application.DTOs.Tenant;
 using axionpro.application.DTOs.Verify;
 using axionpro.application.Features.RegistrationCmd.Commands;
+using axionpro.application.Features.RegistrationCmd.Handlers;
 using axionpro.application.Features.TenantCmd.Commands;
 using axionpro.application.Features.TenantCmd.Queries;
 using axionpro.application.Features.VerifyEmailCmd.Commands;
@@ -32,7 +33,7 @@ namespace axionpro.api.Controllers.Tenant
 
         [HttpPost("create-tenant")]
         // [Authorize]
-        public async Task<IActionResult> TenantCreation([FromBody] application.DTOs.Registration.TenantRequestDTO tenantCreateRequestDTO)
+        public async Task<IActionResult> TenantCreation([FromBody] application.DTOs.Registration.TenantCreateRequestDTO tenantCreateRequestDTO)
         {
             _logger.LogInfo("Received request for register a new Tenant" + tenantCreateRequestDTO.ToString());
             var command = new CreateTenantCommand(tenantCreateRequestDTO);

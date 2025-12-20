@@ -629,7 +629,7 @@ namespace axionpro.application.Mappings
             //CreateMap<EmailTemplate, EmailTemplateDTO>();
             CreateMap<EmailTemplate, EmailTemplateDTO>().ReverseMap();
             
-            CreateMap<Tenant, DTOs.Registration.TenantRequestDTO>().ReverseMap();
+            CreateMap<Tenant, DTOs.Registration.TenantCreateRequestDTO>().ReverseMap();
             CreateMap<LoginCredential, GetMinimalEmployeeResponseDTO>().ReverseMap();
 
             CreateMap<Country, GetCountryOptionResponseDTO>().ReverseMap();

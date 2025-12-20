@@ -2,6 +2,7 @@
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
 
 namespace axionpro.persistance.Repositories
@@ -10,17 +11,19 @@ namespace axionpro.persistance.Repositories
     {
         private readonly WorkforceDbContext _context;
         private readonly ILogger<EmailTemplateRepository> _logger;
-
-        public EmailTemplateRepository(WorkforceDbContext context, ILogger<EmailTemplateRepository> logger)
+         
+        public EmailTemplateRepository(WorkforceDbContext context, ILogger<EmailTemplateRepository> logger    )
         {
             _context = context;
             _logger = logger;
+          
         }
 
         public async Task<EmailTemplate?> GetTemplateByCodeAsync(string templateCode)
         {
             try
             {
+                
                 return await _context.EmailTemplates
                     .Where(t => t.TemplateCode == templateCode && t.IsActive)
                     .OrderByDescending(t => t.AddedDateTime)

@@ -39,10 +39,11 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                 
+                await using var context = await _contextFactory.CreateDbContextAsync();
 
-                await _context.TenantSubscriptions.AddAsync(subscription);
-                await _context.SaveChangesAsync();
+
+                await context.TenantSubscriptions.AddAsync(subscription);
+                await context.SaveChangesAsync();
 
                 _logger.LogInformation("✅ TenantSubscription inserted successfully for TenantId: {TenantId}", subscription.TenantId);
 
@@ -117,7 +118,7 @@ namespace axionpro.persistance.Repositories
     {
         try
         {
-               // await using var context = await _contextFactory.CreateDbContextAsync();
+                await using var context = await _contextFactory.CreateDbContextAsync();
 
                 if (dto == null)
             {
@@ -128,7 +129,7 @@ namespace axionpro.persistance.Repositories
             _logger.LogInformation("Fetching TenantSubscription records with filters: {@dto}", dto);
 
             // Base query
-            var query = _context.TenantSubscriptions.AsQueryable();
+            var query = context.TenantSubscriptions.AsQueryable();
 
             // ✅ Apply filters dynamically
             if (dto.TenantId>0)
