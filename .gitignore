@@ -378,3 +378,8 @@ axionpro.api/Secrets/*.json
 # ===============================
 axionpro.api/Secrets/*.json
 **/Secrets/*.json
+/axionpro.persistance/Repositories/TenantEmailConfigRepository.cs
+/axionpro.persistance/Repositories/EmailTemplateRepository.cs
+/axionpro.persistance/Repositories/TenantRepository.cs
+/axionpro.persistance/Repositories/TenantSubscriptionRepository.cs
+/.gitignore
