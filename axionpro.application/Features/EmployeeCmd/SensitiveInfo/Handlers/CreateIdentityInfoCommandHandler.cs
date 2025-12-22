@@ -4,12 +4,15 @@ using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
+using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.Bank;
+using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.Sensitive;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
+using axionpro.application.Interfaces.IRequestValidation;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
@@ -26,7 +29,7 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
 {
-    public class CreatePersonalInfoCommand : IRequest<ApiResponse<List<GetIdentityResponseDTO>>>
+    public class CreatePersonalInfoCommand : IRequest<ApiResponse<GetIdentityResponseDTO>>
     {
         public CreateIdentityRequestDTO DTO { get; set; }
 
@@ -36,7 +39,7 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
         }
     }
 
-    public class CreateIdentityInfoCommandHandler : IRequestHandler<CreatePersonalInfoCommand, ApiResponse<List<GetIdentityResponseDTO>>>
+    public class CreateIdentityInfoCommandHandler : IRequestHandler<CreatePersonalInfoCommand, ApiResponse<GetIdentityResponseDTO>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -48,6 +51,8 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
         private readonly IEncryptionService _encryptionService;
         private readonly IIdEncoderService _idEncoderService;
         private readonly IFileStorageService _fileStorageService;
+        private readonly ICommonRequestService _commonRequestService;
+
 
         public CreateIdentityInfoCommandHandler(
             IUnitOfWork unitOfWork,
@@ -59,7 +64,7 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
             IConfiguration config,
             IEncryptionService encryptionService,
             IIdEncoderService idEncoderService,
-            IFileStorageService fileStorageService
+            IFileStorageService fileStorageService, ICommonRequestService commonRequestService
         )
         {
             _unitOfWork = unitOfWork;
@@ -72,9 +77,10 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
             _encryptionService = encryptionService;
             _idEncoderService = idEncoderService;
             _fileStorageService = fileStorageService;
+            _commonRequestService = commonRequestService;
         }
 
-        public async Task<ApiResponse<List<GetIdentityResponseDTO>>> Handle(CreatePersonalInfoCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<GetIdentityResponseDTO>> Handle(CreatePersonalInfoCommand request, CancellationToken cancellationToken)
         {
             string? savedFullPath = null;
 
@@ -82,71 +88,30 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
 
             try
             {
-                // 🧩 STEP 1: Token Validation
-                var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
-                    .ToString()?.Replace("Bearer ", "");
 
-                if (string.IsNullOrEmpty(bearerToken))
-                    return ApiResponse<List<GetIdentityResponseDTO>>.Fail("Unauthorized: Token not found.");
 
-                var secretKey = TokenKeyHelper.GetJwtSecret(_config);
-                var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
+                // 1️⃣ Common validation
+                var validation = await _commonRequestService
+                    .ValidateRequestAsync(request.DTO.UserEmployeeId);
 
-                if (tokenClaims == null || tokenClaims.IsExpired)
-                    return ApiResponse<List<GetIdentityResponseDTO>>.Fail("Invalid or expired token.");
+                if (!validation.Success)
+                    return ApiResponse<GetIdentityResponseDTO>
+                        .Fail(validation.ErrorMessage);
 
-                long loggedInEmpId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
-                if (loggedInEmpId < 1)
-                    return ApiResponse<List<GetIdentityResponseDTO>>.Fail("Unauthorized or inactive user.");
+                // Assign decoded values coming from CommonRequestService
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
+                request.DTO.Prop.EmployeeId = RequestCommonHelper.DecodeOnlyEmployeeId(request.DTO.EmployeeId, validation.Claims.TenantEncriptionKey,
+                    _idEncoderService);
 
-                string tenantKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
-                if (string.IsNullOrEmpty(tenantKey) || string.IsNullOrEmpty(request.DTO.UserEmployeeId))
-                    return ApiResponse<List<GetIdentityResponseDTO>>.Fail("User invalid.");
-
-                string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
-                //UserEmployeeId
-                string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
-                request.DTO._UserEmployeeId = _idEncoderService.DecodeId_long(UserEmpId, finalKey);
-                //Token TenantId
-                string tokenTenant = EncryptionSanitizer.CleanEncodedInput(tokenClaims.TenantId);
-                long decryptedTenantId = _idEncoderService.DecodeId_long(tokenTenant, finalKey);
-                //Id              
-                // Actual EmployeeId
-                string actualEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId);
-                 request.DTO._EmployeeId = _idEncoderService.DecodeId_long(UserEmpId, finalKey);
-
-                // 🧩 STEP 4: Validate all employee references
-                if (decryptedTenantId <= 0)
+                // ✅ Create  using repository
+                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
+                if (!permissions.Contains("PersonalInfo"))
                 {
-                    _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
-                    return ApiResponse<List<GetIdentityResponseDTO>>.Fail("Tenant or employee information missing.");
-                }
-
-
-                if (decryptedTenantId <= 0 || request.DTO._UserEmployeeId <= 0)
-                {
-                    _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
-                    return ApiResponse<List<GetIdentityResponseDTO>>.Fail("Tenant or employee information missing.");
-                }
-
-                if (!(request.DTO._UserEmployeeId == loggedInEmpId))
-                {
-                    _logger.LogWarning(
-                        "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
-                         request.DTO._UserEmployeeId, loggedInEmpId
-                    );
-
-                    return ApiResponse<List<GetIdentityResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
-                }
-
-                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
-                if (!permissions.Contains("AddBankInfo"))
-                {
-                    //  await _unitOfWork.RollbackTransactionAsync();
+                    //await _unitOfWork.RollbackTransactionAsync();
                     //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
                 }
-                // 🧩 STEP 4: Call Repository to get data     
-
+                // 🧩 STEP 4: Call Repository to get data 
 
                 bool hasPanIdUploaded = false;
                 bool hasAadharIdUploaded = false;
@@ -156,14 +121,22 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
                 string? aadharDocName = null;
                 string? panDocName = null;
                 string? passportDocName = null;
-              
+
 
                 string? passportDocPath = null;
                 string? panDocPath = null;
                 string? aadharDocPath = null;
 
 
-                long tenantId = decryptedTenantId;
+                long tenantId = request.DTO.Prop.TenantId;
+
+
+                var isHas = await _unitOfWork.EmployeeIdentityRepository.IsEmployeePersonalDetailExistsAsync(request.DTO.Prop.EmployeeId, null);
+                if (isHas)
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                    return ApiResponse<GetIdentityResponseDTO>.Fail("Identity info already exists for this employee.");
+                }
 
                 // 🪪 Helper function for masking and safe file naming
                 string MaskSensitiveNumber(string number)
@@ -182,8 +155,8 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
                     await request.DTO.AadhaarDocFile.CopyToAsync(ms);
                     var fileBytes = ms.ToArray();
 
-                    string fileName = $"Aadhaar-{request.DTO._UserEmployeeId}_{maskedAadhar}-{DateTime.UtcNow:yyMMddHHmmss}.png";
-                    string folderPath = _fileStorageService.GetEmployeeFolderPath(tenantId, request.DTO._UserEmployeeId, "identity");
+                    string fileName = $"Aadhaar-{request.DTO.Prop.EmployeeId}_{maskedAadhar}-{DateTime.UtcNow:yyMMddHHmmss}.png";
+                    string folderPath = _fileStorageService.GetEmployeeFolderPath(tenantId, request.DTO.Prop.EmployeeId, "identity");
 
                     aadharDocName = fileName;
                     savedFullPath = await _fileStorageService.SaveFileAsync(fileBytes, fileName, folderPath);
@@ -204,8 +177,8 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
                     await request.DTO.PanDocFile.CopyToAsync(ms);
                     var fileBytes = ms.ToArray();
 
-                    string fileName = $"PAN-{request.DTO._UserEmployeeId}_{maskedPan}-{DateTime.UtcNow:yyMMddHHmmss}.png";
-                    string folderPath = _fileStorageService.GetEmployeeFolderPath(tenantId, request.DTO._UserEmployeeId, "identity");
+                    string fileName = $"PAN-{request.DTO.Prop.EmployeeId}_{maskedPan}-{DateTime.UtcNow:yyMMddHHmmss}.png";
+                    string folderPath = _fileStorageService.GetEmployeeFolderPath(tenantId, request.DTO.Prop.EmployeeId, "identity");
 
                     panDocName = fileName;
                     savedFullPath = await _fileStorageService.SaveFileAsync(fileBytes, fileName, folderPath);
@@ -226,8 +199,8 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
                     await request.DTO.PassportDocFile.CopyToAsync(ms);
                     var fileBytes = ms.ToArray();
 
-                    string fileName = $"Passport-{request.DTO._UserEmployeeId}_{maskedPassport}-{DateTime.UtcNow:yyMMddHHmmss}.png";
-                    string folderPath = _fileStorageService.GetEmployeeFolderPath(tenantId, request.DTO._UserEmployeeId, "identity");
+                    string fileName = $"Passport-{request.DTO.Prop.EmployeeId}_{maskedPassport}-{DateTime.UtcNow:yyMMddHHmmss}.png";
+                    string folderPath = _fileStorageService.GetEmployeeFolderPath(tenantId, request.DTO.Prop.EmployeeId, "identity");
 
                     passportDocName = fileName;
                     savedFullPath = await _fileStorageService.SaveFileAsync(fileBytes, fileName, folderPath);
@@ -243,14 +216,15 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
                 var identityEntity = _mapper.Map<EmployeePersonalDetail>(request.DTO);
 
                 // ✅ Manual assignments (not part of DTO)
-                identityEntity.EmployeeId = request.DTO._UserEmployeeId ;
-                identityEntity.AddedById = request.DTO._EmployeeId;
+                identityEntity.EmployeeId = request.DTO.Prop.EmployeeId;
+                identityEntity.AddedById = request.DTO.Prop.UserEmployeeId;
                 identityEntity.AddedDateTime = DateTime.UtcNow;
                 identityEntity.IsActive = true;
                 identityEntity.IsEditAllowed = true;
                 identityEntity.IsInfoVerified = false;
-               
-               
+
+
+
                 // 🪪 Document paths assignment (only if uploaded)
                 if (hasAadharIdUploaded)
                 {
@@ -275,11 +249,11 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
                 // 🧩 STEP 4: Save to Database
                 var savedResponse = await _unitOfWork.EmployeeIdentityRepository.CreateAsync(identityEntity);
 
-                var result = ProjectionHelper.ToGetIdentityResponseDTOs(savedResponse, _idEncoderService, tenantKey);
+                var result = ProjectionHelper.ToGetIdentityResponseDTO(savedResponse, _idEncoderService, validation.Claims.TenantEncriptionKey);
 
                 await _unitOfWork.CommitTransactionAsync();
 
-                return new ApiResponse<List<GetIdentityResponseDTO>>
+                return new ApiResponse<GetIdentityResponseDTO>
                 {
                     IsSucceeded = true,
                     Message = "Identity info added successfully.",
@@ -290,8 +264,9 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
             {
                 await _unitOfWork.RollbackTransactionAsync();
                 _logger.LogError(ex, "❌ Error while adding identity info for EmployeeId: {EmployeeId}", request.DTO?.EmployeeId);
-                return ApiResponse<List<GetIdentityResponseDTO>>.Fail($"Failed to add identity info: {ex.Message}");
+                return ApiResponse<GetIdentityResponseDTO>.Fail($"Failed to add identity info: {ex.Message}");
             }
         }
+
     }
 }

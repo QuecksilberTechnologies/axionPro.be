@@ -47,7 +47,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         }
 
 
-      
+
 
         public static List<GetDependentResponseDTO> ToGetDependentResponseDTOs(List<GetDependentResponseDTO> entities,
       IIdEncoderService encoderService,
@@ -111,44 +111,48 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         //        ExperienceLetterPath = e.ExperienceLetterPath ?? string.Empty,
         //        Comment = e.Comment ?? string.Empty,
         //        AddedById = SafeEncrypt(e.AddedById, encryptionService, tenantKey),
-          
+
         //    }).ToList();
         //}
 
-        public static List<GetIdentityResponseDTO> ToGetIdentityResponseDTOs(
-    List<GetIdentityResponseDTO> entities,
-    IIdEncoderService encryptionService,
-    string tenantKey)
+        public static GetIdentityResponseDTO ToGetIdentityResponseDTO(GetIdentityResponseDTO entity, IIdEncoderService encryptionService, string tenantKey)
         {
-            if (entities == null || entities.Count == 0)
-                return new List<GetIdentityResponseDTO>();
+            if (entity == null)
+                return new GetIdentityResponseDTO();
 
-            return entities.Select(e => new GetIdentityResponseDTO
+            return new GetIdentityResponseDTO
             {
-                EmployeeId = encryptionService.EncodeString(e.EmployeeId, tenantKey),
-                AadhaarNumber = e.AadhaarNumber,
-                PanNumber = e.PanNumber,
-                PassportNumber = e.PassportNumber,
-                DrivingLicenseNumber = e.DrivingLicenseNumber,
-                VoterId = e.VoterId,
-                BloodGroup = e.BloodGroup,
-                MaritalStatus = e.MaritalStatus,
-                Nationality = e.Nationality,
-                EmergencyContactName = e.EmergencyContactName,
-                EmergencyContactNumber = e.EmergencyContactNumber,
-                EmergencyContactRelation = e.EmergencyContactRelation,
-                IsInfoVerified = e.IsInfoVerified,
-                IsEditAllowed = e.IsEditAllowed,                
-                hasPanIdUploaded = e.hasPanIdUploaded,
-                hasAadharIdUploaded = e.hasAadharIdUploaded,
-                hasPassportIdUploaded = e.hasPassportIdUploaded,
-                panFilePath = e.panFilePath,
-                passportFilePath = e.passportFilePath,
-                aadharFilePath = e.aadharFilePath,
-                CompletionPercentage = e.CompletionPercentage,
-                HasEPFAccount = e.HasEPFAccount,
-                UANNumber = e.UANNumber
-            }).ToList();
+                EmployeeId = encryptionService.EncodeString(entity.EmployeeId, tenantKey),
+                AadhaarNumber = entity.AadhaarNumber,
+                PanNumber = entity.PanNumber,
+                PassportNumber = entity.PassportNumber,
+                DrivingLicenseNumber = entity.DrivingLicenseNumber,
+                VoterId = entity.VoterId,
+
+                BloodGroup = entity.BloodGroup,
+                MaritalStatus = entity.MaritalStatus,
+                Nationality = entity.Nationality,
+
+                EmergencyContactName = entity.EmergencyContactName,
+                EmergencyContactNumber = entity.EmergencyContactNumber,
+                EmergencyContactRelation = entity.EmergencyContactRelation,
+
+                IsInfoVerified = entity.IsInfoVerified,
+                IsEditAllowed = entity.IsEditAllowed,
+
+                hasPanIdUploaded = entity.hasPanIdUploaded,
+                hasAadharIdUploaded = entity.hasAadharIdUploaded,
+                hasPassportIdUploaded = entity.hasPassportIdUploaded,
+
+                panFilePath = entity.panFilePath,
+                passportFilePath = entity.passportFilePath,
+                aadharFilePath = entity.aadharFilePath,
+
+                CompletionPercentage = entity.CompletionPercentage,
+
+                HasEPFAccount = entity.HasEPFAccount,
+                UANNumber = entity.UANNumber
+            };
         }
 
         public static List<GetAllEmployeeInfoResponseDTO> ToGetAllEmployeeInfoResponseDTOs(
@@ -172,13 +176,13 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 // 📁 Final Image URL build
                 if (!string.IsNullOrEmpty(item.EmployeeImagePath))
                     item.EmployeeImagePath = $"{baseUrl}{item.EmployeeImagePath}";
-              
+
                 item.EmployementCode ??= string.Empty;
                 item.FirstName ??= string.Empty;
                 item.LastName ??= string.Empty;
                 item.MiddleName ??= string.Empty;
                 item.OfficialEmail ??= string.Empty;
-            } 
+            }
 
             return entities.Items;
         }
@@ -224,11 +228,11 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 
             // ✅ Sirf Id encode karo
             if (!string.IsNullOrWhiteSpace(entity.Id) && long.TryParse(entity.Id, out long rawId) && rawId > 0)
-             {
+            {
                 entity.Id = encoderService.EncodeId_long(rawId, tenantKey);
-             }
+            }
 
-    
+
 
             // ✅ Baaki sab as-it-is (optional null safety)          
             entity.FirstName ??= string.Empty;
@@ -236,7 +240,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             entity.MiddleName ??= string.Empty;
             entity.OfficialEmail ??= string.Empty;
             entity.EmployementCode ??= string.Empty;
-           
+
 
             return entity;
         }
@@ -266,7 +270,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 
             return entities;
         }
-        public static List<GetBankResponseDTO> ToGetBankResponseDTOs(  PagedResponseDTO<GetBankResponseDTO> entities,
+        public static List<GetBankResponseDTO> ToGetBankResponseDTOs(PagedResponseDTO<GetBankResponseDTO> entities,
          IIdEncoderService encoderService,
         string tenantKey, IConfiguration configuration
            )
@@ -283,9 +287,9 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             {
                 if (item == null) continue;
 
-                
-                   
-                
+
+
+
                 item.FilePath ??= string.Empty;
                 // 📁 Final Image URL build
                 if (!string.IsNullOrEmpty(item.FilePath))
@@ -293,7 +297,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 
 
                 // ✅ Encode EmployeeId separately
-                
+
                 if (long.TryParse(item.EmployeeId, out long rawId) && rawId > 0)
                 {
                     item.EmployeeId = encoderService.EncodeId_long(rawId, tenantKey);
@@ -303,7 +307,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 
                 // ✅ Optional cleanup (avoid nulls)
                 item.EmployeeId ??= string.Empty;
-              //  item.Id ??= 0;
+                //  item.Id ??= 0;
 
                 result.Add(item);
             }
@@ -312,7 +316,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         }
 
 
-        public static List<GetEducationResponseDTO> ToGetEducationResponseDTOs(  PagedResponseDTO<GetEducationResponseDTO> entities, IIdEncoderService encryptionService,
+        public static List<GetEducationResponseDTO> ToGetEducationResponseDTOs(PagedResponseDTO<GetEducationResponseDTO> entities, IIdEncoderService encryptionService,
             string tenantKey, IConfiguration configuration
            )
         {
@@ -478,7 +482,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 // 📁 Final Image URL build
                 if (!string.IsNullOrEmpty(item.FilePath))
                     item.FilePath = $"{baseUrl}{item.FilePath}";
-               
+
 
                 // These are already same — keeping for clarity
                 item.IsPrimary = item.IsPrimary;
@@ -490,7 +494,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 
             return result;
         }
-
+                    
 
 
 

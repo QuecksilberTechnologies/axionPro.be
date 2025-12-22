@@ -37,7 +37,7 @@ namespace axionpro.persistance.Repositories
         }
 
 
-        public async Task<List<GetIdentityResponseDTO>> CreateAsync(EmployeePersonalDetail entity)
+        public async Task<GetIdentityResponseDTO> CreateAsync(EmployeePersonalDetail entity)
         {
             try
             {
@@ -52,67 +52,67 @@ namespace axionpro.persistance.Repositories
                 await _context.EmployeePersonalDetails.AddAsync(entity);
                 await _context.SaveChangesAsync();
 
-                // 3️⃣ Fetch with SELECT Projection (FAST + CLEAN)
-                var responseList = await _context.EmployeePersonalDetails
+                // 3️⃣ Fetch LATEST record → SINGLE OBJECT
+                var response = await _context.EmployeePersonalDetails
                     .AsNoTracking()
-                    .Where(x => x.EmployeeId == entity.EmployeeId
-                             && x.IsSoftDeleted != true
-                             && x.IsActive == true)
+                    .Where(x =>
+                        x.EmployeeId == entity.EmployeeId &&
+                        x.IsSoftDeleted != true &&
+                        x.IsActive == true)
                     .OrderByDescending(x => x.Id)
                     .Select(x => new GetIdentityResponseDTO
                     {
                         EmployeeId = x.EmployeeId.ToString(),
+
                         AadhaarNumber = x.AadhaarNumber,
                         PanNumber = x.PanNumber,
                         PassportNumber = x.PassportNumber,
                         DrivingLicenseNumber = x.DrivingLicenseNumber,
                         VoterId = x.VoterId,
+
                         BloodGroup = x.BloodGroup,
                         MaritalStatus = x.MaritalStatus,
+                        Nationality = x.Nationality,
+
                         HasEPFAccount = x.HasEPFAccount,
                         UANNumber = x.UANNumber,
 
-                        Nationality = x.Nationality,
                         EmergencyContactName = x.EmergencyContactName,
                         EmergencyContactNumber = x.EmergencyContactNumber,
                         EmergencyContactRelation = x.EmergencyContactRelation,
 
-                        // 🔹 Boolean flags for document presence
+                        // 📎 Upload flags
                         hasAadharIdUploaded = !string.IsNullOrEmpty(x.AadhaarDocPath),
                         hasPanIdUploaded = !string.IsNullOrEmpty(x.PanDocPath),
                         hasPassportIdUploaded = !string.IsNullOrEmpty(x.PassportDocPath),
 
-                        // 🔹 Document paths
+                        // 📂 Paths
                         aadharFilePath = x.AadhaarDocPath,
                         panFilePath = x.PanDocPath,
                         passportFilePath = x.PassportDocPath,
 
-                        // 🔹 Hardcoded/default flags
                         IsInfoVerified = x.IsInfoVerified ?? false,
-                        IsEditAllowed = x.IsEditAllowed,  // business rule
-                     
-                        // 🔹 Completion % (Example logic)
+                        IsEditAllowed = x.IsEditAllowed,
+
                         CompletionPercentage =
-                            (new[]
-                            {
-                        string.IsNullOrEmpty(x.AadhaarNumber) ? 0 : 1,
-                        string.IsNullOrEmpty(x.PanNumber) ? 0 : 1,                        
-                        string.IsNullOrEmpty(x.DrivingLicenseNumber) ? 0 : 1,
-                        string.IsNullOrEmpty(x.VoterId) ? 0 : 1,
-                        string.IsNullOrEmpty(x.BloodGroup) ? 0 : 1,
-                        string.IsNullOrEmpty(x.Nationality) ? 0 : 1,
-                        string.IsNullOrEmpty(x.EmergencyContactName) ? 0 : 1,
-                        string.IsNullOrEmpty(x.EmergencyContactRelation) ? 0 : 1,
-
-
-                          x.HasAadhaarIdUploaded ? 1 : 0,
-                          x.HasPanIdUploaded ? 1 : 0
-                            }.Sum() / 10.0) * 100
+                            Math.Round(
+                                (new[]
+                                {
+                            string.IsNullOrEmpty(x.AadhaarNumber) ? 0 : 1,
+                            string.IsNullOrEmpty(x.PanNumber) ? 0 : 1,
+                            string.IsNullOrEmpty(x.DrivingLicenseNumber) ? 0 : 1,
+                            string.IsNullOrEmpty(x.VoterId) ? 0 : 1,
+                            string.IsNullOrEmpty(x.BloodGroup) ? 0 : 1,
+                            string.IsNullOrEmpty(x.Nationality) ? 0 : 1,
+                            string.IsNullOrEmpty(x.EmergencyContactName) ? 0 : 1,
+                            string.IsNullOrEmpty(x.EmergencyContactRelation) ? 0 : 1,
+                            !string.IsNullOrEmpty(x.AadhaarDocPath) ? 1 : 0,
+                            !string.IsNullOrEmpty(x.PanDocPath) ? 1 : 0
+                                }.Sum() / 10.0) * 100, 0)
                     })
-                    .Take(1)   // since only latest needed
-                    .ToListAsync();
+                    .FirstOrDefaultAsync();   // 🔥 THIS IS THE KEY
 
-                return responseList;
+                return response!;
             }
             catch (Exception ex)
             {
@@ -120,135 +120,74 @@ namespace axionpro.persistance.Repositories
                     "❌ Error occurred while adding/fetching personal info for EmployeeId: {EmployeeId}",
                     entity.EmployeeId);
 
-                throw new Exception($"Failed to add or fetch personal info: {ex.Message}");
+                throw;
             }
         }
 
 
 
-        public async Task<PagedResponseDTO<GetIdentityResponseDTO>> GetInfo(GetIdentityRequestDTO dto)
+        public async Task<GetIdentityResponseDTO?> GetInfo(GetIdentityRequestDTO dto)
         {
             try
             {
-                // 🧭 Base Query (Active & SoftDelete check)
-                var baseQuery = _context.EmployeePersonalDetails
+                // 🧭 Base Query
+                var query = _context.EmployeePersonalDetails
                     .AsNoTracking()
-                    .Where(identity => identity.EmployeeId == dto.Prop.EmployeeId
-                                       && identity.IsActive == dto.IsActive
-                                       && identity.IsSoftDeleted != true);
-
-                // 🗺️ Optional Filters
-                if (dto.Prop.RowId >0)
-                    baseQuery = baseQuery.Where(x => x.Id == dto.Prop.RowId);
-
-                if (!string.IsNullOrWhiteSpace(dto.BloodGroup))
-                    baseQuery = baseQuery.Where(x => x.BloodGroup.ToLower().Contains(dto.BloodGroup.ToLower()));
-
-                if ((dto.HasEPFAccount.HasValue))
-                    baseQuery = baseQuery.Where(x => x.HasEPFAccount == dto.HasEPFAccount.Value);
-
-                if (!string.IsNullOrWhiteSpace(dto.MaritalStatus))
-                    baseQuery = baseQuery.Where(x => x.MaritalStatus.ToLower().Contains(dto.MaritalStatus.ToLower()));
-
-                if (!string.IsNullOrWhiteSpace(dto.Nationality))
-                    baseQuery = baseQuery.Where(x => x.Nationality.ToLower().Contains(dto.Nationality.ToLower()));
-
-                if (!string.IsNullOrWhiteSpace(dto.EmergencyContactName))
-                    baseQuery = baseQuery.Where(x => x.EmergencyContactName.ToLower().Contains(dto.EmergencyContactName.ToLower()));
-
-                // 🧩 Aadhaar / PAN / Passport Uploaded Filters
-                if (dto.HasAadhaarIdUploaded.HasValue)
-                    baseQuery = baseQuery.Where(x => x.HasAadhaarIdUploaded == dto.HasAadhaarIdUploaded.Value);
-
-                if (dto.HasPanIdUploaded.HasValue)
-                    baseQuery = baseQuery.Where(x => x.HasPanIdUploaded == dto.HasPanIdUploaded.Value);
-
-                if (dto.HasPassportIdUploaded.HasValue)
-                    baseQuery = baseQuery.Where(x => x.HasPassportIdUploaded == dto.HasPassportIdUploaded.Value);
+                    .Where(x =>
+                        x.EmployeeId == dto.Prop.EmployeeId &&
+                        x.IsActive == dto.IsActive &&
+                        x.IsSoftDeleted != true);
+             
 
                 // 🔍 Keyword Search
-                if (!string.IsNullOrEmpty(dto.SortBy))
+                if (!string.IsNullOrWhiteSpace(dto.SortBy))
                 {
                     var keyword = dto.SortBy.Trim().ToLower();
-                    baseQuery = baseQuery.Where(x =>
-                        (x.BloodGroup != null && x.BloodGroup.ToLower().Contains(keyword)) ||
-                        (x.MaritalStatus != null && x.MaritalStatus.ToLower().Contains(keyword)) ||
-                        (x.Nationality != null && x.Nationality.ToLower().Contains(keyword)) ||
-                        (x.EmergencyContactName != null && x.EmergencyContactName.ToLower().Contains(keyword)) ||
-                        (x.PanNumber != null && x.PanNumber.ToLower().Contains(keyword)) ||
-                        (x.AadhaarNumber != null && x.AadhaarNumber.ToLower().Contains(keyword)) ||
-                        (x.PassportNumber != null && x.PassportNumber.ToLower().Contains(keyword)));
+                    query = query.Where(x =>
+                        (x.BloodGroup ?? "").ToLower().Contains(keyword) ||
+                        (x.MaritalStatus ?? "").ToLower().Contains(keyword) ||
+                        (x.Nationality ?? "").ToLower().Contains(keyword) ||
+                        (x.EmergencyContactName ?? "").ToLower().Contains(keyword) ||
+                        (x.PanNumber ?? "").ToLower().Contains(keyword) ||
+                        (x.AadhaarNumber ?? "").ToLower().Contains(keyword) ||
+                        (x.PassportNumber ?? "").ToLower().Contains(keyword));
                 }
 
-                // 🔽 Sorting
-                bool isDescending = string.Equals(dto.SortOrder, "desc", StringComparison.OrdinalIgnoreCase);
+                // 🔽 Sorting (latest record preferred)
+                query = query.OrderByDescending(x => x.Id);
 
-                baseQuery = !string.IsNullOrEmpty(dto.SortBy)
-                    ? dto.SortBy.ToLower() switch
+                // 🎯 SINGLE RECORD
+                var identity = await query
+                    .Select(identity => new GetIdentityResponseDTO
                     {
-                        "bloodgroup" => isDescending
-                            ? baseQuery.OrderByDescending(x => x.BloodGroup)
-                            : baseQuery.OrderBy(x => x.BloodGroup),
+                        EmployeeId = identity.EmployeeId.ToString(),
+                        BloodGroup = identity.BloodGroup,
+                        MaritalStatus = identity.MaritalStatus,
+                        Nationality = identity.Nationality,
+                        EmergencyContactName = identity.EmergencyContactName,
+                        EmergencyContactNumber = identity.EmergencyContactNumber,
+                        EmergencyContactRelation = identity.EmergencyContactRelation,
 
-                        "maritalstatus" => isDescending
-                            ? baseQuery.OrderByDescending(x => x.MaritalStatus)
-                            : baseQuery.OrderBy(x => x.MaritalStatus),
+                        PanNumber = identity.PanNumber,
+                        AadhaarNumber = identity.AadhaarNumber,
+                        PassportNumber = identity.PassportNumber,
+                        DrivingLicenseNumber = identity.DrivingLicenseNumber,
 
-                        "nationality" => isDescending
-                            ? baseQuery.OrderByDescending(x => x.Nationality)
-                            : baseQuery.OrderBy(x => x.Nationality),
+                        HasEPFAccount = identity.HasEPFAccount,
+                        UANNumber = identity.UANNumber,
 
-                        "hasaadhariduploaded" => isDescending
-                            ? baseQuery.OrderByDescending(x => x.HasAadhaarIdUploaded)
-                            : baseQuery.OrderBy(x => x.HasAadhaarIdUploaded),
+                        hasAadharIdUploaded = identity.HasAadhaarIdUploaded,
+                        hasPanIdUploaded = identity.HasPanIdUploaded,
+                        hasPassportIdUploaded = identity.HasPassportIdUploaded,
 
-                        "haspaniduploaded" => isDescending
-                            ? baseQuery.OrderByDescending(x => x.HasPanIdUploaded)
-                            : baseQuery.OrderBy(x => x.HasPanIdUploaded),
+                        aadharFilePath = identity.AadhaarDocPath,
+                        panFilePath = identity.PanDocPath,
+                        passportFilePath = identity.PassportDocPath,
 
-                        "haspassportiduploaded" => isDescending
-                            ? baseQuery.OrderByDescending(x => x.HasPassportIdUploaded)
-                            : baseQuery.OrderBy(x => x.HasPassportIdUploaded),
-
-                        _ => isDescending
-                            ? baseQuery.OrderByDescending(x => x.Id)
-                            : baseQuery.OrderBy(x => x.Id)
-                    }
-                    : baseQuery.OrderByDescending(x => x.Id);
-
-                // 📄 Total Count
-                var totalRecords = await baseQuery.CountAsync();
-
-                // 🧩 Projection to DTO
-                var query = from identity in baseQuery
-                            select new GetIdentityResponseDTO
-                            {
-                              
-                               
-                                EmployeeId = identity.EmployeeId.ToString(),
-                                BloodGroup = identity.BloodGroup,
-                                MaritalStatus = identity.MaritalStatus,
-                                Nationality = identity.Nationality,
-                                EmergencyContactName = identity.EmergencyContactName,
-                                EmergencyContactNumber = identity.EmergencyContactNumber,
-                                EmergencyContactRelation= identity.EmergencyContactRelation,
-                                PanNumber = identity.PanNumber,
-                                HasEPFAccount = identity.HasEPFAccount,
-                                UANNumber = identity.UANNumber,
-                                AadhaarNumber = identity.AadhaarNumber,
-                                PassportNumber = identity.PassportNumber,
-                                DrivingLicenseNumber = identity.DrivingLicenseNumber,
-                                hasPassportIdUploaded = identity.HasPassportIdUploaded,
-                                hasAadharIdUploaded = identity.HasAadhaarIdUploaded,
-                                hasPanIdUploaded = identity.HasPanIdUploaded,
-                                aadharFilePath = identity.AadhaarDocPath,
-                                panFilePath = identity.PanDocPath,
-                                passportFilePath = identity.PassportDocPath,
-
-                                CompletionPercentage =
-                            (
-                        new[]
-                        {
+                        CompletionPercentage =
+                            Math.Round(
+                                (new[]
+                                {
                             string.IsNullOrEmpty(identity.AadhaarNumber) ? 0 : 1,
                             string.IsNullOrEmpty(identity.PanNumber) ? 0 : 1,
                             string.IsNullOrEmpty(identity.DrivingLicenseNumber) ? 0 : 1,
@@ -258,71 +197,68 @@ namespace axionpro.persistance.Repositories
                             string.IsNullOrEmpty(identity.EmergencyContactName) ? 0 : 1,
                             string.IsNullOrEmpty(identity.EmergencyContactRelation) ? 0 : 1,
                             identity.HasAadhaarIdUploaded ? 1 : 0,
-                            identity.HasPanIdUploaded ? 1 : 0,
-                            
+                            identity.HasPanIdUploaded ? 1 : 0
+                                }.Sum() / 10.0) * 100, 0)
+                    })
+                    .FirstOrDefaultAsync();
 
-                        }.Sum() / 10.0
-                    ) * 100
-
-                            };
-
-                // ✅ Calculate overall average percentage (nullable if no record)
-              
-
-                // 📜 Pagination
-                var pagedRecords = await query
-                    .Skip((dto.PageNumber - 1) * dto.PageSize)
-                    .Take(dto.PageSize)
-                    .ToListAsync();
-
-                // 🔹 Overall average CompletionPercentage
-                double? averagePercentage = pagedRecords.Any()
-                    ? pagedRecords.Average(x => x.CompletionPercentage ?? 0)
-                    : (double?)null;
-
-                // 🔹 HasUploadedAllDocs based on pagedRecords
-                bool? hasUploadedAllDocs = pagedRecords.Any()
-                    ? pagedRecords.All(x => x.hasAadharIdUploaded && x.hasPanIdUploaded && x.hasPassportIdUploaded)
-                    : false;
-
-               
- 
-                // 📦 Final Response
-                return new PagedResponseDTO<GetIdentityResponseDTO>
-                {
-                    Items = pagedRecords ?? new List<GetIdentityResponseDTO>(),
-                    TotalCount = totalRecords,
-                    PageNumber = dto.PageNumber,
-                    PageSize = dto.PageSize,
-                    CompletionPercentage = averagePercentage,
-                    HasUploadedAll= hasUploadedAllDocs,
-                };
+                return identity; // ✅ single object or null
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error occurred while fetching identity info for EmployeeId: {EmployeeId}", dto.Prop.EmployeeId);
-                throw new Exception($"Failed to fetch identity info: {ex.Message}");
+                _logger.LogError(ex,
+                    "❌ Error while fetching identity info | EmployeeId={EmployeeId}",
+                    dto.Prop.EmployeeId);
+
+                throw;
             }
         }
 
 
-        public Task<EmployeeContact> GetSingleRecordAsync(long Id, bool IsActive)
+        public async Task<bool> IsEmployeePersonalDetailExistsAsync(long id, bool? isActive)
         {
-            throw new NotImplementedException();
+            try
+            {
+                IQueryable<EmployeePersonalDetail> query =
+                    _context.EmployeePersonalDetails
+                        .AsNoTracking()
+                        .Where(x =>
+                            x.EmployeeId == id &&
+                            (x.IsSoftDeleted !=true));
+
+                // Apply IsActive ONLY if client sends it
+                if (isActive.HasValue)
+                {
+                    query = query.Where(x => x.IsActive == isActive.Value);
+                }
+
+                // SINGLE SQL HIT
+                return await query.AnyAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "❌ Error in IsEmployeePersonalDetailExistsAsync | Id={Id}, IsActive={IsActive}",
+                    id, isActive);
+
+                throw;
+            }
         }
 
-        Task<GetIdentityResponseDTO> IEmployeeIdentityRepository.GetSingleRecordAsync(long Id, bool IsActive)
-        {
-            throw new NotImplementedException();
-        }
+
+
+
+
     }
+
+
+
 }
 
 
 
 
- 
- 
+
 
 
 

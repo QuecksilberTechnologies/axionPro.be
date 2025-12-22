@@ -76,23 +76,23 @@ namespace axionpro.application.Mappings
                 .Where(s => !string.IsNullOrEmpty(s))
             );
         }
-       
+
 
         public MappingProfile()
         {
 
 
             CreateMap<AddAssetRequestDTO, Asset>();
-         
+
             CreateMap<AssetCategory, GetCategoryResponseDTO>().ReverseMap();
             CreateMap<AssetStatus, GetStatusResponseDTO>().ReverseMap();
             CreateMap<AssetCategory, GetCategoryResponseDTO>().ReverseMap();
-           
+
 
             CreateMap<Gender, GetGenderResponseDTO>().ReverseMap();
             CreateMap<Gender, GetGenderOptionResponseDTO>().ReverseMap();
-           
-             // CreateMap<Asset, GetAllAssetWithDependentEntityDTO>();
+
+            // CreateMap<Asset, GetAllAssetWithDependentEntityDTO>();
 
             CreateMap<TicketType, GetTicketTypeResponseDTO>().ReverseMap();
             CreateMap<GetClassificationRequestDTO, TicketClassification>().ReverseMap();
@@ -190,7 +190,7 @@ namespace axionpro.application.Mappings
 
 
 
-            
+
             CreateMap<AssetStatus, CreateStatusRequestDTO>().ReverseMap();
             CreateMap<AssetStatus, UpdateStatusRequestDTO>().ReverseMap();
             CreateMap<UpdateStatusRequestDTO, AssetStatus>().ReverseMap();
@@ -200,7 +200,7 @@ namespace axionpro.application.Mappings
 
 
 
-        
+
 
 
 
@@ -213,9 +213,9 @@ namespace axionpro.application.Mappings
             CreateMap<CreateDepartmentRequestDTO, Department>().ReverseMap();
             CreateMap<Department, GetSingleDepartmentResponseDTO>().ReverseMap();
             CreateMap<Department, GetDepartmentRequestDTO>().ReverseMap();
-            CreateMap<UpdateDepartmentRequestDTO, Department>().ReverseMap();              
+            CreateMap<UpdateDepartmentRequestDTO, Department>().ReverseMap();
 
-        
+
 
             CreateMap<GetParentModuleResponseDTO, domain.Entity.Module>().ReverseMap();
 
@@ -224,18 +224,18 @@ namespace axionpro.application.Mappings
 
             CreateMap<CreateCommonModuleRequestDTO, domain.Entity.Module>().ReverseMap();
 
-             
+
 
             CreateMap<domain.Entity.Module, CommonItemDTO>().ReverseMap();
 
 
-            CreateMap<MainModuleResponseDTO, domain.Entity.Module>();         
+            CreateMap<MainModuleResponseDTO, domain.Entity.Module>();
             CreateMap<domain.Entity.Module, MainModuleResponseDTO>();
             CreateMap<domain.Entity.Module, GetParentModuleRequestDTO>().ReverseMap();
 
-            
-        
-          
+
+
+
 
 
             CreateMap<CreateSubModuleRequestDTO, domain.Entity.Module>();
@@ -255,17 +255,17 @@ namespace axionpro.application.Mappings
 
 
             CreateMap<domain.Entity.Operation, CreateOperationRequestDTO>();
-          
-            
+
+
             CreateMap<domain.Entity.Operation, GetOperationResponseDTO>();
             CreateMap<GetOperationResponseDTO, domain.Entity.Operation>();
-         
-            
+
+
             CreateMap<UpdateOperationRequestDTO, domain.Entity.Operation>();
 
 
             CreateMap<domain.Entity.Operation, UpdateOperationRequestDTO>();
-            
+
 
 
 
@@ -276,23 +276,23 @@ namespace axionpro.application.Mappings
             CreateMap<TravelMode, GetAllTravelModeDTO>();
             CreateMap<UpdateTravelModeDTO, TravelMode>();
             CreateMap<CreateLeaveTypeRequestDTO, LeaveType>();
-          
+
             CreateMap<GetPolicyLeaveTypeMappingRequestDTO, PolicyLeaveTypeMapping>().ReverseMap();
             CreateMap<GetLeaveTypeWithPolicyMappingResponseDTO, PolicyLeaveTypeMapping>().ReverseMap();
-          
 
-           // CreateMap<UpdatePolicyLeaveTypeMappingRequestDTO, PolicyLeaveTypeMapping>().ReverseMap();               
+
+            // CreateMap<UpdatePolicyLeaveTypeMappingRequestDTO, PolicyLeaveTypeMapping>().ReverseMap();               
             CreateMap<LeaveType, GetLeaveTypResponseDTO>();
             CreateMap<UpdateLeaveTypeRequestDTO, LeaveType>();  // ✅ Yeh likhna hoga!
-         
+
 
             CreateMap<GetLeaveRuleResponseDTO, LeaveRule>().ReverseMap();
             CreateMap<CreateLeaveRuleDTORequest, LeaveRule>().ReverseMap();
             CreateMap<UpdateLeaveRuleRequestDTO, LeaveRule>().ReverseMap();
 
 
-            CreateMap< CreateRoleRequestDTO,Role > ()
-                  .ForMember(dest => dest.AddedById, opt => opt.MapFrom(src => src.UserEmployeeId)) ; // Example
+            CreateMap<CreateRoleRequestDTO, Role>()
+                  .ForMember(dest => dest.AddedById, opt => opt.MapFrom(src => src.UserEmployeeId)); // Example
 
             CreateMap<UpdateRoleRequestDTO, Role>()
                 .ForMember(dest => dest.UpdatedById, opt => opt.MapFrom(src => src.UserEmployeeId));
@@ -321,17 +321,17 @@ namespace axionpro.application.Mappings
 
 
 
-            CreateMap<Department,GetDepartmentResponseDTO>();
-            CreateMap<GetDepartmentResponseDTO,Department>();
+            CreateMap<Department, GetDepartmentResponseDTO>();
+            CreateMap<GetDepartmentResponseDTO, Department>();
 
 
-           // CreateMap<RoleResponseDTO, Role>().ReverseMap();
-           // CreateMap<GetRoleSummaryResponseDTO, Role>();
-          //  CreateMap<Role, GetRoleSummaryResponseDTO>().ReverseMap();
+            // CreateMap<RoleResponseDTO, Role>().ReverseMap();
+            // CreateMap<GetRoleSummaryResponseDTO, Role>();
+            //  CreateMap<Role, GetRoleSummaryResponseDTO>().ReverseMap();
 
             //   CreateMap<TenantCreateResponseDTO, TenantIndustry>();
-               CreateMap<TenantSubscriptionPlanResponseDTO, TenantSubscription>().ReverseMap();
-              CreateMap<TenantIndustry, TenantIndustryResponseDTO>();
+            CreateMap<TenantSubscriptionPlanResponseDTO, TenantSubscription>().ReverseMap();
+            CreateMap<TenantIndustry, TenantIndustryResponseDTO>();
 
 
 
@@ -343,7 +343,7 @@ namespace axionpro.application.Mappings
 
 
             #region 🔹 Bank Mappings
-           
+
             #endregion
 
             #region 🔹 Education Mappings
@@ -370,7 +370,7 @@ namespace axionpro.application.Mappings
        .ForMember(dest => dest.InfoVerifiedById, opt => opt.MapFrom(src => src.InfoVerifiedById.ToString()))
        .ForMember(dest => dest.HasEducationDocUploded, opt => opt.MapFrom(src => src.HasEducationDocUploded))
        .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive));
-     
+
 
 
             CreateMap<EmployeeEducation, GetEducationResponseDTO>().ReverseMap();
@@ -427,7 +427,7 @@ namespace axionpro.application.Mappings
            .ForMember(dest => dest.IsPrimaryAccount, opt => opt.MapFrom(src => src.IsPrimaryAccount))
             .ForMember(dest => dest.UPIId, opt => opt.MapFrom(src => src.UPIId));
 
-            CreateMap<CreateContactRequestDTO, EmployeeContact>()  
+            CreateMap<CreateContactRequestDTO, EmployeeContact>()
          .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
 
          // 🔹 Contact Info
@@ -441,7 +441,7 @@ namespace axionpro.application.Mappings
          .ForMember(dest => dest.CountryId, opt => opt.MapFrom(src => string.IsNullOrEmpty(src.CountryId) ? 0 : int.Parse(src.CountryId)))
          .ForMember(dest => dest.StateId, opt => opt.MapFrom(src => string.IsNullOrEmpty(src.StateId) ? 0 : int.Parse(src.StateId)))
          .ForMember(dest => dest.DistrictId, opt => opt.MapFrom(src => string.IsNullOrEmpty(src.DistrictId) ? 0 : int.Parse(src.DistrictId)))
-         .ForMember(dest => dest.ContactType,opt => opt.MapFrom(src =>string.IsNullOrEmpty(src.ContactType)? 0: src.ContactType.Equals("Personal", StringComparison.OrdinalIgnoreCase) ? 1 :
+         .ForMember(dest => dest.ContactType, opt => opt.MapFrom(src => string.IsNullOrEmpty(src.ContactType) ? 0 : src.ContactType.Equals("Personal", StringComparison.OrdinalIgnoreCase) ? 1 :
               src.ContactType.Equals("Official", StringComparison.OrdinalIgnoreCase) ? 2 : 0))
 
 
@@ -450,7 +450,7 @@ namespace axionpro.application.Mappings
          .ForMember(dest => dest.LandMark, opt => opt.MapFrom(src => src.LandMark))
          .ForMember(dest => dest.Street, opt => opt.MapFrom(src => src.Street))
          .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
-       
+
          // 🔹 Optional/Metadata
          .ForMember(dest => dest.Remark, opt => opt.MapFrom(src => src.Remark))
          .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
@@ -490,16 +490,16 @@ namespace axionpro.application.Mappings
 
 
 
-        
-         //.ForMember(dest => dest.DesignationId, opt => opt.MapFrom(src => src.DesignationId != null ? src.DesignationId.ToString() : null))
-         //.ForMember(dest => dest.EmployeeTypeId, opt => opt.MapFrom(src => src.EmployeeTypeId != null ? src.EmployeeTypeId.ToString() : null))
-         //.ForMember(dest => dest.DepartmentId, opt => opt.MapFrom(src => src.DepartmentId != null ? src.DepartmentId.ToString() : null))
-   
-            
+
+            //.ForMember(dest => dest.DesignationId, opt => opt.MapFrom(src => src.DesignationId != null ? src.DesignationId.ToString() : null))
+            //.ForMember(dest => dest.EmployeeTypeId, opt => opt.MapFrom(src => src.EmployeeTypeId != null ? src.EmployeeTypeId.ToString() : null))
+            //.ForMember(dest => dest.DepartmentId, opt => opt.MapFrom(src => src.DepartmentId != null ? src.DepartmentId.ToString() : null))
+
+
             CreateMap<GetMinimalEmployeeResponseDTO, CreateBaseEmployeeRequestDTO>().ReverseMap();
             CreateMap<GetMinimalEmployeeResponseDTO, GetBaseEmployeeResponseDTO>().ReverseMap();
             CreateMap<GetMinimalEmployeeResponseDTO, EmployeeInfoEditableFieldsDTO>().ReverseMap();
-         
+
 
             #region Dependent
             CreateMap<CreateDependentRequestDTO, EmployeeDependent>()
@@ -521,11 +521,11 @@ namespace axionpro.application.Mappings
     .ForMember(dest => dest.IsCoveredInPolicy, opt => opt.MapFrom(src => src.IsCoveredInPolicy))
     .ForMember(dest => dest.IsMarried, opt => opt.MapFrom(src => src.IsMarried))
     .ForMember(dest => dest.Remark, opt => opt.MapFrom(src => src.Remark))
-    .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))   
+    .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
      .ForMember(dest => dest.InfoVerifiedById, opt => opt.MapFrom(src => src.InfoVerifiedById.HasValue ? src.InfoVerifiedById.Value.ToString() : null))
     .ForMember(dest => dest.IsInfoVerified, opt => opt.MapFrom(src => src.IsInfoVerified))
     .ForMember(dest => dest.InfoVerifiedDateTime, opt => opt.MapFrom(src => src.InfoVerifiedDateTime))
-    .ForMember(dest => dest.FilePath, opt => opt.MapFrom(src => src.FilePath))    
+    .ForMember(dest => dest.FilePath, opt => opt.MapFrom(src => src.FilePath))
     .ForMember(dest => dest.HasProofUploaded, opt => opt.MapFrom(src => src.HasProofUploaded));
 
 
@@ -538,7 +538,8 @@ namespace axionpro.application.Mappings
 
             #region 🔹 Personal Detail Mappings
             CreateMap<EmployeePersonalDetail, CreateIdentityRequestDTO>()
-       .ForMember(dest => dest._EmployeeId, opt => opt.MapFrom(src => src.EmployeeId))
+       .ForMember(dest => dest.UserEmployeeId, opt => opt.Ignore())
+       .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
        .ForMember(dest => dest.AadhaarDocFile, opt => opt.Ignore())
        .ForMember(dest => dest.PanDocFile, opt => opt.Ignore())
        .ForMember(dest => dest.PassportDocFile, opt => opt.Ignore());
@@ -548,12 +549,13 @@ namespace axionpro.application.Mappings
                 .ForMember(dest => dest.AddedById, opt => opt.Ignore())
                 .ForMember(dest => dest.AddedDateTime, opt => opt.Ignore())
                 .ForMember(dest => dest.UpdatedById, opt => opt.Ignore())
-                 
+                 .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
+                 .ForMember(dest => dest.SoftDeletedById, opt => opt.Ignore())
+
+
                 .ForMember(dest => dest.IsActive, opt => opt.Ignore())
 
-                // Simple 1-1 mapping
-                .ForMember(dest => dest.EmployeeId, opt => opt.MapFrom(src => src._EmployeeId))
-                
+
                 .ForMember(dest => dest.HasEPFAccount, opt => opt.MapFrom(src => src.HasEPFAccount))
                 .ForMember(dest => dest.UANNumber, opt => opt.MapFrom(src => src.UANNumber))
                 .ForMember(dest => dest.AadhaarNumber, opt => opt.MapFrom(src => src.AadhaarNumber))
@@ -567,7 +569,7 @@ namespace axionpro.application.Mappings
                 .ForMember(dest => dest.EmergencyContactName, opt => opt.MapFrom(src => src.EmergencyContactName))
                 .ForMember(dest => dest.EmergencyContactRelation, opt => opt.MapFrom(src => src.EmergencyContactRelation))
                 .ForMember(dest => dest.EmergencyContactNumber, opt => opt.MapFrom(src => src.EmergencyContactNumber));
-            
+
             #endregion
 
             #region 🔹 Experience Mappings
@@ -595,7 +597,7 @@ namespace axionpro.application.Mappings
 
 
             CreateMap<OrganizationHolidayCalendar, OrganizationHolidayCalendarDTO>();
-                 CreateMap<OrganizationHolidayCalendarDTO, OrganizationHolidayCalendar>();
+            CreateMap<OrganizationHolidayCalendarDTO, OrganizationHolidayCalendar>();
 
             // `Employee.OfficialEmail` ➝ `EmployeeInfoDTO.OfficialEmail`
 
@@ -628,7 +630,7 @@ namespace axionpro.application.Mappings
 
             //CreateMap<EmailTemplate, EmailTemplateDTO>();
             CreateMap<EmailTemplate, EmailTemplateDTO>().ReverseMap();
-            
+
             CreateMap<Tenant, DTOs.Registration.TenantCreateRequestDTO>().ReverseMap();
             CreateMap<LoginCredential, GetMinimalEmployeeResponseDTO>().ReverseMap();
 
@@ -637,29 +639,29 @@ namespace axionpro.application.Mappings
             CreateMap<District, GetDistrictOptionResponseDTO>().ReverseMap();
 
 
-            CreateMap<Tenant, DTOs.Tenant.TenantRequestDTO>().ReverseMap(); 
+            CreateMap<Tenant, DTOs.Tenant.TenantRequestDTO>().ReverseMap();
             CreateMap<TenantResponseDTO, Tenant>().ReverseMap();
 
             CreateMap<SubscriptionPlan, SubscriptionPlanResponseDTO>()
                .ForMember(dest => dest.Modules, opt => opt.MapFrom(src => src.PlanModuleMappings
                .Where(pmm => pmm.Module != null)
                 .Select(pmm => new ModuleResponseDTO
-                   {
-                   ModuleId = pmm.Module.Id,
-                   ModuleName = pmm.Module.ModuleName,
-                       ParentModuleId = pmm.Module.ParentModuleId
-                 }).ToList()));
+                {
+                    ModuleId = pmm.Module.Id,
+                    ModuleName = pmm.Module.ModuleName,
+                    ParentModuleId = pmm.Module.ParentModuleId
+                }).ToList()));
 
             CreateMap<ModuleOperationMapping, TenantEnabledOperationRequestDTO>();
-            CreateMap<TenantEnabledOperationRequestDTO,ModuleOperationMapping>();
+            CreateMap<TenantEnabledOperationRequestDTO, ModuleOperationMapping>();
 
-                  CreateMap<TenantEnabledOperation, TenantEnabledOperationRequestDTO>();
+            CreateMap<TenantEnabledOperation, TenantEnabledOperationRequestDTO>();
             CreateMap<TenantEnabledOperationRequestDTO, TenantEnabledOperation>();
 
 
 
 
-            
+
 
 
             CreateMap<OperationResponseDTO, TenantEnabledOperation>()
@@ -685,7 +687,7 @@ namespace axionpro.application.Mappings
     .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
     .ForMember(dest => dest.ModuleId, opt => opt.MapFrom(src => src.ModuleId))
     .ForMember(dest => dest.OperationIds, opt => opt.MapFrom(src => new List<int> { src.OperationId }))
-   
+
     .ForMember(dest => dest.PageURL, opt => opt.MapFrom(src => src.PageUrl))
     .ForMember(dest => dest.IconURL, opt => opt.MapFrom(src => src.IconUrl))
     .ForMember(dest => dest.IsCommonItem, opt => opt.MapFrom(src => src.IsCommonItem ?? false))
@@ -697,8 +699,8 @@ namespace axionpro.application.Mappings
     .ForMember(dest => dest.AddedDateTime, opt => opt.MapFrom(src => src.AddedDateTime))
     .ForMember(dest => dest.UpdatedById, opt => opt.MapFrom(src => src.UpdatedById))
     .ForMember(dest => dest.UpdatedDateTime, opt => opt.MapFrom(src => src.UpdatedDateTime));
- 
- 
+
+
 
 
 

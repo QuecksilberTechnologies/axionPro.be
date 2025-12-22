@@ -1,4 +1,5 @@
-﻿using axionpro.application.DTOS.Pagination;
+﻿using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Pagination;
 using MediatR.NotificationPublishers;
 using Microsoft.AspNetCore.Http;
 using System;
@@ -9,13 +10,11 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.DTOS.Employee.Sensitive
 {
-    public class CreateIdentityRequestDTO:BaseRequest
+    public class CreateIdentityRequestDTO
     {
-    
+
         public string UserEmployeeId { get; set; }
-        public long _UserEmployeeId { get; set; }
-        public long _EmployeeId { get; set; }      
-        public string EmployeeId { get; set; }      
+        public string EmployeeId { get; set; }
         public string? AadhaarNumber { get; set; }
         public string? PanNumber { get; set; }
         public string? PassportNumber { get; set; }
@@ -28,15 +27,15 @@ namespace axionpro.application.DTOS.Employee.Sensitive
         public string? Nationality { get; set; }
         public string? EmergencyContactName { get; set; }
         public string? EmergencyContactRelation { get; set; }
-        public string? EmergencyContactNumber { get; set; }   
+        public string? EmergencyContactNumber { get; set; }
         public IFormFile? AadhaarDocFile { get; set; }
         public IFormFile? PanDocFile { get; set; }
         public IFormFile? PassportDocFile { get; set; }
-        
+        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
+
         // 🔹 Flags
-      
-     
+
+
     }
 }
 
- 
