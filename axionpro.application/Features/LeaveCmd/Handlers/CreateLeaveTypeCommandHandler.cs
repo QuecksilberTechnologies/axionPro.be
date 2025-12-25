@@ -21,9 +21,9 @@ namespace axionpro.application.Features.LeaveCmd.Handlers
         private readonly ILeaveRepository _leaveRepository;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ICommonRepository _commonRepository;
+        private readonly IStoreProcedureRepository _commonRepository;
 
-        public CreateLeaveTypeCommandHandler( ILeaveRepository leaveRepository,  IMapper mapper, IUnitOfWork unitOfWork, ICommonRepository commonRepository) // Inject CommonRepository
+        public CreateLeaveTypeCommandHandler( ILeaveRepository leaveRepository,  IMapper mapper, IUnitOfWork unitOfWork, IStoreProcedureRepository commonRepository) // Inject CommonRepository
         {
             _leaveRepository = leaveRepository;
             _mapper = mapper;

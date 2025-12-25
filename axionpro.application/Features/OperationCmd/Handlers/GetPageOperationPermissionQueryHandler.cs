@@ -35,7 +35,7 @@ namespace axionpro.application.Features.OperationCmd.Handlers
 
 
                 // Repository se permission check karo
-                bool result = await _unitOfWork.CommonRepository.GetHasAccessOperation(requestDTO);
+                bool result = await _unitOfWork.StoreProcedureRepository.GetHasAccessOperation(requestDTO);
                 if (result)
                 {
                     response.IsSucceeded = result;

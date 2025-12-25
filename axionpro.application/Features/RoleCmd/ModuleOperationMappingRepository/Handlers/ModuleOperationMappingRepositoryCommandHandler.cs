@@ -26,13 +26,13 @@ namespace axionpro.application.Features.RoleCmd.ModuleOperationMappingRepository
         private readonly ITenantModuleConfigurationRepository repository;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ICommonRepository _commonRepository;
+        private readonly IStoreProcedureRepository _commonRepository;
         private readonly ILogger<GetModuleOperationMappingRepositoryCommand> _logger;
 
         public ModuleOperationMappingRepositoryCommandHandler(
             ITenantModuleConfigurationRepository tenantModuleConfigurationRepository,
             IMapper mapper,
-            ICommonRepository commonRepository,
+            IStoreProcedureRepository commonRepository,
             IUnitOfWork unitOfWork,
             ILogger<GetModuleOperationMappingRepositoryCommand> logger)
         {

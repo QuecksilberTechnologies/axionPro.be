@@ -6,7 +6,6 @@ namespace axionpro.domain.Entity;
 public partial class Employee
 {
    
-
     public long Id { get; set; }
 
     public long TenantId { get; set; }
@@ -20,7 +19,7 @@ public partial class Employee
     public string? MiddleName { get; set; }
 
     public int GenderId { get; set; }
-
+    public int? NationalityCountryId { get; set; }
     public string FirstName { get; set; }=string.Empty;
 
     public DateTime? DateOfBirth { get; set; }
@@ -80,6 +79,9 @@ public partial class Employee
     public virtual ICollection<AttendanceHistory> AttendanceHistories { get; set; } = new List<AttendanceHistory>();
 
     public virtual Designation? Designation { get; set; }
+ 
+  
+    public Country? NationalityCountry { get; set; }
 
     public virtual ICollection<EmployeeBankDetail> EmployeeBankDetails { get; set; } = new List<EmployeeBankDetail>();
     public virtual ICollection<EmployeeContact> EmployeeContacts { get; set; } = new List<EmployeeContact>();

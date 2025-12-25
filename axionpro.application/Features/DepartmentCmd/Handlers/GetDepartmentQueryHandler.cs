@@ -91,7 +91,7 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                     return ApiResponse<List<GetDepartmentResponseDTO>>.Fail("Invalid or expired token.");
 
                 // 🧩 STEP 2: Validate Active User
-                long loggedInEmpId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
+                long loggedInEmpId = await _unitOfWork.StoreProcedureRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
                 if (loggedInEmpId < 1)
                 {
                     _logger.LogWarning("❌ Invalid or inactive user. LoginId: {LoginId}", tokenClaims.UserId);

@@ -7,6 +7,7 @@ using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.DTOs.UserRole;
 using axionpro.application.DTOS.RoleModulePermission;
+using axionpro.application.DTOS.StoreProcedureDTO;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
@@ -34,15 +35,15 @@ using Module = axionpro.domain.Entity.Module;
 
 namespace axionpro.persistance.Repositories
 {
-    public class CommonRepository : ICommonRepository
+    public class StoreProcedureRepository : IStoreProcedureRepository
     {
         private readonly WorkforceDbContext _context;
-        private readonly ILogger<CommonRepository> _logger;
+        private readonly ILogger<StoreProcedureRepository> _logger;
         private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
         private readonly IMapper _mapper;
         
 
-        public CommonRepository(WorkforceDbContext context, ILogger<CommonRepository> logger, IMapper mapper, IDbContextFactory<WorkforceDbContext> contextFactory)
+        public StoreProcedureRepository(WorkforceDbContext context, ILogger<StoreProcedureRepository> logger, IMapper mapper, IDbContextFactory<WorkforceDbContext> contextFactory)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -283,8 +284,59 @@ namespace axionpro.persistance.Repositories
                 return -1;  // Error Case
             }
         }
-       
-    public async Task<long> ValidateActiveUserCrendentialOnlyAsync(string loginId)
+
+
+
+
+        public async Task<List<GetEmployeeIdentitySp>> GetIdentityRecordAsync(
+       long employeeId,
+       int countryId,
+       bool isActive)
+        {
+            try
+            {
+                await using var context = await _contextFactory.CreateDbContextAsync();
+
+                _logger.LogInformation(
+                    "Fetching Employee Identity records. EmployeeId: {EmployeeId}, CountryId: {CountryId}",
+                    employeeId, countryId);
+
+                var sql = @"EXEC AxionPro.GetEmployeeIdentityByCountryRule 
+                    @EmployeeId,
+                    @CountryId,
+                    @IsActive";
+
+                var parameters = new[]
+                {
+            new SqlParameter("@EmployeeId", employeeId),
+            new SqlParameter("@CountryId", countryId),
+            new SqlParameter("@IsActive", isActive)
+        };
+
+                var result = await context.GetEmployeeIdentitySps
+                    .FromSqlRaw(sql, parameters)
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                return result;
+            }
+            catch (SqlException ex)
+            {
+                _logger.LogError(ex,
+                    "SQL error while fetching identity records. EmployeeId: {EmployeeId}",
+                    employeeId);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Unexpected error while fetching identity records. EmployeeId: {EmployeeId}",
+                    employeeId);
+                throw;
+            }
+        }
+
+        public async Task<long> ValidateActiveUserCrendentialOnlyAsync(string loginId)
         {
             try
             {
@@ -316,9 +368,7 @@ namespace axionpro.persistance.Repositories
         }
 
 
-
-
-
+        
         public async Task<bool> GetHasAccessOperation(GetCheckOperationPermissionRequestDTO checkOperationPermissionRequest)
         {
             try

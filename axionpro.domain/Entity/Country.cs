@@ -14,4 +14,6 @@ public partial class Country
     public bool? IsActive { get; set; }
 
     public virtual ICollection<State> States { get; set; } = new List<State>();
+    public virtual ICollection<Employee> Employees { get; set; } = new List<Employee>();
+
 }

@@ -107,7 +107,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 
 
                 // ------------------------ AUTHORIZATION ------------------------
-                long loggedInEmpId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
+                long loggedInEmpId = await _unitOfWork.StoreProcedureRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
                 if (loggedInEmpId != request.DTO.Prop.UserEmployeeId)
                     return ApiResponse<bool>.Fail("Unauthorized request — Access denied.");
 

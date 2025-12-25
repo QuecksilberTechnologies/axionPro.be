@@ -9,11 +9,13 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.DTOS.Employee.Sensitive
 {
-    public class GetIdentityRequestDTO : BaseRequest
+    public class GetIdentityRequestDTO 
     {
 
-        public string? EmployeeId { get; set; }
-        public bool IsActive { get; set; }
+        public required string EmployeeId { get; set; }
+        public required string UserEmployeeId { get; set; }
+        public required bool IsActive { get; set; }
+        public required  int CountryNationalityId { get; set; }
         public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
     }
 }

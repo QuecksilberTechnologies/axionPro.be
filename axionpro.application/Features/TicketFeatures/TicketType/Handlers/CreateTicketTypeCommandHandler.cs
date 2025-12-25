@@ -23,9 +23,9 @@ namespace axionpro.application.Features.TicketFeatures.TicketType.Handlers
         private readonly ITicketTypeRepository _repository;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ICommonRepository _commonRepository;
+        private readonly IStoreProcedureRepository _commonRepository;
 
-        public CreateTicketTypeCommandHandler(ITicketTypeRepository repository,  IMapper mapper, IUnitOfWork unitOfWork, ICommonRepository commonRepository) // Inject CommonRepository
+        public CreateTicketTypeCommandHandler(ITicketTypeRepository repository,  IMapper mapper, IUnitOfWork unitOfWork, IStoreProcedureRepository commonRepository) // Inject CommonRepository
         {
             _repository = repository;
             _mapper = mapper;

@@ -464,7 +464,10 @@ namespace axionpro.application.Mappings
 
             #region 🔹 Base Employee Mappings
 
-            CreateMap<Employee, CreateBaseEmployeeRequestDTO>().ReverseMap();
+            CreateMap<CreateBaseEmployeeRequestDTO, Employee>()
+             .ForMember(dest => dest.NationalityCountryId,
+                   opt => opt.MapFrom(src => src.NationalityCountryId)).ReverseMap();
+
 
             CreateMap<Employee, GetBaseEmployeeResponseDTO>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id)) // already int -> no need tostring

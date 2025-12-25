@@ -137,6 +137,9 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 if (request.DTO.IsEditAllowed.HasValue)
                     existingEmployee.IsEditAllowed = request.DTO.IsEditAllowed.Value;
 
+                if (request.DTO.NationalityCountryId.HasValue)
+                    existingEmployee.NationalityCountryId = request.DTO.NationalityCountryId;
+
                 if (request.DTO.IsInfoVerified.HasValue)
                 {
                     existingEmployee.IsInfoVerified = request.DTO.IsInfoVerified.Value;

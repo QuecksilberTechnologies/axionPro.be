@@ -18,6 +18,8 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
             public int GenderId { get; set; }
             public string? DesignationName { get; set; }
             public string? DepartmentName { get; set; }
+            public int? NationalityCountryId { get; set; }
+            public string? Nationality { get; set; } = string.Empty;
             public string? RoleName { get; set; }
             public int? RoleId { get; set; }
             public int? RoleType { get; set; }

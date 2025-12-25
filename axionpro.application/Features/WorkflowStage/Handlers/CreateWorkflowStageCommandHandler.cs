@@ -17,13 +17,13 @@ namespace axionpro.application.Features.WorkflowStage.Handlers
         private readonly IWorkflowStagesRepository _repository;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ICommonRepository _commonRepository;
+        private readonly IStoreProcedureRepository _commonRepository;
 
         public CreateWorkflowStageCommandHandler(
             IWorkflowStagesRepository repository,
             IMapper mapper,
             IUnitOfWork unitOfWork,
-            ICommonRepository commonRepository)
+            IStoreProcedureRepository commonRepository)
         {
             _repository = repository;
             _mapper = mapper;

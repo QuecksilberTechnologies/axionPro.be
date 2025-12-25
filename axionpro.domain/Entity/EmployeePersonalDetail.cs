@@ -32,9 +32,9 @@ public partial class EmployeePersonalDetail
 
     public string? BloodGroup { get; set; }
 
-    public string? MaritalStatus { get; set; }
+    public required bool MaritalStatus { get; set; }
 
-    public string? Nationality { get; set; }
+    public required string Nationality { get; set; }
 
     public string? EmergencyContactName { get; set; }
 

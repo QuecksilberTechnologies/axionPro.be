@@ -79,7 +79,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     var secretKey = TokenKeyHelper.GetJwtSecret(_config);
                     var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
 
-                    long loggedInEmpId = await _unitOfWork.CommonRepository
+                    long loggedInEmpId = await _unitOfWork.StoreProcedureRepository
                         .ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
 
 

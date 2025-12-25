@@ -45,7 +45,7 @@ namespace axionpro.persistance
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // ✅ All Repositories as Scoped
-            services.AddScoped<ICommonRepository, CommonRepository>();
+            services.AddScoped<IStoreProcedureRepository, StoreProcedureRepository>();
             services.AddScoped<ITenantEncryptionKeyRepository, TenantEncryptionKeyRepository>();
 
             

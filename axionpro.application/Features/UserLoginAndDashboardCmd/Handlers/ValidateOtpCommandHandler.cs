@@ -40,7 +40,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
             try
             {
                 // 🔐 Step 1: Validate if user exists
-                long empId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(request.dTO.LoginId);
+                long empId = await _unitOfWork.StoreProcedureRepository.ValidateActiveUserLoginOnlyAsync(request.dTO.LoginId);
                 _logger.LogInformation("Validation result for LoginId {LoginId}: EmployeeId = {empId}", request.dTO.LoginId, empId);
 
                 if (empId < 1)
@@ -50,7 +50,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                     return ApiResponse<bool>.Fail("User is not authenticated or authorized to perform this action.");
                 }
 
-                long userId = await _unitOfWork.CommonRepository.ValidateActiveUserCrendentialOnlyAsync(request.dTO.LoginId);
+                long userId = await _unitOfWork.StoreProcedureRepository.ValidateActiveUserCrendentialOnlyAsync(request.dTO.LoginId);
                 GetMinimalEmployeeResponseDTO? empInfo = await _unitOfWork.Employees.GetSingleRecordAsync(empId,true);;
 
                 // 🔍 Step 2: Check Existing OTP

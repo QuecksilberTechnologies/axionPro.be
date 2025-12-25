@@ -114,7 +114,6 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     return ApiResponse<bool>.Fail("Employee not found.");
                 }
 
-
                 // ---------- APPLY UPDATE (ONLY IF VALUE PROVIDED) ----------
                 if (!string.IsNullOrWhiteSpace(request.DTO.FirstName))
                     existingEmployee.FirstName = request.DTO.FirstName.Trim();

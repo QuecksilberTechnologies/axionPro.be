@@ -11,6 +11,7 @@ using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.DTOS.Employee.Experience;
 using axionpro.application.DTOS.Employee.Sensitive;
 using axionpro.application.DTOS.Pagination;
+using axionpro.application.DTOS.StoreProcedureDTO;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.domain.Entity;
 using Microsoft.Extensions.Configuration;
@@ -115,44 +116,50 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         //    }).ToList();
         //}
 
-        public static GetIdentityResponseDTO ToGetIdentityResponseDTO(GetIdentityResponseDTO entity, IIdEncoderService encryptionService, string tenantKey)
+        public static List<GetEmployeeIdentityResponseDTO> ToGetIdentityResponseDTO(
+        IEnumerable<GetEmployeeIdentitySp> entities,
+        IIdEncoderService encoder,
+        string tenantKey)
         {
-            if (entity == null)
-                return new GetIdentityResponseDTO();
+            if (entities == null)
+                return new List<GetEmployeeIdentityResponseDTO>();
 
-            return new GetIdentityResponseDTO
+            return entities.Select(e => new GetEmployeeIdentityResponseDTO
             {
-                EmployeeId = encryptionService.EncodeString(entity.EmployeeId, tenantKey),
-                AadhaarNumber = entity.AadhaarNumber,
-                PanNumber = entity.PanNumber,
-                PassportNumber = entity.PassportNumber,
-                DrivingLicenseNumber = entity.DrivingLicenseNumber,
-                VoterId = entity.VoterId,
+                // 🔐 ONLY EmployeeId is encoded (ASXER rule)
+                EmployeeId = e.EmployeeId.HasValue
+                    ? encoder.EncodeId_long(e.EmployeeId.Value, tenantKey)
+                    : null,
 
-                BloodGroup = entity.BloodGroup,
-                MaritalStatus = entity.MaritalStatus,
-                Nationality = entity.Nationality,
+                // 🌍 Country
+                CountryCode = e.CountryCode,
+                CountryName = e.CountryName,
 
-                EmergencyContactName = entity.EmergencyContactName,
-                EmergencyContactNumber = entity.EmergencyContactNumber,
-                EmergencyContactRelation = entity.EmergencyContactRelation,
+                // 🗂 Identity Category
+                IdentityCategoryName = e.IdentityCategoryName,
 
-                IsInfoVerified = entity.IsInfoVerified,
-                IsEditAllowed = entity.IsEditAllowed,
+                // 📄 Document (RAW master IDs)
+                IdentityCategoryDocumentId = e.IdentityCategoryDocumentId,
+                DocumentCode = e.DocumentCode,
+                DocumentName = e.DocumentName,
+                Description = e.Description,
+                IsMandatory = e.IsMandatory,
 
-                hasPanIdUploaded = entity.hasPanIdUploaded,
-                hasAadharIdUploaded = entity.hasAadharIdUploaded,
-                hasPassportIdUploaded = entity.hasPassportIdUploaded,
+                // 👤 EmployeeIdentity
+                EmployeeIdentityId = e.EmployeeIdentityId,
+                IdentityValue = e.IdentityValue,
 
-                panFilePath = entity.panFilePath,
-                passportFilePath = entity.passportFilePath,
-                aadharFilePath = entity.aadharFilePath,
+                // ✅ Flags
+                IsVerified = e.IsVerified,
+                IsEditAllowed = e.IsEditAllowed,
+                HasIdentityUploaded = e.HasIdentityUploaded,
 
-                CompletionPercentage = entity.CompletionPercentage,
+                // 📆 Validity
+                EffectiveFrom = e.EffectiveFrom,
+                EffectiveTo = e.EffectiveTo,
 
-                HasEPFAccount = entity.HasEPFAccount,
-                UANNumber = entity.UANNumber
-            };
+                IsActive = e.IsActive
+            }).ToList();
         }
 
         public static List<GetAllEmployeeInfoResponseDTO> ToGetAllEmployeeInfoResponseDTOs(

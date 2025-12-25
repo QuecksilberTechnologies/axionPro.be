@@ -64,7 +64,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
         private readonly IUnitOfWork _unitOfWork;
         private readonly ITokenService _tokenService;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
-        private readonly ICommonRepository _iCommonRepository;
+        private readonly IStoreProcedureRepository _iCommonRepository;
         private readonly ILogger<LoginCommandHandler> _logger;
         private readonly IPasswordService _passwordService;
         private readonly IConfiguration _configuration;
@@ -72,7 +72,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
         private readonly  IIdEncoderService _idEncoderService;
         private readonly ICommonRequestService _commonRequestService;
 
-        public LoginCommandHandler(IMapper mapper, IUnitOfWork unitOfWork, ITokenService tokenService, IRefreshTokenRepository refreshTokenRepository, ILogger<LoginCommandHandler> logger, ICommonRepository iCommonRepository, IPasswordService passwordService,
+        public LoginCommandHandler(IMapper mapper, IUnitOfWork unitOfWork, ITokenService tokenService, IRefreshTokenRepository refreshTokenRepository, ILogger<LoginCommandHandler> logger, IStoreProcedureRepository iCommonRepository, IPasswordService passwordService,
             IConfiguration configuration, IEncryptionService encryptionService, IIdEncoderService idEncoderService, ICommonRequestService commonRequestService)
         {
             _logger = logger;
@@ -103,7 +103,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 string? savedFullPath = null;  // 📂 File full path track karne ke liye
 
                 // 🔐 Step 1: Validate if user exists
-                long empId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(request.DTO.LoginId);
+                long empId = await _unitOfWork.StoreProcedureRepository.ValidateActiveUserLoginOnlyAsync(request.DTO.LoginId);
                 _logger.LogInformation("Validation result for LoginId {LoginId}: EmployeeId = {empId}", request.DTO.LoginId, empId);
 
                 if (empId < 1)
@@ -211,7 +211,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                   {
                       UpdateTenantEnabledOperationFromModuleOperationRequestDTO updateTenantEnabledOperationFromModuleOperationRequestDTO = new UpdateTenantEnabledOperationFromModuleOperationRequestDTO();
                       updateTenantEnabledOperationFromModuleOperationRequestDTO.TenantId = empMinimalResponse.TenantId;
-                      var updatedDone = _unitOfWork.CommonRepository.UpdateTenantEnabledOperationFromModuleOperationRequestDTO(updateTenantEnabledOperationFromModuleOperationRequestDTO);
+                      var updatedDone = _unitOfWork.StoreProcedureRepository.UpdateTenantEnabledOperationFromModuleOperationRequestDTO(updateTenantEnabledOperationFromModuleOperationRequestDTO);
                   }
                 List<UserRoleDTO>? userRoleDTOs = null;
                 string? allRoleIdsCsv = null;
@@ -276,7 +276,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 
 
 
-                var rolePermissions = await _unitOfWork.CommonRepository.GetActiveRoleModuleOperationsAsync(requestDto);
+                var rolePermissions = await _unitOfWork.StoreProcedureRepository.GetActiveRoleModuleOperationsAsync(requestDto);
 
 
 
@@ -360,7 +360,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 
                 GetEmployeeLoginInfoResponseDTO? employeeInfo = _mapper.Map<GetEmployeeLoginInfoResponseDTO>(empMinimalResponse);
                 employeeInfo.IsPasswordChangeRequired = IsPasswordChange;
-                employeeInfo.UserPrimaryRole = primaryRole;
+                employeeInfo.UserPrimaryRole = primaryRole;                 
                 employeeInfo.RoleTypeId = roleInfo.Role.RoleType;
                 employeeInfo.RoleTypeName = roleInfo.Role.RoleName;
                 employeeInfo.EmployeeId = encriptedEmployeeId.Trim();
@@ -442,7 +442,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 
 
                 // 🔄 Step 4: Update login audit
-                bool updated = await _unitOfWork.CommonRepository.UpdateLoginCredential(loginRequest);
+                bool updated = await _unitOfWork.StoreProcedureRepository.UpdateLoginCredential(loginRequest);
                 if (updated)
                     _logger.LogInformation("LoginCredential updated successfully for LoginId: {LoginId}", loginRequest.LoginId);
                 else

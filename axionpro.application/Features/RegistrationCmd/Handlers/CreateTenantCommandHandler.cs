@@ -52,7 +52,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
     public class CreateTenantCommandHandler : IRequestHandler<CreateTenantCommand, ApiResponse<TenantCreateResponseDTO>>
     {
         private readonly IEmailService _emailService;
-        private readonly ICommonRepository _commonRepository;
+        private readonly IStoreProcedureRepository _commonRepository;
         private readonly ITenantRepository _tenantRepository;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
@@ -69,7 +69,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
             ITenantRepository tenantRepository, ITokenService tokenService, IRefreshTokenRepository refreshTokenRepository,
             IMapper mapper,
             IUnitOfWork unitOfWork,
-            ILogger<CreateTenantCommandHandler> logger, IEmailService emailService, ICommonRepository commonRepository,
+            ILogger<CreateTenantCommandHandler> logger, IEmailService emailService, IStoreProcedureRepository commonRepository,
             IPasswordService passwordService, IEncryptionService encryptionService, IIdEncoderService idEncoderService  
           , IConfiguration configuration, IServiceScopeFactory scopeFactory  )
 
@@ -207,7 +207,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
 
                 // Step 15️⃣: Get Subscribed Modules for Department Creation
                 List<SubscribedModuleResponseDTO> getDepartnames =
-                    _unitOfWork.CommonRepository.GetSubscribedModulesByTenantAsync(newTenantId).Result;
+                    _unitOfWork.StoreProcedureRepository.GetSubscribedModulesByTenantAsync(newTenantId).Result;
 
                 if (getDepartnames == null || getDepartnames.Count == 0)
                 {

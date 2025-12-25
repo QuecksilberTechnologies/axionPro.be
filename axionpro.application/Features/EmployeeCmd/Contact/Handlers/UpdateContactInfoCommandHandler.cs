@@ -79,7 +79,7 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
                 if (tokenClaims == null || tokenClaims.IsExpired)
                     return ApiResponse<bool>.Fail("Invalid or expired token.");
 
-                long loggedInEmpId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
+                long loggedInEmpId = await _unitOfWork.StoreProcedureRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
                 if (loggedInEmpId <= 0)
                     return ApiResponse<bool>.Fail("Unauthorized request.");
 

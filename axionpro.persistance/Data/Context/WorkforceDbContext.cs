@@ -3,6 +3,7 @@ using axionpro.application.DTOs.Operation;
 
 using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOS.RoleModulePermission;
+using axionpro.application.DTOS.StoreProcedureDTO;
 using axionpro.application.Interfaces.IContext;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
@@ -247,6 +248,7 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<WorkstationType> WorkstationTypes { get; set; }
         public virtual DbSet<SubscribedModuleResponseDTO> SubscribedModuleResponseDTOs { get; set; }
         public virtual DbSet<FlatModuleOperationDto> TenantModulesConfigurations { get; set; }
+        public virtual DbSet<GetEmployeeIdentitySp> GetEmployeeIdentitySps { get; set; }
 
         //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         // #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
@@ -954,56 +956,44 @@ namespace axionpro.persistance.Data.Context
 
             modelBuilder.Entity<Employee>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC07E3264254");
+                entity.HasKey(e => e.Id).HasName("PK_Employee");
 
                 entity.ToTable("Employee", "AxionPro");
 
-                entity.HasIndex(e => e.OfficialEmail, "UX_Employee_SystemUser_OnlyOnce")
-                    .IsUnique()
-                    .HasFilter("([TenantId] IS NULL AND [IsSoftDeleted]=(0))");
+                entity.HasIndex(e => e.OfficialEmail, "UX_Employee_OfficialEmail_Once")
+                      .IsUnique()
+                      .HasFilter("([TenantId] IS NULL AND [IsSoftDeleted]=(0))");
 
-                entity.HasIndex(e => e.Id, "UX_Employee_TenantIdNullOnce")
-                    .IsUnique()
-                    .HasFilter("([TenantId] IS NULL AND [IsSoftDeleted]=(0))");
+                entity.Property(e => e.AddedDateTime)
+                      .HasColumnType("datetime")
+                      .HasDefaultValueSql("GETDATE()");
 
-                entity.HasIndex(e => e.Id, "UX_Employee_TenantId_Null_OnlyOnce")
-                    .IsUnique()
-                    .HasFilter("([TenantId] IS NULL AND [IsSoftDeleted]=(0))");
-
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.DateOfBirth).HasColumnType("datetime");
-                entity.Property(e => e.DateOfExit).HasColumnType("datetime");
-                entity.Property(e => e.DateOfOnBoarding).HasColumnType("datetime");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.Description).HasMaxLength(500);
-                entity.Property(e => e.EmployementCode).HasMaxLength(50);
-                entity.Property(e => e.FirstName).HasMaxLength(100);
-                entity.Property(e => e.InfoVerifiedDateTime).HasColumnType("datetime");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
-                entity.Property(e => e.LastName).HasMaxLength(100);
-                entity.Property(e => e.MiddleName).HasMaxLength(100);
-                entity.Property(e => e.OfficialEmail).HasMaxLength(255);
-                entity.Property(e => e.Remark).HasMaxLength(200);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
 
-                entity.HasOne(d => d.Designation).WithMany(p => p.Employees)
-                    .HasForeignKey(d => d.DesignationId)
-                    .OnDelete(DeleteBehavior.SetNull)
-                    .HasConstraintName("FK_Employee_Designation");
+                entity.HasOne(d => d.Designation)
+                      .WithMany(p => p.Employees)
+                      .HasForeignKey(d => d.DesignationId)
+                      .OnDelete(DeleteBehavior.SetNull);
 
-                entity.HasOne(d => d.EmployeeType).WithMany(p => p.Employees)
-                    .HasForeignKey(d => d.EmployeeTypeId)
-                    .HasConstraintName("FK_Employee_EmployeeType");
+                entity.HasOne(d => d.NationalityCountry)
+                      .WithMany()
+                      .HasForeignKey(d => d.NationalityCountryId)
+                      .OnDelete(DeleteBehavior.SetNull)
+                      .HasConstraintName("FK_Employee_NationalityCountry");
 
-                entity.HasOne(d => d.Gender).WithMany(p => p.Employees)
-                    .HasForeignKey(d => d.GenderId)
-                    .HasConstraintName("FK_Employee_Gender");
+                entity.HasOne(d => d.EmployeeType)
+                      .WithMany(p => p.Employees)
+                      .HasForeignKey(d => d.EmployeeTypeId);
 
-                entity.HasOne(d => d.Tenant).WithMany(p => p.Employees)
-                    .HasForeignKey(d => d.TenantId)
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .HasConstraintName("FK_Employee_Tenant");
+                entity.HasOne(d => d.Gender)
+                      .WithMany(p => p.Employees)
+                      .HasForeignKey(d => d.GenderId);
+
+                entity.HasOne(d => d.Tenant)
+                      .WithMany(p => p.Employees)
+                      .HasForeignKey(d => d.TenantId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<EmployeeContact>(entity =>
@@ -2344,6 +2334,8 @@ namespace axionpro.persistance.Data.Context
                     .HasForeignKey(d => d.CountryId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__State__CountryId__6B0FDBE9");
+
+            
             });
 
             modelBuilder.Entity<SubscriptionPlan>(entity =>

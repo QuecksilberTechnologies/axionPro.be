@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,6 +16,8 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         public string? LastName { get; set; }
         public string EmployementCode { get; set; } = null!;
         public int EmployeeTypeId { get; set; }
+        public int NationalityCountryId { get; set; }        
+        public string? Nationality { get; set; }
         public string? EmployeeTypeName { get; set; }
         public string? DepartmentName { get; set; }
         public string? DesignationName { get; set; }

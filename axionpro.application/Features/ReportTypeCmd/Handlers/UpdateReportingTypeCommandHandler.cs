@@ -17,14 +17,14 @@ namespace axionpro.application.Features.ReportTypeCmd.Handlers
         private readonly IReportingTypeRepository _repository;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ICommonRepository _commonRepository;
+        private readonly IStoreProcedureRepository _commonRepository;
         private readonly ILogger<UpdateReportingTypeCommandHandler> _logger;
 
         public UpdateReportingTypeCommandHandler(
             IReportingTypeRepository repository,
             IMapper mapper,
             IUnitOfWork unitOfWork,
-            ICommonRepository commonRepository,
+            IStoreProcedureRepository commonRepository,
             ILogger<UpdateReportingTypeCommandHandler> logger)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));

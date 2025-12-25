@@ -1,13 +1,16 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.Converters;
+using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOs.Employee;
 using axionpro.application.DTOs.Employee.AccessControlReadOnlyType;
 using axionpro.application.DTOS.Employee.Sensitive;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
+using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.IRepositories;
+using axionpro.application.Interfaces.IRequestValidation;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
@@ -19,158 +22,237 @@ using System.Reflection;
 
 namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
 {
-    //public class UpdateIdentityInfoCommand : IRequest<ApiResponse<bool>>
-    //{
-    //    public GenricUpdateRequestDTO DTO { get; set; }
+    public class UpdateIdentityInfoCommand : IRequest<ApiResponse<bool>>
+    {
+        public UpdateIdentityReqestDTO DTO { get; set; }
 
-    //    public UpdateIdentityInfoCommand(GenricUpdateRequestDTO dto)
-    //    {
-    //        DTO = dto;
-    //    }
+        public UpdateIdentityInfoCommand(UpdateIdentityReqestDTO dto)
+        {
+            DTO = dto;
+        }
 
-    //}
-    //public class UpdateIdentityInfoCommandHandler : IRequestHandler<UpdateIdentityInfoCommand, ApiResponse<bool>>
-    //{
-    //    private readonly IBaseEmployeeRepository _employeeRepository;
-    //    private readonly IUnitOfWork _unitOfWork;
-    //    private readonly ILogger<UpdateIdentityInfoCommandHandler> _logger;
-    //    private readonly IMapper _mapper;
-    //    private readonly ITokenService _tokenService;
-    //    private readonly IPermissionService _permissionService;
-    //    private readonly IConfiguration _config;
-    //    private readonly IHttpContextAccessor _httpContextAccessor;
-    //    private readonly IEncryptionService _encryptionService;
+    }
+    public class UpdateIdentityInfoCommandHandler : IRequestHandler<UpdateIdentityInfoCommand, ApiResponse<bool>>
+    {
+        private readonly IEmployeeIdentityRepository _empIdentityRepository;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger<UpdateIdentityInfoCommandHandler> _logger;
+        private readonly IMapper _mapper;
+        private readonly ITokenService _tokenService;
+        private readonly IPermissionService _permissionService;
+        private readonly IConfiguration _config;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IEncryptionService _encryptionService;
+        private readonly IIdEncoderService _idEncoderService;
+        private readonly ICommonRequestService _commonRequestService;
+        private readonly IFileStorageService _fileStorageService;
 
-    //    public UpdateIdentityInfoCommandHandler(
-    //        IBaseEmployeeRepository employeeRepository,
-    //        IUnitOfWork unitOfWork,
-    //        ILogger<UpdateIdentityInfoCommandHandler> logger,
-    //        IMapper mapper,
-    //        ITokenService tokenService,
-    //        IPermissionService permissionService,
-    //        IConfiguration configuration,
-    //        IHttpContextAccessor httpContextAccessor,
-    //        IEncryptionService encryptionService)
-    //    {
-    //        _employeeRepository = employeeRepository;
-    //        _unitOfWork = unitOfWork;
-    //        _logger = logger;
-    //        _mapper = mapper;
-    //        _tokenService = tokenService;
-    //        _permissionService = permissionService;
-    //        _config = configuration;
-    //        _httpContextAccessor = httpContextAccessor;
-    //        _encryptionService = encryptionService;
-    //    }
 
-    //    public async Task<ApiResponse<bool>> Handle(UpdateIdentityInfoCommand request, CancellationToken cancellationToken)
-    //    {
-    //        try
-    //        {
-    //            // ✅ Step 1: Validate JWT Token
-    //            var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
-    //                .ToString()?.Replace("Bearer ", "");
-    //            if (string.IsNullOrEmpty(bearerToken))
-    //                return ApiResponse<bool>.Fail("Unauthorized: Token not found.");
+        public UpdateIdentityInfoCommandHandler(
+            IEmployeeIdentityRepository employeeRepository,
+            IUnitOfWork unitOfWork,
+            ILogger<UpdateIdentityInfoCommandHandler> logger,
+            IMapper mapper,
+            ITokenService tokenService,
+            IPermissionService permissionService,
+            IConfiguration configuration,
+            IHttpContextAccessor httpContextAccessor,
+            IEncryptionService encryptionService,
+            ICommonRequestService commonRequestService, IIdEncoderService idEncoderService, IFileStorageService fileStorageService)
+        {
+            _empIdentityRepository = employeeRepository;
+            _unitOfWork = unitOfWork;
+            _logger = logger;
+            _mapper = mapper;
+            _tokenService = tokenService;
+            _permissionService = permissionService;
+            _config = configuration;
+            _httpContextAccessor = httpContextAccessor;
+            _encryptionService = encryptionService;
+            _commonRequestService = commonRequestService;
+            _idEncoderService = idEncoderService;
+            _fileStorageService = fileStorageService;
+        }
 
-    //            var secretKey = _config["Jwt:Key"];
-    //            var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
-    //            if (tokenClaims == null || tokenClaims.IsExpired)
-    //                return ApiResponse<bool>.Fail("Invalid or expired token.");
+        public async Task<ApiResponse<bool>> Handle(UpdateIdentityInfoCommand request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                // -------------------------------------------------
+                // 1️⃣ COMMON VALIDATION
+                // -------------------------------------------------
+                var validation = await _commonRequestService
+                    .ValidateRequestAsync(request.DTO.UserEmployeeId);
 
-    //            // ✅ Step 2: Validate Logged-in User
-    //            long empId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
-    //            if (empId < 1)
-    //            {
-    //                _logger.LogWarning("User validation failed for LoginId: {LoginId}", tokenClaims.UserId);
-    //                await _unitOfWork.RollbackTransactionAsync();
-    //                return ApiResponse<bool>.Fail("User is not authorized to perform this action.");
-    //            }
+                if (!validation.Success)
+                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
 
-    //            // ✅ Step 3: Permission Check
-    //            var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
-    //            if (!permissions.Contains("EditIdentityInfo"))
-    //            {
-    //                await _unitOfWork.RollbackTransactionAsync();
-    //                return ApiResponse<bool>.Fail("You do not have permission to edit identity info.");
-    //            }
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
+                request.DTO.Prop.EmployeeId = RequestCommonHelper.DecodeOnlyEmployeeId(request.DTO.EmployeeId,   validation.Claims.TenantEncriptionKey, _idEncoderService      );
 
-    //            var tenantKey = tokenClaims.TenantEncriptionKey;
-    //            var dto = request.DTO;
+                // -------------------------------------------------
+                // 2️⃣ PERMISSION CHECK
+                // -------------------------------------------------
+                var permissions = await _permissionService
+                    .GetPermissionsAsync(validation.RoleId);
 
-    //            // ✅ Step 4: Validation
-    //            if (string.IsNullOrWhiteSpace(dto.FieldName))
-    //                return ApiResponse<bool>.Fail("Field name cannot be empty.");
+                if (!permissions.Contains("UpdateBankInfo"))
+                {
+                    // return ApiResponse<bool>.Fail("You do not have permission to update bank info.");
+                }
 
-    //            if (!string.IsNullOrEmpty(dto.UserEmployeeId))
-    //                dto._EmployeeId = EncryptionHelper1.DecryptId(_encryptionService, dto.UserEmployeeId, tenantKey);
+                // -------------------------------------------------
+                // 3️⃣ FETCH EXISTING Identity RECORD
+                // -------------------------------------------------
+                var emp = await _unitOfWork.EmployeeIdentityRepository.GetSingleRecordAsync(request.DTO.Id, true);
 
-    //            // ✅ Step 5: Fetch Employee Identity record
-    //            var identityEntity = await _employeeRepository.UpdateEmployeeFieldAsync(
-    //                dto._EmployeeId, dto.EntityName, dto.FieldName, dto.FieldValue, dto._EmployeeId);
+                if (emp == null)
+                    return ApiResponse<bool>.Fail("Employee bank record not found.");
 
-    //            if (identityEntity == null)
-    //                return ApiResponse<bool>.Fail("Employee identity record not found.");
+                var dto = request.DTO;
 
-    //            // ✅ Step 6: Map DTO → Entity
-    //            var identity = _mapper.Map<EmployeePersonalDetail>(identityEntity);
+                // -------------------------------------------------
+                // 4️⃣ PARTIAL FIELD UPDATES
+                // -------------------------------------------------
 
-    //            // ✅ Step 7: Convert to Access Control DTO
-    //            var accessDto = EmployeePersonalInfoMapperHelper.ConvertToAccessResponseDTO(identity);
+              
+                // 🔹 STRING FIELDS
+                if (!string.IsNullOrWhiteSpace(dto.AadhaarNumber))
+                    emp.AadhaarNumber = dto.AadhaarNumber.Trim();
 
-    //            // ✅ Step 8: Locate Field in Access DTO
-    //            var accessProp = typeof(GetIdentityRequestDTO)
-    //                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-    //                .FirstOrDefault(p => string.Equals(p.Name, dto.FieldName, StringComparison.OrdinalIgnoreCase));
+                if (!string.IsNullOrWhiteSpace(dto.PanNumber))
+                    emp.PanNumber = dto.PanNumber.Trim();
 
-    //            if (accessProp == null)
-    //                return ApiResponse<bool>.Fail($"Field '{dto.FieldName}' does not exist.");
+                if (!string.IsNullOrWhiteSpace(dto.PassportNumber))
+                    emp.PassportNumber = dto.PassportNumber.Trim();
 
-    //            var fieldWithAccess = accessProp.GetValue(accessDto);
-    //            var isReadOnlyProp = fieldWithAccess?.GetType().GetProperty("IsReadOnly");
-    //            bool isReadOnly = (bool?)isReadOnlyProp?.GetValue(fieldWithAccess) ?? false;
+                if (!string.IsNullOrWhiteSpace(dto.DrivingLicenseNumber))
+                    emp.DrivingLicenseNumber = dto.DrivingLicenseNumber.Trim();
 
-    //            if (isReadOnly)
-    //                return ApiResponse<bool>.Fail($"Field '{dto.FieldName}' is read-only and cannot be modified.");
+                if (!string.IsNullOrWhiteSpace(dto.VoterId))
+                    emp.VoterId = dto.VoterId.Trim();
 
-    //            // ✅ Step 9: Locate actual entity property
-    //            var entityProp = typeof(EmployeePersonalDetail)
-    //                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-    //                .FirstOrDefault(p => string.Equals(p.Name, dto.FieldName, StringComparison.OrdinalIgnoreCase));
+                if (!string.IsNullOrWhiteSpace(dto.BloodGroup))
+                    emp.BloodGroup = dto.BloodGroup.Trim();
 
-    //            if (entityProp == null || !entityProp.CanWrite)
-    //                return ApiResponse<bool>.Fail($"Field '{dto.FieldName}' is invalid or not writable.");
+                if (!string.IsNullOrWhiteSpace(dto.Nationality))
+                    emp.Nationality = dto.Nationality.Trim();
 
-    //            // ✅ Step 10: Safe type conversion
-    //            if (!TryConvertObjectToValue.TryConvertValue(dto.FieldValue, entityProp.PropertyType, out object? convertedValue))
-    //            {
-    //                _logger.LogWarning("Conversion failed for field '{FieldName}' with value '{FieldValue}'", dto.FieldName, dto.FieldValue);
-    //                return ApiResponse<bool>.Fail($"Value conversion failed for field '{dto.FieldName}'.");
-    //            }
+                if (!string.IsNullOrWhiteSpace(dto.EmergencyContactName))
+                    emp.EmergencyContactName = dto.EmergencyContactName.Trim();
 
-    //            // ✅ Step 11: Apply value & audit
-    //            entityProp.SetValue(identity, convertedValue);
-    //            identity.UpdatedById = dto._EmployeeId;
-    //            identity.UpdatedDateTime = DateTime.UtcNow;
+                if (!string.IsNullOrWhiteSpace(dto.EmergencyContactRelation))
+                    emp.EmergencyContactRelation = dto.EmergencyContactRelation.Trim();
 
-    //            // ✅ Step 12: Save to DB
-    //            var updateStatus = await _unitOfWork.Employees.UpdateEmployeeFieldAsync(
-    //                identity.Id, dto.EntityName, dto.FieldName, convertedValue, dto._EmployeeId);
+                if (!string.IsNullOrWhiteSpace(dto.EmergencyContactNumber))
+                    emp.EmergencyContactNumber = dto.EmergencyContactNumber.Trim();
 
-    //            if (!updateStatus)
-    //            {
-    //                await _unitOfWork.RollbackTransactionAsync();
-    //                return ApiResponse<bool>.Fail("Failed to update employee identity record.");
-    //            }
+                // 🔹 BOOL / NULLABLE BOOL
+                if (dto.MaritalStatus.HasValue)
+                    emp.MaritalStatus = dto.MaritalStatus.Value;
 
-    //            return ApiResponse<bool>.Success(true, $"Field '{dto.FieldName}' updated successfully.");
-    //        }
-    //        catch (Exception ex)
-    //        {
-    //            _logger.LogError(ex, "Unexpected error occurred while updating identity info.");
-    //            return ApiResponse<bool>.Fail("An unexpected error occurred.", new List<string> { ex.Message });
-    //        }
-    //    }
-    //}
+                if (dto.HasEPFAccount != emp.HasEPFAccount)
+                    emp.HasEPFAccount = dto.HasEPFAccount;
+
+                if (!string.IsNullOrWhiteSpace(dto.UANNumber))
+                    emp.UANNumber = dto.UANNumber.Trim();
+
+
+        //public IFormFile? AadhaarDocFile { get; set; }
+        //public IFormFile? PanDocFile { get; set; }
+        //public IFormFile? PassportDocFile { get; set; }
+                // ------------------------ FILE HANDLING (OPTIONAL) ------------------------
+                if (request.DTO.AadhaarDocFile is { Length: > 0 })
+                {
+                    try
+                    {
+                        if (!string.IsNullOrWhiteSpace(emp.AadhaarDocPath))
+                        {
+                            string oldPath = emp.AadhaarDocPath; // This may be URL or relative path
+
+                            bool fileDeleted = false;
+
+                            // Case 1: Physical local/server file path
+                            string physicalFullPath = _fileStorageService.GetRelativePath(oldPath);
+
+                            if (!string.IsNullOrWhiteSpace(physicalFullPath) && File.Exists(physicalFullPath))
+                            {
+                                File.Delete(physicalFullPath);
+                                fileDeleted = true;
+                                _logger.LogInformation("📌 Local/Server education document deleted: {File}", physicalFullPath);
+                            }
+
+                            // Case 2: Remote CDN/HTTP/Cloud File
+                            if (!fileDeleted && Uri.TryCreate(oldPath, UriKind.Absolute, out Uri? uri)
+                                && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp))
+                            {
+                                using var client = new HttpClient();
+                                var response = await client.DeleteAsync(uri);
+
+                                if (response.IsSuccessStatusCode)
+                                {
+                                    fileDeleted = true;
+                                    _logger.LogInformation("🌍 Remote education document deleted: {File}", uri);
+                                }
+                                else
+                                {
+                                    _logger.LogWarning("⚠️ Remote file delete attempt failed for: {File}", uri);
+                                }
+                            }
+
+                            if (!fileDeleted)
+                                _logger.LogWarning("⚠️ Delete attempted but file not found: {File}", oldPath);
+                        }
+
+                        // Now upload new file
+                        using var ms = new MemoryStream();
+                        await request.DTO.AadhaarDocFile.CopyToAsync(ms);
+
+                        string newFileName = $"Sensi-{emp.EmployeeId}-{DateTime.UtcNow:yyMMddHHmmss}.pdf";
+
+                        string folderPath = _fileStorageService.GetEmployeeFolderPath(
+                            request.DTO.Prop.TenantId,
+                            emp.EmployeeId,
+                            "identities"
+                        );
+
+                        string savedPath = await _fileStorageService.SaveFileAsync(ms.ToArray(), newFileName, folderPath);
+
+                        emp.AadhaarDocPath = _fileStorageService.GetRelativePath(savedPath);
+                        emp.AadhaarDocName = newFileName;
+                        emp.HasAadhaarIdUploaded = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "❌ Error replacing identity document for employee {Emp}", emp.EmployeeId);
+                        return ApiResponse<bool>.Fail("File upload failed, please try again.");
+                    }
+
+                }
+
+                emp.UpdatedById = request.DTO.Prop.EmployeeId;
+                emp.UpdatedDateTime = DateTime.UtcNow;
+
+                // ✅ Step 5: Fetch Employee Identity record
+                var isUpdated = await _empIdentityRepository.UpdateIdentity(emp);
+
+                if (!isUpdated)
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                    return ApiResponse<bool>.Fail("Employee identity not updated.");
+
+                }
+                           
+
+                return ApiResponse<bool>.Success(true, $"Data updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error occurred while updating identity info.");
+                return ApiResponse<bool>.Fail("An unexpected error occurred.", new List<string> { ex.Message });
+            }
+        }
+    }
 
 }

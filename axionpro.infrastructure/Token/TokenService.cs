@@ -248,7 +248,7 @@ namespace axionpro.infrastructure.Token
             try
             {
                 // ✅ Step 1: Validate active login and get EmployeeId
-                var empId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(loginId);
+                var empId = await _unitOfWork.StoreProcedureRepository.ValidateActiveUserLoginOnlyAsync(loginId);
                 if (empId < 1)
                 {
                     _logger.LogWarning($"No active user found for LoginId: {loginId}");

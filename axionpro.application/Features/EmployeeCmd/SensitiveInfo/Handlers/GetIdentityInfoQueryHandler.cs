@@ -11,6 +11,7 @@ using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.DTOS.Employee.Sensitive;
 using axionpro.application.DTOS.Pagination;
+using axionpro.application.DTOS.StoreProcedureDTO;
 using axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -27,7 +28,8 @@ using Microsoft.Extensions.Logging;
 namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
 {
     #region Query Definition
-    public class GetIdentityInfoQuery : IRequest<ApiResponse<GetIdentityResponseDTO>>
+    public class GetIdentityInfoQuery
+        : IRequest<ApiResponse<List<GetEmployeeIdentityResponseDTO>>>
     {
         public GetIdentityRequestDTO DTO { get; }
 
@@ -36,100 +38,95 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
             DTO = dto ?? throw new ArgumentNullException(nameof(dto));
         }
     }
+
     #endregion
 
     #region Query Handler
-    public class GetIdentityInfoQueryHandler : IRequestHandler<GetIdentityInfoQuery, ApiResponse<GetIdentityResponseDTO>>
+
+    public class GetIdentityInfoQueryHandler
+ : IRequestHandler<GetIdentityInfoQuery, ApiResponse<List<GetEmployeeIdentityResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<GetIdentityInfoQueryHandler> _logger;
-        private readonly ITokenService _tokenService;
         private readonly IPermissionService _permissionService;
-        private readonly IConfiguration _config;
-        private readonly IEncryptionService _encryptionService;
-        private readonly IIdEncoderService _idEncoderService;
         private readonly ICommonRequestService _commonRequestService;
-
+        private readonly IIdEncoderService _idEncoderService;
 
         public GetIdentityInfoQueryHandler(
             IUnitOfWork unitOfWork,
-            IMapper mapper,
-            IHttpContextAccessor httpContextAccessor,
             ILogger<GetIdentityInfoQueryHandler> logger,
-            ITokenService tokenService,
             IPermissionService permissionService,
-            IConfiguration config,
-          IEncryptionService encryptionService, IIdEncoderService idEncoderService, ICommonRequestService commonRequestService
-)
+            ICommonRequestService commonRequestService,
+            IIdEncoderService idEncoderService)
         {
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
-            _httpContextAccessor = httpContextAccessor;
             _logger = logger;
-            _tokenService = tokenService;
             _permissionService = permissionService;
-            _config = config;
-            _encryptionService = encryptionService;
-            _idEncoderService = idEncoderService;
             _commonRequestService = commonRequestService;
+            _idEncoderService = idEncoderService;
         }
 
-        public async Task<ApiResponse<GetIdentityResponseDTO>> Handle(GetIdentityInfoQuery request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<List<GetEmployeeIdentityResponseDTO>>> Handle(
+            GetIdentityInfoQuery request,
+            CancellationToken cancellationToken)
         {
             try
             {
-
-                // 1️⃣ Common validation
+                // 1️⃣ Validate Request
                 var validation = await _commonRequestService
                     .ValidateRequestAsync(request.DTO.UserEmployeeId);
 
                 if (!validation.Success)
-                    return ApiResponse<GetIdentityResponseDTO>
+                    return ApiResponse<List<GetEmployeeIdentityResponseDTO>>
                         .Fail(validation.ErrorMessage);
 
-                // Assign decoded values coming from CommonRequestService
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-                request.DTO.Prop.EmployeeId = RequestCommonHelper.DecodeOnlyEmployeeId(request.DTO.EmployeeId, validation.Claims.TenantEncriptionKey,
+                // 2️⃣ Decode EmployeeId
+                var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
+                    request.DTO.EmployeeId,
+                    validation.Claims.TenantEncriptionKey,
                     _idEncoderService);
 
-                // ✅ Create  using repository
-                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
+                // 3️⃣ Permission check (optional strict)
+                var permissions = await _permissionService
+                    .GetPermissionsAsync(validation.RoleId);
+
                 if (!permissions.Contains("PersonalInfo"))
                 {
-                    //await _unitOfWork.RollbackTransactionAsync();
-                    //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
+                    // optional block
                 }
 
-                // 4️⃣ Fetch Data from Repository
-                // 4️⃣ Fetch from repository
-                var entity = await _unitOfWork.EmployeeIdentityRepository.GetInfo(request.DTO);
+                // 4️⃣ Fetch SP data
+                var spRecords = await _unitOfWork.StoreProcedureRepository
+                    .GetIdentityRecordAsync(
+                        employeeId,
+                        request.DTO.CountryNationalityId,
+                        request.DTO.IsActive);
 
-                if (entity == null)
-                {
-                    _logger.LogInformation("No Identity Info found for EmployeeId: {EmployeeId}", request.DTO.EmployeeId);
-                    return ApiResponse<GetIdentityResponseDTO>.Fail("No identity info found.");
-                }
+                if (spRecords == null || !spRecords.Any())
+                    return ApiResponse<List<GetEmployeeIdentityResponseDTO>>
+                        .Fail("No identity information found.");
 
+                // 5️⃣ Projection + Encoding
+                var response = ProjectionHelper.ToGetIdentityResponseDTO(
+                    spRecords,
+                    _idEncoderService,
+                    validation.Claims.TenantEncriptionKey);
 
-                var result = ProjectionHelper.ToGetIdentityResponseDTO(entity, _idEncoderService, validation.Claims.TenantEncriptionKey);
-
-
-                _logger.LogInformation("Successfully fetched identity info for EmployeeId: {EmployeeId}", request.DTO.EmployeeId);
-
-                return ApiResponse<GetIdentityResponseDTO>.Success(result, "Identity info retrieved successfully.");
+                return ApiResponse<List<GetEmployeeIdentityResponseDTO>>
+                    .Success(response, "Identity information retrieved successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching Identity Info for EmployeeId: {EmployeeId}", request.DTO?.EmployeeId);
-                return ApiResponse<GetIdentityResponseDTO>.Fail(
-                    "An unexpected error occurred while fetching identity info.",
-                    new List<string> { ex.Message }
-                );
+                _logger.LogError(ex, "Error fetching identity info");
+
+                return ApiResponse<List<GetEmployeeIdentityResponseDTO>>
+                    .Fail(
+                        "An unexpected error occurred.",
+                        new List<string> { ex.Message });
             }
         }
     }
+
+
     #endregion
 }

@@ -22,14 +22,14 @@ namespace axionpro.application.Features.ReportTypeCmd.Handlers
         private readonly IReportingTypeRepository _workflowRepository;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ICommonRepository _commonRepository;
+        private readonly IStoreProcedureRepository _commonRepository;
         private readonly ILogger<GetAllReportingTypeQueryHandler> _logger;
 
         public GetAllReportingTypeQueryHandler(
             IReportingTypeRepository workflowRepository,
             IMapper mapper,
             IUnitOfWork unitOfWork,
-            ICommonRepository commonRepository,
+            IStoreProcedureRepository commonRepository,
             ILogger<GetAllReportingTypeQueryHandler> logger)
         {
             _workflowRepository = workflowRepository ?? throw new ArgumentNullException(nameof(workflowRepository));

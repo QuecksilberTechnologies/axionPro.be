@@ -21,6 +21,8 @@ namespace axionpro.application.DTOs.Employee
         public string? DesignationName { get; set; }
         public int DesignationId { get; set; }
         public int DepartmentId { get; set; }
+        public int? NationalityCountryId { get; set; }
+        public string? Nationality { get; set; }
         public string? DepartmentName { get; set; }
         public int EmployeeTypeId  { get; set; }
         public string? OfficialEmail  { get; set; }

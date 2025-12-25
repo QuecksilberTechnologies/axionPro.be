@@ -125,6 +125,9 @@ namespace axionpro.persistance.Repositories
 
                              join g in _context.Genders on e.GenderId equals g.Id into gen
                              from g in gen.DefaultIfEmpty()
+                             join nc in this._context.Countries
+                                on e.NationalityCountryId equals nc.Id into countryJoin
+                             from nationCountry in countryJoin.DefaultIfEmpty()
 
                              where e.TenantId == entity.TenantId && e.IsSoftDeleted != true
                              orderby e.Id descending
@@ -142,7 +145,8 @@ namespace axionpro.persistance.Repositories
 
                                  GenderId = e.GenderId,
                                  GenderName = g.GenderName,
-
+                                 NationalityCountryId = nationCountry.Id,
+                                 Nationality = nationCountry.CountryName,
                                  DesignationId = e.DesignationId,
                                  DesignationName = d.DesignationName,
 
@@ -202,97 +206,7 @@ namespace axionpro.persistance.Repositories
         }
 
 
-        public async Task<GetBaseEmployeeResponseDTO> CreateEmployeeAsync(Employee entity)
-        {
-            try
-            {
-                // 🔹 Validation
-                if (entity == null)
-                    throw new ArgumentNullException(nameof(entity));
-
-                if (string.IsNullOrWhiteSpace(entity.FirstName))
-                    throw new ArgumentException("First name is required.");
-
-                // 🔹 Insert Employee
-                await _context.Employees.AddAsync(entity);
-
-                // 🔹 Insert Employee Image (same transaction)
-                var employeeImage = new EmployeeImage
-                {
-                    Employee = entity,   // 🔥 Correct
-                    TenantId = entity.TenantId,
-                    IsPrimary = true,
-                    HasImageUploaded = false,
-                    IsActive = true,
-                    AddedById = entity.AddedById,
-                    AddedDateTime = DateTime.UtcNow,
-                    FileType = 1
-                };
-
-                await _context.EmployeeImages.AddAsync(employeeImage);
-
-                // 🔹 Save once
-                await _context.SaveChangesAsync();
-
-                // 🔹 Fetch ONLY newly created employee
-                var result = await (
-                    from e in _context.Employees
-
-                    join d in _context.Designations on e.DesignationId equals d.Id into des
-                    from d in des.DefaultIfEmpty()
-
-                    join dep in _context.Departments on e.DepartmentId equals dep.Id into dept
-                    from dep in dept.DefaultIfEmpty()
-
-                    join g in _context.Genders on e.GenderId equals g.Id into gen
-                    from g in gen.DefaultIfEmpty()
-
-                    where e.Id == entity.Id && e.TenantId == entity.TenantId
-
-                    select new GetBaseEmployeeResponseDTO
-                    {
-                        Id = e.Id.ToString(),
-                        EmployementCode = e.EmployementCode,
-
-                        FirstName = e.FirstName,
-                        MiddleName = e.MiddleName,
-                        LastName = e.LastName,
-
-                        GenderId = e.GenderId,
-                        GenderName = g.GenderName,
-
-                        DesignationId = e.DesignationId,
-                        DesignationName = d.DesignationName,
-
-                        DepartmentId = e.DepartmentId,
-                        DepartmentName = dep.DepartmentName,
-
-                        OfficialEmail = e.OfficialEmail,
-                        EmployeeTypeId = e.EmployeeTypeId,
-                        
-                        DateOfBirth = e.DateOfBirth,
-                        DateOfOnBoarding = e.DateOfOnBoarding,
-                        DateOfExit = e.DateOfExit,
-
-                        IsActive = e.IsActive,
-                        HasPermanent = e.HasPermanent,
-                        IsEditAllowed = e.IsEditAllowed,
-                        IsInfoVerified = e.IsInfoVerified
-                    }
-                ).AsNoTracking().FirstOrDefaultAsync();
-
-                if (result == null)
-                    throw new Exception("Employee created but fetch failed.");
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error while creating employee for TenantId {TenantId}", entity?.TenantId);
-                throw;
-            }
-        }
-
+   
         //public async Task<Employee?> IsEmployeeExist(string EmployeeCode, long tenantId, bool track = true)
         //{
         //    IQueryable<Employee> query = _context.Employees.Where(x => x.TenantId == tenantId && x.IsSoftDeleted != true);
@@ -1002,6 +916,9 @@ namespace axionpro.persistance.Repositories
          IsActive = x.IsActive,
          IsEditAllowed = x.IsEditAllowed,
          IsInfoVerified = x.IsInfoVerified,
+         NationalityCountryId = x.NationalityCountry.Id,
+         Nationality = x.NationalityCountry.CountryName,
+
 
          // ⭐ New Fields (JOIN base lookup)
          DesignationName = context.Designations
@@ -1066,7 +983,7 @@ namespace axionpro.persistance.Repositories
 
         public async Task<PagedResponseDTO<GetAllEmployeeInfoResponseDTO>> GetAllInfo(GetAllEmployeeInfoRequestDTO dto)
         {
-            await using var context = await _contextFactory.CreateDbContextAsync();
+           
 
             try
             {
@@ -1077,23 +994,26 @@ namespace axionpro.persistance.Repositories
                 // 1️⃣ BASE QUERY (LEFT JOIN + ASNO TRACKING)
                 // ----------------------------------------------------
                 var baseQuery =
-                    from emp in context.Employees.AsNoTracking()
+                    from emp in _context.Employees.AsNoTracking()
 
-                    join gender in context.Genders
+                    join gender in _context.Genders
                         on emp.GenderId equals (long?)gender.Id into genderJoin
                     from g in genderJoin.DefaultIfEmpty()
 
-                    join designation in context.Designations
+                    join designation in _context.Designations
                         on emp.DesignationId equals (long?)designation.Id into desigJoin
                     from d in desigJoin.DefaultIfEmpty()
 
-                    join empType in context.EmployeeTypes
+                    join empType in _context.EmployeeTypes
                         on emp.EmployeeTypeId equals (long?)empType.Id into typeJoin
                     from et in typeJoin.DefaultIfEmpty()
 
-                    join department in context.Departments
+                    join department in _context.Departments
                         on emp.DepartmentId equals (long?)department.Id into deptJoin
                     from dep in deptJoin.DefaultIfEmpty()
+                    join nc in this._context.Countries
+                   on emp.NationalityCountryId equals nc.Id into countryJoin
+                    from nationCountry in countryJoin.DefaultIfEmpty()
 
                     where emp.TenantId == dto.Prop.TenantId && emp.IsSoftDeleted != true
 
@@ -1128,6 +1048,7 @@ namespace axionpro.persistance.Repositories
                 if (dto.GenderId > 0)
                     baseQuery = baseQuery.Where(x => x.emp.GenderId == dto.GenderId);
 
+
                 if (!string.IsNullOrWhiteSpace(dto.FirstName))
                     baseQuery = baseQuery.Where(x => x.emp.FirstName.Contains(dto.FirstName));
 
@@ -1153,12 +1074,14 @@ namespace axionpro.persistance.Repositories
                 // ----------------------------------------------------
                 var ids = pagedEmployees.Select(x => x.emp.Id).ToList();
 
-                var images = await context.EmployeeImages
+                var images = await _context.EmployeeImages
                     .Where(i => ids.Contains(i.EmployeeId) && i.IsSoftDeleted != true)
                     .OrderByDescending(i => i.IsPrimary)
                     .ThenByDescending(i => i.HasImageUploaded)
                     .ThenByDescending(i => i.Id)
                     .ToListAsync();
+
+                 
 
                 var imgLookup = images
                     .GroupBy(i => i.EmployeeId)
@@ -1198,6 +1121,8 @@ namespace axionpro.persistance.Repositories
                         FirstName = x.emp.FirstName,
                         LastName = x.emp.LastName,
                         DateOfOnBoarding = x.emp.DateOfOnBoarding?.ToString(),
+                        NationalityCountryId = x.emp.NationalityCountry.Id,
+                        Nationality = x.emp.NationalityCountry.CountryName,
 
                         GenderId = x.emp.GenderId,
                         EmployeeTypeId = x.emp.EmployeeTypeId,
@@ -1593,7 +1518,10 @@ namespace axionpro.persistance.Repositories
                     join dept in _context.Departments.AsNoTracking()
                         on emp.DepartmentId equals dept.Id into deptGroup
                     from dept in deptGroup.DefaultIfEmpty()
-
+                    join nc in _context.Countries
+                      on emp.NationalityCountryId equals nc.Id into countryJoin
+                    from nationCountry in countryJoin.DefaultIfEmpty()
+                   
                         // 👇 Designation join
                     join desig in _context.Designations.AsNoTracking()
                         on emp.DesignationId equals desig.Id into desigGroup
@@ -1617,6 +1545,8 @@ namespace axionpro.persistance.Repositories
                         EmployementCode = emp.EmployementCode,
                         EmployeeTypeId = emp.EmployeeTypeId,
                         EmployeeTypeName = et.TypeName,
+                        NationalityCountryId = nationCountry.Id,
+                        Nationality =nationCountry.CountryName ,
                         IsActive = emp.IsActive,
                         HasPermanent = emp.HasPermanent,
                         GenderId = emp.GenderId,
@@ -1821,11 +1751,17 @@ namespace axionpro.persistance.Repositories
                join ur in _context.UserRoles
                    on emp.Id equals ur.EmployeeId
 
+               join nc in _context.Countries
+               on emp.NationalityCountryId equals nc.Id into countryJoin
+               from nationCountry in countryJoin.DefaultIfEmpty()
+
+
                join r in _context.Roles
                    on ur.RoleId equals r.Id
 
                join t in _context.EmployeeTypes
                    on emp.EmployeeTypeId equals t.Id into empTypeJoin
+
                from empType in empTypeJoin.DefaultIfEmpty()
 
 
@@ -1851,7 +1787,9 @@ namespace axionpro.persistance.Repositories
 
                    RoleType = r.RoleType,
                    RoleName = r.RoleName,
-
+                   NationalityCountryId= emp.NationalityCountryId,
+                   Nationality= nationCountry != null ? nationCountry.CountryName : null,
+                   
                    EmployeeTypeId = emp.EmployeeTypeId,
                    Type = empType != null ? empType.TypeName : null,
                    DateOfBirth = emp.DateOfBirth,

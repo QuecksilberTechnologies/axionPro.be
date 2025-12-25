@@ -90,7 +90,7 @@ public class UnitOfWork : IUnitOfWork
     private IAssetRepository? _assetRepository;
     //private  INewTokenRepository _tokenService;
     private IRefreshTokenRepository _refreshTokenRepository;
-    private ICommonRepository _commonRepository;
+    private IStoreProcedureRepository _commonRepository;
     private IUserLoginReopsitory? _userLoginReopsitory;
     private IEmailTemplateRepository _emailTemplateRepository;
     private ISubscriptionRepository? _subscriptionRepository;
@@ -521,11 +521,11 @@ public class UnitOfWork : IUnitOfWork
             return _employeeTypeBasicMenurepository ??= new EmployeeTypeBasicMenuRepository(_context, _loggerFactory.CreateLogger<EmployeeTypeBasicMenuRepository>(), _mapper, _contextFactory);
         }
     }
-    public ICommonRepository CommonRepository
+    public IStoreProcedureRepository StoreProcedureRepository
     {
         get
         {
-            return _commonRepository ??= new CommonRepository(_context, _loggerFactory.CreateLogger<CommonRepository>(), _mapper, _contextFactory);
+            return _commonRepository ??= new StoreProcedureRepository(_context, _loggerFactory.CreateLogger<StoreProcedureRepository>(), _mapper, _contextFactory);
         }
     }
     public IModuleRepository ModuleRepository

@@ -52,7 +52,7 @@ namespace axionpro.infrastructure.CommonRequest
                 if (claims == null)
                     return new CommonDecodedResult { Success = false, ErrorMessage = "Token expired or invalid." };
 
-                long loggedInId = await _uow.CommonRepository.ValidateActiveUserLoginOnlyAsync(claims.UserId);
+                long loggedInId = await _uow.StoreProcedureRepository.ValidateActiveUserLoginOnlyAsync(claims.UserId);
                 if (loggedInId < 1)
                     return new CommonDecodedResult { Success = false, ErrorMessage = "Inactive user." };
                

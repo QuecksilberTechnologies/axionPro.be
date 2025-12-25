@@ -23,8 +23,8 @@ namespace axionpro.application.DTOS.Employee.Sensitive
         public string? UANNumber { get; set; }
         public string? VoterId { get; set; }
         public string? BloodGroup { get; set; }
-        public bool? MaritalStatus { get; set; }
-        public string? Nationality { get; set; }
+        public required bool  MaritalStatus { get; set; }
+        public required string Nationality { get; set; }
         public string? EmergencyContactName { get; set; }
         public string? EmergencyContactRelation { get; set; }
         public string? EmergencyContactNumber { get; set; }

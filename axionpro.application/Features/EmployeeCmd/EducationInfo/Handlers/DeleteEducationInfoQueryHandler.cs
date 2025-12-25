@@ -86,7 +86,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                     return ApiResponse<bool>.Fail("Invalid or expired token.");
 
                 // 2️⃣ Validate User
-                long loggedInEmpId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
+                long loggedInEmpId = await _unitOfWork.StoreProcedureRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
 
                 if (loggedInEmpId <= 0)
                     return ApiResponse<bool>.Fail("Unauthorized or inactive user.");

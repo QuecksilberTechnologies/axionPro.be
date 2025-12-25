@@ -14,14 +14,14 @@ namespace axionpro.application.Features.TicketFeatures.TicketType.Handlers
         private readonly ITicketTypeRepository _repository;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ICommonRepository _commonRepository;
+        private readonly IStoreProcedureRepository _commonRepository;
         private readonly ILogger<GetAllTicketTypeQueryHandler> _logger;
 
         public GetAllTicketTypeQueryHandler(
             ITicketTypeRepository repository,
             IMapper mapper,
             IUnitOfWork unitOfWork,
-            ICommonRepository commonRepository,
+            IStoreProcedureRepository commonRepository,
             ILogger<GetAllTicketTypeQueryHandler> logger)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));

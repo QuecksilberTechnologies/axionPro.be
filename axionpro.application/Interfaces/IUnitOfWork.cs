@@ -32,7 +32,7 @@ public interface IUnitOfWork : IDisposable
      IDepartmentRepository DepartmentRepository { get; }
 
 
-    ICommonRepository CommonRepository { get; }
+    IStoreProcedureRepository StoreProcedureRepository { get; }
     ILocationRepository LocationRepository { get; }
     //
     // INewTokenRepository newTokenRepository { get; } 

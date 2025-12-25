@@ -17,14 +17,14 @@ namespace axionpro.application.Features.WorkflowStage.Handlers
         private readonly IWorkflowStagesRepository _workflowRepository;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ICommonRepository _commonRepository;
+        private readonly IStoreProcedureRepository _commonRepository;
         private readonly ILogger<DeleteWorkflowStageCommandHandler> _logger;
 
         public DeleteWorkflowStageCommandHandler(
             IWorkflowStagesRepository workflowRepository,
             IMapper mapper,
             IUnitOfWork unitOfWork,
-            ICommonRepository commonRepository,
+            IStoreProcedureRepository commonRepository,
             ILogger<DeleteWorkflowStageCommandHandler> logger)
         {
             _workflowRepository = workflowRepository ?? throw new ArgumentNullException(nameof(workflowRepository));

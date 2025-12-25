@@ -18,14 +18,14 @@ namespace axionpro.application.Features.ReportTypeCmd.Handlers
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ICommonRepository _commonRepository;
+        private readonly IStoreProcedureRepository _commonRepository;
         private readonly ILogger<DeleteReportingTypeCommandHandler> _logger;
 
         public DeleteReportingTypeCommandHandler(
 
             IMapper mapper,
             IUnitOfWork unitOfWork,
-            ICommonRepository commonRepository,
+            IStoreProcedureRepository commonRepository,
             ILogger<DeleteReportingTypeCommandHandler> logger)
         {
 

@@ -105,7 +105,7 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                 if (tokenClaims == null || tokenClaims.IsExpired)
                     return ApiResponse<List<GetExperienceResponseDTO>>.Fail("Invalid or expired token.");
 
-                long loggedInEmpId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
+                long loggedInEmpId = await _unitOfWork.StoreProcedureRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
                 if (loggedInEmpId < 1)
                     return ApiResponse<List<GetExperienceResponseDTO>>.Fail("Unauthorized or inactive user.");
 

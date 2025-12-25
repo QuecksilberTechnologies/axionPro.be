@@ -34,6 +34,9 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         public int DesignationId { get; set; }
 
         [Required]
+
+        public  int NationalityCountryId { get; set; }
+        [Required]
         public int DepartmentId { get; set; }
 
         [Required]

@@ -5,6 +5,7 @@ using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.DTOs.UserRole;
 using axionpro.application.DTOS.RoleModulePermission;
+using axionpro.application.DTOS.StoreProcedureDTO;
 using axionpro.domain.Entity;
 using System;
 using System.Collections.Generic;
@@ -14,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.Interfaces.IRepositories
 {
-    public interface ICommonRepository
+    public interface IStoreProcedureRepository
     {
         Task<long> ValidateActiveUserLoginOnlyAsync(string loginId);
         Task<long> ValidateActiveUserCrendentialOnlyAsync(string loginId);
@@ -35,9 +36,12 @@ namespace axionpro.application.Interfaces.IRepositories
         Task<bool> HasPermissionAsync(long userId, string permissionCode);
         Task<bool> IsTenantValidAsync(long userId, long? TenantId);
 
+        Task<List<GetEmployeeIdentitySp>> GetIdentityRecordAsync(long employeeId, int countryId, bool isActive);
+
 
         //   Task  <IUserRoleRepository> UpdateLoginCredential(LoginRequestDTO loginId);
         //  Task List<string> UpdateLoginCredential(LoginRequestDTO loginId);
 
     }
 }
+ 
