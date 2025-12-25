@@ -16,6 +16,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
@@ -39,6 +40,17 @@ namespace axionpro.persistance.Repositories
             _contextFactory = contextFactory;
             _passwordService = passwordService;
             _encryptionService = encryptionService;
+#if DEBUG
+            var entityType = _context.Model.FindEntityType(typeof(Employee));
+
+            if (entityType != null)
+            {
+                foreach (var p in entityType.GetProperties())
+                {
+                    Console.WriteLine($"{p.Name} | Shadow: {p.IsShadowProperty()}");
+                }
+            }
+#endif
 
         }
 
@@ -125,9 +137,9 @@ namespace axionpro.persistance.Repositories
 
                              join g in _context.Genders on e.GenderId equals g.Id into gen
                              from g in gen.DefaultIfEmpty()
-                             //join nc in this._context.Countries
-                             //   on e.CountryId equals nc.Id into countryJoin
-                             //from nationCountry in countryJoin.DefaultIfEmpty()
+                             join country in _context.Countries
+                              on e.CountryId equals (int)country.Id into countryJoin
+                             from c in countryJoin.DefaultIfEmpty()
 
                              where e.TenantId == entity.TenantId && e.IsSoftDeleted != true
                              orderby e.Id descending
@@ -145,8 +157,8 @@ namespace axionpro.persistance.Repositories
 
                                  GenderId = e.GenderId??0,
                                  GenderName = g.GenderName,
-                                 //CountryId = nationCountry.Id,
-                                 //Nationality = nationCountry.CountryName,
+                                  CountryId = e.CountryId,
+                                 Nationality= e.Country.CountryName,
                                  DesignationId = e.DesignationId ?? 0,
                                  DesignationName = d.DesignationName,
 
@@ -825,7 +837,6 @@ namespace axionpro.persistance.Repositories
     
         public async Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> GetInfo(GetBaseEmployeeRequestDTO dto)
         {
-            await using var context = await _contextFactory.CreateDbContextAsync();
           
             try
             {
@@ -834,10 +845,11 @@ namespace axionpro.persistance.Repositories
                 int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
 
                 // 🧩 Step 2: Base query (Tenant + Active filter)
-                var query = context.Employees
+                var query = _context.Employees
                     .AsNoTracking()
                     .Where(x => x.TenantId == dto.Prop.TenantId && x.IsSoftDeleted == null || x.IsSoftDeleted==false);
                 
+                   
                 // 🧩 Step 3: Safe parse helpers (convert string → long safely)
                    
                 int designationId = SafeParser.TryParseInt(dto.DesignationId);
@@ -921,21 +933,21 @@ namespace axionpro.persistance.Repositories
 
 
          // ⭐ New Fields (JOIN base lookup)
-         DesignationName = context.Designations
+         DesignationName = _context.Designations
              .Where(d => d.Id == x.DesignationId)
              .Select(d => d.DesignationName)
              .FirstOrDefault(),
 
-         DepartmentName = context.Departments
+         DepartmentName = _context.Departments
              .Where(dep => dep.Id == x.DepartmentId)
              .Select(dep => dep.DepartmentName)
              .FirstOrDefault(),
-         Type = context.EmployeeTypes
+         Type = _context.EmployeeTypes
              .Where(ty => ty.Id == x.EmployeeTypeId)
              .Select(name => name.TypeName)
              .FirstOrDefault(),
          // ⭐ New Fields (JOIN base lookup)
-         GenderName = context.Genders
+         GenderName = _context.Genders
              .Where(g => g.Id == x.GenderId)
              .Select(g => g.GenderName)
              .FirstOrDefault(),
@@ -982,7 +994,7 @@ namespace axionpro.persistance.Repositories
         }
 
         public async Task<PagedResponseDTO<GetAllEmployeeInfoResponseDTO>> GetAllInfo(
-GetAllEmployeeInfoRequestDTO dto)
+              GetAllEmployeeInfoRequestDTO dto)
         {
             try
             {
@@ -1011,9 +1023,9 @@ GetAllEmployeeInfoRequestDTO dto)
                         on emp.DepartmentId equals (long?)department.Id into deptJoin
                     from dep in deptJoin.DefaultIfEmpty()
 
-                    //join country in _context.Countries
-                    //    on emp.CountryId equals (int?)country.Id into countryJoin
-                    //from c in countryJoin.DefaultIfEmpty()
+                     join country in _context.Countries
+                        on emp.CountryId equals (int)country.Id into countryJoin
+                    from c in countryJoin.DefaultIfEmpty()
 
                     where emp.TenantId == dto.Prop.TenantId
                           && emp.IsSoftDeleted != true
@@ -1025,7 +1037,7 @@ GetAllEmployeeInfoRequestDTO dto)
                         DesignationName = d != null ? d.DesignationName : "",
                         EmployeeTypeName = et != null ? et.TypeName : "",
                         DepartmentName = dep != null ? dep.DepartmentName : "",
-                       // CountryName = c != null ? c.CountryName : "",
+                        CountryName = c != null ? c.CountryName : "",
                         
 
                     };
@@ -1122,23 +1134,17 @@ GetAllEmployeeInfoRequestDTO dto)
                         FirstName = x.emp.FirstName,
                         LastName = x.emp.LastName,
                         DateOfOnBoarding = x.emp.DateOfOnBoarding?.ToString(),
-
-                        CountryId = 1,
-                        Nationality = "India",   // ✅ FIXED (NO navigation access)
-                      //  CountryId = x.emp.CountryId,
-
-                        //Nationality = x.CountryName,   // ✅ FIXED (NO navigation access)
-
+                        DateOfBirth = x.emp.DateOfBirth?.ToString(),
+                        CountryId = x.emp.CountryId,
+                        Nationality = x.CountryName,   // ✅ FIXED (NO navigation access)
                         GenderId = x.emp.GenderId ?? 0,
                         EmployeeTypeId = x.emp.EmployeeTypeId ?? 0,
                         DesignationId = x.emp.DesignationId ?? 0,
                         DepartmentId = x.emp.DepartmentId ?? 0,
-
                         GenderName = x.GenderName,
                         EmployeeTypeName = x.EmployeeTypeName,
                         DesignationName = x.DesignationName,
                         DepartmentName = x.DepartmentName,
-
                         OfficialEmail = x.emp.OfficialEmail,
                         EmployeeImagePath = img?.FilePath,
                         HasImagePicUploaded = hasPrimary,
@@ -1522,9 +1528,9 @@ GetAllEmployeeInfoRequestDTO dto)
                     join dept in _context.Departments.AsNoTracking()
                         on emp.DepartmentId equals dept.Id into deptGroup
                     from dept in deptGroup.DefaultIfEmpty()
-                    //join nc in _context.Countries
-                    //  on emp.CountryId equals nc.Id into countryJoin
-                    //from nationCountry in countryJoin.DefaultIfEmpty()
+                       join nc in _context.Countries
+                      on emp.CountryId equals nc.Id into countryJoin
+                     from nationCountry in countryJoin.DefaultIfEmpty()
                    
                         // 👇 Designation join
                     join desig in _context.Designations.AsNoTracking()
@@ -1549,8 +1555,8 @@ GetAllEmployeeInfoRequestDTO dto)
                         EmployementCode = emp.EmployementCode,
                         EmployeeTypeId = emp.EmployeeTypeId ?? 0,
                         EmployeeTypeName = et.TypeName,
-                        //CountryId = nationCountry.Id,
-                        //Nationality =nationCountry.CountryName ,
+                         CountryId = nationCountry.Id,
+                         Nationality =nationCountry.CountryName ,
                         IsActive = emp.IsActive,
                         HasPermanent = emp.HasPermanent,
                         GenderId = emp.GenderId ?? 0,
@@ -1755,9 +1761,9 @@ GetAllEmployeeInfoRequestDTO dto)
                join ur in _context.UserRoles
                    on emp.Id equals ur.EmployeeId
 
-              // join nc in _context.Countries
-               //on emp.CountryId equals nc.Id into countryJoin
-               //from nationCountry in countryJoin.DefaultIfEmpty()
+                join nc in _context.Countries
+                 on emp.CountryId equals nc.Id into countryJoin
+                from nationCountry in countryJoin.DefaultIfEmpty()
 
 
                join r in _context.Roles
@@ -1791,8 +1797,8 @@ GetAllEmployeeInfoRequestDTO dto)
 
                    RoleType = r.RoleType,
                    RoleName = r.RoleName,
-                   //CountryId= emp.CountryId,
-                   //Nationality= nationCountry != null ? nationCountry.CountryName : null,
+                    CountryId= emp.CountryId,
+                    Nationality= nationCountry != null ? nationCountry.CountryName : null,
                    
                    EmployeeTypeId = emp.EmployeeTypeId ?? 0,
                    Type = empType != null ? empType.TypeName : null,

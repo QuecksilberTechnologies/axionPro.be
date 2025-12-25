@@ -70,7 +70,7 @@ public partial class Employee
 
     public string? Description { get; set; }
 
-   // public int CountryId { get; set; }
+    public int CountryId { get; set; }
 
     public virtual ICollection<AssetAssignment> AssetAssignments { get; set; } = new List<AssetAssignment>();
 
@@ -79,6 +79,8 @@ public partial class Employee
     public virtual ICollection<AssetHistory> AssetHistoryScrapApprovedByNavigations { get; set; } = new List<AssetHistory>();
 
     public virtual ICollection<AttendanceHistory> AttendanceHistories { get; set; } = new List<AttendanceHistory>();
+
+    public virtual Country Country { get; set; } = null!;
 
     public virtual Designation? Designation { get; set; }
 
@@ -118,9 +120,6 @@ public partial class Employee
 
     public virtual ICollection<LoginCredential> LoginCredentials { get; set; } = new List<LoginCredential>();
 
-  
-    public virtual Country? Country { get; set; }
-    
     public virtual Tenant? Tenant { get; set; }
 
     public virtual ICollection<UserAttendanceSetting> UserAttendanceSettings { get; set; } = new List<UserAttendanceSetting>();

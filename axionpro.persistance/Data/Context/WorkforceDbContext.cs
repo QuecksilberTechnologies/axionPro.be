@@ -983,49 +983,61 @@ namespace axionpro.persistance.Data.Context
 
             modelBuilder.Entity<Employee>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK_Employee");
+                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC07E3264254");
 
                 entity.ToTable("Employee", "AxionPro");
 
-                entity.HasIndex(e => e.OfficialEmail, "UX_Employee_OfficialEmail_Once")
-                      .IsUnique()
-                      .HasFilter("([TenantId] IS NULL AND [IsSoftDeleted]=(0))");
+                entity.HasIndex(e => e.OfficialEmail, "UX_Employee_SystemUser_OnlyOnce")
+                    .IsUnique()
+                    .HasFilter("([TenantId] IS NULL AND [IsSoftDeleted]=(0))");
 
-                entity.Property(e => e.AddedDateTime)
-                      .HasColumnType("datetime")
-                      .HasDefaultValueSql("GETDATE()");
+                entity.HasIndex(e => e.Id, "UX_Employee_TenantIdNullOnce")
+                    .IsUnique()
+                    .HasFilter("([TenantId] IS NULL AND [IsSoftDeleted]=(0))");
 
+                entity.HasIndex(e => e.Id, "UX_Employee_TenantId_Null_OnlyOnce")
+                    .IsUnique()
+                    .HasFilter("([TenantId] IS NULL AND [IsSoftDeleted]=(0))");
+
+                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.DateOfBirth).HasColumnType("datetime");
+                entity.Property(e => e.DateOfExit).HasColumnType("datetime");
+                entity.Property(e => e.DateOfOnBoarding).HasColumnType("datetime");
+                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.Description).HasMaxLength(500);
+                entity.Property(e => e.EmployementCode).HasMaxLength(50);
+                entity.Property(e => e.FirstName).HasMaxLength(100);
+                entity.Property(e => e.InfoVerifiedDateTime).HasColumnType("datetime");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
+                entity.Property(e => e.LastName).HasMaxLength(100);
+                entity.Property(e => e.MiddleName).HasMaxLength(100);
+                entity.Property(e => e.OfficialEmail).HasMaxLength(255);
+                entity.Property(e => e.Remark).HasMaxLength(200);
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
 
-                entity.HasOne(d => d.Designation)
-                      .WithMany(p => p.Employees)
-                      .HasForeignKey(d => d.DesignationId)
-                      .OnDelete(DeleteBehavior.SetNull);
+                entity.HasOne(d => d.Country).WithMany(p => p.Employees)
+                    .HasForeignKey(d => d.CountryId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Employee_Country");
 
-                //entity.Property(e => e.CountryId)
-                //.IsRequired();
+                entity.HasOne(d => d.Designation).WithMany(p => p.Employees)
+                    .HasForeignKey(d => d.DesignationId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .HasConstraintName("FK_Employee_Designation");
 
-        //        entity.HasOne(e => e.Country)
-        //.WithMany()
-        //.HasForeignKey(e => e.CountryId)
-        //.OnDelete(DeleteBehavior.Cascade)
-        //.HasConstraintName("FK_Employee_Country");
+                entity.HasOne(d => d.EmployeeType).WithMany(p => p.Employees)
+                    .HasForeignKey(d => d.EmployeeTypeId)
+                    .HasConstraintName("FK_Employee_EmployeeType");
 
+                entity.HasOne(d => d.Gender).WithMany(p => p.Employees)
+                    .HasForeignKey(d => d.GenderId)
+                    .HasConstraintName("FK_Employee_Gender");
 
-
-                entity.HasOne(d => d.EmployeeType)
-                      .WithMany(p => p.Employees)
-                      .HasForeignKey(d => d.EmployeeTypeId);
-
-                entity.HasOne(d => d.Gender)
-                      .WithMany(p => p.Employees)
-                      .HasForeignKey(d => d.GenderId);
-
-                entity.HasOne(d => d.Tenant)
-                      .WithMany(p => p.Employees)
-                      .HasForeignKey(d => d.TenantId)
-                      .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(d => d.Tenant).WithMany(p => p.Employees)
+                    .HasForeignKey(d => d.TenantId)
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .HasConstraintName("FK_Employee_Tenant");
             });
 
             modelBuilder.Entity<EmployeeContact>(entity =>
