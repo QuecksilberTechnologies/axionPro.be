@@ -3,7 +3,7 @@ using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Constants;
- 
+
 using axionpro.application.DTOs.Employee;
 using axionpro.application.DTOs.Module;
 using axionpro.application.DTOs.Operation;
@@ -19,13 +19,13 @@ using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Token;
 using axionpro.application.Features.UserLoginAndDashboardCmd.Commands;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Interfaces.IRequestValidation;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
- 
+
 using axionpro.domain.Entity;
 using FluentValidation;
 using MediatR;
@@ -39,7 +39,7 @@ using System.Reflection;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
- 
+
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers

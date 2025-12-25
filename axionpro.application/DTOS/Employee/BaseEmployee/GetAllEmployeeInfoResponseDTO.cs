@@ -17,9 +17,10 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
             public string? FirstName { get; set; } = string.Empty;
             public int GenderId { get; set; }
             public string? GenderName { get; set; }
-            public int NationalityCountryId { get; set; }
-           public string? Nationality { get; set; }
-          public string? DateOfOnBoarding { get; set; }
+            public int CountryId { get; set; }
+           public string Nationality { get; set; } = string.Empty;
+            public string? DateOfBirth { get; set; }
+        public string? DateOfOnBoarding { get; set; }
             public int DepartmentId { get; set; }
             public string? DepartmentName { get; set; }
             public int DesignationId { get; set; }

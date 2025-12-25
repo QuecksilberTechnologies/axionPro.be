@@ -10,10 +10,10 @@ using axionpro.application.DTOs.Employee.AccessControlReadOnlyType;
 using axionpro.application.DTOs.Employee.AccessResponse;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Interfaces.IRequestValidation;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
@@ -137,8 +137,8 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 if (request.DTO.IsEditAllowed.HasValue)
                     existingEmployee.IsEditAllowed = request.DTO.IsEditAllowed.Value;
 
-                if (request.DTO.NationalityCountryId.HasValue)
-                    existingEmployee.NationalityCountryId = request.DTO.NationalityCountryId;
+                //if (request.DTO.CountryId.HasValue)
+                //    existingEmployee.CountryId = request.DTO.CountryId??0;
 
                 if (request.DTO.IsInfoVerified.HasValue)
                 {

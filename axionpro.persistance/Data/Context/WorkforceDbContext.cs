@@ -177,6 +177,7 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<PlanModuleMapping> PlanModuleMappings { get; set; }
 
         public virtual DbSet<PolicyLeaveTypeMapping> PolicyLeaveTypeMappings { get; set; }
+        public virtual DbSet<EmployeeIdentity> EmployeeIdentities { get; set; }
 
         public virtual DbSet<PolicyType> PolicyTypes { get; set; }
 
@@ -196,6 +197,9 @@ namespace axionpro.persistance.Data.Context
 
         public virtual DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
 
+        public virtual DbSet<CountryIdentityRule> CountryIdentityRules { get; set; }
+        public virtual DbSet<IdentityCategory> IdentityCategories { get; set; }
+        public virtual DbSet<IdentityCategoryDocument> IdentityCategoryDocuments { get; set; }
         public virtual DbSet<Tenant> Tenants { get; set; }
 
         public virtual DbSet<TenantEmailConfig> TenantEmailConfigs { get; set; }
@@ -213,6 +217,7 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<Tender> Tenders { get; set; }
 
         public virtual DbSet<TenderProject> TenderProjects { get; set; }
+
 
         public virtual DbSet<TenderService> TenderServices { get; set; }
 
@@ -801,7 +806,6 @@ namespace axionpro.persistance.Data.Context
                     .HasMaxLength(50)
                     .IsUnicode(false);
             });
-
             modelBuilder.Entity<Country>(entity =>
             {
                 entity.HasKey(e => e.Id).HasName("PK__Country__3214EC070584DCC0");
@@ -812,7 +816,6 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.CountryName).HasMaxLength(100);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
             });
-
             modelBuilder.Entity<DataViewStructure>(entity =>
             {
                 entity.ToTable("DataViewStructure", "AxionPro");
@@ -953,6 +956,30 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.ToEmail).HasMaxLength(500);
                 entity.Property(e => e.TriggeredBy).HasMaxLength(100);
             });
+            modelBuilder.Entity<CountryIdentityRule>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("PK__CountryI__3214EC0748E4A649");
+
+                entity.ToTable("CountryIdentityRule", "AxionPro");
+
+                entity.Property(e => e.AddedDateTime)
+                    .HasDefaultValueSql("(getdate())")
+                    .HasColumnType("datetime");
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.IsMandatory).HasDefaultValue(true);
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+
+                entity.HasOne(d => d.Country).WithMany(p => p.CountryIdentityRules)
+                    .HasForeignKey(d => d.CountryId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Country");
+
+                entity.HasOne(d => d.IdentityCategoryDocument).WithMany(p => p.CountryIdentityRules)
+                    .HasForeignKey(d => d.IdentityCategoryDocumentId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Country_Document");
+            });
+
 
             modelBuilder.Entity<Employee>(entity =>
             {
@@ -976,11 +1003,16 @@ namespace axionpro.persistance.Data.Context
                       .HasForeignKey(d => d.DesignationId)
                       .OnDelete(DeleteBehavior.SetNull);
 
-                entity.HasOne(d => d.NationalityCountry)
-                      .WithMany()
-                      .HasForeignKey(d => d.NationalityCountryId)
-                      .OnDelete(DeleteBehavior.SetNull)
-                      .HasConstraintName("FK_Employee_NationalityCountry");
+                //entity.Property(e => e.CountryId)
+                //.IsRequired();
+
+        //        entity.HasOne(e => e.Country)
+        //.WithMany()
+        //.HasForeignKey(e => e.CountryId)
+        //.OnDelete(DeleteBehavior.Cascade)
+        //.HasConstraintName("FK_Employee_Country");
+
+
 
                 entity.HasOne(d => d.EmployeeType)
                       .WithMany(p => p.Employees)
@@ -1282,6 +1314,83 @@ namespace axionpro.persistance.Data.Context
                     .HasForeignKey(d => d.ExperienceDetailId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_EmployeeExperiencePayslipUpload_ExperienceDetail");
+            });
+            modelBuilder.Entity<IdentityCategory>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("PK__Identity__3214EC07393AF557");
+
+                entity.ToTable("IdentityCategory", "AxionPro");
+
+                entity.HasIndex(e => e.Code, "UQ__Identity__A25C5AA7EC142E9A").IsUnique();
+
+                entity.Property(e => e.AddedDateTime)
+                    .HasDefaultValueSql("(getdate())")
+                    .HasColumnType("datetime");
+                entity.Property(e => e.Code)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+                entity.Property(e => e.Description)
+                    .HasMaxLength(250)
+                    .IsUnicode(false);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.Name)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+            });
+
+
+            modelBuilder.Entity<IdentityCategoryDocument>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("PK__Identity__3214EC07AA61914F");
+
+                entity.ToTable("IdentityCategoryDocument", "AxionPro");
+
+                entity.Property(e => e.AddedDateTime)
+                    .HasDefaultValueSql("(getdate())")
+                    .HasColumnType("datetime");
+                entity.Property(e => e.Code)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+                entity.Property(e => e.Description)
+                    .HasMaxLength(250)
+                    .IsUnicode(false);
+                entity.Property(e => e.DocumentName)
+                    .HasMaxLength(150)
+                    .IsUnicode(false);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.IsUnique).HasDefaultValue(true);
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+
+                entity.HasOne(d => d.IdentityCategory).WithMany(p => p.IdentityCategoryDocuments)
+                    .HasForeignKey(d => d.IdentityCategoryId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_IdentityDocument_Category");
+            });
+
+            modelBuilder.Entity<EmployeeIdentity>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC074FF9BCC1");
+
+                entity.ToTable("EmployeeIdentity", "AxionPro");
+
+                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("(sysdatetime())");
+                entity.Property(e => e.DocumentFileName).HasMaxLength(255);
+                entity.Property(e => e.DocumentFilePath).HasMaxLength(500);
+                entity.Property(e => e.EffectiveFrom).HasDefaultValueSql("(getdate())");
+                entity.Property(e => e.IdentityValue).HasMaxLength(100);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.IsEditAllowed).HasDefaultValue(true);
+
+                entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeIdentities)
+                    .HasForeignKey(d => d.EmployeeId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_EmployeeIdentity_Employee");
+
+                entity.HasOne(d => d.IdentityCategoryDocument).WithMany(p => p.EmployeeIdentities)
+                    .HasForeignKey(d => d.IdentityCategoryDocumentId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_EmployeeIdentity_Document");
             });
 
             modelBuilder.Entity<EmployeeImage>(entity =>

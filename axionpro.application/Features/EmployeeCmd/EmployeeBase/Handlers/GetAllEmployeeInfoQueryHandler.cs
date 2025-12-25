@@ -7,13 +7,13 @@ using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.DTOs.Designation;
 using axionpro.application.DTOs.Role;
 using axionpro.application.DTOS.Employee.BaseEmployee;
-using axionpro.application.DTOS.Pagination; 
- 
+using axionpro.application.DTOS.Pagination;
+
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Interfaces.IRequestValidation;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using MediatR;

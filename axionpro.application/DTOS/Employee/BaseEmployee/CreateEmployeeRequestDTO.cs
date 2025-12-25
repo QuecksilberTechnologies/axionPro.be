@@ -35,7 +35,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
 
         [Required]
 
-        public  int NationalityCountryId { get; set; }
+        public  int CountryId { get; set; }
         [Required]
         public int DepartmentId { get; set; }
 

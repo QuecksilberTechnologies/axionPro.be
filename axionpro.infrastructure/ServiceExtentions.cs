@@ -1,4 +1,5 @@
 ﻿using axionpro.application.Interfaces.ICacheService;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEmail;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IFileStorage;
@@ -7,7 +8,6 @@ using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.IQRService;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Interfaces.IRequestValidation;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.domain.Entity;
 using axionpro.infrastructure.BackgroundJob;

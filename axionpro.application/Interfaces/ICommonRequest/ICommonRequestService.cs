@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace axionpro.application.Interfaces.IRequestValidation
+namespace axionpro.application.Interfaces.ICommonRequest
 {
    
         public interface ICommonRequestService

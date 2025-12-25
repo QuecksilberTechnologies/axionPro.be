@@ -6,12 +6,12 @@ using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.DTOs.Designation;
 using axionpro.application.DTOs.Role;
 using axionpro.application.DTOS.Common;
- 
+
 using axionpro.application.Features.DepartmentCmd.Handlers;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.IRequestValidation;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;

@@ -464,9 +464,9 @@ namespace axionpro.application.Mappings
 
             #region 🔹 Base Employee Mappings
 
-            CreateMap<CreateBaseEmployeeRequestDTO, Employee>()
-             .ForMember(dest => dest.NationalityCountryId,
-                   opt => opt.MapFrom(src => src.NationalityCountryId)).ReverseMap();
+            CreateMap<CreateBaseEmployeeRequestDTO, Employee>();
+            //.ForMember(dest => dest.CountryId,
+            //      opt => opt.MapFrom(src => src.CountryId)).ReverseMap();
 
 
             CreateMap<Employee, GetBaseEmployeeResponseDTO>()
@@ -486,8 +486,9 @@ namespace axionpro.application.Mappings
                 .ForMember(dest => dest.HasPermanent, opt => opt.MapFrom(src => src.HasPermanent))
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
                 .ForMember(dest => dest.IsEditAllowed, opt => opt.MapFrom(src => src.IsEditAllowed))
-                .ForMember(dest => dest.IsInfoVerified, opt => opt.MapFrom(src => src.IsInfoVerified))
-                .ReverseMap();
+                .ForMember(dest => dest.IsInfoVerified, opt => opt.MapFrom(src => src.IsInfoVerified));
+              //  .ForMember(dest => dest.CountryId, opt => opt.MapFrom(src => src.CountryId));
+            
 
             #endregion
 

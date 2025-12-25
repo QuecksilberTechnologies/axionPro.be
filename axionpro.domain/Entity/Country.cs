@@ -13,7 +13,12 @@ public partial class Country
 
     public bool? IsActive { get; set; }
 
-    public virtual ICollection<State> States { get; set; } = new List<State>();
+    public virtual ICollection<CountryIdentityRule> CountryIdentityRules { get; set; } = new List<CountryIdentityRule>();
+
+ 
     public virtual ICollection<Employee> Employees { get; set; } = new List<Employee>();
 
+    public virtual ICollection<State> States { get; set; } = new List<State>();
+
+   
 }

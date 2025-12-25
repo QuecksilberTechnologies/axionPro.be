@@ -132,6 +132,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                     : null,
 
                 // 🌍 Country
+                Id = e.Id,
                 CountryCode = e.CountryCode,
                 CountryName = e.CountryName,
 

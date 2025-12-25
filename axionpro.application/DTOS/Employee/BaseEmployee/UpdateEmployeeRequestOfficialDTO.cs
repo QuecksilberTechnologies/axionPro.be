@@ -17,7 +17,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
 
         // ---- Official / Admin controlled ----
         public int? DesignationId { get; set; }
-        public int? NationalityCountryId { get; set; }
+        public int? CountryId { get; set; }
         public int? DepartmentId { get; set; }
         public int? EmployeeTypeId { get; set; }
         public int? GenderId { get; set; }      

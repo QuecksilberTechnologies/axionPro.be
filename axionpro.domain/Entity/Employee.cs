@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace axionpro.domain.Entity;
 
 public partial class Employee
 {
-   
     public long Id { get; set; }
 
-    public long TenantId { get; set; }
+    public long? TenantId { get; set; }
 
     public int? EmployeeDocumentId { get; set; }
 
@@ -18,9 +18,9 @@ public partial class Employee
 
     public string? MiddleName { get; set; }
 
-    public int GenderId { get; set; }
-    public int? NationalityCountryId { get; set; }
-    public string FirstName { get; set; }=string.Empty;
+    public int? GenderId { get; set; }
+
+    public string? FirstName { get; set; }
 
     public DateTime? DateOfBirth { get; set; }
 
@@ -28,13 +28,13 @@ public partial class Employee
 
     public DateTime? DateOfExit { get; set; }
 
-    public int DesignationId { get; set; }
+    public int? DesignationId { get; set; }
 
-    public int EmployeeTypeId { get; set; }
+    public int? EmployeeTypeId { get; set; }
 
-    public int DepartmentId { get; set; }
+    public int? DepartmentId { get; set; }
 
-    public string OfficialEmail { get; set; }= string.Empty;
+    public string? OfficialEmail { get; set; }
 
     public bool HasPermanent { get; set; }
 
@@ -50,9 +50,9 @@ public partial class Employee
 
     public bool? IsInfoVerified { get; set; }
 
-    public long? AddedById { get; set; }
+    public long AddedById { get; set; }
 
-    public DateTime? AddedDateTime { get; set; }
+    public DateTime AddedDateTime { get; set; }
 
     public long? InfoVerifiedById { get; set; }
 
@@ -70,6 +70,8 @@ public partial class Employee
 
     public string? Description { get; set; }
 
+   // public int CountryId { get; set; }
+
     public virtual ICollection<AssetAssignment> AssetAssignments { get; set; } = new List<AssetAssignment>();
 
     public virtual ICollection<AssetHistory> AssetHistoryEmployees { get; set; } = new List<AssetHistory>();
@@ -79,27 +81,24 @@ public partial class Employee
     public virtual ICollection<AttendanceHistory> AttendanceHistories { get; set; } = new List<AttendanceHistory>();
 
     public virtual Designation? Designation { get; set; }
- 
-  
-    public Country? NationalityCountry { get; set; }
 
     public virtual ICollection<EmployeeBankDetail> EmployeeBankDetails { get; set; } = new List<EmployeeBankDetail>();
-    public virtual ICollection<EmployeeContact> EmployeeContacts { get; set; } = new List<EmployeeContact>();
-    public virtual ICollection<EmployeeEducation> EmployeeEducations { get; set; } = new List<EmployeeEducation>();
 
     public virtual ICollection<EmployeeCategorySkill> EmployeeCategorySkills { get; set; } = new List<EmployeeCategorySkill>();
+
+    public virtual ICollection<EmployeeContact> EmployeeContacts { get; set; } = new List<EmployeeContact>();
 
     public virtual ICollection<EmployeeDailyAttendance> EmployeeDailyAttendances { get; set; } = new List<EmployeeDailyAttendance>();
 
     public virtual ICollection<EmployeeDependent> EmployeeDependents { get; set; } = new List<EmployeeDependent>();
 
-    public virtual ICollection<EmployeeImage> EmployeeImages { get; set; } = new List<EmployeeImage>();
-    public virtual ICollection<LoginCredential> LoginCredentials { get; set; } = new List<LoginCredential>();
-
     public virtual ICollection<EmployeeExperienceDetail> EmployeeExperienceDetails { get; set; } = new List<EmployeeExperienceDetail>();
 
     public virtual ICollection<EmployeeExperiencePayslipUpload> EmployeeExperiencePayslipUploads { get; set; } = new List<EmployeeExperiencePayslipUpload>();
 
+    public virtual ICollection<EmployeeIdentity> EmployeeIdentities { get; set; } = new List<EmployeeIdentity>();
+
+    public virtual ICollection<EmployeeImage> EmployeeImages { get; set; } = new List<EmployeeImage>();
 
     public virtual ICollection<EmployeeLeavePolicyMapping> EmployeeLeavePolicyMappings { get; set; } = new List<EmployeeLeavePolicyMapping>();
 
@@ -117,6 +116,11 @@ public partial class Employee
 
     public virtual ICollection<LeaveRequest> LeaveRequests { get; set; } = new List<LeaveRequest>();
 
+    public virtual ICollection<LoginCredential> LoginCredentials { get; set; } = new List<LoginCredential>();
+
+  
+    public virtual Country? Country { get; set; }
+    
     public virtual Tenant? Tenant { get; set; }
 
     public virtual ICollection<UserAttendanceSetting> UserAttendanceSettings { get; set; } = new List<UserAttendanceSetting>();
