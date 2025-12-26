@@ -27,7 +27,7 @@ public partial class EmployeeIdentity
 
     public bool HasIdentityUploaded { get; set; }
 
-    public DateOnly EffectiveFrom { get; set; }
+    public DateOnly? EffectiveFrom { get; set; }
 
     public DateOnly? EffectiveTo { get; set; }
 

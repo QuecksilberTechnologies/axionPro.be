@@ -18,7 +18,6 @@ namespace axionpro.application.DTOS.StoreProcedures
         /// Employee context (NULL when identity not yet created)
         /// </summary>
         public string? EmployeeId { get; set; }
-
         /// <summary>
         /// Country info
         /// </summary>

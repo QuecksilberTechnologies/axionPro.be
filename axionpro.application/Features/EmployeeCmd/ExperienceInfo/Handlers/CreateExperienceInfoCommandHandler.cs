@@ -12,7 +12,6 @@ using axionpro.application.DTOS.Employee.Experience;
 using axionpro.application.DTOS.Employee.Sensitive;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers;
-using axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IFileStorage;

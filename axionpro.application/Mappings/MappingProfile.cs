@@ -541,38 +541,38 @@ namespace axionpro.application.Mappings
             #endregion
 
             #region 🔹 Personal Detail Mappings
-            CreateMap<EmployeePersonalDetail, CreateIdentityRequestDTO>()
-       .ForMember(dest => dest.UserEmployeeId, opt => opt.Ignore())
-       .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
-       .ForMember(dest => dest.AadhaarDocFile, opt => opt.Ignore())
-       .ForMember(dest => dest.PanDocFile, opt => opt.Ignore())
-       .ForMember(dest => dest.PassportDocFile, opt => opt.Ignore());
+       //     CreateMap<EmployeePersonalDetail, CreateIdentityRequestDTO>()
+       //.ForMember(dest => dest.UserEmployeeId, opt => opt.Ignore())
+       //.ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
+       //.ForMember(dest => dest.AadhaarDocFile, opt => opt.Ignore())
+       //.ForMember(dest => dest.PanDocFile, opt => opt.Ignore())
+       //.ForMember(dest => dest.PassportDocFile, opt => opt.Ignore());
 
-            CreateMap<CreateIdentityRequestDTO, EmployeePersonalDetail>()
-                .ForMember(dest => dest.Id, opt => opt.Ignore())  // Primary key
-                .ForMember(dest => dest.AddedById, opt => opt.Ignore())
-                .ForMember(dest => dest.AddedDateTime, opt => opt.Ignore())
-                .ForMember(dest => dest.UpdatedById, opt => opt.Ignore())
-                 .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
-                 .ForMember(dest => dest.SoftDeletedById, opt => opt.Ignore())
-
-
-                .ForMember(dest => dest.IsActive, opt => opt.Ignore())
+            //CreateMap<CreateIdentityRequestDTO, IdentityCategory>()
+            //    .ForMember(dest => dest.Id, opt => opt.Ignore())  // Primary key
+            //    .ForMember(dest => dest.AddedById, opt => opt.Ignore())
+            //    .ForMember(dest => dest.AddedDateTime, opt => opt.Ignore())
+            //    .ForMember(dest => dest.UpdatedById, opt => opt.Ignore())
+            //     .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
+            //     .ForMember(dest => dest.SoftDeletedById, opt => opt.Ignore())
 
 
-                .ForMember(dest => dest.HasEPFAccount, opt => opt.MapFrom(src => src.HasEPFAccount))
-                .ForMember(dest => dest.UANNumber, opt => opt.MapFrom(src => src.UANNumber))
-                .ForMember(dest => dest.AadhaarNumber, opt => opt.MapFrom(src => src.AadhaarNumber))
-                .ForMember(dest => dest.PanNumber, opt => opt.MapFrom(src => src.PanNumber))
-                .ForMember(dest => dest.PassportNumber, opt => opt.MapFrom(src => src.PassportNumber))
-                .ForMember(dest => dest.DrivingLicenseNumber, opt => opt.MapFrom(src => src.DrivingLicenseNumber))
-                .ForMember(dest => dest.VoterId, opt => opt.MapFrom(src => src.VoterId))
-                .ForMember(dest => dest.BloodGroup, opt => opt.MapFrom(src => src.BloodGroup))
-                .ForMember(dest => dest.MaritalStatus, opt => opt.MapFrom(src => src.MaritalStatus))
-                .ForMember(dest => dest.Nationality, opt => opt.MapFrom(src => src.Nationality))
-                .ForMember(dest => dest.EmergencyContactName, opt => opt.MapFrom(src => src.EmergencyContactName))
-                .ForMember(dest => dest.EmergencyContactRelation, opt => opt.MapFrom(src => src.EmergencyContactRelation))
-                .ForMember(dest => dest.EmergencyContactNumber, opt => opt.MapFrom(src => src.EmergencyContactNumber));
+            //    .ForMember(dest => dest.IsActive, opt => opt.Ignore())
+
+
+            //    .ForMember(dest => dest.HasEPFAccount, opt => opt.MapFrom(src => src.HasEPFAccount))
+            //    .ForMember(dest => dest.UANNumber, opt => opt.MapFrom(src => src.UANNumber))
+            //    .ForMember(dest => dest.AadhaarNumber, opt => opt.MapFrom(src => src.AadhaarNumber))
+            //    .ForMember(dest => dest.PanNumber, opt => opt.MapFrom(src => src.PanNumber))
+            //    .ForMember(dest => dest.PassportNumber, opt => opt.MapFrom(src => src.PassportNumber))
+            //    .ForMember(dest => dest.DrivingLicenseNumber, opt => opt.MapFrom(src => src.DrivingLicenseNumber))
+            //    .ForMember(dest => dest.VoterId, opt => opt.MapFrom(src => src.VoterId))
+            //    .ForMember(dest => dest.BloodGroup, opt => opt.MapFrom(src => src.BloodGroup))
+            //    .ForMember(dest => dest.MaritalStatus, opt => opt.MapFrom(src => src.MaritalStatus))
+            //    .ForMember(dest => dest.Nationality, opt => opt.MapFrom(src => src.Nationality))
+            //    .ForMember(dest => dest.EmergencyContactName, opt => opt.MapFrom(src => src.EmergencyContactName))
+            //    .ForMember(dest => dest.EmergencyContactRelation, opt => opt.MapFrom(src => src.EmergencyContactRelation))
+            //    .ForMember(dest => dest.EmergencyContactNumber, opt => opt.MapFrom(src => src.EmergencyContactNumber));
 
             #endregion
 

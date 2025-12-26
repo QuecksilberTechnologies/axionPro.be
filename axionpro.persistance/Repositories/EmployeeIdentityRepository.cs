@@ -228,12 +228,12 @@ namespace axionpro.persistance.Repositories
         //    }
         //}
 
-        public async Task<EmployeePersonalDetail?> GetSingleRecordAsync(long id, bool isActive)
+        public async Task<EmployeeIdentity?> GetSingleRecordAsync(long id, bool isActive)
         {
             try
             {
-                IQueryable<EmployeePersonalDetail> query =
-                    _context.EmployeePersonalDetails
+                IQueryable<EmployeeIdentity> query =
+                    _context.EmployeeIdentities
                         .AsNoTracking()
                         .Where(x =>
                             x.Id == id &&
@@ -261,7 +261,7 @@ namespace axionpro.persistance.Repositories
         }
 
 
-        public async Task<bool> IsEmployeePersonalDetailExistsAsync(long id, bool? isActive)
+        public async Task<bool> IsEmployeeIdentityExistsAsync(long id, bool? isActive)
         {
             try
             {
@@ -296,10 +296,15 @@ namespace axionpro.persistance.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<GetIdentityResponseDTO> CreateAsync(EmployeePersonalDetail entity)
+        public async Task<bool> CreateAsync(IEnumerable<EmployeeIdentity> entities)
         {
-            throw new NotImplementedException();
+            if (entities == null || !entities.Any())
+                return false;
+
+            await _context.EmployeeIdentities.AddRangeAsync(entities);
+            return true; // SaveChanges UnitOfWork karega
         }
+
     }
 
 

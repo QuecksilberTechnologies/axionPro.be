@@ -25,7 +25,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
+namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
 {
     #region Query Definition
     public class GetIdentityInfoQuery

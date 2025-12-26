@@ -20,10 +20,10 @@ public interface IEmployeeIdentityRepository
    
  
     public Task<GetEmployeeIdentityResponseDTO> GetInfo(GetIdentityRequestDTO dto);
-    public Task<GetIdentityResponseDTO> CreateAsync(EmployeePersonalDetail entity);
+    public Task<bool> CreateAsync(IEnumerable<EmployeeIdentity> entities);
     //  public Task<PagedResponseDTO<GetDependentResponseDTO>> AutoCreatedAsync(EmployeeContact entity);
-       public Task<EmployeePersonalDetail> GetSingleRecordAsync(long Id, bool IsActive);  // Ensure this returns 
-       public Task<bool> IsEmployeePersonalDetailExistsAsync(long Id, bool? IsActive);  // Ensure this returns 
+       public Task<EmployeeIdentity> GetSingleRecordAsync(long Id, bool IsActive);  // Ensure this returns 
+       public Task<bool> IsEmployeeIdentityExistsAsync(long Id, bool? IsActive);  // Ensure this returns 
 
     public Task<bool> UpdateIdentity(EmployeePersonalDetail employeePersonal);
     #endregion

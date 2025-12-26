@@ -1,6 +1,6 @@
 ﻿
 using axionpro.application.DTOS.Employee.Sensitive;
-using axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers;
+using axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers;
 using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
 using MediatR;
@@ -33,11 +33,11 @@ namespace axionpro.api.Controllers.Employee
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Createpersonalinfo([FromForm] CreateIdentityRequestDTO dto)
+        public async Task<IActionResult> Createpersonalinfo([FromForm] CreateEmployeeIdentityRequestDTO dto)
         {
             try
             {
-                var command = new CreatePersonalInfoCommand(dto);
+                var command = new CreateIdentityInfoCommand(dto);
                 _logger.LogInfo("Creating new employee personal info info...");
 
                 var result = await _mediator.Send(command);
