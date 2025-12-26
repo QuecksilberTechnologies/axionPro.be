@@ -3,7 +3,8 @@ using axionpro.application.DTOs.Operation;
 
 using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOS.RoleModulePermission;
-using axionpro.application.DTOS.StoreProcedureDTO;
+using axionpro.application.DTOS.StoreProcedures;
+using axionpro.application.DTOS.StoreProcedures.DashboardSummeries;
 using axionpro.application.Interfaces.IContext;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
@@ -254,6 +255,7 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<SubscribedModuleResponseDTO> SubscribedModuleResponseDTOs { get; set; }
         public virtual DbSet<FlatModuleOperationDto> TenantModulesConfigurations { get; set; }
         public virtual DbSet<GetEmployeeIdentitySp> GetEmployeeIdentitySps { get; set; }
+        public virtual DbSet<EmployeeCountResponseStatsSp> EmployeeCountResponseStatsSps { get; set; }
 
         //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         // #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.

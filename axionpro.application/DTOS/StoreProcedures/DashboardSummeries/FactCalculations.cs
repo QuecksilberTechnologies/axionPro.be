@@ -1,6 +1,8 @@
-﻿using axionpro.application.DTOS.Pagination;
+﻿using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Pagination;
+using Microsoft.EntityFrameworkCore;
 
-namespace axionpro.application.DTOS.DashboardSummaryDTO
+namespace axionpro.application.DTOS.StoreProcedures.DashboardSummeries
 {
 
 
@@ -35,6 +37,28 @@ namespace axionpro.application.DTOS.DashboardSummaryDTO
         public int NewHiresThisMonth { get; set; }
         public int OpenPositions { get; set; }
         public int PendingApprovals { get; set; }
+    }
+
+
+    /// <summary>
+    /// Employee-related dashboard statistics.
+    /// </summary>
+    /// 
+    [Keyless]
+    public class EmployeeCountResponseStatsSp
+    {
+          
+        public int TotalCount { get; set; }
+        public int ActiveCount { get; set; }
+        public int InActiveCount { get; set; }
+        public int OnLeaveCount { get; set; }
+    }
+
+    public class EmployeeCountRequestStatsSp
+    {
+
+        public required string UserEmployeeId { get; set; }
+        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
     }
 
     /// <summary>

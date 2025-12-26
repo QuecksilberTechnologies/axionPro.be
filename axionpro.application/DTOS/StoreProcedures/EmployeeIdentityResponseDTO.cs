@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace axionpro.application.DTOS.StoreProcedureDTO
+namespace axionpro.application.DTOS.StoreProcedures
 {
     public class GetEmployeeIdentityResponseDTO
     {

@@ -7,7 +7,8 @@ using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.DTOs.UserRole;
 using axionpro.application.DTOS.RoleModulePermission;
-using axionpro.application.DTOS.StoreProcedureDTO;
+using axionpro.application.DTOS.StoreProcedures;
+using axionpro.application.DTOS.StoreProcedures.DashboardSummeries;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
@@ -286,12 +287,48 @@ namespace axionpro.persistance.Repositories
         }
 
 
+        public async Task<EmployeeCountResponseStatsSp?> GetEmployeeCountsAsync(long tenantId)
+        {
+            try
+            {
+                await using var context = await _contextFactory.CreateDbContextAsync();
+
+                _logger.LogInformation(
+                    "Fetching employee count statistics. TenantId: {TenantId}",
+                    tenantId);
+
+                var sql = @"EXEC AxionPro.AllEmployeeCountData @TenantId";
+                var tenantParam = new SqlParameter("@TenantId", tenantId);
+
+                var result = context.EmployeeCountResponseStatsSps
+                    .FromSqlRaw(sql, tenantParam)
+                    .AsNoTracking()
+                    .AsEnumerable()     // 🔑 MOST IMPORTANT LINE
+                    .FirstOrDefault();
+
+                return result;
+            }
+            catch (SqlException ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "SQL error while fetching employee count statistics. TenantId: {TenantId}",
+                    tenantId);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Unexpected error while fetching employee count statistics. TenantId: {TenantId}",
+                    tenantId);
+                throw;
+            }
+        }
 
 
-        public async Task<List<GetEmployeeIdentitySp>> GetIdentityRecordAsync(
-       long employeeId,
-       int countryId,
-       bool isActive)
+
+        public async Task<List<GetEmployeeIdentitySp>> GetIdentityRecordAsync(  long employeeId,   int countryId,        bool isActive)
         {
             try
             {

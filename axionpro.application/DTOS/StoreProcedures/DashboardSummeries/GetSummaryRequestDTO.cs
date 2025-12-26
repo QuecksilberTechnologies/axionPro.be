@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace axionpro.application.DTOS.DashboardSummaryDTO
+namespace axionpro.application.DTOS.StoreProcedures.DashboardSummeries
 {
     public class GetSummaryRequestDTO : BaseRequest
     {

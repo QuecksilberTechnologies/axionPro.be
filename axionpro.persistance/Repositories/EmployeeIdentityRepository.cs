@@ -4,7 +4,7 @@ using AutoMapper;
 using axionpro.application.DTOS.Employee.Experience;
 using axionpro.application.DTOS.Employee.Sensitive;
 using axionpro.application.DTOS.Pagination;
-using axionpro.application.DTOS.StoreProcedureDTO;
+using axionpro.application.DTOS.StoreProcedures;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;

@@ -11,7 +11,7 @@ using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.DTOS.Employee.Experience;
 using axionpro.application.DTOS.Employee.Sensitive;
 using axionpro.application.DTOS.Pagination;
-using axionpro.application.DTOS.StoreProcedureDTO;
+using axionpro.application.DTOS.StoreProcedures;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.domain.Entity;
 using Microsoft.Extensions.Configuration;

@@ -1041,6 +1041,7 @@ namespace axionpro.persistance.Repositories
                     where emp.TenantId == dto.Prop.TenantId
                           && emp.IsSoftDeleted != true
 
+
                     select new
                     {
                         emp,
@@ -1185,7 +1186,7 @@ namespace axionpro.persistance.Repositories
                         EmployeeTypeName = x.EmployeeTypeName
                     };
 
-
+                   
                     return new GetAllEmployeeInfoResponseDTO
                     {
                         EmployeeId = x.emp.Id.ToString(),
@@ -1209,6 +1210,7 @@ namespace axionpro.persistance.Repositories
                         HasImagePicUploaded = hasPrimary,
                         IsActive = x.emp.IsActive,
                         SummaryEmployeeInfo = summaryEmployeeInfo  , // ✅ THIS WAS MISSING
+                        
 
                         CompletionPercentage = (completed / 13.0) * 100
                     };
@@ -1221,6 +1223,7 @@ namespace axionpro.persistance.Repositories
                     PageNumber = pageNumber,
                     PageSize = pageSize,
                     TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+
                 };
             }
             catch (Exception ex)

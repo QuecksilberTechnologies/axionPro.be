@@ -4,6 +4,13 @@ using System.Collections.Generic;
 
 namespace axionpro.application.DTOS.Pagination
 {
+    public class CountingData
+    {
+        public int TotalCount { get; set; }
+        public int ActiveCount { get; set; }
+        public int InActiveCount { get; set; }
+        public int OnLeaveCount { get; set; }
+    }
     public class PagedResponseDTO<T>
     {
         public PagedResponseDTO()
@@ -53,4 +60,5 @@ namespace axionpro.application.DTOS.Pagination
         public double? CompletionPercentage { get; set; }
         
     }
+
 }

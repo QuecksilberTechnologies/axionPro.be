@@ -1,60 +1,54 @@
 ﻿using AutoMapper;
-using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.RequestHelper;
-using axionpro.application.DTOs.Department;
 using axionpro.application.DTOS.Common;
-using axionpro.application.DTOS.Employee.Contact;
-using axionpro.application.DTOS.Employee.Education;
-using axionpro.application.DTOS.Employee.Sensitive;
-using axionpro.application.DTOS.Pagination;
+using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.StoreProcedures;
-using axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers;
+using axionpro.application.DTOS.StoreProcedures.DashboardSummeries;
+using axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
+namespace axionpro.application.Features.StatsFeatures.EmployeesCmd.Handlers
 {
-    #region Query Definition
-    public class GetIdentityInfoQuery
-        : IRequest<ApiResponse<List<GetEmployeeIdentityResponseDTO>>>
-    {
-        public GetIdentityRequestDTO DTO { get; }
 
-        public GetIdentityInfoQuery(GetIdentityRequestDTO dto)
+
+    public class GetEmployeeCountsQuery : IRequest<ApiResponse<EmployeeCountResponseStatsSp>>
+    {
+        public EmployeeCountRequestStatsSp DTO { get; }
+
+        public GetEmployeeCountsQuery(EmployeeCountRequestStatsSp dTO)
         {
-            DTO = dto ?? throw new ArgumentNullException(nameof(dto));
+            DTO = dTO;
         }
     }
-
-    #endregion
-
-    #region Query Handler
-
-    public class GetIdentityInfoQueryHandler
- : IRequestHandler<GetIdentityInfoQuery, ApiResponse<List<GetEmployeeIdentityResponseDTO>>>
+    public class GetEmployeesCountQueryHandler: IRequestHandler<GetEmployeeCountsQuery, ApiResponse<EmployeeCountResponseStatsSp>>
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ILogger<GetIdentityInfoQueryHandler> _logger;
+        private readonly ILogger<GetEmployeesCountQueryHandler> _logger;
         private readonly IPermissionService _permissionService;
         private readonly ICommonRequestService _commonRequestService;
         private readonly IIdEncoderService _idEncoderService;
 
-        public GetIdentityInfoQueryHandler(
+        public GetEmployeesCountQueryHandler(
             IUnitOfWork unitOfWork,
-            ILogger<GetIdentityInfoQueryHandler> logger,
+            ILogger<GetEmployeesCountQueryHandler> logger,
             IPermissionService permissionService,
             ICommonRequestService commonRequestService,
             IIdEncoderService idEncoderService)
@@ -66,8 +60,8 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
             _idEncoderService = idEncoderService;
         }
 
-        public async Task<ApiResponse<List<GetEmployeeIdentityResponseDTO>>> Handle(
-            GetIdentityInfoQuery request,
+        public async Task<ApiResponse<EmployeeCountResponseStatsSp>> Handle(
+            GetEmployeeCountsQuery request,
             CancellationToken cancellationToken)
         {
             try
@@ -77,14 +71,8 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
                     .ValidateRequestAsync(request.DTO.UserEmployeeId);
 
                 if (!validation.Success)
-                    return ApiResponse<List<GetEmployeeIdentityResponseDTO>>
-                        .Fail(validation.ErrorMessage);
-
-                // 2️⃣ Decode EmployeeId
-                var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
-                    request.DTO.EmployeeId,
-                    validation.Claims.TenantEncriptionKey,
-                    _idEncoderService);
+                    return ApiResponse<EmployeeCountResponseStatsSp>
+                        .Fail(validation.ErrorMessage);              
 
                 // 3️⃣ Permission check (optional strict)
                 var permissions = await _permissionService
@@ -97,29 +85,21 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
 
                 // 4️⃣ Fetch SP data
                 var spRecords = await _unitOfWork.StoreProcedureRepository
-                    .GetIdentityRecordAsync(
-                        employeeId,
-                        request.DTO.CountryNationalityId,
-                        request.DTO.IsActive);
+                    .GetEmployeeCountsAsync(
+                        validation.TenantId);
 
-                if (spRecords == null || !spRecords.Any())
-                    return ApiResponse<List<GetEmployeeIdentityResponseDTO>>
+                if (spRecords == null)
+                    return ApiResponse<EmployeeCountResponseStatsSp>
                         .Fail("No identity information found.");
-
-                // 5️⃣ Projection + Encoding
-                var response = ProjectionHelper.ToGetIdentityResponseDTO(
-                    spRecords,
-                    _idEncoderService,
-                    validation.Claims.TenantEncriptionKey);
-
-                return ApiResponse<List<GetEmployeeIdentityResponseDTO>>
-                    .Success(response, "Identity information retrieved successfully.");
+                
+                return ApiResponse<EmployeeCountResponseStatsSp>
+                    .Success(spRecords, "Identity information retrieved successfully.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching identity info");
 
-                return ApiResponse<List<GetEmployeeIdentityResponseDTO>>
+                return ApiResponse<EmployeeCountResponseStatsSp>
                     .Fail(
                         "An unexpected error occurred.",
                         new List<string> { ex.Message });
@@ -128,5 +108,10 @@ namespace axionpro.application.Features.EmployeeCmd.SensitiveInfo.Handlers
     }
 
 
-    #endregion
+
+
+
+
+
+
 }

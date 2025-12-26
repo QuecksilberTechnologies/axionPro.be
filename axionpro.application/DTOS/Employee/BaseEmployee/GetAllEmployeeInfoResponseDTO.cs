@@ -34,12 +34,13 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
          //   public   <List>AsignedAsset AsignedAssetList { get;set} 
             public double? CompletionPercentage { get; set; }
             public bool? HasImagePicUploaded { get; set; }
-         public SummaryEmployeeInfo SummaryEmployeeInfo { get; set; } = new SummaryEmployeeInfo();
+           public SummaryEmployeeInfo SummaryEmployeeInfo { get; set; } = new SummaryEmployeeInfo();
 
 
 
     }
 
+  
 
     public class SummaryEmployeeInfo
     {   

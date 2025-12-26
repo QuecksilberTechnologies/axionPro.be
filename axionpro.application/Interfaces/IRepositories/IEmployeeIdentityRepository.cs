@@ -3,7 +3,7 @@ using axionpro.application.DTOS.Employee.Sensitive;
 using axionpro.application.DTOS.Employee.Type;
 
 using axionpro.application.DTOS.Pagination;
-using axionpro.application.DTOS.StoreProcedureDTO;
+using axionpro.application.DTOS.StoreProcedures;
 using axionpro.domain.Entity;
 using MediatR;
 using System.Collections.Generic;

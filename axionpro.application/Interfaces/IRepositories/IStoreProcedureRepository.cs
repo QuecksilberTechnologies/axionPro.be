@@ -5,7 +5,8 @@ using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.DTOs.UserRole;
 using axionpro.application.DTOS.RoleModulePermission;
-using axionpro.application.DTOS.StoreProcedureDTO;
+using axionpro.application.DTOS.StoreProcedures;
+using axionpro.application.DTOS.StoreProcedures.DashboardSummeries;
 using axionpro.domain.Entity;
 using System;
 using System.Collections.Generic;
@@ -37,7 +38,7 @@ namespace axionpro.application.Interfaces.IRepositories
         Task<bool> IsTenantValidAsync(long userId, long? TenantId);
 
         Task<List<GetEmployeeIdentitySp>> GetIdentityRecordAsync(long employeeId, int countryId, bool isActive);
-
+        Task<EmployeeCountResponseStatsSp> GetEmployeeCountsAsync(long tenantId);
 
         //   Task  <IUserRoleRepository> UpdateLoginCredential(LoginRequestDTO loginId);
         //  Task List<string> UpdateLoginCredential(LoginRequestDTO loginId);
