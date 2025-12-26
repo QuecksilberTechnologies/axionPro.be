@@ -63,13 +63,14 @@ public partial class Employee
     public long? SoftDeletedById { get; set; }
 
     public DateTime? DeletedDateTime { get; set; }
-
     public bool? IsSoftDeleted { get; set; }
-
+    public bool? IsMarried { get; set; }
     public DateTime? InfoVerifiedDateTime { get; set; }
-
     public string? Description { get; set; }
-
+    public string? EmergencyContactNumber { get; set; }
+    public string? BloodGroup { get; set; }
+    public string? SelfNumber { get; set; }
+    public int? Relation { get; set; }
     public int CountryId { get; set; }
 
     public virtual ICollection<AssetAssignment> AssetAssignments { get; set; } = new List<AssetAssignment>();

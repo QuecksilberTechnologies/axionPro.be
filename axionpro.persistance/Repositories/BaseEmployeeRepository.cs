@@ -998,34 +998,45 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
+                   await using var context = await _contextFactory.CreateDbContextAsync();
+
                 int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
                 int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
-
+                
                 // ----------------------------------------------------
                 // 1️⃣ BASE QUERY (LEFT JOIN + AS NO TRACKING)
                 // ----------------------------------------------------
                 var baseQuery =
-                    from emp in _context.Employees.AsNoTracking()
+                    from emp in context.Employees.AsNoTracking()
 
-                    join gender in _context.Genders
+                    join gender in context.Genders
                         on emp.GenderId equals (long?)gender.Id into genderJoin
                     from g in genderJoin.DefaultIfEmpty()
 
-                    join designation in _context.Designations
+                    join designation in context.Designations
                         on emp.DesignationId equals (long?)designation.Id into desigJoin
                     from d in desigJoin.DefaultIfEmpty()
 
-                    join empType in _context.EmployeeTypes
+                    join empType in context.EmployeeTypes
                         on emp.EmployeeTypeId equals (long?)empType.Id into typeJoin
                     from et in typeJoin.DefaultIfEmpty()
 
-                    join department in _context.Departments
+                    join department in context.Departments
                         on emp.DepartmentId equals (long?)department.Id into deptJoin
                     from dep in deptJoin.DefaultIfEmpty()
 
-                     join country in _context.Countries
+                     join country in context.Countries
                         on emp.CountryId equals (int)country.Id into countryJoin
                     from c in countryJoin.DefaultIfEmpty()
+
+                    join contact in context.EmployeeContacts
+                            .Where(ec => ec.IsPrimary == true)
+                           on emp.Id equals contact.EmployeeId into contactJoin
+                    from cont in contactJoin.DefaultIfEmpty()
+
+                    join district in context.Districts
+                    on cont.DistrictId equals district.Id into districtJoin
+                    from dist in districtJoin.DefaultIfEmpty()
 
                     where emp.TenantId == dto.Prop.TenantId
                           && emp.IsSoftDeleted != true
@@ -1033,14 +1044,19 @@ namespace axionpro.persistance.Repositories
                     select new
                     {
                         emp,
+                        cont,
+                        dist,
                         GenderName = g != null ? g.GenderName : "",
                         DesignationName = d != null ? d.DesignationName : "",
                         EmployeeTypeName = et != null ? et.TypeName : "",
                         DepartmentName = dep != null ? dep.DepartmentName : "",
                         CountryName = c != null ? c.CountryName : "",
                         
+                        
 
                     };
+              
+         
 
                 // ----------------------------------------------------
                 // 2️⃣ FILTERS
@@ -1089,7 +1105,7 @@ namespace axionpro.persistance.Repositories
                 // ----------------------------------------------------
                 var ids = pagedEmployees.Select(x => x.emp.Id).ToList();
 
-                var images = await _context.EmployeeImages
+                var images = await context.EmployeeImages
                     .Where(i => ids.Contains(i.EmployeeId) && i.IsSoftDeleted != true)
                     .OrderByDescending(i => i.IsPrimary)
                     .ThenByDescending(i => i.HasImageUploaded)
@@ -1104,6 +1120,7 @@ namespace axionpro.persistance.Repositories
                     .Where(i => i.IsPrimary == true)
                     .Select(i => i.EmployeeId)
                     .ToHashSet();
+
 
                 // ----------------------------------------------------
                 // 5️⃣ BUILD RESPONSE
@@ -1124,8 +1141,50 @@ namespace axionpro.persistance.Repositories
                 x.emp.IsActive ? 1 : 0,
                 x.emp.IsEditAllowed == true ? 1 : 0,
                 x.emp.IsInfoVerified == true ? 1 : 0,
-                hasPrimary ? 1 : 0
+                hasPrimary ? 1 : 0,
+                x.emp.BloodGroup  == null ? 0 : 1,
+                x.emp.SelfNumber  == null ? 0 : 1,
+                x.emp.EmergencyContactNumber  == null ? 0 : 1,
             }.Sum();
+
+                    SummaryEmployeeInfo summaryEmployeeInfo = new SummaryEmployeeInfo
+                    {
+
+                        EmergencyContactNumber = x.emp.EmergencyContactNumber,
+                        BloodGroup = x.emp?.BloodGroup,
+                        SelfNumber = x.emp?.SelfNumber,
+                        Relation = x.emp?.Relation,
+
+
+                        IsActive = x.emp.IsActive,
+                        IsMarried = x.emp?.IsMarried,
+
+                        OnlineStatus = null, // 🔴 Redis / SignalR se aayega (DB se nahi)
+                        LastLoginDateTime = DateTime.UtcNow,
+
+                        CurrentSalaryStatusId = 1,               // ❗ salary join nahi hai
+                        CurrentSalaryStatusRemark = null,
+
+                        RoleId = 1,                              // ❗ role join nahi hai
+                        RoleType = null,
+
+                        DesignationId = x.emp.DesignationId ?? 0,
+                        Designation = x.DesignationName,
+
+                        DepartmentId = x.emp.DepartmentId ?? 0,
+                        Department = x.DepartmentName,
+
+                        ProfileImage = !string.IsNullOrWhiteSpace(img?.FilePath) ? img.FilePath : null,
+                        City = x.dist?.DistrictName,   // ✅ District table se
+                                                       // ✅ FIXED
+                        Address = x.cont?.Address,
+
+                        DateOfJoining = x.emp.DateOfOnBoarding,
+
+                        EmployeeTypeId = x.emp.EmployeeTypeId ?? 0,
+                        EmployeeTypeName = x.EmployeeTypeName
+                    };
+
 
                     return new GetAllEmployeeInfoResponseDTO
                     {
@@ -1149,7 +1208,9 @@ namespace axionpro.persistance.Repositories
                         EmployeeImagePath = img?.FilePath,
                         HasImagePicUploaded = hasPrimary,
                         IsActive = x.emp.IsActive,
-                        CompletionPercentage = (completed / 10.0) * 100
+                        SummaryEmployeeInfo = summaryEmployeeInfo  , // ✅ THIS WAS MISSING
+
+                        CompletionPercentage = (completed / 13.0) * 100
                     };
                 }).ToList();
 
@@ -1176,8 +1237,7 @@ namespace axionpro.persistance.Repositories
                 };
             }
         }
-
-
+     
         //public async Task<EmployeeProfileCompletionDTO> GetEmployeeCompletionAsync(long employeeId)
         //{
         //    if (employeeId <= 0)

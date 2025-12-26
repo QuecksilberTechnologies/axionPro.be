@@ -24,11 +24,13 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
 
         [MaxLength(100)]
        
-        public string? LastName { get; set; }
-
-      
+        public string? LastName { get; set; }      
         public DateTime? DateOfBirth { get; set; }
-         
+        public bool? IsMarried { get; set; }
+        public string? EmergencyContactNumber { get; set; }
+        public string? BloodGroup { get; set; }
+        public string? SelfNumber { get; set; }
+        public int? Relation { get; set; }
         public int? GenderId { get; set; }     
 
         [MaxLength(300)]

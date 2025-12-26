@@ -17,6 +17,11 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
 
         // ---- Official / Admin controlled ----
         public int? DesignationId { get; set; }
+        public bool? IsMarried { get; set; }
+        public string? EmergencyContactNumber { get; set; }
+        public string? BloodGroup { get; set; }
+        public string? SelfNumber { get; set; }
+        public int? Relation { get; set; }
         public int? CountryId { get; set; }
         public int? DepartmentId { get; set; }
         public int? EmployeeTypeId { get; set; }
