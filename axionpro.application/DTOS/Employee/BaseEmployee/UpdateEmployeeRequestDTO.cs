@@ -30,6 +30,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         public DateTime? DateOfBirth { get; set; }
         public bool? IsMarried { get; set; }
         public string? EmergencyContactNumber { get; set; }
+        public string? EmergencyContactPerson { get; set; }
         public string? BloodGroup { get; set; }
         public string? MobileNumber { get; set; }
         public int? Relation { get; set; }

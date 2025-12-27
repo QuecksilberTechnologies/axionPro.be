@@ -933,6 +933,7 @@ namespace axionpro.persistance.Repositories
          CountryId = x.Country.Id,
          Nationality = x.Country.CountryName,
          Relation = x.Relation,
+         EmergencyContactPerson = x.EmergencyContactPerson,
          EmergencyContactNumber = x.EmergencyContactNumber,
          BloodGroup = x.BloodGroup,
        
@@ -973,9 +974,11 @@ namespace axionpro.persistance.Repositories
                  (x.DesignationId > 0 ? 1 : 0) +
                  (x.DepartmentId > 0 ? 1 : 0) +
                  (!string.IsNullOrWhiteSpace(x.OfficialEmail) ? 1 : 0) +
+                 
+                 (!string.IsNullOrWhiteSpace(x.EmergencyContactPerson) ? 1 : 0) +
                  (x.HasPermanent ? 1 : 0) +
                  (x.IsActive ? 1 : 0)
-             ) / 10.0 * 100, 0)
+             ) / 11.0 * 100, 0)
      })
      .ToListAsync();
 
@@ -1151,11 +1154,13 @@ namespace axionpro.persistance.Repositories
                 x.emp.BloodGroup  == null ? 0 : 1,
                 x.emp.MobileNumber  == null ? 0 : 1,
                 x.emp.EmergencyContactNumber  == null ? 0 : 1,
+                x.emp.EmergencyContactPerson  == null ? 0 : 1
             }.Sum();
 
                     SummaryEmployeeInfo summaryEmployeeInfo = new SummaryEmployeeInfo
                     {
 
+                        EmergencyContactPerson = x.emp.EmergencyContactPerson,
                         EmergencyContactNumber = x.emp.EmergencyContactNumber,
                         BloodGroup = x.emp?.BloodGroup,
                         MobileNumber = x.emp?.MobileNumber,
@@ -1202,7 +1207,7 @@ namespace axionpro.persistance.Repositories
                         CountryId = x.emp.CountryId,
                         Nationality = x.CountryName,   // ✅ FIXED (NO navigation access)
                         CountryCode = x.CountryCode,
-
+                        EmergencyContactPerson = x.emp.EmergencyContactPerson,
                         GenderId = x.emp.GenderId ?? 0,
                         EmployeeTypeId = x.emp.EmployeeTypeId ?? 0,
                         DesignationId = x.emp.DesignationId ?? 0,
@@ -1220,7 +1225,7 @@ namespace axionpro.persistance.Repositories
                         SummaryEmployeeInfo = summaryEmployeeInfo  , // ✅ THIS WAS MISSING
                         
 
-                        CompletionPercentage = (completed / 13.0) * 100
+                        CompletionPercentage = (completed / 14.0) * 100
                     };
                 }).ToList();
 
@@ -1628,7 +1633,10 @@ namespace axionpro.persistance.Repositories
                         EmployeeTypeName = et.TypeName,
                          CountryId = nationCountry.Id,
                          Nationality =nationCountry.CountryName ,
-                         MobileNumber= emp.MobileNumber,
+                        
+                         EmergencyContactNumber = emp.EmergencyContactNumber,
+                        EmergencyContactPerson = emp.EmergencyContactPerson,
+                        MobileNumber = emp.MobileNumber,
                          CountryCode= emp.Country.CountryCode,
                         IsActive = emp.IsActive,
                         HasPermanent = emp.HasPermanent,
@@ -1875,7 +1883,8 @@ namespace axionpro.persistance.Repositories
                     MobileNumber= emp.MobileNumber,
                    CountryCode = nationCountry != null ? nationCountry.CountryCode : null,
                    Nationality = nationCountry != null ? nationCountry.CountryName : null,
-                   
+                   EmergencyContactPerson = emp.EmergencyContactPerson,
+                   EmergencyContactNumber = emp.EmergencyContactNumber,
                    EmployeeTypeId = emp.EmployeeTypeId ?? 0,
                    Type = empType != null ? empType.TypeName : null,
                    DateOfBirth = emp.DateOfBirth,
@@ -1896,6 +1905,7 @@ namespace axionpro.persistance.Repositories
                     (result.DateOfOnBoarding != null ? 1 : 0) +
                     (result.DesignationId > 0 ? 1 : 0) +
                     (result.DepartmentId > 0 ? 1 : 0) +
+                    (!string.IsNullOrWhiteSpace(result.EmergencyContactPerson) ? 1 : 0) +
                     (!string.IsNullOrWhiteSpace(result.OfficialEmail) ? 1 : 0) +
                     (result.HasPermanent == true ? 1 : 0) +
                     (result.IsActive ? 1 : 0);

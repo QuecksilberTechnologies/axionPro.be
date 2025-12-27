@@ -18,6 +18,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
             public int GenderId { get; set; }
             public string? DesignationName { get; set; }
             public string? DepartmentName { get; set; }
+            public string? EmergencyContactPerson { get; set; }
             public string? EmergencyContactNumber { get; set; }
            public string? BloodGroup { get; set; }
            public string? MobileNumber { get; set; }

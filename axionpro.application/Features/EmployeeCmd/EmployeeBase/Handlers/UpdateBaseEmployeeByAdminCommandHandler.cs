@@ -158,6 +158,10 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 if (request.DTO.Relation.HasValue)
                     employee.Relation = request.DTO.Relation.Value;
 
+                if (!string.IsNullOrWhiteSpace(request.DTO.EmergencyContactPerson))
+                    employee.EmergencyContactPerson =
+                        request.DTO.EmergencyContactPerson;
+
                 if (!string.IsNullOrWhiteSpace(request.DTO.EmergencyContactNumber))
                     employee.EmergencyContactNumber =
                         request.DTO.EmergencyContactNumber;

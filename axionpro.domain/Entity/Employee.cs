@@ -68,6 +68,7 @@ public partial class Employee
     public DateTime? InfoVerifiedDateTime { get; set; }
     public string? Description { get; set; }
     public string? EmergencyContactNumber { get; set; }
+    public string? EmergencyContactPerson { get; set; }
     public string? BloodGroup { get; set; }
     public string? MobileNumber { get; set; }
     public int? Relation { get; set; }

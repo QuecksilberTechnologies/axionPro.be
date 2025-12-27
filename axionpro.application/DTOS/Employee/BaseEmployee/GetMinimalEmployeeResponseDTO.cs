@@ -18,6 +18,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         public int EmployeeTypeId { get; set; }
         public int CountryId { get; set; }
         public string? CountryCode { get; set; }
+        public string? EmergencyContactPerson { get; set; }
         public string? EmergencyContactNumber { get; set; }
         public string? BloodGroup { get; set; }
         public string? MobileNumber { get; set; }

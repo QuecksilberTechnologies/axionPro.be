@@ -21,7 +21,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
             public int CountryId { get; set; }
          public string? CountryCode { get; set; }
         public string? MobileNumber { get; set; }
-        public string Nationality { get; set; } = string.Empty;           
+          public string Nationality { get; set; } = string.Empty;           
             public string? DateOfBirth { get; set; }
             public string? DateOfOnBoarding { get; set; }
             public int DepartmentId { get; set; }
@@ -31,6 +31,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
             public int EmployeeTypeId { get; set; }
             public string? EmployeeTypeName { get; set; }
             public string? OfficialEmail { get; set; }          
+            public string? EmergencyContactPerson { get; set; }          
             public bool IsActive { get; set; } = true;          
             public string? EmployeeImagePath { get; set; }           
          //   public   <List>AsignedAsset AsignedAssetList { get;set} 
@@ -46,6 +47,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
 
     public class SummaryEmployeeInfo
     {   
+        public string? EmergencyContactPerson { get; set; }
         public string? EmergencyContactNumber { get; set; }
         public string? BloodGroup { get; set; }
         public string? MobileNumber { get; set; }
