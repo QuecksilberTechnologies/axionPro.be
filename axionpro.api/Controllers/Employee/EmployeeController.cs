@@ -437,7 +437,7 @@ namespace axionpro.api.Controllers.Employee
             {
                 _logger.LogInfo($"Updating employee record. EmployeeId: {dto.UserEmployeeId}");
 
-                var command = new UpdateBaseEmployeeOfficialCommand(dto);
+                var command = new UpdateBaseEmployeeByAdminCommand(dto);
                 var result = await _mediator.Send(command);
 
                 if (!result.IsSucceeded)

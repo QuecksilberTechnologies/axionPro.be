@@ -22,8 +22,10 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
       
         public string? FirstName { get; set; }
 
+   
         [MaxLength(100)]
-       
+        public string? MiddleName { get; set; }
+        [MaxLength(100)]
         public string? LastName { get; set; }      
         public DateTime? DateOfBirth { get; set; }
         public bool? IsMarried { get; set; }
@@ -35,9 +37,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
 
         [MaxLength(300)]
         public string? Remark { get; set; }
-
-        [MaxLength(100)]
-        public string? MiddleName { get; set; }
+ 
       
         public string? Description { get; set; }
 
