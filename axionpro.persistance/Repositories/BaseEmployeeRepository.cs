@@ -922,6 +922,8 @@ namespace axionpro.persistance.Repositories
          DateOfExit = x.DateOfExit,
          DesignationId = x.DesignationId ?? 0,
          EmployeeTypeId = x.EmployeeTypeId ?? 0,
+         MobileNumber = x.MobileNumber,
+         CountryCode = x.Country.CountryCode,
          DepartmentId = x.DepartmentId ?? 0,
          OfficialEmail = x.OfficialEmail,
          HasPermanent = x.HasPermanent,
@@ -930,6 +932,10 @@ namespace axionpro.persistance.Repositories
          IsInfoVerified = x.IsInfoVerified,
          CountryId = x.Country.Id,
          Nationality = x.Country.CountryName,
+         Relation = x.Relation,
+         EmergencyContactNumber = x.EmergencyContactNumber,
+         BloodGroup = x.BloodGroup,
+       
 
 
          // ⭐ New Fields (JOIN base lookup)
@@ -952,8 +958,8 @@ namespace axionpro.persistance.Repositories
              .Select(g => g.GenderName)
              .FirstOrDefault(),
 
-         //RoleName = context.Roles
-         //    .Where(r => r.Id == x.ro)
+         //RoleName = _context.Roles
+         //    .Where(r => r.Id == x.UserRoles.)
          //    .Select(r => r.Name)
          // .FirstOrDefault()
          // 🔥 Base Employee Completion Calculation
@@ -994,7 +1000,8 @@ namespace axionpro.persistance.Repositories
         }
 
         public async Task<PagedResponseDTO<GetAllEmployeeInfoResponseDTO>> GetAllInfo(
-              GetAllEmployeeInfoRequestDTO dto)
+         
+            GetAllEmployeeInfoRequestDTO dto)
         {
             try
             {
@@ -1052,12 +1059,10 @@ namespace axionpro.persistance.Repositories
                         EmployeeTypeName = et != null ? et.TypeName : "",
                         DepartmentName = dep != null ? dep.DepartmentName : "",
                         CountryName = c != null ? c.CountryName : "",
-                        
-                        
-
+                        CountryCode = c != null ? c.CountryCode : ""   // ✅ ADD THIS
                     };
-              
-         
+
+
 
                 // ----------------------------------------------------
                 // 2️⃣ FILTERS
@@ -1144,7 +1149,7 @@ namespace axionpro.persistance.Repositories
                 x.emp.IsInfoVerified == true ? 1 : 0,
                 hasPrimary ? 1 : 0,
                 x.emp.BloodGroup  == null ? 0 : 1,
-                x.emp.SelfNumber  == null ? 0 : 1,
+                x.emp.MobileNumber  == null ? 0 : 1,
                 x.emp.EmergencyContactNumber  == null ? 0 : 1,
             }.Sum();
 
@@ -1153,10 +1158,9 @@ namespace axionpro.persistance.Repositories
 
                         EmergencyContactNumber = x.emp.EmergencyContactNumber,
                         BloodGroup = x.emp?.BloodGroup,
-                        SelfNumber = x.emp?.SelfNumber,
+                        MobileNumber = x.emp?.MobileNumber,
                         Relation = x.emp?.Relation,
-
-
+                        CountryCode = x.CountryCode,
                         IsActive = x.emp.IsActive,
                         IsMarried = x.emp?.IsMarried,
 
@@ -1174,7 +1178,7 @@ namespace axionpro.persistance.Repositories
 
                         DepartmentId = x.emp.DepartmentId ?? 0,
                         Department = x.DepartmentName,
-
+                       
                         ProfileImage = !string.IsNullOrWhiteSpace(img?.FilePath) ? img.FilePath : null,
                         City = x.dist?.DistrictName,   // ✅ District table se
                                                        // ✅ FIXED
@@ -1197,11 +1201,15 @@ namespace axionpro.persistance.Repositories
                         DateOfBirth = x.emp.DateOfBirth?.ToString(),
                         CountryId = x.emp.CountryId,
                         Nationality = x.CountryName,   // ✅ FIXED (NO navigation access)
+                        CountryCode = x.CountryCode,
+
                         GenderId = x.emp.GenderId ?? 0,
                         EmployeeTypeId = x.emp.EmployeeTypeId ?? 0,
                         DesignationId = x.emp.DesignationId ?? 0,
                         DepartmentId = x.emp.DepartmentId ?? 0,
                         GenderName = x.GenderName,
+                        MobileNumber  = x.emp?.MobileNumber,
+                        
                         EmployeeTypeName = x.EmployeeTypeName,
                         DesignationName = x.DesignationName,
                         DepartmentName = x.DepartmentName,
@@ -1620,6 +1628,8 @@ namespace axionpro.persistance.Repositories
                         EmployeeTypeName = et.TypeName,
                          CountryId = nationCountry.Id,
                          Nationality =nationCountry.CountryName ,
+                         MobileNumber= emp.MobileNumber,
+                         CountryCode= emp.Country.CountryCode,
                         IsActive = emp.IsActive,
                         HasPermanent = emp.HasPermanent,
                         GenderId = emp.GenderId ?? 0,
@@ -1689,6 +1699,7 @@ namespace axionpro.persistance.Repositories
                 existingBalance.IsAllBalanceOnHold = dto.IsAllBalanceOnHold;
                 existingBalance.UpdatedDateTime = DateTime.UtcNow;
                 existingBalance.UpdatedById = dto.EmployeeId;
+
 
 
                 // 🔹 Save changes
@@ -1861,7 +1872,9 @@ namespace axionpro.persistance.Repositories
                    RoleType = r.RoleType,
                    RoleName = r.RoleName,
                     CountryId= emp.CountryId,
-                    Nationality= nationCountry != null ? nationCountry.CountryName : null,
+                    MobileNumber= emp.MobileNumber,
+                   CountryCode = nationCountry != null ? nationCountry.CountryCode : null,
+                   Nationality = nationCountry != null ? nationCountry.CountryName : null,
                    
                    EmployeeTypeId = emp.EmployeeTypeId ?? 0,
                    Type = empType != null ? empType.TypeName : null,

@@ -20,7 +20,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         public bool? IsMarried { get; set; }
         public string? EmergencyContactNumber { get; set; }
         public string? BloodGroup { get; set; }
-        public string? SelfNumber { get; set; }
+        public string? MobileNumber { get; set; }
         public int? Relation { get; set; }
         public int? CountryId { get; set; }
         public int? DepartmentId { get; set; }

@@ -28,7 +28,8 @@ namespace axionpro.application.DTOS.Employee.Sensitive
         public required string UserEmployeeId { get; set; }
         public required string EmployeeId { get; set; }
         public int IdentityCategoryDocumentId { get; set; }
-        public string IdentityValue { get; set; } = string.Empty;
+        public required string IdentityValue { get; set; } = string.Empty;
+        public required  string DocumnetCode  { get; set; } 
 
         // 🔹 Document Info
         public IFormFile? IdentityDocumentFile { get; set; }

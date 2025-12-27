@@ -19,7 +19,9 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
             public int GenderId { get; set; }
             public string? GenderName { get; set; }
             public int CountryId { get; set; }
-            public string Nationality { get; set; } = string.Empty;           
+         public string? CountryCode { get; set; }
+        public string? MobileNumber { get; set; }
+        public string Nationality { get; set; } = string.Empty;           
             public string? DateOfBirth { get; set; }
             public string? DateOfOnBoarding { get; set; }
             public int DepartmentId { get; set; }
@@ -46,7 +48,9 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
     {   
         public string? EmergencyContactNumber { get; set; }
         public string? BloodGroup { get; set; }
-        public string? SelfNumber { get; set; }
+        public string? MobileNumber { get; set; }
+        public string? PersonalEmail { get; set; }
+        public string? CountryCode { get; set; }
         public int? Relation { get; set; }
         public string? RelationName  {  get; set;  }
         public bool IsActive { get; set; }

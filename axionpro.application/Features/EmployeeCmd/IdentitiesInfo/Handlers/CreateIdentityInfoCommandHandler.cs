@@ -102,7 +102,7 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
                             : "XXXX";
 
                         documentName =
-                            $"ID-{identity.IdentityCategoryDocumentId}-{employeeId}-{safeValue}.pdf";
+                            $"ID-{identity.DocumnetCode.Trim()}-{employeeId}-{safeValue}.pdf";
 
                         var folder = _fileStorageService.GetEmployeeFolderPath(
                             validation.TenantId,

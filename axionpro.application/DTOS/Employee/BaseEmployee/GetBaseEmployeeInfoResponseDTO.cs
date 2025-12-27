@@ -19,10 +19,11 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
             public string? DesignationName { get; set; }
             public string? DepartmentName { get; set; }
             public string? EmergencyContactNumber { get; set; }
-          public string? BloodGroup { get; set; }
-        public string? SelfNumber { get; set; }
-        public int? Relation { get; set; }
-        public int? CountryId { get; set; }
+           public string? BloodGroup { get; set; }
+           public string? MobileNumber { get; set; }
+            public int? Relation { get; set; }
+            public int? CountryId { get; set; }
+            public string? CountryCode { get; set; }
             public string? Nationality { get; set; } = string.Empty;
             public string? RoleName { get; set; }
             public int? RoleId { get; set; }

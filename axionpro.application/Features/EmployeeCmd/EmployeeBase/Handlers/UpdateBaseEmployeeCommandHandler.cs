@@ -73,78 +73,95 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             
         }
 
-        public async Task<ApiResponse<bool>> Handle(UpdateEmployeeCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<bool>> Handle(
+       UpdateEmployeeCommand request,
+       CancellationToken cancellationToken)
         {
             await _unitOfWork.BeginTransactionAsync();
 
             try
             {
-
-                // 1️ COMMON VALIDATION (Mandatory)
-                var validation = await _commonRequestService.ValidateRequestAsync(request.DTO.UserEmployeeId);
+                /* =======================
+                   1. COMMON VALIDATION
+                   ======================= */
+                var validation =
+                    await _commonRequestService.ValidateRequestAsync(request.DTO.UserEmployeeId);
 
                 if (!validation.Success)
                     return ApiResponse<bool>.Fail(validation.ErrorMessage);
 
-                // Assign decoded values coming from CommonRequestService
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
                 request.DTO.Prop.EmployeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
-                 request.DTO.EmployeeId,
-                 validation.Claims.TenantEncriptionKey,
-                _idEncoderService
+                    request.DTO.EmployeeId,
+                    validation.Claims.TenantEncriptionKey,
+                    _idEncoderService
                 );
 
+                /* =======================
+                   2. FETCH EXISTING EMPLOYEE
+                   ======================= */
+                var employee = await _unitOfWork.Employees.GetByIdAsync(
+                    request.DTO.Prop.EmployeeId,
+                    request.DTO.Prop.TenantId,
+                    true);
 
-                // ✅ Create  using repository
-                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
-                if (!permissions.Contains("AddBankInfo"))
-                {
-                    //await _unitOfWork.RollbackTransactionAsync();
-                    //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
-                }
-
-                   // ---------- FETCH Existing Employee ----------
-                var existingEmployee = await _unitOfWork.Employees.GetByIdAsync(request.DTO.Prop.EmployeeId ,request.DTO.Prop.TenantId, true);
-
-
-                if (existingEmployee == null)
+                if (employee == null)
                 {
                     await _unitOfWork.RollbackTransactionAsync();
                     return ApiResponse<bool>.Fail("Employee not found.");
                 }
 
-                // ---------- APPLY UPDATE (ONLY IF VALUE PROVIDED) ----------
+                /* =======================
+                   3. APPLY PATCH UPDATE
+                   (DTO value → overwrite,
+                    DTO null → keep existing)
+                   ======================= */
+
                 if (!string.IsNullOrWhiteSpace(request.DTO.FirstName))
-                    existingEmployee.FirstName = request.DTO.FirstName.Trim();
+                    employee.FirstName = request.DTO.FirstName.Trim();
 
                 if (!string.IsNullOrWhiteSpace(request.DTO.MiddleName))
-                    existingEmployee.MiddleName = request.DTO.MiddleName.Trim();
+                    employee.MiddleName = request.DTO.MiddleName.Trim();
 
                 if (!string.IsNullOrWhiteSpace(request.DTO.LastName))
-                    existingEmployee.LastName = request.DTO.LastName.Trim();
+                    employee.LastName = request.DTO.LastName.Trim();
 
                 if (!string.IsNullOrWhiteSpace(request.DTO.Description))
-                    existingEmployee.Description = request.DTO.Description?.Trim();
+                    employee.Description = request.DTO.Description.Trim();
 
                 if (request.DTO.DateOfBirth.HasValue)
-                    existingEmployee.DateOfBirth = request.DTO.DateOfBirth.Value;
+                    employee.DateOfBirth = request.DTO.DateOfBirth.Value;
 
                 if (request.DTO.GenderId is > 0)
-                {
-                    existingEmployee.GenderId = request.DTO.GenderId.Value;
-                }
+                    employee.GenderId = request.DTO.GenderId.Value;
 
+                if (request.DTO.Relation.HasValue)
+                    employee.Relation = request.DTO.Relation.Value;
 
+                if (!string.IsNullOrWhiteSpace(request.DTO.EmergencyContactNumber))
+                    employee.EmergencyContactNumber = request.DTO.EmergencyContactNumber;
 
+                if (!string.IsNullOrWhiteSpace(request.DTO.MobileNumber))
+                    employee.MobileNumber = request.DTO.MobileNumber;
 
-                // ---------- AUDIT ----------
-                existingEmployee.UpdatedById = request.DTO.Prop.UserEmployeeId;
-                existingEmployee.UpdatedDateTime = DateTime.UtcNow;
-           
+                if (!string.IsNullOrWhiteSpace(request.DTO.BloodGroup))
+                    employee.BloodGroup = request.DTO.BloodGroup;
 
-                // ---------- SAVE ----------
-                await _unitOfWork.Employees.UpdateEmployeeAsync(existingEmployee, request.DTO.Prop.TenantId);
+                if (request.DTO.IsMarried.HasValue)
+                    employee.IsMarried = request.DTO.IsMarried.Value;
+
+                /* =======================
+                   4. AUDIT
+                   ======================= */
+                employee.UpdatedById = request.DTO.Prop.UserEmployeeId;
+                employee.UpdatedDateTime = DateTime.UtcNow;
+
+                /* =======================
+                   5. SAVE
+                   ======================= */
+                await _unitOfWork.Employees.UpdateEmployeeAsync(    employee,    request.DTO.Prop.TenantId);
+
                 await _unitOfWork.CommitTransactionAsync();
 
                 return ApiResponse<bool>.Success(true, "Employee updated successfully.");
@@ -153,10 +170,13 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             {
                 await _unitOfWork.RollbackTransactionAsync();
                 _logger.LogError(ex, "Error updating employee");
-                return ApiResponse<bool>.Fail("Unexpected error.", new List<string> { ex.Message });
+                return ApiResponse<bool>.Fail(
+                    "Unexpected error.",
+                    new List<string> { ex.Message });
             }
-        
         }
+
+
     }
 
 

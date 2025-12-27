@@ -134,6 +134,21 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 if (!string.IsNullOrWhiteSpace(request.DTO.Remark))
                     existingEmployee.Remark = request.DTO.Remark;
 
+                if (request.DTO.Relation.HasValue)
+                    existingEmployee.Relation = request.DTO.Relation.Value;
+
+                if (!string.IsNullOrWhiteSpace(request.DTO.EmergencyContactNumber))
+                    existingEmployee.EmergencyContactNumber = request.DTO.EmergencyContactNumber;
+
+                if (!string.IsNullOrWhiteSpace(request.DTO.MobileNumber))
+                    existingEmployee.MobileNumber = request.DTO.MobileNumber;
+
+                if (!string.IsNullOrWhiteSpace(request.DTO.BloodGroup))
+                    existingEmployee.BloodGroup = request.DTO.BloodGroup;
+
+                if (request.DTO.IsMarried.HasValue)
+                    existingEmployee.IsMarried = request.DTO.IsMarried.Value;
+
                 if (request.DTO.IsEditAllowed.HasValue)
                     existingEmployee.IsEditAllowed = request.DTO.IsEditAllowed.Value;
 
