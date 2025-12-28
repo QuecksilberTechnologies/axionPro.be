@@ -153,6 +153,39 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
+        /// Bulk update  edit permission status for an employee.
+        /// </summary>
+        [HttpPost("update-edit-status")]
+       
+        public async Task<IActionResult> UpdateSectionStatusBulk( [FromBody] UpdateEditStatusRequestDTO dto)
+        {
+            if (dto == null)
+                return BadRequest(ApiResponse<bool>.Fail("Invalid or empty request."));
+
+            var command = new UpdateEditableStatusCommand(dto);
+            var result = await _mediator.Send(command);
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Bulk update  verification permission status for an employee.
+        /// </summary>
+        [HttpPost("update-verification-status")]
+       
+        public async Task<IActionResult> UpdateVerificationStatus([FromBody] UpdateVerificationStatusRequestDTO dto)
+        {
+            if (dto == null)
+                return BadRequest(ApiResponse<bool>.Fail("Invalid or empty request."));
+
+            var command = new UpdateVerificationStatusCommand(dto);
+            var result = await _mediator.Send(command);
+
+            return Ok(result);
+        }
+
+
+        /// <summary>
         /// Bulk update section verification + edit permission status for an employee.
         /// </summary>
         [HttpPost("update-bulk")]

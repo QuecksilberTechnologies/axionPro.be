@@ -409,6 +409,50 @@ namespace axionpro.persistance.Repositories
             }
         }
 
+        public async Task<bool> UpdateVerificationStatus(
+      long employeeId,
+      long userId,
+      bool status)
+        {
+            var employee = await _context.Employees
+                .FirstOrDefaultAsync(x =>
+                    x.Id == employeeId &&
+                    x.IsSoftDeleted != true);
+
+            if (employee == null)
+                return false;
+
+            employee.IsInfoVerified = status;
+            employee.InfoVerifiedById = userId;
+            employee.InfoVerifiedDateTime = DateTime.UtcNow;
+
+            var rowsAffected = await _context.SaveChangesAsync();
+
+            return rowsAffected > 0;
+        }
+
+        public async Task<bool> UpdateEditStatus(
+    long employeeId,
+    long userId,
+    bool status)
+        {
+            var employee = await _context.Employees
+                .FirstOrDefaultAsync(x =>
+                    x.Id == employeeId &&
+                    x.IsSoftDeleted != true);
+
+            if (employee == null)
+                return false;
+
+            employee.IsEditAllowed = status;
+            employee.UpdatedById = userId;
+            employee.UpdatedDateTime = DateTime.UtcNow;
+
+            var rowsAffected = await _context.SaveChangesAsync();
+
+            return rowsAffected > 0;
+        }
+
         public async Task<bool> ActivateAllEmployeeAsync(Employee employee, bool isActive)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
