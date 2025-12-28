@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using axionpro.application.Common.Helpers.PercentageHelper;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
@@ -43,6 +44,7 @@ namespace axionpro.persistance.Repositories
                 // -----------------------------
                 // 1️⃣ Insert Record
                 // -----------------------------
+              bool isSet =await  ResetPrimaryAccountAsync(entity.EmployeeId , entity.AddedById);
                 await _context.EmployeeBankDetails.AddAsync(entity);
                 await _context.SaveChangesAsync();
 
@@ -59,7 +61,7 @@ namespace axionpro.persistance.Repositories
                     .AsNoTracking()
                     .Where(x =>
                         x.EmployeeId == entity.EmployeeId &&
-                        (x.IsSoftDeleted == false || x.IsSoftDeleted == null)
+                        (x.IsSoftDeleted !=true)
                     )
                     .OrderByDescending(x => x.Id);
 
@@ -69,33 +71,33 @@ namespace axionpro.persistance.Repositories
                 // 4️⃣ Pagination + Projection
                 // -----------------------------
                 var records = await baseQuery
-                    .Skip((pageNumber - 1) * pageSize)
-                    .Take(pageSize)
-                    .Select(bank => new GetBankResponseDTO
-                    {
-                        Id = bank.Id ?? 0,
-                        EmployeeId = bank.EmployeeId.ToString(),
-                        BankName = bank.BankName,
-                        AccountNumber = bank.AccountNumber,
-                        AccountType = bank.AccountType,
-                        IFSCCode = bank.IFSCCode,
-                        BranchName = bank.BranchName,
-                        IsPrimaryAccount = bank.IsPrimaryAccount,
-                        IsInfoVerified = bank.IsInfoVerified,
-                        IsEditAllowed = bank.IsEditAllowed,
-                        IsActive = bank.IsActive,
-                        HasChequeDocUploaded = bank.HasChequeDocUploaded,
-                        FilePath = bank.FilePath
-                    })
-                    .ToListAsync();
+                   .Skip((pageNumber - 1) * pageSize)
+                      .Take(pageSize)
+                       .Select(bank => new GetBankResponseDTO
+      {
+          Id = bank.Id ?? 0,
+          EmployeeId = bank.EmployeeId.ToString(),
+          BankName = bank.BankName,
+          AccountNumber = bank.AccountNumber,
+          AccountType = bank.AccountType,
+          IFSCCode = bank.IFSCCode,
+          BranchName = bank.BranchName,
+          IsPrimaryAccount = bank.IsPrimaryAccount,
+          IsInfoVerified = bank.IsInfoVerified,
+          IsEditAllowed = bank.IsEditAllowed,
+          IsActive = bank.IsActive,
+          HasChequeDocUploaded = bank.HasChequeDocUploaded,
+          FilePath = bank.FilePath
+            })
+      .ToListAsync();
 
-                // -----------------------------
-                // 5️⃣ Per-record Completion %
-                // -----------------------------
-                foreach (var record in records)
+                // 🔥 SAFE + FAST (pageSize = 10)
+                foreach (var item in records)
                 {
-                    record.CompletionPercentage = CalculateBankPercentage(record);
+                    item.CompletionPercentage =
+                        CompletionCalculatorHelper.BankPropCalculate(item);
                 }
+
 
                 // -----------------------------
                 // 6️⃣ Section-level Completion
@@ -190,7 +192,7 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<bool> ResetPrimaryAccountAsync(long employeeId)
+        public async Task<bool> ResetPrimaryAccountAsync(long employeeId,  long byUserId)
         {
             try
             {
@@ -208,7 +210,7 @@ namespace axionpro.persistance.Repositories
                 {
                     item.IsPrimaryAccount = false;
                     item.UpdatedDateTime = DateTime.UtcNow;
-                      item.UpdatedById = employeeId; // if available
+                      item.UpdatedById = byUserId; // if available
                 }
 
                 await _context.SaveChangesAsync();
@@ -295,49 +297,42 @@ namespace axionpro.persistance.Repositories
                 // -----------------------------
                 // 6️⃣ Pagination + Mapping
                 // -----------------------------
-                var records = await query
-                    .Skip((pageNumber - 1) * pageSize)
-                    .Take(pageSize)
-                    .Select(x => new GetBankResponseDTO
-                    {
-                        Id = x.Id ?? 0,
-                        EmployeeId = x.EmployeeId.ToString(),
-                        BankName = x.BankName,
-                        AccountNumber = x.AccountNumber,
-                        IFSCCode = x.IFSCCode,
-                        BranchName = x.BranchName,
-                        AccountType = x.AccountType,
-                        IsPrimaryAccount = x.IsPrimaryAccount,
-                        IsActive = x.IsActive,
-                        IsInfoVerified = x.IsInfoVerified,
-                        IsEditAllowed = x.IsEditAllowed,
-                        HasChequeDocUploaded = x.HasChequeDocUploaded,
-                        FilePath = x.FilePath
-                    })
-                    .ToListAsync();
 
-                // -----------------------------
-                // 7️⃣ Completion % (Per Record)
-                // -----------------------------
-                foreach (var record in records)
+                var records = await query
+                   .Skip((pageNumber - 1) * pageSize)
+                       .Take(pageSize)
+                       .Select(x => new GetBankResponseDTO
+                           {
+        Id = x.Id ?? 0,
+        EmployeeId = x.EmployeeId.ToString(),
+        BankName = x.BankName,
+        AccountNumber = x.AccountNumber,
+        IFSCCode = x.IFSCCode,
+        BranchName = x.BranchName,
+        AccountType = x.AccountType,
+        IsPrimaryAccount = x.IsPrimaryAccount,
+        IsActive = x.IsActive,
+        IsInfoVerified = x.IsInfoVerified,
+        IsEditAllowed = x.IsEditAllowed,
+        HasChequeDocUploaded = x.HasChequeDocUploaded,
+        FilePath = x.FilePath
+    })
+    .ToListAsync();
+
+                // CPU-only, safe, readable
+                foreach (var item in records)
                 {
-                    record.CompletionPercentage = CalculateBankPercentage(record);
+                    item.CompletionPercentage =
+                        CompletionCalculatorHelper.BankPropCalculate(item);
                 }
 
-                // -----------------------------
-                // 8️⃣ Section-level Completion (PRIMARY BASED)
-                // -----------------------------
-                // -----------------------------
-                // 8️⃣ Section-level Completion (STRICT PRIMARY RULE)
-                // -----------------------------
-               
-                // -----------------------------
-                // 8️⃣ Section-level Completion
+
+
                 // -----------------------------
 
                 // 🔹 1. AVERAGE COMPLETION (ALWAYS)
                 double completionPercentage = records.Any()
-                    ? Math.Round(records.Average(x => x.CompletionPercentage), 0)
+                    ? Math.Round(records.Average(x => x.CompletionPercentage), 2)
                     : 0;
 
                 // 🔹 2. PRIMARY DOCUMENT RULE
@@ -378,36 +373,7 @@ namespace axionpro.persistance.Repositories
                 throw new Exception($"Failed to fetch bank information: {ex.Message}");
             }
         }
-        public double CalculateBankPercentage(GetBankResponseDTO record)
-        {
-            if (record == null) return 0;
-
-            int totalFields = 6;
-            int filled = 0;
-
-            if (!string.IsNullOrWhiteSpace(record.BankName)) filled++;
-            if (!string.IsNullOrWhiteSpace(record.AccountNumber)) filled++;
-            if (!string.IsNullOrWhiteSpace(record.IFSCCode)) filled++;
-            if (!string.IsNullOrWhiteSpace(record.BranchName)) filled++;
-            if (!string.IsNullOrWhiteSpace(record.AccountType)) filled++;
-
-            // 🔥 CRITICAL RULE
-            // Document counts ONLY IF primary
-            if (record.IsPrimaryAccount)
-            {
-                if (record.HasChequeDocUploaded)
-                    filled++;
-               
-            }
-            else
-            {
-                // non-primary: document irrelevant
-                filled++;
-            }
-
-            return Math.Round((filled * 100.0) / totalFields, 0);
-        }
-
+       
         public async Task<bool> UpdateAsync(UpdateBankReqestDTO dto)
         {
             // -----------------------------
@@ -466,7 +432,7 @@ namespace axionpro.persistance.Repositories
                 var existingPrimaries = await _context.EmployeeBankDetails
                     .Where(x =>
                         x.EmployeeId == dto.Prop.EmployeeId &&
-                        (x.IsSoftDeleted == null || x.IsSoftDeleted == false) &&
+                        (x.IsSoftDeleted  !=true) &&
                         x.IsPrimaryAccount == true)
                     .ToListAsync();
 
@@ -504,10 +470,10 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
+              //  await using var _context = await _contextFactory.CreateDbContextAsync();
 
                 // 🔹 Record fetch karna with filters
-                var entity = await context.EmployeeBankDetails
+                var entity = await _context.EmployeeBankDetails
                     .AsNoTracking()
                     .Where(b => b.Id == id && b.IsActive == isActive && (b.IsSoftDeleted !=true))
                     .Select(b => new GetBankResponseDTO

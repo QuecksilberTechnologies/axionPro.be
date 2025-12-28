@@ -842,21 +842,13 @@ namespace axionpro.persistance.Repositories
                 // ⚡ PERFORMANCE MAGIC STARTS HERE
                 // ----------------------------------------------------
 
-                var employeeIds = employees.Select(x => x.Employee.Id).ToList();
-
-                // 🧩 Step 7: BULK primary image lookup (NO per-row query)
-                var hasPrimaryImageLookup = new HashSet<long>(
-                         await _context.EmployeeImages
-                             .AsNoTracking()
-                             .Where(x =>
-                             employeeIds.Contains(x.EmployeeId) &&
-                              x.IsPrimary == true &&
-                              x.HasImageUploaded == true &&
-                              x.IsSoftDeleted != true)
-                             .Select(x => x.EmployeeId)
-                             .Distinct()
-                              .ToListAsync()
-                               );
+                bool hasPrimaryImage = await _context.EmployeeImages
+                        .AsNoTracking()
+                         .AnyAsync(x =>
+                         x.EmployeeId == dto.Prop.EmployeeId &&
+                             x.IsPrimary &&
+                              x.HasImageUploaded &&
+                             x.IsSoftDeleted != true);
 
 
                 // 🧩 Step 8: ONE-TIME lookup tables (Dictionary = O(1))
@@ -875,12 +867,12 @@ namespace axionpro.persistance.Repositories
                 // 🧩 Step 9: Final DTO mapping + IN-MEMORY completion
                 var records = employees.Select(x =>
                 {
-                    bool hasPrimary = hasPrimaryImageLookup.Contains(x.Employee.Id);
+                 //   bool hasPrimary = hasPrimaryImageLookup.Contains(x.Employee.Id);
 
                     double completion =
                         CompletionCalculatorHelper.EmployeePropCalculate(
                             x.Employee,
-                            hasPrimary);
+                            hasPrimaryImage);
 
                     return new GetBaseEmployeeResponseDTO
                     {
@@ -901,7 +893,8 @@ namespace axionpro.persistance.Repositories
 
                         EmployeeTypeId = x.Employee.EmployeeTypeId ?? 0,
                         Type = typeLookup.GetValueOrDefault(x.Employee.EmployeeTypeId ?? 0),
-
+                        DateOfBirth = x.Employee.DateOfBirth,
+                        DateOfOnBoarding = x.Employee.DateOfOnBoarding,
                         CountryId = x.Country.Id,
                         CountryCode = x.Country.CountryCode,
                         Nationality = x.Country.CountryName,
@@ -928,7 +921,7 @@ namespace axionpro.persistance.Repositories
                 // 🧩 Step 10: Overall completion (AVG, fast, accurate)
                 double overallCompletion =
                     records.Any()
-                        ? Math.Round(records.Average(x => x.CompletionPercentage), 0)
+                        ? Math.Round(records.Average(x => x.CompletionPercentage), 2)
                         : 0;
 
                 // 🧩 Step 11: Final response
@@ -952,8 +945,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                   await using var context = await _contextFactory.CreateDbContextAsync();
-
+              
                 int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
                 int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
                 
@@ -961,34 +953,34 @@ namespace axionpro.persistance.Repositories
                 // 1️⃣ BASE QUERY (LEFT JOIN + AS NO TRACKING)
                 // ----------------------------------------------------
                 var baseQuery =
-                    from emp in context.Employees.AsNoTracking()
+                    from emp in _context.Employees.AsNoTracking()
 
-                    join gender in context.Genders
+                    join gender in _context.Genders
                         on emp.GenderId equals (long?)gender.Id into genderJoin
                     from g in genderJoin.DefaultIfEmpty()
 
-                    join designation in context.Designations
+                    join designation in _context.Designations
                         on emp.DesignationId equals (long?)designation.Id into desigJoin
                     from d in desigJoin.DefaultIfEmpty()
 
-                    join empType in context.EmployeeTypes
+                    join empType in _context.EmployeeTypes
                         on emp.EmployeeTypeId equals (long?)empType.Id into typeJoin
                     from et in typeJoin.DefaultIfEmpty()
 
-                    join department in context.Departments
+                    join department in _context.Departments
                         on emp.DepartmentId equals (long?)department.Id into deptJoin
                     from dep in deptJoin.DefaultIfEmpty()
 
-                     join country in context.Countries
+                     join country in _context.Countries
                         on emp.CountryId equals (int)country.Id into countryJoin
                     from c in countryJoin.DefaultIfEmpty()
 
-                    join contact in context.EmployeeContacts
+                    join contact in _context.EmployeeContacts
                             .Where(ec => ec.IsPrimary == true)
                            on emp.Id equals contact.EmployeeId into contactJoin
                     from cont in contactJoin.DefaultIfEmpty()
 
-                    join district in context.Districts
+                    join district in _context.Districts
                     on cont.DistrictId equals district.Id into districtJoin
                     from dist in districtJoin.DefaultIfEmpty()
 
@@ -1058,7 +1050,7 @@ namespace axionpro.persistance.Repositories
                 // ----------------------------------------------------
                 var ids = pagedEmployees.Select(x => x.emp.Id).ToList();
 
-                var images = await context.EmployeeImages
+                var images = await _context.EmployeeImages
                     .Where(i => ids.Contains(i.EmployeeId) && i.IsSoftDeleted != true)
                     .OrderByDescending(i => i.IsPrimary)
                     .ThenByDescending(i => i.HasImageUploaded)
@@ -1288,8 +1280,9 @@ namespace axionpro.persistance.Repositories
                         EmployeeTypeName = et.TypeName,
                          CountryId = nationCountry.Id,
                          Nationality =nationCountry.CountryName ,
-                        
-                         EmergencyContactNumber = emp.EmergencyContactNumber,
+                        DateOfOnBoarding = emp.DateOfOnBoarding,
+                        DateOfBirth = emp.DateOfBirth,
+                        EmergencyContactNumber = emp.EmergencyContactNumber,
                         EmergencyContactPerson = emp.EmergencyContactPerson,
                         MobileNumber = emp.MobileNumber,
                          CountryCode= emp.Country.CountryCode,
@@ -1405,9 +1398,8 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
-                return await context.EmployeeImages
+               
+                return await _context.EmployeeImages
                     .AsNoTracking()
                     .FirstOrDefaultAsync(img =>
                         img.Id == id &&
@@ -1437,11 +1429,10 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
+                
+                _context.EmployeeImages.Update(employeeImageInfo);
 
-                context.EmployeeImages.Update(employeeImageInfo);
-
-                return await context.SaveChangesAsync() > 0;
+                return await _context.SaveChangesAsync() > 0;
             }
             catch (Exception ex)
             {
@@ -1545,28 +1536,28 @@ namespace axionpro.persistance.Repositories
                    DateOfBirth = emp.DateOfBirth,
                    DateOfOnBoarding = emp.DateOfOnBoarding,
                    DateOfExit = emp.DateOfExit,
-
+                   BloodGroup = emp.BloodGroup,
+                   HasPermanent = emp.HasPermanent,
                    IsActive = emp.IsActive,
                    IsEditAllowed = emp.IsEditAllowed,
                    IsInfoVerified = emp.IsInfoVerified,
                }).FirstOrDefaultAsync();
             if (result != null)
             {
-                int completed =
-                    (!string.IsNullOrWhiteSpace(result.FirstName) ? 1 : 0) +
-                    (!string.IsNullOrWhiteSpace(result.LastName) ? 1 : 0) +
-                    (result.GenderId > 0 ? 1 : 0) +
-                    (result.DateOfBirth != null ? 1 : 0) +
-                    (result.DateOfOnBoarding != null ? 1 : 0) +
-                    (result.DesignationId > 0 ? 1 : 0) +
-                    (result.DepartmentId > 0 ? 1 : 0) +
-                    (!string.IsNullOrWhiteSpace(result.EmergencyContactPerson) ? 1 : 0) +
-                    (!string.IsNullOrWhiteSpace(result.OfficialEmail) ? 1 : 0) +
-                    (result.HasPermanent == true ? 1 : 0) +
-                    (result.IsActive ? 1 : 0);
+                bool hasPrimaryImage = await _context.EmployeeImages
+                      .AsNoTracking()
+                      .AnyAsync(x =>
+                          x.EmployeeId == employee.Id &&      // ✅ FIX
+                          x.IsPrimary == true &&
+                          x.HasImageUploaded == true &&
+                          x.IsSoftDeleted != true);
 
-                result.CompletionPercentage =
-                    Math.Round(completed / 10.0 * 100, 0);
+                // =====================================================
+                // 4️⃣ COMPLETION % (SINGLE SOURCE OF TRUTH)
+                // =====================================================
+                 result.CompletionPercentage =    CompletionCalculatorHelper.EmployeePropCalculate(employee, hasPrimaryImage);
+
+                         
             }
 
 
@@ -1656,15 +1647,7 @@ namespace axionpro.persistance.Repositories
     }
 
 
-}
-
-
-
-
-
-
-
-       
+}   
 
 
 

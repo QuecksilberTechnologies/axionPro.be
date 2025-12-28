@@ -142,16 +142,15 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                     if (request.DTO.CancelledChequeFile != null && request.DTO.CancelledChequeFile.Length > 0)
                     {
                     docFileName = EncryptionSanitizer.CleanEncodedInput(request.DTO.BankName.Trim().Replace(" ", "").ToLower());
-                    using (var ms = new MemoryStream())
+                      using (var ms = new MemoryStream())
                         {
                             await request.DTO.CancelledChequeFile.CopyToAsync(ms);
                             var fileBytes = ms.ToArray();
 
                             // 🔹 File naming convention (same pattern as asset)
                             string fileName = $"Cheque-{request.DTO.Prop.EmployeeId + "_" + docFileName}-{DateTime.UtcNow:yyMMddHHmmss}.png";
-                        // string fileName = $"ProfileImage-{decryptedActualEmployeeId + "_" + docFileName}-{DateTime.UtcNow:yyMMddHHmmss}.png";
-                      
-                        string fullFolderPath = _fileStorageService.GetEmployeeFolderPath(request.DTO.Prop.TenantId, request.DTO.Prop.EmployeeId, "bank");              
+                          
+                           string fullFolderPath = _fileStorageService.GetEmployeeFolderPath(request.DTO.Prop.TenantId, request.DTO.Prop.EmployeeId, "bank");              
 
                             // 🔹 Store actual name for reference in DB
                             docName = fileName;
