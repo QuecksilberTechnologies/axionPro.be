@@ -51,37 +51,75 @@ namespace axionpro.application.Extentions
 
 
         // ------------------ EDUCATION DTO EXTENSION ------------------
-        public static CompletionSectionDTO CalculateEducationCompletionDTO(this IEnumerable<EducationRowDTO> items)
+   
+        public static CompletionSectionDTO CalculateEducationCompletionDTO(
+           this IEnumerable<EducationRowDTO> items)
         {
             if (items == null || !items.Any())
                 return CreateEmptyResponse("Education");
 
-            int totalRows = items.Count();
-            double totalPercent = 0;
-
-            foreach (var edu in items)
+            double totalPercent = items.Sum(edu =>
             {
-                int totalFields = 6;
-                int filled = 0;
+                bool[] fields =
+                {
+            !string.IsNullOrWhiteSpace(edu.Degree),
+            !string.IsNullOrWhiteSpace(edu.InstituteName),
+            edu.StartDate != null,
+            edu.EndDate != null,
+            edu.HasEducationDocUploded == true,   // ✅ true only
+            edu.ScoreType != null && edu.ScoreType != 0
+        };
 
-                if (!string.IsNullOrEmpty(edu.Degree)) filled++;
-                if (!string.IsNullOrEmpty(edu.InstituteName)) filled++;
-                if (edu.StartDate != null) filled++;
-                if (edu.EndDate != null) filled++;
-                if (edu.HasEducationDocUploded == true) filled++;
-                if (edu.ScoreType != null && edu.ScoreType != 0) filled++;
+                int filled = fields.Count(f => f);
+                int totalFields = fields.Length;
 
-
-                totalPercent += Math.Round((filled / (double)totalFields) * 100);
-            }
+                return (filled / (double)totalFields) * 100;
+            });
 
             var first = items.First();
-            double finalPercent = Math.Round(totalPercent / totalRows);
 
             return new CompletionSectionDTO
             {
                 SectionName = "Education",
-                CompletionPercent = finalPercent,
+                CompletionPercent = Math.Round(totalPercent / items.Count()),
+                IsInfoVerified = first.IsInfoVerified,
+                IsEditAllowed = first.IsEditAllowed,
+                IsSectionCreate = true
+            };
+        }
+
+        // ------------------ BANK DTO-----------------
+        public static CompletionSectionDTO CalculateBankCompletionDTO(
+           this IEnumerable<BankRowDTO> items)
+        {
+            if (items == null || !items.Any())
+                return CreateEmptyResponse("Bank");
+
+            double totalPercent = items.Sum(bank =>
+            {
+                bool[] fields =
+                {
+            !string.IsNullOrWhiteSpace(bank.BankName),
+            !string.IsNullOrWhiteSpace(bank.BranchName),
+            !string.IsNullOrWhiteSpace(bank.IFSCCode),
+            bank.AccountNumber != null,
+            bank.AccountType != null,
+            bank.IsPrimaryAccount != null,
+            bank.HasChequeDocUploaded == true   // ✅ true only
+        };
+
+                int filled = fields.Count(f => f);
+                int totalFields = fields.Length;
+
+                return (filled / (double)totalFields) * 100;
+            });
+
+            var first = items.First();
+
+            return new CompletionSectionDTO
+            {
+                SectionName = "Bank",
+                CompletionPercent = Math.Round(totalPercent / items.Count()),
                 IsInfoVerified = first.IsInfoVerified,
                 IsEditAllowed = first.IsEditAllowed,
                 IsSectionCreate = true

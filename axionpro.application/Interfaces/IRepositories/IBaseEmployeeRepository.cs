@@ -58,7 +58,8 @@ public interface IBaseEmployeeRepository
       public Task<bool> UpdateEmployeeAsync(Employee entity, long tenantId);
       public Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> GetImage(GetEmployeeImageRequestDTO dto);
            public  Task<string?> ProfileImage(long employeeId);
-    public Task<List<CompletionSectionDTO>> GetEmployeeCompletionAsync(long employeeId);
+      public Task<List<CompletionSectionDTO>> GetEmployeeCompletionAsync(long employeeId);
+
     #endregion
 
 

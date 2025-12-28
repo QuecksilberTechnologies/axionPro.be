@@ -1380,16 +1380,32 @@ namespace axionpro.persistance.Repositories
                         HasEducationDocUploded = x.HasEducationDocUploded,
                         StartDate = x.StartDate,
                         EndDate = x.EndDate,
-                        IsEditAllowed = x.IsEditAllowed,
-                        IsInfoVerified = x.IsInfoVerified
+                        //IsEditAllowed = x.IsEditAllowed,
+                        //IsInfoVerified = x.IsInfoVerified
 
+                    })
+                    .ToListAsync();
+
+                var bankList = await _context.EmployeeBankDetails
+                    .AsNoTracking()
+                    .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
+                    .Select(x => new BankRowDTO
+                    {
+                        AccountNumber = x.AccountNumber,    
+                        BankName = x.BankName,  
+                        IFSCCode = x.IFSCCode,  
+                        BranchName = x.BranchName,
+                        AccountType = x.AccountType,
+                        HasChequeDocUploaded = x.HasChequeDocUploaded,
+                        IsPrimaryAccount = x.IsPrimaryAccount
                     })
                     .ToListAsync();
 
                 // 🧮 Calculate completion %
                 var educationSection = eduList.CalculateEducationCompletionDTO();
+                var bankSection = bankList.CalculateBankCompletionDTO();
 
-                return new List<CompletionSectionDTO> { educationSection };
+                return new List<CompletionSectionDTO> { educationSection, bankSection };
             }
             catch (Exception ex)
             {
@@ -1403,7 +1419,7 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-
+      
 
 
         // single object

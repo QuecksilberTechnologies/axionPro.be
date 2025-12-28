@@ -67,6 +67,7 @@ public class GetEmployeeProfileStatusQueryHandler
 
             long employeeId = _idEncoderService.DecodeId_long(request.EmployeeId, finalKey);
 
+
             // Repository Call
             var sections = await _unitOfWork.Employees.GetEmployeeCompletionAsync(employeeId);
 
