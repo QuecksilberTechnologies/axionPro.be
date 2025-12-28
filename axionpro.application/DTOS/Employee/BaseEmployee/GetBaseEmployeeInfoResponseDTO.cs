@@ -22,6 +22,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
             public string? EmergencyContactNumber { get; set; }
            public string? BloodGroup { get; set; }
            public string? MobileNumber { get; set; }
+
             public int? Relation { get; set; }
             public int? CountryId { get; set; }
             public string? CountryCode { get; set; }
@@ -36,11 +37,13 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
             public int DesignationId { get; set; }
             public string? GenderName { get; set; }
             public int EmployeeTypeId { get; set; }
+       
             public int DepartmentId { get; set; }
             public string? OfficialEmail { get; set; }
             public bool? HasPermanent { get; set; } = false;
             public bool IsActive { get; set; } = true;         
             public bool? IsEditAllowed { get; set; } 
+            public bool? IsMarried { get; set; } 
             public bool? IsInfoVerified { get; set; }
         public double CompletionPercentage { get; set; }
 

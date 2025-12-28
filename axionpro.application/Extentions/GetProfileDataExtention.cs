@@ -49,9 +49,8 @@ namespace axionpro.application.Extentions
             };
         }
 
-
         // ------------------ EDUCATION DTO EXTENSION ------------------
-   
+    
         public static CompletionSectionDTO CalculateEducationCompletionDTO(
            this IEnumerable<EducationRowDTO> items)
         {

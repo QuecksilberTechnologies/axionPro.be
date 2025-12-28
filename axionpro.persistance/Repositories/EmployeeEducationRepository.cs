@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using axionpro.application.Common.Helpers.PercentageHelper;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.DTOS.Employee.Education;
@@ -190,7 +191,7 @@ namespace axionpro.persistance.Repositories
                     // -----------------
                     // Per-record completion calculation
                     // -----------------
-                    dtoItem.CompletionPercentage = CalculateEducationCompletion(dtoItem);
+                    dtoItem.CompletionPercentage = PercentageHelper.CalculateEducationCompletion(dtoItem);
 
                     totalPercentage += dtoItem.CompletionPercentage;
 
@@ -330,26 +331,7 @@ namespace axionpro.persistance.Repositories
 
 
 
-
-        // ⭐ Each Record Education Completion Calculation
-
-        public double CalculateEducationCompletion(GetEducationResponseDTO edu)
-        {
-            int totalFields = 8;
-            int filled = 0;
-
-            if (!string.IsNullOrEmpty(edu.Degree)) filled++;
-            if (!string.IsNullOrEmpty(edu.InstituteName)) filled++;
-            if (edu.StartDate != null) filled++;
-            if (edu.EndDate != null) filled++;
-            if (!string.IsNullOrEmpty(edu.ScoreValue)) filled++;
-            if (!string.IsNullOrEmpty(edu.ScoreType)) filled++;
-            if (!string.IsNullOrEmpty(edu.GradeDivision)) filled++;
-            if (edu.HasEducationDocUploded) filled++;
-
-            return Math.Round((filled / (double)totalFields) * 100, 0);
-        }
-
+ 
 
 
 

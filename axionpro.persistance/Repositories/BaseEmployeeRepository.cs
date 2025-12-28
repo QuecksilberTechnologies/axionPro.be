@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers.Converters;
+using axionpro.application.Common.Helpers.PercentageHelper;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
@@ -326,51 +327,7 @@ namespace axionpro.persistance.Repositories
             return mainUpdated;
         }
 
-
-        private async Task<bool> UpdateTableAsync<TEntity>( DbSet<TEntity> table,  long employeeId,  bool? isVerified,  bool? isEditAllowed,  bool? isActive, long? userId) where TEntity : class
-        {
-            // FILTER → EmployeeId match + IsSoftDeleted != true
-            var entity = await table.FirstOrDefaultAsync(x =>
-                EF.Property<long>(x, "EmployeeId") == employeeId &&
-                (EF.Property<bool?>(x, "IsSoftDeleted") != true)
-            );
-
-            if (entity == null)
-                return false;
-
-            // --- Update IsInfoVerified ---
-            if (isVerified.HasValue)
-            {
-                typeof(TEntity).GetProperty("IsInfoVerified")?.SetValue(entity, isVerified.Value);
-
-                if (isVerified.Value == true)
-                {
-                    typeof(TEntity).GetProperty("InfoVerifiedDateTime")?.SetValue(entity, DateTime.UtcNow);
-                    typeof(TEntity).GetProperty("InfoVerifiedById")?.SetValue(entity, userId ?? 0);
-                }
-                else
-                {
-                    typeof(TEntity).GetProperty("InfoVerifiedDateTime")?.SetValue(entity, null);
-                    typeof(TEntity).GetProperty("InfoVerifiedById")?.SetValue(entity, null);
-                }
-            }
-
-            // --- Update IsEditAllowed ---
-            if (isEditAllowed.HasValue)
-                typeof(TEntity).GetProperty("IsEditAllowed")?.SetValue(entity, isEditAllowed.Value);
-
-            // --- Update IsActive ---
-            if (isActive.HasValue)
-                typeof(TEntity).GetProperty("IsActive")?.SetValue(entity, isActive.Value);
-
-            // --- UpdatedDateTime ---
-            typeof(TEntity).GetProperty("UpdatedDateTime")?.SetValue(entity, DateTime.UtcNow);
-
-            await _context.SaveChangesAsync();
-            return true;
-        }
-
-
+ 
 
         public async Task<bool> Delete(string id, string tenantKey)
         {
@@ -761,6 +718,7 @@ namespace axionpro.persistance.Repositories
                     };
                 }
 
+
                 bool hasPrimary = await query.AnyAsync(x => x.HasImageUploaded == true);
 
                 var pagedDataRaw = await query
@@ -806,103 +764,25 @@ namespace axionpro.persistance.Repositories
         }
 
 
-        //public async Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> GetImage(GetEmployeeImageRequestDTO dto, long decryptedTenantId)
-        //{
-        //    await using var context = await _contextFactory.CreateDbContextAsync();
-
-        //    try
-        //    {
-        //        // Pagination defaults
-        //        int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
-        //        int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
-
-        //        // Base query
-        //        var query = context.EmployeeImages
-        //            .AsNoTracking()
-        //            .Where(x => x.IsSoftDeleted != true &&
-        //                        x.TenantId == decryptedTenantId);
-
-        //        if (dto.IsActive)
-        //            query = query.Where(x => x.IsActive == dto.IsActive);
-
-        //        if (dto._EmployeeId > 0)
-        //            query = query.Where(x => x.EmployeeId == dto._EmployeeId);
-
-        //        if (dto.Id_long > 0)
-        //            query = query.Where(x => x.Id == dto.Id_long);
-
-        //        // Safe sorting
-        //        bool isAscending =
-        //            !string.IsNullOrWhiteSpace(dto.SortOrder) &&
-        //            dto.SortOrder.Trim().Equals("asc", StringComparison.OrdinalIgnoreCase);
-
-        //        query = isAscending ? query.OrderBy(x => x.Id) : query.OrderByDescending(x => x.Id);
-
-        //        int totalCount = await query.CountAsync();
-
-        //        // Just check primary, don't load all rows
-        //        bool hasPrimary = await query.AnyAsync(x => x.IsPrimary == true);
-
-        //        double completionPercentage = hasPrimary ? 100 : 0;
-
-        //        // Paging
-        //        var pagedDataRaw = await query
-        //            .Skip((pageNumber - 1) * pageSize)
-        //            .Take(pageSize)
-        //            .ToListAsync();
-
-        //        var pagedData = pagedDataRaw.Select(x => new GetEmployeeImageReponseDTO
-        //        {
-        //            EmployeeId = x.EmployeeId.ToString(),
-        //            Id = x.Id.ToString(),
-        //            FilePath = x.FilePath,
-        //            IsActive = x.IsActive,
-        //            IsPrimary = x.IsPrimary,
-        //            CompletionPercentage = completionPercentage
-        //        }).ToList();
-
-        //        return new PagedResponseDTO<GetEmployeeImageReponseDTO>
-        //        {
-        //            Items = pagedData,
-        //            TotalCount = totalCount,
-        //            PageNumber = pageNumber,
-        //            PageSize = pageSize,
-        //            CompletionPercentage = completionPercentage,
-        //            IsPrimaryMarked = hasPrimary
-        //        };
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "❌ Error occurred while fetching employee images.");
-        //        throw;
-        //    }
-        //}
-
-    
-        public async Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> GetInfo(GetBaseEmployeeRequestDTO dto)
+        public async Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> GetInfo(
+      GetBaseEmployeeRequestDTO dto)
         {
-          
             try
             {
                 // 🧩 Step 1: Pagination defaults
                 int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
                 int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
 
-                // 🧩 Step 2: Base query (Tenant + Active filter)
+                // 🧩 Step 2: Base employee query (NO tracking = faster)
                 var query = _context.Employees
                     .AsNoTracking()
-                    .Where(x => x.TenantId == dto.Prop.TenantId && x.IsSoftDeleted == null || x.IsSoftDeleted==false);
-                
-                   
-                // 🧩 Step 3: Safe parse helpers (convert string → long safely)
-                   
-                int designationId = SafeParser.TryParseInt(dto.DesignationId);
+                    .Where(x =>
+                        x.TenantId == dto.Prop.TenantId &&
+                        (x.IsSoftDeleted == null || x.IsSoftDeleted == false));
 
-
-                // 🧩 Step 4: Dynamic filters (null-safe + condition-based)
+                // 🧩 Step 3: Dynamic filters (SAFE & SAME RESULT)
                 if (dto.Prop.EmployeeId > 0)
                     query = query.Where(x => x.Id == dto.Prop.EmployeeId);
-                // yaha par id_long check kar rahe hai or 0 record aa raha hai, 
 
                 if (dto.IsActive)
                     query = query.Where(x => x.IsActive == dto.IsActive);
@@ -922,9 +802,6 @@ namespace axionpro.persistance.Repositories
                 if (dto.DateOfBirth.HasValue)
                     query = query.Where(x => x.DateOfBirth == dto.DateOfBirth);
 
-                if (designationId > 0)
-                    query = query.Where(x => x.DesignationId == designationId);
-
                 if (dto.TypeId > 0)
                     query = query.Where(x => x.EmployeeTypeId == dto.TypeId);
 
@@ -937,118 +814,141 @@ namespace axionpro.persistance.Repositories
                 if (dto.IsInfoVerified.HasValue)
                     query = query.Where(x => x.IsInfoVerified == dto.IsInfoVerified);
 
-                // 🧩 Step 5: Sorting (custom field ya default)
-                bool isAscending = string.Equals(dto.SortOrder, "asc", StringComparison.OrdinalIgnoreCase);
+                // 🧩 Step 4: Sorting
+                bool isAsc = string.Equals(dto.SortOrder, "asc", StringComparison.OrdinalIgnoreCase);
                 query = dto.SortBy?.ToLower() switch
                 {
-                    "firstname" => isAscending ? query.OrderBy(x => x.FirstName) : query.OrderByDescending(x => x.FirstName),
-                    "lastname" => isAscending ? query.OrderBy(x => x.LastName) : query.OrderByDescending(x => x.LastName),
-                    "employementcode" => isAscending ? query.OrderBy(x => x.EmployementCode) : query.OrderByDescending(x => x.EmployementCode),
-                    _ => isAscending ? query.OrderBy(x => x.Id) : query.OrderByDescending(x => x.Id)
+                    "firstname" => isAsc ? query.OrderBy(x => x.FirstName) : query.OrderByDescending(x => x.FirstName),
+                    "lastname" => isAsc ? query.OrderBy(x => x.LastName) : query.OrderByDescending(x => x.LastName),
+                    "employementcode" => isAsc ? query.OrderBy(x => x.EmployementCode) : query.OrderByDescending(x => x.EmployementCode),
+                    _ => isAsc ? query.OrderBy(x => x.Id) : query.OrderByDescending(x => x.Id)
                 };
 
-                // 🧩 Step 6: Pagination & total count
+                // 🧩 Step 5: Total count (pagination metadata)
                 int totalCount = await query.CountAsync();
 
-                var records = await query
-     .Skip((pageNumber - 1) * pageSize)
-     .Take(pageSize)
-     .Select(x => new GetBaseEmployeeResponseDTO
-     {
-         Id = x.Id.ToString(),
-         EmployementCode = x.EmployementCode,
-         LastName = x.LastName,
-         MiddleName = x.MiddleName,
-         FirstName = x.FirstName,
-         GenderId = x.GenderId ?? 0,
-         DateOfBirth = x.DateOfBirth,
-         DateOfOnBoarding = x.DateOfOnBoarding,
-         DateOfExit = x.DateOfExit,
-         DesignationId = x.DesignationId ?? 0,
-         EmployeeTypeId = x.EmployeeTypeId ?? 0,
-         MobileNumber = x.MobileNumber,
-         CountryCode = x.Country.CountryCode,
-         DepartmentId = x.DepartmentId ?? 0,
-         OfficialEmail = x.OfficialEmail,
-         HasPermanent = x.HasPermanent,
-         IsActive = x.IsActive,
-         IsEditAllowed = x.IsEditAllowed,
-         IsInfoVerified = x.IsInfoVerified,
-         CountryId = x.Country.Id,
-         Nationality = x.Country.CountryName,
-         Relation = x.Relation,
-         EmergencyContactPerson = x.EmergencyContactPerson,
-         EmergencyContactNumber = x.EmergencyContactNumber,
-         BloodGroup = x.BloodGroup,
-       
+                // 🧩 Step 6: Fetch paged employees ONLY (lightweight)
+                var employees = await query
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(x => new
+                    {
+                        Employee = x,
+                        Country = x.Country
+                    })
+                    .ToListAsync();
+
+                // ----------------------------------------------------
+                // ⚡ PERFORMANCE MAGIC STARTS HERE
+                // ----------------------------------------------------
+
+                var employeeIds = employees.Select(x => x.Employee.Id).ToList();
+
+                // 🧩 Step 7: BULK primary image lookup (NO per-row query)
+                var hasPrimaryImageLookup = new HashSet<long>(
+                         await _context.EmployeeImages
+                             .AsNoTracking()
+                             .Where(x =>
+                             employeeIds.Contains(x.EmployeeId) &&
+                              x.IsPrimary == true &&
+                              x.HasImageUploaded == true &&
+                              x.IsSoftDeleted != true)
+                             .Select(x => x.EmployeeId)
+                             .Distinct()
+                              .ToListAsync()
+                               );
 
 
-         // ⭐ New Fields (JOIN base lookup)
-         DesignationName = _context.Designations
-             .Where(d => d.Id == x.DesignationId)
-             .Select(d => d.DesignationName)
-             .FirstOrDefault(),
+                // 🧩 Step 8: ONE-TIME lookup tables (Dictionary = O(1))
+                var designationLookup = await _context.Designations
+                    .ToDictionaryAsync(x => x.Id, x => x.DesignationName);
 
-         DepartmentName = _context.Departments
-             .Where(dep => dep.Id == x.DepartmentId)
-             .Select(dep => dep.DepartmentName)
-             .FirstOrDefault(),
-         Type = _context.EmployeeTypes
-             .Where(ty => ty.Id == x.EmployeeTypeId)
-             .Select(name => name.TypeName)
-             .FirstOrDefault(),
-         // ⭐ New Fields (JOIN base lookup)
-         GenderName = _context.Genders
-             .Where(g => g.Id == x.GenderId)
-             .Select(g => g.GenderName)
-             .FirstOrDefault(),
+                var departmentLookup = await _context.Departments
+                    .ToDictionaryAsync(x => x.Id, x => x.DepartmentName);
 
-         //RoleName = _context.Roles
-         //    .Where(r => r.Id == x.UserRoles.)
-         //    .Select(r => r.Name)
-         // .FirstOrDefault()
-         // 🔥 Base Employee Completion Calculation
-         CompletionPercentage = Math.Round(
-             (
-                 (string.IsNullOrWhiteSpace(x.FirstName) ? 0 : 1) +
-                 (string.IsNullOrWhiteSpace(x.LastName) ? 0 : 1) +
-                 (x.GenderId > 0 ? 1 : 0) +
-                 (x.DateOfBirth != null ? 1 : 0) +
-                 (x.DateOfOnBoarding != null ? 1 : 0) +
-                 (x.DesignationId > 0 ? 1 : 0) +
-                 (x.DepartmentId > 0 ? 1 : 0) +
-                 (!string.IsNullOrWhiteSpace(x.OfficialEmail) ? 1 : 0) +
-                 
-                 (!string.IsNullOrWhiteSpace(x.EmergencyContactPerson) ? 1 : 0) +
-                 (x.HasPermanent ? 1 : 0) +
-                 (x.IsActive ? 1 : 0)
-             ) / 11.0 * 100, 0)
-     })
-     .ToListAsync();
+                var typeLookup = await _context.EmployeeTypes
+                    .ToDictionaryAsync(x => x.Id, x => x.TypeName);
+
+                var genderLookup = await _context.Genders
+                    .ToDictionaryAsync(x => x.Id, x => x.GenderName);
+
+                // 🧩 Step 9: Final DTO mapping + IN-MEMORY completion
+                var records = employees.Select(x =>
+                {
+                    bool hasPrimary = hasPrimaryImageLookup.Contains(x.Employee.Id);
+
+                    double completion =
+                        CompletionCalculatorHelper.EmployeePropCalculate(
+                            x.Employee,
+                            hasPrimary);
+
+                    return new GetBaseEmployeeResponseDTO
+                    {
+                        Id = x.Employee.Id.ToString(),
+                        EmployementCode = x.Employee.EmployementCode,
+                        FirstName = x.Employee.FirstName,
+                        MiddleName = x.Employee.MiddleName,
+                        LastName = x.Employee.LastName,
+
+                        GenderId = x.Employee.GenderId ?? 0,
+                        GenderName = genderLookup.GetValueOrDefault(x.Employee.GenderId ?? 0),
+
+                        DesignationId = x.Employee.DesignationId ?? 0,
+                        DesignationName = designationLookup.GetValueOrDefault(x.Employee.DesignationId ?? 0),
+
+                        DepartmentId = x.Employee.DepartmentId ?? 0,
+                        DepartmentName = departmentLookup.GetValueOrDefault(x.Employee.DepartmentId ?? 0),
+
+                        EmployeeTypeId = x.Employee.EmployeeTypeId ?? 0,
+                        Type = typeLookup.GetValueOrDefault(x.Employee.EmployeeTypeId ?? 0),
+
+                        CountryId = x.Country.Id,
+                        CountryCode = x.Country.CountryCode,
+                        Nationality = x.Country.CountryName,
+
+                        OfficialEmail = x.Employee.OfficialEmail,
+                        MobileNumber = x.Employee.MobileNumber,
+
+                        EmergencyContactPerson = x.Employee.EmergencyContactPerson,
+                        EmergencyContactNumber = x.Employee.EmergencyContactNumber,
+                        BloodGroup = x.Employee.BloodGroup,
+
+                        HasPermanent = x.Employee.HasPermanent,
+                        IsActive = x.Employee.IsActive,
+                        IsEditAllowed = x.Employee.IsEditAllowed,
+                        IsInfoVerified = x.Employee.IsInfoVerified,
+                        IsMarried = x.Employee.IsMarried,
 
 
-                // 🧩 Step 7: Final paged response
+                        // ⭐ SINGLE SOURCE OF TRUTH
+                        CompletionPercentage = completion
+                    };
+                }).ToList();
+
+                // 🧩 Step 10: Overall completion (AVG, fast, accurate)
+                double overallCompletion =
+                    records.Any()
+                        ? Math.Round(records.Average(x => x.CompletionPercentage), 0)
+                        : 0;
+
+                // 🧩 Step 11: Final response
                 return new PagedResponseDTO<GetBaseEmployeeResponseDTO>
                 {
                     Items = records,
                     TotalCount = totalCount,
                     PageNumber = pageNumber,
-                    TotalPages = (int)Math.Ceiling((double)totalCount/pageSize),
-                    CompletionPercentage = 0, // Placeholder
-                   
-
+                    TotalPages = (int)Math.Ceiling((double)totalCount / pageSize),
+                    CompletionPercentage = overallCompletion
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error occurred while fetching base employee info.");
-                throw new Exception($"Failed to fetch base employee info: {ex.Message}");
+                throw;
             }
         }
 
-        public async Task<PagedResponseDTO<GetAllEmployeeInfoResponseDTO>> GetAllInfo(
-         
-            GetAllEmployeeInfoRequestDTO dto)
+        public async Task<PagedResponseDTO<GetAllEmployeeInfoResponseDTO>> GetAllInfo(GetAllEmployeeInfoRequestDTO dto)
         {
             try
             {
@@ -1183,23 +1083,7 @@ namespace axionpro.persistance.Repositories
                     imgLookup.TryGetValue(x.emp.Id, out var img);
                     bool hasPrimary = hasPrimaryLookup.Contains(x.emp.Id);
 
-                    int completed = new[]
-                    {
-                string.IsNullOrEmpty(x.emp.FirstName) ? 0 : 1,
-                string.IsNullOrEmpty(x.emp.LastName) ? 0 : 1,
-                x.emp.DateOfOnBoarding == null ? 0 : 1,
-                x.emp.DesignationId > 0 ? 1 : 0,
-                x.emp.DepartmentId > 0 ? 1 : 0,
-                string.IsNullOrEmpty(x.emp.OfficialEmail) ? 0 : 1,
-                x.emp.IsActive ? 1 : 0,
-                x.emp.IsEditAllowed == true ? 1 : 0,
-                x.emp.IsInfoVerified == true ? 1 : 0,
-                hasPrimary ? 1 : 0,
-                x.emp.BloodGroup  == null ? 0 : 1,
-                x.emp.MobileNumber  == null ? 0 : 1,
-                x.emp.EmergencyContactNumber  == null ? 0 : 1,
-                x.emp.EmergencyContactPerson  == null ? 0 : 1
-            }.Sum();
+                    double completionPercentage = CompletionCalculatorHelper.EmployeePropCalculate(x.emp, hasPrimary);
 
                     SummaryEmployeeInfo summaryEmployeeInfo = new SummaryEmployeeInfo
                     {
@@ -1257,8 +1141,7 @@ namespace axionpro.persistance.Repositories
                         DesignationId = x.emp.DesignationId ?? 0,
                         DepartmentId = x.emp.DepartmentId ?? 0,
                         GenderName = x.GenderName,
-                        MobileNumber  = x.emp?.MobileNumber,
-                        
+                        MobileNumber  = x.emp?.MobileNumber,                        
                         EmployeeTypeName = x.EmployeeTypeName,
                         DesignationName = x.DesignationName,
                         DepartmentName = x.DepartmentName,
@@ -1267,9 +1150,7 @@ namespace axionpro.persistance.Repositories
                         HasImagePicUploaded = hasPrimary,
                         IsActive = x.emp.IsActive,
                         SummaryEmployeeInfo = summaryEmployeeInfo  , // ✅ THIS WAS MISSING
-                        
-
-                        CompletionPercentage = (completed / 14.0) * 100
+                        CompletionPercentage = completionPercentage
                     };
                 }).ToList();
 
@@ -1279,7 +1160,8 @@ namespace axionpro.persistance.Repositories
                     TotalCount = totalCount,
                     PageNumber = pageNumber,
                     PageSize = pageSize,
-                    TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+                    TotalPages = (int)Math.Ceiling((double)totalCount / pageSize),
+                    
 
                 };
             }
@@ -1298,68 +1180,7 @@ namespace axionpro.persistance.Repositories
             }
         }
      
-        //public async Task<EmployeeProfileCompletionDTO> GetEmployeeCompletionAsync(long employeeId)
-        //{
-        //    if (employeeId <= 0)
-        //        return new EmployeeProfileCompletionDTO();
-
-        //    // Run all queries in parallel (fastest)
-        //    var bankTask = _context.EmployeeBankDetails
-        //        .AsNoTracking()
-        //        .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
-        //        .OrderByDescending(x => x.IsPrimaryAccount)
-        //        .Select(x => new
-        //        {
-        //            x.BankName,
-        //            x.AccountNumber,
-        //            x.IFSCCode,
-        //            x.BranchName,
-        //            x.AccountType,
-        //            x.IsPrimaryAccount,
-        //            x.HasChequeDocUploaded,
-        //            x.IsInfoVerified,
-        //            x.IsEditAllowed
-        //        })
-        //        .FirstOrDefaultAsync();
-
-        //    var eduTask = _context.EmployeeEducations
-        //        .AsNoTracking()
-        //        .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
-        //        .Select(x => new
-        //        {
-        //            x.Degree,
-        //            x.InstituteName,
-        //            x.StartDate,
-        //            x.EndDate,
-        //            x.IsInfoVerified,
-        //            x.IsEditAllowed
-        //        })
-        //        .ToListAsync();
-
-        //    //var expTask = _context.EmployeeExperienceDetails
-        //    //    .AsNoTracking()
-        //    //    .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
-        //    //    .Select(x => new
-        //    //    {
-        //    //        x.CompanyName,
-        //    //        x.StartDate,
-        //    //        x.EndDate,
-        //    //        x.HasExpLetterUploaded,
-        //    //        x.IsInfoVerified,
-        //    //        x.IsEditAllowed
-        //    //    })
-        //    //    .ToListAsync();
-
-        //    await Task.WhenAll(bankTask, eduTask);
-
-        //    return new EmployeeProfileCompletionDTO
-        //    {
-        //        Bank = _context.EmployeeEducations.CalculateEducationCompletion(bankTask.Result),
-        //        Education = _context.EmployeeEducations.c(eduTask.Result),
-        //        Experience = CalculateExperiencePercentage(expTask.Result)
-        //    };
-        //}
-
+     
         public async Task<List<CompletionSectionDTO>> GetEmployeeCompletionAsync(long employeeId)
         {
             try
@@ -1367,6 +1188,7 @@ namespace axionpro.persistance.Repositories
                 // ❗If bad employeeId, return empty list safely
                 if (employeeId <= 0)
                     return new List<CompletionSectionDTO>();
+           
 
                 // 📚 Fetch education rows
                 var eduList = await _context.EmployeeEducations
@@ -1379,13 +1201,10 @@ namespace axionpro.persistance.Repositories
                         ScoreType = x.ScoreType,
                         HasEducationDocUploded = x.HasEducationDocUploded,
                         StartDate = x.StartDate,
-                        EndDate = x.EndDate,
-                        //IsEditAllowed = x.IsEditAllowed,
-                        //IsInfoVerified = x.IsInfoVerified
+                        EndDate = x.EndDate,                       
 
                     })
                     .ToListAsync();
-
                 var bankList = await _context.EmployeeBankDetails
                     .AsNoTracking()
                     .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
@@ -1418,231 +1237,7 @@ namespace axionpro.persistance.Repositories
                 return new List<CompletionSectionDTO>();
             }
         }
-
-      
-
-
-        // single object
-        //    public async Task<List<CompletionSectionDTO>> GetEmployeeCompletionAsync(long employeeId)
-        //    {
-        //        if (employeeId <= 0)
-        //            return new List<CompletionSectionDTO>();
-
-        //        var eduTask = _context.EmployeeEducations
-        //            .AsNoTracking()
-        //            .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted!=true)
-        //            .Select(x => new
-        //            {
-        //                x.Degree,
-        //                x.InstituteName,
-        //                x.ScoreType,
-        //                x.HasEducationDocUploded,
-        //                x.StartDate,
-        //                x.EndDate,
-        //                x.IsInfoVerified,
-        //                x.IsEditAllowed
-        //            })
-        //            .FirstOrDefaultAsync();
-
-        //        await Task.WhenAll(eduTask);
-
-        //        var edu = await eduTask;
-
-        //        return new List<CompletionSectionDTO>
-        //            {
-        //                  edu != null
-        //                   ? new List<dynamic> { edu }.CalculateEducationCompletion()
-        //                   : new CompletionSectionDTO
-        //            {
-        //            SectionName = "Education",
-        //            CompletionPercent = 0,
-        //            IsInfoVerified = false,
-        //            IsEditAllowed = true,
-        //            IsSectionCreate = false
-        //        }
-        //};
-        //    }
-
-
-        //public async Task<PagedResponseDTO<GetAllEmployeeInfoResponseDTO>> GetAllInfo(GetAllEmployeeInfoRequestDTO dto,
-        //        long decryptedTenantId)
-        // {
-        //    await using var context = await _contextFactory.CreateDbContextAsync();
-        //    try
-        //    {
-        //        int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
-        //        int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
-
-        //        // -----------------------------------
-        //        // 1️⃣ BASE QUERY
-        //        // -----------------------------------
-        //        var baseQuery =
-        //            from emp in context.Employees.AsNoTracking()
-        //            where emp.TenantId == decryptedTenantId && emp.IsSoftDeleted != true
-
-        //            join g in context.Genders on emp.GenderId equals g.Id into genderJoin
-        //            from gender in genderJoin.DefaultIfEmpty()
-
-        //            join d in context.Designations on emp.DesignationId equals d.Id into desigJoin
-        //            from designation in desigJoin.DefaultIfEmpty()
-
-        //            join et in context.EmployeeTypes on emp.EmployeeTypeId equals et.Id into typeJoin
-        //            from empType in typeJoin.DefaultIfEmpty()
-
-        //            join dep in context.Departments on emp.DepartmentId equals dep.Id into deptJoin
-        //            from department in deptJoin.DefaultIfEmpty()
-
-
-        //        select new
-        //            {
-        //                emp,
-        //                GenderName = gender.GenderName ?? "",
-        //                DesignationName = designation.DesignationName ?? "",
-        //                EmployeeTypeName = empType.TypeName ?? "",
-        //                DepartmentName = department.DepartmentName ?? ""
-        //            };
-
-        //        // -----------------------------------
-        //        // 2️⃣ FILTERS
-        //        // -----------------------------------
-        //        if (dto.Id_long > 0)
-        //            baseQuery = baseQuery.Where(x => x.emp.Id == dto.Id_long);
-
-        //        if (!string.IsNullOrWhiteSpace(dto.EmailId))
-        //            baseQuery = baseQuery.Where(x => x.emp.OfficialEmail == dto.EmailId);
-
-        //        if (dto._DepartmentId > 0)
-        //            baseQuery = baseQuery.Where(x => x.emp.DepartmentId == dto._DepartmentId);
-
-        //        if (dto._DesignationId > 0)
-        //            baseQuery = baseQuery.Where(x => x.emp.DesignationId == dto._DesignationId);
-
-        //        if (dto._EmployeeTypeId > 0)
-        //            baseQuery = baseQuery.Where(x => x.emp.EmployeeTypeId == dto._EmployeeTypeId);
-
-        //        if (dto._GenderId > 0)
-        //            baseQuery = baseQuery.Where(x => x.emp.GenderId == dto._GenderId);
-
-        //        if (!string.IsNullOrWhiteSpace(dto.FirstName))
-        //            baseQuery = baseQuery.Where(x => x.emp.FirstName.Contains(dto.FirstName));
-
-        //        if (!string.IsNullOrWhiteSpace(dto.LastName))
-        //            baseQuery = baseQuery.Where(x => x.emp.LastName.Contains(dto.LastName));
-
-        //        if (!string.IsNullOrWhiteSpace(dto.EmployementCode))
-        //            baseQuery = baseQuery.Where(x => x.emp.EmployementCode.Contains(dto.EmployementCode));
-
-        //        if (!string.IsNullOrWhiteSpace(dto.EmployeeTypeId))
-        //            baseQuery = baseQuery.Where(x => x.emp.EmployementCode.Contains(dto.EmployementCode));
-
-
-        //        int totalCount = await baseQuery.CountAsync();
-
-        //        // -----------------------------------
-        //        // 3️⃣ PAGING
-        //        // -----------------------------------
-        //        var pagedEmployees = await baseQuery
-        //            .OrderBy(x => x.emp.Id)
-        //            .Skip((pageNumber - 1) * pageSize)
-        //            .Take(pageSize)
-        //            .ToListAsync();
-
-        //        // -----------------------------------
-        //        // 4️⃣ FETCH IMAGES
-        //        // -----------------------------------
-        //        var ids = pagedEmployees.Select(x => x.emp.Id).ToList();
-
-        //        var images = await context.EmployeeImages
-        //            .Where(i => ids.Contains(i.EmployeeId) && i.IsSoftDeleted != true)
-        //            .ToListAsync();
-
-        //        // -----------------------------------
-        //        // 5️⃣ BUILD OUTPUT
-        //        // -----------------------------------
-        //        var result = pagedEmployees.Select(x =>
-        //        {
-        //            var img = images
-        //                .Where(i => i.EmployeeId == x.emp.Id)
-        //                .OrderByDescending(i => i.IsPrimary)
-        //                .ThenByDescending(i => i.HasImageUploaded)
-        //                .ThenByDescending(i => i.Id)
-        //                .FirstOrDefault();
-
-        //            bool hasPrimary = images.Any(i =>
-        //                i.EmployeeId == x.emp.Id &&
-        //                i.IsPrimary == true &&
-        //                i.IsSoftDeleted != true);
-
-        //            int completed = new[]
-        //            {
-        //        string.IsNullOrEmpty(x.emp.FirstName) ? 0 : 1,
-        //        string.IsNullOrEmpty(x.emp.LastName) ? 0 : 1,
-        //        x.emp.DateOfOnBoarding == null ? 0 : 1,
-        //        x.emp.DesignationId > 0 ? 1 : 0,
-        //        x.emp.DepartmentId > 0 ? 1 : 0,
-        //        string.IsNullOrEmpty(x.emp.OfficialEmail) ? 0 : 1,
-        //        x.emp.IsActive == true ? 1 : 0,
-        //        x.emp.IsEditAllowed == true ? 1 : 0,
-        //        x.emp.IsInfoVerified == true ? 1 : 0,
-        //        hasPrimary ? 1 : 0
-        //    }.Sum();
-
-        //            return new GetAllEmployeeInfoResponseDTO
-        //            {
-        //                EmployeeId = x.emp.Id.ToString(),
-        //                EmployementCode = x.emp.EmployementCode,
-        //                FirstName = x.emp.FirstName,
-        //                LastName = x.emp.LastName,
-        //                DateOfOnBoarding = x.emp.DateOfOnBoarding?.ToString(),
-
-
-        //                GenderId = x.emp.GenderId.ToString(),
-        //                EmployeeTypeId = x.emp.EmployeeTypeId.ToString(),
-
-        //                DesignationId = x.emp.DesignationId.ToString(),
-        //                DepartmentId = x.emp.DepartmentId.ToString(),
-
-        //                GenderName = x.GenderName,
-        //                EmployeeTypeName = x.EmployeeTypeName,
-        //                DesignationName = x.DesignationName,
-        //                DepartmentName = x.DepartmentName,
-        //                OfficialEmail = x.emp.OfficialEmail,
-
-
-        //                EmployeeImagePath = img?.FilePath,
-        //                HasImagePicUploaded = hasPrimary,
-
-        //                CompletionPercentage = (completed / 10.0) * 100
-        //            };
-        //        }).ToList();
-
-        //        return new PagedResponseDTO<GetAllEmployeeInfoResponseDTO>
-        //        {
-        //            Items = result,
-        //            TotalCount = totalCount,
-        //            PageNumber = pageNumber,
-        //            PageSize = pageSize,
-        //            TotalPages = (int)Math.Ceiling((double)totalCount / pageSize),
-
-
-        //        };
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "FAILED in GetAllInfo");
-
-        //        return new PagedResponseDTO<GetAllEmployeeInfoResponseDTO>
-        //        {
-        //            Items = new List<GetAllEmployeeInfoResponseDTO>(),
-        //            TotalCount = 0,
-        //            PageNumber = dto.PageNumber,
-        //            PageSize = dto.PageSize,
-        //            TotalPages = 0,
-        //              // ⭐ ALWAYS RETURNS VALID ERROR
-        //        };
-        //    }
-        //}
-
+ 
 
         public async Task<GetMinimalEmployeeResponseDTO> GetSingleRecordAsync(long id, bool isActive)
         {
@@ -1858,9 +1453,9 @@ namespace axionpro.persistance.Repositories
 
        
       public async Task<GetBaseEmployeeResponseDTO> CreateEmployeeAsync(
-    Employee employee,
-    LoginCredential loginCredential,
-    UserRole userRole)
+      Employee employee,
+      LoginCredential loginCredential,
+      UserRole userRole)
 {
     // 1️⃣ Save entities
     await _context.Employees.AddAsync(employee);

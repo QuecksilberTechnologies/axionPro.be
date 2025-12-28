@@ -118,8 +118,8 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     PageSize: responseDTO.PageSize,
                     TotalRecords: responseDTO.TotalCount,
                     TotalPages: responseDTO.TotalPages,
-                      HasUploadedAll: null,
-                    CompletionPercentage: null
+                    HasUploadedAll: null,
+                    CompletionPercentage: resultList.Average(r => r.CompletionPercentage)
 
 
                 );
