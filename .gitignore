@@ -383,3 +383,4 @@ axionpro.api/Secrets/*.json
 /axionpro.persistance/Repositories/TenantRepository.cs
 /axionpro.persistance/Repositories/TenantSubscriptionRepository.cs
 /.gitignore
+/axionpro.api/Program.cs
