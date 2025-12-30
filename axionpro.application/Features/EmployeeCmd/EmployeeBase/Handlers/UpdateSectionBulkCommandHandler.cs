@@ -1,39 +1,25 @@
 ﻿using AutoMapper;
-using axionpro.application.Common.Helpers;
-using axionpro.application.Common.Helpers.axionpro.application.Configuration;
-using axionpro.application.Common.Helpers.Converters;
-using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.RequestHelper;
-using axionpro.application.DTOs.Employee;
-using axionpro.application.DTOs.Employee.AccessControlReadOnlyType;
-using axionpro.application.DTOs.Employee.AccessResponse;
 using axionpro.application.DTOS.Employee.BaseEmployee;
-using axionpro.application.DTOS.Pagination;
-using axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
-using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Win32.SafeHandles;
-using System.Reflection;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
-
-
+    // ============================
+    // COMMAND
+    // ============================
     public class UpdateSectionBulkCommand
-       : IRequest<ApiResponse<bool>>
+        : IRequest<ApiResponse<bool>>
     {
-        public UpdateEmployeeSectionStatusRequestDTO DTO { get; set; }
+        public UpdateEmployeeSectionStatusRequestDTO DTO { get; }
 
         public UpdateSectionBulkCommand(UpdateEmployeeSectionStatusRequestDTO dto)
         {
@@ -41,110 +27,106 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         }
     }
 
+    // ============================
+    // HANDLER
+    // ============================
     public class UpdateSectionBulkCommandHandler
         : IRequestHandler<UpdateSectionBulkCommand, ApiResponse<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<UpdateSectionBulkCommandHandler> _logger;
-        private readonly ITokenService _tokenService;
-        private readonly IPermissionService _permissionService;
-        private readonly IConfiguration _config;
-        private readonly IEncryptionService _encryptionService;
-        private readonly IIdEncoderService _idEncoderService;
         private readonly ICommonRequestService _commonRequestService;
-
+        private readonly IPermissionService _permissionService;
+        private readonly IIdEncoderService _idEncoderService;
 
         public UpdateSectionBulkCommandHandler(
             IUnitOfWork unitOfWork,
-            IMapper mapper,
-            IHttpContextAccessor httpContextAccessor,
             ILogger<UpdateSectionBulkCommandHandler> logger,
-            ITokenService tokenService,
+            ICommonRequestService commonRequestService,
             IPermissionService permissionService,
-            IConfiguration config,
-            IEncryptionService encryptionService, IIdEncoderService idEncoderService, ICommonRequestService commonRequestService)
+            IIdEncoderService idEncoderService)
         {
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
-            _httpContextAccessor = httpContextAccessor;
             _logger = logger;
-            _tokenService = tokenService;
-            _permissionService = permissionService;
-            _config = config;
-            _encryptionService = encryptionService;
-            _idEncoderService = idEncoderService;
             _commonRequestService = commonRequestService;
+            _permissionService = permissionService;
+            _idEncoderService = idEncoderService;
         }
 
-
-        public async Task<ApiResponse<bool>> Handle(UpdateSectionBulkCommand request, CancellationToken ct)
+        public async Task<ApiResponse<bool>> Handle(
+            UpdateSectionBulkCommand request,
+            CancellationToken ct)
         {
             try
-            { 
-                
-                var validation =   await _commonRequestService.ValidateRequestAsync(
-                    request.DTO.UserEmployeeId);
+            {
+                // =====================================================
+                // STEP 1: Validate User / Tenant / Token
+                // =====================================================
+                var validation = await _commonRequestService
+                    .ValidateRequestAsync(request.DTO.UserEmployeeId);
 
                 if (!validation.Success)
                     return ApiResponse<bool>.Fail(validation.ErrorMessage);
 
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-                request.DTO.Prop.EmployeeId =
-                    RequestCommonHelper.DecodeOnlyEmployeeId(
-                        request.DTO.EmployeeId,
-                        validation.Claims.TenantEncriptionKey,
-                        _idEncoderService);
+                // =====================================================
+                // STEP 2: Decode EmployeeId (Tenant safe)
+                // =====================================================
+                long employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
+                    request.DTO.EmployeeId,
+                    validation.Claims.TenantEncriptionKey,
+                    _idEncoderService);
 
-                if (request.DTO.Sections == null)
-                    return ApiResponse<bool>.Fail("Invalid Selection Id.");
+                if (employeeId <= 0)
+                    return ApiResponse<bool>.Fail("Invalid employee.");
 
-                
-                // ------------------------------------
-                // STEP 4: LOOP ALL SECTIONS
-                // ------------------------------------
+                // =====================================================
+                // STEP 3: Validate Sections
+                // =====================================================
+                if (request.DTO.Sections == null || !request.DTO.Sections.Any())
+                    return ApiResponse<bool>.Fail("No section selected.");
+
+                // =====================================================
+                // STEP 4: (Optional) Permission check
+                // =====================================================
+                // var permissions = await _permissionService
+                //     .GetPermissionsAsync(validation.RoleId);
+
+                // =====================================================
+                // STEP 5: LOOP SECTIONS (LOGICAL LOOP ONLY)
+                // 🔥 No data loading here
+                // 🔥 Each loop = single optimized SQL in repo
+                // =====================================================
                 foreach (var section in request.DTO.Sections)
                 {
-                    // Validate section fields
                     if (string.IsNullOrWhiteSpace(section.SectionName))
-                        return ApiResponse<bool>.Fail("Section name missing.");
+                        continue;
 
-                   
+                    bool updated = await _unitOfWork.Employees.UpdateSectionVerifyStatusAsync( section.SectionName.Trim().ToLowerInvariant(), // decides TABLE
+                            employeeId,
+                            validation.TenantId,
+                            section.IsVerified ?? false,
+                            section.IsEditAllowed ?? false,
+                            validation.UserEmployeeId,
+                            ct);
 
-                                  
-
-                    // ------------------------------------
-                    // UPDATE VIA UOW (YOUR SAME CALL STYLE)
-                    // ------------------------------------
-                    bool isUpdated = await _unitOfWork.Employees.UpdateVerifyEditStatusAsync(
-                        section.SectionName?.Trim().ToLower(),
-                        request.DTO.Prop.EmployeeId,
-                        section.IsVerified,
-                        section.IsEditAllowed,
-                        true,                    // isActive default
-                         request.DTO.Prop.UserEmployeeId          // admin who verified
-                    );
-
-                    if (!isUpdated)
+                    if (!updated)
                     {
                         _logger.LogWarning(
-                            "Update failed → Section={Sec}, EmpId={EmpId}",
+                            "Section update failed | Section={Section} | EmpId={EmpId}",
                             section.SectionName,
-                            request.DTO.Prop.EmployeeId
-                        );
+                            employeeId);
                     }
                 }
 
-                return ApiResponse<bool>.Success(true, "Section update completed.");
+                return ApiResponse<bool>.Success(
+                    true,
+                    "Section status updated successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Bulk update error");
+                _logger.LogError(ex, "UpdateSectionBulkCommand failed");
                 return ApiResponse<bool>.Fail("Unexpected error occurred.");
             }
         }
-
     }
 }
