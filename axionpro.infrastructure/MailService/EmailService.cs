@@ -128,7 +128,8 @@ namespace axionpro.infrastructure.MailService
                     throw new Exception("SMTP authentication failed");
 
                 // 🔥 SERVER ACK WAIT
-                await smtp.SendAsync(message);
+                  smtp.Send(message);
+
 
                 // 🔥 NOOP ensures server pipeline flushed
                 await smtp.NoOpAsync();
@@ -136,10 +137,10 @@ namespace axionpro.infrastructure.MailService
                 await smtp.DisconnectAsync(true);
 
                 _logger.LogInformation(
-                    "SMTP ACCEPTED | Template={Template} | To={To} | Server={Host}",
+                    "SMTP ACCEPTED | Template={Template} | To={To} | Server={Host} | mesg {message}",
                     templateCode,
                     toEmail,
-                    config.SmtpHost);
+                    config.SmtpHost, message);
 
                 return true; // ✅ ACCEPTED BY SMTP SERVER
             }

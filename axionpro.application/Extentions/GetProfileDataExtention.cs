@@ -1,4 +1,5 @@
-﻿using axionpro.application.DTOS.Employee.CompletionPercentage;
+﻿using axionpro.application.DTOS.Employee.Bank;
+using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.DTOS.Employee.Education;
 using axionpro.domain.Entity;
 using System;
@@ -52,7 +53,7 @@ namespace axionpro.application.Extentions
         // ------------------ EDUCATION DTO EXTENSION ------------------
     
         public static CompletionSectionDTO CalculateEducationCompletionDTO(
-           this IEnumerable<EducationRowDTO> items)
+           this IEnumerable<GetEducationResponseDTO> items)
         {
             if (items == null || !items.Any())
                 return CreateEmptyResponse("Education");
@@ -66,7 +67,7 @@ namespace axionpro.application.Extentions
             edu.StartDate != null,
             edu.EndDate != null,
             edu.HasEducationDocUploded == true,   // ✅ true only
-            edu.ScoreType != null && edu.ScoreType != 0
+            edu.ScoreType != null
             };
 
                 int filled = fields.Count(f => f);
@@ -89,41 +90,71 @@ namespace axionpro.application.Extentions
 
         // ------------------ BANK DTO-----------------
         public static CompletionSectionDTO CalculateBankCompletionDTO(
-           this IEnumerable<BankRowDTO> items)
+         this IEnumerable<GetBankResponseDTO> items)
         {
+            // 🔒 Safety
             if (items == null || !items.Any())
                 return CreateEmptyResponse("Bank");
 
-            double totalPercent = items.Sum(bank =>
+            double totalPercent = 0;
+            int totalRows = 0;
+
+            // 🔥 RULE 3: At least one primary account must exist
+            bool hasPrimaryAccount = items.Any(x => x.IsPrimaryAccount == true);
+
+            foreach (var bank in items)
             {
+                totalRows++;
+
+                bool isPrimary = bank.IsPrimaryAccount == true;
+
+                // 📄 Document rule
+                bool documentCompleted =
+                    !isPrimary ||
+                    (
+                        bank.HasChequeDocUploaded == true &&
+                        !string.IsNullOrWhiteSpace(bank.FilePath) &&
+                        !string.IsNullOrWhiteSpace(bank.FileName)
+                    );
+
                 bool[] fields =
                 {
             !string.IsNullOrWhiteSpace(bank.BankName),
             !string.IsNullOrWhiteSpace(bank.BranchName),
             !string.IsNullOrWhiteSpace(bank.IFSCCode),
-            bank.AccountNumber != null,
-            bank.AccountType != null,
-            bank.IsPrimaryAccount != null,
-            bank.HasChequeDocUploaded == true   // ✅ true only
+            !string.IsNullOrWhiteSpace(bank.AccountNumber),
+            !string.IsNullOrWhiteSpace(bank.AccountType),
+            documentCompleted
         };
 
                 int filled = fields.Count(f => f);
-                int totalFields = fields.Length;
+                totalPercent += (filled / (double)fields.Length) * 100;
+            }
 
-                return (filled / (double)totalFields) * 100;
-            });
+            double averagePercent =
+                totalRows == 0 ? 0 : Math.Round(totalPercent / totalRows, 0);
 
-            var first = items.First();
+            // 🔥 RULE 3 enforcement (NO hacks)
+            if (!hasPrimaryAccount)
+                averagePercent = Math.Min(averagePercent, 99);
 
             return new CompletionSectionDTO
             {
                 SectionName = "Bank",
-                CompletionPercent = Math.Round(totalPercent / items.Count()),
-                IsInfoVerified = first.IsInfoVerified,
-                IsEditAllowed = first.IsEditAllowed,
+
+                // ✅ TRUE average
+                CompletionPercent = averagePercent,
+
+                // ✅ Verified only if ALL rows verified
+                IsInfoVerified = items.All(x => x.IsInfoVerified == true),
+
+                // ✅ Editable if ANY row editable
+                IsEditAllowed = items.Any(x => x.IsEditAllowed == true),
+
                 IsSectionCreate = true
             };
         }
+
 
         public static CompletionSectionDTO CalculateExperienceCompletion(this IEnumerable<dynamic> items)
         {

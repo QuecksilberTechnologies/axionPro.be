@@ -4,6 +4,7 @@ using axionpro.application.Common.Helpers.PercentageHelper;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
+using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.DTOS.EmployeeLeavePolicyMap;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Extentions;
@@ -1243,6 +1244,7 @@ namespace axionpro.persistance.Repositories
             }
         }
      
+
      
         public async Task<List<CompletionSectionDTO>> GetEmployeeCompletionAsync(long employeeId)
         {
@@ -1257,11 +1259,11 @@ namespace axionpro.persistance.Repositories
                 var eduList = await _context.EmployeeEducations
                     .AsNoTracking()
                     .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
-                    .Select(x => new EducationRowDTO
+                    .Select(x => new GetEducationResponseDTO
                     {
                         Degree = x.Degree,
                         InstituteName = x.InstituteName,
-                        ScoreType = x.ScoreType,
+                        ScoreType = x.ScoreType.ToString(),
                         HasEducationDocUploded = x.HasEducationDocUploded,
                         StartDate = x.StartDate,
                         EndDate = x.EndDate,                       
@@ -1274,7 +1276,7 @@ namespace axionpro.persistance.Repositories
                 var bankList = await _context.EmployeeBankDetails
                     .AsNoTracking()
                     .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
-                    .Select(x => new BankRowDTO
+                    .Select(x => new GetBankResponseDTO
                     {
                         AccountNumber = x.AccountNumber,    
                         BankName = x.BankName,  
@@ -1285,13 +1287,17 @@ namespace axionpro.persistance.Repositories
                         IsPrimaryAccount = x.IsPrimaryAccount,
                         IsEditAllowed = x.IsEditAllowed,
                         IsInfoVerified = x.IsInfoVerified,
+                        FileName = x.FileName,
+                        FilePath = x.FilePath,
+                        
+
 
                     })
                     .ToListAsync();
 
                 // 🧮 Calculate completion %
-                var educationSection = eduList.CalculateEducationCompletionDTO();
-                var bankSection = bankList.CalculateBankCompletionDTO();
+                 var educationSection = eduList.CalculateEducationCompletionDTO();
+                 var bankSection = bankList.CalculateBankCompletionDTO();
 
                 return new List<CompletionSectionDTO> { educationSection, bankSection };
             }

@@ -8,13 +8,7 @@ using System.Threading.Tasks;
 namespace axionpro.application.DTOS.Employee.CompletionPercentage
 {
 
-    public class EmployeeProfileCompletionDTO
-    {
-        public CompletionSectionDTO? Bank { get; set; }
-        public CompletionSectionDTO? Education { get; set; }
-        public CompletionSectionDTO? Experience { get; set; }
-    }
-
+     
 
     public class CompletionSectionDTO
     {
@@ -26,30 +20,30 @@ namespace axionpro.application.DTOS.Employee.CompletionPercentage
     }
 
 
-    public class EducationRowDTO
-    {
-        public string? Degree { get; set; }
-        public string? InstituteName { get; set; }
-        public int? ScoreType { get; set; }
-        public bool? HasEducationDocUploded { get; set; }
-        public DateTime? StartDate { get; set; }
-        public DateTime? EndDate { get; set; }
-        public bool? IsInfoVerified { get; set; }
-        public bool? IsEditAllowed { get; set; }
-    }
+    //public class EducationRowDTO
+    //{
+    //    public string? Degree { get; set; }
+    //    public string? InstituteName { get; set; }
+    //    public int? ScoreType { get; set; }
+    //    public bool? HasEducationDocUploded { get; set; }
+    //    public DateTime? StartDate { get; set; }
+    //    public DateTime? EndDate { get; set; }
+    //    public bool? IsInfoVerified { get; set; }
+    //    public bool? IsEditAllowed { get; set; }
+    //}
 
 
-    public class BankRowDTO
-    {
-        public string? BankName { get; set; }
-        public string? AccountNumber { get; set; }
-        public string? AccountType { get; set; } // e.g., Savings, Current, etc.
-        public bool? IsPrimaryAccount { get; set; }        
-        public string? IFSCCode { get; set; }
-        public string? BranchName { get; set; }      
-        public bool HasChequeDocUploaded { get; set; }        
-        public bool? IsInfoVerified { get; set; }
-        public bool? IsEditAllowed { get; set; }
-    }
+    //public class BankRowDTO
+    //{
+    //    public string? BankName { get; set; }
+    //    public string? AccountNumber { get; set; }
+    //    public string? AccountType { get; set; } // e.g., Savings, Current, etc.
+    //    public bool? IsPrimaryAccount { get; set; }        
+    //    public string? IFSCCode { get; set; }
+    //    public string? BranchName { get; set; }      
+    //    public bool HasChequeDocUploaded { get; set; }        
+    //    public bool? IsInfoVerified { get; set; }
+    //    public bool? IsEditAllowed { get; set; }
+    //}
 
 }

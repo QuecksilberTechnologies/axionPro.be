@@ -303,9 +303,9 @@ namespace axionpro.persistance.Repositories
                        .Take(pageSize)
                        .Select(x => new GetBankResponseDTO
                            {
-        Id = x.Id ?? 0,
-        EmployeeId = x.EmployeeId.ToString(),
-        BankName = x.BankName,
+                            Id = x.Id ?? 0,
+                               EmployeeId = x.EmployeeId.ToString(),
+                               BankName = x.BankName,
         AccountNumber = x.AccountNumber,
         IFSCCode = x.IFSCCode,
         BranchName = x.BranchName,
@@ -332,7 +332,7 @@ namespace axionpro.persistance.Repositories
 
                 // 🔹 1. AVERAGE COMPLETION (ALWAYS)
                 double completionPercentage = records.Any()
-                    ? Math.Round(records.Average(x => x.CompletionPercentage), 2)
+                    ? Math.Round(records.Average(x => x.CompletionPercentage), 0)
                     : 0;
 
                 // 🔹 2. PRIMARY DOCUMENT RULE

@@ -185,7 +185,9 @@ namespace axionpro.persistance.Repositories
                         IsEditAllowed = edu.IsEditAllowed,
                         IsInfoVerified = edu.IsInfoVerified,
                         InfoVerifiedById = edu.InfoVerifiedById?.ToString(),
-                        HasEducationDocUploded = edu.HasEducationDocUploded
+                        HasEducationDocUploded = edu.HasEducationDocUploded,
+                        
+                      
                     };
 
                     // -----------------
