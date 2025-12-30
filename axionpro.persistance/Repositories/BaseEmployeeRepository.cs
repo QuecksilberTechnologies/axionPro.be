@@ -219,115 +219,7 @@ namespace axionpro.persistance.Repositories
         }
 
 
-   
-        //public async Task<Employee?> IsEmployeeExist(string EmployeeCode, long tenantId, bool track = true)
-        //{
-        //    IQueryable<Employee> query = _context.Employees.Where(x => x.TenantId == tenantId && x.IsSoftDeleted != true);
-
-        //    if (!track)
-        //        query = query.AsNoTracking();
-
-        //    return await query.FirstOrDefaultAsync(x => x.EmployementCode == EmployeeCode);
-        //}
-        public async Task<bool> UpdateVerifyEditStatusAsync(string sectionType,long employeeId,bool? isVerified,bool? isEditAllowed,bool? isActive,long userId)
-        {
-            if (employeeId <= 0 || string.IsNullOrWhiteSpace(sectionType))
-                return false;   
-
-            sectionType = sectionType.Trim().ToLowerInvariant();
-
-            DateTime now = DateTime.UtcNow;
-
-            // 🔥 COMMON LOCAL FUNCTION — ALL TABLES FOLLOW SAME PATTERN
-            async Task<bool> UpdateMainTable<TEntity>(DbSet<TEntity> dbSet)
-                where TEntity : class
-             {
-                var rows = await dbSet
-                    .Where(x => EF.Property<long>(x, "EmployeeId") == employeeId &&
-                                (bool?)EF.Property<bool?>(x, "IsSoftDeleted") != true)
-                    .ToListAsync();
-
-                if (rows.Count == 0)
-                    return false;
-
-                foreach (var row in rows)
-                {
-                    // NULL → FALSE conversion here
-                    typeof(TEntity).GetProperty("IsInfoVerified")?
-                        .SetValue(row, isVerified ?? false);
-
-                    typeof(TEntity).GetProperty("IsEditAllowed")?
-                        .SetValue(row, isEditAllowed ?? false);
-
-                    typeof(TEntity).GetProperty("IsActive")?
-                        .SetValue(row, isActive ?? false);
-
-                    typeof(TEntity).GetProperty("InfoVerifiedById")?
-                        .SetValue(row, userId);
-
-                    typeof(TEntity).GetProperty("InfoVerifiedDateTime")?
-                        .SetValue(row, now);
-
-                  //  typeof(TEntity).GetProperty("UpdatedById")?
-                     //   .SetValue(row, userId);
-
-                //    typeof(TEntity).GetProperty("UpdatedDateTime")?
-                       // .SetValue(row, now);
-                }
-
-
-
-                return true;
-            }
-
-            bool mainUpdated = false;
-
-            switch (sectionType)
-            {
-                case "education":
-                    mainUpdated = await UpdateMainTable(_context.EmployeeEducations);
-                    break;
-
-                case "experience":
-                    mainUpdated = await UpdateMainTable(_context.EmployeeExperiences);
-
-                    if (mainUpdated)
-                    {
-                        // 🔥 ExperienceDetails update — SAME PATTERN — ONE extra hit only
-                        var details = await _context.EmployeeExperienceDetails
-                            .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
-                            .ToListAsync();
-
-                        if (details.Count > 0)
-                        {
-                            foreach (var d in details)
-                            {
-                                if (isVerified.HasValue) d.IsInfoVerified = isVerified.Value;
-                                if (isEditAllowed.HasValue) d.IsEditAllowed = isEditAllowed.Value;
-                                if (isActive.HasValue) d.IsActive = isActive.Value;
-                                d.UpdatedById= d.InfoVerifiedById = userId;
-                                d.UpdatedDateTime = d.InfoVerifiedDateTime = now;
-
-                            }
-                        }
-                    }
-                    break;
-
-                case "bank":
-                    mainUpdated = await UpdateMainTable(_context.EmployeeBankDetails);
-                    break;
-
-                default:
-                    return false;
-            }
-
-            if (mainUpdated)
-                await _context.SaveChangesAsync();
-
-            return mainUpdated;
-        }
-
- 
+       
 
         public async Task<bool> Delete(string id, string tenantKey)
         {
@@ -367,9 +259,9 @@ namespace axionpro.persistance.Repositories
         }
 
         public async Task<bool> UpdateVerificationStatus(
-      long employeeId,
-      long userId,
-      bool status)
+                long employeeId,
+                 long userId,
+                 bool status)
         {
             var employee = await _context.Employees
                 .FirstOrDefaultAsync(x =>
@@ -409,6 +301,104 @@ namespace axionpro.persistance.Repositories
 
             return rowsAffected > 0;
         }
+        public async Task<bool> UpdateVerifyEditStatusAsync(string sectionType, long employeeId, bool? isVerified, bool? isEditAllowed, bool? isActive, long userId)
+        {
+            if (employeeId <= 0 || string.IsNullOrWhiteSpace(sectionType))
+                return false;
+
+            sectionType = sectionType.Trim().ToLowerInvariant();
+
+            DateTime now = DateTime.UtcNow;
+
+            // 🔥 COMMON LOCAL FUNCTION — ALL TABLES FOLLOW SAME PATTERN
+            async Task<bool> UpdateMainTable<TEntity>(DbSet<TEntity> dbSet)
+                where TEntity : class
+            {
+                var rows = await dbSet
+                    .Where(x => EF.Property<long>(x, "EmployeeId") == employeeId &&
+                                (bool?)EF.Property<bool?>(x, "IsSoftDeleted") != true)
+                    .ToListAsync();
+
+                if (rows.Count == 0)
+                    return false;
+
+                foreach (var row in rows)
+                {
+                    // NULL → FALSE conversion here
+                    typeof(TEntity).GetProperty("IsInfoVerified")?
+                        .SetValue(row, isVerified ?? false);
+
+                    typeof(TEntity).GetProperty("IsEditAllowed")?
+                        .SetValue(row, isEditAllowed ?? false);
+
+                    typeof(TEntity).GetProperty("IsActive")?
+                        .SetValue(row, isActive ?? false);
+
+                    typeof(TEntity).GetProperty("InfoVerifiedById")?
+                        .SetValue(row, userId);
+
+                    typeof(TEntity).GetProperty("InfoVerifiedDateTime")?
+                        .SetValue(row, now);
+
+                    //  typeof(TEntity).GetProperty("UpdatedById")?
+                    //   .SetValue(row, userId);
+
+                    //    typeof(TEntity).GetProperty("UpdatedDateTime")?
+                    // .SetValue(row, now);
+                }
+
+
+
+                return true;
+            }
+
+            bool mainUpdated = false;
+
+            switch (sectionType)
+            {
+                case "education":
+                    mainUpdated = await UpdateMainTable(_context.EmployeeEducations);
+                    break;
+
+                case "experience":
+                    mainUpdated = await UpdateMainTable(_context.EmployeeExperiences);
+
+                    if (mainUpdated)
+                    {
+                        // 🔥 ExperienceDetails update — SAME PATTERN — ONE extra hit only
+                        var details = await _context.EmployeeExperienceDetails
+                            .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
+                            .ToListAsync();
+
+                        if (details.Count > 0)
+                        {
+                            foreach (var d in details)
+                            {
+                                if (isVerified.HasValue) d.IsInfoVerified = isVerified.Value;
+                                if (isEditAllowed.HasValue) d.IsEditAllowed = isEditAllowed.Value;
+                                if (isActive.HasValue) d.IsActive = isActive.Value;
+                                d.UpdatedById = d.InfoVerifiedById = userId;
+                                d.UpdatedDateTime = d.InfoVerifiedDateTime = now;
+
+                            }
+                        }
+                    }
+                    break;
+
+                case "bank":
+                    mainUpdated = await UpdateMainTable(_context.EmployeeBankDetails);
+                    break;
+
+                default:
+                    return false;
+            }
+
+            if (mainUpdated)
+                await _context.SaveChangesAsync();
+
+            return mainUpdated;
+        }
+
 
         public async Task<bool> ActivateAllEmployeeAsync(Employee employee, bool isActive)
         {
@@ -683,9 +673,7 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-
-
-        public async Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> GetImage(GetEmployeeImageRequestDTO dto)
+       public async Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> GetImage(GetEmployeeImageRequestDTO dto)
         {
             try
             {
@@ -1194,6 +1182,9 @@ namespace axionpro.persistance.Repositories
                         HasEducationDocUploded = x.HasEducationDocUploded,
                         StartDate = x.StartDate,
                         EndDate = x.EndDate,                       
+                        IsEditAllowed =x.IsEditAllowed,
+                        IsInfoVerified =x.IsInfoVerified,
+                       
 
                     })
                     .ToListAsync();
@@ -1208,7 +1199,10 @@ namespace axionpro.persistance.Repositories
                         BranchName = x.BranchName,
                         AccountType = x.AccountType,
                         HasChequeDocUploaded = x.HasChequeDocUploaded,
-                        IsPrimaryAccount = x.IsPrimaryAccount
+                        IsPrimaryAccount = x.IsPrimaryAccount,
+                        IsEditAllowed = x.IsEditAllowed,
+                        IsInfoVerified = x.IsInfoVerified,
+
                     })
                     .ToListAsync();
 

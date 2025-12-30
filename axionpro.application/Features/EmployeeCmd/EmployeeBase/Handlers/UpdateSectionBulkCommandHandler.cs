@@ -3,6 +3,7 @@ using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.EncryptionHelper;
+using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOs.Employee;
 using axionpro.application.DTOs.Employee.AccessControlReadOnlyType;
 using axionpro.application.DTOs.Employee.AccessResponse;
@@ -10,6 +11,7 @@ using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
@@ -51,6 +53,8 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         private readonly IConfiguration _config;
         private readonly IEncryptionService _encryptionService;
         private readonly IIdEncoderService _idEncoderService;
+        private readonly ICommonRequestService _commonRequestService;
+
 
         public UpdateSectionBulkCommandHandler(
             IUnitOfWork unitOfWork,
@@ -60,7 +64,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,
-            IEncryptionService encryptionService, IIdEncoderService idEncoderService)
+            IEncryptionService encryptionService, IIdEncoderService idEncoderService, ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -71,6 +75,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             _config = config;
             _encryptionService = encryptionService;
             _idEncoderService = idEncoderService;
+            _commonRequestService = commonRequestService;
         }
 
 
@@ -78,65 +83,25 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         {
             try
             { 
-                var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
-                  .ToString()?.Replace("Bearer ", "");
-
-                if (string.IsNullOrEmpty(bearerToken))
-                    return ApiResponse<bool>.Fail("Unauthorized: Token not found.");
-
-                var secretKey = TokenKeyHelper.GetJwtSecret(_config);
-                var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
-
-                if (tokenClaims == null || tokenClaims.IsExpired)
-                    return ApiResponse<bool>.Fail("Invalid or expired token.");
-
-                // 🧩 STEP 2: Validate Active User
-                long loggedInEmpId = await _unitOfWork.StoreProcedureRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
-                if (loggedInEmpId < 1)
-                {
-                    _logger.LogWarning("❌ Invalid or inactive user. LoginId: {LoginId}", tokenClaims.UserId);
-                    return ApiResponse<bool>.Fail("Unauthorized or inactive user.");
-                }
-
-                // 🧩 STEP 3: Tenant and Employee info validation from token
-                string tenantKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
-
-                if (string.IsNullOrEmpty(request.DTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
-                {
-                    _logger.LogWarning("❌ Missing tenantKey or UserEmployeeId.");
-                    return ApiResponse<bool>.Fail("User invalid.");
-                }
-
-
-
-                if (string.IsNullOrEmpty(request.DTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
-                {
-                    _logger.LogWarning("❌ Missing tenantKey or UserEmployeeId.");
-                    return ApiResponse<bool>.Fail("User invalid.");
-                }
-
-                // ------------------------------------
-                // STEP 2: BASIC DTO VALIDATION
-                // ------------------------------------
-                if (request.DTO == null)
-                    return ApiResponse<bool>.Fail("Invalid payload.");
-
-                if (string.IsNullOrEmpty(request.DTO.UserEmployeeId))
-                    return ApiResponse<bool>.Fail("UserEmployeeId missing.");
-
-                if (request.DTO.Sections == null || request.DTO.Sections.Count == 0)
-                    return ApiResponse<bool>.Fail("No sections provided.");
-
-                // ------------------------------------
-                // STEP 3: DECODE MAIN USER EMPLOYEE ID
-                // ------------------------------------
-                string cleanedUserId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
-                long employeeId = _idEncoderService.DecodeId_long(cleanedUserId, tenantKey);
-
-                if (employeeId != loggedInEmpId)
-                    return ApiResponse<bool>.Fail("User mismatch.");
                 
+                var validation =   await _commonRequestService.ValidateRequestAsync(
+                    request.DTO.UserEmployeeId);
 
+                if (!validation.Success)
+                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
+
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
+                request.DTO.Prop.EmployeeId =
+                    RequestCommonHelper.DecodeOnlyEmployeeId(
+                        request.DTO.EmployeeId,
+                        validation.Claims.TenantEncriptionKey,
+                        _idEncoderService);
+
+                if (request.DTO.Sections == null)
+                    return ApiResponse<bool>.Fail("Invalid Selection Id.");
+
+                
                 // ------------------------------------
                 // STEP 4: LOOP ALL SECTIONS
                 // ------------------------------------
@@ -146,29 +111,20 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     if (string.IsNullOrWhiteSpace(section.SectionName))
                         return ApiResponse<bool>.Fail("Section name missing.");
 
-                    if (string.IsNullOrWhiteSpace(section.EmployeeId))
-                        return ApiResponse<bool>.Fail("Section EmployeeId missing.");
+                   
 
-                    // ------------------------------------
-                    // DECODE SECTION EMPLOYEE ID (YOUR STYLE)
-                    // ------------------------------------
-                    string cleanedSectionId = EncryptionSanitizer.CleanEncodedInput(section.EmployeeId);
-                    long decodedEmployeeId = _idEncoderService.DecodeId_long(cleanedSectionId, tenantKey);
-
-                    if (decodedEmployeeId <= 0)
-                        return ApiResponse<bool>.Fail("Invalid EmployeeId in section.");
-
+                                  
 
                     // ------------------------------------
                     // UPDATE VIA UOW (YOUR SAME CALL STYLE)
                     // ------------------------------------
                     bool isUpdated = await _unitOfWork.Employees.UpdateVerifyEditStatusAsync(
                         section.SectionName?.Trim().ToLower(),
-                        decodedEmployeeId,
+                        request.DTO.Prop.EmployeeId,
                         section.IsVerified,
                         section.IsEditAllowed,
                         true,                    // isActive default
-                        loggedInEmpId          // admin who verified
+                         request.DTO.Prop.UserEmployeeId          // admin who verified
                     );
 
                     if (!isUpdated)
@@ -176,7 +132,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                         _logger.LogWarning(
                             "Update failed → Section={Sec}, EmpId={EmpId}",
                             section.SectionName,
-                            decodedEmployeeId
+                            request.DTO.Prop.EmployeeId
                         );
                     }
                 }
