@@ -178,7 +178,7 @@ namespace axionpro.persistance.Repositories
                         ReasonOfEducationGap = edu.ReasonOfEducationGap,
                         StartDate = edu.StartDate,
                         EndDate = edu.EndDate,
-                        FilecPath = edu.FilePath,
+                        FilePath = edu.FilePath,
                         FileType = edu.FileType?.ToString(),
                         FileName = edu.FileName,
                         IsActive = edu.IsActive,
@@ -191,7 +191,7 @@ namespace axionpro.persistance.Repositories
                     // -----------------
                     // Per-record completion calculation
                     // -----------------
-                    dtoItem.CompletionPercentage = PercentageHelper.CalculateEducationCompletion(dtoItem);
+                    dtoItem.CompletionPercentage = CompletionCalculatorHelper.EduPropCalculate(dtoItem);
 
                     totalPercentage += dtoItem.CompletionPercentage;
 

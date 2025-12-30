@@ -4,14 +4,17 @@ using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
+using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOs.Department;
 using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.DTOS.Employee.Sensitive;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.ITokenService;
@@ -24,6 +27,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -50,6 +54,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
         private readonly IEncryptionService _encryptionService;
         private readonly IIdEncoderService _idEncoderService;
         private readonly IConfiguration _configuration;
+        private readonly ICommonRequestService _commonRequestService;
 
 
         public GetEducationInfoQueryHandler(
@@ -60,7 +65,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,
-          IEncryptionService encryptionService, IIdEncoderService idEncoderService, IConfiguration configuration)
+          IEncryptionService encryptionService, IIdEncoderService idEncoderService, IConfiguration configuration, ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -72,6 +77,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
             _encryptionService = encryptionService;
             _idEncoderService = idEncoderService;
             this._configuration = configuration;
+            _commonRequestService = commonRequestService;
         }
 
 
@@ -81,84 +87,26 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 
             try
             {
-                await _unitOfWork.BeginTransactionAsync();
-                // 🧩 STEP 1: Validate JWT Token
-                var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
-                    .ToString()?.Replace("Bearer ", "");
-                request.DTO.Prop ??= new ExtraPropRequestDTO();
+                // 1️ COMMON VALIDATION (Mandatory)
+                var validation = await _commonRequestService.ValidateRequestAsync(request.DTO.UserEmployeeId);
 
-                if (string.IsNullOrEmpty(bearerToken))
-                    return ApiResponse<List<GetEducationResponseDTO>>.Fail("Unauthorized: Token not found.");
+                if (!validation.Success)
+                    return ApiResponse<List<GetEducationResponseDTO>>.Fail(validation.ErrorMessage);
 
-                var secretKey = TokenKeyHelper.GetJwtSecret(_config);
-                var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
+                // Assign decoded values coming from CommonRequestService
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
 
-                if (tokenClaims == null || tokenClaims.IsExpired)
-                    return ApiResponse<List<GetEducationResponseDTO>>.Fail("Invalid or expired token.");
-
-                // 🧩 STEP 2: Validate Active User
-                long loggedInEmpId = await _unitOfWork.StoreProcedureRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
-                if (loggedInEmpId < 1)
-                {
-                    _logger.LogWarning("❌ Invalid or inactive user. LoginId: {LoginId}", tokenClaims.UserId);
-                    return ApiResponse<List<GetEducationResponseDTO>>.Fail("Unauthorized or inactive user.");
-                }
-
-                // 🧩 STEP 3: Tenant and Employee info validation from token
-                string tenantKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
-
-                if (string.IsNullOrEmpty(request.DTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
-                {
-                    _logger.LogWarning("❌ Missing tenantKey or UserEmployeeId.");
-                    return ApiResponse<List<GetEducationResponseDTO>>.Fail("User invalid.");
-                }
-
-                // Decrypt / convert values
-                string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
-                //UserEmployeeId
-                string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
-                request.DTO.Prop.UserEmployeeId = _idEncoderService.DecodeId_long(UserEmpId, finalKey);
-                //Token TenantId
-                string tokenTenant = EncryptionSanitizer.CleanEncodedInput(tokenClaims.TenantId);
-                request.DTO.Prop.TenantId = _idEncoderService.DecodeId_long(tokenTenant, finalKey);
-                //Id              
-                // Actual EmployeeId
-                string actualEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId);
-                request.DTO.Prop.EmployeeId = _idEncoderService.DecodeId_long(actualEmpId, finalKey);
-                 
-               
-                 
-
-                // 🧩 STEP 4: Validate all employee references
-               
-
-                if (request.DTO.Prop.UserEmployeeId <= 0 || request.DTO.Prop.TenantId <= 0)
-                {
-                    _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
-                    return ApiResponse<List<GetEducationResponseDTO>>.Fail("Tenant or employee information missing.");
-                }
-
-                if (!(request.DTO.Prop.EmployeeId == loggedInEmpId))
-                {
-                    _logger.LogWarning(
-                        "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
-                           request.DTO.Prop.EmployeeId, loggedInEmpId
-                    );
-
-                    return ApiResponse<List<GetEducationResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
-                }
-
-                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
+                request.DTO.Prop.EmployeeId = RequestCommonHelper.DecodeOnlyEmployeeId( request.DTO.EmployeeId, validation.Claims.TenantEncriptionKey,  _idEncoderService  );
+                // ✅ Create  using repository
+                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
                 if (!permissions.Contains("AddBankInfo"))
                 {
-                    //  await _unitOfWork.RollbackTransactionAsync();
+                    //await _unitOfWork.RollbackTransactionAsync();
                     //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
-
-
-                    // 🧩 STEP 4: Call Repository to get data          
-                    //  return ApiResponse<List<GetContactResponseDTO>>.Fail("You do not have permission to add identity info.");
                 }
 
+               
                
                 // 4️⃣ Fetch Data from Repository
                 PagedResponseDTO<GetEducationResponseDTO> Entity = await _unitOfWork.EmployeeEducationRepository.GetInfo(request.DTO);
@@ -170,7 +118,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 
                 // 5️⃣ Projection + Encryption
              //   var encryptedResult = ProjectionHelper.ToGetEducationResponseDTOs(Entity.Items, _encryptionService, tenantKey, request.DTO.EmployeeId);
-                var encryptedResult = ProjectionHelper.ToGetEducationResponseDTOs(Entity, _idEncoderService, tenantKey,  _configuration);
+                var encryptedResult = ProjectionHelper.ToGetEducationResponseDTOs(Entity, _idEncoderService, validation.Claims.TenantEncriptionKey ,  _configuration);
 
                 // 6️⃣ Commit Transaction
                 await _unitOfWork.CommitTransactionAsync();

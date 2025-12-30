@@ -28,7 +28,7 @@ namespace axionpro.application.DTOS.Employee.Education
         public string? GradeDivision { get; set; }
 
         public string? ScoreType { get; set; }
-        public string? FilecPath { get; set; }
+        public string? FilePath { get; set; }
 
         public string? FileType { get; set; }   
         public string? FileName { get; set; }   

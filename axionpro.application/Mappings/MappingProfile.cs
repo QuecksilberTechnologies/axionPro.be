@@ -359,7 +359,7 @@ namespace axionpro.application.Mappings
        .ForMember(dest => dest.ScoreValue, opt => opt.MapFrom(src => src.ScoreValue))
        .ForMember(dest => dest.GradeDivision, opt => opt.MapFrom(src => src.GradeDivision))
        .ForMember(dest => dest.ScoreType, opt => opt.MapFrom(src => src.ScoreType.ToString()))
-       .ForMember(dest => dest.FilecPath, opt => opt.MapFrom(src => src.FilePath))
+       .ForMember(dest => dest.FilePath, opt => opt.MapFrom(src => src.FilePath))
        .ForMember(dest => dest.FileType, opt => opt.MapFrom(src => src.FileType.ToString()))
        .ForMember(dest => dest.FileName, opt => opt.MapFrom(src => src.FileName))
        .ForMember(dest => dest.EducationGap, opt => opt.MapFrom(src => src.EducationGap))

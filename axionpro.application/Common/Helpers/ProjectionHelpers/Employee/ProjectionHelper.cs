@@ -323,50 +323,61 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             return result;
         }
 
+        private static string EncodeId(
+    string? rawId,
+    IIdEncoderService encoder,
+    string tenantKey)
+        {
+            if (long.TryParse(rawId, out long id) && id > 0)
+                return encoder.EncodeId_long(id, tenantKey);
 
-        public static List<GetEducationResponseDTO> ToGetEducationResponseDTOs(PagedResponseDTO<GetEducationResponseDTO> entities, IIdEncoderService encryptionService,
-            string tenantKey, IConfiguration configuration
-           )
+            return string.Empty;
+        }
+
+        private static string BuildFilePath(
+            string? filePath,
+            string baseUrl,
+            string defaultImage)
+        {
+            if (string.IsNullOrWhiteSpace(filePath))
+                return defaultImage;
+
+            return $"{baseUrl}{filePath}";
+        }
+
+        public static List<GetEducationResponseDTO> ToGetEducationResponseDTOs(
+        PagedResponseDTO<GetEducationResponseDTO> source,
+        IIdEncoderService encoderService,
+        string tenantKey, IConfiguration configuration)
         {
             string baseUrl = configuration["FileSettings:BaseUrl"] ?? string.Empty;
             string defaultImg = configuration["FileSettings:DefaultImage"] ?? string.Empty;
+            if (source?.Items == null || source.Items.Count == 0)
+                return new();
 
-            // 🔹 Null / Empty check
-            if (entities == null || entities.Items == null || !entities.Items.Any())
-                return new List<GetEducationResponseDTO>();
-
-            var result = new List<GetEducationResponseDTO>();
-
-            foreach (var item in entities.Items)
-            {
-                if (item == null) continue;
-
-                item.FilecPath ??= string.Empty;
-                // ✅ ID encrypt करो (अगर valid long है)
-                if (long.TryParse(item.Id, out long rawId) && rawId > 0)
+            return source.Items
+                .Where(x => x != null)
+                .Select(item => new GetEducationResponseDTO
                 {
-                    item.Id = encryptionService.EncodeId_long(rawId, tenantKey);
-                }
+                    Id = EncodeId(item.Id, encoderService, tenantKey),
+                    EmployeeId = EncodeId(item.EmployeeId, encoderService, tenantKey),
 
-                // 📁 Final Image URL build
-                if (!string.IsNullOrEmpty(item.FilecPath))
-                    item.FilecPath = $"{baseUrl}{item.FilecPath}";
-
-                // ✅ EmployeeId encrypt करो
-                if (long.TryParse(item.EmployeeId, out long empRawId) && empRawId > 0)
-                {
-                    item.EmployeeId = encryptionService.EncodeId_long(empRawId, tenantKey);
-                }
-
-                // ✅ Optional cleanup (null safety)
-                item.Id ??= string.Empty;
-                item.EmployeeId ??= string.Empty;
-
-                result.Add(item);
-            }
-
-            return result;
+                    Degree = item.Degree,
+                    InstituteName = item.InstituteName,
+                    ScoreType = item.ScoreType,
+                    StartDate = item.StartDate,
+                    EndDate = item.EndDate,
+                    FilePath   = BuildFilePath(item.FilePath, baseUrl, defaultImg),
+                    FileType = item.FileType,
+                    IsActive = item.IsActive,
+                    IsEditAllowed = item.IsEditAllowed,
+                    IsInfoVerified = item.IsInfoVerified,
+                    HasEducationDocUploded = item.HasEducationDocUploded,
+                    CompletionPercentage = item.CompletionPercentage
+                })
+                .ToList();
         }
+
 
         //public static List<GetDepartmentResponseDTO> ToGetDepartmentResponseDTOs(List<GetDepartmentResponseDTO> entities, IIdEncoderService idEncoderService, string tenantKey)
         //{
