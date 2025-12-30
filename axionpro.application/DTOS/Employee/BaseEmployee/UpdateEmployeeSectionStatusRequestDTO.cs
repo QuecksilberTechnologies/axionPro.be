@@ -12,10 +12,11 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
     public class UpdateEmployeeSectionStatusRequestDTO
     {
         public string? UserEmployeeId { get; set; }       
-        public required string EmployeeId { get; set; }       
+        public required string EmployeeId { get; set; }   
+        public bool? IsActive { get; set; }
+
 
         public List<SectionStatusDTO>? Sections { get; set; }
-        public bool? IsActive { get; set; } 
        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
     }
 

@@ -56,7 +56,7 @@ namespace axionpro.application.Extentions
         {
             if (items == null || !items.Any())
                 return CreateEmptyResponse("Education");
-
+         int   totalEducationDigree = 0;
             double totalPercent = items.Sum(edu =>
             {
                 bool[] fields =
@@ -67,7 +67,7 @@ namespace axionpro.application.Extentions
             edu.EndDate != null,
             edu.HasEducationDocUploded == true,   // ✅ true only
             edu.ScoreType != null && edu.ScoreType != 0
-        };
+            };
 
                 int filled = fields.Count(f => f);
                 int totalFields = fields.Length;
