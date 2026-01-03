@@ -1,4 +1,5 @@
-﻿using axionpro.application.DTOS.Pagination;
+﻿using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Pagination;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,17 +8,14 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.DTOS.Employee.Dependent
 {
-    public class GetDependentRequestDTO:BaseRequest
+    public class GetDependentRequestDTO : BaseRequest
     {
 
-       
-        public string? EmployeeId { get; set; }       
-        public string? Relation { get; set; }      
-        public bool? IsCoveredInPolicy { get; set; }
-        public bool? IsMarried { get; set; }
-        public bool? IsActive { get; set; }
-        public bool HasProofUploaded { get; set; }
-      
+
+        public required string UserEmployeeId { get; set; }
+        public required string EmployeeId { get; set; }
+
+        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
 
     }
 

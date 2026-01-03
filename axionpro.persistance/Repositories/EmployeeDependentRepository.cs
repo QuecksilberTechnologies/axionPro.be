@@ -94,114 +94,65 @@ namespace axionpro.persistance.Repositories
         }
 
         public async Task<PagedResponseDTO<GetDependentResponseDTO>> GetInfo(
-      GetDependentRequestDTO dto,
-      long employeeId,
-      long id)
+       GetDependentRequestDTO dto)
         {
-            var response = new PagedResponseDTO<GetDependentResponseDTO>();
-
             try
             {
                 await using var context = await _contextFactory.CreateDbContextAsync();
 
-                // ✔ Base Query
-                var query = context.EmployeeDependents
-                    .Where(d => d.IsSoftDeleted != true)
-                    .AsQueryable();
-
-                // ✔ Filter by Dependent Id
-                if (id > 0)
-                    query = query.Where(d => d.Id == id);
-
-                // ✔ Filter by Employee
-                if (employeeId > 0)
-                    query = query.Where(d => d.EmployeeId == employeeId);
-
-                // ✔ Filter by Name
-                if (!string.IsNullOrWhiteSpace(dto.Relation))
-                    query = query.Where(d => d.Relation.ToLower().Contains(dto.Relation.ToLower()));
-
-                // ✔ Filter by Active
-                if (dto.IsActive.HasValue)
-                    query = query.Where(d => d.IsActive == dto.IsActive.Value);
-
-                // ✔ Sorting
-                query = dto.SortBy?.ToLower() switch
-                {
-                    "dependentname" => dto.SortOrder?.ToLower() == "asc"
-                        ? query.OrderBy(x => x.DependentName)
-                        : query.OrderByDescending(x => x.DependentName),
-                    "relation" => dto.SortOrder?.ToLower() == "asc"
-                   ? query.OrderBy(x => x.Relation)
-                   : query.OrderByDescending(x => x.Relation),
-
-                    _ => query.OrderByDescending(x => x.Id)
-                };
-
-                // ✔ Pagination
-                var totalRecords = await query.CountAsync();
-                var dependents = await query
-                    .Skip((dto.PageNumber - 1) * dto.PageSize)
-                    .Take(dto.PageSize)
+                // 🔹 Fetch ONLY latest 10 dependents for employee
+                var records = await context.EmployeeDependents
                     .AsNoTracking()
+                    .Where(x =>
+                        x.EmployeeId == dto.Prop.EmployeeId &&
+                        x.IsSoftDeleted != true &&
+                        x.IsActive == true)
+                    .OrderByDescending(x => x.Id)   // ✅ Latest first
+                    .Take(10)                       // ✅ Only 10 records
                     .ToListAsync();
 
-                // ⭐ Build Final List with Completion Logic
-                var finalList = dependents.Select(dep =>
+                // 🔹 Map to DTO
+                var responseData = _mapper.Map<List<GetDependentResponseDTO>>(records);
+
+                // 🔹 Completion calculation (STANDARD helper)
+                foreach (var item in responseData)
                 {
-                    double completion = (
-                        new[]
-                        {
-                    string.IsNullOrEmpty(dep.DependentName) ? 0 : 1,
-                    string.IsNullOrEmpty(dep.Relation) ? 0 : 1,
-                    dep.DateOfBirth.HasValue ? 1 : 0,
-                    dep.IsCoveredInPolicy.HasValue ? 1 : 0,
-                    dep.IsMarried.HasValue ? 1 : 0,
-                    string.IsNullOrEmpty(dep.Remark) ? 0 : 1,
-                    string.IsNullOrEmpty(dep.Description) ? 0 : 1,
-                    dep.HasProofUploaded ? 1 : 0
-                        }.Sum() / 8.0
-                    ) * 100;
+                    item.CompletionPercentage =
+                        CompletionCalculatorHelper.DependentPropCalculate(item);
+                }
 
-                    return new GetDependentResponseDTO
-                    {
-                        Id = id.ToString(),
-                        DependentName = dep.DependentName,
-                        Relation = dep.Relation,
-                        DateOfBirth = dep.DateOfBirth,
-                        IsCoveredInPolicy = dep.IsCoveredInPolicy,
-                        IsMarried = dep.IsMarried,
-                        Remark = dep.Remark,
-                        Description = dep.Description,
-                        HasProofUploaded = dep.HasProofUploaded,
-                        CompletionPercentage = completion,
-                        HasUploadedAll = dep.HasProofUploaded
-                    };
-                }).ToList();
-
-                // ⭐ Fill Paged Response
-                response.Items = finalList;
-                response.TotalCount = totalRecords;
-                response.PageNumber = dto.PageNumber;
-                response.PageSize = dto.PageSize;
-                response.TotalPages = (int)Math.Ceiling((double)totalRecords / dto.PageSize);
-
-
-                // ⭐ Average Completion
-                response.CompletionPercentage = finalList.Count > 0
-                    ? finalList.Average(x => x.CompletionPercentage)
+                double averageCompletion = responseData.Any()
+                    ? Math.Round(responseData.Average(x => x.CompletionPercentage), 0)
                     : 0;
 
-                // ⭐ Check if all dependents uploaded proof
-                response.HasUploadedAll = finalList.All(x => x.HasProofUploaded);
+                return new PagedResponseDTO<GetDependentResponseDTO>
+                {
+                    Items = responseData,
+                    TotalCount = responseData.Count, // max 10
+                    PageNumber = 1,
+                    PageSize = 10,
+                    TotalPages = 1,
+                    CompletionPercentage = averageCompletion,
+                    HasUploadedAll = responseData.All(x => x.HasProofUploaded)
+                };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error fetching dependents");
-                response.Items = new List<GetDependentResponseDTO>();
-            }
+                _logger.LogError(ex,
+                    "❌ Error fetching dependents for EmployeeId: {EmployeeId}",
+                    dto.Prop.EmployeeId);
 
-            return response;
+                return new PagedResponseDTO<GetDependentResponseDTO>
+                {
+                    Items = new List<GetDependentResponseDTO>(),
+                    TotalCount = 0,
+                    PageNumber = 1,
+                    PageSize = 10,
+                    TotalPages = 0,
+                    CompletionPercentage = 0,
+                    HasUploadedAll = false
+                };
+            }
         }
 
 

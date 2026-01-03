@@ -25,7 +25,7 @@ public interface IEmployeeContactRepository
 
 
     #region Employee-Contact-info
-    public Task<PagedResponseDTO<GetContactResponseDTO>> GetInfo(GetContactRequestDTO dto, long EmployeeId, int Id);  
+    public Task<PagedResponseDTO<GetContactResponseDTO>> GetInfo(GetContactRequestDTO dto);  
     public Task<PagedResponseDTO<GetContactResponseDTO>> CreateAsync(EmployeeContact entity);
     public Task<PagedResponseDTO<GetContactResponseDTO>> AutoCreatedAsync(EmployeeContact entity);  
     public  Task<EmployeeContact?> GetSingleRecordAsync(long id, bool track = true);// Ensure this returns 

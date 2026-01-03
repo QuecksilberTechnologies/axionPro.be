@@ -25,7 +25,7 @@ public interface IEmployeeDependentRepository
 
 
     #region Employee-dependent-info
-    public Task<PagedResponseDTO<GetDependentResponseDTO>> GetInfo(GetDependentRequestDTO dto, long employeeId , long  Id);
+    public Task<PagedResponseDTO<GetDependentResponseDTO>> GetInfo(GetDependentRequestDTO dto);
     public Task<PagedResponseDTO<GetDependentResponseDTO>> CreateAsync(EmployeeDependent entity);
   //  public Task<PagedResponseDTO<GetDependentResponseDTO>> AutoCreatedAsync(EmployeeContact entity);
     public Task<EmployeeContact> GetSingleRecordAsync(long Id, bool IsActive);  // Ensure this returns 

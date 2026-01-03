@@ -4,10 +4,12 @@ using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
+using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.IRepositories;
@@ -30,148 +32,121 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
         }
 
     }
-    //public class GetDependentInfoQueryHandler : IRequestHandler<GetDependentInfoQuery, ApiResponse<List<GetDependentResponseDTO>>>
-    //{
-    //    private readonly IUnitOfWork _unitOfWork;
-    //    private readonly IMapper _mapper;
-    //    private readonly IHttpContextAccessor _httpContextAccessor;
-    //    private readonly ILogger<GetDependentInfoQueryHandler> _logger;
-    //    private readonly ITokenService _tokenService;
-    //    private readonly IPermissionService _permissionService;
-    //    private readonly IConfiguration _config;
-    //    private readonly IEncryptionService _encryptionService;
-    //    private readonly IIdEncoderService _idEncoderService;
+    public class GetDependentInfoQueryHandler
+   : IRequestHandler<GetDependentInfoQuery, ApiResponse<List<GetDependentResponseDTO>>>
+    {
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger<GetDependentInfoQueryHandler> _logger;
+        private readonly IPermissionService _permissionService;
+        private readonly IIdEncoderService _idEncoderService;
+        private readonly ICommonRequestService _commonRequestService;
+        private readonly IConfiguration _configuration;
 
+        public GetDependentInfoQueryHandler(
+            IUnitOfWork unitOfWork,
+            ILogger<GetDependentInfoQueryHandler> logger,
+            IPermissionService permissionService,
+            IIdEncoderService idEncoderService,
+            ICommonRequestService commonRequestService,
+            IConfiguration configuration)
+        {
+            _unitOfWork = unitOfWork;
+            _logger = logger;
+            _permissionService = permissionService;
+            _idEncoderService = idEncoderService;
+            _commonRequestService = commonRequestService;
+            _configuration = configuration;
+        }
 
-    //    public GetDependentInfoQueryHandler(
-    //        IUnitOfWork unitOfWork,
-    //        IMapper mapper,
-    //        IHttpContextAccessor httpContextAccessor,
-    //        ILogger<GetDependentInfoQueryHandler> logger,
-    //        ITokenService tokenService,
-    //        IPermissionService permissionService,
-    //        IConfiguration config,
-    //      IEncryptionService encryptionService, IIdEncoderService idEncoderService)
-    //    {
-    //        _unitOfWork = unitOfWork;
-    //        _mapper = mapper;
-    //        _httpContextAccessor = httpContextAccessor;
-    //        _logger = logger;
-    //        _tokenService = tokenService;
-    //        _permissionService = permissionService;
-    //        _config = config;
-    //        _encryptionService = encryptionService;
-    //        _idEncoderService = idEncoderService;
-    //    }
+        public async Task<ApiResponse<List<GetDependentResponseDTO>>> Handle(
+            GetDependentInfoQuery request,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                await _unitOfWork.BeginTransactionAsync();
 
+                // 🔐 STEP 1: COMMON VALIDATION (SAME AS CONTACT)
+                var validation =
+                    await _commonRequestService.ValidateRequestAsync(
+                        request.DTO.UserEmployeeId);
 
-    //    //public async Task<ApiResponse<List<GetDependentResponseDTO>>> Handle(GetDependentInfoQuery request, CancellationToken cancellationToken)
-    //    //{
-    //    //    try
-    //    //    {
-    //    //        await _unitOfWork.BeginTransactionAsync();
-    //    //        // 🧩 STEP 1: Validate JWT Token
-    //    //        var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
-    //    //            .ToString()?.Replace("Bearer ", "");
+                if (!validation.Success)
+                    return ApiResponse<List<GetDependentResponseDTO>>
+                        .Fail(validation.ErrorMessage);
 
-    //    //        if (string.IsNullOrEmpty(bearerToken))
-    //    //            return ApiResponse<List<GetDependentResponseDTO>>.Fail("Unauthorized: Token not found.");
+                // 🔓 STEP 2: Assign decoded props
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
 
-    //    //        var secretKey = TokenKeyHelper.GetJwtSecret(_config);
-    //    //        var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
+                request.DTO.Prop.EmployeeId =
+                    RequestCommonHelper.DecodeOnlyEmployeeId(
+                        request.DTO.EmployeeId,
+                        validation.Claims.TenantEncriptionKey,
+                        _idEncoderService);
 
-    //    //        if (tokenClaims == null || tokenClaims.IsExpired)
-    //    //            return ApiResponse<List<GetDependentResponseDTO>>.Fail("Invalid or expired token.");
+                // 🔑 STEP 3: Permission check
+                var permissions =
+                    await _permissionService.GetPermissionsAsync(
+                        validation.RoleId);
 
-    //    //        // 🧩 STEP 2: Validate Active User
-    //    //        long loggedInEmpId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
-    //    //        if (loggedInEmpId < 1)
-    //    //        {
-    //    //            _logger.LogWarning("❌ Invalid or inactive user. LoginId: {LoginId}", tokenClaims.UserId);
-    //    //            return ApiResponse<List<GetDependentResponseDTO>>.Fail("Unauthorized or inactive user.");
-    //    //        }
+                if (!permissions.Contains("ViewDependentInfo"))
+                {
+                    // optional strict check
+                    // return ApiResponse<List<GetDependentResponseDTO>>
+                    //     .Fail("You do not have permission to view dependent info.");
+                }
 
-    //    //        // 🧩 STEP 3: Tenant and Employee info validation from token
-    //    //        string tenantKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
+                // 📦 STEP 4: Repository call
+                var result =
+                    await _unitOfWork.EmployeeDependentRepository
+                        .GetInfo(request.DTO);
 
-    //    //        if (string.IsNullOrEmpty(request.DTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
-    //    //        {
-    //    //            _logger.LogWarning("❌ Missing tenantKey or UserEmployeeId.");
-    //    //            return ApiResponse<List<GetDependentResponseDTO>>.Fail("User invalid.");
-    //    //        }
+                if (result == null || !result.Items.Any())
+                    return ApiResponse<List<GetDependentResponseDTO>>
+                        .Fail("No dependent info found.");
 
-    //    //        // Decrypt / convert values
-    //    //        string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
-    //    //        //UserEmployeeId
-    //    //        string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
-    //    //        long decryptedEmployeeId = _idEncoderService.DecodeId(UserEmpId, finalKey);
-    //    //        //Token TenantId
-    //    //        string tokenTenant = EncryptionSanitizer.CleanEncodedInput(tokenClaims.TenantId);
-    //    //        long decryptedTenantId = _idEncoderService.DecodeId(tokenTenant, finalKey);
-    //    //        //Id              
-    //    //        // Actual EmployeeId
-    //    //        string actualEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId);
-    //    //        long decryptedActualEmployeeId = _idEncoderService.DecodeId(actualEmpId, finalKey);
-    //    //        request.DTO.Id = EncryptionSanitizer.CleanEncodedInput(request.DTO.Id);
-    //    //        long id = _idEncoderService.DecodeId(request.DTO.Id, finalKey);
-    //    //        int Id = SafeParser.TryParseInt(id);
+                // 🔐 STEP 5: Projection + Encryption + FilePath + Completion %
+                var responseDTO =
+                    ProjectionHelper.ToGetDependentResponseDTOs(
+                        result.Items,
+                        _idEncoderService,
+                        validation.Claims.TenantEncriptionKey,
+                        _configuration
+                    );
 
-    //    //        // 🧩 STEP 4: Validate all employee references
-    //    //        if (decryptedTenantId <= 0)
-    //    //        {
-    //    //            _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
-    //    //            return ApiResponse<List<GetDependentResponseDTO>>.Fail("Tenant or employee information missing.");
-    //    //        }
+                await _unitOfWork.CommitTransactionAsync();
 
+                // 📤 STEP 6: Response (same style as Contact)
+                return ApiResponse<List<GetDependentResponseDTO>>
+                    .SuccessPaginatedPercentage(
+                        Data: responseDTO,
+                        Message: "Dependent info retrieved successfully.",
+                        PageNumber: result.PageNumber,
+                        PageSize: result.PageSize,
+                        TotalRecords: result.TotalCount,
+                        TotalPages: result.TotalPages,
+                        CompletionPercentage: result.Items.Any()
+                            ? Math.Round(responseDTO.Average(x => x.CompletionPercentage), 0)
+                            : 0,
+                        HasUploadedAll: null
+                    );
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
 
-    //    //        if (decryptedTenantId <= 0 || decryptedEmployeeId <= 0)
-    //    //        {
-    //    //            _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
-    //    //            return ApiResponse<List<GetDependentResponseDTO>>.Fail("Tenant or employee information missing.");
-    //    //        }
+                _logger.LogError(
+                    ex,
+                    "Error occurred while fetching Dependent info for EmployeeId: {EmployeeId}",
+                    request.DTO?.EmployeeId);
 
-    //    //        if (!(decryptedEmployeeId == loggedInEmpId))
-    //    //        {
-    //    //            _logger.LogWarning(
-    //    //                "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
-    //    //                 decryptedEmployeeId, loggedInEmpId
-    //    //            );
-
-    //    //            return ApiResponse<List<GetDependentResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
-    //    //        }
-
-    //    //        var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
-    //    //        if (!permissions.Contains("AddBankInfo"))
-    //    //        {
-    //    //            //  await _unitOfWork.RollbackTransactionAsync();
-    //    //            //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
-
-
-    //    //            // 🧩 STEP 4: Call Repository to get data          
-    //    //            //  return ApiResponse<List<GetContactResponseDTO>>.Fail("You do not have permission to add identity info.");
-    //    //        }
-              
-    //    //        // 4️⃣ Fetch from repository
-    //    //        PagedResponseDTO<GetDependentResponseDTO> Entity = await _unitOfWork.EmployeeDependentRepository.GetInfo(request.DTO, decryptedActualEmployeeId, Id);
-    //    //        if (Entity == null || !Entity.Items.Any())
-    //    //            return ApiResponse<List<GetDependentResponseDTO>>.Fail("No dependent info found.");
-
-    //    //        // 5️⃣ Projection for fast mapping
-    //    //        var result = ProjectionHelper.ToGetDependentResponseDTOs(Entity.Items, _idEncoderService, tenantKey);
-
-    //    //        // 6️⃣ Success response
-    //    //        return ApiResponse<List<GetDependentResponseDTO>>.Success(result, "Dependent info retrieved successfully.");
-    //    //    }
-    //    //    catch (Exception ex)
-    //    //    {
-    //    //        _logger.LogError(ex, "Error occurred while fetching dependent info for EmployeeId: {EmployeeId}", request.DTO?.EmployeeId);
-    //    //        return ApiResponse<List<GetDependentResponseDTO>>.Fail("Failed to fetch dependent info.", new List<string> { ex.Message });
-    //    //    }
-    //    //}
-   
-    
-    
-    //}
+                return ApiResponse<List<GetDependentResponseDTO>>
+                    .Fail("Failed to fetch dependent info.",
+                          new List<string> { ex.Message });
+            }
+        }
+    }
 
 
 }
