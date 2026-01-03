@@ -1,4 +1,5 @@
 ﻿using axionpro.application.Common.Helpers.Converters;
+using axionpro.application.Common.Helpers.PercentageHelper;
 using axionpro.application.DTOs.Department;
 using axionpro.application.DTOs.Designation;
 using axionpro.application.DTOs.Employee.AccessResponse;
@@ -50,34 +51,6 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 
 
 
-        public static List<GetDependentResponseDTO> ToGetDependentResponseDTOs(List<GetDependentResponseDTO> entities,
-      IIdEncoderService encoderService,
-      string tenantKey)
-        {
-            if (entities == null || !entities.Any())
-                return new List<GetDependentResponseDTO>();
-
-            foreach (var item in entities)
-            {
-                // ✅ Sirf Id encode karo (agar valid hai)
-                if (long.TryParse(item.Id, out long rawId) && rawId > 0)
-                {
-                    item.Id = encoderService.EncodeId_long(rawId, tenantKey);
-                }
-                // ✅ Encode EmployeeId separately
-                if (long.TryParse(item.EmployeeId, out long empRawId) && empRawId > 0)
-                {
-                    item.EmployeeId = encoderService.EncodeId_long(empRawId, tenantKey);
-                }
-
-                // ✅ Optional cleanup (avoid nulls)
-                item.EmployeeId ??= string.Empty;
-                item.Id ??= string.Empty;
-
-            }
-
-            return entities;
-        }
 
 
 
@@ -115,6 +88,52 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 
         //    }).ToList();
         //}
+
+        public static List<GetDependentResponseDTO> ToGetDependentResponseDTOs(
+     List<GetDependentResponseDTO> entities,
+     IIdEncoderService encoderService,
+     string tenantKey,
+     IConfiguration configuration)
+        {
+            if (entities == null || !entities.Any())
+                return new List<GetDependentResponseDTO>();
+
+            string baseUrl = configuration["FileSettings:BaseUrl"] ?? string.Empty;
+
+            foreach (var item in entities)
+            {
+                if (item == null)
+                    continue;
+
+                // 🔐 Encode Dependent Id
+                if (long.TryParse(item.Id, out long rawId) && rawId > 0)
+                    item.Id = encoderService.EncodeId_long(rawId, tenantKey);
+
+                // 🔐 Encode EmployeeId
+                if (long.TryParse(item.EmployeeId, out long empRawId) && empRawId > 0)
+                    item.EmployeeId = encoderService.EncodeId_long(empRawId, tenantKey);
+
+                // 📁 Build full file URL
+                if (!string.IsNullOrWhiteSpace(item.FilePath))
+                    item.FilePath = $"{baseUrl}{item.FilePath}";
+                else
+                    item.FilePath = string.Empty;
+
+                // 📊 Completion %
+                item.CompletionPercentage =
+                    CompletionCalculatorHelper.DependentPropCalculate(item);
+
+                // 🧹 Null safety
+                item.Id ??= string.Empty;
+                item.EmployeeId ??= string.Empty;
+                item.DependentName ??= string.Empty;
+                item.Relation ??= string.Empty;
+                item.Remark ??= string.Empty;
+                item.Description ??= string.Empty;
+            }
+
+            return entities;
+        }
 
         public static List<GetEmployeeIdentityResponseDTO> ToGetIdentityResponseDTO(
         IEnumerable<GetEmployeeIdentitySp> entities,
@@ -278,6 +297,59 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 
             return entities;
         }
+
+        public static List<GetContactResponseDTO> ToGetContactResponseDTOs(
+                PagedResponseDTO<GetContactResponseDTO> pagedResult,
+                  IIdEncoderService encoderService,
+                   string tenantKey)
+        {
+            if (pagedResult?.Items == null || !pagedResult.Items.Any())
+                return new List<GetContactResponseDTO>();
+
+            foreach (var item in pagedResult.Items)
+            {
+                if (item == null)
+                    continue;
+
+                // ✅ Encode Contact Id
+                if (long.TryParse(item.Id, out long rawId) && rawId > 0)
+                    item.Id = encoderService.EncodeId_long(rawId, tenantKey);
+
+                // ✅ Encode EmployeeId
+                if (long.TryParse(item.EmployeeId, out long empRawId) && empRawId > 0)
+                    item.EmployeeId = encoderService.EncodeId_long(empRawId, tenantKey);
+
+                // ✅ Lightweight null safety
+                item.Id ??= string.Empty;
+                item.EmployeeId ??= string.Empty;
+                item.ContactNumber ??= string.Empty;
+                item.Email ??= string.Empty;
+                item.ContactName ??= string.Empty;
+                item.Relation ??= 0;
+                item.ContactType ??= 0;
+                item.CountryName ??= string.Empty;
+                item.StateName ??= string.Empty;
+                item.DistrictName ??= string.Empty;
+                item.HouseNo ??= string.Empty;
+                item.LandMark ??= string.Empty;
+                item.Street ??= string.Empty;
+                item.Address ??= string.Empty;
+                item.Remark ??= string.Empty;
+                item.Description ??= string.Empty;
+                item.IsPrimary = item.IsPrimary ?? false;
+                item.IsActive = item.IsActive ?? false;
+                item.IsEditAllowed = item.IsEditAllowed ?? false;
+                item.IsInfoVerified = item.IsInfoVerified ?? false;
+                item.CountryId = item.CountryId ?? 0;
+                item.StateId = item.StateId ?? 0;
+                item.DistrictId = item.DistrictId ?? 0;
+
+
+            }
+
+            return pagedResult.Items;
+        }
+
         public static List<GetBankResponseDTO> ToGetBankResponseDTOs(PagedResponseDTO<GetBankResponseDTO> entities,
          IIdEncoderService encoderService,
         string tenantKey, IConfiguration configuration
@@ -345,6 +417,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             return $"{baseUrl}{filePath}";
         }
 
+
         public static List<GetEducationResponseDTO> ToGetEducationResponseDTOs(
         PagedResponseDTO<GetEducationResponseDTO> source,
         IIdEncoderService encoderService,
@@ -396,41 +469,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         //    }).ToList();
         //}
 
-        public static List<GetContactResponseDTO> ToGetContactResponseDTOs(PagedResponseDTO<GetContactResponseDTO> entities,
-            IIdEncoderService encoderService,
-                    string tenantKey)
-        {
-            if (entities == null || entities.Items == null || !entities.Items.Any())
-                return new List<GetContactResponseDTO>();
-
-            var result = new List<GetContactResponseDTO>();
-
-            foreach (var item in entities.Items) // now item is GetBankResponseDTO
-            {
-                if (item == null) continue;
-
-                // ✅ Encode Bank Record Id
-                if (long.TryParse(item.Id, out long rawId) && rawId > 0)
-                {
-                    item.Id = encoderService.EncodeId_long(rawId, tenantKey);
-                }
-
-                // ✅ Encode EmployeeId separately
-                if (long.TryParse(item.EmployeeId, out long empRawId) && empRawId > 0)
-                {
-                    item.EmployeeId = encoderService.EncodeId_long(empRawId, tenantKey);
-                }
-
-                // ✅ Optional cleanup (avoid nulls)
-                item.EmployeeId ??= string.Empty;
-                item.Id ??= string.Empty;
-
-                result.Add(item);
-            }
-
-            return result;
-        }
-
+    
 
 
 

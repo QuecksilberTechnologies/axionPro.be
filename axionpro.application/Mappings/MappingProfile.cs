@@ -56,6 +56,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Net.Mime;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Text;
@@ -428,32 +429,39 @@ namespace axionpro.application.Mappings
             .ForMember(dest => dest.UPIId, opt => opt.MapFrom(src => src.UPIId));
 
             CreateMap<CreateContactRequestDTO, EmployeeContact>()
-         .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
+    // ❌ EmployeeId handler me set hoga
+    .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
 
-         // 🔹 Contact Info
-         .ForMember(dest => dest.ContactNumber, opt => opt.MapFrom(src => src.ContactNumber))
-         .ForMember(dest => dest.AlternateNumber, opt => opt.MapFrom(src => src.AlternateNumber))
-         .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
-         //.ForMember(dest => dest.IsPrimary, opt => opt.MapFrom(src => src.IsPrimary))
-         //.ForMember(dest => dest.IsPrimary, opt => opt.PreCondition(src => src.IsPrimary.HasValue))
+    // 🔹 Contact Info
+    .ForMember(dest => dest.ContactNumber, opt => opt.MapFrom(src => src.ContactNumber))
+    .ForMember(dest => dest.AlternateNumber, opt => opt.MapFrom(src => src.AlternateNumber))
+    .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+    .ForMember(dest => dest.ContactName,
+        opt => opt.MapFrom(src => string.IsNullOrWhiteSpace(src.ContactName) ? null : src.ContactName))
 
-         // 🔹 Address Info (string → int safely)
-         .ForMember(dest => dest.CountryId, opt => opt.MapFrom(src => string.IsNullOrEmpty(src.CountryId) ? 0 : int.Parse(src.CountryId)))
-         .ForMember(dest => dest.StateId, opt => opt.MapFrom(src => string.IsNullOrEmpty(src.StateId) ? 0 : int.Parse(src.StateId)))
-         .ForMember(dest => dest.DistrictId, opt => opt.MapFrom(src => string.IsNullOrEmpty(src.DistrictId) ? 0 : int.Parse(src.DistrictId)))
-         .ForMember(dest => dest.ContactType, opt => opt.MapFrom(src => string.IsNullOrEmpty(src.ContactType) ? 0 : src.ContactType.Equals("Personal", StringComparison.OrdinalIgnoreCase) ? 1 :
-              src.ContactType.Equals("Official", StringComparison.OrdinalIgnoreCase) ? 2 : 0))
+     // 🔹 Address (string → int safe)
+     .ForMember(dest => dest.Relation, opt => opt.MapFrom(src => src.Relation))
+     .ForMember(dest => dest.CountryId, opt => opt.MapFrom(src => src.CountryId))
+     .ForMember(dest => dest.DistrictId, opt => opt.MapFrom(src => src.DistrictId))
+     .ForMember(dest => dest.StateId, opt => opt.MapFrom(src => src.StateId))  
 
+    // 🔹 ContactType (ENUM → INT) ✅
+    .ForMember(dest => dest.ContactType,
+        opt => opt.MapFrom(src => (int)src.ContactType))
 
-         // 🔹 Other address fields
-         .ForMember(dest => dest.HouseNo, opt => opt.MapFrom(src => src.HouseNo))
-         .ForMember(dest => dest.LandMark, opt => opt.MapFrom(src => src.LandMark))
-         .ForMember(dest => dest.Street, opt => opt.MapFrom(src => src.Street))
-         .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
+    // 🔹 IsPrimary (nullable safe)
+    .ForMember(dest => dest.IsPrimary,
+        opt => opt.MapFrom(src => src.IsPrimary ?? false))
 
-         // 🔹 Optional/Metadata
-         .ForMember(dest => dest.Remark, opt => opt.MapFrom(src => src.Remark))
-         .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
+    // 🔹 Address fields
+    .ForMember(dest => dest.HouseNo, opt => opt.MapFrom(src => src.HouseNo))
+    .ForMember(dest => dest.LandMark, opt => opt.MapFrom(src => src.LandMark))
+    .ForMember(dest => dest.Street, opt => opt.MapFrom(src => src.Street))
+    .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
+
+    // 🔹 Meta
+    .ForMember(dest => dest.Remark, opt => opt.MapFrom(src => src.Remark))
+    .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
 
 
 

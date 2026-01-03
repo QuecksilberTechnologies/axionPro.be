@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using axionpro.application.Common.Helpers.PercentageHelper;
 using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.DTOS.Pagination;
@@ -43,22 +44,34 @@ namespace axionpro.persistance.Repositories
                 if (entity.EmployeeId <= 0)
                     throw new ArgumentException("Invalid EmployeeId provided.");
 
-                // Add record
+                // ✅ Insert
                 await _context.EmployeeDependents.AddAsync(entity);
                 await _context.SaveChangesAsync();
 
-                // Fetch updated list
+                // ✅ Base query
                 var query = _context.EmployeeDependents
                     .AsNoTracking()
-                    .Where(x => x.EmployeeId == entity.EmployeeId && x.IsSoftDeleted != true)
+                    .Where(x =>
+                        x.EmployeeId == entity.EmployeeId &&
+                        x.IsSoftDeleted != true &&
+                        x.IsActive == true)
                     .OrderByDescending(x => x.Id);
 
                 var totalRecords = await query.CountAsync();
 
-                int pageSize = 10; // fixed or parameter
+                int pageSize = 10;
                 var records = await query.Take(pageSize).ToListAsync();
 
+                // ✅ Map
                 var responseData = _mapper.Map<List<GetDependentResponseDTO>>(records);
+
+                // ✅ Completion calculation (FAST & CLEAN)
+                foreach (var item in responseData)
+                {
+                    item.CompletionPercentage =
+                        CompletionCalculatorHelper.DependentPropCalculate(item);
+                    
+                }
 
                 return new PagedResponseDTO<GetDependentResponseDTO>
                 {
@@ -71,7 +84,11 @@ namespace axionpro.persistance.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error occurred while adding/fetching Dependent info for EmployeeId: {EmployeeId}", entity.EmployeeId);
+                _logger.LogError(
+                    ex,
+                    "❌ Error occurred while adding/fetching Dependent info for EmployeeId: {EmployeeId}",
+                    entity.EmployeeId);
+
                 throw new Exception($"Failed to add or fetch Dependent info: {ex.Message}");
             }
         }

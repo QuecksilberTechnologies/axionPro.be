@@ -19,6 +19,13 @@ namespace axionpro.application.Constants
 
     public static class ConstantValues
     {
+        public enum ContactTypeEnum
+        {
+            None = 0,
+            Personal = 1,
+            Official = 2
+        }
+
 
         public static readonly string invalidCredential = "Invalid credentials";
         public static readonly int ParmanentEmployeeType = 1;

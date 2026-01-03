@@ -20,10 +20,12 @@ public partial class EmployeeContact
     public bool? IsPrimary { get; set; }
 
     public int? CountryId { get; set; }
+    public int? Relation { get; set; }
 
     public int? StateId { get; set; }
 
     public int? DistrictId { get; set; }
+    public string? ContactName { get; set; }
 
     public string? HouseNo { get; set; }
 

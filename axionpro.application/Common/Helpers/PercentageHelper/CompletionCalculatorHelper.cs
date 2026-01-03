@@ -1,5 +1,7 @@
 ﻿using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
+using axionpro.application.DTOS.Employee.Contact;
+using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.DTOS.Employee.Education;
 using axionpro.domain.Entity;
 
@@ -79,6 +81,78 @@ namespace axionpro.application.Common.Helpers.PercentageHelper
                 IsFilled(edu.ScoreType),
                 IsFilled(edu.GradeDivision),
                 edu.HasEducationDocUploded == true ? 1 : 0
+            };
+
+            return CalculatePercentage(checks);
+        }
+        // =========================================================
+        // DEPENDENT DETAILS COMPLETION
+        // =========================================================
+        public static double DependentPropCalculate(GetDependentResponseDTO dep)
+        {
+            if (dep == null)
+                return 0;
+
+            int[] checks =
+            {
+                // 🔹 Core identity
+                !string.IsNullOrWhiteSpace(dep.DependentName) ? 1 : 0,
+                !string.IsNullOrWhiteSpace(dep.Relation) ? 1 : 0,
+
+                // 🔹 Personal info
+                dep.DateOfBirth != null ? 1 : 0,
+
+                // 🔹 Flags
+                dep.IsCoveredInPolicy != null ? 1 : 0,
+                dep.IsMarried != null ? 1 : 0,
+
+                // 🔹 Business rule
+                // Proof recommended (strict if policy covered)
+                dep.IsCoveredInPolicy == true
+                    ? (dep.HasProofUploaded == true ? 1 : 0)
+                    : 1
+            };
+
+            return CalculatePercentage(checks);
+        }
+        // =========================================================
+        // CONTACT DETAILS COMPLETION
+        // =========================================================
+        public static double ContactPropCalculate(GetContactResponseDTO contact)
+        {
+            if (contact == null)
+                return 0;
+
+            int[] checks =
+            {
+                // 🔹 Basic Contact Info
+                 // 🔹 Core Identity
+                contact.ContactType > 0 ? 1 : 0,
+                contact.Relation > 0 ? 1 : 0,
+
+                // 🔹 Contact Info
+                IsFilled(contact.ContactName),
+                IsFilled(contact.ContactNumber),
+
+                // 🔹 Address Basics
+                IsFilled(contact.HouseNo),
+                IsFilled(contact.ContactName),
+                IsFilled(contact.ContactNumber),
+                contact.ContactType > 0 ? 1 : 0,
+
+                // 🔹 Address Info
+                contact.CountryId > 0 ? 1 : 0,
+                contact.StateId > 0 ? 1 : 0,
+                contact.DistrictId > 0 ? 1 : 0,
+
+                // 🔹 Optional but recommended
+                IsFilled(contact.Address),
+
+                // 🔥 Business Rule:
+                // Primary contact must have alternate OR email
+                contact.IsPrimary == true
+                    ? (IsFilled(contact.AlternateNumber) == 1 || IsFilled(contact.Email) == 1 ? 1 : 0)
+                    : 1
             };
 
             return CalculatePercentage(checks);
