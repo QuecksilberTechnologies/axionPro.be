@@ -525,7 +525,7 @@ namespace axionpro.application.Mappings
 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
 
             CreateMap<EmployeeDependent, GetDependentResponseDTO>()
-    .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
+    .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
     .ForMember(dest => dest.EmployeeId, opt => opt.MapFrom(src => src.EmployeeId.ToString()))
     .ForMember(dest => dest.DependentName, opt => opt.MapFrom(src => src.DependentName))
     .ForMember(dest => dest.Relation, opt => opt.MapFrom(src => src.Relation))

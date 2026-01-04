@@ -106,8 +106,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                     continue;
 
                 // 🔐 Encode Dependent Id
-                if (long.TryParse(item.Id, out long rawId) && rawId > 0)
-                    item.Id = encoderService.EncodeId_long(rawId, tenantKey);
+               
 
                 // 🔐 Encode EmployeeId
                 if (long.TryParse(item.EmployeeId, out long empRawId) && empRawId > 0)
@@ -124,7 +123,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                     CompletionCalculatorHelper.DependentPropCalculate(item);
 
                 // 🧹 Null safety
-                item.Id ??= string.Empty;
+                item.Id = item.Id ;
                 item.EmployeeId ??= string.Empty;
                 item.DependentName ??= string.Empty;
                 item.Relation ??= string.Empty;
@@ -311,16 +310,14 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 if (item == null)
                     continue;
 
-                // ✅ Encode Contact Id
-                if (long.TryParse(item.Id, out long rawId) && rawId > 0)
-                    item.Id = encoderService.EncodeId_long(rawId, tenantKey);
+                
 
                 // ✅ Encode EmployeeId
                 if (long.TryParse(item.EmployeeId, out long empRawId) && empRawId > 0)
                     item.EmployeeId = encoderService.EncodeId_long(empRawId, tenantKey);
 
                 // ✅ Lightweight null safety
-                item.Id ??= string.Empty;
+                item.Id = item.Id;
                 item.EmployeeId ??= string.Empty;
                 item.ContactNumber ??= string.Empty;
                 item.Email ??= string.Empty;

@@ -168,7 +168,7 @@ namespace axionpro.application.Common.Helpers.PercentageHelper
 
             return total == 0
                 ? 0
-                : Math.Round((completed / (double)total) * 100, 2);
+                : Math.Round((completed / (double)total) * 100, 0);
         }
 
         private static int IsFilled(string? value)

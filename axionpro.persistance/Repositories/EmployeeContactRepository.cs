@@ -100,7 +100,7 @@ namespace axionpro.persistance.Repositories
 
                     select new GetContactResponseDTO
                     {
-                        Id = c.Id.ToString(),
+                        Id = c.Id,
                         EmployeeId = c.EmployeeId.ToString(),
 
                         ContactName = c.ContactName,
@@ -132,6 +132,7 @@ namespace axionpro.persistance.Repositories
                         CompletionPercentage = CompletionCalculatorHelper.ContactPropCalculate(
                                  new GetContactResponseDTO
                                          {
+                                     Id = c.Id,
              ContactType = c.ContactType,
              Relation = c.Relation,
              ContactName = c.ContactName,
@@ -244,7 +245,7 @@ namespace axionpro.persistance.Repositories
 
                         select new GetContactResponseDTO
                         {
-                            Id = c.Id.ToString(),
+                            Id = c.Id,
                             EmployeeId = c.EmployeeId.ToString(),
 
                             ContactName = c.ContactName,

@@ -10,7 +10,7 @@ namespace axionpro.application.DTOS.Employee.Contact
    
         public class GetContactResponseDTO
     {
-           public string? Id { get; set; }
+           public required long Id { get; set; }
             public string? EmployeeId { get; set; }          // e.g. "Mobile", "Office", "Home"
             public string? ContactName { get; set; }          // e.g. "Mobile", "Office", "Home"            
             public int? Relation { get; set; }          // e.g. "Mobile", "Office", "Home"            
