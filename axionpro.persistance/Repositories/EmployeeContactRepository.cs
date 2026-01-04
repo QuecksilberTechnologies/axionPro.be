@@ -360,35 +360,77 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-               
- 
+                // 🔥 SINGLE PRIMARY RULE (Repository level safety)
+                if (employeeContact.IsPrimary == true)
+                {
+                    var existingPrimaries = await _context.EmployeeContacts
+                        .Where(x =>
+                            x.EmployeeId == employeeContact.EmployeeId &&
+                            x.IsPrimary == true &&
+                            x.Id != employeeContact.Id &&
+                            x.IsSoftDeleted != true)
+                        .ToListAsync();
+
+                    if (existingPrimaries.Any())
+                    {
+                        foreach (var item in existingPrimaries)
+                        {
+                            item.IsPrimary = false;
+                            item.UpdatedById = employeeContact.UpdatedById;
+                            item.UpdatedDateTime = DateTime.UtcNow;
+                        }
+                    }
+                }
+
+                // ✅ Update current contact
+                _context.EmployeeContacts.Update(employeeContact);
+
                 int affectedRows = await _context.SaveChangesAsync();
 
                 if (affectedRows > 0)
                 {
-                    _logger.LogInformation("✔ Contact record updated successfully");
+                    _logger.LogInformation(
+                        "✔ Contact updated successfully | ContactId: {Id} | EmployeeId: {EmployeeId}",
+                        employeeContact.Id,
+                        employeeContact.EmployeeId);
 
                     return true;
                 }
 
-                // 🚧 No Row Updated means something unexpected (maybe no actual new values)
-                _logger.LogWarning("⚠ No changes detected | ContactId: {Id}", employeeContact.Id);
+                _logger.LogWarning(
+                    "⚠ No changes detected | ContactId: {Id}",
+                    employeeContact.Id);
+
                 return false;
             }
             catch (DbUpdateConcurrencyException ex)
             {
-                _logger.LogError(ex, "❌ Concurrency conflict while updating Contact record | Id: {Id}", employeeContact.Id);
-                throw new Exception("Record update failed due to concurrency conflict. Please retry.");
+                _logger.LogError(
+                    ex,
+                    "❌ Concurrency conflict while updating Contact | Id: {Id}",
+                    employeeContact.Id);
+
+                throw new Exception(
+                    "Record update failed due to concurrency conflict. Please retry.");
             }
-            catch (DbUpdateException dbEx)
+            catch (DbUpdateException ex)
             {
-                _logger.LogError(dbEx, "❌ Database error during update | Id: {Id}", employeeContact.Id);
-                throw new Exception("Database error while updating Contact record.");
+                _logger.LogError(
+                    ex,
+                    "❌ Database error while updating Contact | Id: {Id}",
+                    employeeContact.Id);
+
+                throw new Exception(
+                    "Database error while updating Contact record.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error occurred while updating Contact record | Id: {Id}", employeeContact.Id);
-                throw new Exception($"Unexpected update failure: {ex.Message}");
+                _logger.LogError(
+                    ex,
+                    "❌ Unexpected error while updating Contact | Id: {Id}",
+                    employeeContact.Id);
+
+                throw;
             }
         }
 
@@ -407,16 +449,18 @@ namespace axionpro.persistance.Repositories
 
         public async Task<EmployeeContact?> GetSingleRecordAsync(long id, bool track = true)
         {
-            {
-                IQueryable<EmployeeContact> query = _context.EmployeeContacts.Where(x => x.Id == id && x.IsSoftDeleted != true);
+            IQueryable<EmployeeContact> query =
+                _context.EmployeeContacts
+                    .Where(x =>
+                        x.Id == id &&
+                        (x.IsSoftDeleted == false || x.IsSoftDeleted == null));
 
-                if (!track)
-                    query = query.AsNoTracking();
+            if (!track)
+                query = query.AsNoTracking();
 
-                return await query.FirstOrDefaultAsync(x => x.Id == id);
-            }
-
+            return await query.FirstOrDefaultAsync();
         }
+
 
 
     }

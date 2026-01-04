@@ -309,8 +309,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             {
                 if (item == null)
                     continue;
-
-                
+                               
 
                 // ✅ Encode EmployeeId
                 if (long.TryParse(item.EmployeeId, out long empRawId) && empRawId > 0)
