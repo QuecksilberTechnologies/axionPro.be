@@ -143,6 +143,42 @@ namespace axionpro.persistance.Repositories
                 throw new Exception($"Failed to create bank info: {ex.Message}");
             }
         }
+        public async Task<bool> UpdateVerificationStatus(
+     long employeeId,
+     long userId,
+     bool status)
+        {
+            int affectedRows = await _context.EmployeeBankDetails
+                .Where(x =>
+                    x.EmployeeId == employeeId &&
+                    x.IsSoftDeleted != true)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(x => x.IsInfoVerified, status)
+                    .SetProperty(x => x.InfoVerifiedById, userId)
+                    .SetProperty(x => x.InfoVerifiedDateTime, DateTime.UtcNow)
+                );
+
+            return affectedRows > 0;
+        }
+
+        public async Task<bool> UpdateEditStatus(
+    long employeeId,
+    long userId,
+    bool status)
+        {
+            var affectedRows = await _context.EmployeeBankDetails
+                   .Where(x =>
+                    x.EmployeeId == employeeId &&
+                    x.IsSoftDeleted != true)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(x => x.IsEditAllowed, status)
+                    .SetProperty(x => x.UpdatedById, userId)
+                    .SetProperty(x => x.InfoVerifiedDateTime, DateTime.UtcNow)
+                );
+
+            return affectedRows > 0;
+        }
+
 
         public async Task<PagedResponseDTO<GetBankResponseDTO>> AddCreatedAsync(EmployeeBankDetail entity)
         {
@@ -189,6 +225,67 @@ namespace axionpro.persistance.Repositories
             {
                 _logger.LogError(ex, "❌ Error occurred while adding/fetching bank info for EmployeeId: {EmployeeId}", entity.EmployeeId);
                 throw new Exception($"Failed to add or fetch bank info: {ex.Message}");
+            }
+        }
+
+        public async Task<bool> DeleteAsync(EmployeeBankDetail employeeBankDetail)
+        {
+            try
+            {
+                if (employeeBankDetail == null)
+                {
+                    _logger.LogWarning("⚠️ Delete failed: EmployeeBankDetail entity is null");
+                    return false;
+                }
+
+                // Entity already tracked hai (GetSingleRecordAsync(track=true) se aaya)
+                _context.EmployeeBankDetails.Update(employeeBankDetail);
+
+                int affectedRows = await _context.SaveChangesAsync();
+
+                if (affectedRows > 0)
+                {
+                    _logger.LogInformation(
+                        "✅ Bank record soft-deleted successfully | BankId: {Id}",
+                        employeeBankDetail.Id);
+
+                    return true;
+                }
+
+                _logger.LogWarning(
+                    "⚠️ No rows affected while deleting bank record | BankId: {Id}",
+                    employeeBankDetail.Id);
+
+                return false;
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "❌ Concurrency issue while deleting bank record | BankId: {Id}",
+                    employeeBankDetail.Id);
+
+                throw new Exception(
+                    "Record could not be deleted due to concurrent update. Please retry.");
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "❌ Database error while deleting bank record | BankId: {Id}",
+                    employeeBankDetail.Id);
+
+                throw new Exception(
+                    "Database error occurred while deleting bank record.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "❌ Unexpected error while deleting bank record | BankId: {Id}",
+                    employeeBankDetail.Id);
+
+                throw;
             }
         }
 
@@ -466,54 +563,40 @@ namespace axionpro.persistance.Repositories
         }
 
 
-        public async Task<GetBankResponseDTO> GetSingleRecordAsync(int id, bool isActive)
+        public async Task<EmployeeBankDetail?> GetSingleRecordAsync(int id, bool isActive)
         {
             try
             {
-              //  await using var _context = await _contextFactory.CreateDbContextAsync();
-
-                // 🔹 Record fetch karna with filters
                 var entity = await _context.EmployeeBankDetails
-                    .AsNoTracking()
-                    .Where(b => b.Id == id && b.IsActive == isActive && (b.IsSoftDeleted !=true))
-                    .Select(b => new GetBankResponseDTO
-                    {
-                        Id = b.Id??0,
-                        EmployeeId = b.EmployeeId.ToString(),
-                        BankName = b.BankName,
-                        AccountNumber = b.AccountNumber,
-                        IFSCCode = b.IFSCCode,
-                        BranchName = b.BranchName,
-                        AccountType = b.AccountType,                       
-                        IsPrimaryAccount = b.IsPrimaryAccount,
-                        IsActive = b.IsActive,
-                        HasChequeDocUploaded = b.HasChequeDocUploaded,
-                        FilePath = b.FilePath,
-                        UPIId = b.UPIId,
-                        IsInfoVerified = b.IsInfoVerified,
-                        IsEditAllowed = b.IsEditAllowed,
-                        FileName = b.FileName,
-                        FileType = b.FileType
-
-
-
-                    })
+                    .Where(b =>
+                        b.Id == id &&
+                        b.IsActive == isActive &&
+                        b.IsSoftDeleted != true)
                     .FirstOrDefaultAsync();
 
-                // 🔹 Null check handling
                 if (entity == null)
                 {
-                    _logger.LogWarning($"⚠️ No active bank info found for ID {id} with IsActive = {isActive}");
-                    return null!;
+                    _logger.LogWarning(
+                        "⚠️ No active bank info found | Id: {Id}, IsActive: {IsActive}",
+                        id, isActive);
+
+                    return null;
                 }
 
-                _logger.LogInformation($"✅ Bank info record fetched successfully for ID {id}");
+                _logger.LogInformation(
+                    "✅ Bank info record fetched successfully | Id: {Id}",
+                    id);
+
                 return entity;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"❌ Error while fetching single bank record for ID {id}");
-                throw new Exception($"Failed to fetch bank record: {ex.Message}", ex);
+                _logger.LogError(
+                    ex,
+                    "❌ Error while fetching single bank record | Id: {Id}",
+                    id);
+
+                throw;
             }
         }
 

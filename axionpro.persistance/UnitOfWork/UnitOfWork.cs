@@ -219,7 +219,7 @@ public class UnitOfWork : IUnitOfWork
                 _context,
                 _mapper,
                 _loggerFactory.CreateLogger<EmployeeEducationRepository>(),
-                _contextFactory,
+              
                 _passwordService, _encriptionService
 
             );
@@ -318,7 +318,7 @@ public class UnitOfWork : IUnitOfWork
                 _context,
                 _mapper,
                 _loggerFactory.CreateLogger<EmployeeEducationRepository>(),
-                _contextFactory, _passwordService, _encriptionService
+                 _passwordService, _encriptionService
             );
         }
     }

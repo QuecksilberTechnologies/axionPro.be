@@ -145,18 +145,18 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 // -------------------------------------------------
                if (dto.IsPrimaryAccount)
                  {
-                //    // 🔴 Cancelled cheque mandatory
-                //    if (dto.CancelledChequeFile == null && !bank.HasChequeDocUploaded)
-                //        return ApiResponse<bool>.Fail("Cancelled cheque is mandatory for primary bank account.");
+                    // 🔴 Cancelled cheque mandatory
+                    if (dto.CancelledChequeFile == null && !bank.HasChequeDocUploaded)
+                        return ApiResponse<bool>.Fail("Cancelled cheque is mandatory for primary bank account.");
 
-                //    //// 🔹 Reset all existing primaries
-                //    //bool resetDone = await _unitOfWork.EmployeeBankRepository
-                //    //    .ResetPrimaryAccountAsync(request.DTO.Prop.EmployeeId);
+                    //// 🔹 Reset all existing primaries
+                     bool resetDone = await _unitOfWork.EmployeeBankRepository
+                         .ResetPrimaryAccountAsync(request.DTO.Prop.EmployeeId, request.DTO.Prop.UserEmployeeId);
 
-                //    //if (!resetDone)
-                //    //    return ApiResponse<bool>.Fail("Failed to reset existing primary bank accounts.");
+                    if (!resetDone)
+                       return ApiResponse<bool>.Fail("Failed to reset existing primary bank accounts.");
 
-                     bank.IsPrimaryAccount = true;
+                    bank.IsPrimaryAccount = true;
                  }
                 else { 
                      bank.IsPrimaryAccount = false;
@@ -167,76 +167,91 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 // -------------------------------------------------
 
                 // ------------------------ FILE HANDLING (OPTIONAL) ------------------------
+                // ------------------------ FILE HANDLING (AUDIT SAFE) ------------------------
                 if (request.DTO.CancelledChequeFile is { Length: > 0 })
                 {
                     try
                     {
-                        if (!string.IsNullOrWhiteSpace(bank.FileName))
+                        // 🔹 STEP 1: Handle OLD FILE (NO DELETE — ONLY RENAME)
+                        if (!string.IsNullOrWhiteSpace(bank.FilePath))
                         {
-                            string oldPath = bank.FilePath; // This may be URL or relative path
+                            string oldRelativePath = bank.FilePath;
 
-                            bool fileDeleted = false;
+                            // Convert relative → physical
+                            string oldPhysicalPath =
+                                _fileStorageService.GetRelativePath(oldRelativePath);
 
-                            // Case 1: Physical local/server file path
-                            string physicalFullPath = _fileStorageService.GetRelativePath(oldPath);
-
-                            if (!string.IsNullOrWhiteSpace(physicalFullPath) && File.Exists(physicalFullPath))
+                            if (!string.IsNullOrWhiteSpace(oldPhysicalPath) &&
+                                File.Exists(oldPhysicalPath))
                             {
-                                File.Delete(physicalFullPath);
-                                fileDeleted = true;
-                                _logger.LogInformation("📌 Local/Server education document deleted: {File}", physicalFullPath);
-                            }
+                                string directory = Path.GetDirectoryName(oldPhysicalPath)!;
+                                string extension = Path.GetExtension(oldPhysicalPath);
+                                string fileNameWithoutExt =
+                                    Path.GetFileNameWithoutExtension(oldPhysicalPath);
 
-                            // Case 2: Remote CDN/HTTP/Cloud File
-                            if (!fileDeleted && Uri.TryCreate(oldPath, UriKind.Absolute, out Uri? uri)
-                                && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp))
+                                string deletedFileName =
+                                    $"{fileNameWithoutExt}_deleted_{DateTime.UtcNow:yyyyMMddHHmmss}{extension}";
+
+                                string deletedPhysicalPath =
+                                    Path.Combine(directory, deletedFileName);
+
+                                  File.Move(oldPhysicalPath, deletedPhysicalPath);
+
+                                _logger.LogInformation(
+                                    "🗂️ Old bank file marked as deleted (renamed): {File}",
+                                    deletedPhysicalPath);
+                            }
+                            else
                             {
-                                using var client = new HttpClient();
-                                var response = await client.DeleteAsync(uri);
-
-                                if (response.IsSuccessStatusCode)
-                                {
-                                    fileDeleted = true;
-                                    _logger.LogInformation("🌍 Remote bank document deleted: {File}", uri);
-                                }
-                                else
-                                {
-                                    _logger.LogWarning("⚠️ Remote bank file delete attempt failed for: {File}", uri);
-                                }
+                                _logger.LogWarning(
+                                    "⚠️ Old bank file not found on disk: {File}",
+                                    oldRelativePath);
                             }
-
-                            if (!fileDeleted)
-                                _logger.LogWarning("⚠️ Delete attempted but file not found: {File}", oldPath);
                         }
 
-                        // Now upload new file
+                        // 🔹 STEP 2: Upload NEW FILE
                         using var ms = new MemoryStream();
                         await request.DTO.CancelledChequeFile.CopyToAsync(ms);
 
-                        string newFileName = $"Cheque-{bank.EmployeeId}-{DateTime.UtcNow:yyMMddHHmmss}.pdf";
+                        string newFileName =
+                            $"Cheque-{bank.EmployeeId}-{DateTime.UtcNow:yyMMddHHmmss}.pdf";
 
-                        string folderPath = _fileStorageService.GetEmployeeFolderPath(
-                            request.DTO.Prop.TenantId,
-                             request.DTO.Prop.EmployeeId,
-                            "bank"
-                        );
+                        string folderPath =
+                            _fileStorageService.GetEmployeeFolderPath(
+                                request.DTO.Prop.TenantId,
+                                request.DTO.Prop.EmployeeId,
+                                "bank");
 
-                        string savedPath = await _fileStorageService.SaveFileAsync(ms.ToArray(), newFileName, folderPath);
+                        string savedFullPath =
+                            await _fileStorageService.SaveFileAsync(
+                                ms.ToArray(),
+                                newFileName,
+                                folderPath);
 
-                        bank.FilePath = _fileStorageService.GetRelativePath(savedPath);
+                        // 🔹 STEP 3: Update DB Fields
+                        bank.FilePath = _fileStorageService.GetRelativePath(savedFullPath);
                         bank.FileName = newFileName;
                         bank.HasChequeDocUploaded = true;
+                        bank.UpdatedDateTime = DateTime.UtcNow;
+                        bank.UpdatedById = request.DTO.Prop.UserEmployeeId;
+
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "❌ Error replacing bank document for employee {Emp}", request.DTO.Prop.EmployeeId);
-                        return ApiResponse<bool>.Fail("File upload failed, please try again.");
+                        _logger.LogError(
+                            ex,
+                            "❌ Error replacing bank document for employee {Emp}",
+                            request.DTO.Prop.EmployeeId);
+
+                        return ApiResponse<bool>.Fail(
+                            "File upload failed, please try again.");
                     }
-
                 }
- 
 
-                 var responseData = _mapper.Map<UpdateBankReqestDTO>(bank);
+
+
+
+                var responseData = _mapper.Map<UpdateBankReqestDTO>(bank);
                    responseData.Prop.UserEmployeeId = request.DTO.Prop.UserEmployeeId;
                    responseData.Prop.EmployeeId = request.DTO.Prop.EmployeeId;
                 

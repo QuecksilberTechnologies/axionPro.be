@@ -1,7 +1,9 @@
 ﻿
- 
+
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.Features.EmployeeCmd.BankInfo.Handlers;
+using axionpro.application.Features.EmployeeCmd.Contact.Handlers;
 using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
 using FluentValidation;
@@ -83,7 +85,38 @@ namespace axionpro.api.Controllers.Employee
             }
         }
 
-       
+        /// <summary>
+        /// Bulk update  edit permission status for an employee.
+        /// </summary>
+        [HttpPost("update-edit-status")]
+
+        public async Task<IActionResult> UpdateSectionStatusBulk([FromBody] UpdateEditStatusRequestDTO dto)
+        {
+            if (dto == null)
+                return BadRequest(ApiResponse<bool>.Fail("Invalid or empty request."));
+
+            var command = new UpdateEditableStatusCommand(dto);
+            var result = await _mediator.Send(command);
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Bulk update  verification permission status for an employee.
+        /// </summary>
+        [HttpPost("update-verification-status")]
+
+        public async Task<IActionResult> UpdateVerificationStatus([FromBody] UpdateVerificationStatusRequestDTO dto)
+        {
+            if (dto == null)
+                return BadRequest(ApiResponse<bool>.Fail("Invalid or empty request."));
+
+            var command = new UpdateVerificationStatusCommand(dto);
+            var result = await _mediator.Send(command);
+
+            return Ok(result);
+        }
+
         /// <summary>
         /// Get all employees based on TenantId or filters.
         /// </summary>
@@ -118,7 +151,40 @@ namespace axionpro.api.Controllers.Employee
                 return StatusCode(500, errorResponse);
             }
         }
+        /// <summary>
+        /// Deletes employee bank info record by Id.
+        /// </summary>
+        [HttpDelete("delete")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> Delete([FromQuery] DeleteBankRequestDTO dto)
+        {
+            try
+            {
+                _logger.LogInfo($"Deleting employee bank info with Id: {dto.Id}");
 
+                var command = new DeleteBankInfoQuery(dto);
+                var result = await _mediator.Send(command);
+
+                if (!result.IsSucceeded)
+                {
+                    _logger.LogInfo($"Failed to delete employee bank info with Id: {dto.Id}");
+                    return BadRequest(result);
+                }
+
+                _logger.LogInfo("Employee bank info deleted successfully.");
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error deleting employee: {ex.Message}");
+                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while deleting employee.",
+                    new List<string> { ex.Message });
+                return StatusCode(500, errorResponse);
+            }
+        }
 
         /// <summary>
         /// Updates employee details.

@@ -153,7 +153,7 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Bulk update  edit permission status for an employee.
+        ///  update  edit permission status for an employee.
         /// </summary>
         [HttpPost("update-edit-status")]
        
@@ -169,7 +169,7 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Bulk update  verification permission status for an employee.
+        ///  update  verification permission status for an employee.
         /// </summary>
         [HttpPost("update-verification-status")]
        

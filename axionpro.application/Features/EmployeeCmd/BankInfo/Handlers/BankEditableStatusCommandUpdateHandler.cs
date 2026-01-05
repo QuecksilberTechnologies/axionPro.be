@@ -1,53 +1,42 @@
 ﻿using AutoMapper;
-using axionpro.application.Common.Helpers;
-using axionpro.application.Common.Helpers.axionpro.application.Configuration;
-using axionpro.application.Common.Helpers.Converters;
-using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.RequestHelper;
-using axionpro.application.DTOs.Employee;
-using axionpro.application.DTOs.Employee.AccessControlReadOnlyType;
-using axionpro.application.DTOs.Employee.AccessResponse;
 using axionpro.application.DTOS.Common;
-using axionpro.application.DTOS.Pagination;
-using axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
-using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Win32.SafeHandles;
-using System.Reflection;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
+namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 {
-
-
-    public class UpdateVerificationStatusCommand
-       : IRequest<ApiResponse<bool>>
+    public class UpdateEditableStatusCommand
+      : IRequest<ApiResponse<bool>>
     {
-        public UpdateVerificationStatusRequestDTO DTO { get; set; }
+        public UpdateEditStatusRequestDTO DTO { get; set; }
 
-        public UpdateVerificationStatusCommand(UpdateVerificationStatusRequestDTO dto)
+        public UpdateEditableStatusCommand(UpdateEditStatusRequestDTO dto)
         {
             DTO = dto;
         }
     }
 
-    public class UpdateVerificationStatusCommandHandler
-        : IRequestHandler<UpdateVerificationStatusCommand, ApiResponse<bool>>
+    public class BankEditableStatusCommandUpdateHandler
+        : IRequestHandler<UpdateEditableStatusCommand, ApiResponse<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ILogger<UpdateVerificationStatusCommandHandler> _logger;
+        private readonly ILogger<BankEditableStatusCommandUpdateHandler> _logger;
         private readonly ITokenService _tokenService;
         private readonly IPermissionService _permissionService;
         private readonly IConfiguration _config;
@@ -55,15 +44,14 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         private readonly IIdEncoderService _idEncoderService;
         private readonly ICommonRequestService _commonRequestService;
 
-        public UpdateVerificationStatusCommandHandler(
+        public BankEditableStatusCommandUpdateHandler(
             IUnitOfWork unitOfWork,
             IMapper mapper,
             IHttpContextAccessor httpContextAccessor,
-            ILogger<UpdateVerificationStatusCommandHandler> logger,
+            ILogger<BankEditableStatusCommandUpdateHandler> logger,
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config, ICommonRequestService commonRequestService,
-
 
             IEncryptionService encryptionService, IIdEncoderService idEncoderService)
         {
@@ -77,15 +65,14 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             _encryptionService = encryptionService;
             _idEncoderService = idEncoderService;
             _commonRequestService = commonRequestService;
-
         }
 
 
-        public async Task<ApiResponse<bool>> Handle(UpdateVerificationStatusCommand request, CancellationToken ct)
+        public async Task<ApiResponse<bool>> Handle(UpdateEditableStatusCommand request, CancellationToken ct)
         {
             try
             {
-                 //    ===================================================== */
+                //    ===================================================== */
                 var validation =
                     await _commonRequestService.ValidateRequestAsync(
                         request.DTO.UserEmployeeId);
@@ -116,21 +103,21 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 }
 
                 // 🧩 STEP 4: UPDATE EDITABLE STATUS
-                bool updateResult = await _unitOfWork.Employees.UpdateVerificationStatus(
+                bool updateResult = await _unitOfWork.EmployeeBankRepository.UpdateEditStatus(
                     request.DTO.Prop.EmployeeId,
                     request.DTO.Prop.UserEmployeeId,
-                    request.DTO.IsVerified);
+                    request.DTO.IsEditable);
                 if (!updateResult)
                 {
-                    _logger.LogWarning("❌ Failed to update verified status for EmployeeId: {EmployeeId}", request.DTO.Prop.EmployeeId);
+                    _logger.LogWarning("❌ Failed to update editable status for EmployeeId: {EmployeeId}", request.DTO.Prop.EmployeeId);
                 }
 
 
-                return ApiResponse<bool>.Success(true, "verified update completed.");
+                return ApiResponse<bool>.Success(true, "editable update completed.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "verified update error");
+                _logger.LogError(ex, "editable update error");
                 return ApiResponse<bool>.Fail("Unexpected error occurred.");
             }
         }

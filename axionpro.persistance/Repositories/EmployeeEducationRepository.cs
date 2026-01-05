@@ -22,16 +22,17 @@ namespace axionpro.persistance.Repositories
         private readonly WorkforceDbContext _context;
         private readonly IMapper _mapper;
         private readonly ILogger<EmployeeEducationRepository> _logger;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+       
         private readonly IPasswordService _passwordService;
         private readonly IEncryptionService _encryptionService;
-        public EmployeeEducationRepository(WorkforceDbContext context, IMapper mapper, ILogger<EmployeeEducationRepository> logger, IDbContextFactory<WorkforceDbContext> contextFactory,
+        public EmployeeEducationRepository(WorkforceDbContext context, IMapper mapper, ILogger<EmployeeEducationRepository> logger,
             IPasswordService passwordService, IEncryptionService encryptionService)
         {
+           // IDbContextFactory<WorkforceDbContext> contextFactory,
             this._context = context;
             this._mapper = mapper;
             this._logger = logger;
-            _contextFactory = contextFactory;
+           // _contextFactory = contextFactory;
             _passwordService = passwordService;
             _encryptionService = encryptionService;
 
@@ -41,7 +42,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
+               // await using var _context = await _contextFactory.CreateDbContextAsync();
 
                 // ✅ 1️⃣ Validation
                 if (entity == null)
@@ -51,11 +52,11 @@ namespace axionpro.persistance.Repositories
                     throw new ArgumentException("Invalid EmployeeId provided.");
 
                 // ✅ 2️⃣ Record insert karo
-                await context.EmployeeEducations.AddAsync(entity);
-                await context.SaveChangesAsync();
+                await _context.EmployeeEducations.AddAsync(entity);
+                await _context.SaveChangesAsync();
 
                 // ✅ 3️⃣ Fetch updated list (latest record ke sath)
-                var query = context.EmployeeEducations
+                var query = _context.EmployeeEducations
                     .AsNoTracking()
                     .Where(x => x.EmployeeId == entity.EmployeeId && x.IsSoftDeleted != true)
                     .OrderByDescending(x => x.Id);
@@ -235,16 +236,16 @@ namespace axionpro.persistance.Repositories
 
         public async Task<bool> UpdateEmployeeFieldAsync(EmployeeEducation entity)
         {
-            await using var context = await _contextFactory.CreateDbContextAsync();
+           // await using var _context = await _contextFactory.CreateDbContextAsync();
 
             try
             {
                 if (entity == null)
                     throw new ArgumentNullException(nameof(entity));
 
-                context.EmployeeEducations.Update(entity);
+                _context.EmployeeEducations.Update(entity);
 
-                int affectedRows = await context.SaveChangesAsync();
+                int affectedRows = await _context.SaveChangesAsync();
 
                 return affectedRows > 0;
             }
@@ -270,9 +271,9 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                using var context = await _contextFactory.CreateDbContextAsync();
+             //   using var context = await _contextFactory.CreateDbContextAsync();
 
-                return await context.EmployeeEducations
+                return await _context.EmployeeEducations
                     .Where(x => x.Id == Id && x.IsActive == IsActive && x.IsSoftDeleted!=true)
                     .FirstOrDefaultAsync();
             }
@@ -286,55 +287,57 @@ namespace axionpro.persistance.Repositories
 
 
 
-       public async Task<bool> DeleteAsync(long id, long UserEmployeeId)
-{
-    using var transaction = await _context.Database.BeginTransactionAsync();
-
-    try
-    {
-        // 🔹 Fetch record
-        var employee = await _context.EmployeeEducations
-            .FirstOrDefaultAsync(e => e.Id == id && e.IsSoftDeleted != true);
-
-        if (employee == null)
+        public async Task<bool> DeleteAsync(EmployeeEducation entity)
         {
-            _logger.LogWarning($"⚠️ Record with ID {id} not found or already deleted.");
-            return false;
+            try
+            {
+                _context.EmployeeEducations.Update(entity);
+
+                int affectedRows = await _context.SaveChangesAsync();
+
+                if (affectedRows > 0)
+                {
+                    _logger.LogInformation(
+                        "✔ Education record soft deleted | Id: {Id}",
+                        entity.Id);
+
+                    return true;
+                }
+
+                _logger.LogWarning(
+                    "⚠ No rows affected while deleting education record | Id: {Id}",
+                    entity.Id);
+
+                return false;
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "❌ Concurrency issue while deleting education record | Id: {Id}",
+                    entity.Id);
+
+                throw new Exception("Record was modified by another process.");
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "❌ Database error while deleting education record | Id: {Id}",
+                    entity.Id);
+
+                throw new Exception("Database error occurred while deleting record.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "❌ Unexpected error while deleting education record | Id: {Id}",
+                    entity.Id);
+
+                throw;
+            }
         }
-
-        // 🔹 Update record
-        employee.IsSoftDeleted = true;
-        employee.SoftDeletedById = UserEmployeeId;
-        employee.UpdatedDateTime = DateTime.UtcNow; // optional audit tracking
-
-        _context.EmployeeEducations.Update(employee);
-
-        // 🔹 Check affected rows
-        int affected = await _context.SaveChangesAsync();
-
-        if (affected > 0)
-        {
-            await transaction.CommitAsync();
-            _logger.LogInformation($"✅ Record {id} successfully soft deleted.");
-            return true;  // update hua → true
-        }
-
-        await transaction.RollbackAsync();
-        _logger.LogWarning($"⚠️ No rows updated for ID: {id}");
-        return false;
-    }
-    catch (Exception ex)
-    {
-        await transaction.RollbackAsync();
-        _logger.LogError(ex, $"❌ Delete failed for ID {id}");
-        throw new Exception($"Failed to delete record {id}: {ex.Message}", ex);
-    }
-}
-
-
-
- 
-
 
 
     }

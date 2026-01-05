@@ -12,6 +12,7 @@ using axionpro.application.DTOS.Employee.Sensitive;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.ITokenService;
@@ -31,107 +32,114 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 {
     public class DeleteEducationInfoQuery : IRequest<ApiResponse<bool>>
     {
-        public DeleteRequestDTO DTO { get; set; }
+        public DeleteEducationRequestDTO DTO { get; set; }
 
-        public DeleteEducationInfoQuery(DeleteRequestDTO dTO)
+        public DeleteEducationInfoQuery(DeleteEducationRequestDTO dTO)
         {
             DTO = dTO;
         }
     }
-    public class DeleteEducationInfoQueryHandler : IRequestHandler<DeleteEducationInfoQuery, ApiResponse<bool>>
+    public class DeleteEducationInfoQueryHandler
+  : IRequestHandler<DeleteEducationInfoQuery, ApiResponse<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<DeleteEducationInfoQueryHandler> _logger;
         private readonly IPermissionService _permissionService;
-        private readonly IConfiguration _config;
-        private readonly IEncryptionService _encryptionService;
-        private readonly IIdEncoderService _idEncoderService;
+        private readonly ICommonRequestService _commonRequestService;
 
         public DeleteEducationInfoQueryHandler(
             IUnitOfWork unitOfWork,
-            IHttpContextAccessor httpContextAccessor,
             ILogger<DeleteEducationInfoQueryHandler> logger,
             IPermissionService permissionService,
-            IConfiguration config,
-            IEncryptionService encryptionService,
-            IIdEncoderService idEncoderService)
+            ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
-            _httpContextAccessor = httpContextAccessor;
             _logger = logger;
             _permissionService = permissionService;
-            _config = config;
-            _encryptionService = encryptionService;
-            _idEncoderService = idEncoderService;
+            _commonRequestService = commonRequestService;
         }
 
-        public async Task<ApiResponse<bool>> Handle(DeleteEducationInfoQuery request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<bool>> Handle(
+            DeleteEducationInfoQuery request,
+            CancellationToken cancellationToken)
         {
-            await _unitOfWork.BeginTransactionAsync();
-
             try
             {
-                // 1️⃣ Token Validate
-                var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
-                    .ToString()?.Replace("Bearer ", "");
+                await _unitOfWork.BeginTransactionAsync();
 
-                if (string.IsNullOrEmpty(bearerToken))
-                    return ApiResponse<bool>.Fail("Unauthorized: Token not found.");
+                // 🔐 STEP 1: COMMON VALIDATION
+                var validation =
+                    await _commonRequestService.ValidateRequestAsync(
+                        request.DTO.UserEmployeeId);
 
-                var secretKey = TokenKeyHelper.GetJwtSecret(_config);
-                var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
+                if (!validation.Success)
+                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
 
-                if (tokenClaims == null || tokenClaims.IsExpired)
-                    return ApiResponse<bool>.Fail("Invalid or expired token.");
+                long loggedInEmployeeId = validation.UserEmployeeId;
 
-                // 2️⃣ Validate User
-                long loggedInEmpId = await _unitOfWork.StoreProcedureRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
+                // 🔎 STEP 2: Validate Education Id
+                if (request.DTO.Id <= 0)
+                    return ApiResponse<bool>.Fail("Invalid education record id.");
 
-                if (loggedInEmpId <= 0)
-                    return ApiResponse<bool>.Fail("Unauthorized or inactive user.");
+                // 🔑 STEP 3: Permission check
+                var permissions =
+                    await _permissionService.GetPermissionsAsync(validation.RoleId);
 
-                string tenantKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
-                string sanitizedKey = EncryptionSanitizer.SuperSanitize(tenantKey);
-
-                // Decode IDs
-                long decryptedEmployeeId = _idEncoderService.DecodeId_long(
-                    EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId), sanitizedKey);
-
-                long decryptedRecordId = _idEncoderService.DecodeId_long(
-                    EncryptionSanitizer.CleanEncodedInput(request.DTO.Id), sanitizedKey);
-
-                if (decryptedEmployeeId != loggedInEmpId)
-                    return ApiResponse<bool>.Fail("Unauthorized: Employee mismatch.");
-
-                // 3️⃣ Permission Check
-                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
-                if (!permissions.Contains("Education"))
-                    return ApiResponse<bool>.Fail("Access denied: You do not have permission to delete education info.");
-
-                // 4️⃣ Delete Record
-                var isSuccess = await _unitOfWork.EmployeeEducationRepository.DeleteAsync(decryptedRecordId, decryptedEmployeeId);
-
-                if (!isSuccess)
+                if (!permissions.Contains("DeleteEducationInfo"))
                 {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<bool>.Fail("No matching education record found.");
+                    // optional strict block
+                    // return ApiResponse<bool>.Fail("You do not have permission to delete education info.");
                 }
 
-                // 5️⃣ Commit Transaction
-                await _unitOfWork.CommitTransactionAsync();
+                // 📦 STEP 4: Fetch existing record
+                var existing =
+                    await _unitOfWork.EmployeeEducationRepository
+                        .GetSingleRecordAsync(request.DTO.Id, true);
 
+                if (existing == null)
+                    return ApiResponse<bool>.Fail("Education record not found.");
+
+                // 🔒 STEP 5: Ownership check
+                if (existing.EmployeeId != loggedInEmployeeId)
+                    return ApiResponse<bool>.Fail("Unauthorized access.");
+
+                // 🗑️ STEP 6: SOFT DELETE
+                existing.IsSoftDeleted = true;
+                existing.IsActive = false;
+                existing.DeletedDateTime = DateTime.UtcNow;
+                existing.SoftDeletedById = loggedInEmployeeId;                   
+                existing.FilePath = null;
+                existing.FileName = null;
+                existing.HasEducationDocUploded = false;
+                existing.IsEditAllowed = false;
+
+                bool deleted =
+                    await _unitOfWork.EmployeeEducationRepository
+                        .DeleteAsync(existing);
+
+                if (!deleted)
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                    return ApiResponse<bool>.Fail("Failed to delete education record.");
+                }
+
+                await _unitOfWork.CommitTransactionAsync();
                 return ApiResponse<bool>.Success(true, "Education record deleted successfully.");
             }
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackTransactionAsync();
-                _logger.LogError(ex, "Error deleting education info.");
-                return ApiResponse<bool>.Fail("Error deleting record.", new List<string> { ex.Message });
+
+                _logger.LogError(
+                    ex,
+                    "Error deleting education record | EducationId: {Id}",
+                    request.DTO?.Id);
+
+                return ApiResponse<bool>.Fail(
+                    "Error deleting education record.",
+                    new List<string> { ex.Message });
             }
         }
-    
-    
     }
 
 

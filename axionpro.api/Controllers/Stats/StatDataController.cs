@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
 
-namespace axionpro.api.Controllers.Dashboard
+namespace axionpro.api.Controllers.Stats
 {
     /// <summary>
     /// Controller to manage all Asset Category related operations 

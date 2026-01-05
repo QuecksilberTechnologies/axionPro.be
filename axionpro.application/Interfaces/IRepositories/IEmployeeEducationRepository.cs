@@ -28,7 +28,7 @@ public interface IEmployeeEducationRepository
 
 
     #region Employee-Education-info
-    public  Task<bool> DeleteAsync(long id, long UserEmployeeId);
+    public  Task<bool> DeleteAsync(EmployeeEducation employeeEducation);
     public Task<PagedResponseDTO<GetEducationResponseDTO>> GetInfo(GetEducationRequestDTO dto);
     public Task<PagedResponseDTO<GetEducationResponseDTO>> CreateAsync(EmployeeEducation entity);
     //  public Task<PagedResponseDTO<GetDependentResponseDTO>> AutoCreatedAsync(EmployeeContact entity);

@@ -7,7 +7,7 @@ using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOs.Employee;
 using axionpro.application.DTOs.Employee.AccessControlReadOnlyType;
 using axionpro.application.DTOs.Employee.AccessResponse;
-using axionpro.application.DTOS.Employee.BaseEmployee;
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers;
 using axionpro.application.Interfaces;
