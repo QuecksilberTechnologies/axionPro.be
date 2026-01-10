@@ -4,6 +4,7 @@ using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.DTOS.Employee.Education;
 using axionpro.domain.Entity;
+using Newtonsoft.Json.Linq;
 
 namespace axionpro.application.Common.Helpers.PercentageHelper
 {
@@ -97,10 +98,10 @@ namespace axionpro.application.Common.Helpers.PercentageHelper
             {
                 // 🔹 Core identity
                 !string.IsNullOrWhiteSpace(dep.DependentName) ? 1 : 0,
-                !string.IsNullOrWhiteSpace(dep.Relation) ? 1 : 0,
+                dep.Relation > 0 ? 1 : 0,
 
-                // 🔹 Personal info
-                dep.DateOfBirth != null ? 1 : 0,
+            // 🔹 Personal info
+            dep.DateOfBirth != null ? 1 : 0,
 
                 // 🔹 Flags
                 dep.IsCoveredInPolicy != null ? 1 : 0,

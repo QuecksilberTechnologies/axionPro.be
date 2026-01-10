@@ -4,6 +4,7 @@ using axionpro.application.Common.Helpers.PercentageHelper;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
+using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.DTOS.EmployeeLeavePolicyMap;
 using axionpro.application.DTOS.Pagination;
@@ -1253,9 +1254,38 @@ namespace axionpro.persistance.Repositories
                 // ❗If bad employeeId, return empty list safely
                 if (employeeId <= 0)
                     return new List<CompletionSectionDTO>();
-           
+                #region Contact Details
 
-                // 📚 Fetch education rows
+                var contactList = await _context.EmployeeContacts
+                    .AsNoTracking()
+                    .Where(x =>
+                        x.EmployeeId == employeeId &&
+                        x.IsSoftDeleted == false &&
+                        x.IsActive == true
+                    )
+                    .Select(x => new GetContactResponseDTO
+                    {
+                        Id = x.Id,
+                        ContactType = x.ContactType,
+                        Relation = x.Relation,
+                        ContactName = x.ContactName,
+                        ContactNumber = x.ContactNumber,
+                        AlternateNumber = x.AlternateNumber,
+                     //   Email = x.Email,
+                        Address = x.Address,
+                        CountryId = x.CountryId,
+                        StateId = x.StateId,
+                        DistrictId = x.DistrictId,
+                        IsPrimary = x.IsPrimary,
+                        IsEditAllowed = x.IsEditAllowed,
+                        IsInfoVerified = x.IsInfoVerified,
+                      //  Description = x.Description
+                    })
+                    .ToListAsync();
+
+                #endregion
+
+                #region Education Details
                 var eduList = await _context.EmployeeEducations
                     .AsNoTracking()
                     .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
@@ -1273,6 +1303,8 @@ namespace axionpro.persistance.Repositories
 
                     })
                     .ToListAsync();
+                #endregion
+                #region Bank Details
                 var bankList = await _context.EmployeeBankDetails
                     .AsNoTracking()
                     .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
@@ -1294,10 +1326,11 @@ namespace axionpro.persistance.Repositories
 
                     })
                     .ToListAsync();
-
+                #endregion
                 // 🧮 Calculate completion %
-                 var educationSection = eduList.CalculateEducationCompletionDTO();
+                var educationSection = eduList.CalculateEducationCompletionDTO();
                  var bankSection = bankList.CalculateBankCompletionDTO();
+                 var contactSection = bankList.CalculateBankCompletionDTO();
 
                 return new List<CompletionSectionDTO> { educationSection, bankSection };
             }

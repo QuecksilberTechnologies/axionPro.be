@@ -11,7 +11,7 @@ public partial class EmployeeDependent
 
     public string? DependentName { get; set; }
 
-    public string? Relation { get; set; }
+    public int Relation { get; set; }
 
     public DateTime? DateOfBirth { get; set; }
 

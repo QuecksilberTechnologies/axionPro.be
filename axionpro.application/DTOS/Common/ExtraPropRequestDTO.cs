@@ -10,6 +10,7 @@ namespace axionpro.application.DTOS.Common
     {
       //  public int RowId_int { get; set; }  
         public long RowId { get; set; } 
+        public bool IsActive { get; set; } = true;
         public long UserEmployeeId { get; set; } 
         public long EmployeeId { get; set; }   
         public long TenantId { get; set; }

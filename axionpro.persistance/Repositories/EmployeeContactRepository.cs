@@ -179,6 +179,111 @@ namespace axionpro.persistance.Repositories
                 throw;
             }
         }
+        public async Task<PagedResponseDTO<GetContactResponseDTO>> GetInfo(GetContactRequestDTO dto)
+        {
+            try
+            {
+                // 🔒 SAFETY
+                if (dto?.Prop == null || dto.Prop.EmployeeId <= 0)
+                    throw new Exception("Invalid EmployeeId.");
+ 
+
+                // 🔹 QUERY (NULL SAFE LEFT JOINS)
+                var records = await
+                (
+                    from c in _context.EmployeeContacts.AsNoTracking()
+
+                        // ✅ COUNTRY LEFT JOIN (NULL SAFE)
+                    join country in _context.Countries
+                        on c.CountryId equals (int?)country.Id into countryJoin
+                    from country in countryJoin.DefaultIfEmpty()
+
+                        // ✅ STATE LEFT JOIN
+                    join state in _context.States
+                        on c.StateId equals (int?)state.Id into stateJoin
+                    from state in stateJoin.DefaultIfEmpty()
+
+                        // ✅ DISTRICT LEFT JOIN (0 / NULL SAFE)
+                    join district in _context.Districts
+                        on c.DistrictId equals (int?)district.Id into districtJoin
+                    from district in districtJoin.DefaultIfEmpty()
+
+                    where
+                        c.EmployeeId == dto.Prop.EmployeeId &&
+                        (c.IsSoftDeleted == false || c.IsSoftDeleted == null)
+
+                    orderby c.Id descending   // ✅ LATEST FIRST
+
+                    select new GetContactResponseDTO
+                    {
+                        Id = c.Id,                // ✅ STRING
+                        EmployeeId = c.EmployeeId.ToString(),
+
+                        ContactName = c.ContactName ?? string.Empty,
+                        ContactNumber = c.ContactNumber ?? string.Empty,
+                        AlternateNumber = c.AlternateNumber,
+                        Email = c.Email,
+                        Relation = c.Relation,
+                        ContactType = c.ContactType,
+
+                        Address = c.Address,
+                        HouseNo = c.HouseNo,
+                        Street = c.Street,
+                        LandMark = c.LandMark,
+
+                        CountryId = c.CountryId,
+                        CountryName = country != null ? country.CountryName : string.Empty,
+
+                        StateId = c.StateId,
+                        StateName = state != null ? state.StateName : string.Empty,
+
+                        DistrictId = c.DistrictId,
+                        DistrictName = district != null ? district.DistrictName : string.Empty,
+
+                        IsPrimary = c.IsPrimary,
+                        IsActive = c.IsActive,
+                        IsEditAllowed = c.IsEditAllowed,
+                        IsInfoVerified = c.IsInfoVerified,
+
+                        Remark = c.Remark,
+                        Description = c.Description
+                    }
+                )
+                .Take(10)
+                .ToListAsync();
+
+                // 🔹 COMPLETION %
+                foreach (var item in records)
+                {
+                    item.CompletionPercentage =
+                        CompletionCalculatorHelper.ContactPropCalculate(item);
+                }
+
+                double avgCompletion = records.Any()
+                    ? Math.Round(records.Average(x => x.CompletionPercentage), 0)
+                    : 0;
+
+                return new PagedResponseDTO<GetContactResponseDTO>
+                {
+                    Items = records,
+                    TotalCount = records.Count,
+                    PageNumber = 1,
+                    PageSize = 10,
+                    TotalPages = 1,
+                    CompletionPercentage = avgCompletion,
+                    HasUploadedAll = null
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "❌ Error fetching contacts | EmployeeId: {EmployeeId}",
+                    dto?.Prop?.EmployeeId);
+
+                throw;
+            }
+        }
 
 
         public async Task<EmployeeContact>c(long id, bool isActive)
@@ -214,107 +319,7 @@ namespace axionpro.persistance.Repositories
         }
 
 
-        public async Task<PagedResponseDTO<GetContactResponseDTO>> GetInfo(GetContactRequestDTO dto)
-        {
-            try
-            {
-                // 🔹 Base Query (LATEST FIRST, ONLY 10)
-                var records =
-                    await (
-                        from c in _context.EmployeeContacts.AsNoTracking()
-
-                        join country in _context.Countries
-                            on (c.CountryId > 0 ? c.CountryId : null)
-                            equals (int?)country.Id into countryJoin
-                        from country in countryJoin.DefaultIfEmpty()
-
-                        join state in _context.States
-                            on (c.StateId > 0 ? c.StateId : null)
-                            equals (int?)state.Id into stateJoin
-                        from state in stateJoin.DefaultIfEmpty()
-
-                        join district in _context.Districts
-                            on (c.DistrictId > 0 ? c.DistrictId : null)
-                            equals (int?)district.Id into districtJoin
-                        from district in districtJoin.DefaultIfEmpty()
-
-                        where c.EmployeeId == dto.Prop.EmployeeId
-                              && c.IsSoftDeleted != true
-
-                        orderby c.Id descending   // ✅ LATEST FIRST
-
-                        select new GetContactResponseDTO
-                        {
-                            Id = c.Id,
-                            EmployeeId = c.EmployeeId.ToString(),
-
-                            ContactName = c.ContactName,
-                            ContactNumber = c.ContactNumber,
-                            AlternateNumber = c.AlternateNumber,
-                            Email = c.Email,
-                            Relation = c.Relation,
-                            ContactType = c.ContactType,
-
-                            Address = c.Address,
-                            HouseNo = c.HouseNo,
-                            Street = c.Street,
-                            LandMark = c.LandMark,
-
-                            CountryId = c.CountryId,
-                            CountryName = country != null ? country.CountryName : string.Empty,
-
-                            StateId = c.StateId,
-                            StateName = state != null ? state.StateName : string.Empty,
-
-                            DistrictId = c.DistrictId,
-                            DistrictName = district != null ? district.DistrictName : string.Empty,
-
-                            IsPrimary = c.IsPrimary,
-                            IsActive = c.IsActive,
-                            IsEditAllowed = c.IsEditAllowed,
-                            IsInfoVerified = c.IsInfoVerified,
-
-                            Remark = c.Remark,
-                            Description = c.Description
-                        }
-                    )
-                    .Take(10)          // ✅ ONLY 10 RECORDS
-                    .ToListAsync();
-
-                // 🔹 Completion %
-                foreach (var item in records)
-                {
-                    item.CompletionPercentage =
-                        CompletionCalculatorHelper.ContactPropCalculate(item);
-                }
-
-                double averageCompletion = records.Any()
-                    ? Math.Round(records.Average(x => x.CompletionPercentage), 0)
-                    : 0;
-
-                // 🔹 Response (simple)
-                return new PagedResponseDTO<GetContactResponseDTO>
-                {
-                    Items = records,
-                    TotalCount = records.Count,   // only 10 max
-                    PageNumber = 1,
-                    PageSize = 10,
-                    TotalPages = 1,
-                    CompletionPercentage = averageCompletion,
-                    HasUploadedAll = null
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(
-                    ex,
-                    "❌ Error occurred while fetching contacts for EmployeeId: {EmployeeId}",
-                    dto.Prop.EmployeeId);
-
-                throw new Exception($"Failed to fetch contacts: {ex.Message}");
-            }
-        }
-
+      
         public Task<PagedResponseDTO<GetContactResponseDTO>> AutoCreatedAsync(EmployeeContact entity)
         {
             throw new NotImplementedException();

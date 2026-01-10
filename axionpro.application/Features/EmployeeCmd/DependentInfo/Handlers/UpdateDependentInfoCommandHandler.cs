@@ -1,13 +1,14 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.Converters;
+using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOs.Employee;
 using axionpro.application.DTOs.Employee.AccessControlReadOnlyType;
 using axionpro.application.DTOs.Employee.AccessResponse;
 using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.DTOS.Pagination;
-using axionpro.application.Features.EmployeeCmd.DependentInfo.Command;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.IRepositories;
@@ -22,6 +23,17 @@ using System.Reflection;
 
 namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
 {
+    public class UpdateDependentCommand : IRequest<ApiResponse<bool>>
+    {
+        public UpdateDependentRequestDTO DTO { get; set; }
+
+        public UpdateDependentCommand(UpdateDependentRequestDTO dto)
+        {
+            DTO = dto;
+        }
+
+    }
+
     //public class UpdateDependentInfoCommandHandler : IRequestHandler<UpdateDependentCommand, ApiResponse<bool>>
     //{
     //    private readonly IBaseEmployeeRepository _employeeRepository;
@@ -33,6 +45,9 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
     //    private readonly IConfiguration _config;
     //    private readonly IHttpContextAccessor _httpContextAccessor;
     //    private readonly IEncryptionService _encryptionService;
+    //    private readonly ICommonRequestService _commonRequestService;
+    //    private readonly IIdEncoderService _idEncoderService;
+
 
     //    public UpdateDependentInfoCommandHandler(
     //        IBaseEmployeeRepository employeeRepository,
@@ -42,7 +57,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
     //        ITokenService tokenService,
     //        IPermissionService permissionRepository,
     //        IConfiguration configuration,
-    //        IHttpContextAccessor httpContextAccessor, IEncryptionService encryptionService)
+    //        IHttpContextAccessor httpContextAccessor, IEncryptionService encryptionService, ICommonRequestService commonRequestService, IIdEncoderService idEncoderService)
     //    {
     //        _employeeRepository = employeeRepository;
     //        _unitOfWork = unitOfWork;
@@ -53,56 +68,63 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
     //        _config = configuration;
     //        _httpContextAccessor = httpContextAccessor;
     //        _encryptionService = encryptionService;
+    //        _commonRequestService = commonRequestService;
+    //        _idEncoderService = idEncoderService;
     //    }
 
     //    public async Task<ApiResponse<bool>> Handle(UpdateDependentCommand request, CancellationToken cancellationToken)
     //    {
     //        try
     //        {
-    //            // 🧱 Step 1: Validate JWT Token
-    //            var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString()?.Replace("Bearer ", "");
-    //            if (string.IsNullOrEmpty(bearerToken))
-    //                return ApiResponse<bool>.Fail("Unauthorized: Token not found.");
+    //            await _unitOfWork.BeginTransactionAsync();
 
-    //            var secretKey = _config["Jwt:Key"];
-    //            var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
+    //            // 🔐 STEP 1: COMMON VALIDATION (SAME AS CONTACT)
+    //            var validation =
+    //                await _commonRequestService.ValidateRequestAsync(
+    //                    request.DTO.UserEmployeeId);
 
-    //            if (tokenClaims == null || tokenClaims.IsExpired)
-    //                return ApiResponse<bool>.Fail("Invalid or expired token.");
+    //            if (!validation.Success)
+    //                return   ApiResponse<bool>
+    //                    .Fail(validation.ErrorMessage);
 
-    //            var tenantKey = _config["TenantKey"];
-    //            long empId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
-    //            if (empId < 1)
+    //            // 🔓 STEP 2: Assign decoded values
+    //            request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+    //            request.DTO.Prop.TenantId = validation.TenantId;
+
+    //            request.DTO.Prop.EmployeeId =
+    //                RequestCommonHelper.DecodeOnlyEmployeeId(
+    //                    request.DTO.EmployeeId,
+    //                    validation.Claims.TenantEncriptionKey,
+    //                    _idEncoderService
+    //                );
+
+    //            // 🔑 STEP 3: Permission check
+    //            var permissions =
+    //                await _permissionService.GetPermissionsAsync(validation.RoleId);
+
+    //            if (!permissions.Contains("AddDependentInfo"))
     //            {
-    //                _logger.LogWarning("User validation failed for LoginId: {LoginId}", tokenClaims.UserId);
-    //                await _unitOfWork.RollbackTransactionAsync();
-    //                return ApiResponse<bool>.Fail("User is not authorized to perform this action.");
+    //                // optional hard-stop
+    //                // return ApiResponse<List<GetDependentResponseDTO>>
+    //                //     .Fail("You do not have permission to add dependent info.");
     //            }
+    //            var dependent =
+    //               await _unitOfWork.EmployeeDependentRepository
+    //                   .GetSingleRecordAsync(request.DTO.Id, request.DTO.Prop.IsActive);
+    //            if (dependent == null)
+    //                return ApiResponse<bool>.Fail(validation.ErrorMessage);
 
-    //            // 🧱 Step 2: Permission Check
-    //            var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
-    //            if (!permissions.Contains("EditDependentInfo"))
-    //            {
-    //                await _unitOfWork.RollbackTransactionAsync();
-    //                return ApiResponse<bool>.Fail("You do not have permission to edit dependent info.");
-    //            }
+    //           // HasProofUploaded
 
-    //            var dto = request.DTO; 
-
-    //            if (string.IsNullOrWhiteSpace(dto.FieldName))
-    //                return ApiResponse<bool>.Fail("Field name cannot be empty.");
-
-    //            if (!string.IsNullOrEmpty(request.DTO.UserEmployeeId))
-    //                request.DTO._EmployeeId = EncryptionHelper1.DecryptId(_encryptionService, request.DTO.UserEmployeeId, tenantKey);
-
-    //            // 🧱 Step 3: Fetch Dependent record
-
-                
-    //             var dependent = await _employeeRepository.UpdateEmployeeFieldAsync(request.DTO._EmployeeId, request.DTO.EntityName, request.DTO.FieldName, request.DTO.FieldValue, request.DTO._EmployeeId);
- 
-    //            // 🧱 Step 4: Map DTO → Entity
     //            var dependentEntity = _mapper.Map<EmployeeDependent>(dependent);
 
+                
+                
+                
+                
+                
+                
+                
     //            // 🧱 Step 5: Convert to Access Control DTO
     //            var accessDto = EmployeeDependentInfoMapperHelper.ConvertToAccessResponseDTO(dependentEntity);
 
@@ -142,7 +164,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
     //            dependentEntity.UpdatedDateTime = DateTime.UtcNow;
 
     //            // 🧱 Step 10: Save to DB
-    //            var updateStatus = await _unitOfWork.Employees.UpdateEmployeeFieldAsync(dependentEntity.Id,dto.EntityName, dto.FieldName, convertedValue, dto._EmployeeId);
+    //            var updateStatus = await _unitOfWork.Employees.UpdateEmployeeFieldAsync(dependentEntity.Id, dto.EntityName, dto.FieldName, convertedValue, dto._EmployeeId);
 
     //            if (!updateStatus)
     //                return ApiResponse<bool>.Fail("Failed to update employee dependent record.");
@@ -155,8 +177,8 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
     //            return ApiResponse<bool>.Fail("An unexpected error occurred.", new List<string> { ex.Message });
     //        }
     //    }
-   
-    
+
+
     //}
 
 }

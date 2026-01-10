@@ -10,7 +10,6 @@ using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Features.EmployeeCmd.Contact.Handlers;
-using axionpro.application.Features.EmployeeCmd.DependentInfo.Command;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -114,15 +113,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                     //     .Fail("You do not have permission to add dependent info.");
                 }
 
-                // 🧩 STEP 4: Validation
-                if (string.IsNullOrWhiteSpace(request.DTO.Relation))
-                    return ApiResponse<List<GetDependentResponseDTO>>
-                        .Fail("Dependent relation cannot be empty.");
-
-                if (!Regex.IsMatch(request.DTO.Relation, @"^[a-zA-Z\s]+$"))
-                    return ApiResponse<List<GetDependentResponseDTO>>
-                        .Fail("Dependent relation must contain only letters.");
-
+           
                 // 📎 STEP 5: File Upload (if any)
                 string? docPath = null;
                 string? docName = null;
@@ -131,15 +122,13 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                 if (request.DTO.ProofFile != null &&
                     request.DTO.ProofFile.Length > 0)
                 {
-                    var safeName =
-                        EncryptionSanitizer.CleanEncodedInput(
-                            request.DTO.Relation.Trim().Replace(" ", "").ToLower());
+                  
 
                     using var ms = new MemoryStream();
                     await request.DTO.ProofFile.CopyToAsync(ms, cancellationToken);
 
                     string fileName =
-                        $"proof-{request.DTO.Prop.EmployeeId}_{safeName}-{DateTime.UtcNow:yyMMddHHmmss}.pdf";
+                        $"proof-{request.DTO.Prop.EmployeeId}_{request.DTO.Relation}-{DateTime.UtcNow:yyMMddHHmmss}.pdf";
 
                     string folderPath =
                         _fileStorageService.GetEmployeeFolderPath(

@@ -1,5 +1,6 @@
 ﻿using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
+using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Employee.Education;
 using axionpro.domain.Entity;
 using System;
@@ -155,6 +156,61 @@ namespace axionpro.application.Extentions
             };
         }
 
+        #region Contact Extension
+        public static CompletionSectionDTO CalculateContactCompletionDTO(
+           this IEnumerable<GetContactResponseDTO> items)
+        {
+            // 🔒 SAFETY
+            if (items == null || !items.Any())
+                return CreateEmptyResponse("Contact");
+
+            double totalPercent = 0;
+            int totalRows = 0;
+
+            // 🔥 RULE: At least one primary contact must exist
+            bool hasPrimaryContact = items.Any(x => x.IsPrimary == true);
+
+            foreach (var contact in items)
+            {
+                totalRows++;
+
+                bool[] fields =
+                {
+            !string.IsNullOrWhiteSpace(contact.ContactName),
+            !string.IsNullOrWhiteSpace(contact.ContactNumber),
+            contact.Relation > 0,                     // 🔑 relation filled
+          
+               };
+
+                int filled = fields.Count(f => f);
+                totalPercent += (filled / (double)fields.Length) * 100;
+            }
+
+            double averagePercent =
+                totalRows == 0 ? 0 : Math.Round(totalPercent / totalRows, 0);
+
+            // 🔥 RULE enforcement (NO shortcut)
+            if (!hasPrimaryContact)
+                averagePercent = Math.Min(averagePercent, 99);
+
+            return new CompletionSectionDTO
+            {
+                SectionName = "Contact",
+
+                // ✅ TRUE average
+                CompletionPercent = averagePercent,
+
+                // ✅ Verified only if ALL rows verified
+                IsInfoVerified = items.All(x => x.IsInfoVerified == true),
+
+                // ✅ Editable if ANY row editable
+                IsEditAllowed = items.Any(x => x.IsEditAllowed == true),
+
+                IsSectionCreate = true
+            };
+        }
+
+        #endregion
 
         public static CompletionSectionDTO CalculateExperienceCompletion(this IEnumerable<dynamic> items)
         {
@@ -218,6 +274,8 @@ namespace axionpro.application.Extentions
                 IsSectionCreate = false
             };
         }
+   
+    
     }
 
 }

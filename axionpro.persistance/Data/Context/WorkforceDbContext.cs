@@ -1162,7 +1162,7 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.Description).HasMaxLength(255);
                 entity.Property(e => e.InfoVerifiedDateTime).HasColumnType("datetime");
                 entity.Property(e => e.IsCoveredInPolicy).HasDefaultValue(false);
-                entity.Property(e => e.Relation).HasMaxLength(50);
+              //  entity.Property(e => e.Relation).HasMaxLength(50);
                 entity.Property(e => e.Remark).HasMaxLength(255);
                 entity.Property(e => e.UpdatedDateTime)
                     .HasDefaultValueSql("(getdate())")

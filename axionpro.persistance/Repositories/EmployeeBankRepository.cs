@@ -14,7 +14,12 @@ using axionpro.persistance.Data.Context;
 using Azure.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Serilog;
+using System.Collections.Generic;
+using System.Drawing;
 using System.Drawing.Printing;
+using System.Runtime.InteropServices;
+using static QRCoder.PayloadGenerator;
 
 namespace axionpro.persistance.Repositories
 {
@@ -160,6 +165,9 @@ namespace axionpro.persistance.Repositories
 
             return affectedRows > 0;
         }
+        /*
+
+         */
 
         public async Task<bool> UpdateEditStatus(
     long employeeId,
