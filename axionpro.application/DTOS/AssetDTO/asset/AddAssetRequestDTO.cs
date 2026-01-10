@@ -8,11 +8,12 @@ using System.Threading.Tasks;
 namespace axionpro.application.DTOS.AssetDTO.asset
 {
 
-    public class AddAssetRequestDTO
+
+    public class AddAssetRequestDTO 
     {
 
-        
-       public long TenantId { get; set; }
+    
+        public long TenantId { get; set; }
        public long EmployeeId { get; set; }
         public string? AssetName { get; set; }
         public int AssetTypeId { get; set; }

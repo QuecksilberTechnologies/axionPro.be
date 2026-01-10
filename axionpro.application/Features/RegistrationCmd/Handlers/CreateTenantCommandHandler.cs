@@ -481,29 +481,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                    };
 
 
-                string token = await _tokenService.GenerateToken(getTokenInfoDTO);
-
-                await _unitOfWork.CommitTransactionAsync(); // DB ka kaam complete
-
-                try
-                {
-                    string baseUrl = _configuration["FrontEndWebURL:BaseUrl"] ?? string.Empty;
-
-                    await _emailService.SendTemplatedEmailAsync(
-                        ConstantValues.WelcomeEmail,
-                        request.TenantCreateRequestDTO.TenantEmail!,
-                        newTenantId,
-                        new Dictionary<string, string>
-                        {
-                            ["UserName"] = request.TenantCreateRequestDTO.ContactPersonName,
-                            ["VerificationUrl"] = $"{baseUrl}/auth/set-password?token={token}",
-                            ["LinkExpiryMinutes"] = "30"
-                        });
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Email send failed (non-blocking)");
-                }
+              
 
                 // Step 13️⃣: Return Response (Decrypted Email for display)
                 return new ApiResponse<TenantCreateResponseDTO>
@@ -517,6 +495,51 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
  
                     }
                 };
+                // 🔐 Step 1: Generate token (DB / Auth logic)
+                string token = await _tokenService.GenerateToken(getTokenInfoDTO);
+
+                // ✅ Step 2: Commit DB transaction FIRST
+                await _unitOfWork.CommitTransactionAsync();
+
+                // 🚀 Step 3: Fire-and-forget email (NON-BLOCKING, SAFE)
+                _ = Task.Run(async () =>
+                 {
+                    try
+                    {
+                        // 🌐 Frontend URL
+                        string baseUrl =
+                            _configuration["FrontEndWebURL:BaseUrl"] ?? string.Empty;
+
+                        // 📧 Send email (FULLY ASYNC)
+                        await _emailService.SendTemplatedEmailAsync(
+                            ConstantValues.WelcomeEmail,
+                            request.TenantCreateRequestDTO.TenantEmail!,
+                            newTenantId,
+                            new Dictionary<string, string>
+                            {
+                                ["UserName"] =
+                                    request.TenantCreateRequestDTO.ContactPersonName,
+
+                                ["VerificationUrl"] =
+                                    $"{baseUrl}/auth/set-password?token={token}",
+
+                                ["LinkExpiryMinutes"] = "30"
+                            });
+
+                        // ✅ Optional success log (debug / prod)
+                        _logger.LogInformation(
+                            "Welcome email queued successfully | TenantId={TenantId}",
+                            newTenantId);
+                    }
+                    catch (Exception ex)
+                    {
+                        // ❗ NEVER throw from background thread
+                        _logger.LogError(
+                            ex,
+                            "Background email send failed | TenantId={TenantId}",
+                            newTenantId);
+                    }
+                });
 
 
             }
