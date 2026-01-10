@@ -1330,9 +1330,9 @@ namespace axionpro.persistance.Repositories
                 // 🧮 Calculate completion %
                 var educationSection = eduList.CalculateEducationCompletionDTO();
                  var bankSection = bankList.CalculateBankCompletionDTO();
-                 var contactSection = bankList.CalculateBankCompletionDTO();
+                 var contactSection = contactList.CalculateContactCompletionDTO();
 
-                return new List<CompletionSectionDTO> { educationSection, bankSection };
+                return new List<CompletionSectionDTO> { educationSection, bankSection, contactSection };
             }
             catch (Exception ex)
             {

@@ -110,6 +110,7 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
                 entity.AddedById = request.DTO.Prop.UserEmployeeId;
                 entity.AddedDateTime = DateTime.UtcNow;
                 entity.IsActive = true;
+                entity.IsSoftDeleted = false;              
                 entity.IsEditAllowed = true;
                 entity.IsInfoVerified = false;
                 entity.IsPrimary = request.DTO.IsPrimary;
