@@ -2,7 +2,6 @@
 using axionpro.application.DTOS.AssetDTO.asset;
 using axionpro.application.DTOS.Module.ManualModule;
 using axionpro.application.DTOS.Module.ParentModule;
-using axionpro.application.Features.AssetFeatures.Assets.Commands;
 using axionpro.application.Features.ModuleCmd.Parent.Commands;
 using axionpro.application.Interfaces.ILogger;
 using MediatR;
@@ -81,42 +80,42 @@ namespace axionpro.api.Controllers.Module
         /// <summary>
         /// Updates an existing main module.
         /// </summary>
-        [HttpPost("update-module")]
-        public async Task<IActionResult> UpdateModule([FromBody] UpdateAssetRequestDTO updateAssetDTO)
-        {
-            if (updateAssetDTO == null)
-            {
-                _logger.LogWarn("Received null request for UpdateModule.");
-                return BadRequest(new { IsSucceeded = false, Message = "Invalid request. Update data is required." });
-            }
+        //[HttpPost("update-module")]
+        //public async Task<IActionResult> UpdateModule([FromBody] UpdateAssetRequestDTO updateAssetDTO)
+        //{
+        //    if (updateAssetDTO == null)
+        //    {
+        //        _logger.LogWarn("Received null request for UpdateModule.");
+        //        return BadRequest(new { IsSucceeded = false, Message = "Invalid request. Update data is required." });
+        //    }
 
-            // _logger.LogInfo("Received request to update module: {@UpdateAssetDTO}", updateAssetDTO);
+        //    // _logger.LogInfo("Received request to update module: {@UpdateAssetDTO}", updateAssetDTO);
 
 
-            var command = new UpdateAssetCommand(updateAssetDTO);
-            var result = await _mediator.Send(command);
+        //    var command = new UpdateAssetCommand(updateAssetDTO);
+        //    var result = await _mediator.Send(command);
 
-            return Ok(result);
-        }
+        //    return Ok(result);
+        //}
 
         /// <summary>
         /// Updates an existing sub-module.
         /// </summary>
         [HttpPost("update-sub-module")]
-        public async Task<IActionResult> UpdateSubModule([FromBody] UpdateAssetRequestDTO updateAssetDTO)
-        {
-            if (updateAssetDTO == null)
-            {
-                _logger.LogWarn("Received null request for UpdateSubModule.");
-                return BadRequest(new { IsSucceeded = false, Message = "Invalid request. Update data is required." });
-            }
+        //public async Task<IActionResult> UpdateSubModule([FromBody] UpdateAssetRequestDTO updateAssetDTO)
+        //{
+        //    if (updateAssetDTO == null)
+        //    {
+        //        _logger.LogWarn("Received null request for UpdateSubModule.");
+        //        return BadRequest(new { IsSucceeded = false, Message = "Invalid request. Update data is required." });
+        //    }
 
-            // _logger.LogInfo("Received request to update sub-module: {0}", updateAssetDTO.ToString());
-            var command = new UpdateAssetCommand(updateAssetDTO);
-            var result = await _mediator.Send(command);
+        //    // _logger.LogInfo("Received request to update sub-module: {0}", updateAssetDTO.ToString());
+        //    var command = new UpdateAssetCommand(updateAssetDTO);
+        //    var result = await _mediator.Send(command);
 
-            return Ok(result);
-        }
+        //    return Ok(result);
+        //}
 
         #endregion
 

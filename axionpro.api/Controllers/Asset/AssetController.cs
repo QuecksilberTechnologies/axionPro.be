@@ -1,6 +1,5 @@
 ﻿ 
 using axionpro.application.DTOS.AssetDTO.asset;
-using axionpro.application.Features.AssetFeatures.Assets.Commands;
  
 using axionpro.application.Features.AssetFeatures.Type.Commands;
 using axionpro.application.Interfaces.ILogger;
@@ -40,13 +39,13 @@ namespace axionpro.api.Controllers.Asset
         /// </summary>
         /// <param name="assetRequestDTO">Filter parameters like TenantId, TypeId, etc.</param>
         /// <returns>List of assets matching the criteria.</returns>
-        [HttpGet("get")]
-        public async Task<IActionResult> GetAllAssets([FromQuery] GetAssetRequestDTO assetRequestDTO)
-        {
-            var command = new GetAllAssetCommand(assetRequestDTO);
-            var result = await _mediator.Send(command);
-            return Ok(result);
-        }
+        //[HttpGet("get")]
+        //public async Task<IActionResult> GetAllAssets([FromQuery] GetAssetRequestDTO assetRequestDTO)
+        //{
+        //    var command = new GetAllAssetCommand(assetRequestDTO);
+        //    var result = await _mediator.Send(command);
+        //    return Ok(result);
+        //}
 
         /// <summary>
         /// Adds a new asset.
@@ -67,28 +66,28 @@ namespace axionpro.api.Controllers.Asset
         /// </summary>
         /// <param name="updateAssetDTO">DTO containing updated asset details including Id.</param>
         /// <returns>Returns the updated asset information.</returns>
-        [HttpPut("update")]
-        public async Task<IActionResult> UpdateAsset([FromBody] UpdateAssetRequestDTO updateAssetDTO)
-        {
-            _logger.LogInfo("Request: Update asset - " + updateAssetDTO);
-            var command = new UpdateAssetCommand(updateAssetDTO);
-            var result = await _mediator.Send(command);
-            return Ok(result);
-        }
+        //[HttpPut("update")]
+        //public async Task<IActionResult> UpdateAsset([FromBody] UpdateAssetRequestDTO updateAssetDTO)
+        //{
+        //    _logger.LogInfo("Request: Update asset - " + updateAssetDTO);
+        //    var command = new UpdateAssetCommand(updateAssetDTO);
+        //    var result = await _mediator.Send(command);
+        //    return Ok(result);
+        //}
 
         /// <summary>
         /// Deletes an asset logically (soft delete).
         /// </summary>
         /// <param name="deleteAssetDTO">DTO containing the Id of the asset to delete.</param>
         /// <returns>Returns status of the delete operation.</returns>
-        [HttpDelete("delete")]
-        public async Task<IActionResult> DeleteAsset([FromQuery] DeleteAssetReqestDTO deleteAssetDTO)
-        {
-            _logger.LogInfo("Request: Delete asset - " + deleteAssetDTO);
-            var command = new DeleteAssetCommand(deleteAssetDTO);
-            var result = await _mediator.Send(command);
-            return Ok(result);
-        }
+        //[HttpDelete("delete")]
+        //public async Task<IActionResult> DeleteAsset([FromQuery] DeleteAssetReqestDTO deleteAssetDTO)
+        //{
+        //    _logger.LogInfo("Request: Delete asset - " + deleteAssetDTO);
+        //    var command = new DeleteAssetCommand(deleteAssetDTO);
+        //    var result = await _mediator.Send(command);
+        //    return Ok(result);
+        //}
 
         #endregion
     }

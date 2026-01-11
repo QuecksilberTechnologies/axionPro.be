@@ -4,6 +4,7 @@ using axionpro.application.DTOs.Department;
 using axionpro.application.DTOs.Designation;
 using axionpro.application.DTOs.Employee.AccessResponse;
 using axionpro.application.DTOs.Role;
+using axionpro.application.DTOS.AssetDTO.asset;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.Contact;
@@ -413,6 +414,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             return $"{baseUrl}{filePath}";
         }
 
+         
 
         public static List<GetEducationResponseDTO> ToGetEducationResponseDTOs(
         PagedResponseDTO<GetEducationResponseDTO> source,
@@ -556,3 +558,4 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
     }
 
 }
+

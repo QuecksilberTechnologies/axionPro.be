@@ -16,9 +16,11 @@ namespace axionpro.application.Interfaces.IRepositories
 
 
         #region asset
-        Task <PagedResponseDTO<GetAssetResponseDTO>> AddAssetAsync(AddAssetRequestDTO asset);
-
+        Task  Update(Asset asset);
+        Task AddAsync(Asset asset);
+      
         // All assets
+        Task<List<GetAssetResponseDTO>> GetAllAssetAsync(long tenantId, bool Isactive);
         Task<List<GetAssetResponseDTO>> GetAssetsByFilterAsync(GetAssetRequestDTO? asset);
         Task<int> DeleteAssetAsync(DeleteAssetReqestDTO? asset);
          Task<bool> UpdateAssetInfoAsync(UpdateAssetRequestDTO assetDto);

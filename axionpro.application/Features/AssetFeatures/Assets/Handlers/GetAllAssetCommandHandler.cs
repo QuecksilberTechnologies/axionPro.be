@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using axionpro.application.DTOS.AssetDTO.asset;
-using axionpro.application.Features.AssetFeatures.Assets.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
@@ -14,6 +13,15 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
 {
+    public class GetAllAssetCommand : IRequest<ApiResponse<List<GetAssetResponseDTO>>>
+    {
+        public GetAssetRequestDTO DTO { get; set; }
+
+        public GetAllAssetCommand(GetAssetRequestDTO dTO)
+        {
+            DTO = dTO;
+        }
+    }
     public class GetAllAssetCommandHandler : IRequestHandler<GetAllAssetCommand, ApiResponse<List<GetAssetResponseDTO>>>
     {
         private readonly IMapper _mapper;

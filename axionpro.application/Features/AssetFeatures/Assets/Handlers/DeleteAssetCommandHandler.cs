@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using axionpro.application.Constants;
-using axionpro.application.Features.AssetFeatures.Assets.Commands;
+using axionpro.application.DTOS.AssetDTO.asset;
 using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
 using MediatR;
@@ -11,6 +11,16 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
 {
+    public class DeleteAssetCommand : IRequest<ApiResponse<bool>>
+    {
+        public DeleteAssetReqestDTO DTO { get; set; }
+
+        public DeleteAssetCommand(DeleteAssetReqestDTO dto)
+        {
+            DTO = dto;
+        }
+
+    }
     /// <summary>
     /// Handles the soft deletion of an Asset.
     /// </summary>
