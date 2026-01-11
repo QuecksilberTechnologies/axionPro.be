@@ -7,7 +7,7 @@ using axionpro.persistance;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Serilog;
 using Serilog.Events;
 using System.Text;
@@ -97,7 +97,7 @@ try
             Version = "1.0"
         });
 
-        c.SchemaFilter<NullSchemaFilter>();
+        //c.SchemaFilter<NullSchemaFilter>();
 
         c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
         {
