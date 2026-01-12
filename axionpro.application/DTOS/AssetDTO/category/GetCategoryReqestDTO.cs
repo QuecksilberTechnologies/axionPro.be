@@ -1,4 +1,5 @@
-﻿using axionpro.application.DTOS.Pagination;
+﻿using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Pagination;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +10,9 @@ namespace axionpro.application.DTOS.AssetDTO.category
 {
     public class GetCategoryReqestDTO 
     {
-        public int Id { get; set; }
-        public long TenantId { get; set; }
-        public int RoleId { get; set; }       
+        public int Id { get; set; }        
         public bool? IsActive { get; set; }
+        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
 
     }
 }

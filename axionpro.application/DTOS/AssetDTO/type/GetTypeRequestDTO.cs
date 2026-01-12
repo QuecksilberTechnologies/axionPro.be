@@ -1,4 +1,5 @@
-﻿using axionpro.application.DTOS.Pagination;
+﻿using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Pagination;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,24 +13,8 @@ namespace axionpro.application.DTOS.AssetDTO.type
     /// </summary>
     public class GetTypeRequestDTO : BaseRequest
     {
-        /// <summary>
-        /// The unique identifier of the employee requesting the data.
-        /// This field is mandatory.
-        /// </summary>
-        public required long EmployeeId { get; set; }
-
-        /// <summary>
-        /// The tenant identifier used to filter data belonging to a specific tenant (organization or client).
-        /// This field is mandatory.
-        /// </summary>
-        public required long TenantId { get; set; }
-
-        /// <summary>
-        /// The role identifier representing the user's role context for the request.
-        /// This field is mandatory.
-        /// </summary>
-        public required int RoleId { get; set; }
-
+       
+      
         /// <summary>
         /// If provided, the data will be filtered by the specified TypeId.
         /// Use this to fetch a specific Asset Type record.
@@ -48,6 +33,8 @@ namespace axionpro.application.DTOS.AssetDTO.type
         /// This field is mandatory.
         /// </summary>
         public bool? IsActive { get; set; }
+
+        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
     }
 
 }

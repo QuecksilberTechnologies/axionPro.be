@@ -20,6 +20,7 @@ namespace axionpro.application.DTOS.AssetDTO.type
         public DateTime? AddedDateTime { get; set; }
         public long? UpdatedById { get; set; }
         public DateTime? UpdatedDateTime { get; set; }
+       
 
 
 

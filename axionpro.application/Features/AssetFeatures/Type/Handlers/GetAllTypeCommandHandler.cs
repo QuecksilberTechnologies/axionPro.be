@@ -1,70 +1,145 @@
 ﻿using AutoMapper;
-using axionpro.application.Constants;
 using axionpro.application.DTOS.AssetDTO.type;
-using axionpro.application.Features.AssetFeatures.Type.Commands;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace axionpro.application.Features.AssetFeatures.Type.Handlers
 {
-    public class GetAllTypeCommandHandler : IRequestHandler<GetAllTypeCommand, ApiResponse<List<GetTypeResponseDTO>>>
-
+    public class GetAllTypeCommand
+        : IRequest<ApiResponse<List<GetTypeResponseDTO>>>
     {
-        private readonly IMapper _mapper;
+        public GetTypeRequestDTO DTO { get; set; }
+
+        public GetAllTypeCommand(GetTypeRequestDTO dto)
+        {
+            DTO = dto;
+        }
+    }
+
+    /// <summary>
+    /// Handles fetching all Asset Types for a given tenant.
+    /// </summary>
+    public class GetAllTypeCommandHandler
+        : IRequestHandler<GetAllTypeCommand, ApiResponse<List<GetTypeResponseDTO>>>
+    {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
         private readonly ILogger<GetAllTypeCommandHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
+        private readonly IPermissionService _permissionService;
 
         public GetAllTypeCommandHandler(
-            IMapper mapper,
             IUnitOfWork unitOfWork,
-            ILogger<GetAllTypeCommandHandler> logger)
+            IMapper mapper,
+            ILogger<GetAllTypeCommandHandler> logger,
+            ICommonRequestService commonRequestService,
+            IPermissionService permissionService)
         {
-            _mapper = mapper;
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
             _logger = logger;
+            _commonRequestService = commonRequestService;
+            _permissionService = permissionService;
         }
 
-        public async Task<ApiResponse<List<GetTypeResponseDTO>>> Handle( GetAllTypeCommand request,   CancellationToken cancellationToken)
+        public async Task<ApiResponse<List<GetTypeResponseDTO>>> Handle(
+            GetAllTypeCommand request,
+            CancellationToken cancellationToken)
         {
             try
             {
-                if (request.DTO == null || request.DTO.TenantId == null || request.DTO.TenantId <= 0)
+                _logger.LogInformation("Fetching all Asset Types");
+
+                // ===============================
+                // 1️⃣ COMMON VALIDATION (MANDATORY)
+                // ===============================
+                var validation =
+                    await _commonRequestService.ValidateRequestAsync();
+
+                if (!validation.Success)
+                    return ApiResponse<List<GetTypeResponseDTO>>
+                        .Fail(validation.ErrorMessage);
+
+                // Assign decoded values
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
+
+                // ===============================
+                // 2️⃣ PERMISSION CHECK (OPTIONAL)
+                // ===============================
+                var permissions =
+                    await _permissionService.GetPermissionsAsync(validation.RoleId);
+
+                // if (!permissions.Contains("ViewAssetType"))
+                // {
+                //     return ApiResponse<List<GetTypeResponseDTO>>
+                //         .Fail("You do not have permission to view asset types.");
+                // }
+
+                // ===============================
+                // 3️⃣ FETCH FROM REPOSITORY
+                // ===============================
+                var typeEntities =
+                    await _unitOfWork.AssetTypeRepository
+                        .GetAllAsync(request.DTO);
+
+                if (typeEntities == null || typeEntities.Count == 0)
                 {
-                    _logger.LogWarning("⚠️ Invalid request received for GetAllAssetTypeByTenantCommand.");
-                    return ApiResponse<List<GetTypeResponseDTO>>.Fail("Invalid request or TenantId.");
+                    _logger.LogWarning(
+                        "No Asset Types found for TenantId: {TenantId}",
+                        request.DTO.Prop.TenantId);
+
+                    return new ApiResponse<List<GetTypeResponseDTO>>
+                    {
+                        IsSucceeded = false,
+                        Message = "No Asset Types found.",
+                        Data = new List<GetTypeResponseDTO>()
+                    };
                 }
 
-                _logger.LogInformation("🚀 Fetching all Asset Types for TenantId: {TenantId}", request.DTO.TenantId);
+                // ===============================
+                // 4️⃣ MAP ENTITY → DTO
+                // ===============================
+                var responseDTOs =
+                    _mapper.Map<List<GetTypeResponseDTO>>(typeEntities);
 
-                // Repository call to get list of Asset Types (with join to AssetCategory if needed)
-                List<GetTypeResponseDTO> assetTypeList = await _unitOfWork.AssetTypeRepository.GetAllAsync(request.DTO);
+                _logger.LogInformation(
+                    "Successfully retrieved {Count} Asset Types for TenantId: {TenantId}",
+                    responseDTOs.Count,
+                    request.DTO.Prop.TenantId);
 
-                if (assetTypeList == null || !assetTypeList.Any())
+                // ===============================
+                // 5️⃣ RETURN RESPONSE
+                // ===============================
+                return new ApiResponse<List<GetTypeResponseDTO>>
                 {
-                    _logger.LogWarning("⚠️ No Asset Types found for TenantId: {TenantId}", request.DTO.TenantId);
-                    return ApiResponse<List<GetTypeResponseDTO>>.Fail("No Asset Types found.");
-                }
-
-                _logger.LogInformation("✅ Fetched {Count} Asset Types for TenantId: {TenantId}", assetTypeList.Count, request.DTO.TenantId);
-
-                return ApiResponse<List<GetTypeResponseDTO>>.Success(assetTypeList, "Asset Types fetched successfully.");
+                    IsSucceeded = true,
+                    Message = "Asset Types fetched successfully.",
+                    Data = responseDTOs
+                };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error occurred while fetching Asset Types for TenantId: {TenantId}", request.DTO.TenantId);
-                return ApiResponse<List<GetTypeResponseDTO>>.Fail($"Error occurred: {ex.Message}");
+                _logger.LogError(
+                    ex,
+                    "Error occurred while fetching Asset Types for TenantId: {TenantId}",
+                    request.DTO?.Prop?.TenantId);
+
+                return new ApiResponse<List<GetTypeResponseDTO>>
+                {
+                    IsSucceeded = false,
+                    Message = "An unexpected error occurred while fetching asset types.",
+                    Data = null
+                };
             }
         }
-
-
     }
-
 }

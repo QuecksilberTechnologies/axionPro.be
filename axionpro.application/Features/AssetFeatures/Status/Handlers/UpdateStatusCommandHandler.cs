@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
-using axionpro.application.Features.AssetFeatures.Status.Commands;
+using axionpro.application.DTOS.AssetDTO.status;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
@@ -13,30 +15,65 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.Features.AssetFeatures.Status.Handlers
 {
+    public class UpdateStatusCommand : IRequest<ApiResponse<bool>>
+    {
+        public UpdateStatusRequestDTO DTO { get; set; }
+
+        public UpdateStatusCommand(UpdateStatusRequestDTO dTO)
+        {
+            this.DTO = dTO;
+        }
+
+    }
     public class UpdateStatusCommandHandler : IRequestHandler<UpdateStatusCommand, ApiResponse<bool>>
     {
-        private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<UpdateStatusCommandHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
+        private readonly IPermissionService _permissionService;
 
         public UpdateStatusCommandHandler(
-            IMapper mapper,
             IUnitOfWork unitOfWork,
-            ILogger<UpdateStatusCommandHandler> logger)
+            ILogger<UpdateStatusCommandHandler> logger,
+            ICommonRequestService commonRequestService,
+            IPermissionService permissionService)
         {
-            _mapper = mapper;
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _commonRequestService = commonRequestService;
+            _permissionService = permissionService;
         }
 
         public async Task<ApiResponse<bool>> Handle(UpdateStatusCommand request, CancellationToken cancellationToken)
         {
             try
             {
-                // DTO ko Entity mein map karein
+                // ===============================
+                // 1️⃣ COMMON VALIDATION
+                // ===============================
 
-               // request.DTO.IsActive = request.DTO.IsActive ?? false;
-               
+                var validation = await _commonRequestService.ValidateRequestAsync();
+                if (!validation.Success)
+                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
+
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
+
+                // ===============================
+                // 2️⃣ BASIC INPUT CHECK
+                // ===============================
+                if (request.DTO == null || request.DTO.Id <= 0)
+                    return ApiResponse<bool>.Fail("Invalid Status Id.");
+
+                // ===============================
+                // 3️⃣ PERMISSION (OPTIONAL)
+                // ===============================
+                var permissions =
+                    await _permissionService.GetPermissionsAsync(validation.RoleId);
+
+                // if (!permissions.Contains("DeleteAssetCategory"))
+                //     return ApiResponse<bool>.Fail("Permission denied.");
+
                 var isUpdated = await _unitOfWork.AssetStatusRepository.UpdateAsync(request.DTO);
                
                  if(!isUpdated)

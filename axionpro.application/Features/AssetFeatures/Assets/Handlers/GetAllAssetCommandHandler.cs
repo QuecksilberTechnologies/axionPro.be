@@ -1,98 +1,131 @@
 ﻿using AutoMapper;
 using axionpro.application.DTOS.AssetDTO.asset;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
 {
-    public class GetAllAssetCommand : IRequest<ApiResponse<List<GetAssetResponseDTO>>>
+    public class GetAllAssetCommand
+        : IRequest<ApiResponse<List<GetAssetResponseDTO>>>
     {
         public GetAssetRequestDTO DTO { get; set; }
 
-        public GetAllAssetCommand(GetAssetRequestDTO dTO)
+        public GetAllAssetCommand(GetAssetRequestDTO dto)
         {
-            DTO = dTO;
+            DTO = dto;
         }
     }
-    public class GetAllAssetCommandHandler : IRequestHandler<GetAllAssetCommand, ApiResponse<List<GetAssetResponseDTO>>>
+
+    /// <summary>
+    /// Handles fetching all Assets for a given tenant.
+    /// </summary>
+    public class GetAllAssetCommandHandler
+        : IRequestHandler<GetAllAssetCommand, ApiResponse<List<GetAssetResponseDTO>>>
     {
-        private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
         private readonly ILogger<GetAllAssetCommandHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
+        private readonly IPermissionService _permissionService;
 
-        public GetAllAssetCommandHandler(IMapper mapper, IUnitOfWork unitOfWork, ILogger<GetAllAssetCommandHandler> logger)
+        public GetAllAssetCommandHandler(
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            ILogger<GetAllAssetCommandHandler> logger,
+            ICommonRequestService commonRequestService,
+            IPermissionService permissionService)
         {
-            _mapper = mapper;
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
             _logger = logger;
+            _commonRequestService = commonRequestService;
+            _permissionService = permissionService;
         }
-        public async Task<ApiResponse<List<GetAssetResponseDTO>>> Handle(GetAllAssetCommand request, CancellationToken cancellationToken)
+
+        public async Task<ApiResponse<List<GetAssetResponseDTO>>> Handle(
+            GetAllAssetCommand request,
+            CancellationToken cancellationToken)
         {
-            // 🧩 Step 1: Validate input
-            if (request?.DTO == null)
-            {
-                _logger.LogWarning("⚠️ GetAllAssetByTenantCommand received with null DTO.");
-                return new ApiResponse<List<GetAssetResponseDTO>>
-                {
-                    IsSucceeded = false,
-                    Message = "Invalid request. DTO cannot be null.",
-                    Data = new List<GetAssetResponseDTO>()
-                };
-            }
-
-            if (request.DTO.TenantId <= 0)
-            {
-                _logger.LogWarning("⚠️ Invalid TenantId provided: {TenantId}", request.DTO.TenantId);
-                return new ApiResponse<List<GetAssetResponseDTO>>
-                {
-                    IsSucceeded = false,
-                    Message = "Invalid TenantId provided.",
-                    Data = new List<GetAssetResponseDTO>()
-                };
-            }
-           
-
-
             try
             {
-                // 🧩 Step 2: Fetch data from repository
-                var assets = await _unitOfWork.AssetRepository.GetAssetsByFilterAsync(request.DTO);
-                //    request.DTO.TenantId, isActiveFilter
-                //);
-               
-                // 🧩 Step 3: Check if no assets found
-                if (assets == null  || !assets.Any())
+                _logger.LogInformation("Fetching all Assets");
+
+                // ===============================
+                // 1️⃣ COMMON VALIDATION (MANDATORY)
+                // ===============================
+                var validation =
+                    await _commonRequestService.ValidateRequestAsync();
+
+                if (!validation.Success)
+                    return ApiResponse<List<GetAssetResponseDTO>>
+                        .Fail(validation.ErrorMessage);
+
+                // Assign decoded values
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
+
+                // ===============================
+                // 2️⃣ PERMISSION CHECK (OPTIONAL)
+                // ===============================
+                var permissions =
+                    await _permissionService.GetPermissionsAsync(validation.RoleId);
+
+                // if (!permissions.Contains("ViewAsset"))
+                // {
+                //     return ApiResponse<List<GetAssetResponseDTO>>
+                //         .Fail("You do not have permission to view assets.");
+                // }
+
+                // ===============================
+                // 3️⃣ FETCH FROM REPOSITORY
+                // ===============================
+                var assets =
+                    await _unitOfWork.AssetRepository
+                        .GetAssetsByFilterAsync(request.DTO);
+
+                if (assets == null || assets.Count == 0)
                 {
-                    _logger.LogInformation("ℹ️ No assets found for TenantId: {TenantId}", request.DTO.TenantId);
+                    _logger.LogInformation(
+                        "No Assets found for TenantId: {TenantId}",
+                        request.DTO.Prop.TenantId);
+
                     return new ApiResponse<List<GetAssetResponseDTO>>
                     {
                         IsSucceeded = true,
-                        Message = "No assets found for this tenant.",
+                        Message = "No assets found.",
                         Data = new List<GetAssetResponseDTO>()
                     };
                 }
 
-                // 🧩 Step 4: Return success response
-                  _logger.LogInformation("✅ Retrieved {Count} assets for TenantId: {TenantId}", assets.Count, request.DTO.TenantId);
+                _logger.LogInformation(
+                    "Successfully retrieved {Count} assets for TenantId: {TenantId}",
+                    assets.Count,
+                    request.DTO.Prop.TenantId);
+
+                // ===============================
+                // 4️⃣ RETURN RESPONSE
+                // ===============================
                 return new ApiResponse<List<GetAssetResponseDTO>>
                 {
                     IsSucceeded = true,
                     Message = "Assets fetched successfully.",
-                    Data =  assets
+                    Data = assets
                 };
             }
             catch (Exception ex)
             {
-                // 🧩 Step 5: Handle exception
-                _logger.LogError(ex, "❌ Error occurred while fetching assets for TenantId: {TenantId}", request?.DTO?.TenantId);
+                _logger.LogError(
+                    ex,
+                    "Error occurred while fetching assets for TenantId: {TenantId}",
+                    request?.DTO?.Prop?.TenantId);
 
                 return new ApiResponse<List<GetAssetResponseDTO>>
                 {
@@ -102,8 +135,5 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
                 };
             }
         }
-
-
-
     }
 }

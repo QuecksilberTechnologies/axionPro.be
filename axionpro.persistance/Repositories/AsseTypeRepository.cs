@@ -4,6 +4,7 @@ using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace axionpro.persistance.Repositories
 {
+
     public class AssetTypeRepository : IAssetTypeRepository
     {
         private readonly WorkforceDbContext _context;
@@ -33,59 +35,55 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                // ✅ Step 1: Validation
-                if (dto == null)
-                {
-                    _logger.LogWarning("AddAsync called with null DTO.");
-                    throw new ArgumentNullException(nameof(dto), "Request object cannot be null.");
-                }
-
-                if (dto.TenantId <= 0)
-                {
-                    _logger.LogWarning("Invalid TenantId provided: {TenantId}", dto.TenantId);
-                    throw new ArgumentException("TenantId must be greater than zero.");
-                }
+                              
 
                 if (string.IsNullOrWhiteSpace(dto.TypeName))
                 {
-                    _logger.LogWarning("Asset Type name is missing for TenantId: {TenantId}", dto.TenantId);
+                    _logger.LogWarning("Asset Type name is missing for TenantId: {TenantId}", dto.Prop.TenantId);
                     throw new ArgumentException("TypeName is required.");
                 }
-
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
-                _logger.LogInformation("Adding new Asset Type '{TypeName}' for TenantId: {TenantId}", dto.TypeName, dto.TenantId);
+                _logger.LogInformation("Adding new Asset Type '{TypeName}' for TenantId: {TenantId}", dto.TypeName, dto.Prop.TenantId);
 
                 // ✅ Step 2: Duplicate check
-                var existingType = await context.AssetTypes
+                var existingType = await _context.AssetTypes
                     .FirstOrDefaultAsync(t =>
-                        t.TenantId == dto.TenantId &&
+                        t.TenantId == dto.Prop.TenantId &&
                         t.TypeName.ToLower() == dto.TypeName.ToLower() &&
                         (t.IsSoftDeleted == null || t.IsSoftDeleted == false));
 
                 if (existingType != null)
                 {
                     _logger.LogWarning("Duplicate Asset Type detected for TenantId: {TenantId}, TypeName: {TypeName}",
-                        dto.TenantId, dto.TypeName);
+                        dto.Prop.TenantId, dto.TypeName);
 
                     throw new InvalidOperationException($"Asset Type '{dto.TypeName}' already exists for this tenant.");
                 }
+                // ✅ Entity creation (DB ONLY)
+                var entity = new AssetType
+                {
+                    TenantId = dto.Prop.TenantId,
+                    AssetCategoryId = dto.AssetCategoryId,
+                    TypeName = dto.TypeName,
+                    Description = dto.Description?.Trim(),
+                    IsActive = dto.IsActive,
+                    IsSoftDeleted = false,
+                    AddedById = dto.Prop.UserEmployeeId,
+                    AddedDateTime = DateTime.UtcNow
+                };
 
-                // ✅ Step 3: Map DTO → Entity
-                var newType = _mapper.Map<AssetType>(dto);
-                newType.IsSoftDeleted = false;
-                newType.AddedDateTime = DateTime.UtcNow;
-                newType.AddedById = dto.EmployeeId;
+
+               
+                 
 
                 // ✅ Step 4: Insert into DB
-                await context.AssetTypes.AddAsync(newType);
-                await context.SaveChangesAsync();
+                await _context.AssetTypes.AddAsync(entity);
+                await _context.SaveChangesAsync();
 
-                _logger.LogInformation("✅ Asset Type added successfully with Id: {Id}", newType.Id);
+                _logger.LogInformation("✅ Asset Type added successfully with Id: {Id}", entity.Id);
 
                 // ✅ Step 5: Return all active types (for the same Tenant)
-                var allTypes = await context.AssetTypes
-                    .Where(x => x.TenantId == dto.TenantId && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
+                var allTypes = await _context.AssetTypes
+                    .Where(x => x.TenantId == dto.Prop.TenantId && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
                     .OrderByDescending(x => x.Id)
                     .ToListAsync();
 
@@ -108,7 +106,7 @@ namespace axionpro.persistance.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error occurred while adding Asset Type for TenantId: {TenantId}", dto?.TenantId);
+                _logger.LogError(ex, "Unexpected error occurred while adding Asset Type for TenantId: {TenantId}", dto?.Prop.TenantId);
                 throw new Exception("An unexpected error occurred while adding Asset Type.", ex);
             }
         }
@@ -148,7 +146,7 @@ namespace axionpro.persistance.Repositories
                 // ✅ Step 3: Soft delete (mark as deleted instead of removing)
                 existingType.IsSoftDeleted = true;
                 existingType.IsActive = false;
-                existingType.SoftDeletedById = dto.EmployeeId;
+                existingType.SoftDeletedById = dto.Prop.EmployeeId;
                 existingType.DeletedDateTime = DateTime.UtcNow;
 
                 // ✅ Step 4: Save changes
@@ -183,14 +181,13 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
+               
                 _logger.LogInformation("Fetching Asset Types with applied filters...");
 
                 // ✅ Include related AssetCategory
-                IQueryable<AssetType> query = context.AssetTypes
+                IQueryable<AssetType> query = _context.AssetTypes
                     .Include(x => x.AssetCategory)
-                    .Where(x => x.IsSoftDeleted != true && x.TenantId == dto.TenantId);
+                    .Where(x => x.IsSoftDeleted != true && x.TenantId == dto.Prop.TenantId);
 
                 // 🔹 Apply Filters
                 if (dto?.TypeId is > 0)
@@ -225,23 +222,23 @@ namespace axionpro.persistance.Repositories
                 if (!result.Any())
                 {
                     _logger.LogWarning("No Asset Types found for given filters (TenantId: {TenantId}, TypeId: {TypeId}, CategoryId: {CategoryId}).",
-                        dto?.TenantId, dto?.TypeId, dto?.CategoryId);
+                        dto?.Prop.TenantId, dto?.TypeId, dto?.CategoryId);
                     return new List<GetTypeResponseDTO>();
                 }
 
-                _logger.LogInformation("Fetched {Count} Asset Types for TenantId: {TenantId}.", result.Count, dto?.TenantId);
+                _logger.LogInformation("Fetched {Count} Asset Types for TenantId: {TenantId}.", result.Count, dto?.Prop.TenantId);
                 return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while fetching Asset Types for TenantId: {TenantId}.", dto?.TenantId);
+                _logger.LogError(ex, "Error occurred while fetching Asset Types for TenantId: {TenantId}.", dto?.Prop.TenantId);
                 throw new Exception("An unexpected error occurred while fetching Asset Types.", ex);
             }
         }
 
         public async Task<bool> UpdateAsync(UpdateTypeRequestDTO? dto)
         {
-            await using var context = await _contextFactory.CreateDbContextAsync();
+           // await using var _context = await _contextFactory.CreateDbContextAsync();
 
             try
             {
@@ -261,7 +258,7 @@ namespace axionpro.persistance.Repositories
                 _logger.LogInformation("Attempting to update Asset Type with Id: {Id}", dto.Id);
 
                 // Step 2️⃣: Fetch the existing entity
-                var existingType = await context.AssetTypes
+                var existingType = await _context.AssetTypes
                     .FirstOrDefaultAsync(x => x.Id == dto.Id && (x.IsSoftDeleted == null || x.IsSoftDeleted == false));
 
                 if (existingType == null)
@@ -280,14 +277,14 @@ namespace axionpro.persistance.Repositories
                     existingType.IsActive = dto.IsActive.Value;
                 }
 
-                existingType.UpdatedById = dto.EmployeeId;
+                existingType.UpdatedById = dto.Prop.EmployeeId;
                 existingType.UpdatedDateTime = DateTime.UtcNow;
 
                 // Step 4️⃣: Save changes within transaction
-                using var transaction = await context.Database.BeginTransactionAsync();
-                context.AssetTypes.Update(existingType);
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                _context.AssetTypes.Update(existingType);
 
-                var result = await context.SaveChangesAsync();
+                var result = await _context.SaveChangesAsync();
                 if (result > 0)
                 {
                     await transaction.CommitAsync();

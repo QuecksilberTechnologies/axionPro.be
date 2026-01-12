@@ -16,7 +16,7 @@ namespace axionpro.application.Interfaces.IRepositories
 
 
         #region asset
-        Task  Update(Asset asset);
+        Task UpdateAsync(Asset asset);
         Task AddAsync(Asset asset);
       
         // All assets

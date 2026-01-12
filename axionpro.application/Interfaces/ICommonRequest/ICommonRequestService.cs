@@ -13,6 +13,7 @@ namespace axionpro.application.Interfaces.ICommonRequest
         public interface ICommonRequestService
         {
             Task<CommonDecodedResult> ValidateRequestAsync(string encodedUserId);
+            Task<CommonDecodedResult> ValidateRequestAsync();
         }
 
     

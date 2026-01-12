@@ -1,108 +1,107 @@
-﻿using AutoMapper;
- 
-using axionpro.application.Features.AssetFeatures.Category.Commands;
-using axionpro.application.Interfaces;
-using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
-using MediatR;
+﻿using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using axionpro.application.DTOS.AssetDTO.category;
+using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IPermission;
+using axionpro.application.Wrappers;
 
 namespace axionpro.application.Features.AssetFeatures.Category.Handlers
 {
-    public class DeleteCategoryCommandHandler : IRequestHandler<DeleteCategoryCommand, ApiResponse<bool>>
+    public class DeleteCategoryCommand
+        : IRequest<ApiResponse<bool>>
     {
-        private readonly IMapper _mapper;
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly ILogger<DeleteCategoryCommandHandler> _logger;
+        public DeleteCategoryReqestDTO DTO { get; set; }
 
-        public DeleteCategoryCommandHandler(
-            IMapper mapper,
-            IUnitOfWork unitOfWork,
-            ILogger<DeleteCategoryCommandHandler> logger)
+        public DeleteCategoryCommand(DeleteCategoryReqestDTO dto)
         {
-            _mapper = mapper;
-            _unitOfWork = unitOfWork;
-            _logger = logger;
-        }
-
-        public async Task<ApiResponse<bool>> Handle(DeleteCategoryCommand request, CancellationToken cancellationToken)
-        {
-            try
-            {
-                // ✅ Step 1: Basic validation
-                if (request == null || request.DTO == null)
-                {
-                    _logger.LogWarning("⚠️ DeleteStatusByTenantCommand or its DTO is null.");
-                    return new ApiResponse<bool>
-                    {
-                        IsSucceeded = false,
-                        Message = "❌ Invalid request. Data cannot be null.",
-                        Data = false
-                    };
-                }
-
-                if (request.DTO.TenantId <= 0 || request.DTO.Id <= 0)
-                {
-                    _logger.LogWarning("⚠️ Invalid TenantId or StatusId received. TenantId: {TenantId}, Id: {Id}",
-                        request.DTO.TenantId, request.DTO.Id);
-
-                    return new ApiResponse<bool>
-                    {
-                        IsSucceeded = false,
-                        Message = "❌ Invalid TenantId or StatusId.",
-                        Data = false
-                    };
-                }
-
-                _logger.LogInformation("🗑️ Deleting AssetStatus Id: {Id} for TenantId: {TenantId}",
-                    request.DTO.Id, request.DTO.TenantId);
-
-                // ✅ Step 2: Repository call
-                bool isDeleted = await _unitOfWork.AssetCategoryRepository.DeleteAsync(request.DTO);
-
-                // ✅ Step 3: Check result
-                if (!isDeleted)
-                {
-                    _logger.LogWarning("⚠️ AssetStatus delete failed. Record not found. Id: {Id}, TenantId: {TenantId}",
-                        request.DTO.Id, request.DTO.TenantId);
-
-                    return new ApiResponse<bool>
-                    {
-                        IsSucceeded = false,
-                        Message = "⚠️ Delete failed. Record not found or already deleted.",
-                        Data = false
-                    };
-                }
-
-                // ✅ Step 4: Return success
-                _logger.LogInformation("✅ AssetStatus deleted successfully. Id: {Id}, TenantId: {TenantId}",
-                    request.DTO.Id, request.DTO.TenantId);
-
-                return new ApiResponse<bool>
-                {
-                    IsSucceeded = true,
-                    Message = "✅ Asset Status deleted successfully.",
-                    Data = true
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error occurred while deleting Asset Status. TenantId: {TenantId}, Id: {Id}",
-                    request.DTO?.TenantId, request.DTO?.Id);
-
-                return new ApiResponse<bool>
-                {
-                    IsSucceeded = false,
-                    Message = $"❌ Something went wrong while deleting Asset Status: {ex.Message}",
-                    Data = false
-                };
-            }
+            DTO = dto;
         }
     }
 
+    /// <summary>
+    /// Handles delete of Asset Category (IDEAL PATTERN)
+    /// Repo is single source of truth
+    /// </summary>
+    public class DeleteCategoryCommandHandler
+        : IRequestHandler<DeleteCategoryCommand, ApiResponse<bool>>
+    {
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger<DeleteCategoryCommandHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
+        private readonly IPermissionService _permissionService;
+
+        public DeleteCategoryCommandHandler(
+            IUnitOfWork unitOfWork,
+            ILogger<DeleteCategoryCommandHandler> logger,
+            ICommonRequestService commonRequestService,
+            IPermissionService permissionService)
+        {
+            _unitOfWork = unitOfWork;
+            _logger = logger;
+            _commonRequestService = commonRequestService;
+            _permissionService = permissionService;
+        }
+
+        public async Task<ApiResponse<bool>> Handle(
+            DeleteCategoryCommand request,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                _logger.LogInformation("Deleting Asset Category");
+
+                // ===============================
+                // 1️⃣ COMMON VALIDATION
+                // ===============================
+                var validation = await _commonRequestService.ValidateRequestAsync();
+                if (!validation.Success)
+                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
+
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
+
+                // ===============================
+                // 2️⃣ BASIC INPUT CHECK
+                // ===============================
+                if (request.DTO == null || request.DTO.Id <= 0)
+                    return ApiResponse<bool>.Fail("Invalid Category Id.");
+
+                // ===============================
+                // 3️⃣ PERMISSION (OPTIONAL)
+                // ===============================
+                var permissions =
+                    await _permissionService.GetPermissionsAsync(validation.RoleId);
+
+                // if (!permissions.Contains("DeleteAssetCategory"))
+                //     return ApiResponse<bool>.Fail("Permission denied.");
+
+                // ===============================
+                // 4️⃣ DELETE (REPO DECIDES RESULT)
+                // ===============================
+                bool deleted =
+                    await _unitOfWork.AssetCategoryRepository
+                        .DeleteAsync(request.DTO);
+
+                if (!deleted)
+                    return ApiResponse<bool>.Fail(
+                        "Delete failed. Record may not exist or already deleted.");
+
+                _logger.LogInformation(
+                    "Asset Category deleted successfully | CategoryId={Id} | TenantId={TenantId}",
+                    request.DTO.Id,
+                    request.DTO.Prop.TenantId);
+
+                return ApiResponse<bool>
+                    .Success(true, "Asset Category deleted successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Delete Asset Category failed");
+
+                return ApiResponse<bool>
+                    .Fail("Unexpected error while deleting asset category.");
+            }
+        }
+    }
 }

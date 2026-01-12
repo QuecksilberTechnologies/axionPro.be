@@ -1,9 +1,17 @@
 ﻿using AutoMapper;
 using axionpro.application.DTOS.AssetDTO.category;
-using axionpro.application.Features.AssetFeatures.Category.Commands;
+using axionpro.application.DTOS.Employee.BaseEmployee;
+using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IEmail;
+using axionpro.application.Interfaces.IEncryptionService;
+using axionpro.application.Interfaces.IPermission;
+using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using MediatR;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -12,24 +20,56 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.Features.AssetFeatures.Category.Handlers
 {
+    public class GetAllCategoryCommand : IRequest<ApiResponse<List<GetCategoryResponseDTO>>>
+    {
+        public GetCategoryReqestDTO DTO { get; set; }
+
+        public GetAllCategoryCommand(GetCategoryReqestDTO dto)
+        {
+            DTO = dto;
+        }
+    }
     /// <summary>
     /// Handles fetching all Asset Categories for a given tenant.
     /// </summary>
     public class GetAllCategoryCommandHandler
         : IRequestHandler<GetAllCategoryCommand, ApiResponse<List<GetCategoryResponseDTO>>>
     {
-        private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
         private readonly ILogger<GetAllCategoryCommandHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
+        private readonly IPermissionService _permissionService;
+        private readonly IIdEncoderService _idEncoderService;
+        private readonly ITokenService _tokenService;
+        private readonly IEmailService _emailService;
+        private readonly IConfiguration _configuration;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IEncryptionService _encryptionService;
 
-        public GetAllCategoryCommandHandler(
+
+        public GetAllCategoryCommandHandler(IUnitOfWork unitOfWork,
             IMapper mapper,
-            IUnitOfWork unitOfWork,
-            ILogger<GetAllCategoryCommandHandler> logger)
+            IHttpContextAccessor httpContextAccessor,
+            ILogger<GetAllCategoryCommandHandler> logger,
+            ITokenService tokenService,
+            IPermissionService permissionService,
+            IConfiguration config,
+            IEncryptionService encryptionService, IIdEncoderService idEncoderService, ICommonRequestService commonRequestService ,
+            IHttpContextAccessor _httpContextAccessor, IEmailService emailService
+)
         {
-            _mapper = mapper;
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
             _logger = logger;
+            _tokenService = tokenService;
+            _permissionService = permissionService;
+            _configuration = config;
+            _encryptionService = encryptionService;
+            _idEncoderService = idEncoderService;
+            _commonRequestService = commonRequestService;
+            _emailService = emailService;
         }
 
         /// <summary>
@@ -41,24 +81,33 @@ namespace axionpro.application.Features.AssetFeatures.Category.Handlers
             {
                 _logger.LogInformation("Fetching all Asset Categories ");
 
-                // ✅ Validation Check
-                if (request.DTO == null || request.DTO.TenantId <= 0)
+                // 1️ COMMON VALIDATION (Mandatory)
+                var validation = await _commonRequestService.ValidateRequestAsync();
+
+                if (!validation.Success)
+                    return ApiResponse<List<GetCategoryResponseDTO>>.Fail(validation.ErrorMessage);
+
+                // Assign decoded values coming from CommonRequestService
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
+
+
+                // ✅ Create  using repository
+                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
+                if (!permissions.Contains("AddBankInfo"))
                 {
-                    _logger.LogWarning("Invalid GetAllCategory request. TenantId is missing or invalid.");
-                    return new ApiResponse<List<GetCategoryResponseDTO>>
-                    {
-                        IsSucceeded = false,
-                        Message = "Invalid request. TenantId is required.",
-                        Data = null
-                    };
+                    //await _unitOfWork.RollbackTransactionAsync();
+                    //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
                 }
+
+
 
                 // ✅ Fetch data from repository
                 var categoryEntities = await _unitOfWork.AssetCategoryRepository.GetAllAsync(request.DTO);
 
                 if (categoryEntities == null || categoryEntities.Count == 0)
                 {
-                    _logger.LogWarning("No Asset Categories found for TenantId: {TenantId}", request.DTO.TenantId);
+                    _logger.LogWarning("No Asset Categories found for TenantId: {TenantId}", request.DTO.Prop.TenantId);
                     return new ApiResponse<List<GetCategoryResponseDTO>>
                     {
                         IsSucceeded = false,
@@ -71,7 +120,7 @@ namespace axionpro.application.Features.AssetFeatures.Category.Handlers
                 var responseDTOs = _mapper.Map<List<GetCategoryResponseDTO>>(categoryEntities);
 
                 _logger.LogInformation("Successfully retrieved {Count} Asset Categories for TenantId: {TenantId}",
-                    responseDTOs.Count, request.DTO.TenantId);
+                    responseDTOs.Count, request.DTO.Prop.TenantId);
 
                 // ✅ Return formatted API response
                 return new ApiResponse<List<GetCategoryResponseDTO>>
@@ -83,7 +132,7 @@ namespace axionpro.application.Features.AssetFeatures.Category.Handlers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while fetching Asset Categories for TenantId: {TenantId}", request.DTO?.TenantId);
+                _logger.LogError(ex, "Error occurred while fetching Asset Categories for TenantId: {TenantId}", request.DTO.Prop.TenantId);
                 return new ApiResponse<List<GetCategoryResponseDTO>>
                 {
                     IsSucceeded = false,

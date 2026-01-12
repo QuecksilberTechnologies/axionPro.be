@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -40,6 +41,53 @@ namespace axionpro.infrastructure.CommonRequest
             _logger = logger;
         }
 
+        // No parameters
+        public async Task<CommonDecodedResult> ValidateRequestAsync()
+        {
+            try
+            {
+                var token = RequestCommonHelper.ExtractBearerToken(_context.HttpContext);
+                if (string.IsNullOrEmpty(token))
+                    return new CommonDecodedResult { Success = false, ErrorMessage = "Token missing." };
+
+                var claims = RequestCommonHelper.ValidateAndExtractClaims(token, _config);
+                if (claims == null)
+                    return new CommonDecodedResult { Success = false, ErrorMessage = "Token expired or invalid." };
+
+                long loggedInId = await _uow.StoreProcedureRepository.ValidateActiveUserLoginOnlyAsync(claims.UserId);
+                if (loggedInId < 1)
+                    return new CommonDecodedResult { Success = false, ErrorMessage = "Inactive user." };
+
+                var tenantId = RequestCommonHelper.DecodeUserAndTenantIds(claims.TenantId!,claims.TenantEncriptionKey!, _encoder );
+
+                var decoded = (UserEmpId: loggedInId, TenantId: tenantId);
+
+                if (decoded.UserEmpId != loggedInId)
+                    return new CommonDecodedResult { Success = false, ErrorMessage = "User mismatch." };
+
+                if (decoded.TenantId <= 0 )
+                {
+                    _logger.LogWarning("❌ Tenant information missing .");
+                    return new CommonDecodedResult { Success = false, ErrorMessage = "TenantId not correct" };
+                }
+
+                return new CommonDecodedResult
+                {
+                    Success = true,
+                    LoggedInEmployeeId = loggedInId,
+                    UserEmployeeId = decoded.UserEmpId,
+                    TenantId = decoded.TenantId,
+                    RoleId = SafeParser.TryParseInt(claims.RoleId),                   
+                    Claims = claims
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "CommonRequestService Error");
+                return new CommonDecodedResult { Success = false, ErrorMessage = "Internal validation error." };
+            }
+        }
+   
         public async Task<CommonDecodedResult> ValidateRequestAsync(string encodedUserId)
         {
             try
@@ -91,6 +139,8 @@ namespace axionpro.infrastructure.CommonRequest
                 return new CommonDecodedResult { Success = false, ErrorMessage = "Internal validation error." };
             }
         }
+   
+    
     }
 
 }

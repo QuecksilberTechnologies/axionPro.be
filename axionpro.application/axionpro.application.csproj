@@ -51,7 +51,10 @@
     <Folder Include="DTOS\NewFolder\" />
     <Folder Include="Enums\" />
     <Folder Include="Features\AssetFeatures\Assets\Queries\" />
+    <Folder Include="Features\AssetFeatures\Category\Commands\" />
     <Folder Include="Features\AssetFeatures\Category\Queries\" />
+    <Folder Include="Features\AssetFeatures\Status\Commands\" />
+    <Folder Include="Features\AssetFeatures\Type\Commands\" />
     <Folder Include="Features\Cmd - Copy\Commands\" />
     <Folder Include="Features\Cmd - Copy\Handlers\" />
     <Folder Include="Features\Cmd - Copy\Queries\" />

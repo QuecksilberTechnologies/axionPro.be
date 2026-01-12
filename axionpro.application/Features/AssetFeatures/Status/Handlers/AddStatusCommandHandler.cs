@@ -1,7 +1,10 @@
 ﻿using AutoMapper;
+using axionpro.application.DTOS.AssetDTO.category;
 using axionpro.application.DTOS.AssetDTO.status;
-using axionpro.application.Features.AssetFeatures.Status.Commands;
+using axionpro.application.Features.AssetFeatures.Category.Handlers;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
@@ -14,83 +17,131 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.Features.AssetFeatures.Status.Handlers
 {
-    public class AddStatusCommandHandler : IRequestHandler<AddStatusCommand, ApiResponse<GetStatusResponseDTO>>
+   
+      public class AddStatusCommand : IRequest<ApiResponse<GetStatusResponseDTO>>
     {
-        private readonly IMapper _mapper;
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly ILogger<AddStatusCommandHandler> _logger;
-        private object entityDto;
+        public CreateStatusRequestDTO DTO { get; set; }
 
-        public AddStatusCommandHandler(
-            IMapper mapper,
-            IUnitOfWork unitOfWork,
-            ILogger<AddStatusCommandHandler> logger)
+        public AddStatusCommand(CreateStatusRequestDTO dTO)
         {
-            _mapper = mapper;
-            _unitOfWork = unitOfWork;
-            _logger = logger;
+            this.DTO = dTO;
         }
 
-        public async Task<ApiResponse<GetStatusResponseDTO>> Handle(AddStatusCommand request, CancellationToken cancellationToken)
+    }
+    public class AddStatusCommandHandler
+     : IRequestHandler<AddStatusCommand, ApiResponse<GetStatusResponseDTO>>
+    {
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
+        private readonly ILogger<AddStatusCommandHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
+        private readonly IPermissionService _permissionService;
+
+        public AddStatusCommandHandler(
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            ILogger<AddStatusCommandHandler> logger,
+            ICommonRequestService commonRequestService,
+            IPermissionService permissionService)
+        {
+            _unitOfWork = unitOfWork;
+            _mapper = mapper;
+            _logger = logger;
+            _commonRequestService = commonRequestService;
+            _permissionService = permissionService;
+        }
+
+        public async Task<ApiResponse<GetStatusResponseDTO>> Handle(
+            AddStatusCommand request,
+            CancellationToken cancellationToken)
         {
             try
             {
-                // ✅ Validate request DTO
+                _logger.LogInformation("Creating Asset Status");
+
+                // ===============================
+                // 1️⃣ COMMON VALIDATION
+                // ===============================
+                var validation =
+                    await _commonRequestService.ValidateRequestAsync();
+
+                if (!validation.Success)
+                    return ApiResponse<GetStatusResponseDTO>
+                        .Fail(validation.ErrorMessage);
+
                 if (request?.DTO == null)
-                {
-                    _logger.LogWarning("AddStatusCommand called with null DTO.");
-                    return new ApiResponse<GetStatusResponseDTO>
-                    {
-                        IsSucceeded = false,
-                        Message = "Invalid request data.",
-                        Data = null
-                    };
-                }
+                    return ApiResponse<GetStatusResponseDTO>
+                        .Fail("Invalid request data.");
 
+                // 🔹 Inject TenantId from token/session
+                request.DTO.Prop.TenantId = validation.TenantId;
+
+                // ===============================
+                // 2️⃣ BUSINESS VALIDATION
+                // ===============================
                 if (string.IsNullOrWhiteSpace(request.DTO.StatusName))
-                {
-                    _logger.LogWarning("StatusName is required.");
-                    return new ApiResponse<GetStatusResponseDTO>
-                    {
-                        IsSucceeded = false,
-                        Message = "StatusName is required.",
-                        Data = null
-                    };
-                }
+                    return ApiResponse<GetStatusResponseDTO>
+                        .Fail("StatusName is required.");
 
-                if (request.DTO.TenantId <= 0)
-                {
-                    _logger.LogWarning("Invalid TenantId: {TenantId}", request.DTO.TenantId);
-                    return new ApiResponse<GetStatusResponseDTO>
-                    {
-                        IsSucceeded = false,
-                        Message = "Invalid TenantId.",
-                        Data = null
-                    };
-                }
+                if (string.IsNullOrWhiteSpace(request.DTO.ColorKey))
+                    return ApiResponse<GetStatusResponseDTO>
+                        .Fail("ColorKey is required.");
 
-                // ✅ Map DTO to Entity & call repository
-                var entityDto = await _unitOfWork.AssetStatusRepository.AddAsync(request.DTO);
+                // ===============================
+                // 3️⃣ PERMISSION CHECK (OPTIONAL)
+                // ===============================
+                var permissions =
+                    await _permissionService.GetPermissionsAsync(validation.RoleId);
 
-                return new ApiResponse<GetStatusResponseDTO>
-                {
-                    IsSucceeded = true,
-                    Message = "Asset Status created successfully.",
-                    Data = entityDto
-                };
+                // if (!permissions.Contains("AddAssetStatus"))
+                //     return ApiResponse<GetStatusResponseDTO>
+                //         .Fail("You do not have permission to add asset status.");
+
+                // ===============================
+                // 4️⃣ MAP DTO → ENTITY
+                // ===============================
+                var entity = _mapper.Map<AssetStatus>(request.DTO);
+
+                entity.TenantId = validation.TenantId;
+                entity.IsActive = true;
+                entity.IsSoftDeleted = false;
+                entity.AddedById = validation.UserEmployeeId;
+                entity.AddedDateTime = DateTime.UtcNow;
+
+                // ===============================
+                // 5️⃣ SAVE
+                // ===============================
+                await _unitOfWork.AssetStatusRepository.AddAsync(entity);
+                await _unitOfWork.CommitAsync();
+
+                _logger.LogInformation(
+                    "✅ Asset Status created successfully. Id: {Id}, TenantId: {TenantId}",
+                    entity.Id, validation.TenantId
+                );
+
+                // ===============================
+                // 6️⃣ MAP ENTITY → RESPONSE DTO
+                // ===============================
+                var response =
+                    _mapper.Map<GetStatusResponseDTO>(entity);
+
+                return ApiResponse<GetStatusResponseDTO>.Success(
+                    response,
+                    "Asset Status created successfully."
+                );
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while adding asset status for TenantId: {TenantId}", request.DTO?.TenantId);
-                return new ApiResponse<GetStatusResponseDTO>
-                {
-                    IsSucceeded = false,
-                    Message = "Something went wrong while adding asset status.",
-                    Data = null
-                };
+                _logger.LogError(
+                    ex,
+                    "❌ Error while creating Asset Status. TenantId: {TenantId}",
+                    request?.DTO?.Prop?.TenantId
+                );
+
+                return ApiResponse<GetStatusResponseDTO>
+                    .Fail("Something went wrong while adding asset status.");
             }
         }
-
     }
 
 }

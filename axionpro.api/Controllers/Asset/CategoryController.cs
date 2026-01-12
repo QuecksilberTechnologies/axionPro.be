@@ -1,6 +1,5 @@
 ﻿using axionpro.application.DTOS.AssetDTO.category;
-using axionpro.application.Features.AssetFeatures.Category.Commands;
-
+using axionpro.application.Features.AssetFeatures.Category.Handlers;
 using axionpro.application.Interfaces.ILogger;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -58,7 +57,7 @@ namespace axionpro.api.Controllers.Asset
             try
             {
                 _logger.LogInfo("Add Asset Category request received.");
-                var command = new AddeCategoryCommand(request);
+                var command = new AddCategoryCommand(request);
                 var result = await _mediator.Send(command);
                 return Ok(result);
             }

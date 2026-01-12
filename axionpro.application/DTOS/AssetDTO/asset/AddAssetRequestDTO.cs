@@ -12,9 +12,8 @@ namespace axionpro.application.DTOS.AssetDTO.asset
 
     public class AddAssetRequestDTO 
     {
-             
-       
-        public string UserEmployeeId { get; set; }
+                    
+        public string? UserEmployeeId { get; set; }
         public string? AssetName { get; set; }
         public int AssetTypeId { get; set; }
         public string? Company { get; set; }

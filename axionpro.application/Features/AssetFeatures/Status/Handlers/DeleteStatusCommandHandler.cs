@@ -1,7 +1,8 @@
 ﻿using AutoMapper;
-
-using axionpro.application.Features.AssetFeatures.Status.Commands;
+using axionpro.application.DTOS.AssetDTO.status;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
@@ -14,62 +15,78 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.Features.AssetFeatures.Status.Handlers
 {
-    public class DeleteCategoryCommandHandler : IRequestHandler<DeleteStatusCommand, ApiResponse<bool>>
+    public class DeleteStatusCommand : IRequest<ApiResponse<bool>>
     {
-        private readonly IMapper _mapper;
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly ILogger<DeleteCategoryCommandHandler> _logger;
+        public DeleteStatusReqestDTO? DTO { get; set; }
 
-        public DeleteCategoryCommandHandler(
-            IMapper mapper,
-            IUnitOfWork unitOfWork,
-            ILogger<DeleteCategoryCommandHandler> logger)
+        public DeleteStatusCommand(DeleteStatusReqestDTO deleteAssetStatusRequest)
         {
-            _mapper = mapper;
+            this.DTO = deleteAssetStatusRequest;
+        }
+    }
+        public class DeleteStatusCommandHandler : IRequestHandler<DeleteStatusCommand, ApiResponse<bool>>
+     {
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger<DeleteStatusCommandHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
+        private readonly IPermissionService _permissionService;
+
+        public DeleteStatusCommandHandler(
+            IUnitOfWork unitOfWork,
+            ILogger<DeleteStatusCommandHandler> logger,
+            ICommonRequestService commonRequestService,
+            IPermissionService permissionService)
+        {
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _commonRequestService = commonRequestService;
+            _permissionService = permissionService;
         }
+
 
         public async Task<ApiResponse<bool>> Handle(DeleteStatusCommand request, CancellationToken cancellationToken)
         {
             try
             {
-                // ✅ Step 1: Basic validation
-                if (request == null || request.deleteAssetStatusRequest == null)
-                {
-                    _logger.LogWarning("⚠️ DeleteStatusByTenantCommand or its DTO is null.");
-                    return new ApiResponse<bool>
-                    {
-                        IsSucceeded = false,
-                        Message = "❌ Invalid request. Data cannot be null.",
-                        Data = false
-                    };
-                }
+                _logger.LogInformation("Deleting Asset Category");
 
-                if (request.deleteAssetStatusRequest.TenantId <= 0 || request.deleteAssetStatusRequest.Id <= 0)
-                {
-                    _logger.LogWarning("⚠️ Invalid TenantId or StatusId received. TenantId: {TenantId}, Id: {Id}",
-                        request.deleteAssetStatusRequest.TenantId, request.deleteAssetStatusRequest.Id);
+                // ===============================
+                // 1️⃣ COMMON VALIDATION
+                // ===============================
+                var validation = await _commonRequestService.ValidateRequestAsync();
+                if (!validation.Success)
+                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
 
-                    return new ApiResponse<bool>
-                    {
-                        IsSucceeded = false,
-                        Message = "❌ Invalid TenantId or StatusId.",
-                        Data = false
-                    };
-                }
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
 
-                _logger.LogInformation("🗑️ Deleting AssetStatus Id: {Id} for TenantId: {TenantId}",
-                    request.deleteAssetStatusRequest.Id, request.deleteAssetStatusRequest.TenantId);
+                // ===============================
+                // 2️⃣ BASIC INPUT CHECK
+                // ===============================
+                if (request.DTO == null || request.DTO.Id <= 0)
+                    return ApiResponse<bool>.Fail("Invalid Category Id.");
+
+                // ===============================
+                // 3️⃣ PERMISSION (OPTIONAL)
+                // ===============================
+                var permissions =
+                    await _permissionService.GetPermissionsAsync(validation.RoleId);
+
+                // if (!permissions.Contains("DeleteAssetCategory"))
+                //     return ApiResponse<bool>.Fail("Permission denied.");
+
+                // ===============================
+                // 4️⃣ DELETE (REPO DECIDES RESULT)
+                // ===============================
 
                 // ✅ Step 2: Repository call
-                bool isDeleted = await _unitOfWork.AssetStatusRepository.DeleteAsync(request.deleteAssetStatusRequest);
+                bool isDeleted = await _unitOfWork.AssetStatusRepository.DeleteAsync(request.DTO);
 
                 // ✅ Step 3: Check result
                 if (!isDeleted)
                 {
                     _logger.LogWarning("⚠️ AssetStatus delete failed. Record not found. Id: {Id}, TenantId: {TenantId}",
-                        request.deleteAssetStatusRequest.Id, request.deleteAssetStatusRequest.TenantId);
+                        request.DTO.Id, request.DTO.Prop.TenantId);
 
                     return new ApiResponse<bool>
                     {
@@ -81,7 +98,7 @@ namespace axionpro.application.Features.AssetFeatures.Status.Handlers
 
                 // ✅ Step 4: Return success
                 _logger.LogInformation("✅ AssetStatus deleted successfully. Id: {Id}, TenantId: {TenantId}",
-                    request.deleteAssetStatusRequest.Id, request.deleteAssetStatusRequest.TenantId);
+                    request.DTO.Id, request.DTO.Prop.TenantId);
 
                 return new ApiResponse<bool>
                 {
@@ -93,7 +110,7 @@ namespace axionpro.application.Features.AssetFeatures.Status.Handlers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error occurred while deleting Asset Status. TenantId: {TenantId}, Id: {Id}",
-                    request.deleteAssetStatusRequest?.TenantId, request.deleteAssetStatusRequest?.Id);
+                    request.DTO?.Prop.TenantId, request.DTO?.Id);
 
                 return new ApiResponse<bool>
                 {

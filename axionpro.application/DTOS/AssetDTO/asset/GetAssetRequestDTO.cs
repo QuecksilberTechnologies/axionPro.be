@@ -1,4 +1,5 @@
-﻿using System;
+﻿using axionpro.application.DTOS.Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,9 +9,8 @@ namespace axionpro.application.DTOS.AssetDTO.asset
 {
     public class GetAssetRequestDTO
     {
-        public long TenantId { get; set; } //mandatory
-        public int RoleId { get; set; }      //mandatory
-        public long EmployeeId { get; set; }//mandatory
+      
+    
         public long? AssetId { get; set; } //optional for search by id
         public int? AssetTypeId { get; set; } //optional for search by asset type
         public string? SerialNumber { get; set; } //optional for search by serial number
@@ -22,6 +22,7 @@ namespace axionpro.application.DTOS.AssetDTO.asset
         public bool? IsAssigned { get; set; } //optional for search by assignment status
         public long?  TypeId { get; set; }  //optional for search by type id
         public bool? IsActive { get; set; }     //optional for search by active status
+        public ExtraPropRequestDTO Prop = new ExtraPropRequestDTO();
 
     }
 }

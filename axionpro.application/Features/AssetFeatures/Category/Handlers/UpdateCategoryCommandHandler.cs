@@ -1,92 +1,106 @@
-﻿using AutoMapper;
-using axionpro.application.Features.AssetFeatures.Category.Commands;
-using axionpro.application.Interfaces;
-using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
-using MediatR;
+﻿using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+using axionpro.application.DTOS.AssetDTO.category;
+using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IPermission;
+using axionpro.application.Wrappers;
 
 namespace axionpro.application.Features.AssetFeatures.Category.Handlers
 {
-    /// <summary>
-    /// Handles the update operation for Asset Category.
-    /// </summary>
-    public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryCommand, ApiResponse<bool>>
+    public class UpdateCategoryCommand
+        : IRequest<ApiResponse<bool>>
     {
-        private readonly IMapper _mapper;
+        public UpdateCategoryReqestDTO DTO { get; set; }
+
+        public UpdateCategoryCommand(UpdateCategoryReqestDTO dto)
+        {
+            DTO = dto;
+        }
+    }
+
+    /// <summary>
+    /// Handles update of Asset Category (IDEAL PATTERN – BOOL RESPONSE)
+    /// </summary>
+    public class UpdateCategoryCommandHandler
+        : IRequestHandler<UpdateCategoryCommand, ApiResponse<bool>>
+    {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<UpdateCategoryCommandHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
+        private readonly IPermissionService _permissionService;
 
         public UpdateCategoryCommandHandler(
-            IMapper mapper,
             IUnitOfWork unitOfWork,
-            ILogger<UpdateCategoryCommandHandler> logger)
+            ILogger<UpdateCategoryCommandHandler> logger,
+            ICommonRequestService commonRequestService,
+            IPermissionService permissionService)
         {
-            _mapper = mapper;
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _commonRequestService = commonRequestService;
+            _permissionService = permissionService;
         }
 
-        /// <summary>
-        /// Handles update request for Asset Category.
-        /// </summary>
-        public async Task<ApiResponse<bool>> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<bool>> Handle(
+            UpdateCategoryCommand request,
+            CancellationToken cancellationToken)
         {
-            bool isUpdated = false;
             try
             {
+                _logger.LogInformation("Updating Asset Category");
 
-                _logger.LogInformation("Updating Asset Category ID: {Id} for TenantId: {TenantId}",
-                    request.DTO.Id, request.DTO.TenantId);
+                // ===============================
+                // 1️⃣ COMMON VALIDATION
+                // ===============================
+                var validation = await _commonRequestService.ValidateRequestAsync();
+                if (!validation.Success)
+                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
 
-                // ✅ Validation check
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
+
+                // ===============================
+                // 2️⃣ INPUT VALIDATION
+                // ===============================
                 if (request.DTO == null || request.DTO.Id <= 0)
-                {
-                    _logger.LogWarning("Invalid update request received. DTO is null or ID is missing.");
-                    return new ApiResponse<bool>
-                    {
-                        IsSucceeded = isUpdated,
-                        Message = "Invalid request. Category ID is required.",
-                        Data = isUpdated
-                    };
-                }
+                    return ApiResponse<bool>.Fail("Invalid Category Id.");
 
-                // ✅ Call repository update
-                var updatedCategory = await _unitOfWork.AssetCategoryRepository.UpdateAsync(request.DTO);
+                if (string.IsNullOrWhiteSpace(request.DTO.CategoryName))
+                    return ApiResponse<bool>.Fail("Category name cannot be empty.");
 
-                if (!updatedCategory)
-                {
-                    _logger.LogWarning("No category found with ID: {Id}", request.DTO.Id);
-                    return new ApiResponse<bool>
-                    {
-                        IsSucceeded = isUpdated,
-                        Message = $"No category found with ID {request.DTO.Id}.",
-                        Data = isUpdated
-                    };
-                }
- 
+                // ===============================
+                // 3️⃣ PERMISSION (OPTIONAL)
+                // ===============================
+                var permissions =
+                    await _permissionService.GetPermissionsAsync(validation.RoleId);
 
-                _logger.LogInformation("✅ Asset Category updated successfully. ID: {Id}", request.DTO.Id);
+                // if (!permissions.Contains("UpdateAssetCategory"))
+                //     return ApiResponse<bool>.Fail("Permission denied.");
 
-                return new ApiResponse<bool>
-                {
-                    IsSucceeded = true,
-                    Message = "Asset Category updated successfully.",
-                    Data = isUpdated
-                };
+          
+                // ===============================
+                // 5️⃣ UPDATE RECORD
+                // ===============================
+                bool updated =
+                    await _unitOfWork.AssetCategoryRepository.UpdateAsync(request.DTO);
+
+                if (!updated)
+                    return ApiResponse<bool>.Fail("Category not found or update failed.");
+
+                _logger.LogInformation(
+                    "Asset Category updated successfully. CategoryId: {Id}, TenantId: {TenantId}",
+                    request.DTO.Id,
+                    request.DTO.Prop.TenantId);
+
+                return ApiResponse<bool>.Success(true, "Asset Category updated successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error occurred while updating asset category ID: {Id}", request.DTO.Id);
-                return new ApiResponse<bool>
-                {
-                    IsSucceeded = false,
-                    Message = "Something went wrong while updating asset category.",
-                    Data = false
-                };
+                _logger.LogError(ex, "Update Asset Category failed");
+
+                return ApiResponse<bool>.Fail(
+                    "Unexpected error while updating asset category.");
             }
         }
     }

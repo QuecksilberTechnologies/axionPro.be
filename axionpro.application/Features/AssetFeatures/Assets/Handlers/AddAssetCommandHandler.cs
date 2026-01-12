@@ -71,8 +71,7 @@ public class AddAssetCommandHandler
             // 1️⃣ COMMON VALIDATION
             // =========================
             var validation =
-                await _commonRequestService.ValidateRequestAsync(
-                    request.DTO.UserEmployeeId);
+                await _commonRequestService.ValidateRequestAsync();
 
             if (!validation.Success)
                 return ApiResponse<PagedResponseDTO<GetAssetResponseDTO>>
@@ -156,7 +155,7 @@ public class AddAssetCommandHandler
             // =========================
             // 7️⃣ UPDATE ASSET (QR + IMAGE PATH)
             // =========================
-            await _unitOfWork.AssetRepository.Update(asset);
+            await _unitOfWork.AssetRepository.UpdateAsync(asset);
 
             // =========================
             // 8️⃣ COMMIT

@@ -1,4 +1,5 @@
-﻿using axionpro.application.DTOS.Pagination;
+﻿using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Pagination;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -14,16 +15,12 @@ namespace axionpro.application.DTOS.AssetDTO.status
     /// </summary>
     public class GetStatusRequestDTO 
     {
-           
-            public long TenantId { get; set; }
-        public long Id { get; set; }
-        public long EmployerId { get; set; }
-        public int RoleId { get; set; }
-          
          
+           
+        public long Id { get; set; }        
         public bool  IsActive { get; set; }
        
-
+        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
 
 
 

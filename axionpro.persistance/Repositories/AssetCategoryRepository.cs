@@ -1,14 +1,19 @@
 ﻿using AutoMapper;
 using axionpro.application.Constants;
+using axionpro.application.DTOS.AssetDTO.category;
+using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
  
 
 using axionpro.application.Interfaces.IFileStorage;
-
+using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.IQRService;
 using axionpro.application.Interfaces.IRepositories;
+using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Azure.Core;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -19,7 +24,6 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using axionpro.application.DTOS.AssetDTO.category;
 
 namespace axionpro.persistance.Repositories
 {
@@ -66,7 +70,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
+             //   await using var _context = await _contextFactory.CreateDbContextAsync();
 
                 // ✅ 1️⃣ Basic Validation Checks
                 if (dto == null)
@@ -75,15 +79,15 @@ namespace axionpro.persistance.Repositories
                     return new List<GetCategoryResponseDTO>();
                 }
 
-                if (dto.TenantId <= 0)
+                if (dto.Prop.TenantId <= 0)
                 {
-                    _logger.LogWarning("Invalid TenantId provided: {TenantId}", dto.TenantId);
+                    _logger.LogWarning("Invalid TenantId provided: {TenantId}", dto.Prop.TenantId);
                     return new List<GetCategoryResponseDTO>();
                 }
 
                 // ✅ 2️⃣ Build Query with Filters
-                IQueryable<AssetCategory> query = context.AssetCategories
-                    .Where(x => x.TenantId == dto.TenantId && x.IsSoftDeleted != true);
+                IQueryable<AssetCategory> query = _context.AssetCategories
+                    .Where(x => x.TenantId == dto.Prop.TenantId && x.IsSoftDeleted != true);
 
                 // 🔹 Filter by Id (if provided)
                 if (dto.Id >  0)
@@ -102,20 +106,20 @@ namespace axionpro.persistance.Repositories
 
                 if (!entities.Any())
                 {
-                    _logger.LogWarning("No AssetCategory records found for TenantId: {TenantId}", dto.TenantId);
+                    _logger.LogWarning("No AssetCategory records found for TenantId: {TenantId}", dto.Prop.TenantId);
                     return new List<GetCategoryResponseDTO>();
                 }
 
                 // ✅ 4️⃣ Map and Return
                 var result = _mapper.Map<List<GetCategoryResponseDTO>>(entities);
 
-                _logger.LogInformation("Fetched {Count} AssetCategory records for TenantId: {TenantId}", result.Count, dto.TenantId);
+                _logger.LogInformation("Fetched {Count} AssetCategory records for TenantId: {TenantId}", result.Count, dto.Prop.TenantId);
                 return result;
             }
             catch (Exception ex)
             {
                 // ✅ 5️⃣ Exception Handling
-                _logger.LogError(ex, "Error occurred while fetching AssetCategory records for TenantId: {TenantId}", dto?.TenantId);
+                _logger.LogError(ex, "Error occurred while fetching AssetCategory records for TenantId: {TenantId}", dto?.Prop.TenantId);
                 return new List<GetCategoryResponseDTO>();
             }
         }
@@ -126,293 +130,143 @@ namespace axionpro.persistance.Repositories
         /// </summary>
         /// <param name="Dto">AddCategoryRequestDTO containing TenantId, CategoryName, EmployeeId, etc.</param>
         /// <returns>List of GetCategoryResponseDTO after successful insertion.</returns>
-        //public async Task<List<GetCategoryResponseDTO>> AddAsync(AddCategoryReqestDTO? Dto)
-        //{
-        //    try
-        //    {
-        //        // ✅ 1️⃣ Basic validation
-        //        if (Dto == null)
-        //        {
-        //            _logger.LogWarning("AddAsync called with null DTO.");
-        //            throw new ArgumentNullException(nameof(Dto), "Request data cannot be null.");
-        //        }
-
-        //        if (Dto.TenantId <= 0)
-        //        {
-        //            _logger.LogWarning("Invalid TenantId provided in AddAsync: {TenantId}", Dto.TenantId);
-        //            throw new ArgumentException("TenantId must be greater than zero.", nameof(Dto.TenantId));
-        //        }
-
-        //        if (string.IsNullOrWhiteSpace(Dto.CategoryName))
-        //        {
-        //            _logger.LogWarning("CategoryName is missing in AddAsync request for TenantId: {TenantId}", Dto.TenantId);
-        //            throw new ArgumentException("CategoryName cannot be null or empty.", nameof(Dto.CategoryName));
-        //        }
-
-        //        await using var context = await _contextFactory.CreateDbContextAsync();
-
-        //        _logger.LogInformation(
-        //            "Attempting to insert new Asset Category for TenantId: {TenantId}, CategoryName: {CategoryName}",
-        //            Dto.TenantId, Dto.CategoryName);
-
-        //        // ✅ 2️⃣ Duplicate check
-        //        var existingCategory = await context.AssetCategories
-        //            .FirstOrDefaultAsync(ac =>
-        //                ac.TenantId == Dto.TenantId &&
-        //                ac.CategoryName.ToLower() == Dto.CategoryName.ToLower() &&
-        //                ac.IsSoftDeleted == false);
-
-        //        if (existingCategory != null)
-        //        {
-        //            _logger.LogWarning(
-        //                "Duplicate Asset Category detected for TenantId: {TenantId}, CategoryName: {CategoryName}",
-        //                Dto.TenantId, Dto.CategoryName);
-
-        //            throw new InvalidOperationException(
-        //                $"Category '{Dto.CategoryName}' already exists for TenantId {Dto.TenantId}.");
-        //        }
-
-        //        // ✅ 3️⃣ Map DTO → Entity
-        //        var newCategory = new AssetCategory
-        //        {
-        //            TenantId = Dto.TenantId,
-        //            CategoryName = Dto.CategoryName.Trim(),
-        //            Remark = Dto.Remark?.Trim(),
-        //            IsActive = Dto.IsActive,
-        //            IsSoftDeleted = false,
-        //            AddedById = Dto.EmployeeId,
-        //            AddedDateTime = DateTime.UtcNow
-        //        };
-
-        //        // ✅ 4️⃣ Save record
-        //        await context.AssetCategories.AddAsync(newCategory);
-        //        await context.SaveChangesAsync();
-
-        //        _logger.LogInformation(
-        //            "✅ Asset Category added successfully with Id: {Id}, TenantId: {TenantId}",
-        //            newCategory.Id, Dto.TenantId);
-
-        //        // ✅ 5️⃣ Fetch updated list and map
-        //        var categories = await GetAllAssetCategoryAsync(Dto.TenantId, Dto.IsActive);
-        //        var mappedResponse = _mapper.Map<List<GetCategoryResponseDTO>>(categories);
-
-        //        return mappedResponse.OrderByDescending(r => r.Id).ToList();
-        //    }
-        //    catch (ArgumentNullException ex)
-        //    {
-        //        _logger.LogWarning(ex, "⚠️ Null input detected while adding Asset Category.");
-        //        throw;
-        //    }
-        //    catch (ArgumentException ex)
-        //    {
-        //        _logger.LogWarning(ex, "⚠️ Invalid input data while adding Asset Category for TenantId: {TenantId}", Dto?.TenantId);
-        //        throw;
-        //    }
-        //    catch (InvalidOperationException ex)
-        //    {
-        //        _logger.LogWarning(ex, "⚠️ Duplicate category detected for TenantId: {TenantId}", Dto?.TenantId);
-        //        throw;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "❌ Unexpected error occurred while adding Asset Category for TenantId: {TenantId}", Dto?.TenantId);
-        //        throw;
-        //    }
-        //}
-
-        /// <summary>
-        /// Updates an existing Asset Category record for a specific tenant.
-        /// Includes validation, duplicate check, and soft delete protection.
-        /// </summary>
-        /// <param name="dto">The DTO containing updated category data.</param>
-        /// <returns>
-        /// Returns the updated category as <see cref="GetCategoryResponseDTO"/> 
-        /// if successful, or null if the record doesn't exist.
-        /// </returns>
-        public async Task<bool> UpdateAsync(UpdateCategoryReqestDTO? dto)
+        public async Task<List<GetCategoryResponseDTO>> AddAsync(AddCategoryReqestDTO? Dto)
         {
             try
-            {
-                // ✅ 1️⃣ Input validation
-                if (dto == null)
+            { 
+                  
+                _logger.LogInformation(
+                    "Attempting to insert new Asset Category for TenantId: {TenantId}, CategoryName: {CategoryName}",
+                    Dto.Prop.TenantId, Dto.CategoryName);
+
+                // ✅ 2️⃣ Duplicate check
+                var existingCategory = await _context.AssetCategories
+                    .FirstOrDefaultAsync(ac =>
+                        ac.TenantId == Dto.Prop.TenantId &&
+                        ac.CategoryName.ToLower() == Dto.CategoryName.ToLower() &&
+                        ac.IsSoftDeleted == false);
+
+                if (existingCategory != null)
                 {
-                    _logger.LogWarning("UpdateAsync called with null DTO.");
-                    throw new ArgumentNullException(nameof(dto), "Request object cannot be null.");
+                    _logger.LogWarning(
+                        "Duplicate Asset Category detected for TenantId: {TenantId}, CategoryName: {CategoryName}",
+                        Dto.Prop.TenantId, Dto.CategoryName);
+
+                    throw new InvalidOperationException(
+                        $"Category '{Dto.CategoryName}' already exists for TenantId {Dto.Prop.TenantId}.");
                 }
 
-                if (dto.Id <= 0)
+                // ✅ 3️⃣ Map DTO → Entity
+                var newCategory = new AssetCategory
                 {
-                    _logger.LogWarning("Invalid Category Id provided in UpdateAsync: {Id}", dto.Id);
-                    throw new ArgumentException("Category Id must be greater than zero.", nameof(dto.Id));
-                }
+                    TenantId = Dto.Prop.TenantId,
+                    CategoryName = Dto.CategoryName.Trim(),
+                    Remark = Dto.Remark?.Trim(),
+                   // IsActive = Dto.IsActive,
+                    IsActive =true,
+                    IsSoftDeleted = false,
+                    AddedById = Dto.Prop.EmployeeId,
+                    AddedDateTime = DateTime.UtcNow
+                };
 
-                if (dto.TenantId <= 0)
-                {
-                    _logger.LogWarning("Invalid TenantId provided in UpdateAsync: {TenantId}", dto.TenantId);
-                    throw new ArgumentException("TenantId must be greater than zero.", nameof(dto.TenantId));
-                }
-
-                
-
-                await using var context = await _contextFactory.CreateDbContextAsync();
+                // ✅ 4️⃣ Save record
+                await _context.AssetCategories.AddAsync(newCategory);
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation(
-                    "Attempting to update Asset Category. TenantId: {TenantId}, CategoryId: {Id}, NewName: {CategoryName}",
-                    dto.TenantId, dto.Id, dto.CategoryName);
+                    "✅ Asset Category added successfully with Id: {Id}, TenantId: {TenantId}",
+                    newCategory.Id, Dto.Prop.TenantId);
 
-                // ✅ 2️⃣ Check if record exists
-                var existingCategory = await context.AssetCategories
-                    .FirstOrDefaultAsync(x =>
-                        x.Id == dto.Id &&
-                        x.TenantId == dto.TenantId &&
-                        x.IsSoftDeleted != true);
+                // ✅ 5️⃣ Fetch updated list and map
+                var categories = await GetAllAssetCategoryAsync(Dto.Prop.TenantId, Dto.Prop.IsActive);
+                var mappedResponse = _mapper.Map<List<GetCategoryResponseDTO>>(categories);
 
-                if (existingCategory == null)
-                {
-                    _logger.LogWarning(
-                        "Asset Category not found for update. Id: {Id}, TenantId: {TenantId}",
-                        dto.Id, dto.TenantId);
-                    throw new InvalidOperationException($"Asset Category not found for update. Id: {dto.Id}, TenantId: {dto.TenantId}");
-                }                                   
-                
-                existingCategory.CategoryName = !string.IsNullOrWhiteSpace(dto.CategoryName) ? dto.CategoryName : existingCategory.CategoryName;
-                existingCategory.Remark = !string.IsNullOrWhiteSpace(dto.Remark) ? dto.Remark : existingCategory.Remark;
-
-                if (dto.IsActive.HasValue)
-                    existingCategory.IsActive = dto.IsActive.Value; // Only update if value provided
-                
-                   
-                existingCategory.UpdatedById = dto.EmployeeId;
-                existingCategory.UpdatedDateTime = DateTime.UtcNow;
-                // ✅ 5️⃣ Save changes
-                context.AssetCategories.Update(existingCategory);
-              var isupdate=  await context.SaveChangesAsync();
-
-                if (isupdate<=0)
-                {
-                    _logger.LogWarning(
-                        "No changes were made while updating Asset Category. Id: {Id}, TenantId: {TenantId}",
-                        dto.Id, dto.TenantId);
-                    return false;
-                }
-                else
-                {
-                    _logger.LogInformation(
-                        "Changes saved successfully while updating Asset Category. Id: {Id}, TenantId: {TenantId}",
-                        dto.Id, dto.TenantId);
-                    return true;
-                }     
-              
+                return mappedResponse.OrderByDescending(r => r.Id).ToList();
             }
             catch (ArgumentNullException ex)
             {
-                _logger.LogWarning(ex, "⚠️ Null input detected while updating Asset Category.");
+                _logger.LogWarning(ex, "⚠️ Null input detected while adding Asset Category.");
                 throw;
             }
             catch (ArgumentException ex)
             {
-                _logger.LogWarning(ex, "⚠️ Invalid data while updating Asset Category for TenantId: {TenantId}", dto?.TenantId);
+                _logger.LogWarning(ex, "⚠️ Invalid input data while adding Asset Category for TenantId: {TenantId}", Dto?.Prop.TenantId);
                 throw;
             }
             catch (InvalidOperationException ex)
             {
-                _logger.LogWarning(ex, "⚠️ Duplicate category name during update for TenantId: {TenantId}", dto?.TenantId);
+                _logger.LogWarning(ex, "⚠️ Duplicate category detected for TenantId: {TenantId}", Dto?.Prop.TenantId);
                 throw;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Unexpected error occurred while updating Asset Category Id: {Id}", dto?.Id);
+                _logger.LogError(ex, "❌ Unexpected error occurred while adding Asset Category for TenantId: {TenantId}", Dto?.Prop.TenantId);
                 throw;
             }
         }
+ 
 
+        // 🔹 DUPLICATE CHECK (UPDATE SAFE)
+        public async Task<bool> ExistsAsync(
+            long tenantId,
+            string categoryName,
+            long? excludeId = null)
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
 
-        /// <summary>
-        /// Soft deletes an existing Asset Category record for a specific tenant.
-        /// </summary>
-        /// <param name="dto">The DTO containing category Id and tenant Id.</param>
-        /// <returns>
-        /// Returns true if the record was successfully soft-deleted, false if not found.
-        /// </returns>
+            return await context.AssetCategories.AnyAsync(x =>
+                x.TenantId == tenantId &&
+                x.CategoryName.ToLower() == categoryName.ToLower() &&
+                x.IsSoftDeleted == false &&
+                (!excludeId.HasValue || x.Id != excludeId.Value));
+        }
+
+        // 🔹 UPDATE
+        public async Task<bool> UpdateAsync(UpdateCategoryReqestDTO dto)
+        {
+      
+
+            var entity = await _context.AssetCategories.FirstOrDefaultAsync(x =>
+                x.Id == dto.Id &&
+                x.TenantId == dto.Prop.TenantId &&
+                x.IsSoftDeleted == false);
+
+            if (entity == null)
+                return false;
+
+            entity.CategoryName = dto.CategoryName.Trim();
+            entity.Remark = dto.Remark?.Trim();
+            entity.IsActive = dto.IsActive ?? entity.IsActive;
+            entity.UpdatedById = dto.Prop.UserEmployeeId;
+            entity.UpdatedDateTime = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        // 🔹 DELETE (SOFT)
         public async Task<bool> DeleteAsync(DeleteCategoryReqestDTO dto)
         {
-            try
-            {
-                // ✅ 1️⃣ Input Validation
-                if (dto == null)
-                {
-                    _logger.LogWarning("DeleteAsync called with null DTO.");
-                    throw new ArgumentNullException(nameof(dto), "Request object cannot be null.");
-                }
+            await using var context = await _contextFactory.CreateDbContextAsync();
 
-                if (dto.Id <= 0)
-                {
-                    _logger.LogWarning("Invalid Category Id provided in DeleteAsync: {Id}", dto.Id);
-                    throw new ArgumentException("Category Id must be greater than zero.", nameof(dto.Id));
-                }
+            var entity = await context.AssetCategories.FirstOrDefaultAsync(x =>
+                x.Id == dto.Id &&
+                x.TenantId == dto.Prop.TenantId &&
+                x.IsSoftDeleted == false);
 
-                if (dto.TenantId <= 0)
-                {
-                    _logger.LogWarning("Invalid TenantId provided in DeleteAsync: {TenantId}", dto.TenantId);
-                    throw new ArgumentException("TenantId must be greater than zero.", nameof(dto.TenantId));
-                }
+            if (entity == null)
+                return false;
 
-                await using var context = await _contextFactory.CreateDbContextAsync();
+            entity.IsSoftDeleted = true;
+            entity.IsActive = false;
+            entity.SoftDeletedById = dto.Prop.EmployeeId;
+            entity.SoftDeletedDateTime = DateTime.UtcNow;
 
-                _logger.LogInformation(
-                    "Attempting to delete Asset Category. TenantId: {TenantId}, CategoryId: {Id}",
-                    dto.TenantId, dto.Id);
-
-                // ✅ 2️⃣ Fetch category record
-                var existingCategory = await context.AssetCategories
-                    .FirstOrDefaultAsync(x =>
-                        x.Id == dto.Id &&
-                        x.TenantId == dto.TenantId &&
-                        x.IsSoftDeleted == false);
-
-                if (existingCategory == null)
-                {
-                    _logger.LogWarning(
-                        "Asset Category not found for delete. Id: {Id}, TenantId: {TenantId}",
-                        dto.Id, dto.TenantId);
-                    return false;
-                }
-
-                // ✅ 3️⃣ Perform Soft Delete
-                existingCategory.IsSoftDeleted = true;
-                existingCategory.IsActive = false;
-                existingCategory.SoftDeletedById = dto.EmployeeId;
-                existingCategory.SoftDeletedDateTime = DateTime.UtcNow;
-
-                // ✅ 4️⃣ Save Changes
-                context.AssetCategories.Update(existingCategory);
-                await context.SaveChangesAsync();
-
-                _logger.LogInformation(
-                    "✅ Asset Category soft deleted successfully. Id: {Id}, TenantId: {TenantId}",
-                    dto.Id, dto.TenantId);
-
-                return true;
-            }
-            catch (ArgumentNullException ex)
-            {
-                _logger.LogWarning(ex, "⚠️ Null input detected while deleting Asset Category.");
-                throw;
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogWarning(ex, "⚠️ Invalid data while deleting Asset Category for TenantId: {TenantId}", dto?.TenantId);
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Unexpected error occurred while deleting Asset Category Id: {Id}", dto?.Id);
-                throw;
-            }
+            await context.SaveChangesAsync();
+            return true;
         }
 
 
-      
 
         public async Task<List<AssetCategory>> GetAllAssetCategoryAsync(long tenantId, bool isActive)
         {
@@ -436,10 +290,7 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public Task<List<GetCategoryResponseDTO>> AddAsync(AddCategoryReqestDTO? dtO)
-        {
-            throw new NotImplementedException();
-        }
+        
     }
     }
 

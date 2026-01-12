@@ -41,7 +41,7 @@ namespace axionpro.persistance.Repositories
         /// <summary>
         /// Adds a new AssetStatus record for a tenant.
         /// </summary>
-        public async Task<GetStatusResponseDTO?> AddAsync(CreateStatusRequestDTO? assetStatus)
+        public async Task<GetStatusResponseDTO?> AddAsync(AssetStatus assetStatus)
         {
             if (assetStatus == null)
             {
@@ -50,23 +50,16 @@ namespace axionpro.persistance.Repositories
             }
 
             try
-            {
+            {                 
 
-                var entity = _mapper.Map<AssetStatus>(assetStatus);
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
-                entity.AddedDateTime = DateTime.Now;
-                entity.AddedById = assetStatus.EmployeeId;
-                entity.IsSoftDeleted = false;
-
-                await context.AssetStatuses.AddAsync(entity);
-                await context.SaveChangesAsync();
+                await _context.AssetStatuses.AddAsync(assetStatus);
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation(
                     "AssetStatus added successfully. TenantId: {TenantId}, StatusName: {StatusName}",
                     assetStatus.TenantId, assetStatus.StatusName);
 
-                return _mapper.Map<GetStatusResponseDTO>(entity);
+                return _mapper.Map<GetStatusResponseDTO>(assetStatus);
             }
             catch (Exception ex)
             {
@@ -81,8 +74,7 @@ namespace axionpro.persistance.Repositories
         /// </summary>
         public async Task<bool> DeleteAsync(DeleteStatusReqestDTO requestDTO)
         {
-            await using var context = await _contextFactory.CreateDbContextAsync();
-
+           
             if (requestDTO == null)
             {
                 _logger.LogWarning("DeleteAsync called with null DeleteStatusRequestDTO.");
@@ -91,34 +83,34 @@ namespace axionpro.persistance.Repositories
 
             try
             {
-                var existingStatus = await context.AssetStatuses
+                var existingStatus = await _context.AssetStatuses
                     .FirstOrDefaultAsync(x =>
                         x.Id == requestDTO.Id &&
-                        x.TenantId == requestDTO.TenantId &&
+                        x.TenantId == requestDTO.Prop.TenantId &&
                         x.IsSoftDeleted !=true);
 
                 if (existingStatus == null)
                 {
                     _logger.LogWarning(
                         "AssetStatus not found or already deleted. Id: {Id}, TenantId: {TenantId}",
-                        requestDTO.Id, requestDTO.TenantId);
+                        requestDTO.Id, requestDTO.Prop.TenantId);
                     return false;
                 }
 
                 // Soft delete
                 existingStatus.IsSoftDeleted = true;
                 existingStatus.IsActive = false;
-                existingStatus.SoftDeletedById = requestDTO.EmployeeId;
+                existingStatus.SoftDeletedById = requestDTO.Prop.EmployeeId;
                 existingStatus.DeletedDateTime = DateTime.Now;
-                existingStatus.UpdatedById = requestDTO.EmployeeId;
+                existingStatus.UpdatedById = requestDTO.Prop.EmployeeId;
                 existingStatus.UpdatedDateTime = DateTime.Now;
 
-                _context.AssetStatuses.Update(existingStatus);
-                await _context.SaveChangesAsync();
+                this._context.AssetStatuses.Update(existingStatus);
+                await this._context.SaveChangesAsync();
 
                 _logger.LogInformation(
                     "AssetStatus soft deleted successfully. Id: {Id}, TenantId: {TenantId}",
-                    requestDTO.Id, requestDTO.TenantId);
+                    requestDTO.Id, requestDTO.Prop.TenantId);
 
                 return true;
             }
@@ -136,17 +128,12 @@ namespace axionpro.persistance.Repositories
         ///   public 
         public async Task<List<GetStatusResponseDTO>> GetAllAsync(GetStatusRequestDTO? assetStatus)
         {
-            if (assetStatus == null || assetStatus.TenantId <= 0)
-            {
-                _logger.LogWarning("GetAllAsync called with null or invalid TenantId.");
-                return new List<GetStatusResponseDTO>();
-            }
-
+          
             try
             {
                 IQueryable<AssetStatus> query = _context.AssetStatuses
                     .Where(a => a.IsSoftDeleted != true &&
-                                a.TenantId == assetStatus.TenantId);
+                                a.TenantId == assetStatus.Prop.TenantId);
 
                 // Optional: filter by IsActive
                 if (assetStatus.IsActive != null)
@@ -162,7 +149,7 @@ namespace axionpro.persistance.Repositories
 
                 _logger.LogInformation(
                     "Fetched {Count} AssetStatus records for TenantId: {TenantId}",
-                    entities.Count, assetStatus.TenantId);
+                    entities.Count, assetStatus.Prop.TenantId);
 
                 // Map entities to DTOs
                 return _mapper.Map<List<GetStatusResponseDTO>>(entities);
@@ -171,7 +158,7 @@ namespace axionpro.persistance.Repositories
             {
                 _logger.LogError(ex,
                     "Error occurred while fetching AssetStatus records for TenantId: {TenantId}",
-                    assetStatus.TenantId);
+                    assetStatus.Prop.TenantId);
                 return new List<GetStatusResponseDTO>();
             }
         }
@@ -179,28 +166,27 @@ namespace axionpro.persistance.Repositories
 
         public async Task<bool> UpdateAsync(UpdateStatusRequestDTO assetStatus)
         {
-            await using var context = await _contextFactory.CreateDbContextAsync();
-
-            if (assetStatus == null || assetStatus.TenantId <= 0 || assetStatus.Id <= 0)
+          
+            if (assetStatus == null || assetStatus.Prop.TenantId <= 0 || assetStatus.Id <= 0)
             {
                 _logger.LogWarning("UpdateAssetStatusByTenantAsync called with invalid input. TenantId: {TenantId}, Id: {Id}",
-                    assetStatus?.TenantId, assetStatus?.Id);
+                    assetStatus?.Prop.TenantId, assetStatus?.Id);
                 // Return a default instance to satisfy non-nullable contract
                 return false;
             }
 
             try
             {
-                var existingStatus = await context.AssetStatuses
+                var existingStatus = await _context.AssetStatuses
                     .FirstOrDefaultAsync(x =>
                         x.Id == assetStatus.Id &&
-                        x.TenantId == assetStatus.TenantId &&
+                        x.TenantId == assetStatus.Prop.TenantId &&
                         x.IsSoftDeleted !=true);
 
                 if (existingStatus == null)
                 {
                     _logger.LogWarning("AssetStatus not found. Id: {Id}, TenantId: {TenantId}",
-                        assetStatus.Id, assetStatus.TenantId);
+                        assetStatus.Id, assetStatus.Prop.TenantId);
                     // Return a default instance to satisfy non-nullable contract
                     return false;
                 }
@@ -213,11 +199,11 @@ namespace axionpro.persistance.Repositories
                 {
                     existingStatus.IsActive = assetStatus.IsActive.Value;
                 }
-                existingStatus.UpdatedById = assetStatus.EmployeeId;
+                existingStatus.UpdatedById = assetStatus.Prop.EmployeeId;
                 existingStatus.UpdatedDateTime = DateTime.Now;
 
-                _context.AssetStatuses.Update(existingStatus);
-               var change= await context.SaveChangesAsync();
+                this._context.AssetStatuses.Update(existingStatus);
+               var change= await _context.SaveChangesAsync();
                  if(change > 0)
                  {
                     return true;
@@ -231,7 +217,7 @@ namespace axionpro.persistance.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while updating AssetStatus Id: {Id}, TenantId: {TenantId}",
-                    assetStatus.Id, assetStatus.TenantId);
+                    assetStatus.Id, assetStatus.Prop.TenantId);
                 throw;
             }
         }

@@ -70,180 +70,17 @@ namespace axionpro.persistance.Repositories
             await _context.SaveChangesAsync();
         }
 
+        public Task Update(Asset asset)
+        {
+            throw new NotImplementedException();
+        }
         public async Task UpdateAsync(Asset asset)
         {
             _context.Assets.Update(asset);
             await _context.SaveChangesAsync();
         }
 
-
-        //public async Task<PagedResponseDTO<GetAssetResponseDTO>> AddAssetAsync(AddAssetRequestDTO assetDto)
-        //{
-        //    if (assetDto == null)
-        //        throw new ArgumentNullException(nameof(assetDto));
-
-        //    try
-        //    {
-        //        await using var context = await _contextFactory.CreateDbContextAsync();
-
-        //        // 1️⃣ Map DTO to Entity
-        //        var asset = _mapper.Map<Asset>(assetDto);
-        //        asset.AddedById = assetDto.EmployeeId;
-        //        asset.AddedDateTime = DateTime.UtcNow;
-        //        asset.IsSoftDeleted = false;
-
-        //        await context.Assets.AddAsync(asset);
-        //        await context.SaveChangesAsync();
-
-        //        // 2️⃣ Prepare QR JSON
-        //        string qrJson = string.Empty;
-        //        try
-        //        {
-        //            var assetTypeName = await context.AssetTypes
-        //                .Where(at => at.Id == asset.AssetTypeId)
-        //                .Select(at => at.TypeName)
-        //                .FirstOrDefaultAsync() ?? string.Empty;
-
-        //            var qrData = new
-        //            {
-        //                AssetId = asset.Id,
-        //                AssetCode = $"QR-{asset.AssetTypeId}-{asset.Id:000}",
-        //                AssetName = asset.AssetName,
-        //                AssetType = assetTypeName,
-        //                TenantId = asset.TenantId,
-        //                PurchaseDate = asset.PurchaseDate.ToString("yyyy-MM-dd"),
-        //                WarrantyExpiryDate = asset.WarrantyExpiryDate,
-        //                QRCodeVersion = "v1.0"
-        //            };
-
-        //            qrJson = JsonConvert.SerializeObject(qrData);
-        //            asset.Qrcode = qrJson;
-        //            context.Assets.Update(asset);
-        //            await context.SaveChangesAsync();
-        //        }
-        //        catch (Exception exQrJson)
-        //        {
-        //            _logger.LogError(exQrJson, "Error preparing QR JSON for AssetId {AssetId}", asset.Id);
-        //        }
-
-        //        // 3️⃣ File paths
-        //        long? tenantId = asset.TenantId;
-        //        string assetFileName = $"ASSET-{asset.AssetTypeId}-{asset.Id:000}-Main.png";
-        //        string qrFileName = $"ASSET-{asset.AssetTypeId}-{asset.Id:000}-QR.png";
-        //        string assetFilePath = _fileStorageService.GenerateFilePath(tenantId, "assets", assetFileName);
-        //        string qrFilePath = _fileStorageService.GenerateFilePath(tenantId, "qrcodes", qrFileName);
-
-        //        string savedAssetPath;
-
-        //        // 4️⃣ Asset Image save
-        //        try
-        //        {
-        //            if (!string.IsNullOrEmpty(assetDto.AssetImagePath))
-        //                savedAssetPath = await SaveAssetImageAsync(assetDto.AssetImagePath, assetFilePath);
-        //            else
-        //                savedAssetPath = _fileStorageService.GetDefaultImagePath();
-        //        }
-        //        catch (Exception exAssetImg)
-        //        {
-        //            _logger.LogError(exAssetImg, "Error saving Asset Image for AssetId {AssetId}", asset.Id);
-        //            savedAssetPath = _fileStorageService.GetDefaultImagePath();
-        //        }
-
-        //        // 5️⃣ QR Image save
-        //        try
-        //        {
-        //            var qrBytes = _qrService.GenerateQrCode(qrJson, 20);
-        //            await _fileStorageService.SaveFileAsync(qrBytes, qrFileName, _fileStorageService.GetTenantFolderPath(tenantId, "qrcodes"));
-        //        }
-        //        catch (Exception exQr)
-        //        {
-        //            _logger.LogError(exQr, "Error generating QR Image for AssetId {AssetId}", asset.Id);
-        //        }
-
-        //        // 6️⃣ AssetImage entity
-        //        try
-        //        {
-        //            var assetImage = await context.AssetImages
-        //                .FirstOrDefaultAsync(ai => ai.AssetId == asset.Id && ai.AssetImageType == ConstantValues.Web);
-
-        //            if (assetImage != null)
-        //            {
-        //                assetImage.AssetImagePath = savedAssetPath;
-        //                assetImage.QRCodeImagePath = qrFilePath;
-        //                assetImage.UpdatedDateTime = DateTime.UtcNow;
-        //                assetImage.UpdatedById = assetDto.EmployeeId;
-        //                context.AssetImages.Update(assetImage);
-        //            }
-        //            else
-        //            {
-        //                assetImage = new AssetImage
-        //                {
-        //                    AssetId = asset.Id,
-        //                    TenantId = asset.TenantId,
-        //                    AssetImageType = ConstantValues.Web,
-        //                    AssetImagePath = savedAssetPath,
-        //                    QRCodeImagePath = qrFilePath,
-        //                    QRImageType = ConstantValues.Web,
-        //                    IsActive = true,
-        //                    AddedDateTime = DateTime.UtcNow,
-        //                    AddedById = assetDto.EmployeeId
-        //                };
-        //                await context.AssetImages.AddAsync(assetImage);
-        //            }
-
-        //            await context.SaveChangesAsync();
-        //        }
-        //        catch (Exception exAssetImgEntity)
-        //        {
-        //            _logger.LogError(exAssetImgEntity, "Error updating/adding AssetImage entity for AssetId {AssetId}", asset.Id);
-        //        }
-
-        //        // 7️⃣ Return all assets
-        //        try
-        //        {
-        //            var allAssets = await GetAllAssetAsync(assetDto.TenantId, assetDto.IsActive);
-
-        //            // Paging logic (you can customize this)
-        //            int totalRecords = allAssets.Count;
-        //            var orderedAssets = allAssets.OrderByDescending(r => r.AssetId).ToList();
-
-        //            return new PagedResponseDTO<GetAssetResponseDTO>
-        //            {
-                        
-        //                Items = orderedAssets,
-        //                TotalCount = totalRecords,
-        //                PageNumber = 1,
-        //                PageSize = 10,
-                      
-        //            };
-        //        }
-        //        catch (Exception exReturn)
-        //        {
-        //            _logger.LogError(exReturn, "Error returning all assets for TenantId {TenantId}", assetDto.TenantId);
-
-        //            return new PagedResponseDTO<GetAssetResponseDTO>
-        //            {
-        //                Items = null,
-        //                TotalCount = 0,
-        //                PageNumber = 1,
-        //                PageSize = 10,
-        //            };
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Unexpected error in AddAssetAsync for TenantId {TenantId}", assetDto?.TenantId);
-
-        //        return new PagedResponseDTO<GetAssetResponseDTO>
-        //        {
-        //            Items = null,
-        //            TotalCount = 0,
-        //            PageNumber = 1,
-        //            PageSize = 10,
-        //        };
-        //    }
-        //}
-
+ 
 
         private async Task<string> SaveAssetImageAsync(string assetImagePath, string destinationPath)
         {
@@ -645,8 +482,8 @@ namespace axionpro.persistance.Repositories
                 return false;
             }
         }
-
-        public async Task<List<GetAssetResponseDTO>> GetAllAssetAsync(long? tenantId, bool Isactive)
+    
+        public async Task<List<GetAssetResponseDTO>> GetAllAssetAsync(long tenantId, bool Isactive)
         {
             try
             {
@@ -754,13 +591,15 @@ namespace axionpro.persistance.Repositories
         /// Retrieves filtered assets based on multiple optional parameters.
         /// Mandatory: TenantId, RoleId, EmployeeId.
         /// </summary>
+        /// 
+
         public async Task<List<GetAssetResponseDTO>> GetAssetsByFilterAsync(GetAssetRequestDTO? asset)
         {
             if (asset == null)
                 throw new ArgumentNullException(nameof(asset), "Asset filter request cannot be null.");
 
-            if (asset.TenantId <= 0)
-                throw new ArgumentException("TenantId is mandatory and must be greater than zero.", nameof(asset.TenantId));
+            if (asset.Prop.TenantId <= 0)
+                throw new ArgumentException("TenantId is mandatory and must be greater than zero.", nameof(asset.Prop.TenantId));
 
             await using var context = await _contextFactory.CreateDbContextAsync();
 
@@ -772,7 +611,7 @@ namespace axionpro.persistance.Repositories
                         .ThenInclude(at => at.AssetCategory)
                     .Include(a => a.AssetImages)
                     .Include(a => a.AssetStatus) // ✅ Load AssetStatus in same query
-                    .Where(a => a.TenantId == asset.TenantId && a.IsSoftDeleted != true)
+                    .Where(a => a.TenantId == asset.Prop.TenantId && a.IsSoftDeleted != true)
                     .AsQueryable();
 
                 // 🔸 Dynamic filters
@@ -863,16 +702,9 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public Task Update(Asset asset)
-        {
-            throw new NotImplementedException();
-        }
+      
 
-        public Task<List<GetAssetResponseDTO>> GetAllAssetAsync(long tenantId, bool Isactive)
-        {
-            throw new NotImplementedException();
-        }
-
+      
 
 
 

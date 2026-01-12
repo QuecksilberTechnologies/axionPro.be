@@ -62,6 +62,17 @@ namespace axionpro.application.Common.Helpers.RequestHelper
             return (userId, tenantId);
         }
 
+        public static long DecodeUserAndTenantIds(  string encTenantId,
+             string tenantKey,
+            IIdEncoderService encoder)
+        {
+            string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
+
+            long tenantId = encoder.DecodeId_long(encTenantId, finalKey);
+
+            return tenantId;
+        }
+    
         public static long  DecodeOnlyEmployeeId(
            string encodedEmpId,         
            string tenantKey,
