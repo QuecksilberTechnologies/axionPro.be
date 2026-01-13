@@ -1,5 +1,6 @@
 ﻿using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Pagination;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,8 +13,7 @@ namespace axionpro.application.DTOS.AssetDTO.asset
 
     public class AddAssetRequestDTO 
     {
-                    
-        public string? UserEmployeeId { get; set; }
+                          
         public string? AssetName { get; set; }
         public int AssetTypeId { get; set; }
         public string? Company { get; set; }
@@ -31,7 +31,9 @@ namespace axionpro.application.DTOS.AssetDTO.asset
         public string? AssetImagePath { get; set; }       
         public int AssetStatusId { get; set; }
         public bool IsAssigned { get; set; }
-        public bool IsActive { get; set; }   
+        public bool IsActive { get; set; }
+        public IFormFile? AssetImageFile { get; set; }
+
         public ExtraPropRequestDTO? Prop { get; set; } = new ExtraPropRequestDTO();
 
     }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using axionpro.application.DTOS.Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,9 +12,7 @@ namespace axionpro.application.DTOS.AssetDTO.asset
         public class UpdateAssetRequestDTO
         {
             public long Id { get; set; }
-            public int RoleId { get; set; }
-            public long? TenantId { get; set; }          
-            public long? EmployeeId { get; set; }          
+            
             public string? AssetName { get; set; }   // ✅ Nullable string
             public int? AssetTypeId { get; set; }
             public string? Company { get; set; }     // ✅ Nullable string
@@ -31,8 +30,9 @@ namespace axionpro.application.DTOS.AssetDTO.asset
             public int? AssetStatusId { get; set; }
             public bool? IsAssigned { get; set; }
             public bool? IsActive { get; set; }
+        public ExtraPropRequestDTO? Prop { get; set; } = new ExtraPropRequestDTO();
 
-        }
+    }
 
 
 

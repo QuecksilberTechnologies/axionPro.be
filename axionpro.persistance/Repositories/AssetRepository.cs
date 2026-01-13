@@ -64,11 +64,29 @@ namespace axionpro.persistance.Repositories
         /// 
 
 
-        public async Task AddAsync(Asset asset)
+        public async Task AddAsync(Asset asset, string path)
         {
+            // 1️⃣ Save Asset (Parent)
             await _context.Assets.AddAsync(asset);
+            await _context.SaveChangesAsync(); // 🔥 Asset.Id generated here
+             AssetImage? assetImage = null;
+            // 2️⃣ Save AssetImage (Child) – if provided
+            
+           
+                assetImage.AssetId = asset.Id;          // 🔗 FK mapping
+                assetImage.TenantId = asset.TenantId;
+                assetImage.AddedDateTime = asset.AddedDateTime;
+                assetImage.AssetImageType = ConstantValues.Web; // Assuming 'Web' type for example
+                assetImage.AssetImagePath = path??null; // Use provided path
+                assetImage.IsActive = true;
+                assetImage.IsSoftDeleted = false;
+                assetImage.AddedById = asset.AddedById;
+             
+            await _context.AssetImages.AddAsync(assetImage);
             await _context.SaveChangesAsync();
         }
+
+
 
         public Task Update(Asset asset)
         {
@@ -204,7 +222,7 @@ namespace axionpro.persistance.Repositories
                 existingAsset.AssetStatusId = assetDto.AssetStatusId ?? existingAsset.AssetStatusId;
                 existingAsset.IsAssigned = assetDto.IsAssigned ?? existingAsset.IsAssigned;
                 existingAsset.IsActive = assetDto.IsActive ?? existingAsset.IsActive;
-                existingAsset.UpdatedById = assetDto.EmployeeId;
+                existingAsset.UpdatedById = assetDto.Prop.UserEmployeeId;
                 existingAsset.UpdatedDateTime = DateTime.UtcNow;
 
                 // 🔹 3️⃣ Generate QR JSON
@@ -234,18 +252,10 @@ namespace axionpro.persistance.Repositories
 
                 string qrFolder = _fileStorageService.GetTenantFolderPath(existingAsset.TenantId, "qrcodes");
                 string qrFileName = $"ASSET-{existingAsset.AssetTypeId}-{existingAsset.Id:000}-QR.png";
-                string qrFilePath = _fileStorageService.GenerateFilePath(existingAsset.TenantId, "qrcodes", qrFileName);
+              
 
-                // Generate QR image
-                try
-                {
-                    var qrBytes = _qrService.GenerateQrCode(qrJson, 20);
-                    await _fileStorageService.SaveFileAsync(qrBytes, qrFileName, qrFolder);
-                }
-                catch (Exception exQr)
-                {
-                    _logger.LogError(exQr, "Error generating QR image for AssetId {AssetId}", existingAsset.Id);
-                }
+               
+               
 
                 if (assetImage != null)
                 {
@@ -281,9 +291,9 @@ namespace axionpro.persistance.Repositories
 
                     }
 
-                    assetImage.QRCodeImagePath = qrFilePath;
+                  
                     assetImage.UpdatedDateTime = DateTime.UtcNow;
-                    assetImage.UpdatedById = assetDto.EmployeeId;
+                    assetImage.UpdatedById =assetDto.Prop.UserEmployeeId;
                     context.AssetImages.Update(assetImage);
                 }
                 else
@@ -310,11 +320,10 @@ namespace axionpro.persistance.Repositories
                         TenantId = existingAsset.TenantId,
                         AssetImageType = !string.IsNullOrEmpty(assetDto.AssetImagePath) ? ConstantValues.Web : ConstantValues.Web,
                         AssetImagePath = savedAssetPath,
-                        QRCodeImagePath = qrFilePath,
-                        QRImageType = ConstantValues.Web,
+                       
                         IsActive = true,
                         AddedDateTime = DateTime.UtcNow,
-                        AddedById = assetDto.EmployeeId
+                        AddedById = assetDto.Prop.UserEmployeeId
                     };
                     await context.AssetImages.AddAsync(assetImage);
                 }
@@ -345,18 +354,18 @@ namespace axionpro.persistance.Repositories
 
             await using var context = await _contextFactory.CreateDbContextAsync();
 
-            try
+            try  
             {
-                _logger.LogInformation("🔹 Updating asset (ID: {AssetId}, TenantId: {TenantId})", assetDto.Id, assetDto.TenantId);
+                _logger.LogInformation("🔹 Updating asset (ID: {AssetId}, TenantId: {TenantId})", assetDto.Id, assetDto.Prop.TenantId);
 
                 // 🔸 1️⃣ Fetch existing asset with images
                 var existingAsset = await context.Assets
                     .Include(a => a.AssetImages)
-                    .FirstOrDefaultAsync(a => a.Id == assetDto.Id && a.TenantId == assetDto.TenantId);
+                    .FirstOrDefaultAsync(a => a.Id == assetDto.Id && a.TenantId == assetDto.Prop.TenantId);
 
                 if (existingAsset == null)
                 {
-                    _logger.LogWarning("⚠️ Asset not found with Id {AssetId} and TenantId {TenantId}", assetDto.Id, assetDto.TenantId);
+                    _logger.LogWarning("⚠️ Asset not found with Id {AssetId} and TenantId {TenantId}", assetDto.Id, assetDto.Prop.TenantId);
                     return false;
                 }
 
@@ -370,7 +379,6 @@ namespace axionpro.persistance.Repositories
                 existingAsset.Color = !string.IsNullOrWhiteSpace(assetDto.Color) ? assetDto.Color : existingAsset.Color;
                 existingAsset.Barcode = !string.IsNullOrWhiteSpace(assetDto.Barcode) ? assetDto.Barcode : existingAsset.Barcode;
                 existingAsset.IsRepairable = assetDto.IsRepairable ?? existingAsset.IsRepairable;
-
                 existingAsset.Price = assetDto.Price ?? existingAsset.Price;
                 existingAsset.SerialNumber = !string.IsNullOrWhiteSpace(assetDto.SerialNumber) ? assetDto.SerialNumber : existingAsset.SerialNumber;
                 existingAsset.PurchaseDate = assetDto.PurchaseDate ?? existingAsset.PurchaseDate;
@@ -378,7 +386,7 @@ namespace axionpro.persistance.Repositories
                 existingAsset.AssetStatusId = assetDto.AssetStatusId ?? existingAsset.AssetStatusId;
                 existingAsset.IsAssigned = assetDto.IsAssigned ?? existingAsset.IsAssigned;
                 existingAsset.IsActive = assetDto.IsActive ?? existingAsset.IsActive;
-                existingAsset.UpdatedById = assetDto.EmployeeId;
+                existingAsset.UpdatedById = assetDto.Prop.UserEmployeeId;
                 existingAsset.UpdatedDateTime = DateTime.UtcNow;
 
                 // 🔸 3️⃣ Generate new QR data
@@ -400,36 +408,9 @@ namespace axionpro.persistance.Repositories
                 };
                 string qrJson = JsonConvert.SerializeObject(qrData);
                 existingAsset.Qrcode = qrJson;
-
-                // 🔸 4️⃣ Generate QR image and save
-                string qrFileName = $"ASSET-{existingAsset.AssetTypeId}-{existingAsset.Id:000}-QR.png";
-                string qrFolder = _fileStorageService.GetTenantFolderPath(existingAsset.TenantId, "qrcodes");
-                string qrFilePath = _fileStorageService.GenerateFilePath(existingAsset.TenantId, "qrcodes", qrFileName);
-                var qrBytes = _qrService.GenerateQrCode(qrJson, 20);
-                await _fileStorageService.SaveFileAsync(qrBytes, qrFileName, qrFolder);
-
                 // 🔸 5️⃣ Update or add QR code image record
-                var qrImage = existingAsset.AssetImages.FirstOrDefault(ai => ai.QRCodeImagePath != null);
-                if (qrImage != null)
-                {
-                    qrImage.QRCodeImagePath = qrFilePath;
-                    qrImage.UpdatedById = assetDto.EmployeeId;
-                    qrImage.UpdatedDateTime = DateTime.UtcNow;
-                    context.AssetImages.Update(qrImage);
-                }
-                else
-                {
-                    await context.AssetImages.AddAsync(new AssetImage
-                    {
-                        AssetId = existingAsset.Id,
-                        TenantId = existingAsset.TenantId,
-                        AssetImageType = ConstantValues.Web,
-                        QRCodeImagePath = qrFilePath,
-                        IsActive = true,
-                        UpdatedById = assetDto.EmployeeId,
-                        UpdatedDateTime = DateTime.UtcNow
-                    });
-                }
+               
+                 
 
                 // 🔸 6️⃣ Handle Main Asset Image (if provided)
                 if (!string.IsNullOrEmpty(assetDto.AssetImagePath) && File.Exists(assetDto.AssetImagePath))
@@ -444,7 +425,7 @@ namespace axionpro.persistance.Repositories
                     if (mainImage != null)
                     {
                         mainImage.AssetImagePath = assetFilePath;
-                        mainImage.UpdatedById = assetDto.EmployeeId;
+                        mainImage.UpdatedById = assetDto.Prop.UserEmployeeId;
                         mainImage.UpdatedDateTime = DateTime.UtcNow;
                         context.AssetImages.Update(mainImage);
                     }
@@ -457,7 +438,7 @@ namespace axionpro.persistance.Repositories
                             AssetImageType = ConstantValues.Web,
                             AssetImagePath = assetFilePath,
                             IsActive = true,
-                            UpdatedById = assetDto.EmployeeId,
+                            UpdatedById = assetDto.Prop.UserEmployeeId,
                             UpdatedDateTime = DateTime.UtcNow
                         });
                     }
@@ -482,70 +463,79 @@ namespace axionpro.persistance.Repositories
                 return false;
             }
         }
-    
-        public async Task<List<GetAssetResponseDTO>> GetAllAssetAsync(long tenantId, bool Isactive)
+
+        public async Task<List<GetAssetResponseDTO>> GetAllAssetAsync(
+               long tenantId,
+               bool isActive)
         {
             try
             {
-                _logger.LogInformation("Fetching assets for TenantId: {TenantId}", tenantId);
+                _logger.LogInformation(
+                    "Fetching latest 10 assets for TenantId: {TenantId}",
+                    tenantId);
 
-                var assets = await (from a in _context.Assets
-                                    where a.TenantId == tenantId &&
-                                          a.IsActive == Isactive &&
-                                          (a.IsSoftDeleted == false || a.IsSoftDeleted == null)
-                                    select new GetAssetResponseDTO
-                                    {
-                                        AssetId = a.Id,
-                                        TenantId = a.TenantId,
-                                        AssetName = a.AssetName,
-                                        AssetTypeId = a.AssetTypeId,
-                                        Company = a.Company,
-                                        Color = a.Color,
-                                        IsRepairable = a.IsRepairable,
-                                        Price = a.Price,
-                                        SerialNumber = a.SerialNumber,
-                                        Barcode = a.Barcode,
-                                        PurchaseDate = a.PurchaseDate,
-                                        WarrantyExpiryDate = a.WarrantyExpiryDate,
-                                        IsAssigned = a.IsAssigned,
-                                        Qrcode = a.Qrcode,
+                var assets = await (
+                    from a in _context.Assets
+                    where a.TenantId == tenantId
+                          && a.IsActive == isActive
+                          && (a.IsSoftDeleted == false || a.IsSoftDeleted == null)
+                    orderby a.Id descending   // 🔥 latest first
+                    select new GetAssetResponseDTO
+                    {
+                        AssetId = a.Id,
+                        AssetName = a.AssetName,
+                        AssetTypeId = a.AssetTypeId,
+                        Company = a.Company,
+                        Color = a.Color,
+                        IsRepairable = a.IsRepairable,
+                        Price = a.Price,
+                        SerialNumber = a.SerialNumber,
+                        Barcode = a.Barcode,
+                        PurchaseDate = a.PurchaseDate,
+                        WarrantyExpiryDate = a.WarrantyExpiryDate,
+                        IsAssigned = a.IsAssigned,
+                        Qrcode = a.Qrcode,
 
+                        // ✅ Main Image (latest active)
+                        AssetImagePath = _context.AssetImages
+                            .Where(img =>
+                                img.AssetId == a.Id &&
+                                img.IsActive &&
+                                img.IsSoftDeleted != true)
+                            .Select(img => img.AssetImagePath)
+                            .FirstOrDefault()
+                    })
+                    .Take(10)                  // ✅ sirf 10 records
+                    .ToListAsync();
 
-                                        // ✅ Get Main Image
-                                        AssetImagePath = _context.AssetImages
-                                                        .Where(img => img.AssetId == a.Id && img.IsActive && img.AssetImageType == ConstantValues.Web)
-                                                        .Select(img => img.AssetImagePath)
-                                                        .FirstOrDefault(),
+                _logger.LogInformation(
+                    "Fetched {Count} assets for TenantId: {TenantId}",
+                    assets.Count,
+                    tenantId);
 
-                                        // ✅ Get QR Image
-                                        QRCodeImagePath = _context.AssetImages
-                                                        .Where(img => img.AssetId == a.Id && img.IsActive && img.QRImageType == ConstantValues.Web)
-                                                        .Select(img => img.QRCodeImagePath)
-                                                        .FirstOrDefault()
-                                    })
-                                    .OrderByDescending(x => x.AssetId)
-                                    .ToListAsync();
-
-                _logger.LogInformation("Fetched {Count} assets for TenantId: {TenantId}", assets.Count, tenantId);
                 return assets;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while fetching assets for TenantId: {TenantId}", tenantId);
+                _logger.LogError(
+                    ex,
+                    "Error occurred while fetching assets for TenantId: {TenantId}",
+                    tenantId);
+
                 throw;
             }
         }
 
 
 
-        public async Task<int> DeleteAssetAsync(DeleteAssetReqestDTO? asset)
+        public async Task<bool> DeleteAssetAsync(DeleteAssetReqestDTO? asset)
         {
             try
             {
                 if (asset == null || asset.Id <= 0)
                 {
                     _logger.LogWarning("DeleteAssetAsync called with invalid asset DTO or Id.");
-                    return 0;
+                    return false;
                 }
 
                 // Corrected query: use x for filtering
@@ -555,25 +545,25 @@ namespace axionpro.persistance.Repositories
 
                 if (existingAsset == null)
                 {
-                    _logger.LogWarning("Asset with Id {Id} not found for TenantId {TenantId}.", asset.Id, asset.TenantId);
-                    return 0; // Or throw custom NotFoundException
+                    _logger.LogWarning("Asset with Id {Id} not found for TenantId {TenantId}.", asset.Id, asset.Prop.TenantId);
+                    return false; // Or throw custom NotFoundException
                 }
                 if (existingAsset.IsAssigned == ConstantValues.IsByDefaultTrue)
-                    return -1;
+                    return false;
 
                 // Update only the tracked entity
                 existingAsset.IsSoftDeleted = ConstantValues.IsByDefaultTrue;
                 existingAsset.IsActive = ConstantValues.IsByDefaultFalse;
-                existingAsset.SoftDeletedById = asset.EmployeeId;
+                existingAsset.SoftDeletedById = asset.Prop.UserEmployeeId;
                 existingAsset.DeletedDateTime = DateTime.Now;
 
                 await _context.SaveChangesAsync();
-                return 1;
+                return true;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while soft deleting Asset.");
-                return -2;
+                return false;
             }
 
         }
@@ -662,7 +652,7 @@ namespace axionpro.persistance.Repositories
                     return new GetAssetResponseDTO
                     {
                         AssetId = a.Id,
-                        TenantId = a.TenantId,
+                        
                         AssetTypeId = a.AssetTypeId,
                         CategoryId = a.AssetType?.AssetCategory?.Id ?? 0,
                         CategoryName = a.AssetType?.AssetCategory?.CategoryName,
@@ -673,16 +663,15 @@ namespace axionpro.persistance.Repositories
                         Size = a.Size,
                         Weight = a.Weight,
                         Color = a.Color,
-
                         IsRepairable = a.IsRepairable,
                         Price = a.Price,
                         SerialNumber = a.SerialNumber,
                         Barcode = a.Barcode,
                         Qrcode = a.Qrcode,
                         AssetImagePath = latestImage?.AssetImagePath,
-                        QRCodeImagePath = latestImage?.QRCodeImagePath,
+                       
                         AssetImageType = latestImage?.AssetImageType ?? 0,
-                        QRImageType = latestImage?.QRImageType ?? 0,
+                      
                         PurchaseDate = a.PurchaseDate,
                         WarrantyExpiryDate = a.WarrantyExpiryDate,
                         AssetStatusId = a.AssetStatusId,

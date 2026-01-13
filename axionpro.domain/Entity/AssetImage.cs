@@ -16,11 +16,8 @@ namespace axionpro.domain.Entity
         public long AssetId { get; set; }
 
         public int? AssetImageType { get; set; }
-
-        public int QRImageType { get; set; }  
       
         public string? AssetImagePath { get; set; }
-        public string? QRCodeImagePath { get; set; }   
 
         public string? Remark { get; set; }
 

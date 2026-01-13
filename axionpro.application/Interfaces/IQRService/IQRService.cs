@@ -9,7 +9,7 @@ namespace axionpro.application.Interfaces.IQRService
 {
     public interface IQRService
     {
-        byte[] GenerateQrCode(string jsonData, int pixelsPerModule = 20);
+      //  byte[] GenerateQrCode(string jsonData, int pixelsPerModule = 20);
         Task<string> SaveQrCodeToFileAsync(string jsonData, string filePath, int pixelsPerModule = 20);
     }
 

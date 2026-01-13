@@ -1,10 +1,10 @@
-﻿using AutoMapper;
-using axionpro.application.Constants;
+﻿using MediatR;
+using Microsoft.Extensions.Logging;
 using axionpro.application.DTOS.AssetDTO.asset;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
-using MediatR;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,104 +13,99 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
 {
     public class DeleteAssetCommand : IRequest<ApiResponse<bool>>
     {
-        public DeleteAssetReqestDTO DTO { get; set; }
+        public DeleteAssetReqestDTO DTO { get; }
 
         public DeleteAssetCommand(DeleteAssetReqestDTO dto)
         {
             DTO = dto;
         }
-
     }
+
     /// <summary>
-    /// Handles the soft deletion of an Asset.
+    /// Handles soft deletion of Asset (IDEAL PATTERN)
     /// </summary>
-    public class DeleteAssetCommandHandler : IRequestHandler<DeleteAssetCommand, ApiResponse<bool>>
+    public class DeleteAssetCommandHandler
+        : IRequestHandler<DeleteAssetCommand, ApiResponse<bool>>
     {
-        private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<DeleteAssetCommandHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
+        private readonly IPermissionService _permissionService;
 
         public DeleteAssetCommandHandler(
-            IMapper mapper,
             IUnitOfWork unitOfWork,
-            ILogger<DeleteAssetCommandHandler> logger)
+            ILogger<DeleteAssetCommandHandler> logger,
+            ICommonRequestService commonRequestService,
+            IPermissionService permissionService)
         {
-            _mapper = mapper;
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _commonRequestService = commonRequestService;
+            _permissionService = permissionService;
         }
 
-        public async Task<ApiResponse<bool>> Handle(DeleteAssetCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<bool>> Handle(
+            DeleteAssetCommand request,
+            CancellationToken cancellationToken)
         {
             try
             {
-                // ✅ Step 1: Validate input
+                _logger.LogInformation("Deleting Asset");
+
+                // ===============================
+                // 1️⃣ COMMON VALIDATION
+                // ===============================
+                var validation = await _commonRequestService.ValidateRequestAsync();
+                if (!validation.Success)
+                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
+
+                // ===============================
+                // 2️⃣ BASIC INPUT VALIDATION
+                // ===============================
                 if (request?.DTO == null || request.DTO.Id <= 0)
-                {
-                    _logger.LogWarning("DeleteAssetCommand called with invalid AssetId or null DTO.");
-                    return new ApiResponse<bool>
-                    {
-                        IsSucceeded = false,
-                        Message = "Invalid Asset Id.",
-                        Data = false
-                    };
-                }
+                    return ApiResponse<bool>.Fail("Invalid Asset Id.");
 
-                // ✅ Step 2: Call Repository to soft delete asset
-                int result = await _unitOfWork.AssetRepository.DeleteAssetAsync(request.DTO);
+                // Inject decoded values
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
 
-                // ✅ Step 3: Check repository result
-                switch (result)
-                {
-                    case 0:
-                        _logger.LogWarning("Asset with Id {AssetId} not found for TenantId {TenantId}.",
-                            request.DTO.Id, request.DTO.TenantId);
-                        return new ApiResponse<bool>
-                        {
-                            IsSucceeded = false,
-                            Message = "Asset not found.",
-                            Data = false
-                        };
+                // ===============================
+                // 3️⃣ PERMISSION (OPTIONAL)
+                // ===============================
+                var permissions =
+                    await _permissionService.GetPermissionsAsync(validation.RoleId);
 
-                    case -1:
-                        _logger.LogWarning("Asset with Id {AssetId} is currently assigned and cannot be deleted.",
-                            request.DTO.Id);
-                        return new ApiResponse<bool>
-                        {
-                            IsSucceeded = false,
-                            Message = "Asset is currently assigned and cannot be deleted.",
-                            Data = false
-                        };
+                // if (!permissions.Contains("DeleteAsset"))
+                //     return ApiResponse<bool>.Fail("Permission denied.");
 
-                    case 1:
-                        _logger.LogInformation("Asset soft deleted successfully with Id: {AssetId}", request.DTO.Id);
-                        await _unitOfWork.CommitTransactionAsync();
-                        return new ApiResponse<bool>
-                        {
-                            IsSucceeded = true,
-                            Message = "Asset deleted successfully.",
-                            Data = true
-                        };
+                // ===============================
+                // 4️⃣ DELETE (REPO DECIDES)
+                // ===============================
+                bool deleted =
+                    await _unitOfWork.AssetRepository
+                        .DeleteAssetAsync(request.DTO);
 
-                    default:
-                        _logger.LogError("Unexpected result while deleting Asset with Id: {AssetId}", request.DTO.Id);
-                        return new ApiResponse<bool>
-                        {
-                            IsSucceeded = false,
-                            Message = "Failed to delete Asset due to unexpected error.",
-                            Data = false
-                        };
-                }
+                if (!deleted)
+                    return ApiResponse<bool>.Fail(
+                        "Asset not found or already deleted.");
+
+                _logger.LogInformation(
+                    "Asset deleted successfully | AssetId={AssetId} | TenantId={TenantId}",
+                    request.DTO.Id,
+                    request.DTO.Prop.TenantId);
+
+                return ApiResponse<bool>
+                    .Success(true, "Asset deleted successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while soft deleting Asset with Id: {AssetId}", request.DTO.Id);
-                return new ApiResponse<bool>
-                {
-                    IsSucceeded = false,
-                    Message = "Error occurred while soft deleting Asset.",
-                    Data = false
-                };
+                _logger.LogError(
+                    ex,
+                    "Error occurred while deleting Asset | AssetId={AssetId}",
+                    request?.DTO?.Id);
+
+                return ApiResponse<bool>
+                    .Fail("Unexpected error while deleting asset.");
             }
         }
     }

@@ -1,18 +1,15 @@
 ﻿using AutoMapper;
-using axionpro.application.Common.Helpers;
-using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
+using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.DTOS.AssetDTO.asset;
-using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.IQRService;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -33,30 +30,21 @@ public class AddAssetCommandHandler
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly ILogger<AddAssetCommandHandler> _logger;
-    private readonly ICommonRequestService _commonRequestService;
-    private readonly IPermissionService _permissionService;
-    private readonly IQRService _qrService;
     private readonly IFileStorageService _fileStorageService;
-    private readonly IConfiguration _config;
-    private readonly IIdEncoderService _idEncoderService;
+    private readonly ICommonRequestService _commonRequestService;
+
     public AddAssetCommandHandler(
         IUnitOfWork unitOfWork,
         IMapper mapper,
         ILogger<AddAssetCommandHandler> logger,
-        ICommonRequestService commonRequestService,
-        IPermissionService permissionService,
-        IQRService qrService,
-        IFileStorageService fileStorageService, IConfiguration configuration, IIdEncoderService idEncoderService)
+        IFileStorageService fileStorageService,
+        ICommonRequestService commonRequestService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _logger = logger;
-        _commonRequestService = commonRequestService;
-        _permissionService = permissionService;
-        _qrService = qrService;
         _fileStorageService = fileStorageService;
-        _config = configuration;
-        _idEncoderService = idEncoderService;
+        _commonRequestService = commonRequestService;
     }
 
     public async Task<ApiResponse<PagedResponseDTO<GetAssetResponseDTO>>> Handle(
@@ -67,123 +55,105 @@ public class AddAssetCommandHandler
 
         try
         {
-            // =========================
+            // ===============================
             // 1️⃣ COMMON VALIDATION
-            // =========================
-            var validation =
-                await _commonRequestService.ValidateRequestAsync();
-
+            // ===============================
+            var validation = await _commonRequestService.ValidateRequestAsync();
             if (!validation.Success)
                 return ApiResponse<PagedResponseDTO<GetAssetResponseDTO>>
                     .Fail(validation.ErrorMessage);
 
-            // =========================
+            request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+            request.DTO.Prop.TenantId = validation.TenantId;
+
+            // ===============================
             // 2️⃣ DTO → ENTITY
-            // =========================
+            // ===============================
             var asset = _mapper.Map<Asset>(request.DTO);
             asset.TenantId = validation.TenantId;
             asset.AddedById = validation.UserEmployeeId;
             asset.AddedDateTime = DateTime.UtcNow;
             asset.IsSoftDeleted = false;
+            asset.IsActive = true;
 
-            // =========================
-            // 3️⃣ SAVE ASSET (DB ONLY)
-            // =========================
-            await _unitOfWork.AssetRepository.AddAsync(asset);
-
-            // =========================
-            // 4️⃣ QR JSON (DATA ONLY)
-            // =========================
-            var qrPayload = new
+            // ===============================
+            // 3️⃣ QR JSON (DATA ONLY)
+            // ===============================
+            asset.Qrcode = JsonConvert.SerializeObject(new
             {
-                asset.Id,
                 asset.AssetName,
-                asset.AssetTypeId,
-                asset.TenantId
-            };
+                asset.AssetTypeId
+            });
 
-            string qrJson = JsonConvert.SerializeObject(qrPayload);
-            asset.Qrcode = qrJson;
+            // ===============================
+            // 4️⃣ ASSET IMAGE UPLOAD (SAFE)
+            // ===============================
+            string? assetImagePath = null;
 
-            // =========================
-            // 5️⃣ QR IMAGE SAVE  
-            // =========================
-            byte[] qrBytes = _qrService.GenerateQrCode(qrJson, 20);
-
-            string qrFileName =
-                $"ASSET-QR-{qrPayload.AssetName}-{DateTime.UtcNow:yyMMddHHmmss}.png";
-
-            string qrFolderPath =
-                _fileStorageService.GetTenantFolderPath(
-                    asset.TenantId,
-                    "qrcodes");
-
-            string qrFullPath =
-                await _fileStorageService.SaveFileAsync(
-                    qrBytes,
-                    qrFileName,
-                    qrFolderPath);
-
-            asset.Qrcode = _fileStorageService.GetRelativePath(qrFullPath);
-
-            // =========================
-            // 6️⃣ ASSET IMAGE SAVE  
-            // =========================
-            if (!string.IsNullOrWhiteSpace(request.DTO.AssetImagePath))
+            try
             {
-                string assetFileName =
-                    $"ASSET-{asset.Id}-{DateTime.UtcNow:yyMMddHHmmss}.png";
+                if (request.DTO.AssetImageFile != null &&
+                    request.DTO.AssetImageFile.Length > 0)
+                {
+                    string cleanName =
+                        EncryptionSanitizer.CleanEncodedInput(
+                            request.DTO.AssetName.Trim()
+                                .Replace(" ", "")
+                                .ToLower());
 
-                string assetFolderPath =
-                    _fileStorageService.GetTenantFolderPath(
-                        asset.TenantId,
-                        "assets");
+                    using var ms = new MemoryStream();
+                    await request.DTO.AssetImageFile.CopyToAsync(ms);
 
-                string destinationPath =
-                    Path.Combine(assetFolderPath, assetFileName);
+                    string fileName =
+                        $"ASSET-{cleanName}-{DateTime.UtcNow:yyMMddHHmmss}.png";
 
-                string savedAssetPath =
-                    await FileHelper.SaveAssetImageAsync(
-                        request.DTO.AssetImagePath,
-                        destinationPath,
-                        _fileStorageService,
-                        _logger);
+                    string folderPath =
+                        _fileStorageService.GetTenantFolderPath(
+                            request.DTO.Prop.TenantId,
+                            "assets");
 
-                asset.Qrcode =  _fileStorageService.GetRelativePath(savedAssetPath);
+                    string fullPath =
+                        await _fileStorageService.SaveFileAsync(
+                            ms.ToArray(),
+                            fileName,
+                            folderPath);
+
+                    if (!string.IsNullOrEmpty(fullPath))
+                        assetImagePath =
+                            _fileStorageService.GetRelativePath(fullPath);
+                }
+            }
+            catch (Exception imgEx)
+            {
+                _logger.LogError(imgEx, "⚠️ Asset image upload failed.");
+                assetImagePath = null; // continue without image
             }
 
-            // =========================
-            // 7️⃣ UPDATE ASSET (QR + IMAGE PATH)
-            // =========================
-            await _unitOfWork.AssetRepository.UpdateAsync(asset);
+            // ===============================
+            // 5️⃣ SAVE ASSET + IMAGE (REPO)
+            // ===============================
+            await _unitOfWork.AssetRepository.AddAsync(asset, assetImagePath);
 
-            // =========================
-            // 8️⃣ COMMIT
-            // =========================
+            // ===============================
+            // 6️⃣ COMMIT
+            // ===============================
             await _unitOfWork.CommitTransactionAsync();
 
-            // =========================
-            // 9️⃣ RETURN PAGED DATA
-            // =========================
-         
-            var pagedAssets =   await _unitOfWork.AssetRepository.GetAllAssetAsync(request.DTO.Prop.TenantId, request.DTO.IsActive);
+            var pagedAssets = await _unitOfWork.AssetRepository.GetAllAssetAsync(request.DTO.Prop.TenantId, request.DTO.IsActive);
 
-            // 4. Pre-map projection + encrypt Ids (fast)
-            // If pagedResult.Items are entities:
-       //     var encryptedList = ProjectionHelper.ToGetAssetResponseDTOs(pagedAssets, _idEncoderService, validation.Claims.TenantEncriptionKey, _config);
-
-
+            // ===============================
+            // 7️⃣ RETURN RESPONSE
+            // ===============================
             return ApiResponse<PagedResponseDTO<GetAssetResponseDTO>>
                 .Success(null, "Asset created successfully");
         }
         catch (Exception ex)
         {
             await _unitOfWork.RollbackTransactionAsync();
-            _logger.LogError(ex, "AddAsset failed");
+            _logger.LogError(ex, "❌ AddAsset failed");
 
             return ApiResponse<PagedResponseDTO<GetAssetResponseDTO>>
                 .Fail("Asset creation failed");
         }
     }
 }
- 

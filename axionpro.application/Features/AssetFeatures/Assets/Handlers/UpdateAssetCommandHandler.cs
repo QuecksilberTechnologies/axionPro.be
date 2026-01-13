@@ -1,108 +1,114 @@
-﻿using AutoMapper;
+﻿using MediatR;
+using Microsoft.Extensions.Logging;
 using axionpro.application.DTOS.AssetDTO.asset;
-using axionpro.application.DTOS.Employee.BaseEmployee;
-using axionpro.application.Features.LeaveCmd.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
-using MediatR;
-using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
 {
     public class UpdateAssetCommand : IRequest<ApiResponse<bool>>
     {
-        public UpdateAssetRequestDTO DTO { get; set; }
+        public UpdateAssetRequestDTO DTO { get; }
 
-        public UpdateAssetCommand(UpdateAssetRequestDTO dTO)
+        public UpdateAssetCommand(UpdateAssetRequestDTO dto)
         {
-            DTO = dTO;
+            DTO = dto;
         }
-
     }
 
-    //public class UpdateAssetCommandHandler : IRequestHandler<UpdateAssetCommand, ApiResponse<bool>>
-    //{
-       
-    //    private readonly IMapper _mapper;
-    //    private readonly IUnitOfWork _unitOfWork;
-    //     private readonly ILogger<UpdateAssetCommand> _logger; // यदि logger का उपयोग करना हो
+    /// <summary>
+    /// Handles Asset Update (IDEAL PATTERN)
+    /// </summary>
+    public class UpdateAssetCommandHandler
+        : IRequestHandler<UpdateAssetCommand, ApiResponse<bool>>
+    {
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger<UpdateAssetCommandHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
+        private readonly IPermissionService _permissionService;
 
-    //    public UpdateAssetCommandHandler(IAssetRepository assetRepository, IMapper mapper, IUnitOfWork unitOfWork, ILogger<UpdateAssetCommand> logger)
-    //    {
-           
-    //        _mapper = mapper;
-    //        _unitOfWork = unitOfWork;
-    //        _logger = logger;
-    //    }
+        public UpdateAssetCommandHandler(
+            IUnitOfWork unitOfWork,
+            ILogger<UpdateAssetCommandHandler> logger,
+            ICommonRequestService commonRequestService,
+            IPermissionService permissionService)
+        {
+            _unitOfWork = unitOfWork;
+            _logger = logger;
+            _commonRequestService = commonRequestService;
+            _permissionService = permissionService;
+        }
 
-    //    //public async Task<ApiResponse<bool>> Handle(UpdateAssetCommand request, CancellationToken cancellationToken)
-    //    //{
-    //    //    bool updated = false;
-            
-    //    //        await _unitOfWork.BeginTransactionAsync();
+        public async Task<ApiResponse<bool>> Handle(
+            UpdateAssetCommand request,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                _logger.LogInformation("Updating Asset");
 
-    //    //        try
-    //    //        {
-    //    //            // 1️⃣ Common validation
-    //    //            var validation = await _commonRequestService
-    //    //                .ValidateRequestAsync(request.DTO.UserEmployeeId);
+                // ===============================
+                // 1️⃣ COMMON VALIDATION
+                // ===============================
+                var validation =
+                    await _commonRequestService.ValidateRequestAsync();
 
-    //    //            if (!validation.Success)
-    //    //                return ApiResponse<GetBaseEmployeeResponseDTO>
-    //    //                    .Fail(validation.ErrorMessage);
+                if (!validation.Success)
+                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
 
-    //    //            request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-    //    //            request.DTO.Prop.TenantId = validation.TenantId;
+                // ===============================
+                // 2️⃣ BASIC INPUT VALIDATION
+                // ===============================
+                if (request?.DTO == null || request.DTO.Id <= 0)
+                    return ApiResponse<bool>.Fail("Invalid Asset Id.");
 
-    //    //            // 2️⃣ Permission check (optional)
-    //    //            var permissions = await _permissionService
-    //    //                .GetPermissionsAsync(validation.RoleId);
+                // Inject decoded values
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
 
-    //    //            // Asset को update करना
-    //    //            updated = await _unitOfWork.AssetRepository.UpdateAssetInfoAsync(request.DTO);
-              
+                // ===============================
+                // 3️⃣ PERMISSION (OPTIONAL)
+                // ===============================
+                var permissions =
+                    await _permissionService.GetPermissionsAsync(validation.RoleId);
 
-    //    //        if (!updated )
-    //    //        {
-    //    //            return new ApiResponse<bool>
-    //    //            {
-    //    //                IsSucceeded = false,
-    //    //                Message = "No asset was updated.",
-    //    //                Data = updated
-    //    //            };
-    //    //        }
- 
+                // if (!permissions.Contains("UpdateAsset"))
+                //     return ApiResponse<bool>.Fail("Permission denied.");
 
-    //    //        return new ApiResponse<bool>
-    //    //        {
-    //    //            IsSucceeded = true,
-    //    //            Message = "Asset updated successfully.",
-    //    //            Data = updated
-    //    //        };
-    //    //    }
-    //    //    catch (Exception ex)
-    //    //    {
-    //    //        // _logger.LogError(ex, "Error occurred while updating asset.");
-    //    //        return new ApiResponse<bool>
-    //    //        {
-    //    //            IsSucceeded = false,
-    //    //            Message = $"An error occurred: {ex.Message}",
-    //    //            Data = updated
-    //    //        };
-    //    //    }
-    //    //}
-    
-    
-    //}
+                // ===============================
+                // 4️⃣ UPDATE (REPO DECIDES RESULT)
+                // ===============================
+                bool updated =
+                    await _unitOfWork.AssetRepository
+                        .UpdateAssetInfoAsync(request.DTO);
 
+                if (!updated)
+                    return ApiResponse<bool>
+                        .Fail("Asset not found or update failed.");
 
+                _logger.LogInformation(
+                    "Asset updated successfully | AssetId={AssetId} | TenantId={TenantId}",
+                    request.DTO.Id,
+                    request.DTO.Prop.TenantId);
+
+                return ApiResponse<bool>
+                    .Success(true, "Asset updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Error occurred while updating Asset | AssetId={AssetId}",
+                    request?.DTO?.Id);
+
+                return ApiResponse<bool>
+                    .Fail("Unexpected error while updating asset.");
+            }
+        }
+    }
 }

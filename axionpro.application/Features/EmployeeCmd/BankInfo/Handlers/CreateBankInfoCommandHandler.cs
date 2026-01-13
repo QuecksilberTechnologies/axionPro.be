@@ -104,8 +104,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 request.DTO.Prop.TenantId = validation.TenantId;
                 request.DTO.Prop.EmployeeId= RequestCommonHelper.DecodeOnlyEmployeeId(
                   request.DTO.EmployeeId,                 
-                  validation.Claims.TenantEncriptionKey,
-                  _idEncoderService
+                  validation.Claims.TenantEncriptionKey, _idEncoderService
               );
 
          

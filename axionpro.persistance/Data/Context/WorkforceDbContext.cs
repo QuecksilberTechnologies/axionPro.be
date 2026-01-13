@@ -393,7 +393,6 @@ namespace axionpro.persistance.Data.Context
                     .HasColumnType("datetime");
                 entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
                 entity.Property(e => e.AssetImagePath).HasMaxLength(500);
-                entity.Property(e => e.QRCodeImagePath).HasMaxLength(500);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.Remark).HasMaxLength(250);
                 entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");

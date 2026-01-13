@@ -16,7 +16,7 @@ namespace axionpro.application.Interfaces.IFileStorage
         Task<byte[]> GetFileAsync(string filePath);
 
         string GetTenantFolderPath(long? tenantId, string subFolder);
-        string  GetEmployeeFolderPath(long tenantId, long employeeId, string subFolder);
+        string  GetEmployeeFolderPath(long tenantId, long insideTenant, string subFolder);
         string GenerateFilePath(long? tenantId, string subFolder, string fileName);
         string GenerateFullFilePath(string? fullFolderPath, string? fileName);
         string GetPublicUrl(string relativePath);

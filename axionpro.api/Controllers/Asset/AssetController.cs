@@ -1,5 +1,6 @@
 ﻿ 
 using axionpro.application.DTOS.AssetDTO.asset;
+using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.Features.AssetFeatures.Assets.Handlers;
 using axionpro.application.Interfaces.ILogger;
 using MediatR;
@@ -52,7 +53,8 @@ namespace axionpro.api.Controllers.Asset
         /// <param name="addAssetDTO">DTO containing asset details to create.</param>
         /// <returns>Returns the created asset with its Id and other details.</returns>
         [HttpPost("add")]
-        public async Task<IActionResult> AddAsset([FromBody] AddAssetRequestDTO  addAssetDTO)
+        
+        public async Task<IActionResult> AddAsset([FromForm] AddAssetRequestDTO  addAssetDTO)
         {
             _logger.LogInfo("Request: Add asset - " + addAssetDTO);
             var command = new AddAssetCommand(addAssetDTO);

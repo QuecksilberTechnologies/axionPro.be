@@ -9,10 +9,9 @@ namespace axionpro.application.DTOS.AssetDTO.asset
 {
     public class GetAssetResponseDTO
     {
-        public long TenantId { get; set; }
+        
         public long AssetId { get; set; }
-        public long ? AssetImageId { get; set; }
-   
+        public long ? AssetImageId { get; set; }   
         public long? CategoryId { get; set; }
         public string? CategoryName { get; set; }
         public string? AssetName { get; set; }
@@ -29,9 +28,7 @@ namespace axionpro.application.DTOS.AssetDTO.asset
         public string? Barcode { get; set; }
         public string? Qrcode { get; set; }
         public string? ModelNumber { get; set; }       
-        public string? AssetImagePath { get; set; }
-        public string? QRCodeImagePath { get; set; }
-        public int? QRImageType { get; set; } 
+        public string? AssetImagePath { get; set; } 
         public int? AssetImageType { get; set; }             
         public DateTime? PurchaseDate { get; set; }
         public DateTime? WarrantyExpiryDate { get; set; }
