@@ -63,27 +63,25 @@ namespace axionpro.persistance.Repositories
         /// <returns></returns>
         /// 
 
-        public async Task<int> AddAsync(Asset asset, string? path)
+        public async Task<GetAssetResponseDTO?> AddAsync(Asset asset, string? path)
         {
             try
             {
                 // ===============================
-                // 1️⃣ Save Asset (Parent)
+                // 1️⃣ SAVE ASSET (PARENT)
                 // ===============================
                 await _context.Assets.AddAsync(asset);
                 await _context.SaveChangesAsync(); // 🔥 Asset.Id generated
 
                 // ===============================
-                // 2️⃣ Save AssetImage (Child)
+                // 2️⃣ SAVE ASSET IMAGE (CHILD)
                 // ===============================
                 var assetImage = new AssetImage
                 {
-                    AssetId = asset.Id,                 // 🔗 FK
+                    AssetId = asset.Id,
                     TenantId = asset.TenantId,
                     AssetImageType = ConstantValues.Web,
-                    AssetImagePath = string.IsNullOrWhiteSpace(path)
-                                        ? null           // ✅ NULL allowed
-                                        : path,
+                    AssetImagePath = string.IsNullOrWhiteSpace(path) ? null : path,
                     IsPrimary = true,
                     IsActive = true,
                     IsSoftDeleted = false,
@@ -95,11 +93,59 @@ namespace axionpro.persistance.Repositories
                 await _context.SaveChangesAsync();
 
                 // ===============================
-                // 3️⃣ RETURN STATUS
+                // 3️⃣ RETURN INSERTED OBJECT (JOINED DTO)
                 // ===============================
-                return string.IsNullOrWhiteSpace(path)
-                    ? 1   // Asset inserted, image NULL
-                    : 2;  // Asset + Image inserted
+                var result = await (
+                    from a in _context.Assets
+                    join at in _context.AssetTypes
+                        on a.AssetTypeId equals at.Id into atj
+                    from at in atj.DefaultIfEmpty()
+
+                    join ac in _context.AssetCategories
+                        on at.AssetCategoryId equals ac.Id into acj
+                    from ac in acj.DefaultIfEmpty()
+
+                    join st in _context.AssetStatuses
+                        on a.AssetStatusId equals st.Id into stj
+                    from st in stj.DefaultIfEmpty()
+
+                    where a.Id == asset.Id
+                    select new GetAssetResponseDTO
+                    {
+                        AssetId = a.Id,
+                        AssetName = a.AssetName,
+                        AssetTypeId = a.AssetTypeId,
+                        TypeName = at != null ? at.TypeName : null,
+
+                        CategoryId = ac != null ? ac.Id : null,
+                        CategoryName = ac != null ? ac.CategoryName : null,
+
+                        AssetStatusId = a.AssetStatusId,
+                        StatusName = st != null ? st.StatusName : null,
+                        ColorKey = st != null ? st.ColorKey : null,
+
+                        Company = a.Company,
+                        ModelNo = a.ModelNo,
+                        Size = a.Size,
+                        Weight = a.Weight,
+                        Color = a.Color,
+                        Price = a.Price,
+                        SerialNumber = a.SerialNumber,
+                        Barcode = a.Barcode,
+                        Qrcode = a.Qrcode,
+
+                        AssetImageId = assetImage.Id,
+                        AssetImagePath = assetImage.AssetImagePath,
+                        AssetImageType = assetImage.AssetImageType,
+
+                        PurchaseDate = a.PurchaseDate,
+                        WarrantyExpiryDate = a.WarrantyExpiryDate,
+                        IsAssigned = a.IsAssigned,
+                        IsActive = a.IsActive
+                    }
+                ).FirstOrDefaultAsync();
+
+                return result;
             }
             catch (Exception ex)
             {
@@ -108,7 +154,7 @@ namespace axionpro.persistance.Repositories
                     "❌ Error while inserting Asset | TenantId={TenantId}",
                     asset?.TenantId);
 
-                return 0; // ❌ failure
+                return null;
             }
         }
 
