@@ -16,7 +16,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
-public class AddAssetCommand : IRequest<ApiResponse<List<GetAssetResponseDTO>>>
+public class AddAssetCommand : IRequest<ApiResponse<bool>>
 {
     public AddAssetRequestDTO DTO { get; }
 
@@ -26,18 +26,16 @@ public class AddAssetCommand : IRequest<ApiResponse<List<GetAssetResponseDTO>>>
     }
 }
 
+
 public class AddAssetCommandHandler
-    : IRequestHandler<AddAssetCommand, ApiResponse<List<GetAssetResponseDTO>>>
+    : IRequestHandler<AddAssetCommand, ApiResponse<bool>>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly ILogger<AddAssetCommandHandler> _logger;
     private readonly IFileStorageService _fileStorageService;
     private readonly ICommonRequestService _commonRequestService;
-    private readonly IIdEncoderService _idEncoderService;
-    private readonly IConfiguration _config;
     private readonly IPermissionService _permissionService;
-
 
     public AddAssetCommandHandler(
         IUnitOfWork unitOfWork,
@@ -45,8 +43,6 @@ public class AddAssetCommandHandler
         ILogger<AddAssetCommandHandler> logger,
         IFileStorageService fileStorageService,
         ICommonRequestService commonRequestService,
-        IIdEncoderService idEncoderService,
-        IConfiguration config,
         IPermissionService permissionService)
     {
         _unitOfWork = unitOfWork;
@@ -54,12 +50,10 @@ public class AddAssetCommandHandler
         _logger = logger;
         _fileStorageService = fileStorageService;
         _commonRequestService = commonRequestService;
-        _idEncoderService = idEncoderService;
-        _config = config;
         _permissionService = permissionService;
     }
 
-    public async Task<ApiResponse<List<GetAssetResponseDTO>>> Handle(
+    public async Task<ApiResponse<bool>> Handle(
         AddAssetCommand request,
         CancellationToken ct)
     {
@@ -72,25 +66,22 @@ public class AddAssetCommandHandler
             // ===============================
             var validation = await _commonRequestService.ValidateRequestAsync();
             if (!validation.Success)
-                return ApiResponse<List<GetAssetResponseDTO>>
-                    .Fail(validation.ErrorMessage);
+                return ApiResponse<bool>.Fail(validation.ErrorMessage);
 
             request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
             request.DTO.Prop.TenantId = validation.TenantId;
 
             // ===============================
-            // 2️⃣ PERMISSION CHECK (OPTIONAL)
+            // 2️⃣ PERMISSION (OPTIONAL)
             // ===============================
             var permissions =
                 await _permissionService.GetPermissionsAsync(validation.RoleId);
 
-            // if (!permissions.Contains("ViewAsset"))
-            // {
-            //     return ApiResponse<List<GetAssetResponseDTO>>
-            //         .Fail("You do not have permission to view assets.");
-            // }
+            // if (!permissions.Contains("AddAsset"))
+            //     return ApiResponse<bool>.Fail("Permission denied.");
+
             // ===============================
-            // 2️⃣ DTO → ENTITY
+            // 3️⃣ DTO → ENTITY
             // ===============================
             var asset = _mapper.Map<Asset>(request.DTO);
             asset.TenantId = validation.TenantId;
@@ -100,7 +91,7 @@ public class AddAssetCommandHandler
             asset.IsActive = true;
 
             // ===============================
-            // 3️⃣ QR JSON (DATA ONLY)
+            // 4️⃣ QR JSON
             // ===============================
             asset.Qrcode = JsonConvert.SerializeObject(new
             {
@@ -109,20 +100,20 @@ public class AddAssetCommandHandler
             });
 
             // ===============================
-            // 4️⃣ ASSET IMAGE UPLOAD (SAFE)
+            // 5️⃣ IMAGE UPLOAD (SAFE)
             // ===============================
             string? assetImagePath = null;
 
-            try
+            if (request.DTO.AssetImageFile != null &&
+                request.DTO.AssetImageFile.Length > 0)
             {
-                if (request.DTO.AssetImageFile != null &&
-                    request.DTO.AssetImageFile.Length > 0)
+                try
                 {
                     string cleanName =
                         EncryptionSanitizer.CleanEncodedInput(
-                            request.DTO.AssetName.Trim()
+                            request.DTO.AssetName?.Trim()
                                 .Replace(" ", "")
-                                .ToLower());
+                                .ToLower() ?? "asset");
 
                     using var ms = new MemoryStream();
                     await request.DTO.AssetImageFile.CopyToAsync(ms);
@@ -132,7 +123,7 @@ public class AddAssetCommandHandler
 
                     string folderPath =
                         _fileStorageService.GetTenantFolderPath(
-                            request.DTO.Prop.TenantId,
+                            validation.TenantId,
                             "assets");
 
                     string fullPath =
@@ -141,46 +132,51 @@ public class AddAssetCommandHandler
                             fileName,
                             folderPath);
 
-                    if (!string.IsNullOrEmpty(fullPath))
+                    if (!string.IsNullOrWhiteSpace(fullPath))
                         assetImagePath =
                             _fileStorageService.GetRelativePath(fullPath);
                 }
+                catch (Exception imgEx)
+                {
+                    _logger.LogError(imgEx, "⚠️ Asset image upload failed.");
+                    assetImagePath = null;
+                }
             }
-            catch (Exception imgEx)
+
+            // ===============================
+            // 6️⃣ SAVE (REPO RETURNS INT)
+            // ===============================
+            int result =
+                await _unitOfWork.AssetRepository
+                    .AddAsync(asset, assetImagePath);
+
+            if (result <= 0)
             {
-                _logger.LogError(imgEx, "⚠️ Asset image upload failed.");
-                assetImagePath = null; // continue without image
+                await _unitOfWork.RollbackTransactionAsync();
+                return ApiResponse<bool>.Fail("Asset creation failed.");
             }
 
             // ===============================
-            // 5️⃣ SAVE ASSET + IMAGE (REPO)
-            // ===============================
-            await _unitOfWork.AssetRepository.AddAsync(asset, assetImagePath);
-
-            // ===============================
-            // 6️⃣ COMMIT
+            // 7️⃣ COMMIT
             // ===============================
             await _unitOfWork.CommitTransactionAsync();
 
-            var pagedAssets = await _unitOfWork.AssetRepository.GetInsertedAssetAsync(request.DTO.Prop.TenantId, request.DTO.IsActive);
-
-             var encryptedList = ProjectionHelper.ToGetAssetResponseDTOs(pagedAssets, _idEncoderService, validation.Claims.TenantEncriptionKey, _config);
-
-
-
             // ===============================
-            // 7️⃣ RETURN RESPONSE
+            // 8️⃣ SUCCESS
             // ===============================
-            return ApiResponse<List<GetAssetResponseDTO>>.Success(pagedAssets, "Asset created successfully");
+            return ApiResponse<bool>.Success(
+                true,
+                result == 2
+                    ? "Asset created successfully with image."
+                    : "Asset created successfully."
+            );
         }
         catch (Exception ex)
         {
             await _unitOfWork.RollbackTransactionAsync();
             _logger.LogError(ex, "❌ AddAsset failed");
 
-            return ApiResponse<List<GetAssetResponseDTO>>
-                .Fail("Asset creation failed");
+            return ApiResponse<bool>.Fail("Unexpected error while creating asset.");
         }
     }
 }
- 

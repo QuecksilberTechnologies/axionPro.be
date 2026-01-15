@@ -17,7 +17,7 @@ namespace axionpro.application.Interfaces.IRepositories
 
         #region asset
         Task UpdateAsync(Asset asset);
-        Task AddAsync(Asset asset, string path);
+        Task<int> AddAsync(Asset asset, string path);
       
         // All assets
         Task<List<GetAssetResponseDTO>> GetAllAsync(long tenantId, bool Isactive);

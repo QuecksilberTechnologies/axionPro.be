@@ -63,38 +63,55 @@ namespace axionpro.persistance.Repositories
         /// <returns></returns>
         /// 
 
-
-        public async Task AddAsync(Asset asset, string? path)
+        public async Task<int> AddAsync(Asset asset, string? path)
         {
-            // ===============================
-            // 1️⃣ Save Asset (Parent)
-            // ===============================
-            await _context.Assets.AddAsync(asset);
-            await _context.SaveChangesAsync(); // 🔥 Asset.Id generated
-
-            // ===============================
-            // 2️⃣ Always create AssetImage row
-            // ===============================
-            var assetImage = new AssetImage
+            try
             {
-                AssetId = asset.Id,                 // 🔗 FK
-                TenantId = asset.TenantId,
-                AssetImageType = ConstantValues.Web,
-                AssetImagePath = string.IsNullOrWhiteSpace(path)
-                                    ? null           // ✅ NULL allowed
-                                    : path,
-                IsPrimary = true,
-                IsActive = true,
-                
-                IsSoftDeleted = false,
-                AddedById = asset.AddedById,
-                AddedDateTime = DateTime.UtcNow
+                // ===============================
+                // 1️⃣ Save Asset (Parent)
+                // ===============================
+                await _context.Assets.AddAsync(asset);
+                await _context.SaveChangesAsync(); // 🔥 Asset.Id generated
 
-            };
+                // ===============================
+                // 2️⃣ Save AssetImage (Child)
+                // ===============================
+                var assetImage = new AssetImage
+                {
+                    AssetId = asset.Id,                 // 🔗 FK
+                    TenantId = asset.TenantId,
+                    AssetImageType = ConstantValues.Web,
+                    AssetImagePath = string.IsNullOrWhiteSpace(path)
+                                        ? null           // ✅ NULL allowed
+                                        : path,
+                    IsPrimary = true,
+                    IsActive = true,
+                    IsSoftDeleted = false,
+                    AddedById = asset.AddedById,
+                    AddedDateTime = DateTime.UtcNow
+                };
 
-            await _context.AssetImages.AddAsync(assetImage);
-            await _context.SaveChangesAsync();
+                await _context.AssetImages.AddAsync(assetImage);
+                await _context.SaveChangesAsync();
+
+                // ===============================
+                // 3️⃣ RETURN STATUS
+                // ===============================
+                return string.IsNullOrWhiteSpace(path)
+                    ? 1   // Asset inserted, image NULL
+                    : 2;  // Asset + Image inserted
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "❌ Error while inserting Asset | TenantId={TenantId}",
+                    asset?.TenantId);
+
+                return 0; // ❌ failure
+            }
         }
+
 
 
 
