@@ -1,10 +1,17 @@
 ﻿using AutoMapper;
+using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.DTOS.AssetDTO.asset;
+using axionpro.application.Features.EmployeeCmd.BankInfo.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IEncryptionService;
+using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
+using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using MediatR;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -32,22 +39,37 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<GetAllAssetCommandHandler> _logger;
-        private readonly ICommonRequestService _commonRequestService;
+        private readonly ITokenService _tokenService;
         private readonly IPermissionService _permissionService;
-
-        public GetAllAssetCommandHandler(
-            IUnitOfWork unitOfWork,
+        private readonly IConfiguration _config;
+        private readonly IEncryptionService _encryptionService;
+        private readonly IIdEncoderService _idEncoderService;
+        private readonly IFileStorageService _fileStorageService;
+        private readonly ICommonRequestService _commonRequestService;
+        public GetAllAssetCommandHandler(IUnitOfWork unitOfWork,
             IMapper mapper,
+            IHttpContextAccessor httpContextAccessor,
             ILogger<GetAllAssetCommandHandler> logger,
-            ICommonRequestService commonRequestService,
-            IPermissionService permissionService)
+            ITokenService tokenService,
+            IPermissionService permissionService,
+            IConfiguration config,
+            IEncryptionService encryptionService, IIdEncoderService idEncoderService
+            , IFileStorageService fileStorageService,
+             ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
             _logger = logger;
-            _commonRequestService = commonRequestService;
+            _tokenService = tokenService;
             _permissionService = permissionService;
+            _config = config;
+            _encryptionService = encryptionService;
+            _idEncoderService = idEncoderService;
+            _fileStorageService = fileStorageService;
+            _commonRequestService = commonRequestService;
         }
 
         public async Task<ApiResponse<List<GetAssetResponseDTO>>> Handle(
@@ -104,6 +126,8 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
                         Data = new List<GetAssetResponseDTO>()
                     };
                 }
+                var encryptedList = ProjectionHelper.ToGetAssetResponseDTOs(assets, _idEncoderService, validation.Claims.TenantEncriptionKey, _config);
+
 
                 _logger.LogInformation(
                     "Successfully retrieved {Count} assets for TenantId: {TenantId}",

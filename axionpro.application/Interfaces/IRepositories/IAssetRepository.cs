@@ -20,7 +20,8 @@ namespace axionpro.application.Interfaces.IRepositories
         Task AddAsync(Asset asset, string path);
       
         // All assets
-        Task<List<GetAssetResponseDTO>> GetAllAssetAsync(long tenantId, bool Isactive);
+        Task<List<GetAssetResponseDTO>> GetAllAsync(long tenantId, bool Isactive);
+        Task<List<GetAssetResponseDTO>> GetInsertedAssetAsync(long tenantId, bool Isactive);
         Task<List<GetAssetResponseDTO>> GetAssetsByFilterAsync(GetAssetRequestDTO? asset);
         Task<bool> DeleteAssetAsync(DeleteAssetReqestDTO? asset);
          Task<bool> UpdateAssetInfoAsync(UpdateAssetRequestDTO assetDto);

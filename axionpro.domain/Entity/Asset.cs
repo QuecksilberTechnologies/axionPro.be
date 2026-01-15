@@ -30,7 +30,7 @@ public partial class Asset : BaseEntity
 
     public string? Qrcode { get; set; }
 
-    public DateTime PurchaseDate { get; set; }
+    public DateTime? PurchaseDate { get; set; }
 
     public DateTime? WarrantyExpiryDate { get; set; }
 

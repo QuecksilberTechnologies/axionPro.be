@@ -24,6 +24,7 @@ namespace axionpro.domain.Entity
         public bool IsActive { get; set; }
 
         public bool IsSoftDeleted { get; set; }
+        public bool IsPrimary { get; set; }
 
         public long? AddedById { get; set; }
 

@@ -20,6 +20,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Win32.SafeHandles;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -243,6 +244,46 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 
             return entities;
         }
+     
+        public static List<GetAssetResponseDTO> ToGetAssetResponseDTOs( List<GetAssetResponseDTO> source, IIdEncoderService encoderService,
+        string tenantKey, IConfiguration configuration)
+        {
+            if (source == null || source.Count == 0)
+                return source ?? new List<GetAssetResponseDTO>();
+
+            string baseUrl =
+                configuration["FileSettings:BaseUrl"] ?? string.Empty;
+
+            string defaultImg =
+                configuration["FileSettings:DefaultImage"] ?? string.Empty;
+
+            foreach (var item in source)
+            {
+                if (item == null)
+                    continue;
+
+                // 🔹 Normalize null
+                item.AssetImagePath ??= string.Empty;
+
+                // 🔹 Build full image URL
+                if (!string.IsNullOrWhiteSpace(item.AssetImagePath))
+                {
+                    item.AssetImagePath =
+                        $"{baseUrl}{item.AssetImagePath}";
+                }
+                else
+                {
+                    // 🔹 fallback default image (optional but recommended)
+                    item.AssetImagePath =
+                        string.IsNullOrEmpty(defaultImg)
+                            ? string.Empty
+                            : $"{baseUrl}{defaultImg}";
+                }
+            }
+
+            return source;
+        }
+
 
 
         public static GetBaseEmployeeResponseDTO? ToGetBaseInfoResponseDTO(
@@ -363,9 +404,6 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             foreach (var item in entities.Items) // now item is GetBankResponseDTO
             {
                 if (item == null) continue;
-
-
-
 
                 item.FilePath ??= string.Empty;
                 // 📁 Final Image URL build

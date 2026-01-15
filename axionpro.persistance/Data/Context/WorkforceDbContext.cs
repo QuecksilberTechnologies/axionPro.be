@@ -363,7 +363,7 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.IsAssigned).HasDefaultValue(false);
                 entity.Property(e => e.IsRepairable).HasDefaultValue(true);
                 entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
-                entity.Property(e => e.PurchaseDate).HasColumnType("datetime");
+                //entity.Property(e => e.PurchaseDate).HasColumnType("datetime");
                 entity.Property(e => e.Qrcode)
                     .HasMaxLength(100)
                     .HasColumnName("QRCode");

@@ -25,8 +25,8 @@ namespace axionpro.application.DTOS.AssetDTO.asset
         public decimal Price { get; set; }
         public string? SerialNumber { get; set; }
         public string? Barcode { get; set; }       
-        public DateTime PurchaseDate { get; set; }
-        public DateTime WarrantyExpiryDate { get; set; }
+        public DateTime? PurchaseDate { get; set; }
+        public DateTime? WarrantyExpiryDate { get; set; }
         public int AssetImageType { get; set; } = 1;       
         public string? AssetImagePath { get; set; }       
         public int AssetStatusId { get; set; }

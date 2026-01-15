@@ -1,4 +1,5 @@
 ﻿using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Pagination;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,9 +8,8 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.DTOS.AssetDTO.asset
 {
-    public class GetAssetRequestDTO
-    {
-      
+    public class GetAssetRequestDTO : BaseRequest
+    {     
     
         public long? AssetId { get; set; } //optional for search by id
         public int? AssetTypeId { get; set; } //optional for search by asset type

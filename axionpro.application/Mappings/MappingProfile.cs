@@ -83,7 +83,7 @@ namespace axionpro.application.Mappings
         {
 
 
-            CreateMap<AddAssetRequestDTO, Asset>();
+            CreateMap<AddAssetRequestDTO, Asset>().ReverseMap();
 
             CreateMap<AssetCategory, GetCategoryResponseDTO>().ReverseMap();
             CreateMap<AssetStatus, GetStatusResponseDTO>().ReverseMap();

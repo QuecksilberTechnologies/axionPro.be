@@ -64,24 +64,34 @@ namespace axionpro.persistance.Repositories
         /// 
 
 
-        public async Task AddAsync(Asset asset, string path)
+        public async Task AddAsync(Asset asset, string? path)
         {
+            // ===============================
             // 1️⃣ Save Asset (Parent)
+            // ===============================
             await _context.Assets.AddAsync(asset);
-            await _context.SaveChangesAsync(); // 🔥 Asset.Id generated here
-             AssetImage? assetImage = null;
-            // 2️⃣ Save AssetImage (Child) – if provided
-            
-           
-                assetImage.AssetId = asset.Id;          // 🔗 FK mapping
-                assetImage.TenantId = asset.TenantId;
-                assetImage.AddedDateTime = asset.AddedDateTime;
-                assetImage.AssetImageType = ConstantValues.Web; // Assuming 'Web' type for example
-                assetImage.AssetImagePath = path??null; // Use provided path
-                assetImage.IsActive = true;
-                assetImage.IsSoftDeleted = false;
-                assetImage.AddedById = asset.AddedById;
-             
+            await _context.SaveChangesAsync(); // 🔥 Asset.Id generated
+
+            // ===============================
+            // 2️⃣ Always create AssetImage row
+            // ===============================
+            var assetImage = new AssetImage
+            {
+                AssetId = asset.Id,                 // 🔗 FK
+                TenantId = asset.TenantId,
+                AssetImageType = ConstantValues.Web,
+                AssetImagePath = string.IsNullOrWhiteSpace(path)
+                                    ? null           // ✅ NULL allowed
+                                    : path,
+                IsPrimary = true,
+                IsActive = true,
+                
+                IsSoftDeleted = false,
+                AddedById = asset.AddedById,
+                AddedDateTime = DateTime.UtcNow
+
+            };
+
             await _context.AssetImages.AddAsync(assetImage);
             await _context.SaveChangesAsync();
         }
@@ -394,7 +404,6 @@ namespace axionpro.persistance.Repositories
                     .Where(at => at.Id == existingAsset.AssetTypeId)
                     .Select(at => at.TypeName)
                     .FirstOrDefaultAsync() ?? string.Empty;
-
                 var qrData = new
                 {
                     AssetId = existingAsset.Id,
@@ -402,10 +411,14 @@ namespace axionpro.persistance.Repositories
                     AssetName = existingAsset.AssetName,
                     AssetType = assetTypeName,
                     TenantId = existingAsset.TenantId,
-                    PurchaseDate = existingAsset.PurchaseDate.ToString("yyyy-MM-dd"),
+
+                    PurchaseDate = existingAsset.PurchaseDate.HasValue
+                        ? existingAsset.PurchaseDate.Value.ToString("yyyy-MM-dd"): null,
+
                     WarrantyExpiryDate = existingAsset.WarrantyExpiryDate,
                     QRCodeVersion = "v1.0"
                 };
+
                 string qrJson = JsonConvert.SerializeObject(qrData);
                 existingAsset.Qrcode = qrJson;
                 // 🔸 5️⃣ Update or add QR code image record
@@ -464,12 +477,133 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<List<GetAssetResponseDTO>> GetAllAssetAsync(
+
+        public async Task<List<GetAssetResponseDTO>> GetInsertedAssetAsync(
+      long tenantId,
+      bool isActive)
+        {
+            try
+            {
+                _logger.LogInformation(
+                    "Fetching latest 10 assets for TenantId: {TenantId}",
+                    tenantId);
+
+                var result = await _context.Assets
+                    .AsNoTracking()
+                    .Where(a =>
+                        a.TenantId == tenantId &&
+                        a.IsActive == isActive &&
+                        a.IsSoftDeleted != true)
+                    .OrderByDescending(a => a.Id) // 🔥 latest first
+                    .Select(a => new GetAssetResponseDTO
+                    {
+                        // =========================
+                        // ASSET
+                        // =========================
+                        AssetId = a.Id,
+                        AssetName = a.AssetName,
+                        Company = a.Company,
+                        ModelNo = a.ModelNo,
+                        Size = a.Size,
+                        Weight = a.Weight,
+                        Color = a.Color,
+                        IsRepairable = a.IsRepairable,
+                        Price = a.Price,
+                        SerialNumber = a.SerialNumber,
+                        Barcode = a.Barcode,
+                        Qrcode = a.Qrcode,
+                        PurchaseDate = a.PurchaseDate,
+                        WarrantyExpiryDate = a.WarrantyExpiryDate,
+                        IsAssigned = a.IsAssigned,
+                        IsActive = a.IsActive,
+
+                        // =========================
+                        // ASSET TYPE
+                        // =========================
+                        AssetTypeId = a.AssetTypeId,
+                        TypeName = a.AssetType != null
+                            ? a.AssetType.TypeName
+                            : null,
+
+                        // =========================
+                        // CATEGORY (via AssetType)
+                        // =========================
+                        CategoryId = a.AssetType != null
+                            ? a.AssetType.AssetCategory.Id
+                            : null,
+
+                        CategoryName = a.AssetType != null
+                            ? a.AssetType.AssetCategory.CategoryName
+                            : null,
+
+                        // =========================
+                        // STATUS
+                        // =========================
+                        AssetStatusId = a.AssetStatusId,
+                        StatusName = a.AssetStatus != null
+                            ? a.AssetStatus.StatusName
+                            : null,
+
+                        ColorKey = a.AssetStatus != null
+                            ? a.AssetStatus.ColorKey
+                            : null,
+
+                        // =========================
+                        // IMAGE (LATEST ACTIVE)
+                        // =========================
+                        AssetImageId = a.AssetImages
+                            .Where(i =>
+                                i.IsActive &&
+                                i.IsSoftDeleted != true)
+                            .OrderByDescending(i => i.Id)
+                            .Select(i => (long?)i.Id)
+                            .FirstOrDefault(),
+
+                        AssetImagePath = a.AssetImages
+                            .Where(i =>
+                                i.IsActive &&
+                                i.IsSoftDeleted != true)
+                            .OrderByDescending(i => i.Id)
+                            .Select(i => i.AssetImagePath)
+                            .FirstOrDefault(),
+
+                        AssetImageType = a.AssetImages
+                            .Where(i =>
+                                i.IsActive &&
+                                i.IsSoftDeleted != true)
+                            .OrderByDescending(i => i.Id)
+                            .Select(i => (int?)i.AssetImageType)
+                            .FirstOrDefault()
+                    })
+                    .Take(10)
+                    .ToListAsync();
+
+                _logger.LogInformation(
+                    "Fetched {Count} assets for TenantId: {TenantId}",
+                    result.Count,
+                    tenantId);
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "❌ Error while fetching latest assets for TenantId: {TenantId}",
+                    tenantId);
+
+                throw;
+            }
+        }
+
+
+        public async Task<List<GetAssetResponseDTO>> GetAllAsync(
                long tenantId,
                bool isActive)
         {
             try
             {
+                
                 _logger.LogInformation(
                     "Fetching latest 10 assets for TenantId: {TenantId}",
                     tenantId);
@@ -583,81 +717,99 @@ namespace axionpro.persistance.Repositories
         /// </summary>
         /// 
 
-        public async Task<List<GetAssetResponseDTO>> GetAssetsByFilterAsync(GetAssetRequestDTO? asset)
+        public async Task<List<GetAssetResponseDTO>> GetAssetsByFilterAsync(
+    GetAssetRequestDTO asset)
         {
             if (asset == null)
-                throw new ArgumentNullException(nameof(asset), "Asset filter request cannot be null.");
+                throw new ArgumentNullException(nameof(asset));
 
-            if (asset.Prop.TenantId <= 0)
-                throw new ArgumentException("TenantId is mandatory and must be greater than zero.", nameof(asset.Prop.TenantId));
+            if (asset.Prop == null || asset.Prop.TenantId <= 0)
+                throw new ArgumentException("TenantId is mandatory.");
 
-            await using var context = await _contextFactory.CreateDbContextAsync();
+            int pageNumber = asset.PageNumber <= 0 ? 1 : asset.PageNumber;
+            int pageSize = asset.PageSize <= 0 ? 10 : asset.PageSize;
+            int skip = (pageNumber - 1) * pageSize;
+
+            await using var context =
+                await _contextFactory.CreateDbContextAsync();
 
             try
             {
-                // 🔹 Base query with eager loading
-                var query = context.Assets
-                    .Include(a => a.AssetType)
-                        .ThenInclude(at => at.AssetCategory)
-                    .Include(a => a.AssetImages)
-                    .Include(a => a.AssetStatus) // ✅ Load AssetStatus in same query
-                    .Where(a => a.TenantId == asset.Prop.TenantId && a.IsSoftDeleted != true)
-                    .AsQueryable();
+                // ===============================
+                // 1️⃣ BASE QUERY
+                // ===============================
+                IQueryable<Asset> query = context.Assets
+                    .Where(a =>
+                        a.TenantId == asset.Prop.TenantId &&
+                        a.IsSoftDeleted != true);
 
-                // 🔸 Dynamic filters
-                if (asset.AssetId is > 0)
+                // ===============================
+                // 2️⃣ DYNAMIC FILTERS (NULL SAFE)
+                // ===============================
+                if (asset.AssetId > 0)
                     query = query.Where(a => a.Id == asset.AssetId);
 
-                if (asset.AssetTypeId is > 0)
+                if (asset.AssetTypeId > 0)
                     query = query.Where(a => a.AssetTypeId == asset.AssetTypeId);
 
                 if (!string.IsNullOrWhiteSpace(asset.SerialNumber))
-                    query = query.Where(a => a.SerialNumber != null && a.SerialNumber.Contains(asset.SerialNumber));
+                    query = query.Where(a =>
+                        a.SerialNumber != null &&
+                        a.SerialNumber.Contains(asset.SerialNumber));
 
                 if (!string.IsNullOrWhiteSpace(asset.ModelNumber))
-                    query = query.Where(a => a.ModelNo != null && a.ModelNo.Contains(asset.ModelNumber));
+                    query = query.Where(a =>
+                        a.ModelNo != null &&
+                        a.ModelNo.Contains(asset.ModelNumber));
 
                 if (asset.PurchasedDateTime.HasValue)
-                    query = query.Where(a => a.PurchaseDate.Date == asset.PurchasedDateTime.Value.Date);
+                {
+                    var date = asset.PurchasedDateTime.Value.Date;
+                    query = query.Where(a =>
+                        a.PurchaseDate.HasValue &&
+                        a.PurchaseDate.Value.Date == date);
+                }
 
-                if (asset.InBetweenPurchaseDate.HasValue && asset.PurchasedDateTime.HasValue)
-                    query = query.Where(a => a.PurchaseDate >= asset.PurchasedDateTime && a.PurchaseDate <= asset.InBetweenPurchaseDate);
-
-                if (asset.WarrantyExpiryDateTime.HasValue)
-                    query = query.Where(a => a.WarrantyExpiryDate.HasValue &&
-                                             a.WarrantyExpiryDate.Value.Date == asset.WarrantyExpiryDateTime.Value.Date);
-
-                if (asset.AssetStatusId is > 0)
+                if (asset.AssetStatusId > 0)
                     query = query.Where(a => a.AssetStatusId == asset.AssetStatusId);
 
                 if (asset.IsAssigned.HasValue)
                     query = query.Where(a => a.IsAssigned == asset.IsAssigned);
 
-                if (asset.TypeId is > 0)
-                    query = query.Where(a => a.AssetTypeId == asset.TypeId);
-
                 if (asset.IsActive.HasValue)
                     query = query.Where(a => a.IsActive == asset.IsActive);
 
-                // 🔹 Fetch results in one go
-                var assets = await query.ToListAsync();
+                // ===============================
+                // 3️⃣ JOINS + PAGINATION + PROJECTION
+                // ===============================
+                var result = await (
+                    from a in query
 
-                // 🔸 Project to DTO efficiently
-                var result = assets.Select(a =>
-                {
-                    var latestImage = a.AssetImages?
-                        .OrderByDescending(img => img.UpdatedDateTime)
-                        .FirstOrDefault();
-                   
-                    return new GetAssetResponseDTO
+                    join at in context.AssetTypes
+                        on a.AssetTypeId equals at.Id into atj
+                    from at in atj.DefaultIfEmpty()
+
+                    join ac in context.AssetCategories
+                        on at.AssetCategoryId equals ac.Id into acj
+                    from ac in acj.DefaultIfEmpty()
+
+                    join st in context.AssetStatuses
+                        on a.AssetStatusId equals st.Id into stj
+                    from st in stj.DefaultIfEmpty()
+
+                    orderby a.Id descending
+
+                    select new GetAssetResponseDTO
                     {
                         AssetId = a.Id,
-                        
-                        AssetTypeId = a.AssetTypeId,
-                        CategoryId = a.AssetType?.AssetCategory?.Id ?? 0,
-                        CategoryName = a.AssetType?.AssetCategory?.CategoryName,
-                        TypeName = a.AssetType?.TypeName,
                         AssetName = a.AssetName,
+
+                        AssetTypeId = a.AssetTypeId,
+                        TypeName = at != null ? at.TypeName : null,
+
+                        CategoryId = ac != null ? ac.Id : null,
+                        CategoryName = ac != null ? ac.CategoryName : null,
+
                         Company = a.Company,
                         ModelNo = a.ModelNo,
                         Size = a.Size,
@@ -668,32 +820,51 @@ namespace axionpro.persistance.Repositories
                         SerialNumber = a.SerialNumber,
                         Barcode = a.Barcode,
                         Qrcode = a.Qrcode,
-                        AssetImagePath = latestImage?.AssetImagePath,
-                       
-                        AssetImageType = latestImage?.AssetImageType ?? 0,
-                      
+
                         PurchaseDate = a.PurchaseDate,
                         WarrantyExpiryDate = a.WarrantyExpiryDate,
+
                         AssetStatusId = a.AssetStatusId,
-                        StatusName = a.AssetStatus?.StatusName, // ✅ No extra query
-                        ColorKey = a.AssetStatus.ColorKey, // ✅ Added
+                        StatusName = st != null ? st.StatusName : null,
+                        ColorKey = st != null ? st.ColorKey : null,
+
                         IsAssigned = a.IsAssigned,
-                        IsActive = a.IsActive
-                    };
-                }).ToList();
+                        IsActive = a.IsActive,
+
+                        // 🔹 Latest Image (NULL SAFE)
+                        AssetImagePath = context.AssetImages
+                            .Where(i =>
+                                i.AssetId == a.Id &&
+                                i.IsSoftDeleted != true &&
+                                i.IsActive)
+                            .OrderByDescending(i => i.UpdatedDateTime)
+                            .Select(i => i.AssetImagePath)
+                            .FirstOrDefault(),
+
+                        AssetImageType = context.AssetImages
+                            .Where(i =>
+                                i.AssetId == a.Id &&
+                                i.IsSoftDeleted != true &&
+                                i.IsActive)
+                            .OrderByDescending(i => i.UpdatedDateTime)
+                            .Select(i => i.AssetImageType)
+                            .FirstOrDefault()
+                    }
+                )
+                .Skip(skip)
+                .Take(pageSize)
+                .ToListAsync();
 
                 return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error in GetAssetsByFilterAsync: {Message}", ex.Message);
-                throw new Exception("Error occurred while retrieving filtered assets.", ex);
+                _logger.LogError(ex, "❌ Error in GetAssetsByFilterAsync");
+                throw;
             }
         }
 
-      
 
-      
 
 
 
