@@ -163,6 +163,32 @@ namespace axionpro.persistance.Repositories
             }
         }
 
+      
+        public async Task<AssetStatus?> GetByIdAsync(int? id)
+        {
+            try
+            {
+                _logger.LogInformation(
+                    "Fetching AssetStatus with Id={AssetStatusId}", id);
+
+                var assetStatus = await _context.AssetStatuses
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(a =>
+                        a.Id == id &&
+                        a.IsSoftDeleted != true);
+
+                return assetStatus;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "❌ Error occurred while fetching AssetStatus with Id={AssetStatusId}",
+                    id);
+
+                throw;
+            }
+        }
+
 
         public async Task<bool> UpdateAsync(UpdateStatusRequestDTO assetStatus)
         {

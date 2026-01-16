@@ -78,6 +78,11 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
                 // if (!permissions.Contains("DeleteAsset"))
                 //     return ApiResponse<bool>.Fail("Permission denied.");
 
+                var existingAsset = await _unitOfWork.AssetRepository.GetSingleRecordAsync(request.DTO.Id, null);
+
+                if (existingAsset == null)
+                    return ApiResponse<bool>.Fail("Asset not found.");
+
                 // ===============================
                 // 4️⃣ DELETE (REPO DECIDES)
                 // ===============================

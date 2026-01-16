@@ -15,6 +15,7 @@ namespace axionpro.application.Interfaces.IRepositories
                 
         #region AssetStatus         
         Task<List<GetStatusResponseDTO>> GetAllAsync(GetStatusRequestDTO? assetStatus);        
+        Task<AssetStatus> GetByIdAsync(int?  id);        
         Task<GetStatusResponseDTO>AddAsync(AssetStatus? assetStatus);
         Task<bool> UpdateAsync(UpdateStatusRequestDTO assetStatus);
       

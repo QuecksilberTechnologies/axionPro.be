@@ -23,6 +23,8 @@ namespace axionpro.application.DTOS.AssetDTO.asset
         public string? Weight { get; set; }
         public string? Color { get; set; }
         public bool? IsRepairable { get; set; }
+        public bool IsActive { get; set; }
+        public bool IsAssigned { get; set; }
         public decimal? Price { get; set; }
         public string? SerialNumber { get; set; }
         public string? Barcode { get; set; }
@@ -35,7 +37,7 @@ namespace axionpro.application.DTOS.AssetDTO.asset
         public int? AssetStatusId { get; set; }
         public string? ColorKey { get; set; }
         public string? StatusName { get; set; }
-        public bool? IsAssigned { get; set; }
-        public bool IsActive { get; set; }
+      //   public bool? IsAssigned { get; set; }
+       // public bool IsActive { get; set; }
     }
 }

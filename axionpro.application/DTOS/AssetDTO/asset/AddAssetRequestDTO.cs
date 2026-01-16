@@ -33,7 +33,6 @@ namespace axionpro.application.DTOS.AssetDTO.asset
         public bool IsAssigned { get; set; }
         public bool IsActive { get; set; }
         public IFormFile? AssetImageFile { get; set; }
-
         public ExtraPropRequestDTO? Prop { get; set; } = new ExtraPropRequestDTO();
 
     }

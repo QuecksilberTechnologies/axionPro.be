@@ -67,33 +67,51 @@ public class AddAssetCommandHandler
             // ===============================
             // 1️⃣ COMMON VALIDATION
             // ===============================
+            // ===============================
+            // 1️⃣ COMMON VALIDATION
+            // ===============================
             var validation = await _commonRequestService.ValidateRequestAsync();
             if (!validation.Success)
-                return ApiResponse<GetAssetResponseDTO>
-                    .Fail(validation.ErrorMessage);
+                return ApiResponse<GetAssetResponseDTO>.Fail(validation.ErrorMessage);
+
+            // Null safety
+            if (request.DTO.Prop == null)
+                request.DTO.Prop = new();
 
             request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
             request.DTO.Prop.TenantId = validation.TenantId;
 
+
             // ===============================
-            // 2️⃣ DTO → ENTITY
+            // 2️⃣ DTO → ENTITY (AutoMapper)
             // ===============================
             var asset = _mapper.Map<Asset>(request.DTO);
+
+            // Mandatory system fields
             asset.TenantId = validation.TenantId;
             asset.AddedById = validation.UserEmployeeId;
             asset.AddedDateTime = DateTime.UtcNow;
             asset.IsActive = true;
             asset.IsSoftDeleted = false;
 
-            // ===============================
-            // 3️⃣ QR JSON
-            // ===============================
-            asset.Qrcode = JsonConvert.SerializeObject(new
-            {
-                asset.AssetName,
-                asset.AssetTypeId
-            });
+            // Safe IsAssigned logic
+          //  asset.IsAssigned = request.DTO.IsAssigned ?? false;
 
+
+            // ===============================
+            // 3️⃣ VALIDATE ASSET STATUS (Optional but safe)
+            // ===============================
+            var assetStatus = await _unitOfWork.AssetStatusRepository
+                .GetByIdAsync(asset.AssetStatusId);
+
+            if (assetStatus == null)
+                return ApiResponse<GetAssetResponseDTO>.Fail("Invalid AssetStatusId.");
+
+
+            // ===============================
+            // 4️⃣ QR JSON
+            // ===============================
+           
             // ===============================
             // 4️⃣ IMAGE UPLOAD
             // ===============================
@@ -144,6 +162,32 @@ public class AddAssetCommandHandler
                 return ApiResponse<GetAssetResponseDTO>
                     .Fail("Asset creation failed.");
             }
+            // ===============================
+            // 6️⃣ QR GENERATION (AFTER INSERT)
+            // ===============================
+            var qrPayload = new
+            {
+                insertedAsset.AssetId,          // ✅ NOW AVAILABLE
+                insertedAsset.AssetName,
+                insertedAsset.AssetTypeId,
+                insertedAsset.Company,
+                insertedAsset.ModelNo,
+                insertedAsset.SerialNumber,
+                insertedAsset.Barcode,
+                insertedAsset.AssetStatusId,
+                insertedAsset.StatusName,
+                insertedAsset.PurchaseDate,
+                insertedAsset.WarrantyExpiryDate,
+                insertedAsset.IsRepairable,
+                insertedAsset.IsAssigned    
+            };
+
+            string qrJson = JsonConvert.SerializeObject(qrPayload);
+
+            // 🔁 Update QR in DB
+            await _unitOfWork.AssetRepository
+                .UpdateQrCodeAsync(insertedAsset.AssetId, qrJson);
+
             string baseUrl =
               configuration["FileSettings:BaseUrl"] ?? string.Empty;
             insertedAsset.AssetImagePath = $"{baseUrl}{insertedAsset.AssetImagePath}";
