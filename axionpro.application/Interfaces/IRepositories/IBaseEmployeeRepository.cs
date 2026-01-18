@@ -44,7 +44,8 @@ public interface IBaseEmployeeRepository
 
        public Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> CreateAsync(Employee entity);
        public Task<GetBaseEmployeeResponseDTO> CreateEmployeeAsync(Employee entity, LoginCredential loginCredential,UserRole userRole);
-       public Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> AddImageAsync(EmployeeImage entity);
+      //  public Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> AddImageAsync(EmployeeImage entity);
+       public Task<GetEmployeeImageReponseDTO> AddImageAsync(EmployeeImage entity);
     
       public Task<GetMinimalEmployeeResponseDTO> GetSingleRecordAsync(long Id, bool IsActive);  // Ensure this returns 
       public Task<EmployeeImage> IsImageExist(long? Id, bool IsActive);  // Ensure this returns 
@@ -57,7 +58,7 @@ public interface IBaseEmployeeRepository
       public  Task<long> AutoCreated(Employee entity);
      
       public Task<bool> UpdateEmployeeAsync(Employee entity, long tenantId);
-      public Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> GetImage(GetEmployeeImageRequestDTO dto);
+      public Task<GetEmployeeImageReponseDTO> GetImage(GetEmployeeImageRequestDTO dto);
            public  Task<string?> ProfileImage(long employeeId);
       public Task<List<CompletionSectionDTO>> GetEmployeeCompletionAsync(long employeeId);
 

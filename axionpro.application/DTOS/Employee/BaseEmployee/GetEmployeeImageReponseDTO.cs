@@ -11,7 +11,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
     {
        
         public string? EmployeeId { get; set; } = null!;
-        public string Id { get; set; } = null!;
+        public long Id { get; set; } 
         public string? FileName { get; set; } = null!;
         public string? FilePath { get; set; }        
         public bool IsActive { get; set; }

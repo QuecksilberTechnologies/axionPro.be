@@ -6,6 +6,7 @@ using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.DTOs.Employee;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
@@ -38,6 +39,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IEncryptionService _encryptionService;
         private readonly IIdEncoderService _idEncoderService;
+        private readonly ICommonRequestService _commonRequestService;
 
 
         public UpdateIdentityInfoCommandHandler(
@@ -50,7 +52,8 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             IHttpContextAccessor httpContextAccessor,
             IEncryptionService encryptionService,
             IFileStorageService fileStorageService,
-            IIdEncoderService idEncoderService)
+            IIdEncoderService idEncoderService,
+            ICommonRequestService commonRequestService)
         {
             _employeeRepository = employeeRepository;
             _unitOfWork = unitOfWork;
@@ -62,120 +65,124 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             _encryptionService = encryptionService;
             _fileStorageService = fileStorageService;
             _idEncoderService = idEncoderService;
+            _commonRequestService = commonRequestService;
         }
 
         public async Task<ApiResponse<bool>> Handle(UpdateProfileImageCommand request, CancellationToken cancellationToken)
         {
-               try
+            try
+            {
+                // 1️⃣ Common validation
+                var validation = await _commonRequestService.ValidateRequestAsync();
+                if (!validation.Success)
+                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
+
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
+
+                // 2️⃣ Permission Check (Optional)
+                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
+                // if (!permissions.Contains("UpdateEmployeeImage")) return ApiResponse<bool>.Fail("Permission denied.");
+
+                // 3️⃣ Check existing employee image
+                var employeeImageInfo = await _employeeRepository.IsImageExist(request.DTO.Id, true);
+                if (employeeImageInfo == null)
+                    return ApiResponse<bool>.Fail("Employee image record not found.");
+
+                // 4️⃣ Prepare file name (if provided, else existing)
+                string? fileName = !string.IsNullOrWhiteSpace(request.DTO.FileName)
+                    ? request.DTO.FileName.Trim().Replace(" ", "_").ToLower()
+                    : employeeImageInfo.FileName?.Trim().Replace(" ", "_").ToLower();
+
+
+                // ==================================================================
+                // 5️⃣ If IsActive = FALSE → reset image info (NO file upload/deletion)
+                // ==================================================================
+                if (!request.DTO.IsActive)
                 {
-                    var dto = request.DTO ?? throw new ArgumentNullException(nameof(request.DTO));
+                    employeeImageInfo.HasImageUploaded = false;
+                    employeeImageInfo.FileName = null;
+                    employeeImageInfo.FilePath = null;
+                    employeeImageInfo.UpdateById = validation.UserEmployeeId;
+                    employeeImageInfo.UpdatedDateTime = DateTime.UtcNow;
 
-                    // -----------------------------------------------
-                    // 1) TOKEN VALIDATION
-                    // -----------------------------------------------
-                    var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
-                        .ToString()?.Replace("Bearer ", "");
+                    bool resetStatus = await _unitOfWork.Employees.UpdateProfileImage(employeeImageInfo);
 
-                    var secretKey = TokenKeyHelper.GetJwtSecret(_config);
-                    var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
-
-                    long loggedInEmpId = await _unitOfWork.StoreProcedureRepository
-                        .ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
-
-
-                    // -----------------------------------------------
-                    // 2) DECRYPT IDs
-                    // -----------------------------------------------
-                    string finalKey = EncryptionSanitizer.SuperSanitize(tokenClaims.TenantEncriptionKey);
-
-                    request.DTO._UserEmployeeId = _idEncoderService.DecodeId_long(dto.UserEmployeeId, finalKey);
-
-                    long decryptedTenantId = _idEncoderService.DecodeId_long(
-                        EncryptionSanitizer.CleanEncodedInput(tokenClaims.TenantId), finalKey);
-
-                    request.DTO._Id = SafeParser.TryParseLong(dto.Id ?? dto.Id);
-                    // -----------------------------------------------------
-                    // 4️⃣ FETCH EXISTING IMAGE RECORD
-                    // -----------------------------------------------------
-                    var employeeImageInfo = await _employeeRepository.IsImageExist(dto._Id, true);
-                    if (employeeImageInfo == null)
-                        return ApiResponse<bool>.Fail("Employee image record not found.");
-
-
-                    // -----------------------------------------------------
-                    // 5️⃣ DETERMINE FINAL FILE NAME (Smart Logic)
-                    // -----------------------------------------------------
-                    string fileName = !string.IsNullOrWhiteSpace(dto.FileName) ? dto.FileName.Trim().Replace(" ", "_").ToLower() : employeeImageInfo.FileName?.Trim().Replace(" ", "_").ToLower();
-
-
-                    //if (string.IsNullOrWhiteSpace(fileName))
-                    //    return ApiResponse<bool>.Fail("Invalid image file name.");
-
-
-                    // -----------------------------------------------------
-                    // 6️⃣ FILE UPLOAD PROCESS (Delete → Replace)
-                    // -----------------------------------------------------
-                    if (dto.ProfileImage != null && dto.ProfileImage.Length > 0)
-                    {
-                        string folderPath = _fileStorageService.GetEmployeeFolderPath(decryptedTenantId, employeeImageInfo.EmployeeId, "profile");
-
-                        // Delete previous file if exists
-                        if (employeeImageInfo.HasImageUploaded && !string.IsNullOrWhiteSpace(employeeImageInfo.FileName))
-                        {
-                            try
-                            {
-                                string oldPath = _fileStorageService.GenerateFullFilePath(folderPath, employeeImageInfo.FileName);
-
-                                if (File.Exists(oldPath))
-                                {
-                                    File.Delete(oldPath);
-                                    _logger.LogInformation("Old profile image removed: {Path}", oldPath);
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.LogError(ex, "Error deleting old image.");
-                            }
-                        }
-
-                        // Create new file name
-                        string newFileName = $"pic-{employeeImageInfo.EmployeeId}-{DateTime.UtcNow:yyMMddHHmmss}.png".Trim();
-
-                        // Save new file
-                        using var ms = new MemoryStream();
-                        await dto.ProfileImage.CopyToAsync(ms);
-                        var savedPath = await _fileStorageService.SaveFileAsync(ms.ToArray(), newFileName, folderPath);
-                        // Update DB entity
-                        employeeImageInfo.FileName = newFileName;
-                        employeeImageInfo.FilePath = _fileStorageService.GetRelativePath(savedPath);
-                        employeeImageInfo.HasImageUploaded = true;
-                        employeeImageInfo.UpdateById = request.DTO._UserEmployeeId;
-                        employeeImageInfo.UpdatedDateTime = DateTime.UtcNow;
-                    }
-
-
-                    // -----------------------------------------------------
-                    // 7️⃣ SAVE IN DATABASE
-                    // -----------------------------------------------------
-                    bool updateStatus = await _unitOfWork.Employees.UpdateProfileImage(employeeImageInfo);
-
-                    if (!updateStatus)
-                    {
-                        await _unitOfWork.RollbackTransactionAsync();
-                        return ApiResponse<bool>.Fail("Failed to update image.");
-                    }
+                    if (!resetStatus)
+                        return ApiResponse<bool>.Fail("Failed to deactivate profile image.");
 
                     await _unitOfWork.CommitTransactionAsync();
-                    return ApiResponse<bool>.Success(true, "Identity image updated successfully.");
+                    return ApiResponse<bool>.Success(true, "Profile image deactivated successfully.");
                 }
-                catch (Exception ex)
+
+
+                // ==================================================================
+                // 6️⃣ If IsActive = TRUE → image upload + replace old file
+                // ==================================================================
+                if (request.DTO.ProfileImage != null && request.DTO.ProfileImage.Length > 0)
                 {
-                    _logger.LogError(ex, "Unhandled error in Identity Image Update");
-                    return ApiResponse<bool>.Fail("Unexpected error occurred.", new() { ex.Message });
+                    string folderPath = _fileStorageService.GetEmployeeFolderPath(
+                        request.DTO.Prop.TenantId,
+                        employeeImageInfo.EmployeeId,
+                        "profile");
+
+                    // Delete old file
+                    if (employeeImageInfo.HasImageUploaded && !string.IsNullOrWhiteSpace(employeeImageInfo.FileName))
+                    {
+                        try
+                        {
+                            string oldPath = _fileStorageService.GenerateFullFilePath(folderPath, employeeImageInfo.FileName);
+
+                            if (File.Exists(oldPath))
+                            {
+                                File.Delete(oldPath);
+                                _logger.LogInformation("Old profile image deleted: {Path}", oldPath);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error deleting old image.");
+                        }
+                    }
+
+                    // Create new filename
+                    string newFileName = $"pic-{employeeImageInfo.EmployeeId}-{DateTime.UtcNow:yyMMddHHmmss}.png";
+
+                    // Save new file
+                    using var ms = new MemoryStream();
+                    await request.DTO.ProfileImage.CopyToAsync(ms);
+                    string savedPath = await _fileStorageService.SaveFileAsync(ms.ToArray(), newFileName, folderPath);
+
+                    // Update DB entity
+                    employeeImageInfo.FileName = newFileName;
+                    employeeImageInfo.FilePath = _fileStorageService.GetRelativePath(savedPath);
+                    employeeImageInfo.HasImageUploaded = true;
+                    employeeImageInfo.UpdateById = validation.UserEmployeeId;
+                    employeeImageInfo.UpdatedDateTime = DateTime.UtcNow;
                 }
-            
+
+
+                // 7️⃣ SAVE TO DB
+                bool updateStatus = await _unitOfWork.Employees.UpdateProfileImage(employeeImageInfo);
+
+                if (!updateStatus)
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                    return ApiResponse<bool>.Fail("Failed to update profile image.");
+                }
+
+                await _unitOfWork.CommitTransactionAsync();
+                return ApiResponse<bool>.Success(true, "Profile image updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unhandled error in Profile Image Update");
+                return ApiResponse<bool>.Fail("Unexpected error occurred.", new() { ex.Message });
+            }
         }
-      
+
 
     }
+
+
 }

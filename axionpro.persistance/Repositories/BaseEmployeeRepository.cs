@@ -757,81 +757,158 @@ namespace axionpro.persistance.Repositories
                 return "/assets/images/default-profile.png";
             }
         }
-
-       public async Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> GetImage(GetEmployeeImageRequestDTO dto)
+        public async Task<GetEmployeeImageReponseDTO> AddImageAsync(EmployeeImage entity)
         {
             try
             {
-                int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
-                int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
-
-                var query = _context.EmployeeImages
-                    .AsNoTracking()
-                    .Where(x =>
-                        x.IsSoftDeleted != true &&
-                        x.TenantId == dto.Prop.TenantId &&
-                        x.EmployeeId == dto.Prop.EmployeeId &&
-                        x.IsPrimary == true);
-
-                if (dto.IsActive)
-                    query = query.Where(x => x.IsActive == dto.IsActive);
-
-                int totalCount = await query.CountAsync();
-
-                // 🚨 No Data Condition — Safe Return
-                if (totalCount == 0)
+                // ---------------------------------------------
+                // 1️⃣ If this image is primary, remove current primary
+                // ---------------------------------------------
+                if (entity.IsPrimary)
                 {
-                    return new PagedResponseDTO<GetEmployeeImageReponseDTO>
+                    var existingPrimary = await _context.EmployeeImages
+                        .Where(x =>
+                            x.EmployeeId == entity.EmployeeId &&
+                            x.IsPrimary == true &&
+                            x.IsSoftDeleted != true)
+                        .ToListAsync();
+
+                    foreach (var img in existingPrimary)
                     {
-                        Items = new List<GetEmployeeImageReponseDTO>(),
-                        TotalCount = 0,
-                        PageNumber = pageNumber,
-                        PageSize = pageSize,
-                        IsPrimaryMarked = false
-                    };
+                        img.IsPrimary = false;
+                        img.UpdatedDateTime = DateTime.UtcNow;
+                        img.UpdateById = entity.AddedById;
+                    }
                 }
 
+                // ---------------------------------------------
+                // 2️⃣ Insert new image
+                // ---------------------------------------------
+                await _context.EmployeeImages.AddAsync(entity);
+                await _context.SaveChangesAsync();
 
-                bool hasPrimary = await query.AnyAsync(x => x.HasImageUploaded == true);
+                // ---------------------------------------------
+                // 3️⃣ Fetch final primary image (ONLY ONE)
+                // ---------------------------------------------
+                var primaryImage = await _context.EmployeeImages
+                    .AsNoTracking()
+                    .Where(x =>
+                        x.EmployeeId == entity.EmployeeId &&
+                        x.IsSoftDeleted != true &&
+                        x.IsPrimary == true)
+                    .OrderByDescending(x => x.AddedDateTime)
+                    .FirstOrDefaultAsync();
 
-                var pagedDataRaw = await query
-                    .OrderByDescending(x => x.Id)
-                    .Skip((pageNumber - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToListAsync();
+                // ---------------------------------------------
+                // 4️⃣ Build completion %
+                // ---------------------------------------------
+                double completionPercentage = primaryImage != null ? 100 : 0;
 
-                var pagedData = pagedDataRaw.Select(x => new GetEmployeeImageReponseDTO
+                // ---------------------------------------------
+                // 5️⃣ Prepare response
+                // ---------------------------------------------
+                if (primaryImage == null)
+                    primaryImage = entity; // fallback if no primary (rare case)
+
+                return new GetEmployeeImageReponseDTO
                 {
-                    EmployeeId = x.EmployeeId.ToString(),
-                    Id = x.Id.ToString(),
-                    FilePath = x.FilePath,
-                    IsActive = x.IsActive,
-                    IsPrimary = x.IsPrimary,
-                    HasImageUploaded = x.HasImageUploaded ,
-                    FileName = x.FileName
-                }).ToList();
-
-                return new PagedResponseDTO<GetEmployeeImageReponseDTO>
-                {
-                    Items = pagedData,
-                    TotalCount = totalCount,
-                    PageNumber = pageNumber,
-                    PageSize = pageSize,
-                    IsPrimaryMarked = hasPrimary
+                    Id = primaryImage.Id,
+                    EmployeeId = primaryImage.EmployeeId.ToString(),
+                    FileName = primaryImage.FileName,
+                    FilePath = primaryImage.FilePath,
+                    IsActive = primaryImage.IsActive,
+                    IsPrimary = primaryImage.IsPrimary,
+                    HasImageUploaded = primaryImage.HasImageUploaded,
+                    CompletionPercentage = completionPercentage
                 };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error occurred while fetching employee images.");
+                _logger.LogError(ex,
+                    "❌ Error occurred in AddImageAsync | EmployeeId={EmployeeId}",
+                    entity?.EmployeeId);
 
-                // 🔥 SAFE FALLBACK RETURN (no crash)
-                return new PagedResponseDTO<GetEmployeeImageReponseDTO>
+                throw new Exception($"Failed to add / fetch image info: {ex.Message}");
+            }
+        }
+
+        public async Task<GetEmployeeImageReponseDTO> GetImage(GetEmployeeImageRequestDTO dto)
+        {
+            try
+            {
+                _logger.LogInformation("Fetching employee primary image | EmpId={Emp} | Tenant={Tenant}",
+                    dto.Prop.EmployeeId, dto.Prop.TenantId);
+
+                // ---------------------------------------------
+                // 1️⃣ Base Query
+                // ---------------------------------------------
+                var query = _context.EmployeeImages
+                    .AsNoTracking()
+                    .Where(x =>
+                        x.TenantId == dto.Prop.TenantId &&
+                        x.EmployeeId == dto.Prop.EmployeeId &&
+                        x.IsSoftDeleted != true &&
+                        x.IsPrimary == true);   // always fetch only primary
+
+                // ---------------------------------------------
+                // 2️⃣ Optional Active Filter
+                // ---------------------------------------------
+                if (dto.IsActive)
+                    query = query.Where(x => x.IsActive == dto.IsActive);
+
+                // ---------------------------------------------
+                // 3️⃣ Fetch Single Primary Image
+                // ---------------------------------------------
+                var img = await query
+                    .OrderByDescending(x => x.Id)
+                    .FirstOrDefaultAsync();
+
+                if (img == null)
                 {
-                    Items = new List<GetEmployeeImageReponseDTO>(),
-                    TotalCount = 0,
-                    PageNumber = dto.PageNumber,
-                    PageSize = dto.PageSize,
-                    IsPrimaryMarked = false
+                    // Safe fallback (no crash)
+                    return new GetEmployeeImageReponseDTO
+                    {
+                        EmployeeId = dto.Prop.EmployeeId.ToString(),
+                        IsActive = false,
+                        IsPrimary = false,
+                        HasImageUploaded = false,
+                        CompletionPercentage = 0,
+                        FilePath = null,
+                        FileName = null
+                    };
+                }
+
+                // ---------------------------------------------
+                // 4️⃣ Completion Percentage Logic
+                // ---------------------------------------------
+                double completion = img.HasImageUploaded ? 100 : 0;
+
+                // ---------------------------------------------
+                // 5️⃣ Final Single Object Return
+                // ---------------------------------------------
+                return new GetEmployeeImageReponseDTO
+                {
+                    Id = img.Id,
+                    EmployeeId = img.EmployeeId.ToString(),
+                    FileName = img.FileName,
+                    FilePath = img.FilePath,
+                    IsActive = img.IsActive,
+                    IsPrimary = img.IsPrimary,
+                    HasImageUploaded = img.HasImageUploaded,
+                    CompletionPercentage = completion
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "❌ Error fetching primary image | EmployeeId={Emp}",
+                    dto.Prop.EmployeeId);
+
+                // SAFE fallback
+                return new GetEmployeeImageReponseDTO
+                {
+                    EmployeeId = dto.Prop.EmployeeId.ToString(),
+                    CompletionPercentage = 0
                 };
             }
         }
@@ -1578,8 +1655,8 @@ namespace axionpro.persistance.Repositories
         AddedDateTime = DateTime.UtcNow,
         FileType = 1
     };
-
-    await _context.EmployeeImages.AddAsync(employeeImage);
+          
+     await _context.EmployeeImages.AddAsync(employeeImage);
     await _context.LoginCredentials.AddAsync(loginCredential);
     await _context.UserRoles.AddAsync(userRole);
 
@@ -1683,77 +1760,7 @@ namespace axionpro.persistance.Repositories
 
 
 
-        public async Task<PagedResponseDTO<GetEmployeeImageReponseDTO>> AddImageAsync(EmployeeImage entity)
-        {
-            try
-            {
-                int pageNumber = 1;
-                int pageSize = 10;
-
-                // 1️⃣ Validation
-                if (entity == null)
-                    throw new ArgumentNullException(nameof(entity), "Image entity can't be null.");
-
-                if (entity.EmployeeId <= 0)
-                    throw new ArgumentException("Invalid Image entity provided.");
-
-                // 2️⃣ Insert record
-                await _context.EmployeeImages.AddAsync(entity);
-                await _context.SaveChangesAsync();
-
-                // 3️⃣ Fetch all images of that employee
-                var allImages = await _context.EmployeeImages
-                    .AsNoTracking()
-                    .Where(x => x.EmployeeId == entity.EmployeeId && x.IsSoftDeleted != true)
-                    .OrderByDescending(x => x.Id)
-                    .ToListAsync();
-
-                int totalRecords = allImages.Count;
-
-                // 4️⃣ Pagination
-                var pagedImages = allImages
-                    .Skip((pageNumber - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToList();
-
-                // 5️⃣ Check if employee has any primary image
-                bool hasPrimary = allImages.Any(x => x.IsPrimary == true);
-
-                // 6️⃣ Completion Percentage based only on IsPrimary
-                double completionPercentage = hasPrimary ? 100 : 0;
-
-                // 7️⃣ Map records
-                var responseData = pagedImages.Select(x => new GetEmployeeImageReponseDTO
-                {
-                    Id = x.Id.ToString(),
-                    FilePath = x.FilePath,
-                    IsActive = x.IsActive,
-                    IsPrimary = x.IsPrimary,
-                    CompletionPercentage = completionPercentage
-                }).ToList();
-
-                // 8️⃣ Return
-                return new PagedResponseDTO<GetEmployeeImageReponseDTO>
-                {
-                    Items = responseData,
-                    TotalCount = totalRecords,
-                    PageNumber = pageNumber,
-                    PageSize = pageSize,
-                    IsPrimaryMarked = hasPrimary,
-                    TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
-                   
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                    "❌ Error occurred while adding/fetching image info for EmployeeId: {EmployeeId}",
-                    entity?.EmployeeId);
-
-                throw new Exception($"Failed to add or fetch image info: {ex.Message}");
-            }
-        }
-
+    
         public Task<Employee?> IsEmployeeExist(string EmployeeCode, long tenantId, bool track = true)
         {
             throw new NotImplementedException();

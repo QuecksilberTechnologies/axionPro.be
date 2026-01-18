@@ -216,34 +216,34 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         }
 
 
-        public static List<GetEmployeeImageReponseDTO> ToGetProfileImageInfoResponseDTOs(
-       List<GetEmployeeImageReponseDTO> entities,
-       IIdEncoderService encoderService,
-       string tenantKey)
-        {
-            if (entities == null || entities.Count == 0)
-                return new List<GetEmployeeImageReponseDTO>();
+       // public static List<GetEmployeeImageReponseDTO> ToGetProfileImageInfoResponseDTOs(
+       //List<GetEmployeeImageReponseDTO> entities,
+       //IIdEncoderService encoderService,
+       //string tenantKey)
+       // {
+       //     if (entities == null || entities.Count == 0)
+       //         return new List<GetEmployeeImageReponseDTO>();
 
-            foreach (var item in entities)
-            {
-                // Encode numeric Id only
-                if (!string.IsNullOrWhiteSpace(item.Id) &&
-                    long.TryParse(item.Id, out long rawId) &&
-                    rawId > 0)
-                {
-                    item.Id = encoderService.EncodeId_long(rawId, tenantKey);
-                }
+       //     foreach (var item in entities)
+       //     {
+       //         // Encode numeric Id only
+       //         if (!string.IsNullOrWhiteSpace(item.Id) &&
+       //             long.TryParse(item.Id, out long rawId) &&
+       //             rawId > 0)
+       //         {
+       //             item.Id = encoderService.EncodeId_long(rawId, tenantKey);
+       //         }
 
-                // Null-safe defaults
-                item.FilePath ??= string.Empty;
+       //         // Null-safe defaults
+       //         item.FilePath ??= string.Empty;
 
 
-                // 🔹 Ensure IsPrimary always returns true/false (avoid null)
-                item.IsPrimary = item.IsPrimary ? true : false;
-            }
+       //         // 🔹 Ensure IsPrimary always returns true/false (avoid null)
+       //         item.IsPrimary = item.IsPrimary ? true : false;
+       //     }
 
-            return entities;
-        }
+       //     return entities;
+       // }
      
         public static List<GetAssetResponseDTO> ToGetAssetResponseDTOs( List<GetAssetResponseDTO> source, IIdEncoderService encoderService,
         string tenantKey, IConfiguration configuration)
@@ -541,53 +541,53 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         //    }).ToList();
         //}
 
-        public static List<GetEmployeeImageReponseDTO> ToGetEmployeeImageResponseDTOs(
-      PagedResponseDTO<GetEmployeeImageReponseDTO> entities,
-      IIdEncoderService encoderService,
-      string tenantKey,
-      IConfiguration configuration)
-        {
-            if (entities == null || entities.Items == null || !entities.Items.Any())
-                return new List<GetEmployeeImageReponseDTO>();
+      //  public static List<GetEmployeeImageReponseDTO> ToGetEmployeeImageResponseDTOs(
+      //PagedResponseDTO<GetEmployeeImageReponseDTO> entities,
+      //IIdEncoderService encoderService,
+      //string tenantKey,
+      //IConfiguration configuration)
+      //  {
+      //      if (entities == null || entities.Items == null || !entities.Items.Any())
+      //          return new List<GetEmployeeImageReponseDTO>();
 
-            // 🔥 Base URL & Default Image — Correct Way
-            string baseUrl = configuration["FileSettings:BaseUrl"] ?? string.Empty;
-            string defaultImg = configuration["FileSettings:DefaultImage"] ?? string.Empty;
+      //      // 🔥 Base URL & Default Image — Correct Way
+      //      string baseUrl = configuration["FileSettings:BaseUrl"] ?? string.Empty;
+      //      string defaultImg = configuration["FileSettings:DefaultImage"] ?? string.Empty;
 
-            var result = new List<GetEmployeeImageReponseDTO>();
+      //      var result = new List<GetEmployeeImageReponseDTO>();
 
-            foreach (var item in entities.Items)
-            {
-                if (item == null) continue;
+      //      foreach (var item in entities.Items)
+      //      {
+      //          if (item == null) continue;
 
-                // 🔐 Encode Image Id
+      //          // 🔐 Encode Image Id
 
-                item.Id = item.Id.ToString();
+      //          item.Id = item.Id.ToString();
 
-                // 🔐 Encode Employee Id
-                if (long.TryParse(item.EmployeeId, out long empRawId) && empRawId > 0)
-                    item.EmployeeId = encoderService.EncodeId_long(empRawId, tenantKey);
+      //          // 🔐 Encode Employee Id
+      //          if (long.TryParse(item.EmployeeId, out long empRawId) && empRawId > 0)
+      //              item.EmployeeId = encoderService.EncodeId_long(empRawId, tenantKey);
 
-                // 🧹 Null sanitization
-                item.Id ??= string.Empty;
-                item.EmployeeId ??= string.Empty;
-                item.FilePath ??= string.Empty;
+      //          // 🧹 Null sanitization
+      //          item.Id ??= string.Empty;
+      //          item.EmployeeId ??= string.Empty;
+      //          item.FilePath ??= string.Empty;
 
-                // 📁 Final Image URL build
-                if (!string.IsNullOrEmpty(item.FilePath))
-                    item.FilePath = $"{baseUrl}{item.FilePath}";
+      //          // 📁 Final Image URL build
+      //          if (!string.IsNullOrEmpty(item.FilePath))
+      //              item.FilePath = $"{baseUrl}{item.FilePath}";
 
 
-                // These are already same — keeping for clarity
-                item.IsPrimary = item.IsPrimary;
-                item.IsActive = item.IsActive;
-                item.CompletionPercentage = item.CompletionPercentage;
+      //          // These are already same — keeping for clarity
+      //          item.IsPrimary = item.IsPrimary;
+      //          item.IsActive = item.IsActive;
+      //          item.CompletionPercentage = item.CompletionPercentage;
 
-                result.Add(item);
-            }
+      //          result.Add(item);
+      //      }
 
-            return result;
-        }
+      //      return result;
+      //  }
                     
 
 

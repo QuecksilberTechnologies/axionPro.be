@@ -14,7 +14,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
     {
 
         public string? EmployeeId { get; set; } 
-        public bool IsActive { get; set; }
+        public bool IsActive { get; set; } =true;
         public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
 
 
