@@ -1238,6 +1238,7 @@ namespace axionpro.persistance.Repositories
                         CountryCode = x.CountryCode,
                         IsActive = x.emp.IsActive,
                         IsMarried = x.emp?.IsMarried,
+                        EmployeeCode= x.emp.EmployementCode,
 
                         OnlineStatus = null, // 🔴 Redis / SignalR se aayega (DB se nahi)
                         LastLoginDateTime = DateTime.UtcNow,

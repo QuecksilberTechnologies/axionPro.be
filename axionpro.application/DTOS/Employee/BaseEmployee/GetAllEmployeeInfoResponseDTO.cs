@@ -49,6 +49,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
     {   
         public string? EmergencyContactPerson { get; set; }
         public string? EmergencyContactNumber { get; set; }
+        public string? EmployeeCode { get; set; }
         public string? BloodGroup { get; set; }
         public string? MobileNumber { get; set; }
         public string? PersonalEmail { get; set; }

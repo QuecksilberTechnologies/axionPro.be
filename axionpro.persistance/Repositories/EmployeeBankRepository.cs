@@ -420,8 +420,9 @@ namespace axionpro.persistance.Repositories
         IsInfoVerified = x.IsInfoVerified,
         IsEditAllowed = x.IsEditAllowed,
         HasChequeDocUploaded = x.HasChequeDocUploaded,
-        FilePath = x.FilePath
-    })
+        FilePath = x.FilePath,
+        UPIId = x.UPIId,
+                       })
     .ToListAsync();
 
                 // CPU-only, safe, readable
