@@ -41,6 +41,7 @@ public partial class Tenant
 
     public DateTime? DeletedDateTime { get; set; }
 
+    public virtual ICollection<EmployeeCodePattern> EmployeeCodePatterns { get; set; } = new List<EmployeeCodePattern>();
     public virtual ICollection<AssetCategory> AssetCategories { get; set; } = new List<AssetCategory>();
 
     public virtual ICollection<DayCombination> DayCombinations { get; set; } = new List<DayCombination>();

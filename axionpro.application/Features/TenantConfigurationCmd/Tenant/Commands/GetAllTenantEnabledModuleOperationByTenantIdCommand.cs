@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace axionpro.application.Features.TenantCmd.Commands
+namespace axionpro.application.Features.TenantConfigurationCmd.Tenant.Commands
 {
     public class GetTenantEnabledModuleCommand : IRequest<ApiResponse<GetModuleHierarchyResponseDTO>>
     {

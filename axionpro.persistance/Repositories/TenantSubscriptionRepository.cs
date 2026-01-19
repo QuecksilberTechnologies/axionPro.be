@@ -2,7 +2,6 @@
 using axionpro.application.DTOs.Registration;
 using axionpro.application.DTOs.SubscriptionModule;
 using axionpro.application.DTOs.Tenant;
-using axionpro.application.Features.TenantCmd.Queries;
 using axionpro.application.Interfaces.IRepositories;
  
 using axionpro.domain.Entity;

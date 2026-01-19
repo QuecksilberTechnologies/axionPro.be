@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using axionpro.application.DTOs.Tenant;
-using axionpro.application.Features.TenantCmd.Queries;
+using axionpro.application.Features.TenantConfigurationCmd.Tenant.Queries;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
@@ -10,7 +10,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace axionpro.application.Features.TenantCmd.Handlers
+namespace axionpro.application.Features.TenantConfigurationCmd.Tenant.Handlers
 {
     public class GetTenantInfoByIdQueryHandler : IRequestHandler<GetTenantInfoByIdQuery, ApiResponse<TenantResponseDTO>>
     {

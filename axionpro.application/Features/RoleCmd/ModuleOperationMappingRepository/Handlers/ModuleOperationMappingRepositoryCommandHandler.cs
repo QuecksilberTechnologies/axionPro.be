@@ -6,8 +6,7 @@ using axionpro.application.DTOs.Tenant;
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.DTOS.RoleModulePermission;
 using axionpro.application.Features.RoleCmd.ModuleOperationMappingRepository.Commands;
-using axionpro.application.Features.TenantCmd.Commands;
-using axionpro.application.Features.TenantCmd.Handlers;
+ 
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;

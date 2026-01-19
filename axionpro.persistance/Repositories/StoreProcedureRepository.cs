@@ -9,6 +9,7 @@ using axionpro.application.DTOs.UserRole;
 using axionpro.application.DTOS.RoleModulePermission;
 using axionpro.application.DTOS.StoreProcedures;
 using axionpro.application.DTOS.StoreProcedures.DashboardSummeries;
+using axionpro.application.DTOS.Tenant;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
@@ -72,7 +73,35 @@ namespace axionpro.persistance.Repositories
                 throw;
             }
         }
-       
+        public async Task<GetEmployeeCodePatternResponseDTO?> GetTenantEmployeeCodePatternAsync(
+      EmployeeCodePatternRequestDTO request)
+        {
+            try
+            {
+                await using var context = await _contextFactory.CreateDbContextAsync();
+
+                var result = await context
+                    .Set<GetEmployeeCodePatternResponseDTO>()
+                    .FromSqlRaw(
+                        "EXEC [AxionPro].[GetEmployeeCodePatternByTenant] @TenantId = {0}",
+                        request.TenantId
+                    )
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync();
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "❌ Error fetching employee code pattern for TenantId: {TenantId}",
+                    request.TenantId
+                );
+                throw;
+            }
+        }
+
         public async Task<List<SubscribedModuleResponseDTO>> GetSubscribedModulesByTenantAsync(long tenantId)
         {
             try

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace axionpro.application.Features.TenantCmd.Queries
+namespace axionpro.application.Features.TenantConfigurationCmd.Tenant.Queries
 {
     public class GetAllCompanyQuery : IRequest<string>
     {

@@ -12,9 +12,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using axionpro.application.DTOs.Tenant;
-using axionpro.application.Features.TenantCmd.Commands;
+using axionpro.application.Features.TenantConfigurationCmd.Tenant.Commands;
 
-namespace axionpro.application.Features.TenantCmd.Handlers
+namespace axionpro.application.Features.TenantConfigurationCmd.Tenant.Handlers
 {
 
     public class GetAllTenantTrueEnabledModuleOperationByTenantIdCommandHandler : IRequestHandler<GetAllTenantTrueEnabledModuleOperationByTenantIdCommand, ApiResponse<TenantEnabledModuleOperationsResponseDTO>>

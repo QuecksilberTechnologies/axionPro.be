@@ -1,10 +1,12 @@
 ﻿using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOs.Tenant;
 using axionpro.application.DTOs.Verify;
+using axionpro.application.DTOS.Tenant;
 using axionpro.application.Features.RegistrationCmd.Commands;
 using axionpro.application.Features.RegistrationCmd.Handlers;
-using axionpro.application.Features.TenantCmd.Commands;
-using axionpro.application.Features.TenantCmd.Queries;
+using axionpro.application.Features.TenantConfigurationCmd.Configuration.EmployeeCodeCmd.Handlers;
+using axionpro.application.Features.TenantConfigurationCmd.Tenant.Commands;
+using axionpro.application.Features.TenantConfigurationCmd.Tenant.Queries;
 using axionpro.application.Features.VerifyEmailCmd.Commands;
 using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
@@ -61,22 +63,24 @@ namespace axionpro.api.Controllers.Tenant
 
             return Ok(result);
         }
-        [HttpGet("get-plan-by")]
-        public async Task<IActionResult> GetTenantSubscriptionPlanInfoAsync([FromQuery] TenantSubscriptionPlanRequestDTO code)
+        [HttpGet("get-employee-code-pattern")]
+        public async Task<IActionResult> GetEmployeeCodePatternAsync(
+        [FromQuery] EmployeeCodePatternRequestDTO code)
         {
-            _logger.LogInfo($"Getting email templates for code: {code}");
+            _logger.LogInfo($"Fetching employee code pattern for tenant.");
 
-            var query = new GetTenantSubscriptionQuery(code);
+            var query = new GetEmployeeCodePatternQuery(code);
             var result = await _mediator.Send(query);
 
             if (!result.IsSucceeded)
             {
-                _logger.LogInfo($"No templates found for code: {code}");
-                return NotFound(result); // NotFound better than Unauthorized here
+                _logger.LogInfo("Employee code pattern not found or inactive.");
+                return NotFound(result);
             }
 
             return Ok(result);
         }
+
 
         /// <summary>
         /// Get all tenant enabled modules

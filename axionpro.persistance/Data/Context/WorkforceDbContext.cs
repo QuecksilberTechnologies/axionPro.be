@@ -5,6 +5,7 @@ using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOS.RoleModulePermission;
 using axionpro.application.DTOS.StoreProcedures;
 using axionpro.application.DTOS.StoreProcedures.DashboardSummeries;
+using axionpro.application.DTOS.Tenant;
 using axionpro.application.Interfaces.IContext;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
@@ -246,6 +247,7 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<UserAttendanceSetting> UserAttendanceSettings { get; set; }
 
         public virtual DbSet<UserRole> UserRoles { get; set; }
+        public virtual DbSet<EmployeeCodePattern> EmployeeCodePatterns { get; set; }
 
         public virtual DbSet<WorkflowStage> WorkflowStages { get; set; }
 
@@ -1100,6 +1102,32 @@ namespace axionpro.persistance.Data.Context
                     .HasForeignKey(d => d.EmployeeId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_EmployeeBank_Employee");
+            });
+
+            modelBuilder.Entity<EmployeeCodePattern>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC070ECDA69B");
+
+                entity.ToTable("EmployeeCodePattern", "AxionPro");
+
+                entity.Property(e => e.AddedDateTime)
+                    .HasPrecision(0)
+                    .HasDefaultValueSql("(getutcdate())");
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.Prefix)
+                    .HasMaxLength(20)
+                    .IsUnicode(false);
+                entity.Property(e => e.RunningNumberLength).HasDefaultValue(4);
+                entity.Property(e => e.Separator)
+                    .HasMaxLength(5)
+                    .IsUnicode(false)
+                    .HasDefaultValue("/");
+                entity.Property(e => e.UpdatedDateTime).HasPrecision(0);
+
+                entity.HasOne(d => d.Tenant).WithMany(p => p.EmployeeCodePatterns)
+                    .HasForeignKey(d => d.TenantId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_EmployeeCodePattern_Tenant");
             });
 
             modelBuilder.Entity<EmployeeCategorySkill>(entity =>
@@ -3040,6 +3068,7 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
             });
             modelBuilder.Entity<RoleModuleOperationResponseDTO>().HasNoKey();
+            modelBuilder.Entity<GetEmployeeCodePatternResponseDTO>().HasNoKey();
 
         }
 

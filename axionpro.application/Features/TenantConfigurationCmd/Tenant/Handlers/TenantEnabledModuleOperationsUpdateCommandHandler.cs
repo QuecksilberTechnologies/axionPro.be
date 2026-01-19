@@ -1,4 +1,4 @@
-﻿using axionpro.application.Features.TenantCmd.Commands;
+﻿using axionpro.application.Features.TenantConfigurationCmd.Tenant.Commands;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
 using MediatR;
@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace axionpro.application.Features.TenantCmd.Handlers
+namespace axionpro.application.Features.TenantConfigurationCmd.Tenant.Handlers
 {
     public class TenantEnabledModuleOperationsUpdateCommandHandler : IRequestHandler<TenantEnabledModuleOperationsUpdateCommand, ApiResponse<bool>>
     {

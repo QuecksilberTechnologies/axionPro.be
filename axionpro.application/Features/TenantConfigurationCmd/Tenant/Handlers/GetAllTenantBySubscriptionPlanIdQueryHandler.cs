@@ -3,7 +3,7 @@ using axionpro.application.DTOs.Operation;
 using axionpro.application.DTOs.Registration;
 using axionpro.application.DTOs.Tenant;
 using axionpro.application.Features.RegistrationCmd.Commands;
-using axionpro.application.Features.TenantCmd.Queries;
+using axionpro.application.Features.TenantConfigurationCmd.Tenant.Queries;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
@@ -16,7 +16,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace axionpro.application.Features.TenantCmd.Handlers
+namespace axionpro.application.Features.TenantConfigurationCmd.Tenant.Handlers
 {
 
     public class GetAllTenantBySubscriptionPlanIdQueryHandler : IRequestHandler<GetAllTenantBySubscriptionPlanIdQuery, ApiResponse<List<TenantResponseDTO>>>
@@ -44,10 +44,10 @@ namespace axionpro.application.Features.TenantCmd.Handlers
             {
 
                 // ✅ Mapping the DTO to entity
-                var tenantDTO = _mapper.Map<Tenant>(request.tenantRequestDTO);
+                var tenantDTO = _mapper.Map<axionpro.domain.Entity.Tenant>(request.tenantRequestDTO);
 
                 // ✅ Fetching from DB
-                List<Tenant> tenants = await _unitOfWork.TenantRepository.GetAllTenantBySubscriptionIdAsync(tenantDTO);
+                List<axionpro.domain.Entity.Tenant> tenants = await _unitOfWork.TenantRepository.GetAllTenantBySubscriptionIdAsync(tenantDTO);
 
                 // ✅ Mapping to response DTO
                 var getAllTenantsDTOs = _mapper.Map<List<TenantResponseDTO>>(tenants);

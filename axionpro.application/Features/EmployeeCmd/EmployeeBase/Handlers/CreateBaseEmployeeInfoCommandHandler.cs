@@ -111,7 +111,9 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 if (existingUser != null)
                     return ApiResponse<GetBaseEmployeeResponseDTO>
                         .Fail("User already exists.");
-
+                var existingEmployee = await _unitOfWork.TenantEmployeeCodePatternRepository.GetTenantEmployeeCodePatternAsync(
+                    validation.TenantId, true);
+             
 
                 // 3️⃣ Map Employee
                 var employee = _mapper.Map<Employee>(request.DTO);
@@ -125,8 +127,13 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 employee.IsSoftDeleted = false;
                 employee.Remark = "Initial info created during employee creation";
 
+                // 4️⃣ Generate Employee Code (FINAL ANSWER)
                 employee.EmployementCode =
-                    $"EMP-{employee.TenantId}-{DateTime.UtcNow:yyMMdd}-{Guid.NewGuid().ToString("N")[..4].ToUpper()}";
+                    await _unitOfWork.TenantEmployeeCodePatternRepository
+                        .GenerateEmployeeCodeAsync(validation.TenantId, employee.DepartmentId);
+
+
+
                 // 5️⃣ LoginCredential
                 var loginCredential = new LoginCredential
                 {
@@ -180,15 +187,15 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 var savedEmployee = await _unitOfWork.Employees
                     .CreateEmployeeAsync(employee, loginCredential, userRole);
 
+
+
                 await _unitOfWork.CommitTransactionAsync();
                 // 7️⃣ Response DTO
                 var responseDto =
                     ProjectionHelper.ToGetBaseInfoResponseDTO(
                         savedEmployee,
                         _idEncoderService,
-                        validation.Claims.TenantEncriptionKey);
-
-
+                        validation.Claims.TenantEncriptionKey);            
 
 
                 // 9️⃣ Generate Set-Password Token (AS-IT-IS)

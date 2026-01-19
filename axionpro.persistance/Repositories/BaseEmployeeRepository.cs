@@ -1587,7 +1587,7 @@ namespace axionpro.persistance.Repositories
 
         #region Employee-Base-info
 
-        public async Task<EmployeeImage?> IsImageExist(long? id, bool isActive)
+        public async Task<EmployeeImage?> IsImageExist(long id, bool isActive)
         {
             try
             {
@@ -1636,10 +1636,7 @@ namespace axionpro.persistance.Repositories
 
 
        
-      public async Task<GetBaseEmployeeResponseDTO> CreateEmployeeAsync(
-      Employee employee,
-      LoginCredential loginCredential,
-      UserRole userRole)
+      public async Task<GetBaseEmployeeResponseDTO> CreateEmployeeAsync( Employee employee, LoginCredential loginCredential, UserRole userRole)
 {
     // 1️⃣ Save entities
     await _context.Employees.AddAsync(employee);

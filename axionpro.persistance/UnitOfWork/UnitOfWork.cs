@@ -31,7 +31,7 @@ public class UnitOfWork : IUnitOfWork
 
     private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
     private readonly IQRService _qrService;
- 
+
     private readonly IMapper _mapper;
     private readonly IEncryptionService _encriptionService;
     private readonly IIdEncoderService  _idEncoderService;
@@ -77,6 +77,8 @@ public class UnitOfWork : IUnitOfWork
     private IUserRoleRepository? _userRoleRepository;
     private IRoleRepository? _roleRepository;
     private IEmployeeTypeRepository? _employeeTyperepository;
+    private  ITenantEmployeeCodePatternRepository _tenantEmployeeCodePatternRepository;
+
     private ICategoryRepository? _categoryRepository;
     private IEmployeeTypeBasicMenuRepository? _employeeTypeBasicMenurepository;
     private IUserRolesPermissionOnModuleRepository? _userRolesPermissionOnModuleRepository;
@@ -191,11 +193,25 @@ public class UnitOfWork : IUnitOfWork
             );
         }
     }
-    
-   
+
+
+    public ITenantEmployeeCodePatternRepository TenantEmployeeCodePatternRepository
+    {
+        get
+        {
+            return _tenantEmployeeCodePatternRepository ??= new TenantEmployeeCodePatternRepository(
+                    _context,
+                    _loggerFactory.CreateLogger<TenantEmployeeCodePatternRepository>(),
+                    _contextFactory
+                );
+        }
+    }
+
+
 
     public IEmployeeContactRepository EmployeeContactRepository
     {
+        
         get
         {
             return _employeeContactRepository ??= new EmployeeContactRepository(

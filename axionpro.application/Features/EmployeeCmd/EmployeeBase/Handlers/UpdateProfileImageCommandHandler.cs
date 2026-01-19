@@ -90,16 +90,39 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     return ApiResponse<bool>.Fail("Employee image record not found.");
 
                 // 4️⃣ Prepare file name (if provided, else existing)
-                string? fileName = !string.IsNullOrWhiteSpace(request.DTO.FileName)
-                    ? request.DTO.FileName.Trim().Replace(" ", "_").ToLower()
-                    : employeeImageInfo.FileName?.Trim().Replace(" ", "_").ToLower();
-
+                string? fileName = !string.IsNullOrWhiteSpace(request.DTO.FileName) ? request.DTO.FileName.Trim().Replace(" ", "_").ToLower(): employeeImageInfo.FileName?.Trim().Replace(" ", "_").ToLower();
 
                 // ==================================================================
-                // 5️⃣ If IsActive = FALSE → reset image info (NO file upload/deletion)
+                // 5️⃣ If IsActive = FALSE → reset + DELETE OLD FILE
                 // ==================================================================
                 if (!request.DTO.IsActive)
                 {
+                    // Delete old file (if exists)
+                    if (employeeImageInfo.HasImageUploaded &&
+                        !string.IsNullOrWhiteSpace(employeeImageInfo.FileName))
+                    {
+                        try
+                        {
+                            string folderPath = _fileStorageService.GetEmployeeFolderPath(
+                                request.DTO.Prop.TenantId,
+                                employeeImageInfo.EmployeeId,
+                                "profile");
+
+                            string oldPath = _fileStorageService.GenerateFullFilePath(folderPath, employeeImageInfo.FileName);
+
+                            if (File.Exists(oldPath))
+                            {
+                                File.Delete(oldPath);
+                                _logger.LogInformation("Profile image deleted because IsActive was set to FALSE: {Path}", oldPath);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error deleting file while deactivating profile image.");
+                        }
+                    }
+
+                    // Reset DB fields
                     employeeImageInfo.HasImageUploaded = false;
                     employeeImageInfo.FileName = null;
                     employeeImageInfo.FilePath = null;
@@ -112,7 +135,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                         return ApiResponse<bool>.Fail("Failed to deactivate profile image.");
 
                     await _unitOfWork.CommitTransactionAsync();
-                    return ApiResponse<bool>.Success(true, "Profile image deactivated successfully.");
+                    return ApiResponse<bool>.Success(true, "Profile image disabled & file deleted.");
                 }
 
 
