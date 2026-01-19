@@ -4,6 +4,7 @@ using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
+using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.BaseEmployee;
  
@@ -41,19 +42,22 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         private readonly IPermissionService _permissionService;
         private readonly ICommonRequestService _commonRequestService;
         private readonly IConfiguration _config;
+        private readonly IIdEncoderService _idEncoderService;
 
         public GetEmployeeImageQueryHandler(
             IUnitOfWork unitOfWork,
             ILogger<GetEmployeeImageQueryHandler> logger,
             IPermissionService permissionService,
             ICommonRequestService commonRequestService,
-            IConfiguration config)
+            IConfiguration config,
+            IIdEncoderService idEncoderService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _permissionService = permissionService;
             _commonRequestService = commonRequestService;
             _config = config;
+            _idEncoderService = idEncoderService;
         }
 
         public async Task<ApiResponse<GetEmployeeImageReponseDTO>> Handle(
@@ -70,9 +74,14 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     return ApiResponse<GetEmployeeImageReponseDTO>
                         .Fail(validation.ErrorMessage);
 
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;             
                 request.DTO.Prop.TenantId = validation.TenantId;
-
+               
+                request.DTO.Prop.EmployeeId =
+                    RequestCommonHelper.DecodeOnlyEmployeeId(
+                        request.DTO.EmployeeId,
+                        validation.Claims.TenantEncriptionKey,
+                        _idEncoderService);
                 // ===============================
                 // 2️⃣ PERMISSION (OPTIONAL)
                 // ===============================
@@ -107,7 +116,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 
                 if (!string.IsNullOrWhiteSpace(image.FilePath))
                     image.FilePath = $"{baseUrl}{image.FilePath}";
-
+                image.EmployeeId = request.DTO.EmployeeId;
                 // ===============================
                 // 5️⃣ SUCCESS
                 // ===============================

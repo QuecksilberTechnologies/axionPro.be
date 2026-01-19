@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace axionpro.application.DTOS.Employee.BaseEmployee
 {
  
-    public class GetEmployeeImageRequestDTO : BaseRequest
+    public class GetEmployeeImageRequestDTO 
     {
 
         public string? EmployeeId { get; set; } 
