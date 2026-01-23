@@ -38,5 +38,15 @@ namespace axionpro.application.Common.Enums
             Resend = 27
         }
 
-   
+    public enum TabInfoType
+    {
+        Employee = 1,
+        Bank = 2,
+        Contact = 3,
+        Experience = 4,
+        Identity = 5,
+        Education = 6,
+        Dependent = 7
+    }
+
 }

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using axionpro.application.Common.Enums;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.Interfaces;
@@ -98,25 +99,37 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // =====================================================
                 foreach (var section in request.DTO.Sections)
                 {
-                    if (string.IsNullOrWhiteSpace(section.SectionName))
+                    if (!Enum.IsDefined(typeof(TabInfoType), section.TabInfoType))
+                    {
+                        _logger.LogWarning(
+                            "Invalid TabInfoType received | Value={Value} | EmpId={EmpId}",
+                            section.TabInfoType,
+                            employeeId
+                        );
                         continue;
+                    }
 
-                    bool updated = await _unitOfWork.Employees.UpdateSectionVerifyStatusAsync( section.SectionName.Trim().ToLowerInvariant(), // decides TABLE
+                    bool updated = await _unitOfWork.Employees
+                        .UpdateSectionVerifyStatusAsync(
+                            (int)section.TabInfoType,
                             employeeId,
                             validation.TenantId,
                             section.IsVerified ?? false,
                             section.IsEditAllowed ?? false,
                             validation.UserEmployeeId,
-                            ct);
+                            ct
+                        );
 
                     if (!updated)
                     {
                         _logger.LogWarning(
                             "Section update failed | Section={Section} | EmpId={EmpId}",
-                            section.SectionName,
-                            employeeId);
+                            section.TabInfoType,
+                            employeeId
+                        );
                     }
                 }
+
 
                 return ApiResponse<bool>.Success(
                     true,
@@ -128,5 +141,8 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 return ApiResponse<bool>.Fail("Unexpected error occurred.");
             }
         }
+    
+    
     }
+
 }

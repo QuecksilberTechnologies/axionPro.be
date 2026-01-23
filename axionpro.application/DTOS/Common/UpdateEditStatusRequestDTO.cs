@@ -20,4 +20,21 @@ namespace axionpro.application.DTOS.Common
         public bool IsEditable { get; set; }
         public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
     }
+
+    public class UpdateEditStatusRequestDTO_
+    {
+        [Required]
+        public string UserEmployeeId { get; set; } = default!;
+
+        [Required]
+        public string EmployeeId { get; set; } = default!;
+        [Required]
+        public int TabInfoType { get; set; } = default!;
+
+        [Required]
+        public bool IsEditable { get; set; }
+        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
+
+    }
+
 }

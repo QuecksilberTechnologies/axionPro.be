@@ -374,7 +374,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 item.Address ??= string.Empty;
                 item.Remark ??= string.Empty;
                 item.Description ??= string.Empty;
-                item.IsPrimary = item.IsPrimary ?? false;
+                item.IsPrimary = item.IsPrimary ;
                 item.IsActive = item.IsActive ?? false;
                 item.IsEditAllowed = item.IsEditAllowed ?? false;
                 item.IsInfoVerified = item.IsInfoVerified ?? false;

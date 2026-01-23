@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using axionpro.application.Common.Enums;
 using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
@@ -26,28 +27,28 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Win32.SafeHandles;
 using System.Reflection;
 
-namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
+namespace axionpro.application.Features.EmployeeCmd.UpdateStatus.Handler
 {
 
 
-    public class UpdateVerificationStatusCommand
+    public class UpdateEditableStatusCommand
        : IRequest<ApiResponse<bool>>
     {
-        public UpdateVerificationStatusRequestDTO DTO { get; set; }
+        public UpdateEditStatusRequestDTO_ DTO { get; set; }
 
-        public UpdateVerificationStatusCommand(UpdateVerificationStatusRequestDTO dto)
+        public UpdateEditableStatusCommand(UpdateEditStatusRequestDTO_ dto)
         {
             DTO = dto;
         }
     }
 
-    public class UpdateVerificationStatusCommandHandler
-        : IRequestHandler<UpdateVerificationStatusCommand, ApiResponse<bool>>
+    public class UpdateEditStatusCommandHandler
+        : IRequestHandler<UpdateEditableStatusCommand, ApiResponse<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ILogger<UpdateVerificationStatusCommandHandler> _logger;
+        private readonly ILogger<UpdateEditStatusCommandHandler> _logger;
         private readonly ITokenService _tokenService;
         private readonly IPermissionService _permissionService;
         private readonly IConfiguration _config;
@@ -55,15 +56,14 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         private readonly IIdEncoderService _idEncoderService;
         private readonly ICommonRequestService _commonRequestService;
 
-        public UpdateVerificationStatusCommandHandler(
+        public UpdateEditStatusCommandHandler(
             IUnitOfWork unitOfWork,
             IMapper mapper,
             IHttpContextAccessor httpContextAccessor,
-            ILogger<UpdateVerificationStatusCommandHandler> logger,
+            ILogger<UpdateEditStatusCommandHandler> logger,
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config, ICommonRequestService commonRequestService,
-
 
             IEncryptionService encryptionService, IIdEncoderService idEncoderService)
         {
@@ -77,18 +77,15 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             _encryptionService = encryptionService;
             _idEncoderService = idEncoderService;
             _commonRequestService = commonRequestService;
-
         }
 
-
-        public async Task<ApiResponse<bool>> Handle(UpdateVerificationStatusCommand request, CancellationToken ct)
+        public async Task<ApiResponse<bool>> Handle(
+       UpdateEditableStatusCommand request,
+       CancellationToken ct)
         {
             try
             {
-                 //    ===================================================== */
-                var validation =
-                    await _commonRequestService.ValidateRequestAsync(
-                        request.DTO.UserEmployeeId);
+                var validation = await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
                     return ApiResponse<bool>.Fail(validation.ErrorMessage);
@@ -101,36 +98,43 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                         validation.Claims.TenantEncriptionKey,
                         _idEncoderService);
 
-                /* =====================================================
-                   2️⃣ FETCH EXISTING EMPLOYEE
-                   ===================================================== */
+                if (request.DTO.Prop.EmployeeId <= 0)
+                    return ApiResponse<bool>.Fail("Invalid employee.");
+
+                if (!Enum.IsDefined(typeof(TabInfoType), request.DTO.TabInfoType))
+                    return ApiResponse<bool>.Fail("Invalid section type.");
+
                 var employee = await _unitOfWork.Employees.GetByIdAsync(
                     request.DTO.Prop.EmployeeId,
                     request.DTO.Prop.TenantId,
                     true);
 
                 if (employee == null)
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
                     return ApiResponse<bool>.Fail("Employee not found.");
-                }
 
-                // 🧩 STEP 4: UPDATE EDITABLE STATUS
-                bool updateResult = await _unitOfWork.Employees.UpdateVerificationStatus(
-                    request.DTO.Prop.EmployeeId,
-                    request.DTO.Prop.UserEmployeeId,
-                    request.DTO.IsVerified);
-                if (!updateResult)
+                bool updated = await _unitOfWork.Employees
+                    .UpdateEditableStatusByEntityAsync(
+                        request.DTO.TabInfoType,
+                        request.DTO.Prop.EmployeeId,
+                        request.DTO.Prop.UserEmployeeId,
+                        request.DTO.IsEditable,
+                        ct);
+
+                if (!updated)
                 {
-                    _logger.LogWarning("❌ Failed to update verified status for EmployeeId: {EmployeeId}", request.DTO.Prop.EmployeeId);
+                    _logger.LogWarning(
+                        "Editable status update failed | EmpId={EmpId} | Tab={Tab}",
+                        request.DTO.Prop.EmployeeId,
+                        request.DTO.TabInfoType);
+
+                    return ApiResponse<bool>.Fail("Editable update failed.");
                 }
 
-
-                return ApiResponse<bool>.Success(true, "verified update completed.");
+                return ApiResponse<bool>.Success(true, "Editable update completed.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "verified update error");
+                _logger.LogError(ex, "Editable update error");
                 return ApiResponse<bool>.Fail("Unexpected error occurred.");
             }
         }

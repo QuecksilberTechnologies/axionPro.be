@@ -17,7 +17,7 @@ public partial class EmployeeIdentity
 
     public string? DocumentFilePath { get; set; }
 
-    public bool IsVerified { get; set; }
+    public bool IsInfoVerified { get; set; }
 
     public long? InfoVerifiedById { get; set; }
 

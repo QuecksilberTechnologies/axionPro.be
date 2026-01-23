@@ -126,7 +126,7 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
                         PageSize: result.PageSize,
                         TotalRecords: result.TotalCount,
                         TotalPages: result.TotalPages,
-                        CompletionPercentage: 80,   // TODO: calculate if needed
+                        CompletionPercentage: result.CompletionPercentage,   // TODO: calculate if needed
                         HasUploadedAll: null
                     );
             }

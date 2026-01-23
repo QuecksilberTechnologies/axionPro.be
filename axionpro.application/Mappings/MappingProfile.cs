@@ -452,7 +452,7 @@ namespace axionpro.application.Mappings
 
     // 🔹 IsPrimary (nullable safe)
     .ForMember(dest => dest.IsPrimary,
-        opt => opt.MapFrom(src => src.IsPrimary ?? false))
+        opt => opt.MapFrom(src => src.IsPrimary))
 
     // 🔹 Address fields
     .ForMember(dest => dest.HouseNo, opt => opt.MapFrom(src => src.HouseNo))

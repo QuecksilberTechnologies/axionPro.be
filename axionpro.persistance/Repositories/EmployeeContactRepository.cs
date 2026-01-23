@@ -252,17 +252,31 @@ namespace axionpro.persistance.Repositories
                 .Take(10)
                 .ToListAsync();
 
-                // 🔹 COMPLETION %
+
+                // =========================================================
+                // 7️⃣ Detect PRIMARY existence (LIST LEVEL)
+                // =========================================================
+                bool hasAtLeastOnePrimary = records.Any(x => x.IsPrimary);
+
+                // =========================================================
+                // 8️⃣ Per-record Completion (CORRECT LOGIC)
+                // =========================================================
                 foreach (var item in records)
                 {
-                    item.CompletionPercentage =
-                        CompletionCalculatorHelper.ContactPropCalculate(item);
+                    item.CompletionPercentage = hasAtLeastOnePrimary
+                        ? CompletionCalculatorHelper.ContactPropCalculate(item)
+                        : CompletionCalculatorHelper.ContactPropCalculate_NoPrimary(item);
                 }
+ 
 
-                double avgCompletion = records.Any()
+                // =========================================================
+                // 🔹 UI Average Completion (ALWAYS show average)
+                // =========================================================
+                double uiAverageCompletion = records.Any()
                     ? Math.Round(records.Average(x => x.CompletionPercentage), 0)
                     : 0;
-
+ 
+ 
                 return new PagedResponseDTO<GetContactResponseDTO>
                 {
                     Items = records,
@@ -270,7 +284,7 @@ namespace axionpro.persistance.Repositories
                     PageNumber = 1,
                     PageSize = 10,
                     TotalPages = 1,
-                    CompletionPercentage = avgCompletion,
+                    CompletionPercentage = uiAverageCompletion,
                     HasUploadedAll = null
                 };
             }
@@ -286,38 +300,7 @@ namespace axionpro.persistance.Repositories
         }
 
 
-        public async Task<EmployeeContact>c(long id, bool isActive)
-        {
-            try
-            {
-                // 🧩 Validation
-                if (id <= 0)
-                    throw new ArgumentException("Invalid Id provided for fetching Contact record.");
-
-                // 🔍 Fetch single record safely
-                var record = await _context.EmployeeContacts
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.Id == id
-                                           && x.IsActive == isActive
-                                           && x.IsSoftDeleted != true);
-
-                // 🚫 Handle null result
-                if (record == null)
-                {
-                    _logger.LogWarning("⚠️ No Contact record found for Id: {Id} (IsActive: {IsActive})", id, isActive);
-                    throw new InvalidOperationException($"No Contact record found for Id: {id} (IsActive: {isActive})");
-                }
-
-                // ✅ Return valid record
-                return record;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error occurred while fetching single Contact record for Id: {Id}", id);
-                throw new Exception($"Failed to fetch single Contact record: {ex.Message}");
-            }
-        }
-
+       
 
       
         public Task<PagedResponseDTO<GetContactResponseDTO>> AutoCreatedAsync(EmployeeContact entity)

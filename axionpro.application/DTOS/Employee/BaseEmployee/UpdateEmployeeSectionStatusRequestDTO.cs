@@ -22,7 +22,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
 
     public class SectionStatusDTO
     {
-        public string? SectionName { get; set; } // "education", "bank", "experience"
+        public required int TabInfoType { get; set; } // "education", "bank", "experience"
         public bool? IsVerified { get; set; }
         public bool? IsEditAllowed { get; set; }
 

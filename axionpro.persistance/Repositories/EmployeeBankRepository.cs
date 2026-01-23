@@ -96,31 +96,49 @@ namespace axionpro.persistance.Repositories
             })
       .ToListAsync();
 
-                // 🔥 SAFE + FAST (pageSize = 10)
+
+                // =========================================================
+                // 7️⃣ Detect PRIMARY existence (LIST LEVEL)
+                // =========================================================
+                bool hasAtLeastOnePrimary = records.Any(x => x.IsPrimaryAccount);
+
+                // =========================================================
+                // 8️⃣ Per-record Completion (CORRECT LOGIC)
+                // =========================================================
                 foreach (var item in records)
                 {
-                    item.CompletionPercentage =
-                        CompletionCalculatorHelper.BankPropCalculate(item);
+                    item.CompletionPercentage = hasAtLeastOnePrimary
+                        ? CompletionCalculatorHelper.BankPropCalculate(item)
+                        : CompletionCalculatorHelper.BankPropCalculate_NoPrimary(item);
                 }
 
+                // =========================================================
+                // 9️⃣ Section-level Mandatory Rules
+                // =========================================================
+                bool hasUploadedAllDocs = hasAtLeastOnePrimary &&
+                    records
+                        .Where(x => x.IsPrimaryAccount)
+                        .All(x => x.HasChequeDocUploaded);
 
-                // -----------------------------
-                // 6️⃣ Section-level Completion
-                // -----------------------------
-
-                // 🔹 Average (UI progress)
-                double completionPercentage = records.Any()
+                // =========================================================
+                // 🔹 UI Average Completion (ALWAYS show average)
+                // =========================================================
+                double uiAverageCompletion = records.Any()
                     ? Math.Round(records.Average(x => x.CompletionPercentage), 0)
                     : 0;
 
-                // 🔹 Primary document rule
-                bool hasUploadedAllDocs = false;
+                // =========================================================
+                // 🔹 Final Completion (Business Rule Applied)
+                // =========================================================
+                double finalCompletionPercentage = uiAverageCompletion;
 
-                var primaryBank = records.FirstOrDefault(x => x.IsPrimaryAccount == true);
-                if (primaryBank != null)
+                // 🔥 HARD BUSINESS RULE
+                // No primary ⇒ section invalid
+                if (!hasAtLeastOnePrimary)
                 {
-                    hasUploadedAllDocs = primaryBank.HasChequeDocUploaded;
+                    finalCompletionPercentage = 0;
                 }
+
 
                 // -----------------------------
                 // 7️⃣ Final Response
@@ -134,7 +152,7 @@ namespace axionpro.persistance.Repositories
                     TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
 
                     // 🔥 IMPORTANT (same as GetInfo)
-                    CompletionPercentage = completionPercentage,
+                    CompletionPercentage = uiAverageCompletion,
                     HasUploadedAll = hasUploadedAllDocs
                 };
             }
@@ -188,54 +206,7 @@ namespace axionpro.persistance.Repositories
         }
 
 
-        public async Task<PagedResponseDTO<GetBankResponseDTO>> AddCreatedAsync(EmployeeBankDetail entity)
-        {
-            try
-            {
-                // ✅ 1️⃣ Validation
-                if (entity == null)
-                    throw new ArgumentNullException(nameof(entity), "Bank info entity cannot be null.");
-
-                if (entity.EmployeeId <= 0)
-                    throw new ArgumentException("Invalid EmployeeId provided.");
-
-                // ✅ 2️⃣ Record insert karo
-                await _context.EmployeeBankDetails.AddAsync(entity);
-                await _context.SaveChangesAsync();
-
-                // ✅ 3️⃣ Fetch updated list (latest record ke sath)
-                var query = _context.EmployeeBankDetails
-                    .AsNoTracking()
-                    .Where(x => x.EmployeeId == entity.EmployeeId && x.IsSoftDeleted != true)
-                    .OrderByDescending(x => x.Id);
-
-                var totalRecords = await query.CountAsync();
-
-                // ✅ 4️⃣ Fetch paginated data (default 1 page only since just added)
-                var records = await query
-                    .Take(10)
-                    .ToListAsync();
-
-                // ✅ 5️⃣ Map to DTOs
-                var responseData = _mapper.Map<List<GetBankResponseDTO>>(records);
-
-                // ✅ 6️⃣ Prepare PagedResponse
-                return new PagedResponseDTO<GetBankResponseDTO>
-                {
-                    Items = responseData,
-                    TotalCount = totalRecords,
-                    PageNumber = 1,
-                    PageSize = 10,
-                     
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error occurred while adding/fetching bank info for EmployeeId: {EmployeeId}", entity.EmployeeId);
-                throw new Exception($"Failed to add or fetch bank info: {ex.Message}");
-            }
-        }
-
+      
         public async Task<bool> DeleteAsync(EmployeeBankDetail employeeBankDetail)
         {
             try
@@ -332,24 +303,22 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-
-
         public async Task<PagedResponseDTO<GetBankResponseDTO>> GetInfoAsync(GetBankReqestDTO dto)
         {
             try
             {
-                // -----------------------------
+                // =========================================================
                 // 1️⃣ Pagination & Sorting
-                // -----------------------------
+                // =========================================================
                 int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
                 int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
 
                 string sortBy = dto.SortBy?.ToLower() ?? "id";
                 bool isDescending = (dto.SortOrder?.ToLower() ?? "desc") == "desc";
 
-                // -----------------------------
+                // =========================================================
                 // 2️⃣ Base Query
-                // -----------------------------
+                // =========================================================
                 IQueryable<EmployeeBankDetail> query = _context.EmployeeBankDetails
                     .AsNoTracking()
                     .Where(x =>
@@ -357,9 +326,9 @@ namespace axionpro.persistance.Repositories
                         (x.IsSoftDeleted == false || x.IsSoftDeleted == null)
                     );
 
-                // -----------------------------
+                // =========================================================
                 // 3️⃣ Filters
-                // -----------------------------
+                // =========================================================
                 if (dto.Id.HasValue && dto.Id.Value > 0)
                     query = query.Where(x => x.Id == dto.Id.Value);
 
@@ -381,9 +350,9 @@ namespace axionpro.persistance.Repositories
                 if (!string.IsNullOrWhiteSpace(dto.AccountType))
                     query = query.Where(x => x.AccountType.Contains(dto.AccountType));
 
-                // -----------------------------
+                // =========================================================
                 // 4️⃣ Sorting
-                // -----------------------------
+                // =========================================================
                 query = sortBy switch
                 {
                     "bankname" => isDescending ? query.OrderByDescending(x => x.BankName) : query.OrderBy(x => x.BankName),
@@ -394,72 +363,83 @@ namespace axionpro.persistance.Repositories
                     _ => isDescending ? query.OrderByDescending(x => x.Id) : query.OrderBy(x => x.Id)
                 };
 
-                // -----------------------------
+                // =========================================================
                 // 5️⃣ Count
-                // -----------------------------
+                // =========================================================
                 int totalCount = await query.CountAsync();
 
-                // -----------------------------
-                // 6️⃣ Pagination + Mapping
-                // -----------------------------
-
+                // =========================================================
+                // 6️⃣ Pagination + Projection
+                // =========================================================
                 var records = await query
-                   .Skip((pageNumber - 1) * pageSize)
-                       .Take(pageSize)
-                       .Select(x => new GetBankResponseDTO
-                           {
-                            Id = x.Id ?? 0,
-                               EmployeeId = x.EmployeeId.ToString(),
-                               BankName = x.BankName,
-        AccountNumber = x.AccountNumber,
-        IFSCCode = x.IFSCCode,
-        BranchName = x.BranchName,
-        AccountType = x.AccountType,
-        IsPrimaryAccount = x.IsPrimaryAccount,
-        IsActive = x.IsActive,
-        IsInfoVerified = x.IsInfoVerified,
-        IsEditAllowed = x.IsEditAllowed,
-        HasChequeDocUploaded = x.HasChequeDocUploaded,
-        FilePath = x.FilePath,
-        UPIId = x.UPIId,
-                       })
-    .ToListAsync();
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(x => new GetBankResponseDTO
+                    {
+                        Id = x.Id ?? 0,
+                        EmployeeId = x.EmployeeId.ToString(),
+                        BankName = x.BankName,
+                        AccountNumber = x.AccountNumber,
+                        IFSCCode = x.IFSCCode,
+                        BranchName = x.BranchName,
+                        AccountType = x.AccountType,
+                        IsPrimaryAccount = x.IsPrimaryAccount,
+                        IsActive = x.IsActive,
+                        IsInfoVerified = x.IsInfoVerified,
+                        IsEditAllowed = x.IsEditAllowed,
+                        HasChequeDocUploaded = x.HasChequeDocUploaded,
+                        FilePath = x.FilePath,
+                        UPIId = x.UPIId
+                    })
+                    .ToListAsync();
 
-                // CPU-only, safe, readable
+                // =========================================================
+                // 7️⃣ Detect PRIMARY existence (LIST LEVEL)
+                // =========================================================
+                bool hasAtLeastOnePrimary = records.Any(x => x.IsPrimaryAccount);
+
+                // =========================================================
+                // 8️⃣ Per-record Completion (CORRECT LOGIC)
+                // =========================================================
                 foreach (var item in records)
                 {
-                    item.CompletionPercentage =
-                        CompletionCalculatorHelper.BankPropCalculate(item);
+                    item.CompletionPercentage = hasAtLeastOnePrimary
+                        ? CompletionCalculatorHelper.BankPropCalculate(item)
+                        : CompletionCalculatorHelper.BankPropCalculate_NoPrimary(item);
                 }
 
-
-
-                // -----------------------------
-
-                // 🔹 1. AVERAGE COMPLETION (ALWAYS)
-                double completionPercentage = records.Any()
+                // =========================================================
+                // 9️⃣ Section-level Mandatory Rules
+                // =========================================================
+                bool hasUploadedAllDocs = hasAtLeastOnePrimary &&
+                    records
+                        .Where(x => x.IsPrimaryAccount)
+                        .All(x => x.HasChequeDocUploaded);
+ 
+                // =========================================================
+                // 🔹 UI Average Completion (ALWAYS show average)
+                // =========================================================
+                double uiAverageCompletion = records.Any()
                     ? Math.Round(records.Average(x => x.CompletionPercentage), 0)
                     : 0;
 
-                // 🔹 2. PRIMARY DOCUMENT RULE
-                bool hasUploadedAllDocs = false;
+                // =========================================================
+                // 🔹 Final Completion (Business Rule Applied)
+                // =========================================================
+                double finalCompletionPercentage = uiAverageCompletion;
 
-                var primaryBank = records.FirstOrDefault(x => x.IsPrimaryAccount == true);
-
-                if (primaryBank != null)
+                // 🔥 HARD BUSINESS RULE
+                // No primary ⇒ section invalid
+                if (!hasAtLeastOnePrimary)
                 {
-                    hasUploadedAllDocs = primaryBank.HasChequeDocUploaded;
-                }
-                else
-                {
-                    // primary hi nahi hai = rule fail
-                    hasUploadedAllDocs = false;
+                    finalCompletionPercentage = 0;
                 }
 
 
-                // -----------------------------
-                // 9️⃣ Final Response
-                // -----------------------------
+
+                // =========================================================
+                // 1️⃣1️⃣ Final Response
+                // =========================================================
                 return new PagedResponseDTO<GetBankResponseDTO>
                 {
                     Items = records,
@@ -468,18 +448,27 @@ namespace axionpro.persistance.Repositories
                     PageSize = pageSize,
                     TotalPages = (int)Math.Ceiling((double)totalCount / pageSize),
 
-                    // 🔥 IMPORTANT (HRMS RULE)
-                    CompletionPercentage = completionPercentage,
+                    // 👇 UI ko yeh dikhao (progress bar)
+                    CompletionPercentage = uiAverageCompletion,             
+
                     HasUploadedAll = hasUploadedAllDocs
                 };
+
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error fetching bank info for EmployeeId: {EmployeeId}", dto.Prop.EmployeeId);
+                _logger.LogError(
+                    ex,
+                    "❌ Error fetching bank info for EmployeeId: {EmployeeId}",
+                    dto.Prop.EmployeeId
+                );
+
                 throw new Exception($"Failed to fetch bank information: {ex.Message}");
             }
         }
-       
+
+
+
         public async Task<bool> UpdateAsync(UpdateBankReqestDTO dto)
         {
             // -----------------------------

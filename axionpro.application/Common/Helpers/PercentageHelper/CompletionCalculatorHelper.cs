@@ -42,8 +42,9 @@ namespace axionpro.application.Common.Helpers.PercentageHelper
         // =========================================================
         // BANK DETAILS COMPLETION
         // =========================================================
-        public static double BankPropCalculate(GetBankResponseDTO record)
+        public static double BankPropCalculate_NoPrimary(GetBankResponseDTO record )
         {
+
             if (record == null)
                 return 0;
 
@@ -54,11 +55,39 @@ namespace axionpro.application.Common.Helpers.PercentageHelper
                 IsFilled(record.IFSCCode),
                 IsFilled(record.BranchName),
                 IsFilled(record.AccountType),
+                IsFilled(record.UPIId),             
+
+                // 🔥 Business Rule
+                record.IsPrimaryAccount == false
+                    ?  0
+                    : 1
+
+                    
+            };
+
+            return CalculatePercentage(checks);
+        }
+        public static double BankPropCalculate(GetBankResponseDTO record)
+        {
+
+            if (record == null)
+                return 0;
+
+            int[] checks =
+            {
+                IsFilled(record.BankName),
+                IsFilled(record.AccountNumber),
+                IsFilled(record.IFSCCode),
+                IsFilled(record.BranchName),
+                IsFilled(record.AccountType),
+                IsFilled(record.UPIId),
 
                 // 🔥 Business Rule
                 record.IsPrimaryAccount == true
                     ? (record.HasChequeDocUploaded ? 1 : 0)
                     : 1
+
+
             };
 
             return CalculatePercentage(checks);
@@ -119,6 +148,44 @@ namespace axionpro.application.Common.Helpers.PercentageHelper
         // =========================================================
         // CONTACT DETAILS COMPLETION
         // =========================================================
+        public static double ContactPropCalculate_NoPrimary(GetContactResponseDTO contact)
+        {
+            if (contact == null)
+                return 0;
+
+            int[] checks =
+            {
+                // 🔹 Basic Contact Info
+                 // 🔹 Core Identity
+                contact.ContactType > 0 ? 1 : 0,
+                contact.Relation > 0 ? 1 : 0,
+
+                // 🔹 Contact Info
+                IsFilled(contact.ContactName),
+                IsFilled(contact.ContactNumber),
+
+                // 🔹 Address Basics
+                IsFilled(contact.HouseNo),
+                IsFilled(contact.ContactName),
+                IsFilled(contact.ContactNumber),
+                  // 🔥 Business Rule
+                contact.IsPrimary == false
+                    ?  0
+                    : 1,
+                contact.ContactType > 0 ? 1 : 0,
+
+                // 🔹 Address Info
+                contact.CountryId > 0 ? 1 : 0,
+                contact.StateId > 0 ? 1 : 0,
+                contact.DistrictId > 0 ? 1 : 0,
+
+                // 🔹 Optional but recommended
+                IsFilled(contact.Address),
+ 
+            };
+
+            return CalculatePercentage(checks);
+        }
         public static double ContactPropCalculate(GetContactResponseDTO contact)
         {
             if (contact == null)

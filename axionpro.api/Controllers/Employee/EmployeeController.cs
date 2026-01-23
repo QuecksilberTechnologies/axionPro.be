@@ -3,6 +3,8 @@ using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
+using axionpro.application.Features.EmployeeCmd.UpdateStatus.Handler;
+using axionpro.application.Features.EmployeeCmd.UpdateVerification.Handler;
 using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
 using FluentValidation;
@@ -157,7 +159,7 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         [HttpPost("update-edit-status")]
        
-        public async Task<IActionResult> UpdateSectionStatusBulk( [FromBody] UpdateEditStatusRequestDTO dto)
+        public async Task<IActionResult> UpdateSectionStatusBulk( [FromBody] UpdateEditStatusRequestDTO_ dto)
         {
             if (dto == null)
                 return BadRequest(ApiResponse<bool>.Fail("Invalid or empty request."));
@@ -173,7 +175,7 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         [HttpPost("update-verification-status")]
        
-        public async Task<IActionResult> UpdateVerificationStatus([FromBody] UpdateVerificationStatusRequestDTO dto)
+        public async Task<IActionResult> UpdateVerificationStatus([FromBody] UpdateVerificationStatusRequestDTO_ dto)
         {
             if (dto == null)
                 return BadRequest(ApiResponse<bool>.Fail("Invalid or empty request."));

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using axionpro.application.Common.Enums;
 using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.PercentageHelper;
 using axionpro.application.DTOS.Employee.Bank;
@@ -260,125 +261,293 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<bool> UpdateVerificationStatus(
-                long employeeId,
-                 long userId,
-                 bool status)
-        {
-            var employee = await _context.Employees
-                .FirstOrDefaultAsync(x =>
-                    x.Id == employeeId &&
-                    x.IsSoftDeleted != true);
-
-            if (employee == null)
-                return false;
-
-            employee.IsInfoVerified = status;
-            employee.InfoVerifiedById = userId;
-            employee.InfoVerifiedDateTime = DateTime.UtcNow;
-
-            var rowsAffected = await _context.SaveChangesAsync();
-
-            return rowsAffected > 0;
-        }
-
-        public async Task<bool> UpdateEditStatus(
+        /// <summary>
+        /// Common fun to for all tabs to update IsEditAllowed status
+        /// </summary>
+        /// <param name="tabInfoType"></param>
+        /// <param name="employeeId"></param>
+        /// <param name="userEmployeeId"></param>
+        /// <param name="isVerified"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>   
+       
+        public async Task<bool> UpdateEditableStatusByEntityAsync(
+         int tabInfoType,
     long employeeId,
-    long userId,
-    bool status)
+    long userEmployeeId,
+    bool isVerified,
+    CancellationToken ct)
         {
-            var employee = await _context.Employees
-                .FirstOrDefaultAsync(x =>
-                    x.Id == employeeId &&
-                    x.IsSoftDeleted != true);
-
-            if (employee == null)
+            if (employeeId <= 0)
                 return false;
 
-            employee.IsEditAllowed = status;
-            employee.UpdatedById = userId;
-            employee.UpdatedDateTime = DateTime.UtcNow;
-
-            var rowsAffected = await _context.SaveChangesAsync();
-
-            return rowsAffected > 0;
-        }
-
-        public async Task<bool> UpdateSectionVerifyStatusAsync(
-       string sectionName,
-       long employeeId,
-       long tenantId,
-       bool isVerified,
-       bool isEditAllowed,
-       long userId,
-       CancellationToken ct)
-        {
-            if (employeeId <= 0 || string.IsNullOrWhiteSpace(sectionName))
+            if (!Enum.IsDefined(typeof(TabInfoType), tabInfoType))
                 return false;
 
-            sectionName = sectionName.Trim().ToLowerInvariant();
             DateTime now = DateTime.UtcNow;
-
             int affected = 0;
 
-            // ================= EDUCATION =================
-            if (sectionName == "education")
+            switch ((TabInfoType)tabInfoType)
             {
-                affected = await _context.EmployeeEducations
-                    .Where(x =>
-                        x.EmployeeId == employeeId &&                        
-                        x.IsSoftDeleted != true)
-                    .ExecuteUpdateAsync(s => s
-                        .SetProperty(p => p.IsInfoVerified, isVerified)
-                        .SetProperty(p => p.IsEditAllowed, isEditAllowed)
-                        .SetProperty(p => p.InfoVerifiedById, userId)
-                        .SetProperty(p => p.InfoVerifiedDateTime, now),
-                        ct);
+                case TabInfoType.Employee:
+                    affected = await _context.Employees
+                        .Where(x => x.Id == employeeId && x.IsSoftDeleted != true)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(p => p.IsEditAllowed, isVerified)
+                            .SetProperty(p => p.UpdatedById, userEmployeeId)
+                            .SetProperty(p => p.UpdatedDateTime, now), ct);
+                    break;
+
+                case TabInfoType.Bank:
+                    affected = await _context.EmployeeBankDetails
+                        .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(p => p.IsEditAllowed, isVerified)
+                            .SetProperty(p => p.UpdatedById, userEmployeeId)
+                            .SetProperty(p => p.UpdatedDateTime, now), ct);
+                    break;
+
+                case TabInfoType.Contact:
+                    affected = await _context.EmployeeContacts
+                        .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(p => p.IsEditAllowed, isVerified)
+                            .SetProperty(p => p.UpdatedById, userEmployeeId)
+                            .SetProperty(p => p.UpdatedDateTime, now), ct);
+                    break;
+
+                case TabInfoType.Experience:
+                    affected = await _context.EmployeeExperienceDetails
+                        .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(p => p.IsEditAllowed, isVerified)
+                            .SetProperty(p => p.UpdatedById, userEmployeeId)
+                            .SetProperty(p => p.UpdatedDateTime, now), ct);
+                    break;
+
+                case TabInfoType.Identity:
+                    affected = await _context.EmployeeIdentities
+                        .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(p => p.IsEditAllowed, isVerified)
+                            .SetProperty(p => p.UpdatedById, userEmployeeId)
+                            .SetProperty(p => p.UpdatedDateTime, now), ct);
+                    break;
+
+                case TabInfoType.Education:
+                    affected = await _context.EmployeeEducations
+                        .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(p => p.IsEditAllowed, isVerified)
+                            .SetProperty(p => p.UpdatedById, userEmployeeId)
+                            .SetProperty(p => p.UpdatedDateTime, now), ct);
+                    break;
+
+                case TabInfoType.Dependent:
+                    affected = await _context.EmployeeDependents
+                        .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(p => p.IsEditAllowed, isVerified)
+                            .SetProperty(p => p.UpdatedById, userEmployeeId)
+                            .SetProperty(p => p.UpdatedDateTime, now), ct);
+                    break;
             }
 
-            // ================= BANK =================
-            else if (sectionName == "bank")
+            return affected > 0;
+        }
+
+        public async Task<bool> UpdateVerificationStatusByTabAsync(
+    int tabInfoType,
+    long employeeId,
+    long userEmployeeId,
+    bool isVerified,
+    CancellationToken ct)
+        {
+            if (employeeId <= 0)
+                return false;
+
+            if (!Enum.IsDefined(typeof(TabInfoType), tabInfoType))
+                return false;
+
+            DateTime now = DateTime.UtcNow;
+            int affected = 0;
+
+            switch ((TabInfoType)tabInfoType)
             {
-                affected = await _context.EmployeeBankDetails
-                    .Where(x =>
-                        x.EmployeeId == employeeId &&                      
-                        x.IsSoftDeleted != true)
-                    .ExecuteUpdateAsync(s => s
-                        .SetProperty(p => p.IsInfoVerified, isVerified)
-                        .SetProperty(p => p.IsEditAllowed, isEditAllowed)
-                        .SetProperty(p => p.InfoVerifiedById, userId)
-                        .SetProperty(p => p.InfoVerifiedDateTime, now),
-                        ct);
+                case TabInfoType.Employee:
+                    affected = await _context.Employees
+                        .Where(x => x.Id == employeeId && x.IsSoftDeleted != true)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(p => p.IsInfoVerified, isVerified)
+                            .SetProperty(p => p.InfoVerifiedById, userEmployeeId)
+                            .SetProperty(p => p.InfoVerifiedDateTime, now), ct);
+                    break;
+
+                case TabInfoType.Bank:
+                    affected = await _context.EmployeeBankDetails
+                        .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(p => p.IsInfoVerified, isVerified)
+                            .SetProperty(p => p.InfoVerifiedById, userEmployeeId)
+                            .SetProperty(p => p.InfoVerifiedDateTime, now), ct);
+                    break;
+
+                case TabInfoType.Contact:
+                    affected = await _context.EmployeeContacts
+                        .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(p => p.IsInfoVerified, isVerified)
+                            .SetProperty(p => p.InfoVerifiedById, userEmployeeId)
+                            .SetProperty(p => p.InfoVerifiedDateTime, now), ct);
+                    break;
+
+                case TabInfoType.Experience:
+                    affected = await _context.EmployeeExperienceDetails
+                        .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(p => p.IsInfoVerified, isVerified)
+                            .SetProperty(p => p.InfoVerifiedById, userEmployeeId)
+                            .SetProperty(p => p.InfoVerifiedDateTime, now), ct);
+                    break;
+
+                case TabInfoType.Identity:
+                    affected = await _context.EmployeeIdentities
+                        .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(p => p.IsInfoVerified, isVerified)
+                            .SetProperty(p => p.InfoVerifiedById, userEmployeeId)
+                            .SetProperty(p => p.InfoVerifiedDateTime, now), ct);
+                    break;
+
+                case TabInfoType.Education:
+                    affected = await _context.EmployeeEducations
+                        .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(p => p.IsInfoVerified, isVerified)
+                            .SetProperty(p => p.InfoVerifiedById, userEmployeeId)
+                            .SetProperty(p => p.InfoVerifiedDateTime, now), ct);
+                    break;
+
+                case TabInfoType.Dependent:
+                    affected = await _context.EmployeeDependents
+                        .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(p => p.IsInfoVerified, isVerified)
+                            .SetProperty(p => p.InfoVerifiedById, userEmployeeId)
+                            .SetProperty(p => p.InfoVerifiedDateTime, now), ct);
+                    break;
             }
 
-            // ================= EXPERIENCE =================
-            else if (sectionName == "experience")
-            {
-                // 🔥 MAIN TABLE
-                //affected = await _context.EmployeeExperiences
-                //    .Where(x =>
-                //        x.EmployeeId == employeeId &&
-                      
-                //        x.IsSoftDeleted != true)
-                //    .ExecuteUpdateAsync(s => s
-                //        .SetProperty(p => p.IsInfoVerified, isVerified)
-                //        .SetProperty(p => p.IsEditAllowed, isEditAllowed)
-                //        .SetProperty(p => p.InfoVerifiedById, userId)
-                //        .SetProperty(p => p.InfoVerifiedDateTime, now),
-                //        ct);
+            return affected > 0;
+        }
 
-                //// 🔥 DETAILS TABLE (no return dependency)
-                await _context.EmployeeExperienceDetails
-                    .Where(x =>
-                        x.EmployeeId == employeeId &&
-                       
-                        x.IsSoftDeleted != true)
-                    .ExecuteUpdateAsync(s => s
-                        .SetProperty(p => p.IsInfoVerified, isVerified)
-                        .SetProperty(p => p.IsEditAllowed, isEditAllowed)
-                        .SetProperty(p => p.InfoVerifiedById, userId)
-                        .SetProperty(p => p.InfoVerifiedDateTime, now),
-                        ct);
+
+        //public async Task<bool> UpdateVerificationStatus(
+        //        long employeeId,
+        //         long userId,
+        //         bool status)
+        //{
+        //    var employee = await _context.Employees
+        //        .FirstOrDefaultAsync(x =>
+        //            x.Id == employeeId &&
+        //            x.IsSoftDeleted != true);
+
+        //    if (employee == null)
+        //        return false;
+
+        //    employee.IsInfoVerified = status;
+        //    employee.InfoVerifiedById = userId;
+        //    employee.InfoVerifiedDateTime = DateTime.UtcNow;
+
+        //    var rowsAffected = await _context.SaveChangesAsync();
+
+        //    return rowsAffected > 0;
+        //}
+
+    //    public async Task<bool> UpdateEditStatus(
+    //long employeeId,
+    //long userId,
+    //bool status)
+    //    {
+    //        var employee = await _context.Employees
+    //            .FirstOrDefaultAsync(x =>
+    //                x.Id == employeeId &&
+    //                x.IsSoftDeleted != true);
+
+    //        if (employee == null)
+    //            return false;
+
+    //        employee.IsEditAllowed = status;
+    //        employee.UpdatedById = userId;
+    //        employee.UpdatedDateTime = DateTime.UtcNow;
+
+    //        var rowsAffected = await _context.SaveChangesAsync();
+
+    //        return rowsAffected > 0;
+    //    }
+
+        public async Task<bool> UpdateSectionVerifyStatusAsync(
+           int tabInfoType,
+           long employeeId,
+           long tenantId,
+           bool isVerified,
+           bool isEditAllowed,
+           long userId,
+           CancellationToken ct)
+        {
+            if (employeeId <= 0)
+                return false;
+
+            if (!Enum.IsDefined(typeof(TabInfoType), tabInfoType))
+                return false;
+
+            DateTime now = DateTime.UtcNow;
+            int affected = 0;
+
+            switch ((TabInfoType)tabInfoType)
+            {
+                // ================= EDUCATION =================
+                case TabInfoType.Education:
+                    affected = await _context.EmployeeEducations
+                        .Where(x =>
+                            x.EmployeeId == employeeId &&
+                            x.IsSoftDeleted != true)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(p => p.IsInfoVerified, isVerified)
+                            .SetProperty(p => p.IsEditAllowed, isEditAllowed)
+                            .SetProperty(p => p.InfoVerifiedById, userId)
+                            .SetProperty(p => p.InfoVerifiedDateTime, now),
+                            ct);
+                    break;
+
+                // ================= BANK =================
+                case TabInfoType.Bank:
+                    affected = await _context.EmployeeBankDetails
+                        .Where(x =>
+                            x.EmployeeId == employeeId &&
+                            x.IsSoftDeleted != true)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(p => p.IsInfoVerified, isVerified)
+                            .SetProperty(p => p.IsEditAllowed, isEditAllowed)
+                            .SetProperty(p => p.InfoVerifiedById, userId)
+                            .SetProperty(p => p.InfoVerifiedDateTime, now),
+                            ct);
+                    break;
+
+                // ================= EXPERIENCE =================
+                case TabInfoType.Experience:
+                    // 🔥 DETAILS TABLE
+                    affected = await _context.EmployeeExperienceDetails
+                        .Where(x =>
+                            x.EmployeeId == employeeId &&
+                            x.IsSoftDeleted != true)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(p => p.IsInfoVerified, isVerified)
+                            .SetProperty(p => p.IsEditAllowed, isEditAllowed)
+                            .SetProperty(p => p.InfoVerifiedById, userId)
+                            .SetProperty(p => p.InfoVerifiedDateTime, now),
+                            ct);
+                    break;
             }
 
             return affected > 0;
@@ -1764,8 +1933,10 @@ namespace axionpro.persistance.Repositories
             throw new NotImplementedException();
         }
 
-      
-        
+        public Task<bool> UpdateVerificationStatusByEntity(int TabInfoType, long EmployeeId, long UserId, bool Status, bool IsActive)
+        {
+            throw new NotImplementedException();
+        }
     }
 
 

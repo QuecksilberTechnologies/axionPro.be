@@ -12,7 +12,6 @@ namespace axionpro.application.Common.Models.Security
     {
         public bool Success { get; set; }
         public string? ErrorMessage { get; set; }
-
         public long LoggedInEmployeeId { get; set; }
         public long UserEmployeeId { get; set; }
         public long TenantId { get; set; }

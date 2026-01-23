@@ -29,7 +29,7 @@ public interface IBaseEmployeeRepository
  
      
         Task<bool> UpdateSectionVerifyStatusAsync(
-        string sectionName,     // 🔥 MISSING PARAM
+        int sectionName,     // 🔥 MISSING PARAM
         long employeeId,
         long tenantId,
         bool isVerified,
@@ -49,10 +49,17 @@ public interface IBaseEmployeeRepository
     
       public Task<GetMinimalEmployeeResponseDTO> GetSingleRecordAsync(long Id, bool IsActive);  // Ensure this returns 
       public Task<EmployeeImage> IsImageExist(long Id, bool IsActive);  // Ensure this returns 
-      public Task<bool>  UpdateProfileImage(EmployeeImage employeeImageInfo);
+       public Task<bool>  UpdateProfileImage(EmployeeImage employeeImageInfo);
       public Task<Employee?> GetByIdAsync(long id, long tenantId, bool track = true);
-      public Task<bool> UpdateEditStatus(long EmployeeId, long UserId, bool Status);
-      public Task<bool> UpdateVerificationStatus(long EmployeeId, long UserId, bool Status);
+      //public Task<bool> UpdateEditStatus(long EmployeeId, long UserId, bool Status);
+    //  public Task<bool> UpdateVerificationStatus(long EmployeeId, long UserId, bool Status);
+       public  Task<bool> UpdateEditableStatusByEntityAsync(int tabInfoType,long employeeId,long userEmployeeId, bool isVerified,    CancellationToken ct);
+         public  Task<bool> UpdateVerificationStatusByTabAsync(
+             int tabInfoType,
+             long employeeId,
+             long userEmployeeId,
+              bool isVerified,
+              CancellationToken ct);
       public Task<bool> DeleteAllAsync(Employee employee);
       public Task<bool> ActivateAllEmployeeAsync(Employee employee, bool IsActive);
       public  Task<long> AutoCreated(Employee entity);

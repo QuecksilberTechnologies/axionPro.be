@@ -17,7 +17,7 @@ public partial class EmployeeContact
 
     public string? Email { get; set; }
 
-    public bool? IsPrimary { get; set; }
+    public bool IsPrimary { get; set; }
 
     public int? CountryId { get; set; }
     public int? Relation { get; set; }

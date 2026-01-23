@@ -80,8 +80,7 @@ namespace axionpro.application.Common.Helpers.RequestHelper
         {
            
 
-                long userId = encoder.DecodeId_long(
-                EncryptionSanitizer.CleanEncodedInput(encodedEmpId),
+                long userId = encoder.DecodeId_long(EncryptionSanitizer.CleanEncodedInput(encodedEmpId),
                 tenantKey
             );
 

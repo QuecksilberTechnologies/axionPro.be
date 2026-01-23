@@ -23,7 +23,7 @@ namespace axionpro.application.DTOS.Employee.Contact
         public int? Relation { get; set; }
         public string? AlternateNumber { get; set; }
         public string? Email { get; set; }
-         public bool? IsPrimary { get; set; }
+        public bool IsPrimary { get; set; } = false;
 
         // 🔹 Address Info
         public int? CountryId { get; set; }
