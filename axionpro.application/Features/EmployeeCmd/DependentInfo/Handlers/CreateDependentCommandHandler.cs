@@ -84,8 +84,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
 
                 // 🔐 STEP 1: COMMON VALIDATION (SAME AS CONTACT)
                 var validation =
-                    await _commonRequestService.ValidateRequestAsync(
-                        request.DTO.UserEmployeeId);
+                    await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
                     return ApiResponse<List<GetDependentResponseDTO>>

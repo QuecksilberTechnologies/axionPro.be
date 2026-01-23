@@ -128,7 +128,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 item.Id = item.Id ;
                 item.EmployeeId ??= string.Empty;
                 item.DependentName ??= string.Empty;
-                item.Relation ??= 0; 
+                item.Relation = 0; 
                 item.Remark ??= string.Empty;
                 item.Description ??= string.Empty;
             }

@@ -11,8 +11,7 @@ namespace axionpro.application.DTOS.Employee.Dependent
     public class GetDependentRequestDTO : BaseRequest
     {
 
-
-        public required string UserEmployeeId { get; set; }
+ 
         public required string EmployeeId { get; set; }
 
         public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();

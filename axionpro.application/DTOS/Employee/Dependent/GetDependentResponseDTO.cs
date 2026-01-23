@@ -14,7 +14,7 @@ namespace axionpro.application.DTOS.Employee.Dependent
         public required long Id { get; set; }
         public string? EmployeeId { get; set; }
         public string? DependentName { get; set; }
-        public int? Relation { get; set; }
+        public int Relation { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public bool? IsCoveredInPolicy { get; set; }
         public bool? IsMarried { get; set; }

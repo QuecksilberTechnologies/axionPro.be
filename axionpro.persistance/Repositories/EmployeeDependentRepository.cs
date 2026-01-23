@@ -98,10 +98,9 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
+              
                 // 🔹 Fetch ONLY latest 10 dependents for employee
-                var records = await context.EmployeeDependents
+                var records = await _context.EmployeeDependents
                     .AsNoTracking()
                     .Where(x =>
                         x.EmployeeId == dto.Prop.EmployeeId &&

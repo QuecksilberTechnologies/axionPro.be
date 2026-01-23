@@ -49,4 +49,17 @@ namespace axionpro.application.Common.Enums
         Dependent = 7
     }
 
+    public enum RelationDependant
+    {
+        Father = 1,
+        Mother = 2,
+        Spouse = 3,
+        Son = 4,
+        Daughter = 5,
+        Brother = 6,
+        Sister = 7,
+        Other = 99
+    }
+
+
 }

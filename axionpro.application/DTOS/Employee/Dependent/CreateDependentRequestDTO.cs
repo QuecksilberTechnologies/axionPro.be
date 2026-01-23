@@ -12,7 +12,7 @@ namespace axionpro.application.DTOS.Employee.Dependent
     public class CreateDependentRequestDTO
     {
 
-         public string? UserEmployeeId { get; set; }
+    
          public string EmployeeId { get; set; } = string.Empty;      
         public string? DependentName { get; set; }
         public int Relation { get; set; }
