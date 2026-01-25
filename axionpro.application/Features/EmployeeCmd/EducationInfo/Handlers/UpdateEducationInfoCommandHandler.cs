@@ -69,6 +69,9 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 
 
         public async Task<ApiResponse<bool>> Handle(UpdateEducationInfoCommand request, CancellationToken cancellationToken)
+        
+        
+        
         {
             try
             {
