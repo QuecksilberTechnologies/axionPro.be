@@ -176,8 +176,12 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 HasIdentityUploaded = e.HasIdentityUploaded,
 
                 // 📆 Validity
-                EffectiveFrom = e.EffectiveFrom,
-                EffectiveTo = e.EffectiveTo,
+                EffectiveFrom = e.EffectiveFrom.HasValue
+                   ? DateTime.SpecifyKind(e.EffectiveFrom.Value, DateTimeKind.Utc)
+                   : null,
+                  EffectiveTo = e.EffectiveTo.HasValue
+                   ? DateTime.SpecifyKind(e.EffectiveFrom.Value, DateTimeKind.Utc)
+                   : null,
 
                 IsActive = e.IsActive
             }).ToList();
@@ -215,35 +219,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             return entities.Items;
         }
 
-
-       // public static List<GetEmployeeImageReponseDTO> ToGetProfileImageInfoResponseDTOs(
-       //List<GetEmployeeImageReponseDTO> entities,
-       //IIdEncoderService encoderService,
-       //string tenantKey)
-       // {
-       //     if (entities == null || entities.Count == 0)
-       //         return new List<GetEmployeeImageReponseDTO>();
-
-       //     foreach (var item in entities)
-       //     {
-       //         // Encode numeric Id only
-       //         if (!string.IsNullOrWhiteSpace(item.Id) &&
-       //             long.TryParse(item.Id, out long rawId) &&
-       //             rawId > 0)
-       //         {
-       //             item.Id = encoderService.EncodeId_long(rawId, tenantKey);
-       //         }
-
-       //         // Null-safe defaults
-       //         item.FilePath ??= string.Empty;
-
-
-       //         // 🔹 Ensure IsPrimary always returns true/false (avoid null)
-       //         item.IsPrimary = item.IsPrimary ? true : false;
-       //     }
-
-       //     return entities;
-       // }
+ 
      
         public static List<GetAssetResponseDTO> ToGetAssetResponseDTOs( List<GetAssetResponseDTO> source, IIdEncoderService encoderService,
         string tenantKey, IConfiguration configuration)
@@ -308,6 +284,14 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             entity.MiddleName ??= string.Empty;
             entity.OfficialEmail ??= string.Empty;
             entity.EmployementCode ??= string.Empty;
+            entity.DateOfBirth = entity.DateOfBirth.HasValue
+               ? DateTime.SpecifyKind(entity.DateOfBirth.Value, DateTimeKind.Utc)
+               : null;
+            entity.DateOfOnBoarding = entity.DateOfOnBoarding.HasValue
+               ? DateTime.SpecifyKind(entity.DateOfOnBoarding.Value, DateTimeKind.Utc)
+               : null;
+            entity.DateOfExit = entity.DateOfExit.HasValue ? DateTime.SpecifyKind(entity.DateOfExit.Value, DateTimeKind.Utc)
+               : null;
 
 
             return entity;
@@ -334,6 +318,9 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 item.LastName ??= string.Empty;
                 item.MiddleName ??= string.Empty;
                 item.OfficialEmail ??= string.Empty;
+                item.DateOfBirth = item.DateOfBirth.HasValue
+                   ? DateTime.SpecifyKind(item.DateOfBirth.Value, DateTimeKind.Utc)
+                   : null;
             }
 
             return entities;
@@ -381,6 +368,9 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 item.CountryId = item.CountryId ?? 0;
                 item.StateId = item.StateId ?? 0;
                 item.DistrictId = item.DistrictId ?? 0;
+                item.InfoVerifiedDateTime = item.InfoVerifiedDateTime.HasValue
+                   ? DateTime.SpecifyKind(item.InfoVerifiedDateTime.Value, DateTimeKind.Utc)
+                   : null;
 
 
             }
@@ -468,21 +458,24 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 .Where(x => x != null)
                 .Select(item => new GetEducationResponseDTO
                 {
-                    Id = EncodeId(item.Id, encoderService, tenantKey),
+                    Id = item.Id,
                     EmployeeId = EncodeId(item.EmployeeId, encoderService, tenantKey),
 
                     Degree = item.Degree,
                     InstituteName = item.InstituteName,
                     ScoreType = item.ScoreType,
-                    StartDate = item.StartDate,
-                    EndDate = item.EndDate,
+                    StartDate = item.StartDate.HasValue
+                   ? DateTime.SpecifyKind(item.StartDate.Value, DateTimeKind.Utc)
+                   : null,
+                    EndDate = item.EndDate.HasValue ? DateTime.SpecifyKind(item.EndDate.Value, DateTimeKind.Utc) : null,
                     FilePath   = BuildFilePath(item.FilePath, baseUrl, defaultImg),
                     FileType = item.FileType,
                     IsActive = item.IsActive,
                     IsEditAllowed = item.IsEditAllowed,
                     IsInfoVerified = item.IsInfoVerified,
                     HasEducationDocUploded = item.HasEducationDocUploded,
-                    CompletionPercentage = item.CompletionPercentage
+                    CompletionPercentage = item.CompletionPercentage,
+                    
                 })
                 .ToList();
         }

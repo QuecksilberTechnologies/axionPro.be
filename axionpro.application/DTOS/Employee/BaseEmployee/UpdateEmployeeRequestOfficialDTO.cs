@@ -12,7 +12,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
     public class UpdateEmployeeRequestOfficialDTO
     {
         [Required]
-        public string UserEmployeeId { get; set; } = default!;
+      
         public string EmployeeId { get; set; } = default!;
 
         // ---- Official / Admin controlled ----

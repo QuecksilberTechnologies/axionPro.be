@@ -9,11 +9,12 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
 {
     public class DeleteBaseEmployeeRequestDTO
     {
-        public string? UserEmployeeId { get; set; }
-        public string? EmployeeId { get; set; }
-        public long? Id { get; set; }
+      
+        
+        public required string EmployeeId { get; set; } = string.Empty;
+        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
 
-        public ExtraPropRequestDTO? Prop { get; set; } = new ExtraPropRequestDTO();
+
     }
 
 }

@@ -1,4 +1,5 @@
-﻿using axionpro.application.DTOS.Pagination;
+﻿using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Pagination;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ namespace axionpro.application.DTOS.Employee.Education
 {
     public class CreateEducationRequestDTO
     {
-        public string? UserEmployeeId { get; set; }
+       
         public string? EmployeeId { get; set; }
         public string? Degree { get; set; }
         public string? InstituteName { get; set; }
@@ -26,6 +27,7 @@ namespace axionpro.application.DTOS.Employee.Education
         public string? ReasonOfEducationGap { get; set; }              
 
         public IFormFile? EducationDocument { get; set; }
+        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
     }
 
 

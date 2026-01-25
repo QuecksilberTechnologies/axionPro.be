@@ -10,9 +10,8 @@ namespace axionpro.application.DTOS.Employee.Education
 {
     public class UpdateEducationRequestDTO
     {
-        public string UserEmployeeId { get; set; } = string.Empty;
-        public string Id { get; set; } = string.Empty;
-        public string EmployeeId { get; set; } = string.Empty;
+      
+        public int Id { get; set; }      
         public string? Degree { get; set; }= string.Empty;
         public string? InstituteName { get; set; } = string.Empty;
         public string? Remark { get; set; } = string.Empty;

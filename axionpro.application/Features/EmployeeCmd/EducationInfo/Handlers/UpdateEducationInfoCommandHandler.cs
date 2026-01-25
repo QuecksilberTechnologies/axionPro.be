@@ -3,10 +3,12 @@ using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.EncryptionHelper;
+using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
@@ -39,6 +41,8 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
         private readonly IEncryptionService _encryptionService;
         private readonly IFileStorageService _fileStorageService;
         private readonly IIdEncoderService _idEncoderService;
+        private readonly ICommonRequestService _commonRequestService;
+
 
         public UpdateEducationInfoCommandHandler(
             IUnitOfWork unitOfWork,
@@ -48,7 +52,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,
-            IEncryptionService encryptionService, IIdEncoderService idEncoderService, IFileStorageService fileStorageService)
+            IEncryptionService encryptionService, IIdEncoderService idEncoderService, IFileStorageService fileStorageService, ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -60,6 +64,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
             _encryptionService = encryptionService;
             _idEncoderService = idEncoderService;
             _fileStorageService = fileStorageService;
+            _commonRequestService = commonRequestService;
         }
 
 
@@ -73,47 +78,37 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                     request.DTO.Prop = new ExtraPropRequestDTO();
                 }
 
-                // ------------------------ TOKEN VALIDATION ------------------------
-                var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
-                    .ToString()?.Replace("Bearer ", "");
+                await _unitOfWork.BeginTransactionAsync();
 
-                if (string.IsNullOrWhiteSpace(token))
-                    return ApiResponse<bool>.Fail("Unauthorized — Token missing.");
+                // 🔐 STEP 1: COMMON VALIDATION (SAME AS CONTACT)
+                var validation =
+                    await _commonRequestService.ValidateRequestAsync();
 
-                var tokenClaims = TokenClaimHelper.ExtractClaims(token, TokenKeyHelper.GetJwtSecret(_config));
-                if (tokenClaims == null || tokenClaims.IsExpired)
-                    return ApiResponse<bool>.Fail("Invalid or expired token.");
+                if (!validation.Success)
+                    return ApiResponse<bool>
+                        .Fail(validation.ErrorMessage);
 
+                // 🔓 STEP 2: Assign decoded values
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
+ 
 
-                // ------------------------ VALIDATE REQUEST ------------------------
-                if (string.IsNullOrWhiteSpace(request.DTO.Id))
-                    return ApiResponse<bool>.Fail("Invalid education identity.");
+                // 🔑 STEP 3: Permission check
+                var permissions =
+                    await _permissionService.GetPermissionsAsync(validation.RoleId);
 
-                if (string.IsNullOrWhiteSpace(request.DTO.UserEmployeeId))
-                    return ApiResponse<bool>.Fail("Invalid user mapping.");
-
-                 string finalKey = EncryptionSanitizer.CleanEncodedInput(tokenClaims.TenantEncriptionKey);
-                // request.DTO.Prop.TenantId =  SafeParser.TryParseLong(tokenClaims.TenantId);
-                 request.DTO.Prop.UserEmployeeId = _idEncoderService.DecodeId_long(EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId), finalKey);
-
-                request.DTO.Prop.TenantId = _idEncoderService.DecodeId_long(EncryptionSanitizer.CleanEncodedInput( tokenClaims.TenantId), finalKey);
-
-                if (request.DTO.Prop.TenantId <= 0 || request.DTO.Prop.UserEmployeeId <= 0)
-                    return ApiResponse<bool>.Fail("Invalid decoded identity.");
-
-                request.DTO.Prop.RowId  = SafeParser.TryParseLong(request.DTO.Id);
-                if (request.DTO.Prop.RowId <= 0)
-                    return ApiResponse<bool>.Fail("Invalid record reference.");
+                if (!permissions.Contains("AddDependentInfo"))
+                {
+                    // optional hard-stop
+                    // return ApiResponse<List<GetDependentResponseDTO>>
+                    //     .Fail("You do not have permission to add dependent info.");
+                }
 
 
-                // ------------------------ AUTHORIZATION ------------------------
-                long loggedInEmpId = await _unitOfWork.StoreProcedureRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
-                if (loggedInEmpId != request.DTO.Prop.UserEmployeeId)
-                    return ApiResponse<bool>.Fail("Unauthorized request — Access denied.");
-
+ 
 
                 // ------------------------ FETCH EXISTING RECORD ------------------------
-                var existing = await _unitOfWork.EmployeeEducationRepository.GetSingleRecordAsync(request.DTO.Prop.RowId, true);
+                var existing = await _unitOfWork.EmployeeEducationRepository.GetSingleRecordAsync(request.DTO.Id, true);
 
                 if (existing == null)
                     return ApiResponse<bool>.UpdatedFail("Education record not found.");
@@ -209,7 +204,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 
 
                 // ------------------------ SAVE CHANGES ------------------------
-                existing.UpdatedById = loggedInEmpId;
+                existing.UpdatedById = request.DTO.Prop.UserEmployeeId;
                 existing.UpdatedDateTime = DateTime.UtcNow;
 
                 await _unitOfWork.EmployeeEducationRepository.UpdateEmployeeFieldAsync(existing);

@@ -18,7 +18,6 @@ namespace axionpro.application.DTOS.Employee.Bank
         /// <summary> TenantId Required</summary>
 
         [Required]
-        public string UserEmployeeId { get; set; } = string.Empty;        
         public string EmployeeId { get; set; } = string.Empty;      
         public string? BankName { get; set; }
         public string? AccountNumber { get; set; }

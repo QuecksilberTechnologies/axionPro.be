@@ -11,7 +11,7 @@ namespace axionpro.application.DTOS.Employee.Education
     public class GetEducationResponseDTO
     {
 
-        public string? Id { get; set; }
+        public int Id { get; set; }
 
         public string EmployeeId { get; set; } = string.Empty ;
         public string? Degree { get; set; }

@@ -350,7 +350,7 @@ namespace axionpro.application.Mappings
             #region 🔹 Education Mappings
             CreateMap<EmployeeEducation, EmployeeEducationEditableFieldsDTO>().ReverseMap();
             CreateMap<EmployeeEducation, GetEducationResponseDTO>()
-       .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))
+       .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
        .ForMember(dest => dest.EmployeeId, opt => opt.MapFrom(src => src.EmployeeId.ToString()))
        .ForMember(dest => dest.Degree, opt => opt.MapFrom(src => src.Degree))
        .ForMember(dest => dest.InstituteName, opt => opt.MapFrom(src => src.InstituteName))

@@ -64,7 +64,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // STEP 1: Validate User / Tenant / Token
                 // =====================================================
                 var validation = await _commonRequestService
-                    .ValidateRequestAsync(request.DTO.UserEmployeeId);
+                    .ValidateRequestAsync();
 
                 if (!validation.Success)
                     return ApiResponse<bool>.Fail(validation.ErrorMessage);

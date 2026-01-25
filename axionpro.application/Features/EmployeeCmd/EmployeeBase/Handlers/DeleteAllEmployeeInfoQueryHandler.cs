@@ -64,7 +64,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             try
             {
                 // 1️ COMMON VALIDATION (Mandatory)
-                var validation = await _commonRequestService.ValidateRequestAsync(request.DTO.UserEmployeeId);
+                var validation = await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
                     return ApiResponse<bool>.Fail(validation.ErrorMessage);

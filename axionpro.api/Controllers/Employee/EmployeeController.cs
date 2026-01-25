@@ -359,14 +359,14 @@ namespace axionpro.api.Controllers.Employee
         {
             try
             {
-                _logger.LogInfo($"Deleting employee with Id: {dto.Id}");
+                _logger.LogInfo($"Deleting employee with Id: {dto.EmployeeId}");
 
                 var command = new DeleteEmployeeQuery(dto);
                 var result = await _mediator.Send(command);
 
                 if (!result.IsSucceeded)
                 {
-                    _logger.LogInfo($"Failed to delete employee with Id: {dto.UserEmployeeId}");
+                    _logger.LogInfo($"Failed to delete employee with Id: {dto.EmployeeId}");
                     return BadRequest(result);
                 }
 
@@ -436,14 +436,14 @@ namespace axionpro.api.Controllers.Employee
         {
             try
             {
-                _logger.LogInfo($"Updating employee record. EmployeeId: {dto.UserEmployeeId}");
+                _logger.LogInfo($"Updating employee record. EmployeeId: {dto.EmployeeId}");
 
                 var command = new UpdateEmployeeCommand(dto);
                 var result = await _mediator.Send(command);
 
                 if (!result.IsSucceeded)
                 {
-                    _logger.LogInfo($"Failed to update employee with Id: {dto.UserEmployeeId}");
+                    _logger.LogInfo($"Failed to update employee with Id: {dto.EmployeeId}");
                     return BadRequest(result);
                 }
 
@@ -470,14 +470,14 @@ namespace axionpro.api.Controllers.Employee
         {
             try
             {
-                _logger.LogInfo($"Updating employee record. EmployeeId: {dto.UserEmployeeId}");
+                _logger.LogInfo($"Updating employee record. EmployeeId: {dto.EmployeeId}");
 
                 var command = new UpdateBaseEmployeeByAdminCommand(dto);
                 var result = await _mediator.Send(command);
 
                 if (!result.IsSucceeded)
                 {
-                    _logger.LogInfo($"Failed to update employee with Id: {dto.UserEmployeeId}");
+                    _logger.LogInfo($"Failed to update employee with Id: {dto.EmployeeId}");
                     return BadRequest(result);
                 }
 

@@ -75,7 +75,7 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
 
                 // 🔐 STEP 1: Common Validation (SAME AS BANK)
                 var validation = await _commonRequestService
-                    .ValidateRequestAsync(request.DTO.UserEmployeeId);
+                    .ValidateRequestAsync();
 
                 if (!validation.Success)
                     return ApiResponse<List<GetContactResponseDTO>>

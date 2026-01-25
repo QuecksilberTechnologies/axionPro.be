@@ -94,7 +94,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 string? savedFullPath = null;  // 📂 File full path track karne ke liye
 
                 // 1️ COMMON VALIDATION (Mandatory)
-                var validation = await _commonRequestService.ValidateRequestAsync(request.DTO.UserEmployeeId);
+                var validation = await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
                     return ApiResponse<List<GetBankResponseDTO>>.Fail(validation.ErrorMessage);

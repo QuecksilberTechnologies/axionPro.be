@@ -128,14 +128,14 @@ namespace axionpro.api.Controllers.Employee
         {
             try
             {
-                _logger.LogInfo($"Updating employee-education record. EmployeeId: {dto.EmployeeId}");
+                _logger.LogInfo($"Updating employee-education record. EmployeeId: {dto.Id}");
 
                 var command = new UpdateEducationInfoCommand(dto);
                 var result = await _mediator.Send(command);
 
                 if (!result.IsSucceeded)
                 {
-                    _logger.LogInfo($"Failed to update employee-education with Id: {dto.EmployeeId}");
+                    _logger.LogInfo($"Failed to update employee-education with Id: {dto.Id}");
                     return BadRequest(result);
                 }
 

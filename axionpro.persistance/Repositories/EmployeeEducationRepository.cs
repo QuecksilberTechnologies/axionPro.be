@@ -167,7 +167,7 @@ namespace axionpro.persistance.Repositories
                 {
                     var dtoItem = new GetEducationResponseDTO
                     {
-                        Id = edu.Id.ToString(),
+                        Id = edu.Id,
                         EmployeeId = edu.EmployeeId.ToString(),
                         Degree = edu.Degree,
                         InstituteName = edu.InstituteName,

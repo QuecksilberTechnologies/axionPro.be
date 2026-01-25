@@ -11,7 +11,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
     
     public class UpdateEmployeeSectionStatusRequestDTO
     {
-        public string? UserEmployeeId { get; set; }       
+       
         public required string EmployeeId { get; set; }   
         public bool? IsActive { get; set; }
 

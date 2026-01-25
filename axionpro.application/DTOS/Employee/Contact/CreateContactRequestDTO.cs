@@ -11,8 +11,7 @@ namespace axionpro.application.DTOS.Employee.Contact
 {
     public class CreateContactRequestDTO
     {
-
-        public string UserEmployeeId { get; set; } = string.Empty;
+              
         public string EmployeeId { get; set; } = string.Empty;
 
         // 🔹 Contact Info

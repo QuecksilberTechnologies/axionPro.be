@@ -153,6 +153,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                 entity.EmployeeId = request.DTO.Prop.EmployeeId;
                 entity.AddedById = request.DTO.Prop.UserEmployeeId;
                 entity.AddedDateTime = DateTime.UtcNow;
+
                 entity.IsActive = true;
                 entity.IsEditAllowed = true;
                 entity.IsInfoVerified = false;

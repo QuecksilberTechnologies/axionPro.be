@@ -12,9 +12,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
     public class UpdateEmployeeRequestDTO
     {
 
-        [Required]
-        public string? UserEmployeeId { get; set; }
-
+      
         [Required]
         public string EmployeeId { get; set; } = string.Empty;
 

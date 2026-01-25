@@ -4,9 +4,11 @@ using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
+using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
@@ -47,6 +49,8 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
         private readonly IIdEncoderService _idEncoderService;
         private readonly IFileStorageService _fileStorageService;
         private readonly IConfiguration _configuration;
+        private readonly ICommonRequestService _commonRequestService;
+
 
         public CreateEducationInfoCommandHandler(
             IUnitOfWork unitOfWork,
@@ -58,7 +62,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
             IConfiguration config,
             IEncryptionService encryptionService,
             IIdEncoderService idEncoderService,
-            IFileStorageService fileStorageService, IConfiguration configuration)
+            IFileStorageService fileStorageService, IConfiguration configuration, ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -71,6 +75,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
             _idEncoderService = idEncoderService;
             _fileStorageService = fileStorageService;
             _configuration = configuration;
+            _commonRequestService = commonRequestService;
         }
 
         public async Task<ApiResponse<List<GetEducationResponseDTO>>> Handle(CreateEducationInfoCommand request, CancellationToken cancellationToken)
@@ -79,49 +84,38 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 
             try
             {
-                // 🔹 STEP 1: Token Validation
-                var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
-                    .ToString()?.Replace("Bearer ", "");
-                if (string.IsNullOrEmpty(bearerToken))
-                    return ApiResponse<List<GetEducationResponseDTO>>.Fail("Unauthorized: Token not found.");
+                await _unitOfWork.BeginTransactionAsync();
 
-                var secretKey = TokenKeyHelper.GetJwtSecret(_config);
-                var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
-                if (tokenClaims == null || tokenClaims.IsExpired)
-                    return ApiResponse<List<GetEducationResponseDTO>>.Fail("Invalid or expired token.");
+                // 🔐 STEP 1: COMMON VALIDATION (SAME AS CONTACT)
+                var validation =
+                    await _commonRequestService.ValidateRequestAsync();
 
-                // 🔹 STEP 2: Validate Active User
-                long loggedInEmpId = await _unitOfWork.StoreProcedureRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
-                if (loggedInEmpId < 1)
-                    return ApiResponse<List<GetEducationResponseDTO>>.Fail("Unauthorized or inactive user.");
+                if (!validation.Success)
+                    return ApiResponse<List<GetEducationResponseDTO>>
+                        .Fail(validation.ErrorMessage);
 
-                // 🔹 STEP 3: Decrypt Tenant + Employee
-                string tenantKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
-                if (string.IsNullOrEmpty(request.DTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
-                    return ApiResponse<List<GetEducationResponseDTO>>.Fail("User invalid.");
-                string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
-                long decryptedEmployeeId = _idEncoderService.DecodeId_long(EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId), finalKey);
-                long decryptedTenantId = _idEncoderService.DecodeId_long(EncryptionSanitizer.CleanEncodedInput(tokenClaims.TenantId), finalKey);
-                string actualEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId);
-                long decryptedActualEmployeeId = _idEncoderService.DecodeId_long(actualEmpId, finalKey);
-                          
+                // 🔓 STEP 2: Assign decoded values
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
 
-
-                if (decryptedTenantId <= 0 || decryptedEmployeeId <= 0)
-                {
-                    _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
-                    return ApiResponse<List<GetEducationResponseDTO>>.Fail("Tenant or employee information missing.");
-                }
-
-                if (!(decryptedEmployeeId == loggedInEmpId))
-                {
-                    _logger.LogWarning(
-                        "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
-                         decryptedEmployeeId, loggedInEmpId
+                request.DTO.Prop.EmployeeId =
+                    RequestCommonHelper.DecodeOnlyEmployeeId(
+                        request.DTO.EmployeeId,
+                        validation.Claims.TenantEncriptionKey,
+                        _idEncoderService
                     );
 
-                    return ApiResponse<List<GetEducationResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
+                // 🔑 STEP 3: Permission check
+                var permissions =
+                    await _permissionService.GetPermissionsAsync(validation.RoleId);
+
+                if (!permissions.Contains("AddDependentInfo"))
+                {
+                    // optional hard-stop
+                    // return ApiResponse<List<GetDependentResponseDTO>>
+                    //     .Fail("You do not have permission to add dependent info.");
                 }
+
 
 
                 // 🔹 STEP 4: File Upload
@@ -129,7 +123,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                 string? FileName = null;
                 bool HasEducationUploaded = false;
                 // 🔹 Tenant info from decoded values
-                long tenantId = decryptedTenantId;
+                long tenantId = validation.TenantId;
 
                 string docFileName = EncryptionSanitizer.CleanEncodedInput(request.DTO.Degree.Trim().ToLower());
                 
@@ -144,9 +138,9 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                             var fileBytes = ms.ToArray();
 
                             // 🔹 File naming convention (same pattern as asset)
-                            string fileName = $"EDU-{decryptedActualEmployeeId + "_"+docFileName}-{DateTime.UtcNow:yyMMddHHmmss}.pdf";
+                            string fileName = $"EDU-{request.DTO.Prop.EmployeeId + "_"+docFileName}-{DateTime.UtcNow:yyMMddHHmmss}.pdf";
 
-                            string fullFolderPath = _fileStorageService.GetEmployeeFolderPath(tenantId, decryptedActualEmployeeId, "education");
+                            string fullFolderPath = _fileStorageService.GetEmployeeFolderPath(tenantId, request.DTO.Prop.EmployeeId, "education");
                             
                             // 🔹 Store actual name for reference in DB
                             FileName = fileName;
@@ -171,8 +165,8 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
               
                 // 🔹 STEP 5: Map DTO to Entity
                 var educationEntity = _mapper.Map<EmployeeEducation>(request.DTO);                  
-                educationEntity.EmployeeId = decryptedActualEmployeeId;                
-                educationEntity.AddedById = decryptedEmployeeId;
+                educationEntity.EmployeeId = request.DTO.Prop.EmployeeId;                
+                educationEntity.AddedById = request.DTO.Prop.UserEmployeeId;
                 educationEntity.AddedDateTime = DateTime.UtcNow;
                 educationEntity.IsActive = true;
                 educationEntity.IsInfoVerified = false;
@@ -196,9 +190,11 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 
                 // 🔹 STEP 7: Commit Transaction
                 await _unitOfWork.CommitTransactionAsync();
-
+               
+                       
                 // 🔹 STEP 8: Projection + Encryption
-                var encryptedList = ProjectionHelper.ToGetEducationResponseDTOs(responseDTO, _idEncoderService, tenantKey, _configuration);
+                var encryptedList = ProjectionHelper.ToGetEducationResponseDTOs(responseDTO, _idEncoderService,
+                        validation.Claims.TenantEncriptionKey, _configuration);
 
                 return new ApiResponse<List<GetEducationResponseDTO>>
                 {

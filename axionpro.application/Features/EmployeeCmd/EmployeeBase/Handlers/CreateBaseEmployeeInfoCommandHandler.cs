@@ -91,7 +91,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             {
                 // 1️⃣ Common validation
                 var validation = await _commonRequestService
-                    .ValidateRequestAsync(request.DTO.UserEmployeeId);
+                    .ValidateRequestAsync();
 
                 if (!validation.Success)
                     return ApiResponse<GetBaseEmployeeResponseDTO>
