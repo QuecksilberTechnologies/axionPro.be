@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using axionpro.application.Common.Enums;
 using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.RequestHelper;
@@ -10,6 +11,7 @@ using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
+using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces.ITokenService;
@@ -34,151 +36,220 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
 
     }
 
-    //public class UpdateDependentInfoCommandHandler : IRequestHandler<UpdateDependentCommand, ApiResponse<bool>>
-    //{
-    //    private readonly IBaseEmployeeRepository _employeeRepository;
-    //    private readonly IUnitOfWork _unitOfWork;
-    //    private readonly ILogger<UpdateDependentInfoCommandHandler> _logger;
-    //    private readonly IMapper _mapper;
-    //    private readonly ITokenService _tokenService;
-    //    private readonly IPermissionService _permissionService;
-    //    private readonly IConfiguration _config;
-    //    private readonly IHttpContextAccessor _httpContextAccessor;
-    //    private readonly IEncryptionService _encryptionService;
-    //    private readonly ICommonRequestService _commonRequestService;
-    //    private readonly IIdEncoderService _idEncoderService;
+    public class UpdateDependentInfoCommandHandler
+     : IRequestHandler<UpdateDependentCommand, ApiResponse<bool>>
+    {
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
+        private readonly ILogger<UpdateDependentInfoCommandHandler> _logger;
+        private readonly IPermissionService _permissionService;
+        private readonly IIdEncoderService _idEncoderService;
+        private readonly IFileStorageService _fileStorageService;
+        private readonly ICommonRequestService _commonRequestService;
+        private readonly IConfiguration _configuration;
+
+        public UpdateDependentInfoCommandHandler(
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            ILogger<UpdateDependentInfoCommandHandler> logger,
+            IPermissionService permissionService,
+            IIdEncoderService idEncoderService,
+            IFileStorageService fileStorageService,
+            ICommonRequestService commonRequestService, IConfiguration configuration)
+        {
+            _unitOfWork = unitOfWork;
+            _logger = logger;
+            _permissionService = permissionService;
+            _fileStorageService = fileStorageService;
+            _commonRequestService = commonRequestService;
+
+        }
+
+        public async Task<ApiResponse<bool>> Handle(
+            UpdateDependentCommand request,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                await _unitOfWork.BeginTransactionAsync();
+
+                // 🔐 STEP 1: COMMON VALIDATION
+                var validation =
+                    await _commonRequestService.ValidateRequestAsync();
+
+                if (!validation.Success)
+                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
+
+                long loggedInEmployeeId = validation.UserEmployeeId;
+
+                // 🔎 STEP 2: Validate Dependent Id
+                if (request.DTO.Id <= 0)
+                    return ApiResponse<bool>.Fail("Invalid dependent id.");
+
+                // 🔑 STEP 3: Permission Check
+                var permissions =
+                    await _permissionService.GetPermissionsAsync(validation.RoleId);
+
+                if (!permissions.Contains("UpdateDependentInfo"))
+                {
+                    // optional strict block
+                    // return ApiResponse<bool>.Fail("Permission denied.");
+                }
+
+                // 📦 STEP 4: Fetch existing dependent
+                var dependent =
+                    await _unitOfWork.EmployeeDependentRepository
+                        .GetSingleRecordAsync(request.DTO.Id, true);
+
+                if (dependent == null)
+                    return ApiResponse<bool>.Fail("Dependent record not found.");
+
+                // =====================================================
+                // 📂 DEPENDENT PROOF CHECK (CLEAN & SAFE)
+                // =====================================================
+              
+               
+                // =====================================================
+                // 🔄 PARTIAL UPDATE (NULL SAFE)
+                // =====================================================
+
+                // Dependent Name (string)
+                if (request.DTO.DependentName != null)
+                {
+                    dependent.DependentName =
+                        string.IsNullOrWhiteSpace(request.DTO.DependentName)
+                            ? dependent.DependentName
+                            : request.DTO.DependentName.Trim();
+                }
+
+                // Relation (INT enum validation)
+                if (request.DTO.Relation.HasValue)
+                {
+                    int relationValue = request.DTO.Relation.Value;
+
+                    if (!Enum.IsDefined(typeof(RelationDependant), relationValue))
+                        return ApiResponse<bool>.Fail("Invalid dependent relation value.");
+
+                    dependent.Relation = relationValue;
+                }
+
+                // =====================================================
+                // 📂 DEPENDENT PROOF FILE UPLOAD (AUDIT SAFE)
+                // =====================================================
+                if (request.DTO.ProofFile is { Length: > 0 })
+                {
+                    try
+                    {
+                        // 🔹 Build file name
+                        string safeRelation =
+                            Enum.IsDefined(typeof(RelationDependant), dependent.Relation)
+                                ? ((RelationDependant)dependent.Relation).ToString()
+                                : "dependent";
+
+                        string fileName =
+                            $"DependentProof-{dependent.EmployeeId}_{safeRelation}_{DateTime.UtcNow:yyMMddHHmmss}.pdf";
+
+                        // 🔹 Get employee dependent folder
+                        string folderPath =
+                            _fileStorageService.GetEmployeeFolderPath(
+                                validation.TenantId,
+                                dependent.EmployeeId,
+                                "dependent");
+
+                        // 🔹 Read file
+                        using var ms = new MemoryStream();
+                        await request.DTO.ProofFile.CopyToAsync(ms);
+
+                        // 🔹 Save file
+                        string savedFullPath =
+                            await _fileStorageService.SaveFileAsync(
+                                ms.ToArray(),
+                                fileName,
+                                folderPath);
+
+                        // 🔹 Update entity (NO DELETE of OLD FILE)
+                        dependent.FilePath = _fileStorageService.GetRelativePath(savedFullPath);
+                        dependent.FileName = fileName;
+                        dependent.FileType = 2; // pdf
+                        dependent.HasProofUploaded = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(
+                            ex,
+                            "❌ Error uploading dependent proof | DependentId: {Id}",
+                            dependent.Id);
+
+                        await _unitOfWork.RollbackTransactionAsync();
+                        return ApiResponse<bool>.Fail(
+                            "Failed to upload dependent proof file. Please try again.");
+                    }
+                }
 
 
-    //    public UpdateDependentInfoCommandHandler(
-    //        IBaseEmployeeRepository employeeRepository,
-    //        IUnitOfWork unitOfWork,
-    //        ILogger<UpdateDependentInfoCommandHandler> logger,
-    //        IMapper mapper,
-    //        ITokenService tokenService,
-    //        IPermissionService permissionRepository,
-    //        IConfiguration configuration,
-    //        IHttpContextAccessor httpContextAccessor, IEncryptionService encryptionService, ICommonRequestService commonRequestService, IIdEncoderService idEncoderService)
-    //    {
-    //        _employeeRepository = employeeRepository;
-    //        _unitOfWork = unitOfWork;
-    //        _logger = logger;
-    //        _mapper = mapper;
-    //        _tokenService = tokenService;
-    //        _permissionService = permissionRepository;
-    //        _config = configuration;
-    //        _httpContextAccessor = httpContextAccessor;
-    //        _encryptionService = encryptionService;
-    //        _commonRequestService = commonRequestService;
-    //        _idEncoderService = idEncoderService;
-    //    }
+                // Date of Birth
+                if (request.DTO.DateOfBirth.HasValue)
+                    dependent.DateOfBirth = request.DTO.DateOfBirth.Value;
 
-    //    public async Task<ApiResponse<bool>> Handle(UpdateDependentCommand request, CancellationToken cancellationToken)
-    //    {
-    //        try
-    //        {
-    //            await _unitOfWork.BeginTransactionAsync();
+                // Is Covered
+                if (request.DTO.IsCoveredInPolicy.HasValue)
+                    dependent.IsCoveredInPolicy = request.DTO.IsCoveredInPolicy.Value;
 
-    //            // 🔐 STEP 1: COMMON VALIDATION (SAME AS CONTACT)
-    //            var validation =
-    //                await _commonRequestService.ValidateRequestAsync(
-    //                    request.DTO.UserEmployeeId);
+                // Is Married
+                if (request.DTO.IsMarried.HasValue)
+                    dependent.IsMarried = request.DTO.IsMarried.Value;
 
-    //            if (!validation.Success)
-    //                return   ApiResponse<bool>
-    //                    .Fail(validation.ErrorMessage);
+                // Remark
+                if (request.DTO.Remark != null)
+                {
+                    dependent.Remark =
+                        string.IsNullOrWhiteSpace(request.DTO.Remark)
+                            ? dependent.Remark
+                            : request.DTO.Remark.Trim();
+                }
 
-    //            // 🔓 STEP 2: Assign decoded values
-    //            request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-    //            request.DTO.Prop.TenantId = validation.TenantId;
+                // Description
+                if (request.DTO.Description != null)
+                {
+                    dependent.Description =
+                        string.IsNullOrWhiteSpace(request.DTO.Description)
+                            ? dependent.Description
+                            : request.DTO.Description.Trim();
+                }
 
-    //            request.DTO.Prop.EmployeeId =
-    //                RequestCommonHelper.DecodeOnlyEmployeeId(
-    //                    request.DTO.EmployeeId,
-    //                    validation.Claims.TenantEncriptionKey,
-    //                    _idEncoderService
-    //                );
-
-    //            // 🔑 STEP 3: Permission check
-    //            var permissions =
-    //                await _permissionService.GetPermissionsAsync(validation.RoleId);
-
-    //            if (!permissions.Contains("AddDependentInfo"))
-    //            {
-    //                // optional hard-stop
-    //                // return ApiResponse<List<GetDependentResponseDTO>>
-    //                //     .Fail("You do not have permission to add dependent info.");
-    //            }
-    //            var dependent =
-    //               await _unitOfWork.EmployeeDependentRepository
-    //                   .GetSingleRecordAsync(request.DTO.Id, request.DTO.Prop.IsActive);
-    //            if (dependent == null)
-    //                return ApiResponse<bool>.Fail(validation.ErrorMessage);
-
-    //           // HasProofUploaded
-
-    //            var dependentEntity = _mapper.Map<EmployeeDependent>(dependent);
-
-                
-                
-                
-                
-                
-                
-                
-    //            // 🧱 Step 5: Convert to Access Control DTO
-    //            var accessDto = EmployeeDependentInfoMapperHelper.ConvertToAccessResponseDTO(dependentEntity);
-
-    //            // 🧱 Step 6: Locate Field in Access DTO
-    //            var accessProp = typeof(GetDependenAccessResponseDTO)
-    //                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-    //                .FirstOrDefault(p => string.Equals(p.Name, dto.FieldName, StringComparison.OrdinalIgnoreCase));
-
-    //            if (accessProp == null)
-    //                return ApiResponse<bool>.Fail($"Field '{dto.FieldName}' does not exist.");
-
-    //            var fieldWithAccess = accessProp.GetValue(accessDto);
-    //            var isReadOnlyProp = fieldWithAccess?.GetType().GetProperty("IsReadOnly");
-    //            bool isReadOnly = (bool?)isReadOnlyProp?.GetValue(fieldWithAccess) ?? false;
-
-    //            if (isReadOnly)
-    //                return ApiResponse<bool>.Fail($"Field '{dto.FieldName}' is read-only and cannot be modified.");
-
-    //            // 🧱 Step 7: Locate actual entity property
-    //            var entityProp = typeof(EmployeeDependent)
-    //                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-    //                .FirstOrDefault(p => string.Equals(p.Name, dto.FieldName, StringComparison.OrdinalIgnoreCase));
-
-    //            if (entityProp == null || !entityProp.CanWrite)
-    //                return ApiResponse<bool>.Fail($"Field '{dto.FieldName}' is invalid or not writable.");
-
-    //            // 🧱 Step 8: Safe type conversion
-    //            if (!TryConvertObjectToValue.TryConvertValue(dto.FieldValue, entityProp.PropertyType, out object? convertedValue))
-    //            {
-    //                _logger.LogWarning("Conversion failed for field '{FieldName}' with value '{FieldValue}'", dto.FieldName, dto.FieldValue);
-    //                return ApiResponse<bool>.Fail($"Value conversion failed for field '{dto.FieldName}'.");
-    //            }
-
-    //            // 🧱 Step 9: Apply value & audit
-    //            entityProp.SetValue(dependentEntity, convertedValue);
-    //            dependentEntity.UpdatedById = dto._EmployeeId;
-    //            dependentEntity.UpdatedDateTime = DateTime.UtcNow;
-
-    //            // 🧱 Step 10: Save to DB
-    //            var updateStatus = await _unitOfWork.Employees.UpdateEmployeeFieldAsync(dependentEntity.Id, dto.EntityName, dto.FieldName, convertedValue, dto._EmployeeId);
-
-    //            if (!updateStatus)
-    //                return ApiResponse<bool>.Fail("Failed to update employee dependent record.");
-
-    //            return ApiResponse<bool>.Success(true, $"Field '{dto.FieldName}' updated successfully.");
-    //        }
-    //        catch (Exception ex)
-    //        {
-    //            _logger.LogError(ex, "Unexpected error occurred while updating dependent info.");
-    //            return ApiResponse<bool>.Fail("An unexpected error occurred.", new List<string> { ex.Message });
-    //        }
-    //    }
+                // 🧾 AUDIT
+                dependent.UpdatedById = loggedInEmployeeId;
+                dependent.UpdatedDateTime = DateTime.UtcNow;
+               
 
 
-    //}
+                // 💾 SAVE
+                bool updated =
+                    await _unitOfWork.EmployeeDependentRepository
+                        .UpdateAsync(dependent);
+
+                if (!updated)
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                    return ApiResponse<bool>.Fail("Failed to update dependent info.");
+                }
+
+                await _unitOfWork.CommitTransactionAsync();
+                return ApiResponse<bool>.Success(true, "Dependent updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+
+                _logger.LogError(ex, "❌ Error updating dependent info");
+
+                return ApiResponse<bool>.Fail(
+                    "Unexpected error occurred.",
+                    new List<string> { ex.Message });
+            }
+
+        }
+    }
 
 }
+

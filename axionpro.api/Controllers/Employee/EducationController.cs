@@ -1,5 +1,7 @@
 ﻿using axionpro.application.DTOs.Employee;
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.Education;
+using axionpro.application.Features.EmployeeCmd.Contact.Handlers;
 using axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers;
 using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
@@ -80,6 +82,38 @@ namespace axionpro.api.Controllers.Employee
                 return StatusCode(500, ApiResponse<string>.Fail("Internal server error.", new List<string> { ex.Message }));
             }
         }
+
+        
+       /// <summary>
+       /// Deletes employee education record by Id.
+       /// </summary>
+       [HttpDelete("delete")]
+        public async Task<IActionResult> Delete([FromQuery] DeleteEducationRequestDTO dto)
+        {
+            try
+            {
+                _logger.LogInfo($"Deleting employee with Id: {dto.Id}");
+
+                var command = new DeleteEducationInfoQuery(dto);
+                var result = await _mediator.Send(command);
+
+                if (!result.IsSucceeded)
+                {
+                    _logger.LogInfo($"Failed to delete  with Id: {dto.Id}");
+                    return BadRequest(result);
+                }
+
+                _logger.LogInfo("Education deleted successfully.");
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error deleting employee: {ex.Message}");
+                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while deleting employee.",
+                    new List<string> { ex.Message });
+                return StatusCode(500, errorResponse);
+            }
+        }
         /// <summary>
         /// Updates employee details.
         /// </summary>
@@ -115,8 +149,7 @@ namespace axionpro.api.Controllers.Employee
                     new List<string> { ex.Message });
                 return StatusCode(500, errorResponse);
             }
-        }
-    
+        }    
     
     }
 }

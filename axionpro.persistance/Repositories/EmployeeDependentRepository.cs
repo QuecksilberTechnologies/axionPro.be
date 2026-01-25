@@ -92,6 +92,64 @@ namespace axionpro.persistance.Repositories
                 throw new Exception($"Failed to add or fetch Dependent info: {ex.Message}");
             }
         }
+        public async Task<bool> UpdateAsync(EmployeeDependent dependent)
+        {
+            try
+            {
+                if (dependent == null)
+                    return false;
+
+                // Attach & mark modified (safe for tracked/untracked both)
+                _context.EmployeeDependents.Update(dependent);
+
+                int affectedRows = await _context.SaveChangesAsync();
+
+                if (affectedRows > 0)
+                {
+                    _logger.LogInformation(
+                        "✔ Dependent updated successfully | DependentId: {Id}",
+                        dependent.Id);
+
+                    return true;
+                }
+
+                _logger.LogWarning(
+                    "⚠ No changes detected while updating dependent | DependentId: {Id}",
+                    dependent.Id);
+
+                return false;
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "❌ Concurrency issue while updating dependent | DependentId: {Id}",
+                    dependent.Id);
+
+                throw new Exception(
+                    "Dependent update failed due to concurrency conflict. Please retry.");
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "❌ Database error while updating dependent | DependentId: {Id}",
+                    dependent.Id);
+
+                throw new Exception(
+                    "Database error occurred while updating dependent.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "❌ Unexpected error while updating dependent | DependentId: {Id}",
+                    dependent.Id);
+
+                throw;
+            }
+        }
+
 
         public async Task<PagedResponseDTO<GetDependentResponseDTO>> GetInfo(
        GetDependentRequestDTO dto)
@@ -155,10 +213,85 @@ namespace axionpro.persistance.Repositories
         }
 
 
-        public Task<EmployeeContact> GetSingleRecordAsync(long Id, bool IsActive)
+        public async Task<EmployeeDependent?> GetSingleRecordAsync(long id, bool isActive)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (id <= 0)
+                    return null;
+
+                return await _context.EmployeeDependents
+                    .Where(x =>
+                        x.Id == id &&
+                        x.IsActive == isActive &&
+                        x.IsSoftDeleted != true)
+                    .FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "❌ Error fetching Contact record | ContactId: {Id}",
+                    id);
+
+                throw new Exception(
+                    $"Failed to fetch contact record with Id {id}.", ex);
+            }
         }
+
+        public async Task<bool> DeleteAsync(EmployeeDependent entity)
+        {
+            try
+            {
+                _context.EmployeeDependents.Update(entity);
+
+                int affectedRows = await _context.SaveChangesAsync();
+
+                if (affectedRows > 0)
+                {
+                    _logger.LogInformation(
+                        "✔ Education record soft deleted | Id: {Id}",
+                        entity.Id);
+
+                    return true;
+                }
+
+                _logger.LogWarning(
+                    "⚠ No rows affected while deleting Dependent record | Id: {Id}",
+                    entity.Id);
+
+                return false;
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "❌ Concurrency issue while deleting EmployeeDependent record | Id: {Id}",
+                    entity.Id);
+
+                throw new Exception("Record was modified by another process.");
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "❌ Database error while deleting education record | Id: {Id}",
+                    entity.Id);
+
+                throw new Exception("Database error occurred while deleting record.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "❌ Unexpected error while deleting education record | Id: {Id}",
+                    entity.Id);
+
+                throw;
+            }
+        }
+
+
     }
 
 

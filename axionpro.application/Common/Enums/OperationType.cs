@@ -46,7 +46,9 @@ namespace axionpro.application.Common.Enums
         Experience = 4,
         Identity = 5,
         Education = 6,
-        Dependent = 7
+        Dependent = 7,
+        Insurance = 8,
+       
     }
 
     public enum RelationDependant
@@ -58,6 +60,8 @@ namespace axionpro.application.Common.Enums
         Daughter = 5,
         Brother = 6,
         Sister = 7,
+      
+
         Other = 99
     }
 

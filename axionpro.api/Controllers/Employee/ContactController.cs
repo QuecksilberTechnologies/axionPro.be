@@ -164,10 +164,7 @@ namespace axionpro.api.Controllers.Employee
         /// <summary>
         /// Deletes employee record by Id.
         /// </summary>
-        [HttpDelete("delete")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        [HttpDelete("delete")]     
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Delete([FromQuery] DeleteRequestDTO dto)
         {
@@ -180,7 +177,7 @@ namespace axionpro.api.Controllers.Employee
 
                 if (!result.IsSucceeded)
                 {
-                    _logger.LogInfo($"Failed to delete employee with Id: {dto.UserEmployeeId}");
+                    _logger.LogInfo($"Failed to delete employee with Id: {dto.Id}");
                     return BadRequest(result);
                 }
 

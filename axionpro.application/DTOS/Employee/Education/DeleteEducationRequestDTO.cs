@@ -8,8 +8,8 @@ namespace axionpro.application.DTOS.Employee.Education
 {
     public class DeleteEducationRequestDTO
     {
-        public string? UserEmployeeId { get; set; }
-        public string? EmployeeId { get; set; }
+        
+        
         public int Id { get; set; }
 
 
