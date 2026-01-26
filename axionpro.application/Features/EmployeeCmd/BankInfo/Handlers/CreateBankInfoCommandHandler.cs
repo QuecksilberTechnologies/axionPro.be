@@ -173,7 +173,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 bankEntity.AddedById = request.DTO.Prop.UserEmployeeId;
                 bankEntity.AddedDateTime = DateTime.UtcNow;
                 bankEntity.IsActive = true;
-                bankEntity.IsEditAllowed = false;
+                bankEntity.IsEditAllowed = true;
                 bankEntity.IsInfoVerified = false;
                 bankEntity.IsPrimaryAccount = request.DTO.IsPrimaryAccount;
                 bankEntity.EmployeeId = request.DTO.Prop.EmployeeId;

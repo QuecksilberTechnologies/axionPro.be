@@ -64,6 +64,27 @@ namespace axionpro.application.Common.Enums
 
         Other = 99
     }
+    public enum EmergencyContactRelation
+    {
+        Father = 1,
+        Mother = 2,
+        Husband = 3,
+        Wife = 4,
+        Son = 5,
+        Daughter = 6,
+        Brother = 7,
+        Sister = 8,
+        Grandfather = 9,
+        Grandmother = 10,
+        Uncle = 11,
+        Aunt = 12,
+        Cousin = 13,
+        Guardian = 14,
+        Landlord = 15,
+
+        Other = 99
+    }
+
 
 
 }

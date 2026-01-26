@@ -1,18 +1,8 @@
 ﻿using AutoMapper;
-using axionpro.application.Common.Helpers;
-using axionpro.application.Common.Helpers.axionpro.application.Configuration;
-using axionpro.application.Common.Helpers.Converters;
-using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Constants;
-using axionpro.application.DTOs.Department;
-using axionpro.application.DTOs.Employee;
-using axionpro.application.DTOs.UserLogin;
-using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.BaseEmployee;
-using axionpro.application.DTOS.Pagination;
 using axionpro.application.DTOS.Token;
-using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEmail;
@@ -22,17 +12,8 @@ using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
-using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
@@ -85,8 +66,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
      CreateBaseEmployeeInfoCommand request,
      CancellationToken cancellationToken)
         {
-            await _unitOfWork.BeginTransactionAsync();
-
+          
             try
             {
                 // 1️⃣ Common validation
@@ -187,10 +167,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 var savedEmployee = await _unitOfWork.Employees
                     .CreateEmployeeAsync(employee, loginCredential, userRole);
 
-
-
-                await _unitOfWork.CommitTransactionAsync();
-                // 7️⃣ Response DTO
+                                // 7️⃣ Response DTO
                 var responseDto =
                     ProjectionHelper.ToGetBaseInfoResponseDTO(
                         savedEmployee,
@@ -214,7 +191,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 string token = await _tokenService.GenerateToken(getTokenInfoDTO);
                 // 9️⃣ EMAIL (🔥 OUTSIDE TRANSACTION, FAILURE ≠ API FAILURE)
 
-                await _unitOfWork.CommitTransactionAsync(); // DB ka kaam complete
+               
 
                 try
                 {
@@ -244,7 +221,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             }
             catch (Exception ex)
             {
-                await _unitOfWork.RollbackTransactionAsync();
+               
                 _logger.LogError(ex, "Employee creation failed");
 
                 return ApiResponse<GetBaseEmployeeResponseDTO>

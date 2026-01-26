@@ -1224,6 +1224,7 @@ namespace axionpro.persistance.Repositories
                         EmergencyContactPerson = x.Employee.EmergencyContactPerson,
                         EmergencyContactNumber = x.Employee.EmergencyContactNumber,
                         BloodGroup = x.Employee.BloodGroup,
+                        Relation = x.Employee.Relation,
 
                         HasPermanent = x.Employee.HasPermanent,
                         IsActive = x.Employee.IsActive,

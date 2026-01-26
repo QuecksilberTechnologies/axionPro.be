@@ -23,8 +23,13 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
            public string? BloodGroup { get; set; }
            public string? MobileNumber { get; set; }
 
-            public int? Relation { get; set; }
-            public int? CountryId { get; set; }
+        // 🔹 RELATION (ENUM INT)
+           public int? Relation { get; set; }
+
+        // ✅ RELATION DISPLAY STRING
+          public string? RelationType { get; set; }
+
+        public int? CountryId { get; set; }
             public string? CountryCode { get; set; }
             public string? Nationality { get; set; } = string.Empty;
             public string? RoleName { get; set; }

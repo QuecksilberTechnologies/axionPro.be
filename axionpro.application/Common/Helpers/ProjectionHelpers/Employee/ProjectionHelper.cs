@@ -15,6 +15,7 @@ using axionpro.application.DTOS.Employee.Experience;
 using axionpro.application.DTOS.Employee.Sensitive;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.DTOS.StoreProcedures;
+using axionpro.application.Features.TenantConfigurationCmd.Configuration.EmployeeCodeCmd.Handlers;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.domain.Entity;
 using Microsoft.Extensions.Configuration;
@@ -103,7 +104,6 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 return new List<GetDependentResponseDTO>();
 
             string baseUrl = configuration["FileSettings:BaseUrl"] ?? string.Empty;
-
             foreach (var item in entities)
             {
                 if (item == null)
@@ -117,7 +117,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 item.FilePath = !string.IsNullOrWhiteSpace(item.FilePath)
                     ? $"{baseUrl}{item.FilePath}"
                     : string.Empty;
-
+            
                 // 📊 Completion %
                 item.CompletionPercentage =
                     CompletionCalculatorHelper.DependentPropCalculate(item);
@@ -135,6 +135,8 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 }
 
                 // 🧹 Null safety
+             
+
                 item.EmployeeId ??= string.Empty;
                 item.DependentName ??= string.Empty;
                 item.Remark ??= string.Empty;
@@ -224,6 +226,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 item.LastName ??= string.Empty;
                 item.MiddleName ??= string.Empty;
                 item.OfficialEmail ??= string.Empty;
+
             }
 
             return entities.Items;
@@ -271,38 +274,53 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         }
 
 
-
         public static GetBaseEmployeeResponseDTO? ToGetBaseInfoResponseDTO(
-                 GetBaseEmployeeResponseDTO? entity,
-                 IIdEncoderService encoderService,
-                 string tenantKey)
+            GetBaseEmployeeResponseDTO? entity,
+            IIdEncoderService encoderService,
+            string tenantKey)
         {
             if (entity == null)
                 return null;
 
-            // ✅ Sirf Id encode karo
-            if (!string.IsNullOrWhiteSpace(entity.Id) && long.TryParse(entity.Id, out long rawId) && rawId > 0)
+            // 🔐 Encode Employee Id
+            if (!string.IsNullOrWhiteSpace(entity.Id)
+                && long.TryParse(entity.Id, out long rawId)
+                && rawId > 0)
             {
                 entity.Id = encoderService.EncodeId_long(rawId, tenantKey);
             }
 
+            // ✅ RELATION ENUM → STRING
+            if (entity.Relation.HasValue &&
+                Enum.IsDefined(typeof(EmergencyContactRelation), entity.Relation.Value))
+            {
+                entity.RelationType =
+                    Enum.GetName(typeof(EmergencyContactRelation), entity.Relation.Value);
+            }
+            else
+            {
+                entity.RelationType = "Other";
+            }
 
-
-            // ✅ Baaki sab as-it-is (optional null safety)          
+            // 🧹 Null safety
             entity.FirstName ??= string.Empty;
             entity.LastName ??= string.Empty;
             entity.MiddleName ??= string.Empty;
             entity.OfficialEmail ??= string.Empty;
             entity.EmployementCode ??= string.Empty;
-            entity.DateOfBirth = entity.DateOfBirth.HasValue
-               ? DateTime.SpecifyKind(entity.DateOfBirth.Value, DateTimeKind.Utc)
-               : null;
-            entity.DateOfOnBoarding = entity.DateOfOnBoarding.HasValue
-               ? DateTime.SpecifyKind(entity.DateOfOnBoarding.Value, DateTimeKind.Utc)
-               : null;
-            entity.DateOfExit = entity.DateOfExit.HasValue ? DateTime.SpecifyKind(entity.DateOfExit.Value, DateTimeKind.Utc)
-               : null;
 
+            // 🌍 UTC Date Handling
+            entity.DateOfBirth = entity.DateOfBirth.HasValue
+                ? DateTime.SpecifyKind(entity.DateOfBirth.Value, DateTimeKind.Utc)
+                : null;
+
+            entity.DateOfOnBoarding = entity.DateOfOnBoarding.HasValue
+                ? DateTime.SpecifyKind(entity.DateOfOnBoarding.Value, DateTimeKind.Utc)
+                : null;
+
+            entity.DateOfExit = entity.DateOfExit.HasValue
+                ? DateTime.SpecifyKind(entity.DateOfExit.Value, DateTimeKind.Utc)
+                : null;
 
             return entity;
         }
@@ -320,6 +338,18 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 if (long.TryParse(item.Id, out long rawId) && rawId > 0)
                 {
                     item.Id = encoderService.EncodeId_long(rawId, tenantKey);
+                }
+
+                // ✅ RELATION ENUM → STRING
+                if (item.Relation.HasValue &&
+                    Enum.IsDefined(typeof(EmergencyContactRelation), item.Relation.Value))
+                {
+                    item.RelationType =
+                        Enum.GetName(typeof(EmergencyContactRelation), item.Relation.Value);
+                }
+                else
+                {
+                    item.RelationType = "Other";
                 }
 
                 // ✅ Optional null-safe cleanup (lightweight safety)
@@ -388,46 +418,44 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             return pagedResult.Items;
         }
 
-        public static List<GetBankResponseDTO> ToGetBankResponseDTOs(PagedResponseDTO<GetBankResponseDTO> entities,
-         IIdEncoderService encoderService,
-        string tenantKey, IConfiguration configuration
-           )
+        public static List<GetBankResponseDTO> ToGetBankResponseDTOs(
+     PagedResponseDTO<GetBankResponseDTO> entities,
+     IIdEncoderService encoderService,
+     string tenantKey,
+     IConfiguration configuration)
         {
+            if (entities?.Items == null || !entities.Items.Any())
+                return new List<GetBankResponseDTO>();
+
             string baseUrl = configuration["FileSettings:BaseUrl"] ?? string.Empty;
             string defaultImg = configuration["FileSettings:DefaultImage"] ?? string.Empty;
 
-            if (entities == null || entities.Items == null || !entities.Items.Any())
-                return new List<GetBankResponseDTO>();
-
-            var result = new List<GetBankResponseDTO>();
-
-            foreach (var item in entities.Items) // now item is GetBankResponseDTO
+            foreach (var item in entities.Items)
             {
-                if (item == null) continue;
+                if (item == null)
+                    continue;
 
-                item.FilePath ??= string.Empty;
-                // 📁 Final Image URL build
-                if (!string.IsNullOrEmpty(item.FilePath))
-                    item.FilePath = $"{baseUrl}{item.FilePath}";
-
-
-                // ✅ Encode EmployeeId separately
-
-                if (long.TryParse(item.EmployeeId, out long rawId) && rawId > 0)
+                // 🔐 Encode EmployeeId
+                if (!string.IsNullOrWhiteSpace(item.EmployeeId)
+                    && long.TryParse(item.EmployeeId, out long rawEmpId)
+                    && rawEmpId > 0)
                 {
-                    item.EmployeeId = encoderService.EncodeId_long(rawId, tenantKey);
-
+                    item.EmployeeId = encoderService.EncodeId_long(rawEmpId, tenantKey);
                 }
 
+                // 📁 File path handling
+                if (!string.IsNullOrWhiteSpace(item.FilePath))
+                    item.FilePath = $"{baseUrl}{item.FilePath}";
+                else
+                    item.FilePath = defaultImg; // 👈 fallback image (optional)
 
-                // ✅ Optional cleanup (avoid nulls)
+                // 🧹 Null safety
+                item.FileName ??= string.Empty;
+                item.FileType ??= 0;
                 item.EmployeeId ??= string.Empty;
-                //  item.Id ??= 0;
-
-                result.Add(item);
             }
 
-            return result;
+            return entities.Items;
         }
 
         private static string EncodeId(
@@ -485,6 +513,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                     IsActive = item.IsActive,
                     IsEditAllowed = item.IsEditAllowed,
                     IsInfoVerified = item.IsInfoVerified,
+                    EducationGap = item.EducationGap.HasValue ? item.EducationGap.Value: false,
                     HasEducationDocUploded = item.HasEducationDocUploded,
                     CompletionPercentage = item.CompletionPercentage,
                     GradeDivision = item.GradeDivision,
