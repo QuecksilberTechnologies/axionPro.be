@@ -273,6 +273,70 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             return source;
         }
 
+       // public static GetBaseEmployeeResponseDTO? ToGetSummaryResponseDTO(
+       //SummaryEmployeeInfo? entity,
+       //IIdEncoderService encoderService,
+       //string tenantKey)
+       // {
+       //     if (entity == null)
+       //         return null;
+
+       //     // =====================================================
+       //     // 🔐 ENCODE EMPLOYEE ID
+       //     // =====================================================
+       //     if (!string.IsNullOrWhiteSpace(entity.Id)
+       //         && long.TryParse(entity.Id, out long rawId)
+       //         && rawId > 0)
+       //     {
+       //         entity.Id = encoderService.EncodeId_long(rawId, tenantKey);
+       //     }
+
+       //     // =====================================================
+       //     // 🔁 RELATION ENUM → STRING
+       //     // =====================================================
+       //     if (entity.Relation.HasValue &&
+       //         Enum.IsDefined(typeof(EmergencyContactRelation), entity.Relation.Value))
+       //     {
+       //         entity.RelationType =
+       //             Enum.GetName(
+       //                 typeof(EmergencyContactRelation),
+       //                 entity.Relation.Value
+       //             );
+       //     }
+       //     else
+       //     {
+       //         entity.RelationType = "Other";
+       //     }
+
+       //     // =====================================================
+       //     // 🧹 NULL SAFETY
+       //     // =====================================================
+       //     entity.FirstName ??= string.Empty;
+       //     entity.LastName ??= string.Empty;
+       //     entity.MiddleName ??= string.Empty;
+       //     entity.OfficialEmail ??= string.Empty;
+       //     entity.EmployementCode ??= string.Empty;
+       //     entity.Nationality ??= string.Empty;
+       //     entity.RoleName ??= string.Empty;
+       //     entity.Type ??= string.Empty;
+
+       //     // =====================================================
+       //     // 🌍 UTC DATE NORMALIZATION
+       //     // =====================================================
+       //     entity.DateOfBirth = entity.DateOfBirth.HasValue
+       //         ? DateTime.SpecifyKind(entity.DateOfBirth.Value, DateTimeKind.Utc)
+       //         : null;
+
+       //     entity.DateOfOnBoarding = entity.DateOfOnBoarding.HasValue
+       //         ? DateTime.SpecifyKind(entity.DateOfOnBoarding.Value, DateTimeKind.Utc)
+       //         : null;
+
+       //     entity.DateOfExit = entity.DateOfExit.HasValue
+       //         ? DateTime.SpecifyKind(entity.DateOfExit.Value, DateTimeKind.Utc)
+       //         : null;
+
+       //     return entity;
+       // }
 
         public static GetBaseEmployeeResponseDTO? ToGetBaseInfoResponseDTO(
             GetBaseEmployeeResponseDTO? entity,

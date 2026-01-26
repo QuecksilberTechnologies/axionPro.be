@@ -1,4 +1,6 @@
-﻿using AutoMapper;
+﻿
+ 
+    using AutoMapper;
 using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
@@ -35,12 +37,12 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             DTO = dTO;
         }
     }
-    public class GetAllEmployeeInfoQueryHandler : IRequestHandler<GetAllEmployeeInfoQuery, ApiResponse<List<GetAllEmployeeInfoResponseDTO>>>
+    public class GetEmployeeSummaryQueryHandler : IRequestHandler<GetAllEmployeeInfoQuery, ApiResponse<List<GetAllEmployeeInfoResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ILogger<GetAllEmployeeInfoQueryHandler> _logger;
+        private readonly ILogger<GetEmployeeSummaryQueryHandler> _logger;
         private readonly ITokenService _tokenService;
         private readonly IPermissionService _permissionService;
         private readonly IConfiguration _config;
@@ -48,11 +50,11 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         private readonly IIdEncoderService _idEncoderService;
         private readonly ICommonRequestService _commonRequestService;
 
-        public GetAllEmployeeInfoQueryHandler(
+        public GetEmployeeSummaryQueryHandler(
             IUnitOfWork unitOfWork,
             IMapper mapper,
             IHttpContextAccessor httpContextAccessor,
-            ILogger<GetAllEmployeeInfoQueryHandler> logger,
+            ILogger<GetEmployeeSummaryQueryHandler> logger,
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,
@@ -96,7 +98,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 PagedResponseDTO<GetAllEmployeeInfoResponseDTO> responseDTO = await _unitOfWork.Employees.GetAllInfo(request.DTO);
                 if (responseDTO == null || !responseDTO.Items.Any())
                 {
-                    _logger.LogInformation("No Base Employee info found for EmployeeId: {EmpId}", request.DTO.Prop.UserEmployeeId );
+                    _logger.LogInformation("No Base Employee info found for EmployeeId: {EmpId}", request.DTO.Prop.UserEmployeeId);
                     return ApiResponse<List<GetAllEmployeeInfoResponseDTO>>.Fail("No Base Employee info found.");
                 }
 
@@ -122,4 +124,5 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 
     }
 }
+
 

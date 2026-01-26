@@ -1492,9 +1492,149 @@ namespace axionpro.persistance.Repositories
                 };
             }
         }
-     
 
-     
+        public async Task<SummaryEmployeeInfo?> BuildEmployeeSummaryAsync(
+      long employeeId,
+      bool isActive)
+        {
+            if (employeeId <= 0)
+                throw new ArgumentException("Invalid EmployeeId.");
+
+            // =====================================================
+            // 🔹 EMPLOYEE + MASTER DATA (STRICT FILTERS)
+            // =====================================================
+            var employeeData =
+                await (
+                    from emp in _context.Employees.AsNoTracking()
+
+                        // 🔹 Gender  ismei IsActive nahi check karna hai
+                    join gender in _context.Genders                        
+                        on emp.GenderId equals (long?)gender.Id into genderJoin
+                    from g in genderJoin.DefaultIfEmpty()
+
+                        // 🔹 Designation
+                    join designation in _context.Designations
+                        .Where(x => x.IsActive == true && x.IsSoftDeleted != true)
+                        on emp.DesignationId equals (long?)designation.Id into desigJoin
+                    from d in desigJoin.DefaultIfEmpty()
+
+                        // 🔹 Employee Type
+                    join empType in _context.EmployeeTypes
+                        .Where(x => x.IsActive == true && x.IsSoftDeleted != true)
+                        on emp.EmployeeTypeId equals (long?)empType.Id into typeJoin
+                    from et in typeJoin.DefaultIfEmpty()
+
+                        // 🔹 Department
+                    join department in _context.Departments
+                        .Where(x => x.IsActive == true && x.IsSoftDeleted != true)
+                        on emp.DepartmentId equals (long?)department.Id into deptJoin
+                    from dep in deptJoin.DefaultIfEmpty()
+
+                        // 🔹 Country  ismei IsActive nahi check karna hai
+                    join country in _context.Countries 
+                        .Where(x => x.IsActive == true)
+                        on emp.CountryId equals country.Id into countryJoin
+                    from c in countryJoin.DefaultIfEmpty()
+
+                        // 🔹 Primary Contact
+                    join contact in _context.EmployeeContacts
+                            .Where(ec =>
+                                ec.IsPrimary == true &&
+                                ec.IsActive == true &&
+                                ec.IsSoftDeleted != true)
+                        on emp.Id equals contact.EmployeeId into contactJoin
+                    from cont in contactJoin.DefaultIfEmpty()
+
+                        // 🔹 District  
+                    join district in _context.Districts 
+                        .Where(x => x.IsActive == true )
+                        on cont.DistrictId equals district.Id into districtJoin
+                    from dist in districtJoin.DefaultIfEmpty()
+
+                        // 🔹 FINAL FILTER (MOST IMPORTANT)
+                    where emp.Id == employeeId
+                          && emp.IsActive == isActive
+                          && emp.IsSoftDeleted != true
+
+                    select new
+                    {
+                        emp,
+                        cont,
+                        dist,
+                        DesignationName = d != null ? d.DesignationName : string.Empty,
+                        EmployeeTypeName = et != null ? et.TypeName : string.Empty,
+                        DepartmentName = dep != null ? dep.DepartmentName : string.Empty,
+                        CountryCode = c != null ? c.CountryCode : string.Empty
+                    }
+                ).FirstOrDefaultAsync();
+
+            if (employeeData == null)
+                return null;
+
+            // =====================================================
+            // 🔹 PROFILE IMAGE (THUMBNAIL)
+            // =====================================================
+            var img = await _context.EmployeeImages
+                .Where(i =>
+                    i.EmployeeId == employeeId &&
+                    i.IsSoftDeleted != true)
+                .OrderByDescending(i => i.IsPrimary)
+                .ThenByDescending(i => i.HasImageUploaded)
+                .ThenByDescending(i => i.Id)
+                .FirstOrDefaultAsync();
+
+            bool hasPrimaryImage = img?.IsPrimary == true;
+
+            // =====================================================
+            // 🔹 COMPLETION %
+            // =====================================================
+            double completion =
+                CompletionCalculatorHelper.EmployeePropCalculate(
+                    employeeData.emp,
+                    hasPrimaryImage);
+
+            // =====================================================
+            // 🔹 FINAL SUMMARY DTO
+            // =====================================================
+            return new SummaryEmployeeInfo
+            {
+                EmergencyContactPerson = employeeData.emp.EmergencyContactPerson,
+                EmergencyContactNumber = employeeData.emp.EmergencyContactNumber,
+                BloodGroup = employeeData.emp.BloodGroup,
+                MobileNumber = employeeData.emp.MobileNumber,
+                Relation = employeeData.emp.Relation,
+
+                CountryCode = employeeData.CountryCode,
+                IsActive = employeeData.emp.IsActive,
+                IsMarried = employeeData.emp.IsMarried,
+                EmployeeCode = employeeData.emp.EmployementCode,
+
+                OnlineStatus = null,
+                LastLoginDateTime = DateTime.UtcNow,
+
+                CurrentSalaryStatusId = 1,
+                CurrentSalaryStatusRemark = null,
+
+                RoleId = 1,
+                RoleType = null,
+
+                DesignationId = employeeData.emp.DesignationId ?? 0,
+                Designation = employeeData.DesignationName,
+
+                DepartmentId = employeeData.emp.DepartmentId ?? 0,
+                Department = employeeData.DepartmentName,
+
+                ProfileImage = img?.FilePath,
+                City = employeeData.dist?.DistrictName,
+                Address = employeeData.cont?.Address,
+
+                DateOfJoining = employeeData.emp.DateOfOnBoarding,
+
+                EmployeeTypeId = employeeData.emp.EmployeeTypeId ?? 0,
+                EmployeeTypeName = employeeData.EmployeeTypeName
+            };
+        }
+
         public async Task<List<CompletionSectionDTO>> GetEmployeeCompletionAsync(long employeeId)
         {
             try
@@ -1593,9 +1733,9 @@ namespace axionpro.persistance.Repositories
                 return new List<CompletionSectionDTO>();
             }
         }
- 
 
-        public async Task<GetMinimalEmployeeResponseDTO> GetSingleRecordAsync(long id, bool isActive)
+
+         public async Task<GetMinimalEmployeeResponseDTO> GetSingleRecordAsync(long id, bool isActive)
         {
             try
             {

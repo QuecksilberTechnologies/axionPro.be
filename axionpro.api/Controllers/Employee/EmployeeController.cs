@@ -3,6 +3,7 @@ using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
+using axionpro.application.Features.EmployeeCmd.Handlers;
 using axionpro.application.Features.EmployeeCmd.UpdateStatus.Handler;
 using axionpro.application.Features.EmployeeCmd.UpdateVerification.Handler;
 using axionpro.application.Interfaces.ILogger;
@@ -309,6 +310,40 @@ namespace axionpro.api.Controllers.Employee
             {
                 _logger.LogError($"Error while fetching employees: {ex.Message}");
                 var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while fetching employee info.",
+                    new List<string> { ex.Message });
+                return StatusCode(500, errorResponse);
+            }
+        }
+        /// <summary>
+        /// Get  summary based on TenantId or filters.
+        /// </summary>
+        [HttpGet("get-summary")]
+
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> GetEmployeeSummary([FromQuery] GetEmployeeSummaryRequestDTO requestDto)
+        {
+            try
+            {
+                _logger.LogInfo("Fetching all employees.");
+
+                var command = new GetEmployeeSummaryQuery(requestDto);
+                var result = await _mediator.Send(command);
+
+                if (!result.IsSucceeded)
+                {
+                    _logger.LogInfo("No employees summary found or request failed.");
+                    return BadRequest(result);
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error while fetching employees: {ex.Message}");
+                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while fetching employee summary .",
                     new List<string> { ex.Message });
                 return StatusCode(500, errorResponse);
             }
