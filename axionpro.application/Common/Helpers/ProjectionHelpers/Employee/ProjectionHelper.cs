@@ -470,6 +470,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                     EndDate = item.EndDate.HasValue ? DateTime.SpecifyKind(item.EndDate.Value, DateTimeKind.Utc) : null,
                     FilePath   = BuildFilePath(item.FilePath, baseUrl, defaultImg),
                     FileType = item.FileType,
+                    FileName = item.FileName,
                     IsActive = item.IsActive,
                     IsEditAllowed = item.IsEditAllowed,
                     IsInfoVerified = item.IsInfoVerified,
