@@ -125,26 +125,30 @@ namespace axionpro.application.Common.Helpers.PercentageHelper
 
             int[] checks =
             {
-                // 🔹 Core identity
-                !string.IsNullOrWhiteSpace(dep.DependentName) ? 1 : 0,
-                dep.Relation > 0 ? 1 : 0,
+        // 🔹 Core identity
+        !string.IsNullOrWhiteSpace(dep.DependentName) ? 1 : 0,
 
-            // 🔹 Personal info
-            dep.DateOfBirth != null ? 1 : 0,
+        // ✅ RELATION (INT ENUM VALUE)
+        dep.Relation.HasValue && dep.Relation.Value > 0 ? 1 : 0,
 
-                // 🔹 Flags
-                dep.IsCoveredInPolicy != null ? 1 : 0,
-                dep.IsMarried != null ? 1 : 0,
+        // 🔹 Personal info
+        dep.DateOfBirth.HasValue ? 1 : 0,
 
-                // 🔹 Business rule
-                // Proof recommended (strict if policy covered)
-                dep.IsCoveredInPolicy == true
-                    ? (dep.HasProofUploaded == true ? 1 : 0)
-                    : 1
-            };
+        // 🔹 Flags
+        dep.IsCoveredInPolicy.HasValue ? 1 : 0,
+        dep.IsMarried.HasValue ? 1 : 0,
+
+        // 🔹 Business rule
+        // Proof mandatory ONLY if covered in policy
+        dep.IsCoveredInPolicy == true
+            ? (dep.HasProofUploaded == true ? 1 : 0)
+            : 1
+    };
 
             return CalculatePercentage(checks);
         }
+
+
         // =========================================================
         // CONTACT DETAILS COMPLETION
         // =========================================================

@@ -1,4 +1,5 @@
-﻿using axionpro.application.Common.Helpers.Converters;
+﻿using axionpro.application.Common.Enums;
+using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.PercentageHelper;
 using axionpro.application.DTOs.Department;
 using axionpro.application.DTOs.Designation;
@@ -91,11 +92,12 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         //    }).ToList();
         //}
 
+
         public static List<GetDependentResponseDTO> ToGetDependentResponseDTOs(
-     List<GetDependentResponseDTO> entities,
-     IIdEncoderService encoderService,
-     string tenantKey,
-     IConfiguration configuration)
+    List<GetDependentResponseDTO> entities,
+    IIdEncoderService encoderService,
+    string tenantKey,
+    IConfiguration configuration)
         {
             if (entities == null || !entities.Any())
                 return new List<GetDependentResponseDTO>();
@@ -107,34 +109,41 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 if (item == null)
                     continue;
 
-                // 🔐 Encode Dependent Id
-               
-
                 // 🔐 Encode EmployeeId
                 if (long.TryParse(item.EmployeeId, out long empRawId) && empRawId > 0)
                     item.EmployeeId = encoderService.EncodeId_long(empRawId, tenantKey);
 
-                // 📁 Build full file URL
-                if (!string.IsNullOrWhiteSpace(item.FilePath))
-                    item.FilePath = $"{baseUrl}{item.FilePath}";
-                else
-                    item.FilePath = string.Empty;
+                // 📁 File path
+                item.FilePath = !string.IsNullOrWhiteSpace(item.FilePath)
+                    ? $"{baseUrl}{item.FilePath}"
+                    : string.Empty;
 
                 // 📊 Completion %
                 item.CompletionPercentage =
                     CompletionCalculatorHelper.DependentPropCalculate(item);
 
+                // ✅ ENUM → STRING (CORRECT PLACE)
+                if (item.Relation.HasValue &&
+                    Enum.IsDefined(typeof(RelationDependant), item.Relation.Value))
+                {
+                    item.RelationType =
+                        Enum.GetName(typeof(RelationDependant), item.Relation.Value);
+                }
+                else
+                {
+                    item.RelationType = RelationDependant.Other.ToString();
+                }
+
                 // 🧹 Null safety
-                item.Id = item.Id ;
                 item.EmployeeId ??= string.Empty;
                 item.DependentName ??= string.Empty;
-                item.Relation = 0; 
                 item.Remark ??= string.Empty;
                 item.Description ??= string.Empty;
             }
 
             return entities;
         }
+
 
         public static List<GetEmployeeIdentityResponseDTO> ToGetIdentityResponseDTO(
         IEnumerable<GetEmployeeIdentitySp> entities,
@@ -150,7 +159,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 EmployeeId = e.EmployeeId.HasValue
                     ? encoder.EncodeId_long(e.EmployeeId.Value, tenantKey)
                     : null,
-
+                
                 // 🌍 Country
                 Id = e.Id,
                 CountryCode = e.CountryCode,
@@ -165,6 +174,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 DocumentName = e.DocumentName,
                 Description = e.Description,
                 IsMandatory = e.IsMandatory,
+                
 
                 // 👤 EmployeeIdentity
                 EmployeeIdentityId = e.EmployeeIdentityId,
@@ -465,6 +475,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                     InstituteName = item.InstituteName,
                     ScoreType = item.ScoreType,
                     StartDate = item.StartDate.HasValue
+                    
                    ? DateTime.SpecifyKind(item.StartDate.Value, DateTimeKind.Utc)
                    : null,
                     EndDate = item.EndDate.HasValue ? DateTime.SpecifyKind(item.EndDate.Value, DateTimeKind.Utc) : null,
@@ -476,7 +487,12 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                     IsInfoVerified = item.IsInfoVerified,
                     HasEducationDocUploded = item.HasEducationDocUploded,
                     CompletionPercentage = item.CompletionPercentage,
+                    GradeDivision = item.GradeDivision,
+                    ScoreValue = item.ScoreValue,
+                    Remark = item.Remark,
                     
+
+
                 })
                 .ToList();
         }
