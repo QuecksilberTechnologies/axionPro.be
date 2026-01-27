@@ -16,6 +16,7 @@ using axionpro.application.DTOS.Employee.Sensitive;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.DTOS.StoreProcedures;
 using axionpro.application.Features.TenantConfigurationCmd.Configuration.EmployeeCodeCmd.Handlers;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.domain.Entity;
 using Microsoft.Extensions.Configuration;
@@ -302,7 +303,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         }
         public static SummaryEmployeeInfo? ToGetSummaryResponseDTO(
            SummaryEmployeeInfo? entity,
-           IIdEncoderService encoderService,
+           IIdEncoderService encoderService, IConfiguration configuration,
            string tenantKey)
         {
             if (entity == null)
@@ -317,6 +318,14 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             {
                 entity.EmployeeId = encoderService.EncodeId_long(rawId, tenantKey);
             }
+            string baseUrl =
+           configuration["FileSettings:BaseUrl"] ?? string.Empty;
+         
+            // 📁 File path handling
+            if (!string.IsNullOrWhiteSpace(entity.ProfileImage))
+                entity.ProfileImage = $"{baseUrl}{entity.ProfileImage}";
+            else
+                entity.ProfileImage = null; // 👈 fallback image (optional)
 
             // =====================================================
             // 🔁 RELATION ENUM → STRING

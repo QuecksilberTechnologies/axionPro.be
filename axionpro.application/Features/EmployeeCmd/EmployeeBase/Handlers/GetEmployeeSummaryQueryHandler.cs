@@ -122,7 +122,7 @@ namespace axionpro.application.Features.EmployeeCmd.Handlers
                     return ApiResponse<SummaryEmployeeInfo>
                         .Fail("No employee summary found.");
                 }
-              var resultList = ProjectionHelper.ToGetSummaryResponseDTO(summary, _idEncoderService, validation.Claims.TenantEncriptionKey);
+              var resultList = ProjectionHelper.ToGetSummaryResponseDTO(summary, _idEncoderService, validation.Claims.TenantEncriptionKey, _commonRequestService);
 
 
 
