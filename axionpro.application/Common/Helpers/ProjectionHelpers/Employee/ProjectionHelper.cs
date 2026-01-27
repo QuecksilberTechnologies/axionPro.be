@@ -220,7 +220,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             entity.DesignationType ??= string.Empty;
             entity.DepartmentType ??= string.Empty;
             entity.EmployeeCode ??= string.Empty;
-            entity.Mobile ??= string.Empty;
+          
             entity.MobileNumber ??= string.Empty;
             entity.OffilcialEmail ??= string.Empty;
 
@@ -300,71 +300,73 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 
             return source;
         }
+        public static SummaryEmployeeInfo? ToGetSummaryResponseDTO(
+           SummaryEmployeeInfo? entity,
+           IIdEncoderService encoderService,
+           string tenantKey)
+        {
+            if (entity == null)
+                return null;
 
-       // public static GetBaseEmployeeResponseDTO? ToGetSummaryResponseDTO(
-       //SummaryEmployeeInfo? entity,
-       //IIdEncoderService encoderService,
-       //string tenantKey)
-       // {
-       //     if (entity == null)
-       //         return null;
+            // =====================================================
+            // 🔐 ENCODE EMPLOYEE ID
+            // =====================================================
+            if (!string.IsNullOrWhiteSpace(entity.EmployeeId)
+                && long.TryParse(entity.EmployeeId, out long rawId)
+                && rawId > 0)
+            {
+                entity.EmployeeId = encoderService.EncodeId_long(rawId, tenantKey);
+            }
 
-       //     // =====================================================
-       //     // 🔐 ENCODE EMPLOYEE ID
-       //     // =====================================================
-       //     if (!string.IsNullOrWhiteSpace(entity.Id)
-       //         && long.TryParse(entity.Id, out long rawId)
-       //         && rawId > 0)
-       //     {
-       //         entity.Id = encoderService.EncodeId_long(rawId, tenantKey);
-       //     }
+            // =====================================================
+            // 🔁 RELATION ENUM → STRING
+            // =====================================================
+            if (entity.Relation.HasValue &&
+                Enum.IsDefined(typeof(EmergencyContactRelation), entity.Relation.Value))
+            {
+                entity.RelationName =
+                    Enum.GetName(
+                        typeof(EmergencyContactRelation),
+                        entity.Relation.Value
+                    );
+            }
+            else
+            {
+                entity.RelationName = "Other";
+            }
 
-       //     // =====================================================
-       //     // 🔁 RELATION ENUM → STRING
-       //     // =====================================================
-       //     if (entity.Relation.HasValue &&
-       //         Enum.IsDefined(typeof(EmergencyContactRelation), entity.Relation.Value))
-       //     {
-       //         entity.RelationType =
-       //             Enum.GetName(
-       //                 typeof(EmergencyContactRelation),
-       //                 entity.Relation.Value
-       //             );
-       //     }
-       //     else
-       //     {
-       //         entity.RelationType = "Other";
-       //     }
+            // =====================================================
+            // 🧹 NULL SAFETY (ONLY VALID FIELDS)
+            // =====================================================
+            entity.EmergencyContactPerson ??= string.Empty;
+            entity.EmergencyContactNumber ??= string.Empty;
+            entity.EmployeeCode ??= string.Empty;
+            entity.BloodGroup ??= string.Empty;
+            entity.MobileNumber ??= string.Empty;
+            entity.PersonalEmail ??= string.Empty;
+            entity.CountryCode ??= string.Empty;
+            entity.Designation ??= string.Empty;
+            entity.Department ??= string.Empty;
+            entity.EmployeeTypeName ??= string.Empty;
+            entity.ProfileImage ??= string.Empty;
+            entity.City ??= string.Empty;
+            entity.Address ??= string.Empty;
+            entity.CurrentSalaryStatusRemark ??= string.Empty;
+            entity.RoleType ??= string.Empty;
 
-       //     // =====================================================
-       //     // 🧹 NULL SAFETY
-       //     // =====================================================
-       //     entity.FirstName ??= string.Empty;
-       //     entity.LastName ??= string.Empty;
-       //     entity.MiddleName ??= string.Empty;
-       //     entity.OfficialEmail ??= string.Empty;
-       //     entity.EmployementCode ??= string.Empty;
-       //     entity.Nationality ??= string.Empty;
-       //     entity.RoleName ??= string.Empty;
-       //     entity.Type ??= string.Empty;
+            // =====================================================
+            // 🌍 UTC DATE NORMALIZATION
+            // =====================================================
+            entity.LastLoginDateTime = entity.LastLoginDateTime.HasValue
+                ? DateTime.SpecifyKind(entity.LastLoginDateTime.Value, DateTimeKind.Utc)
+                : null;
 
-       //     // =====================================================
-       //     // 🌍 UTC DATE NORMALIZATION
-       //     // =====================================================
-       //     entity.DateOfBirth = entity.DateOfBirth.HasValue
-       //         ? DateTime.SpecifyKind(entity.DateOfBirth.Value, DateTimeKind.Utc)
-       //         : null;
+            entity.DateOfJoining = entity.DateOfJoining.HasValue
+                ? DateTime.SpecifyKind(entity.DateOfJoining.Value, DateTimeKind.Utc)
+                : null;
 
-       //     entity.DateOfOnBoarding = entity.DateOfOnBoarding.HasValue
-       //         ? DateTime.SpecifyKind(entity.DateOfOnBoarding.Value, DateTimeKind.Utc)
-       //         : null;
-
-       //     entity.DateOfExit = entity.DateOfExit.HasValue
-       //         ? DateTime.SpecifyKind(entity.DateOfExit.Value, DateTimeKind.Utc)
-       //         : null;
-
-       //     return entity;
-       // }
+            return entity;
+        }
 
         public static GetBaseEmployeeResponseDTO? ToGetBaseInfoResponseDTO(
             GetBaseEmployeeResponseDTO? entity,

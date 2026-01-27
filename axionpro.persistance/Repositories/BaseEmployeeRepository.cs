@@ -1691,7 +1691,7 @@ namespace axionpro.persistance.Repositories
 
                         EmployeeCode = emp.EmployementCode,
 
-                        Mobile = cont != null ? cont.ContactNumber : string.Empty,
+                     
                         MobileNumber = emp.MobileNumber,
 
                         OffilcialEmail = emp.OfficialEmail

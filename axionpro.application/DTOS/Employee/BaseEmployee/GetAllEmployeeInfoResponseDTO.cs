@@ -56,8 +56,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         public string? DesignationType { get; set; }
         public int? Department { get; set; }
         public string? DepartmentType { get; set; }
-        public string? EmployeeCode { get; set; }
-        public string? Mobile { get; set; }
+        public string? EmployeeCode { get; set; }       
         public string? MobileNumber { get; set; }
         public string? OffilcialEmail { get; set; }
         
