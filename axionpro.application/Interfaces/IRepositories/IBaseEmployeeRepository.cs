@@ -50,6 +50,7 @@ public interface IBaseEmployeeRepository
       public Task<GetMinimalEmployeeResponseDTO> GetSingleRecordAsync(long Id, bool IsActive);  // Ensure this returns 
 
        public Task<SummaryEmployeeInfo?> BuildEmployeeSummaryAsync(long employeeId, bool isActive);
+       public Task<EmployeeProfileSummaryInfo?> EmployeeProfileSummaryAsync(long employeeId, bool isActive);
       public Task<EmployeeImage> IsImageExist(long Id, bool IsActive);  // Ensure this returns 
        public Task<bool>  UpdateProfileImage(EmployeeImage employeeImageInfo);
       public Task<Employee?> GetByIdAsync(long id, long tenantId, bool track = true);

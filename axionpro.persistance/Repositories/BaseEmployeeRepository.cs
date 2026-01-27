@@ -1462,7 +1462,7 @@ namespace axionpro.persistance.Repositories
                         EmployeeImagePath = img?.FilePath,
                         HasImagePicUploaded = hasPrimary,
                         IsActive = x.emp.IsActive,
-                        SummaryEmployeeInfo = summaryEmployeeInfo  , // ✅ THIS WAS MISSING
+                      //  SummaryEmployeeInfo = summaryEmployeeInfo  , // ✅ THIS WAS MISSING
                         CompletionPercentage = completionPercentage
                     };
                 }).ToList();
@@ -1618,6 +1618,8 @@ namespace axionpro.persistance.Repositories
                 RoleId = 1,
                 RoleType = null,
 
+                EmployeeId = employeeData.emp.Id.ToString(),
+
                 DesignationId = employeeData.emp.DesignationId ?? 0,
                 Designation = employeeData.DesignationName,
 
@@ -1633,6 +1635,70 @@ namespace axionpro.persistance.Repositories
                 EmployeeTypeId = employeeData.emp.EmployeeTypeId ?? 0,
                 EmployeeTypeName = employeeData.EmployeeTypeName
             };
+        }
+
+        public async Task<EmployeeProfileSummaryInfo?> EmployeeProfileSummaryAsync(
+   long employeeId,
+   bool isActive)
+        {
+            if (employeeId <= 0)
+                throw new ArgumentException("Invalid EmployeeId.");
+
+            var data =
+                await (
+                    from emp in _context.Employees.AsNoTracking()
+
+                        // 🔹 Designation (Active + Not Deleted)
+                    join designation in _context.Designations
+                        .Where(x => x.IsActive == true && x.IsSoftDeleted != true)
+                        on emp.DesignationId equals (long?)designation.Id into desigJoin
+                    from d in desigJoin.DefaultIfEmpty()
+
+                        // 🔹 Department (Active + Not Deleted)
+                    join department in _context.Departments
+                        .Where(x => x.IsActive == true && x.IsSoftDeleted != true)
+                        on emp.DepartmentId equals (long?)department.Id into deptJoin
+                    from dep in deptJoin.DefaultIfEmpty()
+
+                        // 🔹 Primary Contact (Active + Not Deleted)
+                    join contact in _context.EmployeeContacts
+                        .Where(c =>
+                            c.IsPrimary == true &&
+                            c.IsActive == true &&
+                            c.IsSoftDeleted != true)
+                        on emp.Id equals contact.EmployeeId into contactJoin
+                    from cont in contactJoin.DefaultIfEmpty()
+
+                        // 🔹 FINAL FILTER (MOST IMPORTANT)
+                    where emp.Id == employeeId
+                          && emp.IsActive == isActive
+                          && emp.IsSoftDeleted != true
+
+                    select new EmployeeProfileSummaryInfo
+                    {
+                        EmployeeId = emp.Id.ToString(),
+
+                        FullName =
+                            (emp.FirstName ?? string.Empty) + " " +
+                            (emp.MiddleName ?? string.Empty) + " " +
+                            (emp.LastName ?? string.Empty),
+
+                        Designation = emp.DesignationId,
+                        DesignationType = d != null ? d.DesignationName : string.Empty,
+
+                        Department = emp.DepartmentId,
+                        DepartmentType = dep != null ? dep.DepartmentName : string.Empty,
+
+                        EmployeeCode = emp.EmployementCode,
+
+                        Mobile = cont != null ? cont.ContactNumber : string.Empty,
+                        MobileNumber = emp.MobileNumber,
+
+                        OffilcialEmail = emp.OfficialEmail
+                    }
+                ).FirstOrDefaultAsync();
+
+            return data;
         }
 
         public async Task<List<CompletionSectionDTO>> GetEmployeeCompletionAsync(long employeeId)

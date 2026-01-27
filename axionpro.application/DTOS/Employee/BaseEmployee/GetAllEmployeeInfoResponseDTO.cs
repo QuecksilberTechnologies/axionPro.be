@@ -1,10 +1,13 @@
 ﻿using axionpro.application.DTOS.Pagination;
+using axionpro.application.Features.TicketFeatures.TicketHeader.Handlers;
 using Microsoft.Extensions.FileSystemGlobbing.Internal.PathSegments;
+using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static QRCoder.PayloadGenerator;
 
 namespace axionpro.application.DTOS.Employee.BaseEmployee
 {
@@ -37,16 +40,35 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
          //   public   <List>AsignedAsset AsignedAssetList { get;set} 
             public double? CompletionPercentage { get; set; }
             public bool? HasImagePicUploaded { get; set; }
-           public SummaryEmployeeInfo SummaryEmployeeInfo { get; set; } = new SummaryEmployeeInfo();
+        //   public SummaryEmployeeInfo SummaryEmployeeInfo { get; set; } = new SummaryEmployeeInfo();
 
 
 
     }
 
   
+ 
+    public class EmployeeProfileSummaryInfo
+    {   
+        public string? EmployeeId { get; set; }
+        public string? FullName { get; set; }
+        public int? Designation { get; set; }
+        public string? DesignationType { get; set; }
+        public int? Department { get; set; }
+        public string? DepartmentType { get; set; }
+        public string? EmployeeCode { get; set; }
+        public string? Mobile { get; set; }
+        public string? MobileNumber { get; set; }
+        public string? OffilcialEmail { get; set; }
+        
 
+
+
+
+    }
     public class SummaryEmployeeInfo
     {   
+        public string? EmployeeId { get; set; }
         public string? EmergencyContactPerson { get; set; }
         public string? EmergencyContactNumber { get; set; }
         public string? EmployeeCode { get; set; }

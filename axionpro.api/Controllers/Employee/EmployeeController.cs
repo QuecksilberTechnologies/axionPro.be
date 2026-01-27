@@ -348,6 +348,37 @@ namespace axionpro.api.Controllers.Employee
                 return StatusCode(500, errorResponse);
             }
         }
+        [HttpGet("get-profile-summary")]
+
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> GetEmployeeProfileSummary([FromQuery] GetEmployeeSummaryRequestDTO requestDto)
+        {
+            try
+            {
+                _logger.LogInfo("Fetching all employees.");
+
+                var command = new GetEmployeeProfileSummaryQuery(requestDto);
+                var result = await _mediator.Send(command);
+
+                if (!result.IsSucceeded)
+                {
+                    _logger.LogInfo("No employees summary found or request failed.");
+                    return BadRequest(result);
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error while fetching employees: {ex.Message}");
+                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while fetching employee summary .",
+                    new List<string> { ex.Message });
+                return StatusCode(500, errorResponse);
+            }
+        }
         /// <summary>
         /// Get all employees based on TenantId or filters.
         /// </summary>
