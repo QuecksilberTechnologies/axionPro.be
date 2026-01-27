@@ -303,8 +303,8 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         }
         public static SummaryEmployeeInfo? ToGetSummaryResponseDTO(
            SummaryEmployeeInfo? entity,
-           IIdEncoderService encoderService, IConfiguration configuration,
-           string tenantKey)
+           IIdEncoderService encoderService, string tenantKey, IConfiguration configuration
+          )
         {
             if (entity == null)
                 return null;

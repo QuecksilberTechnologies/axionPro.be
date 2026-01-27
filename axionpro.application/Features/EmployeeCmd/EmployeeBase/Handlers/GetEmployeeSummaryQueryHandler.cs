@@ -45,6 +45,7 @@ namespace axionpro.application.Features.EmployeeCmd.Handlers
         private readonly ILogger<GetEmployeeSummaryQueryHandler> _logger;
         private readonly IPermissionService _permissionService;
         private readonly ICommonRequestService _commonRequestService;
+        private readonly IConfiguration _config;
         private readonly IIdEncoderService _idEncoderService;
 
         public GetEmployeeSummaryQueryHandler(
@@ -52,13 +53,15 @@ namespace axionpro.application.Features.EmployeeCmd.Handlers
             ILogger<GetEmployeeSummaryQueryHandler> logger,
             IPermissionService permissionService,
             ICommonRequestService commonRequestService,
-            IIdEncoderService idEncoderService)
+            IIdEncoderService idEncoderService,
+            IConfiguration config)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _permissionService = permissionService;
             _commonRequestService = commonRequestService;
             _idEncoderService = idEncoderService;
+            _config = config;
         }
 
         public async Task<ApiResponse<SummaryEmployeeInfo>> Handle(
@@ -122,7 +125,7 @@ namespace axionpro.application.Features.EmployeeCmd.Handlers
                     return ApiResponse<SummaryEmployeeInfo>
                         .Fail("No employee summary found.");
                 }
-              var resultList = ProjectionHelper.ToGetSummaryResponseDTO(summary, _idEncoderService, validation.Claims.TenantEncriptionKey, _commonRequestService);
+              var resultList = ProjectionHelper.ToGetSummaryResponseDTO(summary, _idEncoderService, validation.Claims.TenantEncriptionKey, _config);
 
 
 
