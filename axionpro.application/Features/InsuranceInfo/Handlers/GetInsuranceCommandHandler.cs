@@ -7,6 +7,7 @@ using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOs.Designation;
 using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.InsurancePolicy;
 using axionpro.application.DTOS.Pagination;
@@ -29,7 +30,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 namespace axionpro.application.Features.InsuranceInfo.Handlers
 {
     public class GetInsuranceListQuery
-        : IRequest<ApiResponse<PagedResponseDTO<GetInsurancePolicyResponseDTO>>>
+        : IRequest<ApiResponse<List<GetInsurancePolicyResponseDTO>>>
     {
         public GetInsurancePolicyRequestDTO DTO { get; }
 
@@ -44,7 +45,7 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
     public class GetInsuranceListQueryHandler
       : IRequestHandler<
           GetInsuranceListQuery,
-          ApiResponse<PagedResponseDTO<GetInsurancePolicyResponseDTO>>>
+          ApiResponse<List<GetInsurancePolicyResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetInsuranceListQueryHandler> _logger;
@@ -60,7 +61,7 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
             _commonRequestService = commonRequestService;
         }
 
-        public async Task<ApiResponse<PagedResponseDTO<GetInsurancePolicyResponseDTO>>> Handle(
+        public async Task<ApiResponse<List<GetInsurancePolicyResponseDTO>>> Handle(
             GetInsuranceListQuery request,
             CancellationToken cancellationToken)
         {
@@ -72,7 +73,7 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
 
                 if (!validation.Success)
                 {
-                    return ApiResponse<PagedResponseDTO<GetInsurancePolicyResponseDTO>>
+                    return ApiResponse<List<GetInsurancePolicyResponseDTO>>
                         .Fail(validation.ErrorMessage);
                 }
                 // Assign decoded values coming from CommonRequestService
@@ -108,15 +109,18 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                         "No insurance policies found. TenantId: {TenantId}",
                         validation.TenantId);
 
-                    return ApiResponse<PagedResponseDTO<GetInsurancePolicyResponseDTO>>
+                    return ApiResponse<List<GetInsurancePolicyResponseDTO>>
                         .Fail("No insurance policies found.");
                 }
 
                 // 5️⃣ Success response
-                return ApiResponse<PagedResponseDTO<GetInsurancePolicyResponseDTO>>
-                    .Success(
-                        result,
-                        "Insurance policies retrieved successfully.");
+                return ApiResponse<List<GetInsurancePolicyResponseDTO>>.SuccessPaginatedPercentage(
+                  Data: result.Items,
+                  Message: "Insurance info retrieved successfully.",
+                  PageNumber: result.PageNumber,
+                  PageSize: result.PageSize,
+                  TotalRecords: result.TotalCount,
+                  TotalPages: result.TotalPages);
             }
             catch (Exception ex)
             {
@@ -125,7 +129,7 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                     "Error while fetching insurance policies. UserEmployeeId: {UserEmployeeId}",
                     request.DTO?.UserEmployeeId);
 
-                return ApiResponse<PagedResponseDTO<GetInsurancePolicyResponseDTO>>
+                return ApiResponse<List<GetInsurancePolicyResponseDTO>>
                     .Fail("An unexpected error occurred while fetching insurance policies.");
             }
         }

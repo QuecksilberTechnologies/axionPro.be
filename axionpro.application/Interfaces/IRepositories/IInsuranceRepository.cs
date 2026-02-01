@@ -23,7 +23,7 @@ namespace axionpro.application.Interfaces.IRepositories
 
         // 🔹 GET LIST (Grid / Listing)
         Task<PagedResponseDTO<GetInsurancePolicyResponseDTO>> GetListAsync(
-        GetInsurancePolicyRequestDTO request  );
+                  GetInsurancePolicyRequestDTO request  );
 
 
         // 🔹 UPDATE
