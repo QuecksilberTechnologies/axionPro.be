@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.DTOS.InsurancePolicy
 {
-    public class GetInsurancePolicyResponseDTO
+   public class GetInsurancePolicyResponseDTO
     {
+        //
+
         // 🔹 Identity
-        public int InsurancePolicyId { get; set; }
-        public long TenantId { get; set; }
+        public int InsurancePolicyId { get; set; }      
 
         // 🔹 Policy Type
         public int PolicyTypeId { get; set; }
@@ -48,14 +49,8 @@ namespace axionpro.application.DTOS.InsurancePolicy
         // 📝 Additional Info
         public string? Remark { get; set; }
         public string? Description { get; set; }
-
-        // 🔹 Audit Info
-        public long? AddedById { get; set; }
-        public DateTime? AddedDateTime { get; set; }
-        public long? UpdatedById { get; set; }
-        public DateTime? UpdatedDateTime { get; set; }
-        public long? SoftDeletedById { get; set; }
-        public DateTime? DeletedDateTime { get; set; }
+ 
+       
     }
 
 }

@@ -1,15 +1,16 @@
 ﻿using axionpro.application.DTOS.InsurancePolicy;
+using axionpro.application.DTOS.Pagination;
 using axionpro.application.Features.InsuranceInfo.Handlers;
-using axionpro.application.Wrappers;
 using axionpro.application.Interfaces.ILogger;
+using axionpro.application.Wrappers;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace axionpro.api.Controllers.Insurance
 {
-    [Route("api/insurance")]
     [ApiController]
+    [Route("api/[controller]")]
     public class InsuranceController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -55,28 +56,23 @@ namespace axionpro.api.Controllers.Insurance
         }
 
         // 🔹 GET INSURANCE LIST (GRID)
-        //[HttpGet("get")]
-        //[ProducesResponseType(typeof(ApiResponse<List<GetInsurancePolicyResponseDTO>>), StatusCodes.Status200OK)]
-        //public async Task<IActionResult> GetList()
-        //{
-        //    try
-        //    {
-        //        _logger.LogInfo("Fetching insurance policy list.");
+        [HttpGet("get")]
+ 
+        public async Task<IActionResult> GetList(
+            [FromQuery] GetInsurancePolicyRequestDTO requestDto)
+          {
+            _logger.LogInfo("Fetching insurance policy list.");
 
-        //        var query = new GetInsuranceListQuery();
-        //        var result = await _mediator.Send(query);
+            var query = new GetInsuranceListQuery(requestDto);
+            var result = await _mediator.Send(query);
 
-        //        return Ok(result);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError($"Get insurance list failed: {ex.Message}");
-        //        return StatusCode(
-        //            StatusCodes.Status500InternalServerError,
-        //            ApiResponse<bool>.Fail("Internal server error.")
-        //        );
-        //    }
-        //}
+            // ❌ No InternalServerError
+            // ❌ No try-catch drama
+            // ✅ ApiResponse decides success/fail
+
+            return Ok(result);
+        }
+
 
         //// 🔹 GET INSURANCE BY ID
         //[HttpGet("get-by-id")]

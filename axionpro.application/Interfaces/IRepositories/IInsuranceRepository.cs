@@ -1,4 +1,5 @@
 ﻿using axionpro.application.DTOS.InsurancePolicy;
+using axionpro.application.DTOS.Pagination;
 using axionpro.domain.Entity;
 using System;
 using System.Collections.Generic;
@@ -21,9 +22,9 @@ namespace axionpro.application.Interfaces.IRepositories
             CancellationToken cancellationToken);
 
         // 🔹 GET LIST (Grid / Listing)
-        Task<IReadOnlyList<InsurancePolicy>> GetListAsync(
-            long tenantId,
-            CancellationToken cancellationToken);
+        Task<PagedResponseDTO<GetInsurancePolicyResponseDTO>> GetListAsync(
+        GetInsurancePolicyRequestDTO request  );
+
 
         // 🔹 UPDATE
         Task UpdateAsync(InsurancePolicy policy, CancellationToken cancellationToken);

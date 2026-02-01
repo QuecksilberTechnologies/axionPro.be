@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using axionpro.application.DTOS.InsurancePolicy;
+using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
@@ -9,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Printing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -48,7 +50,7 @@ namespace axionpro.persistance.Repositories
                     {
                         // Identity
                         InsurancePolicyId = x.Id,
-                        TenantId = x.TenantId,
+                       
 
                         // Policy Type
                         PolicyTypeId = x.PolicyTypeId,
@@ -88,12 +90,7 @@ namespace axionpro.persistance.Repositories
                         Description = x.Description,
 
                         // Audit
-                        AddedById = x.AddedById,
-                        AddedDateTime = x.AddedDateTime,
-                        UpdatedById = x.UpdatedById,
-                        UpdatedDateTime = x.UpdatedDateTime,
-                        SoftDeletedById = x.SoftDeletedById,
-                        DeletedDateTime = x.DeletedDateTime
+                       
                     })
                     .FirstOrDefaultAsync();
 
@@ -149,19 +146,143 @@ namespace axionpro.persistance.Repositories
         }
 
         // 🔹 GET LIST (Grid)
-        public async Task<IReadOnlyList<InsurancePolicy>> GetListAsync(
-            long tenantId,
-            CancellationToken cancellationToken)
+        public async Task<PagedResponseDTO<GetInsurancePolicyResponseDTO>> GetListAsync(
+         GetInsurancePolicyRequestDTO request)
         {
-            return await _context.InsurancePolicies
+            // 🔹 Defaults (Handler ke baad safety)
+            int pageNumber = request.PageNumber > 0 ? request.PageNumber : 1;
+            int pageSize = request.PageSize > 0 ? request.PageSize : 10;
+            string sortOrder = string.IsNullOrWhiteSpace(request.SortOrder)
+                ? "desc"
+                : request.SortOrder.ToLower();
+
+            // 🔹 IsActive resolve (DTO based)
+            bool isActive = request.IsActive ?? true;
+
+            // 🔹 Base query
+            var query = _context.InsurancePolicies
+                .AsNoTracking()
                 .Include(x => x.PolicyType)
                 .Include(x => x.Country)
                 .Where(x =>
-                    x.TenantId == tenantId &&
-                    !x.IsSoftDeleted)
-                .OrderByDescending(x => x.AddedDateTime)
-                .ToListAsync(cancellationToken);
+                    x.TenantId == request.Prop.TenantId &&
+                    !x.IsSoftDeleted &&
+                    x.IsActive == isActive);
+
+            // 🔍 FILTERS (ONLY WHAT DTO HAS)
+
+            if (request.InsurancePolicyId.HasValue)
+                query = query.Where(x => x.Id == request.InsurancePolicyId.Value);
+
+            if (request.PolicyTypeId.HasValue)
+                query = query.Where(x => x.PolicyTypeId == request.PolicyTypeId.Value);
+
+            if (!string.IsNullOrWhiteSpace(request.InsurancePolicyName))
+                query = query.Where(x =>
+                    x.InsurancePolicyName.Contains(request.InsurancePolicyName));
+
+            if (!string.IsNullOrWhiteSpace(request.InsurancePolicyNumber))
+                query = query.Where(x =>
+                    x.InsurancePolicyNumber.Contains(request.InsurancePolicyNumber));
+
+            if (!string.IsNullOrWhiteSpace(request.ProviderName))
+                query = query.Where(x =>
+                    x.ProviderName!.Contains(request.ProviderName));
+
+            if (request.CountryId.HasValue)
+                query = query.Where(x => x.CountryId == request.CountryId.Value);
+
+            if (!string.IsNullOrWhiteSpace(request.AgentName))
+                query = query.Where(x =>
+                    x.AgentName!.Contains(request.AgentName));
+
+            if (!string.IsNullOrWhiteSpace(request.AgentContactNumber))
+                query = query.Where(x =>
+                    x.AgentContactNumber!.Contains(request.AgentContactNumber));
+
+            if (request.EmployeeAllowed.HasValue)
+                query = query.Where(x => x.EmployeeAllowed == request.EmployeeAllowed.Value);
+
+            if (request.ParentsAllowed.HasValue)
+                query = query.Where(x => x.ParentsAllowed == request.ParentsAllowed.Value);
+
+            if (request.InLawsAllowed.HasValue)
+                query = query.Where(x => x.InLawsAllowed == request.InLawsAllowed.Value);
+
+            if (request.MaxSpouseAllowed.HasValue)
+                query = query.Where(x => x.MaxSpouseAllowed == request.MaxSpouseAllowed.Value);
+
+            if (request.MaxChildAllowed.HasValue)
+                query = query.Where(x => x.MaxChildAllowed == request.MaxChildAllowed.Value);
+
+            if (request.StartDate.HasValue)
+                query = query.Where(x => x.StartDate >= request.StartDate.Value);
+
+            if (request.EndDate.HasValue)
+                query = query.Where(x => x.EndDate <= request.EndDate.Value);
+
+            // 🔃 SORTING
+            query = sortOrder == "asc"
+                ? query.OrderBy(x => x.AddedDateTime)
+                : query.OrderByDescending(x => x.AddedDateTime);
+
+            // 📊 TOTAL COUNT
+            int totalCount = await query.CountAsync();
+
+            // 📄 PAGINATION + PROJECTION
+            var items = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(x => new GetInsurancePolicyResponseDTO
+                {
+                    InsurancePolicyId = x.Id,
+
+                    PolicyTypeId = x.PolicyTypeId,
+                    PolicyTypeName = x.PolicyType != null
+                        ? x.PolicyType.PolicyName
+                        : string.Empty,
+
+                    InsurancePolicyName = x.InsurancePolicyName,
+                    InsurancePolicyNumber = x.InsurancePolicyNumber,
+                    ProviderName = x.ProviderName,
+
+                    CountryId = x.CountryId,
+                    CountryName = x.Country != null
+                        ? x.Country.CountryName
+                        : null,
+
+                    StartDate = x.StartDate,
+                    EndDate = x.EndDate,
+
+                    AgentName = x.AgentName,
+                    AgentContactNumber = x.AgentContactNumber,
+                    AgentOfficeNumber = x.AgentOfficeNumber,
+
+                    EmployeeAllowed = x.EmployeeAllowed,
+                    MaxSpouseAllowed = x.MaxSpouseAllowed,
+                    MaxChildAllowed = x.MaxChildAllowed,
+                    ParentsAllowed = x.ParentsAllowed,
+                    InLawsAllowed = x.InLawsAllowed,
+
+                    IsActive = x.IsActive,
+                    IsSoftDeleted = x.IsSoftDeleted,
+
+                    Remark = x.Remark,
+                    Description = x.Description
+                })
+                .ToListAsync();
+
+            return new PagedResponseDTO<GetInsurancePolicyResponseDTO>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
+            };
         }
+
+
 
         // 🔹 UPDATE
         public Task UpdateAsync(
