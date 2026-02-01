@@ -7,18 +7,21 @@ using System.Threading.Tasks;
 namespace axionpro.application.DTOS.InsurancePolicy
 {
     /// <summary>
-    /// post-request get self profile info
+    /// Create Insurance Policy request DTO
+    /// (Audit fields are handled internally)
     /// </summary>
-
-    public class AddInsurancePolicyRequestDTO
+    public class CreateInsurancePolicyRequestDTO
     {
+        // 🔹 Policy Classification
+        public int PolicyTypeId { get; set; }          // FK → PolicyType
+        public int? CountryId { get; set; }            // FK → Country
 
-        public long TenantId { get; set; }
-        public long EmployeeId { get; set; }
-        public int RoleId { get; set; }
+        // 🔹 Basic Policy Info
+        [Required]
         public string InsurancePolicyName { get; set; } = string.Empty;
+
         public string InsurancePolicyNumber { get; set; } = string.Empty;
-        public string? CoverageType { get; set; }
+
         public string? ProviderName { get; set; }
 
         // 🔹 Policy Duration
@@ -30,20 +33,19 @@ namespace axionpro.application.DTOS.InsurancePolicy
         public string? AgentContactNumber { get; set; }
         public string? AgentOfficeNumber { get; set; }
 
-        // 🔹 Status Flags
-        public bool? IsActive { get; set; }
-        public bool? IsSoftDeleted { get; set; }
+        // 🔹 Coverage Rules (CORE)
+        public bool EmployeeAllowed { get; set; } = true;
+        public int MaxSpouseAllowed { get; set; } = 0;
+        public int MaxChildAllowed { get; set; } = 0;
+        public bool ParentsAllowed { get; set; } = false;
+        public bool InLawsAllowed { get; set; } = false;
+
+        // 🔹 Status
+        public bool IsActive { get; set; } = true;
 
         // 🔹 Additional Info
         public string? Remark { get; set; }
         public string? Description { get; set; }
-
-        // 🔹 Audit Info
-        public long? AddedById { get; set; }
-        public DateTime? AddedDateTime { get; set; }
-        public long? UpdatedById { get; set; }
-        public DateTime? UpdatedDateTime { get; set; }
-        public long? SoftDeletedById { get; set; }
-        public DateTime? DeletedDateTime { get; set; }
     }
 }
+

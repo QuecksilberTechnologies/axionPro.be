@@ -46,10 +46,10 @@ public class UnitOfWork : IUnitOfWork
     private IForgotPasswordOtpRepository _forgotPasswordOtpRepository;
     private ISandwitchRuleRepository _sandwitchRuleRepository;
     private ILeaveRuleRepository _leaveRuleRepository;
+    private IInsuranceRepository _insuranceRepository;
 
-  
 
-   
+
     private IHolidayCalandarRepository _holidayCalandarRepository;
     private ITenantModuleConfigurationRepository? _tenantModuleConfigurationRepository;
     private IPlanModuleMappingRepository? _planModuleMappingRepository;
@@ -364,6 +364,8 @@ public class UnitOfWork : IUnitOfWork
         }
     }
 
+     
+
     public IEmployeeIdentityRepository EmployeeIdentities
     {
         get
@@ -379,7 +381,23 @@ public class UnitOfWork : IUnitOfWork
             );
         }
     }
+    public IInsuranceRepository InsuranceRepository
+    {
+        get
+        {
+            return _insuranceRepository ??= new InsuranceRepository(
+                _context,
+                _mapper,
+                _loggerFactory.CreateLogger<InsuranceRepository>(),
+                _contextFactory, _passwordService, _encriptionService
 
+
+
+            );
+        }
+    }
+
+    
     //public IEmployeeInsuranceRepository EmployeeInsurances
     //{
     //    get
@@ -389,7 +407,7 @@ public class UnitOfWork : IUnitOfWork
     //            _mapper,
     //            _loggerFactory.CreateLogger<EmployeeInsuranceRepository>(),
     //            _contextFactory, _passwordService
-                
+
     //        );
     //    }
     //}
@@ -722,6 +740,7 @@ public class UnitOfWork : IUnitOfWork
             );
         }
     }
+
 
 
     public async Task BeginTransactionAsync()

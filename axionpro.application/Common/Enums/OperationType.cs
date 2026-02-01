@@ -84,7 +84,6 @@ namespace axionpro.application.Common.Enums
 
         Other = 99
     }
-
-
+ 
 
 }

@@ -1730,28 +1730,7 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
             });
 
-            modelBuilder.Entity<InsurancePolicy>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__PolicyMa__3214EC07A7865FF0");
-
-                entity.ToTable("InsurancePolicy", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.AgentContactNumber).HasMaxLength(20);
-                entity.Property(e => e.AgentName).HasMaxLength(150);
-                entity.Property(e => e.AgentOfficeNumber).HasMaxLength(20);
-                entity.Property(e => e.CoverageType).HasMaxLength(100);
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.Description).HasMaxLength(500);
-                entity.Property(e => e.EndDate).HasColumnType("datetime");
-                entity.Property(e => e.InsurancePolicyName).HasMaxLength(200);
-                entity.Property(e => e.InsurancePolicyNumber).HasMaxLength(100);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.ProviderName).HasMaxLength(100);
-                entity.Property(e => e.Remark).HasMaxLength(500);
-                entity.Property(e => e.StartDate).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-            });
+        
 
             modelBuilder.Entity<InterviewFeedback>(entity =>
             {
@@ -2300,6 +2279,97 @@ namespace axionpro.persistance.Data.Context
                 entity.HasOne(d => d.Tenant).WithMany(p => p.PolicyTypes)
                     .HasForeignKey(d => d.TenantId)
                     .HasConstraintName("FK_PolicyType_Tenant");
+                
+              
+            });
+
+            modelBuilder.Entity<InsurancePolicy>(entity =>  {
+                entity.HasKey(e => e.Id)
+                      .HasName("PK__PolicyMa__3214EC07A7865FF0");
+
+                entity.ToTable("InsurancePolicy", "AxionPro");
+
+                // 🔗 PolicyType FK (MOST IMPORTANT)
+                entity.HasOne(e => e.PolicyType)
+                      .WithMany(p => p.InsurancePolicies)
+                      .HasForeignKey(e => e.PolicyTypeId)
+                      .HasConstraintName("FK_InsurancePolicy_PolicyType")
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.Property(e => e.InsurancePolicyName)
+                      .HasMaxLength(200)
+                      .IsRequired();
+
+                // 🔗 PolicyType FK mapping (MOST IMPORTANT)
+                entity.HasOne(e => e.PolicyType)
+                      .WithMany(p => p.InsurancePolicies)
+                      .HasForeignKey(e => e.PolicyTypeId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+
+                entity.Property(e => e.InsurancePolicyNumber)
+                      .HasMaxLength(100);
+
+                entity.Property(e => e.ProviderName)
+                      .HasMaxLength(100);
+
+                entity.Property(e => e.AgentName)
+                      .HasMaxLength(150);
+
+                entity.Property(e => e.AgentContactNumber)
+                      .HasMaxLength(20);
+
+                entity.Property(e => e.AgentOfficeNumber)
+                      .HasMaxLength(20);
+
+                entity.Property(e => e.Description)
+                      .HasMaxLength(500);
+
+                entity.Property(e => e.Remark)
+                      .HasMaxLength(500);
+
+                entity.Property(e => e.StartDate)
+                      .HasColumnType("datetime");
+
+                entity.Property(e => e.EndDate)
+                      .HasColumnType("datetime");
+
+                entity.Property(e => e.AddedDateTime)
+                      .HasColumnType("datetime");
+
+                entity.Property(e => e.UpdatedDateTime)
+                      .HasColumnType("datetime");
+
+                entity.Property(e => e.DeletedDateTime)
+                      .HasColumnType("datetime");
+
+                // 🔹 Defaults (IMPORTANT)
+                entity.Property(e => e.IsActive)
+                      .HasDefaultValue(true);
+
+                entity.Property(e => e.EmployeeAllowed)
+                      .HasDefaultValue(true);
+
+                entity.Property(e => e.MaxSpouseAllowed)
+                      .HasDefaultValue(0);
+
+                entity.Property(e => e.MaxChildAllowed)
+                      .HasDefaultValue(0);
+
+                entity.Property(e => e.ParentsAllowed)
+                      .HasDefaultValue(false);
+
+                entity.Property(e => e.InLawsAllowed)
+                      .HasDefaultValue(false);
+
+                // 🔗 FK
+                entity.HasOne(e => e.Country)
+                      .WithMany()
+                      .HasForeignKey(e => e.CountryId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+
+
             });
 
             modelBuilder.Entity<RefreshToken>(entity =>

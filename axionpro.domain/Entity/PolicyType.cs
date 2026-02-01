@@ -17,6 +17,7 @@ public partial class PolicyType
 
     public bool? IsSoftDelete { get; set; }
 
+
     public long? AddedById { get; set; }
 
     public DateTime? AddedDateTime { get; set; }
@@ -36,4 +37,8 @@ public partial class PolicyType
     public virtual Tenant? Tenant { get; set; }
 
     public virtual ICollection<TravelAllowancePolicyByDesignation> TravelAllowancePolicyByDesignations { get; set; } = new List<TravelAllowancePolicyByDesignation>();
+
+    // 🔗 Navigation (ONE → MANY)
+    public virtual ICollection<InsurancePolicy> InsurancePolicies { get; set; }   = new List<InsurancePolicy>();
 }
+

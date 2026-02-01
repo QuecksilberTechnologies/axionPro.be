@@ -38,6 +38,7 @@ using axionpro.application.DTOS.Employee.Experience;
 using axionpro.application.DTOS.Employee.Sensitive;
 using axionpro.application.DTOS.Employee.Type;
 using axionpro.application.DTOS.Gender;
+using axionpro.application.DTOS.InsurancePolicy;
 using axionpro.application.DTOS.Location;
 using axionpro.application.DTOS.Module.CommonModule;
 using axionpro.application.DTOS.Module.ParentModule;
@@ -266,7 +267,15 @@ namespace axionpro.application.Mappings
 
 
             CreateMap<domain.Entity.Operation, UpdateOperationRequestDTO>();
+            // Create
+            CreateMap<CreateInsurancePolicyRequestDTO, InsurancePolicy>();
 
+            // Get
+            CreateMap<InsurancePolicy, GetInsurancePolicyResponseDTO>()
+                .ForMember(d => d.PolicyTypeName,
+                    opt => opt.MapFrom(s => s.PolicyType.PolicyName))
+                .ForMember(d => d.CountryName,
+                    opt => opt.MapFrom(s => s.Country.CountryName));
 
 
 
