@@ -131,9 +131,9 @@ namespace axionpro.persistance.Repositories
 
         // 🔹 GET BY ID
         public async Task<InsurancePolicy?> GetByIdAsync(
-            int insurancePolicyId,
-            long tenantId,
-            CancellationToken cancellationToken)
+       int insurancePolicyId,
+       long tenantId,
+       bool isActive)
         {
             return await _context.InsurancePolicies
                 .Include(x => x.PolicyType)
@@ -141,9 +141,11 @@ namespace axionpro.persistance.Repositories
                 .FirstOrDefaultAsync(x =>
                     x.Id == insurancePolicyId &&
                     x.TenantId == tenantId &&
-                    !x.IsSoftDeleted,
-                    cancellationToken);
+                    !x.IsSoftDeleted &&
+                    x.IsActive == isActive
+                );
         }
+
 
         // 🔹 GET LIST (Grid)
         public async Task<PagedResponseDTO<GetInsurancePolicyResponseDTO>> GetListAsync(
@@ -285,13 +287,37 @@ namespace axionpro.persistance.Repositories
 
 
         // 🔹 UPDATE
-        public Task UpdateAsync(
-            InsurancePolicy policy,
-            CancellationToken cancellationToken)
+        public async Task<bool> UpdateAsync(InsurancePolicy policy)
         {
-            _context.InsurancePolicies.Update(policy);
-            return Task.CompletedTask;
+            try
+            {
+                _context.InsurancePolicies.Update(policy);
+
+                var result = await _context.SaveChangesAsync();
+                return result > 0;
+            }
+            catch (DbUpdateException dbEx)
+            {
+                _logger.LogError(
+                    dbEx,
+                    "DB error while updating InsurancePolicy. PolicyId: {PolicyId}",
+                    policy.Id
+                );
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Unexpected error while updating InsurancePolicy. PolicyId: {PolicyId}",
+                    policy.Id
+                );
+
+                return false;
+            }
         }
+
 
         // 🔹 SOFT DELETE
         public async Task SoftDeleteAsync(

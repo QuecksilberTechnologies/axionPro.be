@@ -16,10 +16,7 @@ namespace axionpro.application.Interfaces.IRepositories
         Task<GetInsurancePolicyResponseDTO?> AddAsync(InsurancePolicy policy);
 
         // 🔹 GET (By Id)
-        Task<InsurancePolicy?> GetByIdAsync(
-            int insurancePolicyId,
-            long tenantId,
-            CancellationToken cancellationToken);
+        Task<InsurancePolicy?> GetByIdAsync( int insurancePolicyId,    long tenantId, bool isActive);
 
         // 🔹 GET LIST (Grid / Listing)
         Task<PagedResponseDTO<GetInsurancePolicyResponseDTO>> GetListAsync(
@@ -27,7 +24,7 @@ namespace axionpro.application.Interfaces.IRepositories
 
 
         // 🔹 UPDATE
-        Task UpdateAsync(InsurancePolicy policy, CancellationToken cancellationToken);
+        Task <bool> UpdateAsync(InsurancePolicy policy);
 
         // 🔹 SOFT DELETE
         Task SoftDeleteAsync(

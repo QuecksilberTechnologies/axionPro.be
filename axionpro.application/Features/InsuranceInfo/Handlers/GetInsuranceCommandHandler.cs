@@ -112,7 +112,7 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                     return ApiResponse<List<GetInsurancePolicyResponseDTO>>
                         .Fail("No insurance policies found.");
                 }
-
+                    
                 // 5️⃣ Success response
                 return ApiResponse<List<GetInsurancePolicyResponseDTO>>.SuccessPaginatedPercentage(
                   Data: result.Items,

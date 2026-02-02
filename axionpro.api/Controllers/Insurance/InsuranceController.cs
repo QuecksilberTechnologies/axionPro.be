@@ -57,14 +57,42 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 GET INSURANCE LIST (GRID)
         [HttpGet("get-all")]
- 
-        public async Task<IActionResult> GetList(
+         public async Task<IActionResult> GetList(
             [FromQuery] GetInsurancePolicyRequestDTO requestDto)
           {
             _logger.LogInfo("Fetching insurance policy list.");
 
             var query = new GetInsuranceListQuery(requestDto);
             var result = await _mediator.Send(query);
+
+            // ❌ No InternalServerError
+            // ❌ No try-catch drama
+            // ✅ ApiResponse decides success/fail
+
+            return Ok(result);
+        }
+        // 🔹 DELETE INSURANCE POLICY
+        [HttpDelete("delete")]
+        public async Task<IActionResult> Delete(
+            [FromQuery] DeleteInsurancePolicyRequestDTO requestDto)
+        {
+            _logger.LogInfo("Deleting insurance policy.");
+
+            var command = new DeleteInsurancePolicyQuery(requestDto);
+            var result = await _mediator.Send(command);
+
+            return Ok(result);
+        }
+
+        // 🔹 UPDATE INSURANCE POLICY
+        [HttpPut("update")]
+        public async Task<IActionResult> Update(
+            [FromBody] UpdateInsurancePolicyRequestDTO requestDto)
+        {
+            _logger.LogInfo("Updating insurance policy.");
+
+            var command = new UpdateInsurancePolicyCommand(requestDto);
+            var result = await _mediator.Send(command);
 
             // ❌ No InternalServerError
             // ❌ No try-catch drama

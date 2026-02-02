@@ -7,8 +7,7 @@ using System.Threading.Tasks;
 namespace axionpro.application.DTOS.Common
 {
    public class DeleteRequestDTO
-    {
-    
+    {   
  
         public long Id { get; set; }  
      
