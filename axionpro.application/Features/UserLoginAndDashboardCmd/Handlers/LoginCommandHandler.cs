@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.EncryptionHelper;
+using axionpro.application.Common.Helpers.Hash;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Constants;
 
@@ -31,6 +32,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.UserSecrets;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualBasic;
 using System;
@@ -427,24 +429,51 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                     
                    
                 };
-            
+
+                #region 🎫 Token Generation
+                
+                // 🔐 Step 3: Generate tokens
+                var token = await _tokenService.GenerateToken(getTokenInfoDTO);
 
 
-               // 🔐 Step 3: Generate tokens
-                 var token = await _tokenService.GenerateToken(getTokenInfoDTO);
-                 var refreshToken = await _tokenService.GenerateRefreshToken();
-                 await _refreshTokenRepository.SaveOrUpdateRefreshToken(
-                    loginRequest.LoginId.ToString(),
-                    token,
-                    ConstantValues.ExpireTokenDate,
-                    ConstantValues.IP
-                );
+                var refreshToken = await _tokenService.GenerateRefreshToken(); // PLAIN
+                var hashedRefreshToken = HashHelper.Sha256(refreshToken);      // HASHED 
+         
+                bool isInserted = await _refreshTokenRepository.InsertAsync(new RefreshToken
+                {
+                    LoginId = request.DTO.LoginId,
+                    Token = hashedRefreshToken,
+                    ExpiryDate = DateTime.UtcNow.AddDays(7),
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedByIp = ConstantValues.IP,
+                    IsRevoked = false,
 
+                    // OPTIONAL (future multi-device)
+                    // DeviceId = request.DTO.DeviceId,
+                    // DeviceType = request.DTO.DeviceType
+                });
+
+                #endregion
 
                 // 🔄 Step 4: Update login audit
+                if (isInserted!= false)
+                    {
+                    _logger.LogInformation("RefreshToken inserted successfully for LoginId: {LoginId}", loginRequest.LoginId);
+                   }
+                else
+                {
+                    _logger.LogWarning("Failed to insert RefreshToken for LoginId: {LoginId}", loginRequest.LoginId);
+
+                    await _unitOfWork.RollbackTransactionAsync();
+
+                }
                 bool updated = await _unitOfWork.StoreProcedureRepository.UpdateLoginCredential(loginRequest);
                 if (updated)
+                {
+
                     _logger.LogInformation("LoginCredential updated successfully for LoginId: {LoginId}", loginRequest.LoginId);
+                    await _unitOfWork.CommitTransactionAsync();
+                }
                 else
                     _logger.LogWarning("Failed to update LoginCredential for LoginId: {LoginId}", loginRequest.LoginId);
 

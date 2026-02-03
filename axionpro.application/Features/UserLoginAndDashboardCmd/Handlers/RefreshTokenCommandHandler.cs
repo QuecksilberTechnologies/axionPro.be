@@ -1,9 +1,10 @@
-﻿using axionpro.application.DTOs.UserLogin;
+﻿using axionpro.application.Common.Helpers.Hash;
 using axionpro.application.DTOS.Token;
 using axionpro.application.DTOS.Token.ems.application.DTOs.UserLogin;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System;
@@ -12,7 +13,9 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 {
-    // ✅ Command
+    // =========================
+    // COMMAND
+    // =========================
     public class RefreshTokenCommand : IRequest<ApiResponse<TokenInfoResponseDTO>>
     {
         public RefreshTokenRequestDTO DTO { get; }
@@ -23,8 +26,11 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
         }
     }
 
-    // ✅ Handler
-    public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, ApiResponse<TokenInfoResponseDTO>>
+    // =========================
+    // HANDLER
+    // =========================
+    public class RefreshTokenCommandHandler
+        : IRequestHandler<RefreshTokenCommand, ApiResponse<TokenInfoResponseDTO>>
     {
         private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly ITokenService _tokenService;
@@ -40,49 +46,138 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
             _logger = logger;
         }
 
-        public async Task<ApiResponse<TokenInfoResponseDTO>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<TokenInfoResponseDTO>> Handle(
+            RefreshTokenCommand request,
+            CancellationToken cancellationToken)
         {
             try
             {
-                // ✅ Step 1: Validate refresh token
-                var tokenRec = await _refreshTokenRepository.GetValidRefreshTokenAsync(request.DTO.UserLoginId, request.DTO.RefreshToken);
-                if (tokenRec == null)
-                    return ApiResponse<TokenInfoResponseDTO>.Fail("Invalid or expired refresh token.");
+                // =====================================================
+                // STEP 1: Client se aaya hua PLAIN refresh token HASH karo
+                // =====================================================
+                var incomingHashedToken =
+                    HashHelper.Sha256(request.DTO.RefreshToken);
 
-                // ✅ Step 2: Get user info by LoginId
-                var tokenInfo = await _tokenService.GetUserInfoByLoginIdAsync(tokenRec.LoginId);
+                // =====================================================
+                // STEP 2: DB me HASHED token se record dhundo
+                // (YAHAN SELECT QUERY CHALTI HAI)
+                // =====================================================
+                var oldTokenRec =
+                    await _refreshTokenRepository
+                        .GetValidByHashedTokenAsync(incomingHashedToken);
+
+                if (oldTokenRec == null)
+                {
+                    // 🔴 POSSIBLE ATTACK / INVALID TOKEN
+                    // Token DB me hai hi nahi
+                    _logger.LogWarning(
+                        "Invalid refresh token attempt. IP={IP}",
+                        request.DTO.IpAddress);
+
+                    return ApiResponse<TokenInfoResponseDTO>
+                        .Fail("Invalid refresh token.");
+                }
+
+                // =====================================================
+                // STEP 3: SAFETY CHECK (extra layer)
+                // Normally ye condition already DB query me hoti hai
+                // =====================================================
+                if (oldTokenRec.ExpiryDate < DateTime.UtcNow)
+                    return ApiResponse<TokenInfoResponseDTO>
+                        .Fail("Refresh token expired.");
+                
+                if (oldTokenRec.IsRevoked)
+                {
+                    _logger.LogCritical(
+                        "REFRESH TOKEN REUSE DETECTED | LoginId={LoginId} | IP={IP}",
+                        oldTokenRec.LoginId,
+                        request.DTO.IpAddress);
+
+                    return ApiResponse<TokenInfoResponseDTO>
+                        .Fail("Refresh token already revoked.");
+                }
+
+
+                // =====================================================
+                // STEP 4: LoginId se user info nikaalo
+                // =====================================================
+                var tokenInfo =
+                    await _tokenService
+                        .GetUserInfoByLoginIdAsync(oldTokenRec.LoginId);
+
                 if (tokenInfo == null)
-                    return ApiResponse<TokenInfoResponseDTO>.Fail("User info not found for this token.");
+                    return ApiResponse<TokenInfoResponseDTO>
+                        .Fail("User not found.");
 
-                // ✅ Step 3: Generate new JWT token
-                var newJwtToken = await _tokenService.GenerateToken(tokenInfo);
+                // =====================================================
+                // STEP 5: NEW ACCESS TOKEN (JWT) banao
+                // =====================================================
+                var newAccessToken =
+                    await _tokenService.GenerateToken(tokenInfo);
 
-                // ✅ Step 4: Generate new Refresh Token (optional)
-                var newRefreshToken = await _tokenService.GenerateRefreshToken();
+                // =====================================================
+                // STEP 6: NEW REFRESH TOKEN banao (ROTATION START)
+                // =====================================================
+                var newRefreshToken =
+                    await _tokenService.GenerateRefreshToken(); // PLAIN
 
-                // ✅ Step 5: Save new refresh token to DB
-                await _refreshTokenRepository.SaveOrUpdateRefreshToken(
-                    tokenRec.LoginId,
-                    newRefreshToken,
-                    DateTime.UtcNow.AddDays(7),
-                    tokenRec.CreatedByIp
+                var newHashedToken =
+                    HashHelper.Sha256(newRefreshToken);          // HASHED
+
+                // =====================================================
+                // STEP 7: OLD TOKEN REVOKE
+                // 🔥 YAHAN UPDATE QUERY CHALTI HAI
+                // =====================================================
+                await _refreshTokenRepository.RevokeAsync(
+                    oldTokenRec.Id,
+                    request.DTO.IpAddress
                 );
 
-                // ✅ Step 6: Prepare response
-                var responseDto = new TokenInfoResponseDTO
-                {
-                    
-                    Token = newJwtToken,
-                    RefreshToken = newRefreshToken,
-                   
-                };
+                // =====================================================
+                // STEP 8: OLD TOKEN ME "ReplacedByToken" UPDATE
+                // 🔥 ATTACK CHAIN TRACK YAHI BANTA HAI
+                // =====================================================
+                await _refreshTokenRepository.UpdateReplacedByTokenAsync( oldTokenRec.Id,
+                        newHashedToken
+                    );
 
-                return ApiResponse<TokenInfoResponseDTO>.Success(responseDto, "Token refreshed successfully.");
+                // =====================================================
+                // STEP 9: NEW REFRESH TOKEN INSERT
+                // 🔥 YAHAN INSERT QUERY CHALTI HAI
+                // =====================================================
+                await _refreshTokenRepository.InsertAsync(
+                    new  RefreshToken
+                    {
+                        LoginId = oldTokenRec.LoginId,
+                        Token = newHashedToken,
+                        ExpiryDate = DateTime.UtcNow.AddDays(7),
+                        IsRevoked = false,
+                        CreatedAt = DateTime.UtcNow,
+                        CreatedByIp = request.DTO.IpAddress,
+                        RevokedAt = null,
+                        RevokedByIp = null,
+                        ReplacedByToken = null
+                    });
+
+                // =====================================================
+                // STEP 10: CLIENT KO NEW TOKENS RETURN
+                // =====================================================
+                return ApiResponse<TokenInfoResponseDTO>.Success(
+                    new TokenInfoResponseDTO
+                    {
+                        Token = newAccessToken,          // JWT
+                        RefreshToken = newRefreshToken  // PLAIN
+                    },
+                    "Token refreshed successfully."
+                );
+
+
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while refreshing token.");
-                return ApiResponse<TokenInfoResponseDTO>.Fail("Error while refreshing token.");
+                return ApiResponse<TokenInfoResponseDTO>
+                    .Fail("Error while refreshing token.");
             }
         }
     }

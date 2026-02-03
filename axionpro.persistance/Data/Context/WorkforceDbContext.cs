@@ -36,6 +36,7 @@ namespace axionpro.persistance.Data.Context
 
         public virtual DbSet<Asset> Assets { get; set; }
 
+        public virtual DbSet<PolicyTypeInsuranceMapping> PolicyTypeInsuranceMappings { get; set; }
         public virtual DbSet<AssetAssignment> AssetAssignments { get; set; }
 
         public virtual DbSet<AssetCategory> AssetCategories { get; set; }
@@ -2238,6 +2239,26 @@ namespace axionpro.persistance.Data.Context
                     .HasForeignKey(d => d.SubscriptionPlanId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_PMM_SubscriptionPlan");
+            });
+
+            modelBuilder.Entity<PolicyTypeInsuranceMapping>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("PK__PolicyTy__3214EC07E433096D");
+
+                entity.ToTable("PolicyTypeInsuranceMapping", "AxionPro");
+
+                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("(getdate())");
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+
+                entity.HasOne(d => d.InsurancePolicy).WithMany(p => p.PolicyTypeInsuranceMappings)
+                    .HasForeignKey(d => d.InsurancePolicyId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_PTIM_InsurancePolicy");
+
+                entity.HasOne(d => d.PolicyType).WithMany(p => p.PolicyTypeInsuranceMappings)
+                    .HasForeignKey(d => d.PolicyTypeId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_PTIM_PolicyType");
             });
 
             modelBuilder.Entity<PolicyLeaveTypeMapping>(entity =>

@@ -48,9 +48,14 @@ namespace axionpro.api.Controllers.Login
         [ProducesResponseType(typeof(ApiResponse<LoginResponseDTO>), StatusCodes.Status200OK)]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDTO request)
         {
-            var command = new RefreshTokenCommand(request);
+            var command = new RefreshTokenCommand(request);          
             var result = await _mediator.Send(command);
-            return Ok(new ApiResponse<TokenInfoResponseDTO>(result.Data));
+            if (!result.IsSucceeded)
+            {
+                return Unauthorized(result);
+            }
+            return Ok(result);
+            
         }
 
         //[HttpPost("AccessDetails")]

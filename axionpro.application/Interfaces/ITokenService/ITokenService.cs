@@ -15,7 +15,7 @@ namespace axionpro.application.Interfaces.ITokenService
     {
            public Task <string> GenerateToken(GetTokenInfoDTO dto);
        
-            bool ValidateToken(string token);
+           bool ValidateToken(string token);
         public Task<string>  GenerateRefreshToken();
         // ✅ Naye methods for extracting info
         Task<string> GetUserInfoFromToken(string token);

@@ -10,10 +10,7 @@ namespace axionpro.application.DTOS.Token
     {
         public class RefreshTokenRequestDTO
         {
-            /// <summary>
-            /// User ka Login Id (optional agar flow me chahiye)
-            /// </summary>
-            public string? UserLoginId { get; set; }
+          
 
             /// <summary>
             /// Client ka Refresh Token

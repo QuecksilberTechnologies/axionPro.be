@@ -1,4 +1,5 @@
-﻿using axionpro.application.Interfaces.ITokenService;
+﻿
+using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.Data.SqlClient;
@@ -15,120 +16,130 @@ namespace axionpro.persistance.Repositories
         private readonly WorkforceDbContext _context;
         private readonly ILogger<RefreshTokenRepository> _logger;
 
-        public RefreshTokenRepository(WorkforceDbContext context, ILogger<RefreshTokenRepository> logger)
-        {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
 
-        // ✅ Insert Refresh Token (Stored Procedure)
-        public async Task<bool> SaveOrUpdateRefreshToken(string loginId, string token, DateTime expiryDate, string createdByIp)
+        public RefreshTokenRepository(
+            WorkforceDbContext context,
+            ILogger<RefreshTokenRepository> logger)
+        {
+            _context = context;
+            _logger = logger;
+        }
+        //public async Task<bool> SaveOrUpdateRefreshToken(string loginId, string token, DateTime expiryDate, string createdByIp)
+        //{
+        //    try
+        //    {
+        //        _logger.LogInformation($"Saving/Updating refresh token for LoginId: {loginId}");
+
+        //        var statusParam = new SqlParameter("@Status", SqlDbType.Int) { Direction = ParameterDirection.Output };
+        //        var errorMsgParam = new SqlParameter("@ErrorMessage", SqlDbType.NVarChar, 4000) { Direction = ParameterDirection.Output };
+
+        //        var result = await _context.Database.ExecuteSqlRawAsync(
+        //            "EXEC AxionPro.InsertOrUpdateRefreshToken @LoginId, @Token, @ExpiryDate, @CreatedByIp, @Status OUTPUT, @ErrorMessage OUTPUT",
+        //            new SqlParameter("@LoginId", loginId),
+        //            new SqlParameter("@Token", token),
+        //            new SqlParameter("@ExpiryDate", expiryDate),
+        //            new SqlParameter("@CreatedByIp", createdByIp),
+        //            statusParam,
+        //            errorMsgParam
+        //        );
+
+        //        int status = (int)statusParam.Value;
+        //        string errorMessage = errorMsgParam.Value as string;
+
+        //        if (status == 1)
+        //        {
+        //            _logger.LogInformation($"Refresh token successfully saved/updated for LoginId: {loginId}");
+        //            return true;
+        //        }
+        //        else
+        //        {
+        //            _logger.LogError($"Failed to save/update refresh token for LoginId: {loginId}. Error: {errorMessage}");
+        //            return false;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError($"Exception in SaveOrUpdateRefreshToken for LoginId {loginId}: {ex.Message}");
+        //        return false;
+        //    }
+        //}
+
+        //    - Token reuse / attack chain detect karne ke liye
+        // =====================================================
+        public async Task UpdateReplacedByTokenAsync(
+            long refreshTokenId,
+            string replacedByHashedToken)
         {
             try
             {
-                _logger.LogInformation($"Saving/Updating refresh token for LoginId: {loginId}");
+                var token = await _context.RefreshTokens
+                    .FirstOrDefaultAsync(t => t.Id == refreshTokenId);
 
-                var statusParam = new SqlParameter("@Status", SqlDbType.Int) { Direction = ParameterDirection.Output };
-                var errorMsgParam = new SqlParameter("@ErrorMessage", SqlDbType.NVarChar, 4000) { Direction = ParameterDirection.Output };
-
-                var result = await _context.Database.ExecuteSqlRawAsync(
-                    "EXEC AxionPro.InsertOrUpdateRefreshToken @LoginId, @Token, @ExpiryDate, @CreatedByIp, @Status OUTPUT, @ErrorMessage OUTPUT",
-                    new SqlParameter("@LoginId", loginId),
-                    new SqlParameter("@Token", token),
-                    new SqlParameter("@ExpiryDate", expiryDate),
-                    new SqlParameter("@CreatedByIp", createdByIp),
-                    statusParam,
-                    errorMsgParam
-                );
-
-                int status = (int)statusParam.Value;
-                string errorMessage = errorMsgParam.Value as string;
-
-                if (status == 1)
+                if (token == null)
                 {
-                    _logger.LogInformation($"Refresh token successfully saved/updated for LoginId: {loginId}");
-                    return true;
-                }
-                else
-                {
-                    _logger.LogError($"Failed to save/update refresh token for LoginId: {loginId}. Error: {errorMessage}");
-                    return false;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Exception in SaveOrUpdateRefreshToken for LoginId {loginId}: {ex.Message}");
-                return false;
-            }
-        }
-
-     
-        public async Task<bool> RevokeRefreshTokenAsync(string loginId, string token, string revokedByIp)
-        {
-            try
-            {
-                var tokenRec = await _context.RefreshTokens
-                    .FirstOrDefaultAsync(t => t.LoginId == loginId && t.Token == token);
-
-                if (tokenRec == null)
-                {
-                    _logger.LogWarning($"No token found to revoke for LoginId: {loginId}");
-                    return false;
+                    _logger.LogWarning(
+                        "UpdateReplacedByTokenAsync: Token not found. Id={Id}",
+                        refreshTokenId);
+                    return;
                 }
 
-                tokenRec.IsRevoked = true;
-                tokenRec.RevokedAt = DateTime.UtcNow;
-                tokenRec.RevokedByIp = revokedByIp;
+                // 🔥 YAHI ACTUAL UPDATE HOTA HAI
+                token.ReplacedByToken = replacedByHashedToken;
 
                 await _context.SaveChangesAsync();
-
-                _logger.LogInformation($"Refresh token revoked for LoginId: {loginId}");
-                return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error in RevokeRefreshTokenAsync: {ex.Message}");
+                _logger.LogError(
+                    ex,
+                    "Error while updating ReplacedByToken. TokenId={Id}",
+                    refreshTokenId);
+                throw; // let handler decide what to do
+            }
+        }
+        public async Task<RefreshToken?> GetValidByHashedTokenAsync(string hashedToken)
+        {
+            return await _context.RefreshTokens
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t =>
+                    t.Token == hashedToken &&
+                    t.IsRevoked == false &&
+                    t.ExpiryDate > DateTime.UtcNow);
+        }
+
+        public async Task<bool> InsertAsync(RefreshToken token)
+        {
+            try
+            {
+                await _context.RefreshTokens.AddAsync(token);
+                var rows = await _context.SaveChangesAsync();
+
+                return rows > 0; // ✅ true = saved
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to insert refresh token");
                 return false;
             }
         }
 
-        public async Task<string?> GetValidRefreshTokenAsync(string refreshToken)
+
+        public async Task RevokeAsync(long refreshTokenId, string? revokedByIp)
         {
-            var record = await _context.RefreshTokens
-                .FirstOrDefaultAsync(x => x.Token == refreshToken && x.IsRevoked == false && x.ExpiryDate > DateTime.UtcNow);
+            var token = await _context.RefreshTokens.FindAsync(refreshTokenId);
+            if (token == null) return;
 
-            return record?.LoginId;
+            token.IsRevoked = true;
+            token.RevokedAt = DateTime.UtcNow;
+            token.RevokedByIp = revokedByIp;
+
+            await _context.SaveChangesAsync();
         }
-        // ✅ Get Valid Refresh Token (Stored Procedure)
-        public async Task<RefreshToken?> GetValidRefreshTokenAsync(string loginId, string token)
-        {
-            try
-            {
-                _logger.LogInformation($"Fetching valid refresh token for LoginId: {loginId}");
-
-                var tokenRec = await _context.RefreshTokens
-                    .FirstOrDefaultAsync(t =>
-                        t.LoginId == loginId &&
-                        t.Token == token &&
-                        t.IsRevoked == false &&
-                        t.ExpiryDate > DateTime.UtcNow);
-
-                if (tokenRec == null)
-                {
-                    _logger.LogWarning($"No valid refresh token found for LoginId: {loginId}");
-                }
-
-                return tokenRec;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error in GetValidRefreshTokenAsync for LoginId {loginId}: {ex.Message}");
-                return null;
-            }
-        }
-
-
-
-
     }
 }
+
+
+
+
+
+

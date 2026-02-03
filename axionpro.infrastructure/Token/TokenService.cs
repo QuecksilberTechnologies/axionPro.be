@@ -28,7 +28,7 @@ namespace axionpro.infrastructure.Token
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _UOW = _UOW ?? throw new ArgumentNullException(nameof(_UOW));
+            _unitOfWork = _UOW ?? throw new ArgumentNullException(nameof(_UOW));
         }
 
         // ✅ 1️⃣ Generate Token with Custom Claims

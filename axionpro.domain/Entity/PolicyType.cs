@@ -34,11 +34,15 @@ public partial class PolicyType
 
     public virtual ICollection<MealAllowancePolicyByDesignation> MealAllowancePolicyByDesignations { get; set; } = new List<MealAllowancePolicyByDesignation>();
 
+    public virtual ICollection<InsurancePolicy> InsurancePolicies { get; set; } = new List<InsurancePolicy>();
+
+    public virtual ICollection<PolicyTypeInsuranceMapping> PolicyTypeInsuranceMappings { get; set; } = new List<PolicyTypeInsuranceMapping>();
+
     public virtual Tenant? Tenant { get; set; }
 
     public virtual ICollection<TravelAllowancePolicyByDesignation> TravelAllowancePolicyByDesignations { get; set; } = new List<TravelAllowancePolicyByDesignation>();
 
     // 🔗 Navigation (ONE → MANY)
-    public virtual ICollection<InsurancePolicy> InsurancePolicies { get; set; }   = new List<InsurancePolicy>();
+   
 }
 
