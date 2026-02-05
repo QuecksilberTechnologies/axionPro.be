@@ -16,8 +16,8 @@ namespace axionpro.application.Interfaces.IRepositories
 
        
         // Save new mappings
-        Task<GetModuleOperationMappingResponseDTO> SaveModuleOperationMappingsAsync(GetModuleOperationMappingRequestDTO dto);
-        Task<ModuleOperationMapping> UpdateModuleOperationMappingsAsync(ModuleOperationMapping dto);
+          Task<GetModuleOperationMappingResponseDTO> SaveModuleOperationMappingsAsync(GetModuleOperationMappingRequestDTO dto);
+          Task<ModuleOperationMapping> UpdateModuleOperationMappingsAsync(ModuleOperationMapping dto);
             
             // Get mappings for a specific product owner/module
             Task<List<ModuleOperationMapping>> GetModuleOperationMappings(List<Module> modules);

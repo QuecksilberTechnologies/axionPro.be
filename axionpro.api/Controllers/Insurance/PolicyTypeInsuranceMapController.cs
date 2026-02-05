@@ -11,22 +11,22 @@ namespace axionpro.api.Controllers.Insurance
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class InsuranceController : ControllerBase
+    public class PolicyTypeInsuranceMapController : ControllerBase
     {
         private readonly IMediator _mediator;
         private readonly ILoggerService _logger;
 
-        public InsuranceController(IMediator mediator, ILoggerService logger)
+        public PolicyTypeInsuranceMapController(IMediator mediator, ILoggerService logger)
         {
             _mediator = mediator;
             _logger = logger;
         }
 
-        // 🔹 CREATE INSURANCE POLICY
-        [HttpPost("create")]
-        [ProducesResponseType(typeof(ApiResponse<GetInsurancePolicyResponseDTO>), StatusCodes.Status200OK)]
+        // 🔹 CREATE INSURANCE And POLICY TYPE MAPPING
+        [HttpPost("map")]
+        [ProducesResponseType(typeof(ApiResponse<GetPolicyTypeInsuranceMappingResponseDTO>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Create(
-            [FromBody] CreateInsurancePolicyRequestDTO dto)
+            [FromBody] CreatePolicyTypeInsuranceMappingRequetDTO dto)
         {
             if (dto == null)
                 return BadRequest(ApiResponse<bool>.Fail("Invalid request."));
@@ -35,7 +35,7 @@ namespace axionpro.api.Controllers.Insurance
             {
                 _logger.LogInfo("Create insurance policy started.");
 
-                var command = new CreateInsuranceCommand(dto);
+                var command = new CreatePolicyTypeInsuranceMappingCommand(dto);
                 var result = await _mediator.Send(command);
 
                 return Ok(result);
@@ -47,7 +47,7 @@ namespace axionpro.api.Controllers.Insurance
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Create insurance failed: {ex.Message}");
+                _logger.LogError($"Mapping of insurance and policy type  failed: {ex.Message}");
                 return StatusCode(
                     StatusCodes.Status500InternalServerError,
                     ApiResponse<bool>.Fail("Internal server error.")
@@ -57,46 +57,38 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 GET INSURANCE LIST (GRID)
         [HttpGet("get-all")]
-         public async Task<IActionResult> GetList(
-            [FromQuery] GetInsurancePolicyRequestDTO requestDto)
+         public async Task<IActionResult> GetList( [FromQuery] GetPolicyTypeInsuranceMappingRequestDTO requestDto)
           {
-            _logger.LogInfo("Fetching insurance policy list.");
+            _logger.LogInfo("Fetching mapped insurance policy list.");
 
-            var query = new GetInsuranceQuery(requestDto);
-            var result = await _mediator.Send(query);
-
-            // ❌ No InternalServerError
-            // ❌ No try-catch drama
-            // ✅ ApiResponse decides success/fail
+            var query = new GetPolicyInsuranceRequestCommand(requestDto);
+            var result = await _mediator.Send(query);         
 
             return Ok(result);
         }
-        // 🔹 DELETE INSURANCE POLICY
+        // 🔹 DELETE POLICY INSURANCE MAPPING
         [HttpDelete("delete")]
         public async Task<IActionResult> Delete(
-            [FromQuery] DeleteInsurancePolicyRequestDTO requestDto)
+            [FromQuery] DeletePolicyTypeInsuranceMappingRequestDTO requestDto)
         {
             _logger.LogInfo("Deleting insurance policy.");
 
-            var command = new DeleteInsurancePolicyQuery(requestDto);
+            var command = new DeletePolicyTypeInsuranceQuery(requestDto);
             var result = await _mediator.Send(command);
 
             return Ok(result);
         }
 
-        // 🔹 UPDATE INSURANCE POLICY
+        // 🔹 UPDATE POLICY INSURANCE MAPPING
         [HttpPut("update")]
         public async Task<IActionResult> Update(
-            [FromBody] UpdateInsurancePolicyRequestDTO requestDto)
+            [FromBody] UpdatePolicyTypeInsuranceMappingRequestDTO requestDto)
         {
             _logger.LogInfo("Updating insurance policy.");
 
-            var command = new UpdateInsurancePolicyCommand(requestDto);
+            var command = new UpdatePolicyTypeInsuranceMappingCommand(requestDto);
             var result = await _mediator.Send(command);
-
-            // ❌ No InternalServerError
-            // ❌ No try-catch drama
-            // ✅ ApiResponse decides success/fail
+            
 
             return Ok(result);
         }

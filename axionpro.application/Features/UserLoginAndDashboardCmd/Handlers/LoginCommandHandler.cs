@@ -195,7 +195,6 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                                   Message = "Your subscription has expired. Please contact admin to renew the plan."
                          };
                 }
-
                 // Get Active true and Isdeleted false employee
 
                 // 👥 Step 6: Fetch all roles

@@ -29,14 +29,14 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace axionpro.application.Features.InsuranceInfo.Handlers
 {
-    public class GetInsuranceListQuery
+    public class GetInsuranceQuery
         : IRequest<ApiResponse<List<GetInsurancePolicyResponseDTO>>>
     {
         public GetInsurancePolicyRequestDTO DTO { get; }
 
     
 
-        public GetInsuranceListQuery(    GetInsurancePolicyRequestDTO dto)
+        public GetInsuranceQuery(GetInsurancePolicyRequestDTO dto)
         {
             DTO = dto;
            
@@ -44,7 +44,7 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
     }
     public class GetInsuranceListQueryHandler
       : IRequestHandler<
-          GetInsuranceListQuery,
+          GetInsuranceQuery,
           ApiResponse<List<GetInsurancePolicyResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -62,7 +62,7 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
         }
 
         public async Task<ApiResponse<List<GetInsurancePolicyResponseDTO>>> Handle(
-            GetInsuranceListQuery request,
+            GetInsuranceQuery request,
             CancellationToken cancellationToken)
         {
             try

@@ -269,6 +269,9 @@ namespace axionpro.application.Mappings
             CreateMap<domain.Entity.Operation, UpdateOperationRequestDTO>();
             // Create
             CreateMap<CreateInsurancePolicyRequestDTO, InsurancePolicy>();
+            CreateMap<PolicyTypeInsuranceMapping, CreatePolicyTypeInsuranceMappingRequetDTO>().ReverseMap();
+            CreateMap<GetPolicyTypeInsuranceMappingResponseDTO, PolicyTypeInsuranceMapping>().ReverseMap();
+           
 
             // Get
             CreateMap<InsurancePolicy, GetInsurancePolicyResponseDTO>()

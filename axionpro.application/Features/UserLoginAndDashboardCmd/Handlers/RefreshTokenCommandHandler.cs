@@ -1,6 +1,11 @@
-﻿using axionpro.application.Common.Helpers.Hash;
+﻿using axionpro.application.Common.Helpers.Converters;
+using axionpro.application.Common.Helpers.EncryptionHelper;
+using axionpro.application.Common.Helpers.Hash;
 using axionpro.application.DTOS.Token;
 using axionpro.application.DTOS.Token.ems.application.DTOs.UserLogin;
+using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.IEncryptionService;
+using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
@@ -30,19 +35,25 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
     // HANDLER
     // =========================
     public class RefreshTokenCommandHandler
-        : IRequestHandler<RefreshTokenCommand, ApiResponse<TokenInfoResponseDTO>>
+     : IRequestHandler<RefreshTokenCommand, ApiResponse<TokenInfoResponseDTO>>
     {
         private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly ITokenService _tokenService;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IIdEncoderService _idEncoderService;
         private readonly ILogger<RefreshTokenCommandHandler> _logger;
 
         public RefreshTokenCommandHandler(
             IRefreshTokenRepository refreshTokenRepository,
             ITokenService tokenService,
+            IUnitOfWork unitOfWork,
+            IIdEncoderService idEncoderService,
             ILogger<RefreshTokenCommandHandler> logger)
         {
             _refreshTokenRepository = refreshTokenRepository;
             _tokenService = tokenService;
+            _unitOfWork = unitOfWork;
+            _idEncoderService = idEncoderService;
             _logger = logger;
         }
 
@@ -53,114 +64,105 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
             try
             {
                 // =====================================================
-                // STEP 1: Client se aaya hua PLAIN refresh token HASH karo
+                // STEP 1: Incoming refresh token → HASH
                 // =====================================================
                 var incomingHashedToken =
                     HashHelper.Sha256(request.DTO.RefreshToken);
 
                 // =====================================================
-                // STEP 2: DB me HASHED token se record dhundo
-                // (YAHAN SELECT QUERY CHALTI HAI)
+                // STEP 2: DB se VALID refresh token uthao
                 // =====================================================
-                var oldTokenRec =
+                var oldToken =
                     await _refreshTokenRepository
                         .GetValidByHashedTokenAsync(incomingHashedToken);
 
-                if (oldTokenRec == null)
+                if (oldToken == null)
                 {
-                    // 🔴 POSSIBLE ATTACK / INVALID TOKEN
-                    // Token DB me hai hi nahi
                     _logger.LogWarning(
-                        "Invalid refresh token attempt. IP={IP}",
+                        "Invalid refresh token attempt | IP={IP}",
                         request.DTO.IpAddress);
 
                     return ApiResponse<TokenInfoResponseDTO>
                         .Fail("Invalid refresh token.");
                 }
 
-                // =====================================================
-                // STEP 3: SAFETY CHECK (extra layer)
-                // Normally ye condition already DB query me hoti hai
-                // =====================================================
-                if (oldTokenRec.ExpiryDate < DateTime.UtcNow)
-                    return ApiResponse<TokenInfoResponseDTO>
-                        .Fail("Refresh token expired.");
-                
-                if (oldTokenRec.IsRevoked)
+                if (oldToken.IsRevoked || oldToken.ExpiryDate < DateTime.UtcNow)
                 {
                     _logger.LogCritical(
-                        "REFRESH TOKEN REUSE DETECTED | LoginId={LoginId} | IP={IP}",
-                        oldTokenRec.LoginId,
+                        "Refresh token reuse detected | LoginId={LoginId} | IP={IP}",
+                        oldToken.LoginId,
                         request.DTO.IpAddress);
 
                     return ApiResponse<TokenInfoResponseDTO>
-                        .Fail("Refresh token already revoked.");
+                        .Fail("Refresh token expired or revoked.");
                 }
 
-
                 // =====================================================
-                // STEP 4: LoginId se user info nikaalo
+                // STEP 3: LoginId se MINIMUM info lao (JWT ke liye)
+                // ❌ roles / permissions / menus nahi
                 // =====================================================
                 var tokenInfo =
-                    await _tokenService
-                        .GetUserInfoByLoginIdAsync(oldTokenRec.LoginId);
+                    await _tokenService .GetUserInfoByLoginIdAsync(oldToken.LoginId);
 
                 if (tokenInfo == null)
                     return ApiResponse<TokenInfoResponseDTO>
                         .Fail("User not found.");
 
+                long  empid = SafeParser.TryParseLong(tokenInfo.EmployeeId);
+                long  tenantid = SafeParser.TryParseLong(tokenInfo.TenantId);
+             
+                
+                
+              
+                string finalKey = EncryptionSanitizer.SuperSanitize(tokenInfo.TenantEncriptionKey);                 
+                string encriptedEmployeeId = _idEncoderService.EncodeId_long(empid, finalKey);
+                string encriptedTenantId = _idEncoderService.EncodeId_long(tenantid, finalKey);
+
+
+
                 // =====================================================
-                // STEP 5: NEW ACCESS TOKEN (JWT) banao
+                // STEP 4: NEW ACCESS TOKEN (JWT)
+                // (TenantId / EmployeeId ENCODED string hi rahega)
                 // =====================================================
                 var newAccessToken =
                     await _tokenService.GenerateToken(tokenInfo);
 
                 // =====================================================
-                // STEP 6: NEW REFRESH TOKEN banao (ROTATION START)
+                // STEP 5: NEW REFRESH TOKEN (ROTATION)
                 // =====================================================
                 var newRefreshToken =
                     await _tokenService.GenerateRefreshToken(); // PLAIN
 
-                var newHashedToken =
-                    HashHelper.Sha256(newRefreshToken);          // HASHED
+                var newHashedRefreshToken =
+                    HashHelper.Sha256(newRefreshToken);
 
                 // =====================================================
-                // STEP 7: OLD TOKEN REVOKE
-                // 🔥 YAHAN UPDATE QUERY CHALTI HAI
+                // STEP 6: OLD TOKEN REVOKE + REPLACE TRACK
                 // =====================================================
-                await _refreshTokenRepository.RevokeAsync(
-                    oldTokenRec.Id,
-                    request.DTO.IpAddress
-                );
+                await _refreshTokenRepository
+                    .UpdateReplacedByTokenAsync(
+                        oldToken.Id,
+                        newHashedRefreshToken);
+
+                await _refreshTokenRepository
+                    .RevokeAsync(oldToken.Id, request.DTO.IpAddress);
 
                 // =====================================================
-                // STEP 8: OLD TOKEN ME "ReplacedByToken" UPDATE
-                // 🔥 ATTACK CHAIN TRACK YAHI BANTA HAI
-                // =====================================================
-                await _refreshTokenRepository.UpdateReplacedByTokenAsync( oldTokenRec.Id,
-                        newHashedToken
-                    );
-
-                // =====================================================
-                // STEP 9: NEW REFRESH TOKEN INSERT
-                // 🔥 YAHAN INSERT QUERY CHALTI HAI
+                // STEP 7: INSERT NEW REFRESH TOKEN
                 // =====================================================
                 await _refreshTokenRepository.InsertAsync(
-                    new  RefreshToken
+                    new RefreshToken
                     {
-                        LoginId = oldTokenRec.LoginId,
-                        Token = newHashedToken,
+                        LoginId = oldToken.LoginId,
+                        Token = newHashedRefreshToken,
                         ExpiryDate = DateTime.UtcNow.AddDays(7),
                         IsRevoked = false,
                         CreatedAt = DateTime.UtcNow,
-                        CreatedByIp = request.DTO.IpAddress,
-                        RevokedAt = null,
-                        RevokedByIp = null,
-                        ReplacedByToken = null
+                        CreatedByIp = request.DTO.IpAddress
                     });
 
                 // =====================================================
-                // STEP 10: CLIENT KO NEW TOKENS RETURN
+                // STEP 8: CLIENT RESPONSE
                 // =====================================================
                 return ApiResponse<TokenInfoResponseDTO>.Success(
                     new TokenInfoResponseDTO
@@ -168,10 +170,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                         Token = newAccessToken,          // JWT
                         RefreshToken = newRefreshToken  // PLAIN
                     },
-                    "Token refreshed successfully."
-                );
-
-
+                    "Token refreshed successfully.");
             }
             catch (Exception ex)
             {
@@ -181,4 +180,6 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
             }
         }
     }
+
+
 }

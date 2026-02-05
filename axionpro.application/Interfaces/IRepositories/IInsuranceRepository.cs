@@ -39,4 +39,5 @@ namespace axionpro.application.Interfaces.IRepositories
             long tenantId,
             CancellationToken cancellationToken);
     }
+
 }

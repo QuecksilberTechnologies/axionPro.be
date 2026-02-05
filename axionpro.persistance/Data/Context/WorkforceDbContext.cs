@@ -2248,7 +2248,9 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("PolicyTypeInsuranceMapping", "AxionPro");
 
                 entity.Property(e => e.AddedDateTime).HasDefaultValueSql("(getdate())");
+                entity.Property(e => e.SoftDeleteDateTime).HasDefaultValueSql("datetime");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
 
                 entity.HasOne(d => d.InsurancePolicy).WithMany(p => p.PolicyTypeInsuranceMappings)
                     .HasForeignKey(d => d.InsurancePolicyId)

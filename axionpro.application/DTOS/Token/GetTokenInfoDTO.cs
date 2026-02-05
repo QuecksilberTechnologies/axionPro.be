@@ -14,7 +14,6 @@ namespace axionpro.application.DTOS.Token
         public string? EmployeeId { get; set; }
         public string Email { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
-
         // 🏢 Tenant
         public string? TenantId { get; set; }
         public string? TenantEncriptionKey { get; set; } //= null!;

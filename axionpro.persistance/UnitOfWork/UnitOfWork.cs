@@ -69,6 +69,7 @@ public class UnitOfWork : IUnitOfWork
     private IEmployeeIdentityRepository? _employeeIdentityRepository;
     private IEmployeeInsuranceRepository? _employeeInsuranceRepository;
     private IEmployeeDependentRepository? _employeeDependentRepository;
+    private IPolicyTypeInsuranceMappingRepository? _policyTypeInsuranceMappingRepository;
 
     private IWorkflowStagesRepository? _workflowStagesRepository;
     private ITenantRepository? _tenantRepository;
@@ -347,6 +348,18 @@ public class UnitOfWork : IUnitOfWork
                 _context,
                 _mapper,
                 _loggerFactory.CreateLogger<EmployeeDependentRepository>(),
+                _contextFactory, _passwordService, _encriptionService
+            );
+        }
+    }
+    public IPolicyTypeInsuranceMappingRepository PolicyTypeInsuranceMappingRepository
+    {
+        get
+        {
+            return _policyTypeInsuranceMappingRepository ??= new PolicyTypeInsuranceMappingRepository(
+                _context,
+                _mapper,
+                _loggerFactory.CreateLogger<PolicyTypeInsuranceMappingRepository>(),
                 _contextFactory, _passwordService, _encriptionService
             );
         }

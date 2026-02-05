@@ -14,8 +14,14 @@ public partial class PolicyTypeInsuranceMapping
     public int InsurancePolicyId { get; set; }
 
     public bool IsActive { get; set; }
+   
+    public bool? IsSoftDeleted { get; set; }
+    public long? SoftDeleteById { get; set; }
+    public DateTime? SoftDeleteDateTime { get; set; }
+
 
     public long? AddedById { get; set; }
+
 
     public DateTime AddedDateTime { get; set; }
 

@@ -13,6 +13,7 @@ public interface IUnitOfWork : IDisposable
       IEmployeeLeaveRepository EmployeeLeaveRepository { get; }
       ITenantEmployeeCodePatternRepository TenantEmployeeCodePatternRepository { get; }
      IInsuranceRepository InsuranceRepository { get; }
+      IPolicyTypeInsuranceMappingRepository PolicyTypeInsuranceMappingRepository { get; }
 
     IPermissionRepository PermissionRepository { get; }
        IReportingTypeRepository ReportingTypeRepository { get; }

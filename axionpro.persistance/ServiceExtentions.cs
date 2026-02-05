@@ -88,6 +88,7 @@ namespace axionpro.persistance
              services.AddScoped<ITicketHeaderRepository, TicketHeaderRepository>();
              services.AddScoped<ITenantEmployeeCodePatternRepository, TenantEmployeeCodePatternRepository>();
              services.AddScoped<IInsuranceRepository, InsuranceRepository>();
+             services.AddScoped<IPolicyTypeInsuranceMappingRepository, PolicyTypeInsuranceMappingRepository>();
             
             
             
