@@ -9,6 +9,7 @@ namespace axionpro.application.DTOS.InsurancePolicy
     public class GetPolicyTypeInsuranceMappingResponseDTO
     {
       
+        public int Id { get; set; }
         public int PolicyTypeId { get; set; }
         public int? InsurancePolicyId { get; set; }
         public string? InsurancePolicyName { get; set; }

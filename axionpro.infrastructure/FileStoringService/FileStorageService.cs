@@ -86,6 +86,32 @@ namespace axionpro.infrastructure.FileStoringService
             return $"{BaseUrl}uploads/{DefaultImage}".Replace("\\", "/");
         }
 
+        public string GetGenericFolderPath(  long tenantId,  params string[] folders  )
+        {
+            if (tenantId <= 0)
+                throw new ArgumentException("Invalid tenantId", nameof(tenantId));
+
+            if (folders == null || folders.Length == 0)
+                throw new ArgumentException("At least one folder must be provided", nameof(folders));
+
+            var rootFolder = RootFolder ?? string.Empty;
+            var tenantFolder = TenantFolder ?? string.Empty;
+
+            // Build path parts
+            var pathParts = new List<string>  {    rootFolder,  tenantFolder, tenantId.ToString() };
+
+            // Add dynamic folders (CompanyPolicies / Insurance / etc.)
+            pathParts.AddRange(folders.Where(f => !string.IsNullOrWhiteSpace(f)));
+
+            var fullPath = Path.Combine(pathParts.ToArray());
+
+            if (!Directory.Exists(fullPath))
+                Directory.CreateDirectory(fullPath);
+
+            return fullPath;
+        }
+
+
         public string GetTenantFolderPath(long? tenantId, string subFolder)
         {
             if (tenantId == null)

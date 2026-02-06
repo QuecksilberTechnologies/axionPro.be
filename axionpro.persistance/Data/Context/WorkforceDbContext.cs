@@ -24,6 +24,7 @@ namespace axionpro.persistance.Data.Context
 
         }
 
+
         public DbSet<RoleModuleOperationResponseDTO> RoleModuleOperationResponse { get; set; }
 
 
@@ -113,7 +114,10 @@ namespace axionpro.persistance.Data.Context
 
         public virtual DbSet<EmployeeImage> EmployeeImages { get; set; }
 
-        public virtual DbSet<EmployeeInsurancePolicy> EmployeeInsurancePolicies { get; set; }
+        public virtual DbSet<EmployeeInsuranceMapping> EmployeeInsuranceMappings { get; set; }
+        public virtual DbSet<CompanyPolicyDocument> CompanyPolicyDocuments { get; set; }
+        public virtual DbSet<InsurancePolicyDocument> InsurancePolicyDocuments { get; set; }
+        
 
         public virtual DbSet<EmployeeLeaveBalance> EmployeeLeaveBalances { get; set; }
 
@@ -1454,17 +1458,63 @@ namespace axionpro.persistance.Data.Context
                     .HasConstraintName("FK_EmployeeImages_Employee");
             });
 
-            modelBuilder.Entity<EmployeeInsurancePolicy>(entity =>
+
+            modelBuilder.Entity<CompanyPolicyDocument>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC0705F48FB6");
+                entity.HasKey(e => e.Id).HasName("PK__CompanyP__3214EC07BADB592E");
 
-                entity.ToTable("EmployeeInsurancePolicy", "AxionPro");
+                entity.ToTable("CompanyPolicyDocument", "AxionPro");
 
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.Description).HasColumnType("text");
+                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("(getdate())");
+                entity.Property(e => e.DocumentTitle).HasMaxLength(200);
+               
+                entity.Property(e => e.FileName).HasMaxLength(200);
+                entity.Property(e => e.FilePath).HasMaxLength(500);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                
+
+                entity.HasOne(d => d.PolicyType).WithMany(p => p.CompanyPolicyDocuments)
+                    .HasForeignKey(d => d.PolicyTypeId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_CompanyPolicyDocument_PolicyType");
+            });
+            modelBuilder.Entity<InsurancePolicyDocument>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("PK__Insuranc__3214EC07B3D0A432");
+
+                entity.ToTable("InsurancePolicyDocument", "AxionPro");
+
+                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("(getdate())");
+                entity.Property(e => e.DocumentType).HasMaxLength(50);
+                entity.Property(e => e.FileName).HasMaxLength(200);
+                entity.Property(e => e.FilePath).HasMaxLength(500);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.LanguageCode).HasMaxLength(10);
+
+                entity.HasOne(d => d.InsurancePolicy).WithMany(p => p.InsurancePolicyDocuments)
+                    .HasForeignKey(d => d.InsurancePolicyId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_InsurancePolicyDocument_InsurancePolicy");
+            });
+
+            modelBuilder.Entity<EmployeeInsuranceMapping>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC07EADC980E");
+
+                entity.ToTable("EmployeeInsuranceMapping", "AxionPro");
+
+                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("(getdate())");
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+
+                entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeInsuranceMappings)
+                    .HasForeignKey(d => d.EmployeeId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_EmployeeInsuranceMapping_Employee");
+
+                entity.HasOne(d => d.InsurancePolicy).WithMany(p => p.EmployeeInsuranceMappings)
+                    .HasForeignKey(d => d.InsurancePolicyId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_EmployeeInsuranceMapping_InsurancePolicy");
             });
 
             modelBuilder.Entity<EmployeeLeaveBalance>(entity =>
@@ -2288,9 +2338,7 @@ namespace axionpro.persistance.Data.Context
             modelBuilder.Entity<PolicyType>(entity =>
             {
                 entity.HasKey(e => e.Id).HasName("PK__PolicyTy__3214EC07AAE08A64");
-
                 entity.ToTable("PolicyType", "AxionPro");
-
                 entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
                 entity.Property(e => e.Description).HasColumnType("text");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
@@ -2298,7 +2346,6 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.PolicyName).HasMaxLength(255);
                 entity.Property(e => e.SoftDeleteDateTime).HasColumnType("datetime");
                 entity.Property(e => e.UpdateDateTime).HasColumnType("datetime");
-
                 entity.HasOne(d => d.Tenant).WithMany(p => p.PolicyTypes)
                     .HasForeignKey(d => d.TenantId)
                     .HasConstraintName("FK_PolicyType_Tenant");

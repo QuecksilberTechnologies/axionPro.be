@@ -14,7 +14,8 @@ public interface IUnitOfWork : IDisposable
       ITenantEmployeeCodePatternRepository TenantEmployeeCodePatternRepository { get; }
      IInsuranceRepository InsuranceRepository { get; }
       IPolicyTypeInsuranceMappingRepository PolicyTypeInsuranceMappingRepository { get; }
-
+        IPolicyTypeRepository PolicyTypeRepository { get; }
+       ICompanyPolicyDocumentRepository CompanyPolicyDocumentRepository { get; }
     IPermissionRepository PermissionRepository { get; }
        IReportingTypeRepository ReportingTypeRepository { get; }
     IAssetCategoryRepository AssetCategoryRepository { get; }

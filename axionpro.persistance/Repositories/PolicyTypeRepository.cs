@@ -1,5 +1,8 @@
-﻿using axionpro.application.Constants;
+﻿using AutoMapper;
+using axionpro.application.Constants;
 using axionpro.application.DTOs.PolicyType;
+using axionpro.application.Interfaces.IEncryptionService;
+using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
@@ -17,46 +20,46 @@ namespace axionpro.persistance.Repositories
     public class PolicyTypeRepository : IPolicyTypeRepository
     {
         private readonly WorkforceDbContext _context;
-        private readonly ILogger<PolicyTypeRepository> _logger;
-
-        public PolicyTypeRepository(WorkforceDbContext context, ILogger<PolicyTypeRepository> logger)
+        private readonly ILogger<PolicyTypeRepository> _logger;    
+        private readonly IMapper _mapper;
+        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+        private readonly IPasswordService _passwordService;
+        private readonly IEncryptionService _encryptionService;
+        public PolicyTypeRepository(WorkforceDbContext context, IMapper mapper, ILogger<PolicyTypeRepository> logger, IDbContextFactory<WorkforceDbContext> contextFactory,
+            IPasswordService passwordService, IEncryptionService encryptionService)
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this._context = context;
+            this._mapper = mapper;
+            this._logger = logger;
+            _contextFactory = contextFactory;
+            _passwordService = passwordService;
+            _encryptionService = encryptionService;
         }
 
-        public async Task<List<GetPolicyTypeResponseDTO>> CreatePolicyTypeAsync(PolicyType request)
+        public async Task<GetPolicyTypeResponseDTO> CreatePolicyTypeAsync(PolicyType request)
         {
             try
             {
-                var entity = new PolicyType
-                {
-                    TenantId = request.TenantId,
-                    PolicyName = request.PolicyName,
-                    Description = request.Description,
-                    IsActive = ConstantValues.IsByDefaultTrue,
-                    IsSoftDelete = ConstantValues.IsByDefaultFalse,
-                    AddedById = request.AddedById,
-                    AddedDateTime = DateTime.UtcNow
-                };
 
-                await _context.PolicyTypes.AddAsync(entity);
-                await _context.SaveChangesAsync();
+                await using var context = await _contextFactory.CreateDbContextAsync();
 
-                _logger.LogInformation("✅ PolicyType created successfully with ID {PolicyTypeId} and Name {PolicyName}", entity.Id, entity.PolicyName);
-
-                // Abhi-abhi insert hua record fetch karke DTO return karo
-                var result = await GetPolicyTypeByTenantIdAsync(entity.TenantId);
-
-                return result.ToList(); // IEnumerable ko List me convert
+                await context.PolicyTypes.AddAsync(request);
+                await context.SaveChangesAsync();
+                // ✅ Entity → DTO
+                return _mapper.Map<GetPolicyTypeResponseDTO>(request);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error while adding PolicyType: {PolicyName}", request.PolicyName);
-                return new List<GetPolicyTypeResponseDTO>(); // empty list instead of null
+                _logger.LogError(
+                    ex,
+                    "❌ Error while adding PolicyType: {PolicyName}",
+                    request.PolicyName);
+
+                return new GetPolicyTypeResponseDTO();
             }
         }
-                public Task<bool> DeletePolicyTypeAsync(int id)
+
+        public Task<bool> DeletePolicyTypeAsync(int id)
         {
             throw new NotImplementedException();
         }

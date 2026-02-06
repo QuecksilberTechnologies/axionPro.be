@@ -15,6 +15,7 @@ using axionpro.application.DTOs.Module;
 using axionpro.application.DTOs.Module.NewFolder;
 using axionpro.application.DTOs.Operation;
 using axionpro.application.DTOs.OrganizationHolidayCalendar;
+using axionpro.application.DTOs.PolicyType;
 using axionpro.application.DTOs.Registration;
 using axionpro.application.DTOs.Role;
 using axionpro.application.DTOs.SubscriptionModule;
@@ -28,6 +29,7 @@ using axionpro.application.DTOS.AssetDTO.asset;
 using axionpro.application.DTOS.AssetDTO.category;
 using axionpro.application.DTOS.AssetDTO.status;
 using axionpro.application.DTOS.AssetDTO.type;
+using axionpro.application.DTOS.CompanyPolicyDocument;
 using axionpro.application.DTOS.Department;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
@@ -271,6 +273,8 @@ namespace axionpro.application.Mappings
             CreateMap<CreateInsurancePolicyRequestDTO, InsurancePolicy>();
             CreateMap<PolicyTypeInsuranceMapping, CreatePolicyTypeInsuranceMappingRequetDTO>().ReverseMap();
             CreateMap<GetPolicyTypeInsuranceMappingResponseDTO, PolicyTypeInsuranceMapping>().ReverseMap();
+            CreateMap<GetPolicyTypeResponseDTO, PolicyType>().ReverseMap();
+            CreateMap<GetCompanyPolicyDocumentResponseDTO, CompanyPolicyDocument>().ReverseMap();
            
 
             // Get

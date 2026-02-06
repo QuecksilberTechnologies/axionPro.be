@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace axionpro.domain.Entity;
 
+
 public partial class Employee
 {
     public long Id { get; set; }
@@ -63,16 +64,26 @@ public partial class Employee
     public long? SoftDeletedById { get; set; }
 
     public DateTime? DeletedDateTime { get; set; }
+
     public bool? IsSoftDeleted { get; set; }
-    public bool? IsMarried { get; set; }
+
     public DateTime? InfoVerifiedDateTime { get; set; }
+
     public string? Description { get; set; }
-    public string? EmergencyContactNumber { get; set; }
-    public string? EmergencyContactPerson { get; set; }
-    public string? BloodGroup { get; set; }
-    public string? MobileNumber { get; set; }
-    public int? Relation { get; set; }
+
     public int CountryId { get; set; }
+
+    public string? EmergencyContactNumber { get; set; }
+
+    public int? Relation { get; set; }
+
+    public string? BloodGroup { get; set; }
+
+    public string? MobileNumber { get; set; }
+
+    public bool? IsMarried { get; set; }
+
+    public string? EmergencyContactPerson { get; set; }
 
     public virtual ICollection<AssetAssignment> AssetAssignments { get; set; } = new List<AssetAssignment>();
 
@@ -104,6 +115,8 @@ public partial class Employee
 
     public virtual ICollection<EmployeeImage> EmployeeImages { get; set; } = new List<EmployeeImage>();
 
+    public virtual ICollection<EmployeeInsuranceMapping> EmployeeInsuranceMappings { get; set; } = new List<EmployeeInsuranceMapping>();
+
     public virtual ICollection<EmployeeLeavePolicyMapping> EmployeeLeavePolicyMappings { get; set; } = new List<EmployeeLeavePolicyMapping>();
 
     public virtual ICollection<EmployeeManagerMapping> EmployeeManagerMappingEmployees { get; set; } = new List<EmployeeManagerMapping>();
@@ -128,3 +141,4 @@ public partial class Employee
 
     public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 }
+

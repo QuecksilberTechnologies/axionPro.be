@@ -47,8 +47,10 @@ public class UnitOfWork : IUnitOfWork
     private ISandwitchRuleRepository _sandwitchRuleRepository;
     private ILeaveRuleRepository _leaveRuleRepository;
     private IInsuranceRepository _insuranceRepository;
+    private IPolicyTypeRepository _policyTypeRepository;
+    private ICompanyPolicyDocumentRepository _companyPolicyDocumentRepository;
 
-
+   
 
     private IHolidayCalandarRepository _holidayCalandarRepository;
     private ITenantModuleConfigurationRepository? _tenantModuleConfigurationRepository;
@@ -289,6 +291,36 @@ public class UnitOfWork : IUnitOfWork
         }
     }
  
+    public IPolicyTypeRepository PolicyTypeRepository
+    {
+        get
+        {
+            return _policyTypeRepository ??= new PolicyTypeRepository(
+                _context,
+                _mapper,
+                _loggerFactory.CreateLogger<PolicyTypeRepository>(),
+                _contextFactory,
+                _passwordService, _encriptionService
+
+            );
+        }
+    }
+    
+
+    public ICompanyPolicyDocumentRepository CompanyPolicyDocumentRepository
+    {
+        get
+        {
+            return _companyPolicyDocumentRepository ??= new CompanyPolicyDocumentRepository(
+                _context,
+                _loggerFactory.CreateLogger<CompanyPolicyDocumentRepository>(),
+                _mapper,
+                _contextFactory, _encriptionService
+            );
+        }
+    }
+     
+    
     public IEmployeeBankRepository EmployeeBankRepository
     {
         get

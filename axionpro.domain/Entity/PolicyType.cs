@@ -32,6 +32,7 @@ public partial class PolicyType
 
     public virtual ICollection<AccoumndationAllowancePolicyByDesignation> AccoumndationAllowancePolicyByDesignations { get; set; } = new List<AccoumndationAllowancePolicyByDesignation>();
 
+    public virtual ICollection<CompanyPolicyDocument> CompanyPolicyDocuments { get; set; } = new List<CompanyPolicyDocument>();
     public virtual ICollection<MealAllowancePolicyByDesignation> MealAllowancePolicyByDesignations { get; set; } = new List<MealAllowancePolicyByDesignation>();
 
     public virtual ICollection<InsurancePolicy> InsurancePolicies { get; set; } = new List<InsurancePolicy>();

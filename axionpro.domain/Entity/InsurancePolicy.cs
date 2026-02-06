@@ -62,6 +62,8 @@ public partial class InsurancePolicy
     public virtual Country? Country { get; set; }
     public virtual PolicyType PolicyType { get; set; } = null!;
     public virtual ICollection<PolicyTypeInsuranceMapping> PolicyTypeInsuranceMappings { get; set; } = new List<PolicyTypeInsuranceMapping>();
+    public virtual ICollection<InsurancePolicyDocument> InsurancePolicyDocuments { get; set; } = new List<InsurancePolicyDocument>();
+    public virtual ICollection<EmployeeInsuranceMapping> EmployeeInsuranceMappings { get; set; } = new List<EmployeeInsuranceMapping>();
 
 
 }

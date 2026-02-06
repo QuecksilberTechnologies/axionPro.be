@@ -104,6 +104,7 @@ namespace axionpro.persistance.Repositories
 
                 select new GetPolicyTypeInsuranceMappingResponseDTO
                 {
+                    Id = mapping.Id,
                     PolicyTypeId = mapping.PolicyTypeId,
                     InsurancePolicyId = mapping.InsurancePolicyId,
 

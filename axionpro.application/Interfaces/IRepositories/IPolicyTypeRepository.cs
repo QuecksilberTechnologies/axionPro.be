@@ -13,7 +13,7 @@ namespace axionpro.application.Interfaces.IRepositories
     public interface IPolicyTypeRepository
     {
         // Create: Add a new Policy Type
-         Task<List<GetPolicyTypeResponseDTO>> CreatePolicyTypeAsync(PolicyType request);   
+         Task<GetPolicyTypeResponseDTO> CreatePolicyTypeAsync(PolicyType request);   
 
         // Read: Get all Policy Types
         Task<IEnumerable<GetPolicyTypeResponseDTO>> GetAllPolicyTypesAsync(GetPolicyTypeResponseDTO getPolicyTypeDTO); 

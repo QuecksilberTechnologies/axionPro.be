@@ -41,11 +41,11 @@ public class GetPolicyTypeCommandHandler : IRequestHandler<GetPolicyTypeCommand,
             // 🔹 Repository ke liye filter banate waqt
             var filterDTO = new GetPolicyTypeResponseDTO
             {
-                IsActive = request.DTO.IsActive ?? false,  // null → false by default
+                IsActive = request.DTO.IsActive ,  // null → false by default
                 PolicyName = string.IsNullOrWhiteSpace(request.DTO.PolicyName)
                              ? string.Empty
                              : request.DTO.PolicyName.Trim(),
-                TenantId = request.DTO.TenantId
+                TenantId = 2
             };
 
             var policyTypes = await _policyTypeRepository

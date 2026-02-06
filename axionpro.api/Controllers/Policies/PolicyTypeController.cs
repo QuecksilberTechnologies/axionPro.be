@@ -1,6 +1,7 @@
 ﻿using axionpro.application.DTOs.Operation;
 using axionpro.application.DTOs.PolicyType;
 using axionpro.application.Features.PolicyTypeCmd.Commands;
+using axionpro.application.Features.PolicyTypeCmd.Handlers;
 using axionpro.application.Features.PolicyTypeCmd.Queries; // Query add karni hogi
 using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
@@ -103,7 +104,7 @@ namespace axionpro.api.Controllers.Policies
         /// Create new Policy Type.
         /// </summary>
         [HttpPost("create")]
-        public async Task<IActionResult> CreatePolicyTypeAsync([FromBody] CreatePolicyTypeRequestDTO requestDTO)
+        public async Task<IActionResult> CreatePolicyTypeAsync([FromForm] CreatePolicyTypeRequestDTO requestDTO)
         {
             _logger.LogInfo($"Received request to create PolicyType: {JsonConvert.SerializeObject(requestDTO)}");
             var command = new CreatePolicyTypeCommand(requestDTO);
