@@ -29,7 +29,6 @@ namespace axionpro.api.Controllers.Policies
         /// Get all Policy Types.
         /// </summary>
         /// 
-       
         [HttpGet("get-all")]
         public async Task<IActionResult> GetAllPolicyTypesAsync([FromQuery] GetPolicyTypeRequestDTO requestDTO)
         {
@@ -64,8 +63,51 @@ namespace axionpro.api.Controllers.Policies
                 return StatusCode(StatusCodes.Status500InternalServerError, errorResponse);
             }
         }
-              
-        
+        [HttpGet("get-ddl")]    public async Task<IActionResult> GetDDLPolicyTypesAsync(
+   [FromQuery] GetAllPolicyTypeRequestDTO requestDTO)
+        {
+            try
+            {
+                _logger.LogInfo(
+                    "Received request to get PolicyType DDL. Params: {Params}" );
+
+                // --------------------------------------------------
+                // 🔹 MediatR Command (returns List<GetPolicyTypeResponseDTO>)
+                // --------------------------------------------------
+                var query = new GetAllPolicyTypeCommand(requestDTO);
+                var result = await _mediator.Send(query);
+
+                // --------------------------------------------------
+                // 🔹 Safety: null / empty list
+                // --------------------------------------------------
+                if (result == null || !result.Any())
+                {
+                    return Ok(new List<GetPolicyTypeResponseDTO>());
+                    // ❗ DDL me empty list is valid
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                   
+                    "Error occurred while fetching PolicyType DDL. Params: {Params}");
+
+                // --------------------------------------------------
+                // 🔹 Controller level fallback
+                // --------------------------------------------------
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new
+                    {
+                        Message = "An unexpected error occurred while fetching policy types."
+                    });
+            }
+        }
+
+
+
         //[HttpGet("get-by-tenantId")]
         //public async Task<IActionResult> GetAllPolicyTypesByIdAsync([FromQuery] CreatePolicyTypeRequestDTO requestDTO)
         //{

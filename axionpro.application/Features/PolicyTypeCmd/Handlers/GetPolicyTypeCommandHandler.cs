@@ -94,7 +94,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                 // --------------------------------------------------
                 // 5️⃣ Fetch PolicyTypes
                 // --------------------------------------------------
-                var policyTypes =  await _policyTypeRepository.GetAllPolicyTypesAsync(validation.TenantId , request.DTO.IsActive);
+                var policyTypes =  await _policyTypeRepository.GetPolicyTypesAsync(validation.TenantId , request.DTO.IsActive);
 
                 if (policyTypes == null || !policyTypes.Any())
                 {

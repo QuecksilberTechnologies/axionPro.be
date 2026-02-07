@@ -6,7 +6,9 @@ using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
+using Azure.Core;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -145,6 +147,43 @@ namespace axionpro.persistance.Repositories
                     x.IsActive == isActive
                 );
         }
+
+
+        public async Task<List<GetAlllnsurancePolicyResponseDTO>> GetAllListAsync(
+      int policyId,
+      bool isActive)
+        {
+            try
+            {
+                return await _context.InsurancePolicies
+                    .AsNoTracking()
+                    .Where(x =>
+                        x.PolicyTypeId == policyId &&   // 🔗 PolicyType ke under
+                        x.IsActive == isActive &&       // 🔘 Active / Inactive
+                        !x.IsSoftDeleted)               // ❌ Soft deleted ignore
+                    .OrderBy(x => x.InsurancePolicyName) // DDL friendly order
+                    .Select(x => new GetAlllnsurancePolicyResponseDTO
+                    {
+                        InsurancePolicyId = x.Id,
+                        PolicyTypeId =x.PolicyTypeId,
+
+                        PolicyTypeName = x.InsurancePolicyName
+
+                    })
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Error while fetching InsurancePolicy DDL. PolicyTypeId: {PolicyTypeId}",
+                    policyId);
+
+                return new List<GetAlllnsurancePolicyResponseDTO>();
+            }
+        }
+
+
 
 
         // 🔹 GET LIST (Grid)

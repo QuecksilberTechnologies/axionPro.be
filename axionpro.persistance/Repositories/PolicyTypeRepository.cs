@@ -134,7 +134,7 @@ namespace axionpro.persistance.Repositories
         // ============================================
         // 🔹 GET ALL (Tenant wise / Active)
         // ============================================
-        public async Task<IEnumerable<GetPolicyTypeResponseDTO>>  GetAllPolicyTypesAsync(long tenantId,  bool isActive)
+        public async Task<IEnumerable<GetPolicyTypeResponseDTO>>  GetPolicyTypesAsync(long tenantId,  bool isActive)
         {
             try
             {
@@ -172,5 +172,54 @@ namespace axionpro.persistance.Repositories
                 return new List<GetPolicyTypeResponseDTO>();
             }
         }
+
+        public async Task<IEnumerable<GetAllPolicyTypeResponseDTO>>  GetAllPolicyTypesAsync(long tenantId, bool isActive)
+        {
+            try
+            {
+                // 🔹 Base query
+                var query = _context.PolicyTypes
+                    .AsNoTracking()                 // ✅ read-only, fast
+                    .Where(pt => pt.TenantId == tenantId); // 🔒 Tenant mandatory
+
+                // 🔹 Active + SoftDelete filter
+                if (isActive)
+                {
+                    query = query.Where(pt =>
+                        pt.IsActive == true &&
+                        (pt.IsSoftDelete == false || pt.IsSoftDelete == null));
+                }
+                else
+                {
+                    // Agar inactive bhi chahiye
+                    query = query.Where(pt =>
+                        pt.IsActive == false &&
+                        (pt.IsSoftDelete == false || pt.IsSoftDelete == null));
+                }
+
+                // 🔹 Projection → DDL DTO
+                var list = await query
+                    .OrderBy(pt => pt.PolicyName)   // ✅ DDL friendly
+                    .Select(pt => new GetAllPolicyTypeResponseDTO
+                    {
+                        Id = pt.Id,
+                        PolicyName = pt.PolicyName ?? string.Empty
+                    })
+                    .ToListAsync();
+
+                return list;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Error while fetching PolicyTypes. TenantId: {TenantId}",
+                    tenantId);
+
+                // ❗ Never return null
+                return new List<GetAllPolicyTypeResponseDTO>();
+            }
+        }
+
     }
 }

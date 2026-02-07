@@ -24,7 +24,8 @@ namespace axionpro.application.Interfaces.IRepositories
         // 🔹 READ (Get all by Tenant)
         // Used for listing / dropdown / grid
         // ================================
-        Task<IEnumerable<GetPolicyTypeResponseDTO>> GetAllPolicyTypesAsync(long tenantId, bool isActive);
+        Task<IEnumerable<GetAllPolicyTypeResponseDTO>> GetAllPolicyTypesAsync(long tenantId, bool isActive);
+        Task<IEnumerable<GetPolicyTypeResponseDTO>> GetPolicyTypesAsync(long tenantId, bool isActive);
 
         // ================================
         // 🔹 UPDATE

@@ -29,9 +29,8 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace axionpro.application.Features.InsuranceInfo.Handlers
 {
-    public class GetInsuranceQuery
-        : IRequest<ApiResponse<List<GetInsurancePolicyResponseDTO>>>
-    {
+    public class GetInsuranceQuery  : IRequest<ApiResponse<List<GetInsurancePolicyResponseDTO>>> 
+        {
         public GetInsurancePolicyRequestDTO DTO { get; }
 
     

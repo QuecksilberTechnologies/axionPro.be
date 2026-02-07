@@ -12,7 +12,6 @@ namespace axionpro.application.DTOS.InsurancePolicy
     {
         public int? InsurancePolicyId { get; set; }
         public int? PolicyTypeId { get; set; }
-
         public string? InsurancePolicyName { get; set; }
         public string? InsurancePolicyNumber { get; set; }
         public string? ProviderName { get; set; }
