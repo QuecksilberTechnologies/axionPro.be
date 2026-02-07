@@ -2311,6 +2311,10 @@ namespace axionpro.persistance.Data.Context
                     .HasForeignKey(d => d.PolicyTypeId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_PTIM_PolicyType");
+                // 🚫 FORCEFULLY IGNORE WRONG NAVIGATIONS
+                entity.Ignore(e => e.PolicyType);
+               
+               // entity.Ignore(e => e.InsurancePolicyDocuments); // self-reference
             });
 
             modelBuilder.Entity<PolicyLeaveTypeMapping>(entity =>

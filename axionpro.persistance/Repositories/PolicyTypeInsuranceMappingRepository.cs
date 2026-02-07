@@ -67,17 +67,33 @@ namespace axionpro.persistance.Repositories
             throw new NotImplementedException();
         }
 
-        public async Task<PolicyTypeInsuranceMapping?> GetByIdAsync( int id, bool isActive)
+        public async Task<PolicyTypeInsuranceMapping?> GetByIdAsync(
+     int id,
+     bool isActive)
         {
-            await using var context = await _contextFactory.CreateDbContextAsync();
+            try
+            {
+                await using var context =
+                    await _contextFactory.CreateDbContextAsync();
 
-            return await context.PolicyTypeInsuranceMappings
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x =>
-                    x.Id == id
-                    && x.IsActive == isActive
-                    && (x.IsSoftDeleted == false || x.IsSoftDeleted == null));
+                return await context.PolicyTypeInsuranceMappings
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x =>
+                        x.Id == id &&
+                        x.IsActive == isActive &&
+                        (x.IsSoftDeleted != true ));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Error while fetching PolicyTypeInsuranceMapping by Id {Id}",
+                    id);
+
+                return null;
+            }
         }
+
 
 
         public async Task<PagedResponseDTO<GetPolicyTypeInsuranceMappingResponseDTO>> GetListAsync(

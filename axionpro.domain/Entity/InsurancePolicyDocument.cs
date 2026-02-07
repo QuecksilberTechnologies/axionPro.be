@@ -38,10 +38,5 @@ public partial class InsurancePolicyDocument
     public DateTime? SoftDeletedDateTime { get; set; }
 
     public virtual InsurancePolicy InsurancePolicy { get; set; } = null!;
-    public virtual ICollection<InsurancePolicyDocument> InsurancePolicyDocuments { get; set; } = new List<InsurancePolicyDocument>();
  
-    public virtual PolicyType? PolicyType { get; set; }
-
-    public virtual ICollection<PolicyTypeInsuranceMapping> PolicyTypeInsuranceMappings { get; set; } = new List<PolicyTypeInsuranceMapping>();
-
-}
+}  

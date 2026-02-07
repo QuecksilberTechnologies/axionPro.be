@@ -74,7 +74,7 @@ namespace axionpro.api.Controllers.Leave
         }
         [HttpPost("delete")]
         // [Authorize]
-        public async Task<IActionResult> DeleteLeavePolicy([FromBody] DeletePolicyLeaveTypeMappingRequestDTO request)
+        public async Task<IActionResult> DeleteLeavePolicy([FromQuery] DeletePolicyLeaveTypeMappingRequestDTO request)
         {
             if (request == null)
             {
