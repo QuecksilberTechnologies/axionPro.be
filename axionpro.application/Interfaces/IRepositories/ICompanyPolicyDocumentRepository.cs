@@ -13,7 +13,7 @@ namespace axionpro.application.Interfaces.IRepositories
           Task<GetCompanyPolicyDocumentResponseDTO> AddAsync(CompanyPolicyDocument entity);
 
         // 🔹 GET BY ID
-        Task<CompanyPolicyDocument?> GetByIdAsync( long id, long tenantId, bool isActive );
+        Task<CompanyPolicyDocument?> GetByIdAsync( int id, long tenantId, bool isActive );
 
         // 🔹 GET LIST (PolicyType wise / grid)
         Task<PagedResponseDTO<GetCompanyPolicyDocumentResponseDTO>> GetListAsync(GetCompanyPolicyDocumentRequestDTO request);

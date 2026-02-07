@@ -56,9 +56,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                _config = configuration;
         }
 
-        public async Task<ApiResponse<GetPolicyTypeResponseDTO>> Handle(
-            CreatePolicyTypeCommand request,
-            CancellationToken cancellationToken)
+        public async Task<ApiResponse<GetPolicyTypeResponseDTO>> Handle(CreatePolicyTypeCommand request,    CancellationToken cancellationToken)
         {
             // 🔹 CLIENT PATTERN VARIABLES
             string? docPath = null;

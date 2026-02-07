@@ -65,7 +65,7 @@ namespace axionpro.persistance.Repositories
 
         // 🔹 GET BY ID
         public async Task<CompanyPolicyDocument?> GetByIdAsync(
-            long id,
+            int id,
             long tenantId,
             bool isActive)
         {

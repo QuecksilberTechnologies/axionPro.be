@@ -1,31 +1,46 @@
-﻿using axionpro.application.DTOs.Category;
-using axionpro.application.DTOs.PolicyType;
-using axionpro.application.Wrappers;
+﻿using axionpro.application.DTOs.PolicyType;
 using axionpro.domain.Entity;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace axionpro.application.Interfaces.IRepositories
 {
     public interface IPolicyTypeRepository
     {
-        // Create: Add a new Policy Type
-         Task<GetPolicyTypeResponseDTO> CreatePolicyTypeAsync(PolicyType request);   
+        // ================================
+        // 🔹 CREATE
+        // ================================
+        Task<GetPolicyTypeResponseDTO> CreatePolicyTypeAsync(
+            PolicyType policyType);
 
-        // Read: Get all Policy Types
-        Task<IEnumerable<GetPolicyTypeResponseDTO>> GetAllPolicyTypesAsync(GetPolicyTypeResponseDTO getPolicyTypeDTO); 
+        // ================================
+        // 🔹 READ (Get by Id)
+        // Used by handler to check existence
+        // ================================
+        Task<PolicyType?> GetPolicyTypeByIdAsync(
+            int id);
 
-        // Read: Get a Policy Type by ID
-    //    Task<GetAllPolicyTypeResponseDTO> GetPolicyTypeByIdAsync(int id);
+        // ================================
+        // 🔹 READ (Get all by Tenant)
+        // Used for listing / dropdown / grid
+        // ================================
+        Task<IEnumerable<GetPolicyTypeResponseDTO>> GetAllPolicyTypesAsync(
+            GetPolicyTypeResponseDTO filter);
 
-        // Update: Update an existing Policy Type
-        Task<bool> UpdatePolicyTypeAsync(UpdatePolicyTypeDTO request);
+        // ================================
+        // 🔹 UPDATE
+        // Used for normal update
+        // ================================
+        Task<bool> UpdatePolicyTypeAsync(
+            PolicyType policyType);
 
-        // Delete: Delete a Policy Type by ID (soft delete preferred)
-        Task<bool> SoftDeletePolicyTypeAsync(DeletePolicyTypeDTO request);
-       
+        // ================================
+        // 🔹 SOFT DELETE
+        // NOTE:
+        // Handler sets IsSoftDelete / IsActive / audit fields
+        // Repository only persists changes
+        // ================================
+        Task<bool> SoftDeletePolicyTypeAsync(
+            PolicyType policyType);
     }
 }

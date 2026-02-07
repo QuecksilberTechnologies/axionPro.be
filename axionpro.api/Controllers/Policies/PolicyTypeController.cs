@@ -67,39 +67,39 @@ namespace axionpro.api.Controllers.Policies
         }
               
         
-        [HttpGet("get-by-tenantId")]
-        public async Task<IActionResult> GetAllPolicyTypesByIdAsync([FromQuery] CreatePolicyTypeRequestDTO requestDTO)
-        {
-            try
-            {
-                _logger.LogInfo($"Received request to get PolicyTypes. Params: {JsonConvert.SerializeObject(requestDTO)}");
-                // Query use karein, Command nahi
-                // var query = new GetAllPolicyTypesQuery(requestDTO);
-                var query = new GetPolicyTypeCommand(requestDTO);
-                var result = await _mediator.Send(query);
+        //[HttpGet("get-by-tenantId")]
+        //public async Task<IActionResult> GetAllPolicyTypesByIdAsync([FromQuery] CreatePolicyTypeRequestDTO requestDTO)
+        //{
+        //    try
+        //    {
+        //        _logger.LogInfo($"Received request to get PolicyTypes. Params: {JsonConvert.SerializeObject(requestDTO)}");
+        //        // Query use karein, Command nahi
+        //        // var query = new GetAllPolicyTypesQuery(requestDTO);
+        //        var query = new GetPolicyTypeCommand(requestDTO);
+        //        var result = await _mediator.Send(query);
 
-                if (!result.IsSucceeded)
-                {
-                    return BadRequest(result); // Unauthorized ki jagah
-                }
+        //        if (!result.IsSucceeded)
+        //        {
+        //            return BadRequest(result); // Unauthorized ki jagah
+        //        }
 
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInfo($"Error occurred while fetching PolicyTypes. Params: {JsonConvert.SerializeObject(requestDTO)}");
+        //        return Ok(result);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogInfo($"Error occurred while fetching PolicyTypes. Params: {JsonConvert.SerializeObject(requestDTO)}");
 
-                // ApiResponse wrap kar ke bhejna better hoga
-                var errorResponse = new ApiResponse<PolicyTypeResponseDTO>
-                {
-                    IsSucceeded = false,
-                    Message = "An unexpected error occurred while fetching policy types.",
-                    Data = null
-                };
+        //        // ApiResponse wrap kar ke bhejna better hoga
+        //        var errorResponse = new ApiResponse<PolicyTypeResponseDTO>
+        //        {
+        //            IsSucceeded = false,
+        //            Message = "An unexpected error occurred while fetching policy types.",
+        //            Data = null
+        //        };
 
-                return StatusCode(StatusCodes.Status500InternalServerError, errorResponse);
-            }
-        }
+        //        return StatusCode(StatusCodes.Status500InternalServerError, errorResponse);
+        //    }
+        //}
         /// <summary>
         /// Create new Policy Type.
         /// </summary>
