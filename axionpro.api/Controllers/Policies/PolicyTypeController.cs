@@ -138,7 +138,7 @@ namespace axionpro.api.Controllers.Policies
         /// <summary>
         /// Delete   Policy Type.
         /// </summary>
-        [HttpPost("delete")]
+        [HttpDelete("delete")]
         public async Task<IActionResult> DeletePolicyTypeAsync([FromBody] DeletePolicyTypeDTO requestDTO)
         {
             _logger.LogInfo($"Received request to delete PolicyType: {JsonConvert.SerializeObject(requestDTO)}");
