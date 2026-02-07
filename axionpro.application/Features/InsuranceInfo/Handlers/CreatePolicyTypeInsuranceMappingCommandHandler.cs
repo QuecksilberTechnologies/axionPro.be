@@ -3,7 +3,6 @@ using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOs.PolicyType;
 using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.DTOS.InsurancePolicy;
-using axionpro.application.Features.PolicyTypeCmd.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;

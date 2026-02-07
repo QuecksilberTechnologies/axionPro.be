@@ -8,7 +8,7 @@ namespace axionpro.application.DTOS.CompanyPolicyDocument
 {
     public class GetCompanyPolicyDocumentResponseDTO
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
         public int PolicyTypeId { get; set; }  
         public string? DocumentTitle { get; set; } = null!;   
         public string? FileName { get; set; } = null!;    

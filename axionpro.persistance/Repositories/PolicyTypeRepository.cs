@@ -134,18 +134,17 @@ namespace axionpro.persistance.Repositories
         // ============================================
         // 🔹 GET ALL (Tenant wise / Active)
         // ============================================
-        public async Task<IEnumerable<GetPolicyTypeResponseDTO>>
-            GetAllPolicyTypesAsync(GetPolicyTypeResponseDTO filter)
+        public async Task<IEnumerable<GetPolicyTypeResponseDTO>>  GetAllPolicyTypesAsync(long tenantId,  bool isActive)
         {
             try
             {
                 var query = _context.PolicyTypes.AsQueryable();
 
                 // 🔹 Tenant filter (MANDATORY)
-                query = query.Where(pt => pt.TenantId == filter.TenantId);
+                query = query.Where(pt => pt.TenantId == tenantId);
 
                 // 🔹 Active / Soft delete filter
-                if (filter.IsActive)
+                if (isActive)
                 {
                     query = query.Where(pt =>
                         pt.IsActive == true &&
@@ -156,8 +155,7 @@ namespace axionpro.persistance.Repositories
                     .Select(pt => new GetPolicyTypeResponseDTO
                     {
                         Id = pt.Id,
-                        PolicyName = pt.PolicyName ?? string.Empty,
-                        TenantId = pt.TenantId,
+                        PolicyName = pt.PolicyName ?? string.Empty,                       
                         IsActive = pt.IsActive ?? false,
                         Description = pt.Description ?? string.Empty
                     })

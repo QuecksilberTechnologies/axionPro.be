@@ -62,6 +62,32 @@ namespace axionpro.persistance.Repositories
                 return null;
             }
         }
+        public async Task<List<CompanyPolicyDocument>> GetByPolicyTypeIdsAsync(
+            List<int> policyTypeIds,
+    long tenantId)
+        {
+            try
+            {
+                await using var context = await _contextFactory.CreateDbContextAsync();
+
+                return await context.CompanyPolicyDocuments
+                    .AsNoTracking()
+                    .Where(x =>
+                        policyTypeIds.Contains(x.PolicyTypeId) &&
+                        x.TenantId == tenantId &&
+                        x.IsActive == true &&
+                        !x.IsSoftDeleted)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Error while fetching CompanyPolicyDocuments for PolicyTypeIds");
+
+                return new List<CompanyPolicyDocument>();
+            }
+        }
 
         // 🔹 GET BY ID
         public async Task<CompanyPolicyDocument?> GetByIdAsync(

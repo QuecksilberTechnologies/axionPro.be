@@ -5,7 +5,6 @@ using axionpro.application.DTOs.PolicyType;
 using axionpro.application.DTOS.CompanyPolicyDocument;
 using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers;
-using axionpro.application.Features.PolicyTypeCmd.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -176,21 +175,21 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                     string baseUrl = _config["FileSettings:BaseUrl"] ?? string.Empty;
 
                     // 🔹 PolicyType info
-                    createdPolicyType.responseDTO.PolicyTypeId = createdPolicyType.Id;
+                    createdPolicyType.DocDetails.PolicyTypeId = createdPolicyType.Id;
 
                     // 🔹 Document info
-                    createdPolicyType.responseDTO.Id = companyPolicyDocument.Id;
-                    createdPolicyType.responseDTO.DocumentTitle = companyPolicyDocument.DocumentTitle;
-                    createdPolicyType.responseDTO.FileName = companyPolicyDocument.FileName;
+                    createdPolicyType.DocDetails.Id = companyPolicyDocument.Id;
+                    createdPolicyType.DocDetails.DocumentTitle = companyPolicyDocument.DocumentTitle;
+                    createdPolicyType.DocDetails.FileName = companyPolicyDocument.FileName;
 
                     // 🔹 Build absolute URL safely
                     if (!string.IsNullOrWhiteSpace(companyPolicyDocument.FileName))
                     {
-                        createdPolicyType.responseDTO.URL = $"{baseUrl.TrimEnd('/')}/{companyPolicyDocument.FileName.TrimStart('/')}";
+                        createdPolicyType.DocDetails.URL = $"{baseUrl.TrimEnd('/')}/{companyPolicyDocument.FileName.TrimStart('/')}";
                     }
                     else
                     {
-                        createdPolicyType.responseDTO.URL = null;
+                        createdPolicyType.DocDetails.URL = null;
                     }
                 }
 

@@ -1,6 +1,5 @@
 ﻿using axionpro.application.DTOs.Operation;
 using axionpro.application.DTOs.PolicyType;
-using axionpro.application.Features.PolicyTypeCmd.Commands;
 using axionpro.application.Features.PolicyTypeCmd.Handlers;
 using axionpro.application.Features.PolicyTypeCmd.Queries; // Query add karni hogi
 using axionpro.application.Interfaces.ILogger;
@@ -32,7 +31,7 @@ namespace axionpro.api.Controllers.Policies
         /// 
        
         [HttpGet("get-all")]
-        public async Task<IActionResult> GetAllPolicyTypesAsync([FromQuery] CreatePolicyTypeRequestDTO requestDTO)
+        public async Task<IActionResult> GetAllPolicyTypesAsync([FromQuery] GetPolicyTypeRequestDTO requestDTO)
         {
             try
             {

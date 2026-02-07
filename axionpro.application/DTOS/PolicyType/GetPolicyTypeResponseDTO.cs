@@ -9,15 +9,14 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.DTOs.PolicyType
 {
-    public class GetPolicyTypeResponseDTO:BaseRequest
+    public class GetPolicyTypeResponseDTO
     {
         public int Id { get; set; }
         public long TenantId { get; set; }
         public string PolicyName { get; set; } = string.Empty;
         public string? Description { get; set; }
-        public bool IsActive { get; set; }
-        public DateTime AddedDateTime { get; set; }
-        public GetCompanyPolicyDocumentResponseDTO responseDTO { get; set; } = new GetCompanyPolicyDocumentResponseDTO();
+        public bool IsActive { get; set; }   
+        public GetCompanyPolicyDocumentResponseDTO DocDetails { get; set; } = new GetCompanyPolicyDocumentResponseDTO();
 
     }
 

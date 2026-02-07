@@ -1,5 +1,4 @@
 ﻿using axionpro.application.DTOs.PolicyType;
-using axionpro.application.Features.PolicyTypeCmd.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IRepositories;

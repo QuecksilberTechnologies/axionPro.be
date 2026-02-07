@@ -77,6 +77,7 @@
     <Folder Include="Features\LeaveRuleCmd\NewFolder\" />
     <Folder Include="Features\LeaveCmd\NewFolder\" />
     <Folder Include="Features\NewFolder1\" />
+    <Folder Include="Features\PolicyTypeCmd\Commands\" />
     <Folder Include="Features\RegistrationCmd\Queries\" />
     <Folder Include="Features\ReportTypeCmd\NewFolder\" />
     <Folder Include="Features\TenantCmd1\" />

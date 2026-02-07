@@ -2,7 +2,6 @@
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.DTOs.PolicyType;
 using axionpro.application.DTOS.CompanyPolicyDocument;
-using axionpro.application.Features.PolicyTypeCmd.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IFileStorage;
