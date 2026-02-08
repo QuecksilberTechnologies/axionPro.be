@@ -16,6 +16,7 @@ namespace axionpro.application.DTOs.PolicyType
         public string PolicyName { get; set; } = string.Empty;
         public string? Description { get; set; }
         public bool IsActive { get; set; }   
+        public bool IsMappedWithInsurance { get; set; } = false;
         public GetCompanyPolicyDocumentResponseDTO DocDetails { get; set; } = new GetCompanyPolicyDocumentResponseDTO();
 
     }
