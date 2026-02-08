@@ -268,5 +268,48 @@ namespace axionpro.persistance.Repositories
         {
             throw new NotImplementedException();
         }
+        public async Task<bool> SoftDeleteByPolicyTypeIdAsync(
+    int policyTypeId,
+    long deletedById)
+        {
+            try
+            {
+                
+
+                var documents = await _context.CompanyPolicyDocuments
+                    .Where(x =>
+                        x.PolicyTypeId == policyTypeId &&
+                        (x.IsSoftDeleted == false || x.IsSoftDeleted == null))
+                    .ToListAsync();
+
+                if (!documents.Any())
+                    return true; // 👈 no docs is NOT an error
+
+                foreach (var doc in documents)
+                {
+                    doc.IsSoftDeleted = true;
+                    doc.IsActive = false;
+                    doc.SoftDeletedById = deletedById;
+                    doc.SoftDeletedDateTime = DateTime.UtcNow;
+                }
+
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Error while soft deleting CompanyPolicyDocuments. PolicyTypeId: {PolicyTypeId}",
+                    policyTypeId);
+
+                return false;
+            }
+        }
+
+        public Task<bool> SoftDeleteAsync(CompanyPolicyDocument entity)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

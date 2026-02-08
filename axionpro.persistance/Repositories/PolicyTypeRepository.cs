@@ -84,19 +84,28 @@ namespace axionpro.persistance.Repositories
         // ============================================
         // 🔹 SOFT DELETE (UPDATE ONLY)
         // ============================================
-        public async Task<bool> SoftDeletePolicyTypeAsync(
-            PolicyType policyType)
+        public async Task<bool> SoftDeletePolicyTypeAsync(PolicyType policyType)
         {
             try
             {
-                // 🔹 Handler already:
-                // - Checked existence
-                // - Set IsSoftDelete / IsActive / audit fields
-                // Repository only persists changes
+                // 🔹 SAME CONTEXT se entity load karo
+                var existing = await _context.PolicyTypes
+                    .FirstOrDefaultAsync(x => x.Id == policyType.Id);
 
-                _context.PolicyTypes.Update(policyType);
+                if (existing == null)
+                    return false;
+
+                // 🔹 SOFT DELETE FLAGS (ONLY ON EXISTING)
+                existing.IsSoftDelete = true;
+                existing.IsActive = false;
+                existing.SoftDeleteById = policyType.SoftDeleteById;
+                existing.SoftDeleteDateTime = policyType.SoftDeleteDateTime;
+
+                // ❌ Attach / Entry.State ki zarurat nahi
+                // EF already TRACK kar raha hai
 
                 var rows = await _context.SaveChangesAsync();
+
                 return rows > 0;
             }
             catch (Exception ex)
@@ -109,6 +118,8 @@ namespace axionpro.persistance.Repositories
                 return false;
             }
         }
+
+
 
         // ============================================
         // 🔹 GET BY ID (used by handler)

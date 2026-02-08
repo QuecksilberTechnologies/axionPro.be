@@ -35,7 +35,7 @@ public interface IUnitOfWork : IDisposable
 
      IDepartmentRepository DepartmentRepository { get; }
 
-
+   
     IStoreProcedureRepository StoreProcedureRepository { get; }
     ILocationRepository LocationRepository { get; }
     //

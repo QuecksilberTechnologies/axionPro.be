@@ -39,85 +39,91 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
         }
 
         public async Task<ApiResponse<bool>> Handle(
-            DeletePolicyTypeCommand request,
-            CancellationToken cancellationToken)
+    DeletePolicyTypeCommand request,
+    CancellationToken cancellationToken)
         {
             try
             {
-                await _unitOfWork.BeginTransactionAsync();
-                // 🔹 STEP 1: Basic validation
+                // --------------------------------------------------
+                // 1️⃣ Basic validation
+                // --------------------------------------------------
                 if (request.DTO == null || request.DTO.PolicyId <= 0)
                 {
                     return ApiResponse<bool>
                         .Fail("Invalid request. PolicyId is required.");
                 }
 
-                // 🔐 STEP 2: Common validation (Tenant / User info)
+                // --------------------------------------------------
+                // 2️⃣ Common validation (Tenant / User)
+                // --------------------------------------------------
                 var validation = await _commonRequestService.ValidateRequestAsync();
                 if (!validation.Success)
                     return ApiResponse<bool>.Fail(validation.ErrorMessage);
 
-                // 🔄 STEP 3: Begin transaction
-             //  
+                await _unitOfWork.BeginTransactionAsync();
 
-                // 🔍 STEP 4: Check PolicyType exists or not
+                // --------------------------------------------------
+                // 3️⃣ Fetch PolicyType
+                // --------------------------------------------------
                 var policyType =
-                    await _unitOfWork.PolicyTypeRepository
-                        .GetPolicyTypeByIdAsync(request.DTO.PolicyId, request.DTO.IsActive);
+                    await _unitOfWork.PolicyTypeRepository.GetPolicyTypeByIdAsync(request.DTO.PolicyId, request.DTO.IsActive);
 
                 if (policyType == null)
                 {
                     await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<bool>
-                        .Fail("Policy type not found.");
+                    return ApiResponse<bool>.Fail("Policy type not found.");
                 }
 
-                // 🗑️ STEP 5: Soft delete PolicyType (UPDATE only)
-                policyType.IsSoftDelete = true;
-                policyType.IsActive = false;
+                // --------------------------------------------------
+                // 4️⃣ Soft delete PolicyType
+                // --------------------------------------------------
+              //  policyType.IsSoftDelete = false;
+                policyType.IsActive = true;
                 policyType.SoftDeleteById = validation.UserEmployeeId;
                 policyType.SoftDeleteDateTime = DateTime.UtcNow;
 
-                bool policyUpdated =
+                var policyDeleted =
                     await _unitOfWork.PolicyTypeRepository
-                        .UpdatePolicyTypeAsync(policyType);
+                        .SoftDeletePolicyTypeAsync(policyType);
+ 
 
-                if (!policyUpdated)
+                // --------------------------------------------------
+                // 5️⃣ Soft delete related CompanyPolicyDocuments
+                // --------------------------------------------------
+                var docsDeleted =
+                    await _unitOfWork.CompanyPolicyDocumentRepository
+                        .SoftDeleteByPolicyTypeIdAsync(
+                            policyType.Id,
+                            validation.UserEmployeeId);
+
+               
+                if (!docsDeleted || !policyDeleted)
                 {
                     await _unitOfWork.RollbackTransactionAsync();
                     return ApiResponse<bool>
-                        .Fail("Policy type deletion failed.");
+                        .Fail("Failed to delete related policy and its documents.");
                 }
 
-                // 🗑️ STEP 6: Soft delete related CompanyPolicyDocuments
-                // NOTE: PolicyTypeId ke basis par sab documents update honge
-                var companyDocs = await _unitOfWork.CompanyPolicyDocumentRepository .GetByIdAsync( request.DTO.PolicyId, validation.TenantId, true);
-
-                if (companyDocs != null)
-                {
-                    companyDocs.IsSoftDeleted = true;
-                    companyDocs.IsActive = false;
-                    companyDocs.SoftDeletedById = validation.UserEmployeeId;
-                    companyDocs.SoftDeletedDateTime = DateTime.UtcNow;
-
-                    await _unitOfWork.CompanyPolicyDocumentRepository
-                        .UpdateAsync(companyDocs);
-                }
-
-                // ✅ STEP 7: Commit transaction
-            
+                // --------------------------------------------------
+                // 6️⃣ Commit
+                // --------------------------------------------------
+               
+                await _unitOfWork.CommitTransactionAsync();
 
                 return ApiResponse<bool>
                     .Success(true, "Policy type and related documents deleted successfully.");
             }
             catch (Exception ex)
             {
-                // ❌ Any failure → rollback
                 await _unitOfWork.RollbackTransactionAsync();
 
                 return ApiResponse<bool>
                     .Fail($"An error occurred while deleting policy type: {ex.Message}");
             }
         }
+
     }
+
 }
+
+
