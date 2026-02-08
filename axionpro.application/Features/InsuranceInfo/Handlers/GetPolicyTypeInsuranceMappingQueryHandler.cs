@@ -66,8 +66,8 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
 
                 if (!validation.Success)
                 {
-                    return ApiResponse<List<GetPolicyTypeInsuranceMappingResponseDTO>>
-                        .Fail(validation.ErrorMessage);
+                    //return ApiResponse<List<GetPolicyTypeInsuranceMappingResponseDTO>>
+                    //    .Fail(validation.ErrorMessage);
                 }
                 // Assign decoded values coming from CommonRequestService
                 request.DTO.Props.UserEmployeeId = validation.UserEmployeeId;
