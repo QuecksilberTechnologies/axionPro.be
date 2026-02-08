@@ -105,7 +105,7 @@ namespace axionpro.persistance.Repositories
                         x.Id == id
                         && x.TenantId == tenantId
                         && x.IsActive == isActive
-                        && !x.IsSoftDeleted);
+                        && x.IsSoftDeleted!=true);
             }
             catch (Exception ex)
             {

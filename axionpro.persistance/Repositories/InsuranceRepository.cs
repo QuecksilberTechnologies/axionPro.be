@@ -4,6 +4,7 @@ using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
+using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Azure.Core;
@@ -149,28 +150,37 @@ namespace axionpro.persistance.Repositories
         }
 
 
-        public async Task<List<GetAlllnsurancePolicyResponseDTO>> GetAllListAsync(
-      int policyId,
-      bool isActive)
+        public async Task<ApiResponse<List<GetAlllnsurancePolicyResponseDTO>>> GetAllListAsync(
+   int policyId,
+   bool isActive)
         {
             try
             {
-                return await _context.InsurancePolicies
+                var list = await _context.InsurancePolicies
                     .AsNoTracking()
                     .Where(x =>
                         x.PolicyTypeId == policyId &&   // 🔗 PolicyType ke under
                         x.IsActive == isActive &&       // 🔘 Active / Inactive
                         !x.IsSoftDeleted)               // ❌ Soft deleted ignore
-                    .OrderBy(x => x.InsurancePolicyName) // DDL friendly order
+                    .OrderBy(x => x.InsurancePolicyName) // ✅ DDL friendly order
                     .Select(x => new GetAlllnsurancePolicyResponseDTO
                     {
                         InsurancePolicyId = x.Id,
-                        PolicyTypeId =x.PolicyTypeId,
-
+                        PolicyTypeId = x.PolicyTypeId,
                         PolicyTypeName = x.InsurancePolicyName
-
                     })
                     .ToListAsync();
+
+                // ❌ No data found → UI ko error chahiye
+                if (list == null || !list.Any())
+                {
+                    return ApiResponse<List<GetAlllnsurancePolicyResponseDTO>>
+                        .Fail("No insurance policies found.");
+                }
+
+                // ✅ Success
+                return ApiResponse<List<GetAlllnsurancePolicyResponseDTO>>
+                    .Success(list, "Insurance policies fetched successfully.");
             }
             catch (Exception ex)
             {
@@ -179,9 +189,11 @@ namespace axionpro.persistance.Repositories
                     "Error while fetching InsurancePolicy DDL. PolicyTypeId: {PolicyTypeId}",
                     policyId);
 
-                return new List<GetAlllnsurancePolicyResponseDTO>();
+                return ApiResponse<List<GetAlllnsurancePolicyResponseDTO>>
+                    .Fail("An unexpected error occurred while fetching insurance policies.");
             }
         }
+
 
 
 

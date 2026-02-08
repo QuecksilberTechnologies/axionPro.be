@@ -29,7 +29,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace axionpro.application.Features.InsuranceInfo.Handlers
 {
-    public class GetAllInsuranceQuery  : IRequest<List<GetAlllnsurancePolicyResponseDTO>>
+    public class GetAllInsuranceQuery  : IRequest<ApiResponse<List<GetAlllnsurancePolicyResponseDTO>>>
         {
         public GetAllInsurancePolicyRequestDTO DTO { get; }
 
@@ -42,9 +42,9 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
         }
     }
     public class GetAllInsuranceQueryHandler
-        : IRequestHandler<
-            GetAllInsuranceQuery,
-            List<GetAlllnsurancePolicyResponseDTO>>
+      : IRequestHandler<
+          GetAllInsuranceQuery,
+          ApiResponse<List<GetAlllnsurancePolicyResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetAllInsuranceQueryHandler> _logger;
@@ -60,26 +60,45 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
             _commonRequestService = commonRequestService;
         }
 
-        public async Task<List<GetAlllnsurancePolicyResponseDTO>> Handle(
+        public async Task<ApiResponse<List<GetAlllnsurancePolicyResponseDTO>>> Handle(
             GetAllInsuranceQuery request,
             CancellationToken cancellationToken)
         {
             try
             {
-                // 🔐 Common validation (Tenant / User)
+                // --------------------------------------------------
+                // 1️⃣ Common validation (Tenant / User context)
+                // --------------------------------------------------
                 var validation = await _commonRequestService.ValidateRequestAsync();
                 if (!validation.Success)
-                    return new List<GetAlllnsurancePolicyResponseDTO>();
+                {
+                    return ApiResponse<List<GetAlllnsurancePolicyResponseDTO>>
+                        .Fail(validation.ErrorMessage);
+                }
 
-                // 🔹 Repository call (DDL only)
+                // --------------------------------------------------
+                // 2️⃣ Repository call (DDL only)
+                // --------------------------------------------------
                 var result =
                     await _unitOfWork.InsuranceRepository.GetAllListAsync(
                         request.DTO.PolicyId,
                         request.DTO.IsActive
                     );
 
-                // ❗ DDL ke liye empty list OK hoti hai
-                return result ?? new List<GetAlllnsurancePolicyResponseDTO>(); ;
+                // --------------------------------------------------
+                // 3️⃣ No data found → UI wants error
+                // --------------------------------------------------
+                if (result == null || !result.Data.Any())
+                {
+                    return ApiResponse<List<GetAlllnsurancePolicyResponseDTO>>
+                        .Fail("No insurance policies found.");
+                }
+
+                // --------------------------------------------------
+                // 4️⃣ Success
+                // --------------------------------------------------
+                return ApiResponse<List<GetAlllnsurancePolicyResponseDTO>>
+                    .Success(result.Data, "Insurance policies fetched successfully.");
             }
             catch (Exception ex)
             {
@@ -87,10 +106,12 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                     ex,
                     "Error while fetching InsurancePolicy DDL");
 
-                return new List<GetAlllnsurancePolicyResponseDTO>();
+                return ApiResponse<List<GetAlllnsurancePolicyResponseDTO>>
+                    .Fail("An unexpected error occurred while fetching insurance policies.");
             }
         }
     }
+
 
 
 

@@ -80,7 +80,7 @@ namespace axionpro.api.Controllers.Policies
                 // --------------------------------------------------
                 // 🔹 Safety: null / empty list
                 // --------------------------------------------------
-                if (result == null || !result.Any())
+                if (result == null || !result.Data.Any())
                 {
                     return Ok(new List<GetPolicyTypeResponseDTO>());
                     // ❗ DDL me empty list is valid
@@ -181,7 +181,7 @@ namespace axionpro.api.Controllers.Policies
         /// Delete   Policy Type.
         /// </summary>
         [HttpDelete("delete")]
-        public async Task<IActionResult> DeletePolicyTypeAsync([FromBody] DeletePolicyTypeDTO requestDTO)
+        public async Task<IActionResult> DeletePolicyTypeAsync([FromQuery] DeletePolicyTypeDTO requestDTO)
         {
             _logger.LogInfo($"Received request to delete PolicyType: {JsonConvert.SerializeObject(requestDTO)}");
             var command = new DeletePolicyTypeCommand(requestDTO);

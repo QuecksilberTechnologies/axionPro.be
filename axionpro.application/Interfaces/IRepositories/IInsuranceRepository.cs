@@ -1,5 +1,6 @@
 ﻿using axionpro.application.DTOS.InsurancePolicy;
 using axionpro.application.DTOS.Pagination;
+using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using System;
 using System.Collections.Generic;
@@ -21,7 +22,7 @@ namespace axionpro.application.Interfaces.IRepositories
         // 🔹 GET LIST (Grid / Listing)
         Task<PagedResponseDTO<GetInsurancePolicyResponseDTO>> GetListAsync(  GetInsurancePolicyRequestDTO request  );
 
-        Task<List<GetAlllnsurancePolicyResponseDTO>> GetAllListAsync(int policyId, bool isActive);
+        Task<ApiResponse<List<GetAlllnsurancePolicyResponseDTO>>> GetAllListAsync(int policyId, bool isActive);
 
       
         // 🔹 UPDATE

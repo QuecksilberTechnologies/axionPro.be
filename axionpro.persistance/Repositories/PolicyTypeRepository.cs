@@ -3,8 +3,10 @@ using axionpro.application.DTOs.PolicyType;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
+using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
+using Azure.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -111,13 +113,13 @@ namespace axionpro.persistance.Repositories
         // ============================================
         // 🔹 GET BY ID (used by handler)
         // ============================================
-        public async Task<PolicyType?> GetPolicyTypeByIdAsync(int id)
+        public async Task<PolicyType?> GetPolicyTypeByIdAsync(int id, bool isActive)
         {
             try
             {
                 return await _context.PolicyTypes
                     .FirstOrDefaultAsync(pt =>
-                        pt.Id == id &&
+                        pt.Id == id && isActive ==true &&
                         (pt.IsSoftDelete == false || pt.IsSoftDelete == null));
             }
             catch (Exception ex)
@@ -173,33 +175,33 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<IEnumerable<GetAllPolicyTypeResponseDTO>>  GetAllPolicyTypesAsync(long tenantId, bool isActive)
+        public async Task<ApiResponse<List<GetAllPolicyTypeResponseDTO>>> GetAllPolicyTypesAsync(long tenantId, bool isActive)
         {
             try
             {
-                // 🔹 Base query
+                // --------------------------------------------------
+                // 1️⃣ Base query (Tenant mandatory)
+                // --------------------------------------------------
                 var query = _context.PolicyTypes
-                    .AsNoTracking()                 // ✅ read-only, fast
-                    .Where(pt => pt.TenantId == tenantId); // 🔒 Tenant mandatory
+                    .AsNoTracking() // ✅ fast read-only
+                    .Where(pt => pt.TenantId == tenantId);
 
-                // 🔹 Active + SoftDelete filter
-                if (isActive)
-                {
-                    query = query.Where(pt =>
+                // --------------------------------------------------
+                // 2️⃣ Active + SoftDelete filter
+                // --------------------------------------------------
+                query = isActive
+                    ? query.Where(pt =>
                         pt.IsActive == true &&
-                        (pt.IsSoftDelete == false || pt.IsSoftDelete == null));
-                }
-                else
-                {
-                    // Agar inactive bhi chahiye
-                    query = query.Where(pt =>
+                        (pt.IsSoftDelete == false || pt.IsSoftDelete == null))
+                    : query.Where(pt =>
                         pt.IsActive == false &&
                         (pt.IsSoftDelete == false || pt.IsSoftDelete == null));
-                }
 
-                // 🔹 Projection → DDL DTO
+                // --------------------------------------------------
+                // 3️⃣ Projection → DDL DTO
+                // --------------------------------------------------
                 var list = await query
-                    .OrderBy(pt => pt.PolicyName)   // ✅ DDL friendly
+                    .OrderBy(pt => pt.PolicyName) // ✅ DDL friendly
                     .Select(pt => new GetAllPolicyTypeResponseDTO
                     {
                         Id = pt.Id,
@@ -207,19 +209,36 @@ namespace axionpro.persistance.Repositories
                     })
                     .ToListAsync();
 
-                return list;
+                // --------------------------------------------------
+                // 4️⃣ No data → UI wants false + message
+                // --------------------------------------------------
+                if (!list.Any())
+                {
+                    return ApiResponse<List<GetAllPolicyTypeResponseDTO>>
+                        .Fail("No policy types found.");
+                }
+
+                // --------------------------------------------------
+                // 5️⃣ Success
+                // --------------------------------------------------
+                return ApiResponse<List<GetAllPolicyTypeResponseDTO>>
+                    .Success(list, "Policy types loaded successfully.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(
                     ex,
-                    "Error while fetching PolicyTypes. TenantId: {TenantId}",
+                    "❌ Error while fetching PolicyTypes. TenantId: {TenantId}",
                     tenantId);
 
-                // ❗ Never return null
-                return new List<GetAllPolicyTypeResponseDTO>();
+                // --------------------------------------------------
+                // 6️⃣ Hard failure
+                // --------------------------------------------------
+                return ApiResponse<List<GetAllPolicyTypeResponseDTO>>
+                    .Fail("Failed to load policy types.");
             }
         }
+
 
     }
 }

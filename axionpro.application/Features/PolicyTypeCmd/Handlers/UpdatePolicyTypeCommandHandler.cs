@@ -89,7 +89,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                 // 🔍 STEP 4: Fetch existing PolicyType
                 var policyType =
                     await _unitOfWork.PolicyTypeRepository
-                        .GetPolicyTypeByIdAsync(request.DTO.Id);
+                        .GetPolicyTypeByIdAsync(request.DTO.Id, request.DTO.IsActive);
 
                 if (policyType == null)
                 {

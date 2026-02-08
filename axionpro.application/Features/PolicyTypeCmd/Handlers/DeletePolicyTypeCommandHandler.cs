@@ -44,6 +44,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
         {
             try
             {
+                await _unitOfWork.BeginTransactionAsync();
                 // 🔹 STEP 1: Basic validation
                 if (request.DTO == null || request.DTO.PolicyId <= 0)
                 {
@@ -57,12 +58,12 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                     return ApiResponse<bool>.Fail(validation.ErrorMessage);
 
                 // 🔄 STEP 3: Begin transaction
-                await _unitOfWork.BeginTransactionAsync();
+             //  
 
                 // 🔍 STEP 4: Check PolicyType exists or not
                 var policyType =
                     await _unitOfWork.PolicyTypeRepository
-                        .GetPolicyTypeByIdAsync(request.DTO.PolicyId);
+                        .GetPolicyTypeByIdAsync(request.DTO.PolicyId, request.DTO.IsActive);
 
                 if (policyType == null)
                 {
@@ -104,7 +105,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                 }
 
                 // ✅ STEP 7: Commit transaction
-                await _unitOfWork.CommitAsync();
+            
 
                 return ApiResponse<bool>
                     .Success(true, "Policy type and related documents deleted successfully.");

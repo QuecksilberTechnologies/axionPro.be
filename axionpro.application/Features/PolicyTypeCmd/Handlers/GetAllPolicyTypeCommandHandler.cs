@@ -1,21 +1,18 @@
 ﻿using axionpro.application.DTOs.PolicyType;
-using axionpro.application.DTOS.CompanyPolicyDocument;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
 using MediatR;
-using Microsoft.Extensions.Configuration;
-using System.Collections.Generic;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace axionpro.application.Features.PolicyTypeCmd.Handlers
 {
     // ======================================================
     // 🔹 COMMAND
     // ======================================================
-    public class GetAllPolicyTypeCommand : IRequest<List<GetAllPolicyTypeResponseDTO>>
+    public class GetAllPolicyTypeCommand
+        : IRequest<ApiResponse<List<GetAllPolicyTypeResponseDTO>>>
     {
-        public GetAllPolicyTypeRequestDTO DTO { get; set; }
+        public GetAllPolicyTypeRequestDTO DTO { get; }
 
         public GetAllPolicyTypeCommand(GetAllPolicyTypeRequestDTO dto)
         {
@@ -27,7 +24,9 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
     // 🔹 HANDLER
     // ======================================================
     public class GetAllPolicyTypeCommandHandler
-     : IRequestHandler<GetAllPolicyTypeCommand, List<GetAllPolicyTypeResponseDTO>>
+        : IRequestHandler<
+            GetAllPolicyTypeCommand,
+            ApiResponse<List<GetAllPolicyTypeResponseDTO>>>
     {
         private readonly IPolicyTypeRepository _policyTypeRepository;
         private readonly ICommonRequestService _commonRequestService;
@@ -40,7 +39,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
             _commonRequestService = commonRequestService;
         }
 
-        public async Task<List<GetAllPolicyTypeResponseDTO>> Handle(
+        public async Task<ApiResponse<List<GetAllPolicyTypeResponseDTO>>> Handle(
             GetAllPolicyTypeCommand request,
             CancellationToken cancellationToken)
         {
@@ -50,17 +49,23 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                 // 1️⃣ Basic validation
                 // --------------------------------------------------
                 if (request.DTO == null)
-                    return new List<GetAllPolicyTypeResponseDTO>();
+                {
+                    return ApiResponse<List<GetAllPolicyTypeResponseDTO>>
+                        .Fail("Invalid request.");
+                }
 
                 // --------------------------------------------------
                 // 2️⃣ Common validation (Tenant / User context)
                 // --------------------------------------------------
                 var validation = await _commonRequestService.ValidateRequestAsync();
                 if (!validation.Success)
-                    return new List<GetAllPolicyTypeResponseDTO>();
+                {
+                    return ApiResponse<List<GetAllPolicyTypeResponseDTO>>
+                        .Fail(validation.ErrorMessage);
+                }
 
                 // --------------------------------------------------
-                // 3️⃣ Fetch PolicyTypes (DB layer handles filtering)
+                // 3️⃣ Fetch PolicyTypes (Repository handles filtering)
                 // --------------------------------------------------
                 var policyTypes =
                     await _policyTypeRepository.GetAllPolicyTypesAsync(
@@ -69,17 +74,28 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                     );
 
                 // --------------------------------------------------
-                // 4️⃣ Safety return (never null)
+                // 4️⃣ No data → UI wants error
                 // --------------------------------------------------
-                return policyTypes?.ToList() ?? new List<GetAllPolicyTypeResponseDTO>();
+                if (policyTypes.Data == null || !policyTypes.Data.Any())
+                {
+                    return ApiResponse<List<GetAllPolicyTypeResponseDTO>>
+                        .Fail("No policy types found.");
+                }
+
+                // --------------------------------------------------
+                // 5️⃣ Success
+                // --------------------------------------------------
+                return ApiResponse<List<GetAllPolicyTypeResponseDTO>>
+                    .Success(
+                        policyTypes.Data,
+                        "All policies fetched successfully.");
             }
             catch (Exception)
             {
-                // ❗ No exception leak to controller
-                // ❗ Return empty list – safe UI behavior
-                return new List<GetAllPolicyTypeResponseDTO>();
+                // ❗ Safe failure (no exception leak)
+                return ApiResponse<List<GetAllPolicyTypeResponseDTO>>
+                    .Fail("Something went wrong while fetching policy types.");
             }
         }
     }
-
 }
