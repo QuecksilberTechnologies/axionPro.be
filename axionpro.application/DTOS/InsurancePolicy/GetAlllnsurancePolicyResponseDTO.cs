@@ -13,6 +13,6 @@ namespace axionpro.application.DTOS.InsurancePolicy
 
         // 🔹 Policy Type
         public int PolicyTypeId { get; set; }
-        public string PolicyTypeName { get; set; } = string.Empty;
+        public string InsurancePolicyName { get; set; } = string.Empty;
     }
 }

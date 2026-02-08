@@ -167,7 +167,7 @@ namespace axionpro.persistance.Repositories
                     {
                         InsurancePolicyId = x.Id,
                         PolicyTypeId = x.PolicyTypeId,
-                        PolicyTypeName = x.InsurancePolicyName
+                        InsurancePolicyName = x.InsurancePolicyName
                     })
                     .ToListAsync();
 
