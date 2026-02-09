@@ -2,7 +2,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace axionpro.application.Interfaces.IRepositories
+namespace axionpro.application.Interfaces.ITokenService
 {
     public interface IRefreshTokenRepository
     {

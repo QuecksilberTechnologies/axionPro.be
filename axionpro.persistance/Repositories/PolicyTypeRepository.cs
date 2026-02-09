@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using axionpro.application.DTOs.PolicyType;
+using axionpro.application.DTOS.CompanyPolicyDocument;
+using axionpro.application.DTOS.InsurancePolicy;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
@@ -9,6 +11,7 @@ using axionpro.persistance.Data.Context;
 using Azure.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System;
 
 namespace axionpro.persistance.Repositories
 {
@@ -124,14 +127,16 @@ namespace axionpro.persistance.Repositories
         // ============================================
         // 🔹 GET BY ID (used by handler)
         // ============================================
-        public async Task<PolicyType?> GetPolicyTypeByIdAsync(int id, bool isActive)
+        public async Task<PolicyType?> GetPolicyTypeByIdAsync(int id, bool? isActive)
         {
             try
             {
                 return await _context.PolicyTypes
                     .FirstOrDefaultAsync(pt =>
-                        pt.Id == id && isActive ==true &&
-                        (pt.IsSoftDelete == false || pt.IsSoftDelete == null));
+                        pt.Id == id &&
+                        (isActive == null || pt.IsActive == isActive) &&
+                        (pt.IsSoftDelete == false || pt.IsSoftDelete == null)
+                    );
             }
             catch (Exception ex)
             {
@@ -147,7 +152,8 @@ namespace axionpro.persistance.Repositories
         // ============================================
         // 🔹 GET ALL (Tenant wise / Active)
         // ============================================
-        public async Task<IEnumerable<GetPolicyTypeResponseDTO>>  GetPolicyTypesAsync(long tenantId,  bool isActive)
+
+        public async Task<IEnumerable<GetPolicyTypeResponseDTO>> GetPolicyTypesAsync(long tenantId, bool isActive)
         {
             try
             {
@@ -156,11 +162,10 @@ namespace axionpro.persistance.Repositories
                 // 🔹 Tenant filter (MANDATORY)
                 query = query.Where(pt => pt.TenantId == tenantId);
 
-                // 🔹 Active / Soft delete filter
                 if (isActive)
                 {
                     query = query.Where(pt =>
-                        pt.IsActive == true &&
+                        pt.IsActive == isActive &&
                         (pt.IsSoftDelete == false || pt.IsSoftDelete == null));
                 }
 
@@ -168,9 +173,11 @@ namespace axionpro.persistance.Repositories
                     .Select(pt => new GetPolicyTypeResponseDTO
                     {
                         Id = pt.Id,
-                        PolicyName = pt.PolicyName ?? string.Empty,                       
+                        PolicyName = pt.PolicyName ?? string.Empty,
                         IsActive = pt.IsActive ?? false,
+                        IsStructured = pt.IsStructured,
                         Description = pt.Description ?? string.Empty
+
                     })
                     .ToListAsync();
 
@@ -186,6 +193,83 @@ namespace axionpro.persistance.Repositories
             }
         }
 
+     
+        //public async Task<IEnumerable<GetPolicyTypeResponseDTO>> GetPolicyTypesAsync(
+        //         long tenantId,
+        //        bool isActive)
+        //{
+        //    try
+        //    {
+        //        // =========================================
+        //        // 1️⃣ BASE QUERY with LEFT JOINS
+        //        // =========================================
+        //        var query =
+        //            from pt in _context.PolicyTypes.AsNoTracking()
+
+        //            join map in _context.PolicyTypeInsuranceMappings
+        //                on pt.Id equals map.PolicyTypeId into mapJoin
+        //            from map in mapJoin.DefaultIfEmpty()
+
+        //            join ins in _context.InsurancePolicies
+        //                on map.InsurancePolicyId equals ins.Id into insJoin
+        //            from ins in insJoin.DefaultIfEmpty()
+
+        //            where
+        //                pt.TenantId == tenantId &&
+        //                (pt.IsSoftDelete == false || pt.IsSoftDelete == null) &&
+        //                (!isActive || pt.IsActive == true)
+
+        //            select new
+        //            {
+        //                PolicyType = pt,
+        //                Insurance = ins
+        //            };
+
+        //        // =========================================
+        //        // 2️⃣ GROUP BY PolicyType
+        //        // =========================================
+        //        var grouped = await query
+        //            .GroupBy(x => x.PolicyType)
+        //            .Select(g => new GetPolicyTypeResponseDTO
+        //            {
+        //                Id = g.Key.Id,
+        //                TenantId = g.Key.TenantId,
+        //                PolicyName = g.Key.PolicyName ?? string.Empty,
+        //                Description = g.Key.Description,
+        //                IsActive = g.Key.IsActive ?? false,
+
+        //                // 🔥 Mapping flag
+        //                InsuranceMappingList = g
+        //                     .Where(x =>
+        //                     x.Insurance != null &&
+        //                        x.Insurance.IsActive == true &&
+        //                           x.Insurance.IsSoftDeleted != true)
+
+        //                        .Select(x => new GetPolicyTypeInsuranceMappingResponseDTO
+        //                            {
+        //                                InsurancePolicyId = x.Insurance!.Id,
+        //                                 InsurancePolicyName = x.Insurance.InsurancePolicyName,
+        //                                       IsActive = x.Insurance.IsActive
+        //                                 })
+        //                            .ToList()
+
+        //            })
+        //            .OrderByDescending(x => x.Id)
+        //            .ToListAsync();
+
+        //        return grouped;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(
+        //            ex,
+        //            "❌ Error while fetching PolicyTypes with Insurance mapping. TenantId: {TenantId}",
+        //            tenantId);
+
+        //        return new List<GetPolicyTypeResponseDTO>();
+        //    }
+        //}
+
         public async Task<ApiResponse<List<GetAllPolicyTypeResponseDTO>>> GetAllPolicyTypesAsync(long tenantId, bool isActive)
         {
             try
@@ -195,17 +279,12 @@ namespace axionpro.persistance.Repositories
                 // --------------------------------------------------
                 var query = _context.PolicyTypes
                     .AsNoTracking() // ✅ fast read-only
-                    .Where(pt => pt.TenantId == tenantId);
+                    .Where(pt => pt.TenantId == tenantId && pt.IsStructured ==true);
 
                 // --------------------------------------------------
                 // 2️⃣ Active + SoftDelete filter
                 // --------------------------------------------------
-                query = isActive
-                    ? query.Where(pt =>
-                        pt.IsActive == true &&
-                        (pt.IsSoftDelete == false || pt.IsSoftDelete == null))
-                    : query.Where(pt =>
-                        pt.IsActive == false &&
+                query = isActive ? query.Where(pt => pt.IsActive == true &&  (pt.IsSoftDelete == false || pt.IsSoftDelete == null))  : query.Where(pt =>  pt.IsActive == false &&
                         (pt.IsSoftDelete == false || pt.IsSoftDelete == null));
 
                 // --------------------------------------------------

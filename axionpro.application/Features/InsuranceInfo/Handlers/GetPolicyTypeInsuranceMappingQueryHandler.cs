@@ -9,7 +9,7 @@ using axionpro.application.DTOs.Designation;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
-using axionpro.application.DTOS.InsurancePolicy;
+using axionpro.application.DTOS.InsurancePoliciesMapping;
 using axionpro.application.DTOS.Pagination;
 
 using axionpro.application.Interfaces;

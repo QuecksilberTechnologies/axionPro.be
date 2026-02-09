@@ -1,4 +1,5 @@
 ﻿using axionpro.application.DTOS.CompanyPolicyDocument;
+using axionpro.application.DTOS.InsurancePolicy;
 using axionpro.application.DTOS.Pagination;
 using axionpro.domain.Entity;
 using System;
@@ -17,6 +18,9 @@ namespace axionpro.application.DTOs.PolicyType
         public string? Description { get; set; }
         public bool IsActive { get; set; }   
         public bool IsMappedWithInsurance { get; set; } = false;
+        public bool IsStructured { get; set; } 
+        //   public List<GetPolicyTypeInsuranceMappingResponseDTO> InsuranceMappingList { get; set; }   = new List<GetPolicyTypeInsuranceMappingResponseDTO>();
+
         public GetCompanyPolicyDocumentResponseDTO DocDetails { get; set; } = new GetCompanyPolicyDocumentResponseDTO();
 
     }

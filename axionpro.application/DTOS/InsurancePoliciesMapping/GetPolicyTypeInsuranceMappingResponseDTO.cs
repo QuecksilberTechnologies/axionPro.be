@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace axionpro.application.DTOS.InsurancePolicy
+namespace axionpro.application.DTOS.InsurancePoliciesMapping
 {
     public class GetPolicyTypeInsuranceMappingResponseDTO
     {

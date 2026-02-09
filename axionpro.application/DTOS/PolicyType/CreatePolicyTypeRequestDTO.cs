@@ -15,6 +15,7 @@ namespace axionpro.application.DTOs.PolicyType
       
        
         public required bool  IsActive { get; set; }// = null! ;     
+        public required bool IsStructured { get; set; } = false ;     
         public required string PolicyName { get; set; }// = null! ;       
         public IFormFile? FormFile { get; set; }
         public required string Description { get; set; }

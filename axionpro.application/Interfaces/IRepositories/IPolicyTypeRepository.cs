@@ -20,7 +20,7 @@ namespace axionpro.application.Interfaces.IRepositories
         // Used by handler to check existence
         // ================================
         Task<PolicyType?> GetPolicyTypeByIdAsync(
-            int id, bool isActive);
+            int id, bool? isActive);
 
         // ================================
         // 🔹 READ (Get all by Tenant)

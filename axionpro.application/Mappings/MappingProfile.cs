@@ -40,6 +40,7 @@ using axionpro.application.DTOS.Employee.Experience;
 using axionpro.application.DTOS.Employee.Sensitive;
 using axionpro.application.DTOS.Employee.Type;
 using axionpro.application.DTOS.Gender;
+using axionpro.application.DTOS.InsurancePoliciesMapping;
 using axionpro.application.DTOS.InsurancePolicy;
 using axionpro.application.DTOS.Location;
 using axionpro.application.DTOS.Module.CommonModule;

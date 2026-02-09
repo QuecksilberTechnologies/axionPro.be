@@ -45,9 +45,9 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-                await context.CompanyPolicyDocuments.AddAsync(entity);
-                await context.SaveChangesAsync();
+               
+                await _context.CompanyPolicyDocuments.AddAsync(entity);
+                await _context.SaveChangesAsync();
 
                 return _mapper.Map<GetCompanyPolicyDocumentResponseDTO>(entity);
 
@@ -97,12 +97,12 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
+               
 
-                return await context.CompanyPolicyDocuments
+                return await _context.CompanyPolicyDocuments
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x =>
-                        x.Id == id
+                        x.PolicyTypeId == id
                         && x.TenantId == tenantId
                         && x.IsActive == isActive
                         && x.IsSoftDeleted!=true);
@@ -193,10 +193,9 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
-                context.CompanyPolicyDocuments.Update(entity);
-                await context.SaveChangesAsync();
+               
+                _context.CompanyPolicyDocuments.Update(entity);
+                await _context.SaveChangesAsync();
 
                 return true;
             }
@@ -216,9 +215,8 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
-                var entity = await context.CompanyPolicyDocuments
+               
+                var entity = await _context.CompanyPolicyDocuments
                     .FirstOrDefaultAsync(x => x.Id == id && !x.IsSoftDeleted);
 
                 if (entity == null)
@@ -227,7 +225,7 @@ namespace axionpro.persistance.Repositories
                 entity.IsSoftDeleted = true;
                 entity.SoftDeletedDateTime = DateTime.UtcNow;
 
-                await context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
                 return true;
             }
             catch (Exception ex)
@@ -246,9 +244,8 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
-                return await context.CompanyPolicyDocuments.AnyAsync(x =>
+               
+                return await _context.CompanyPolicyDocuments.AnyAsync(x =>
                     x.PolicyTypeId == policyTypeId
                     && x.TenantId == tenantId
                     && !x.IsSoftDeleted);
@@ -268,9 +265,7 @@ namespace axionpro.persistance.Repositories
         {
             throw new NotImplementedException();
         }
-        public async Task<bool> SoftDeleteByPolicyTypeIdAsync(
-    int policyTypeId,
-    long deletedById)
+        public async Task<bool> SoftDeleteByPolicyTypeIdAsync( int policyTypeId,  long deletedById)
         {
             try
             {
@@ -292,9 +287,9 @@ namespace axionpro.persistance.Repositories
                     doc.SoftDeletedById = deletedById;
                     doc.SoftDeletedDateTime = DateTime.UtcNow;
                 }
-
-                await _context.SaveChangesAsync();
-                return true;
+                 
+                var rows = await _context.SaveChangesAsync();
+                return rows > 0;
             }
             catch (Exception ex)
             {

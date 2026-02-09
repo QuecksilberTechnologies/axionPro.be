@@ -163,7 +163,7 @@ namespace axionpro.api.Controllers.Policies
         /// Update new Policy Type.
         /// </summary>
         [HttpPost("update")]
-        public async Task<IActionResult> UpdatePolicyTypeAsync([FromBody] UpdatePolicyTypeDTO requestDTO)
+        public async Task<IActionResult> UpdatePolicyTypeAsync([FromForm] UpdatePolicyTypeRequestDTO requestDTO)
         {
             _logger.LogInfo($"Received request to update PolicyType: {JsonConvert.SerializeObject(requestDTO)}");
             var command = new UpdatePolicyTypeCommand(requestDTO);

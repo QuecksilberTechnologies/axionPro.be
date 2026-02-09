@@ -1,4 +1,4 @@
-﻿using axionpro.application.DTOS.InsurancePolicy;
+﻿using axionpro.application.DTOS.InsurancePoliciesMapping;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;

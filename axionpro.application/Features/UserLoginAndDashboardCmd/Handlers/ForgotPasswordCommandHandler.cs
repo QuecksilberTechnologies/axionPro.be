@@ -19,7 +19,6 @@ using axionpro.application.Common.Helpers;
 using axionpro.application.Interfaces.IEmail;
 using Newtonsoft.Json.Linq;
 using axionpro.domain.Entity;
-using axionpro.application.Interfaces.IRepositories;
 
 namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 {

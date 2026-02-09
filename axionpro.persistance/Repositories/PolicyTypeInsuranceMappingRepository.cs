@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using axionpro.application.DTOS.InsurancePolicy;
+using axionpro.application.DTOS.InsurancePoliciesMapping;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IHashed;
@@ -94,6 +94,65 @@ namespace axionpro.persistance.Repositories
             }
         }
 
+        public async Task<List<GetPolicyTypeInsuranceMapDetailsResponseDTO>> GetMapInsuranceDetailAsync(int policyId, bool isActive)
+        {
+            try
+            {
+
+                var query =
+                    from map in _context.PolicyTypeInsuranceMappings.AsNoTracking()
+
+                    join pt in _context.PolicyTypes.AsNoTracking()
+                        on map.PolicyTypeId equals pt.Id
+
+                    join ip in _context.InsurancePolicies.AsNoTracking()
+                        on map.InsurancePolicyId equals ip.Id
+
+                    // 🔹 LEFT JOIN InsurancePolicyDocument (ACTIVE + NOT DELETED)
+                    join doc in _context.InsurancePolicyDocuments.AsNoTracking()
+                        .Where(d => d.IsActive == true && d.IsSoftDeleted != true)
+                        on ip.Id equals doc.InsurancePolicyId into docJoin
+                    from doc in docJoin.DefaultIfEmpty()
+
+                    where
+                        map.PolicyTypeId == policyId &&
+                        map.IsActive == isActive &&
+                        (map.IsSoftDeleted == false || map.IsSoftDeleted == null)
+
+                    orderby map.Id descending
+
+                    select new GetPolicyTypeInsuranceMapDetailsResponseDTO
+                    {
+                        Id = map.Id,
+
+                        PolicyTypeId = map.PolicyTypeId,
+                        InsuranceTypeId = map.InsurancePolicyId,
+
+                        PolicyName = pt.PolicyName ?? string.Empty,
+                        InsuranceTypeName = ip.InsurancePolicyName ?? string.Empty,
+
+                        FileName = doc != null ? doc.FileName : string.Empty,
+                        FilePath = doc != null ? doc.FilePath : string.Empty,
+
+                        // 🔥 URL controller/handler me baseUrl se banega
+                        Url = string.Empty,
+
+                        Description = ip.Description,
+                        IsActive = map.IsActive
+                    };
+
+                return await query.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "❌ Error while fetching PolicyType–Insurance mapping. PolicyTypeId: {PolicyTypeId}",
+                    policyId);
+
+                return new List<GetPolicyTypeInsuranceMapDetailsResponseDTO>();
+            }
+        }
 
 
         public async Task<PagedResponseDTO<GetPolicyTypeInsuranceMappingResponseDTO>> GetListAsync(
@@ -116,7 +175,7 @@ namespace axionpro.persistance.Repositories
                 from insurance in insuranceGroup.DefaultIfEmpty()
 
                 where mapping.TenantId == request.Props.TenantId
-                      && (mapping.IsSoftDeleted == false || mapping.IsSoftDeleted == null)
+                      && (mapping.IsSoftDeleted !=true && mapping.IsActive== request.IsActive)
 
                 select new GetPolicyTypeInsuranceMappingResponseDTO
                 {

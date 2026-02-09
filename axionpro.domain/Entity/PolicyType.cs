@@ -16,6 +16,7 @@ public partial class PolicyType
     public bool? IsActive { get; set; }
 
     public bool? IsSoftDelete { get; set; }
+    public  bool IsStructured { get; set; }
 
 
     public long? AddedById { get; set; }

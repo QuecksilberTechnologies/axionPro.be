@@ -66,7 +66,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                 // 3️⃣ Fetch PolicyType
                 // --------------------------------------------------
                 var policyType =
-                    await _unitOfWork.PolicyTypeRepository.GetPolicyTypeByIdAsync(request.DTO.PolicyId, request.DTO.IsActive);
+                    await _unitOfWork.PolicyTypeRepository.GetPolicyTypeByIdAsync(request.DTO.PolicyId, null);
 
                 if (policyType == null)
                 {
@@ -77,18 +77,27 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                 // --------------------------------------------------
                 // 4️⃣ Soft delete PolicyType
                 // --------------------------------------------------
-              //  policyType.IsSoftDelete = false;
-                policyType.IsActive = true;
+                policyType.IsSoftDelete = true;
+                policyType.IsActive = false;
                 policyType.SoftDeleteById = validation.UserEmployeeId;
                 policyType.SoftDeleteDateTime = DateTime.UtcNow;
 
+                // --------------------------------------------------
+                // 4️⃣ Soft delete PolicyType (MANDATORY)
+                // --------------------------------------------------
                 var policyDeleted =
                     await _unitOfWork.PolicyTypeRepository
                         .SoftDeletePolicyTypeAsync(policyType);
- 
+
+                if (!policyDeleted)
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                    return ApiResponse<bool>
+                        .Fail("Policy type deletion failed.");
+                }
 
                 // --------------------------------------------------
-                // 5️⃣ Soft delete related CompanyPolicyDocuments
+                // 5️⃣ Soft delete related CompanyPolicyDocuments (OPTIONAL)
                 // --------------------------------------------------
                 var docsDeleted =
                     await _unitOfWork.CompanyPolicyDocumentRepository
@@ -96,22 +105,22 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                             policyType.Id,
                             validation.UserEmployeeId);
 
-               
-                if (!docsDeleted || !policyDeleted)
+                // ❗ Docs optional hain → failure pe rollback NA karo
+                if (!docsDeleted)
                 {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<bool>
-                        .Fail("Failed to delete related policy and its documents.");
+                    // 🔹 Log only (no rollback)
+                   
                 }
 
                 // --------------------------------------------------
-                // 6️⃣ Commit
+                // 6️⃣ Commit (ONLY depends on PolicyType)
                 // --------------------------------------------------
-               
                 await _unitOfWork.CommitTransactionAsync();
 
                 return ApiResponse<bool>
-                    .Success(true, "Policy type and related documents deleted successfully.");
+                    .Success(true, "Policy type deleted successfully.");
+
+               
             }
             catch (Exception ex)
             {

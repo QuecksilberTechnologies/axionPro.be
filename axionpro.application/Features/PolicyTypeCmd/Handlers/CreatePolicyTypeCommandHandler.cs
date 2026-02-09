@@ -68,7 +68,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                     return ApiResponse<GetPolicyTypeResponseDTO>
                         .Fail("Invalid request. PolicyType data is required.");
 
-             //   await _unitOfWork.BeginTransactionAsync();
+                 await _unitOfWork.BeginTransactionAsync();
 
                 // 🔐 STEP 1: Common validation
                 var validation = await _commonRequestService.ValidateRequestAsync();
@@ -99,6 +99,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                         ? null
                         : request.DTO.Description.Trim(),
                     IsActive = request.DTO.IsActive,
+                    IsStructured = request.DTO.IsStructured,
                     IsSoftDelete = false,
                     AddedById = request.DTO.Prop.UserEmployeeId,
                     AddedDateTime = DateTime.UtcNow
@@ -162,7 +163,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                         DocumentTitle = request.DTO.PolicyName.Trim(),
                         FileName = docName!,
                         FilePath = docPath!,                                         
-                        IsActive = true,
+                        IsActive = request.DTO.IsActive,
                         IsSoftDeleted = false,
                         AddedById = validation.UserEmployeeId,
                         AddedDateTime = DateTime.UtcNow
@@ -195,7 +196,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
 
 
                 // 🔹 STEP 6: COMMIT (ONE TRANSACTION)
-                //    await _unitOfWork.CommitAsync();
+                   await _unitOfWork.CommitTransactionAsync();
 
                 return ApiResponse<GetPolicyTypeResponseDTO>
                     .Success(createdPolicyType, "Policy type created successfully.");

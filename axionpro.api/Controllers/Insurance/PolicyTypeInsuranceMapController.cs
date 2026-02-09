@@ -1,4 +1,4 @@
-﻿using axionpro.application.DTOS.InsurancePolicy;
+﻿using axionpro.application.DTOS.InsurancePoliciesMapping;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Features.InsuranceInfo.Handlers;
 using axionpro.application.Interfaces.ILogger;
@@ -62,6 +62,17 @@ namespace axionpro.api.Controllers.Insurance
             _logger.LogInfo("Fetching mapped insurance policy list.");
 
             var query = new GetPolicyInsuranceRequestCommand(requestDto);
+            var result = await _mediator.Send(query);         
+
+            return Ok(result);
+        }
+        // 🔹 GET INSURANCE LIST (GRID)
+        [HttpGet("get-details")]
+         public async Task<IActionResult> GetDetailList( [FromQuery] GetPolicyTypeInsuranceMapDetailsRequestDTO requestDto)
+          {
+            _logger.LogInfo("Fetching mapped insurance policy list.");
+
+            var query = new GetPolicyInsuranceDetailRequestCommand(requestDto);
             var result = await _mediator.Send(query);         
 
             return Ok(result);
