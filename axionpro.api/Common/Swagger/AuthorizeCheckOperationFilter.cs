@@ -1,4 +1,4 @@
-﻿using Microsoft.OpenApi.Models;
+﻿using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 
@@ -19,11 +19,11 @@ namespace axionpro.api.Common.Swagger
             {
                 new OpenApiSecurityRequirement
                 {
-                    [ new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
-                        }
-                    ] = new string[] { }
+                    //[ new OpenApiSecurityScheme
+                    //    {
+                    //        //Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+                    //    }
+                    //] = new string[] { }
                 }
             };
             }
