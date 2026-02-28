@@ -1,19 +1,12 @@
 ﻿using AutoMapper;
-using axionpro.application.DTOs.PolicyType;
 using axionpro.application.DTOS.CompanyPolicyDocument;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
-using Azure.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace axionpro.persistance.Repositories
 {

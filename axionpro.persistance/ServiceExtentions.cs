@@ -25,14 +25,14 @@ namespace axionpro.persistance
 
             // ✅ Register DbContextFactory for safe multi-threading
             services.AddDbContextFactory<WorkforceDbContext>(options =>
-                options.UseSqlServer(connectionString)
+                options.UseNpgsql(connectionString)
                        .EnableSensitiveDataLogging()
                        .EnableDetailedErrors()
                        .LogTo(Console.WriteLine, LogLevel.Information));
 
             // ✅ Register DbContext (for direct injection)
             services.AddDbContext<WorkforceDbContext>(options =>
-                options.UseSqlServer(connectionString)
+                options.UseNpgsql(connectionString)
                        .EnableSensitiveDataLogging()
                        .EnableDetailedErrors()
                        .LogTo(Console.WriteLine, LogLevel.Information));

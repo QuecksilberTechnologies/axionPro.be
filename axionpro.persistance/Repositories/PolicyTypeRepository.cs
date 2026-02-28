@@ -1,17 +1,13 @@
 ﻿using AutoMapper;
 using axionpro.application.DTOs.PolicyType;
-using axionpro.application.DTOS.CompanyPolicyDocument;
-using axionpro.application.DTOS.InsurancePolicy;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
-using Azure.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
 
 namespace axionpro.persistance.Repositories
 {

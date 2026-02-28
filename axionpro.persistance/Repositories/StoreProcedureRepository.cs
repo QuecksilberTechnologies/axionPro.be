@@ -1,39 +1,20 @@
 ﻿using AutoMapper;
-using axionpro.application.DTOs.Module;
 using axionpro.application.DTOs.Module.NewFolder;
 using axionpro.application.DTOs.Operation;
-using axionpro.application.DTOs.ProjectModule;
 using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOs.UserLogin;
-using axionpro.application.DTOs.UserRole;
 using axionpro.application.DTOS.RoleModulePermission;
 using axionpro.application.DTOS.StoreProcedures;
 using axionpro.application.DTOS.StoreProcedures.DashboardSummeries;
 using axionpro.application.DTOS.Tenant;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using FluentValidation;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualBasic;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
-using System.Reflection.Metadata;
-using System.Runtime.Intrinsics.X86;
-using System.Security.AccessControl;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using Module = axionpro.domain.Entity.Module;
+using Npgsql;
+using NpgsqlTypes;
 
 namespace axionpro.persistance.Repositories
 {
@@ -110,7 +91,7 @@ namespace axionpro.persistance.Repositories
 
                 _logger.LogInformation("Fetching subscribed modules for TenantId: {TenantId}", tenantId);
 
-                var tenantIdParam = new SqlParameter("@TenantId", tenantId);
+                var tenantIdParam = new NpgsqlParameter("@TenantId", tenantId);
 
                 string sqlQuery = "EXEC AxionPro.GetSubscribedModuleByTenantId @TenantId";
 
@@ -127,7 +108,7 @@ namespace axionpro.persistance.Repositories
                 _logger.LogInformation("Total {Count} modules fetched for TenantId: {TenantId}", result.Count, tenantId);
                 return result;
             }
-            catch (SqlException ex)
+            catch (NpgsqlException ex)
             {
                 _logger.LogError(ex, "SQL Exception occurred while fetching subscribed modules for TenantId: {TenantId}", tenantId);
                 return new List<SubscribedModuleResponseDTO>();
@@ -153,8 +134,8 @@ namespace axionpro.persistance.Repositories
 
         //        var sqlQuery = "EXEC AxionPro.GetDashboardMenusForUser @RoleIds, @ErrorMessage OUTPUT";
 
-        //        var roleParam = new SqlParameter("@RoleIds", Roles);
-        //        var errorMessageParam = new SqlParameter
+        //        var roleParam = new NpgsqlParameter("@RoleIds", Roles);
+        //        var errorMessageParam = new NpgsqlParameter
         //        {
         //            ParameterName = "@ErrorMessage",
         //            SqlDbType = SqlDbType.NVarChar,
@@ -245,17 +226,17 @@ namespace axionpro.persistance.Repositories
                             @IpAddressLocal, @IpAddressPublic, @MacAddress, 
                             @Status OUTPUT, @ErrorMessage OUTPUT";
 
-                var statusParam = new SqlParameter("@Status", SqlDbType.Int) { Direction = ParameterDirection.Output };
-                var errorMsgParam = new SqlParameter("@ErrorMessage", SqlDbType.NVarChar, 4000) { Direction = ParameterDirection.Output };
+                var statusParam = new NpgsqlParameter("@Status", NpgsqlDbType.Integer) { Direction = ParameterDirection.Output };
+                var errorMsgParam = new NpgsqlParameter("@ErrorMessage", NpgsqlDbType.Text, 4000) { Direction = ParameterDirection.Output };
 
                 await context.Database.ExecuteSqlRawAsync(sqlQuery,
-                    new SqlParameter("@LoginId", loginRequest.LoginId ?? (object)DBNull.Value),
-                    new SqlParameter("@Latitude", loginRequest.Latitude),
-                    new SqlParameter("@Longitude", loginRequest.Longitude),
-                    new SqlParameter("@LoginDevice", loginRequest.LoginDevice),
-                    new SqlParameter("@IpAddressLocal", loginRequest.IpAddressLocal ?? (object)DBNull.Value),
-                    new SqlParameter("@IpAddressPublic", loginRequest.IpAddressPublic ?? (object)DBNull.Value),
-                    new SqlParameter("@MacAddress", loginRequest.MacAddress ?? (object)DBNull.Value),
+                    new NpgsqlParameter("@LoginId", loginRequest.LoginId ?? (object)DBNull.Value),
+                    new NpgsqlParameter("@Latitude", loginRequest.Latitude),
+                    new NpgsqlParameter("@Longitude", loginRequest.Longitude),
+                    new NpgsqlParameter("@LoginDevice", loginRequest.LoginDevice),
+                    new NpgsqlParameter("@IpAddressLocal", loginRequest.IpAddressLocal ?? (object)DBNull.Value),
+                    new NpgsqlParameter("@IpAddressPublic", loginRequest.IpAddressPublic ?? (object)DBNull.Value),
+                    new NpgsqlParameter("@MacAddress", loginRequest.MacAddress ?? (object)DBNull.Value),
                     statusParam,
                     errorMsgParam
                 );
@@ -269,7 +250,7 @@ namespace axionpro.persistance.Repositories
                 return true;
                     //(statusParam.Value != DBNull.Value && (int)statusParam.Value == 1) ? "Success" : "No record updated";
             }
-            catch (SqlException ex)
+            catch (NpgsqlException ex)
             {
                 _logger.LogError(ex, "SQL Exception occurred while updating login credential for LoginId: {LoginId}", loginRequest.LoginId);
               //  return "Database error occurred while updating login credential.";
@@ -291,8 +272,8 @@ namespace axionpro.persistance.Repositories
 
                 _logger.LogInformation("Validating user login for LoginId: {LoginId}", loginId);
 
-                var loginParam = new SqlParameter("@LoginId", loginId ?? (object)DBNull.Value);
-                var resultParam = new SqlParameter("@Result", SqlDbType.BigInt)
+                var loginParam = new NpgsqlParameter("@LoginId", loginId ?? (object)DBNull.Value);
+                var resultParam = new NpgsqlParameter("@Result", SqlDbType.BigInt)
                 {
                     Direction = ParameterDirection.Output
                 };
@@ -303,7 +284,7 @@ namespace axionpro.persistance.Repositories
 
                 return (long)resultParam.Value;  // Output Parameter से Result Return करें
             }
-            catch (SqlException ex)
+            catch (NpgsqlException ex)
             {
                 _logger.LogError(ex, "SQL Exception occurred while validating user login for LoginId: {LoginId}", loginId);
                 return -1;  // Error Case
@@ -327,7 +308,7 @@ namespace axionpro.persistance.Repositories
                     tenantId);
 
                 var sql = @"EXEC AxionPro.AllEmployeeCountData @TenantId";
-                var tenantParam = new SqlParameter("@TenantId", tenantId);
+                var tenantParam = new NpgsqlParameter("@TenantId", tenantId);
 
                 var result = context.EmployeeCountResponseStatsSps
                     .FromSqlRaw(sql, tenantParam)
@@ -337,7 +318,7 @@ namespace axionpro.persistance.Repositories
 
                 return result;
             }
-            catch (SqlException ex)
+            catch (NpgsqlException ex)
             {
                 _logger.LogError(
                     ex,
@@ -374,9 +355,9 @@ namespace axionpro.persistance.Repositories
 
                 var parameters = new[]
                 {
-            new SqlParameter("@EmployeeId", employeeId),
-            new SqlParameter("@CountryId", countryId),
-            new SqlParameter("@IsActive", isActive)
+            new NpgsqlParameter("@EmployeeId", employeeId),
+            new NpgsqlParameter("@CountryId", countryId),
+            new NpgsqlParameter("@IsActive", isActive)
                 };
 
                 var result = await context.GetEmployeeIdentitySps
@@ -386,7 +367,7 @@ namespace axionpro.persistance.Repositories
 
                 return result;
             }
-            catch (SqlException ex)
+            catch (NpgsqlException ex)
             {
                 _logger.LogError(ex,
                     "SQL error while fetching identity records. EmployeeId: {EmployeeId}",
@@ -409,8 +390,8 @@ namespace axionpro.persistance.Repositories
                 await using var context = await _contextFactory.CreateDbContextAsync();
                 _logger.LogInformation("Validating user login for LoginId: {LoginId}", loginId);
 
-                var loginParam = new SqlParameter("@LoginId", loginId ?? (object)DBNull.Value);
-                var resultParam = new SqlParameter("@Result", SqlDbType.BigInt)
+                var loginParam = new NpgsqlParameter("@LoginId", loginId ?? (object)DBNull.Value);
+                var resultParam = new NpgsqlParameter("@Result", SqlDbType.BigInt)
                 {
                     Direction = ParameterDirection.Output
                 };
@@ -421,7 +402,7 @@ namespace axionpro.persistance.Repositories
 
                 return (long)resultParam.Value;  // Output Parameter से Result Return करें
             }
-            catch (SqlException ex)
+            catch (NpgsqlException ex)
             {
                 _logger.LogError(ex, "SQL Exception occurred while validating user login for LoginId: {LoginId}", loginId);
                 return -1;  // Error Case
@@ -448,10 +429,10 @@ namespace axionpro.persistance.Repositories
                 // Parameters definitione
                 var parameters = new[]
                 {
-                   new SqlParameter("@RoleId", checkOperationPermissionRequest.RoleIds),           
-                   new SqlParameter("@OperationId", checkOperationPermissionRequest.OperationId),
-                   new SqlParameter("@HasAccess", checkOperationPermissionRequest.HasAccess),
-                   new SqlParameter("@IsActive", checkOperationPermissionRequest.IsActive)
+                   new NpgsqlParameter("@RoleId", checkOperationPermissionRequest.RoleIds),           
+                   new NpgsqlParameter("@OperationId", checkOperationPermissionRequest.OperationId),
+                   new NpgsqlParameter("@HasAccess", checkOperationPermissionRequest.HasAccess),
+                   new NpgsqlParameter("@IsActive", checkOperationPermissionRequest.IsActive)
         };
 
                 // Executing the stored procedure and getting the result (BIT value)
@@ -497,7 +478,7 @@ namespace axionpro.persistance.Repositories
 
                 _logger.LogInformation("Get new Module Operations from ModuleOperation: {TenantId}", request.TenantId);
 
-                var tenantIdParam = new SqlParameter("@TenantId", request.TenantId);
+                var tenantIdParam = new NpgsqlParameter("@TenantId", request.TenantId);
 
                 // SQL query (no need for output param, as your procedure returns scalar)
                 string sqlQuery = "DECLARE @Result INT; EXEC @Result = AxionPro.UpdateTenantEnabledOperationFromModuleOperation @TenantId; SELECT @Result";
@@ -509,7 +490,7 @@ namespace axionpro.persistance.Repositories
                     Result = result
                 };
             }
-            catch (SqlException ex)
+            catch (NpgsqlException ex)
             {
                 _logger.LogError(ex, "SQL Exception occurred while updating tenant operation for TenantId: {TenantId}", request.TenantId);
 
@@ -535,7 +516,7 @@ namespace axionpro.persistance.Repositories
             {
                 await using var context = await _contextFactory.CreateDbContextAsync();
 
-                var tenantIdParam = new SqlParameter("@TenantId", request.TenantId);
+                var tenantIdParam = new NpgsqlParameter("@TenantId", request.TenantId);
 
                 var flatList = await context.TenantModulesConfigurations
                     .FromSqlRaw("EXEC AxionPro.GetTenantModuleOperationalConfigData @TenantId", tenantIdParam)
@@ -605,8 +586,8 @@ namespace axionpro.persistance.Repositories
         //    try
         //    {
         //        _logger.LogInformation("Validating user login for LoginId: {LoginId}", loginId);
-        //        var param = new[] { new SqlParameter("@LoginId", loginId ?? (object)DBNull.Value),
-        //              new SqlParameter("@result",SqlDbType.Int) { Direction=ParameterDirection.Output} };
+        //        var param = new[] { new NpgsqlParameter("@LoginId", loginId ?? (object)DBNull.Value),
+        //              new NpgsqlParameter("@result",SqlDbType.Int) { Direction=ParameterDirection.Output} };
 
 
         //        string sqlQuery  = @"DECLARE @Result INT;

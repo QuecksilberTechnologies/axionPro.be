@@ -1,29 +1,12 @@
 ﻿using AutoMapper;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.AssetDTO.category;
-using axionpro.application.Interfaces;
-using axionpro.application.Interfaces.ICommonRequest;
- 
-
-using axionpro.application.Interfaces.IFileStorage;
-using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.IQRService;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
-using Azure.Core;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using SkiaSharp;
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace axionpro.persistance.Repositories
 {

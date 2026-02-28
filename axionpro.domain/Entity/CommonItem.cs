@@ -1,15 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
+﻿using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace axionpro.domain.Entity
 {
-    [Keyless]
+    //[Keyless]
     public class CommonItem
     {
         public int SubModuleId { get; set; }
@@ -37,7 +31,7 @@ namespace axionpro.domain.Entity
     }
 
 
-    [Keyless]
+    //[Keyless]
 
  
     public class RoleModulePermission

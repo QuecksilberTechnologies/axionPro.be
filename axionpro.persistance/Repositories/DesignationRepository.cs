@@ -1,29 +1,16 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers.Converters;
-using axionpro.application.Constants;
-using axionpro.application.DTOs.Department;
 using axionpro.application.DTOs.Designation;
-using axionpro.application.DTOs.Role;
-using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Designation;
-using axionpro.application.DTOS.Designation.Custom;
 using axionpro.application.DTOS.Pagination;
-using axionpro.application.DTOS.Role;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
-using Azure;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace axionpro.persistance.Repositories
 {

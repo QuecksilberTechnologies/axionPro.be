@@ -1,25 +1,16 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers.PercentageHelper;
-using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
-using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.DTOS.Pagination;
- 
+
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
-using Azure.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Serilog;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Printing;
-using System.Runtime.InteropServices;
-using static QRCoder.PayloadGenerator;
 
 namespace axionpro.persistance.Repositories
 {

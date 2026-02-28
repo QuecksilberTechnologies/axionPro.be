@@ -1,25 +1,14 @@
 ﻿using AutoMapper;
-using axionpro.application.Constants;
-using axionpro.application.DTOs;
-using axionpro.application.DTOs.Module;
-using axionpro.application.DTOs.Module.NewFolder;
-using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOS.Module.CommonModule;
 using axionpro.application.DTOS.Module.ManualModule;
 using axionpro.application.DTOS.Module.ParentModule;
 
 using axionpro.application.DTOS.Module.SubModule;
-using axionpro.application.Features.ModuleCmd.SubModule.Commands;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
-using Azure.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace axionpro.persistance.Repositories
 {

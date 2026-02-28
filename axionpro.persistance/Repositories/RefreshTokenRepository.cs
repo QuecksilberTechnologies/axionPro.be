@@ -1,12 +1,8 @@
 ﻿using axionpro.application.Interfaces.ITokenService;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Data;
-using System.Threading.Tasks;
 
 namespace axionpro.persistance.Repositories
 {

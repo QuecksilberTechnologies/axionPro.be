@@ -1,32 +1,15 @@
 ﻿using AutoMapper;
-using axionpro.application.Common.Helpers;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.AssetDTO.asset;
-using axionpro.application.DTOS.AssetDTO.category;
-using axionpro.application.DTOS.AssetDTO.status;
-using axionpro.application.DTOS.AssetDTO.type;
-using axionpro.application.DTOS.Employee.Bank;
-using axionpro.application.DTOS.Pagination;
-using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IFileStorage;
 
 using axionpro.application.Interfaces.IQRService;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
-using Azure.Core;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Serilog.Core;
-using SkiaSharp;
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace axionpro.persistance.Repositories
 {

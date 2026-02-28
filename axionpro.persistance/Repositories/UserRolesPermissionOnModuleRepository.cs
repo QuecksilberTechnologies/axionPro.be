@@ -1,18 +1,9 @@
-﻿using Azure;
-using axionpro.application.DTOs.BasicAndRoleBaseMenu;
+﻿using axionpro.application.DTOs.BasicAndRoleBaseMenu;
 using axionpro.application.DTOs.Role;
-using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
-using FluentValidation;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace axionpro.persistance.Repositories
 {

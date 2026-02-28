@@ -14,7 +14,7 @@ namespace axionpro.application.DTOs.Module.NewFolder
             public int ModuleId { get; set; }
             public string ModuleName { get; set; } = string.Empty;
             public string DisplayName { get; set; } = string.Empty;
-        }
+    }
     
 
 }

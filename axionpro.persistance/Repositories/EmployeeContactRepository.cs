@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.PercentageHelper;
 using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Pagination;
@@ -8,10 +7,8 @@ using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
-using Azure.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Drawing.Printing;
 
 namespace axionpro.persistance.Repositories
 {

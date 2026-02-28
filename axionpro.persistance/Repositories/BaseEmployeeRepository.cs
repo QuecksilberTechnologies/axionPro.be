@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Enums;
-using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.PercentageHelper;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
@@ -15,14 +14,8 @@ using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
-using Azure.Core;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
-using System.Diagnostics.Metrics;
-using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
 
 namespace axionpro.persistance.Repositories
 {
