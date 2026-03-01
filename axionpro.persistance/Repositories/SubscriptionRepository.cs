@@ -3,7 +3,7 @@ using axionpro.application.Constants;
 using axionpro.application.DTOs.SubscriptionModule;
 
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -19,13 +19,13 @@ namespace axionpro.persistance.Repositories
 {
     public class SubscriptionRepository : ISubscriptionRepository
     {
-        private readonly WorkforceDbContext? _context;
+        private readonly WorkforcedbContext? _context;
         private readonly ILogger? _logger;
         private readonly IMapper? _mapper;
         
 
 
-        public SubscriptionRepository(WorkforceDbContext context, ILogger<SubscriptionRepository> logger, IMapper mapper)
+        public SubscriptionRepository(WorkforcedbContext context, ILogger<SubscriptionRepository> logger, IMapper mapper)
         {
             _context = context;
             

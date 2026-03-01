@@ -1,29 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class PlanModuleMapping
+
+public partial class Planmodulemapping
 {
     public int Id { get; set; }
 
-    public int SubscriptionPlanId { get; set; }
+    public int Subscriptionplanid { get; set; }
 
-    public int ModuleId { get; set; }
+    public int Moduleid { get; set; }
 
-    public bool? IsActive { get; set; }
+    public bool? Isactive { get; set; }
 
     public string? Remark { get; set; }
 
-    public long? AddedById { get; set; }
+    public long? Addedbyid { get; set; }
 
-    public DateTime? AddedDateTime { get; set; }
+    public DateTime? Addeddatetime { get; set; }
 
-    public long? UpdatedById { get; set; }
+    public long? Updatedbyid { get; set; }
 
-    public DateTime? UpdatedDateTime { get; set; }
-
-    public virtual Module Module { get; set; } = null!;
-
-    public virtual SubscriptionPlan SubscriptionPlan { get; set; } = null!;
+    public DateTime? Updateddatetime { get; set; }
 }

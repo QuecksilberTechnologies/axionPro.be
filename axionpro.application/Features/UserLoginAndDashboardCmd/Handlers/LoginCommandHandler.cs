@@ -27,7 +27,7 @@ using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 
-using axionpro.domain.Entity;
+
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;

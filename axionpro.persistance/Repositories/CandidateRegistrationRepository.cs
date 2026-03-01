@@ -3,7 +3,6 @@ using axionpro.application.DTOs.UserLogin;
 using axionpro.application.Features.UserLoginAndDashboardCmd.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -19,11 +18,11 @@ namespace axionpro.persistance.Repositories
 {
     public class CandidateRegistrationRepository : ICandidateRegistrationRepository
     {
-        private WorkforceDbContext _context;
+        private WorkforcedbContext _context;
         private ILogger _logger;
 
          
-        public CandidateRegistrationRepository(WorkforceDbContext? context, ILogger<CandidateRegistrationRepository>? logger)
+        public CandidateRegistrationRepository(WorkforcedbContext? context, ILogger<CandidateRegistrationRepository>? logger)
         {
             _context = context;
             _logger = logger;
@@ -83,7 +82,7 @@ namespace axionpro.persistance.Repositories
                 var candidate = await _context.Candidates
                     .Where(c =>
                         c.Email == request.Email ||
-                        c.PhoneNumber == request.PhoneNumber ||
+                        c.Phonenumber == request.PhoneNumber ||
                         (c.Pan != null && c.Pan == request.Pan) ||
                         (c.Aadhaar != null && c.Aadhaar == request.Aadhaar))
                     .Select(c => c.Id)
@@ -114,10 +113,10 @@ namespace axionpro.persistance.Repositories
                 // Check if the candidate is blacklisted based on Email, PhoneNumber, PAN, or Aadhaar
                 var isBlacklisted = await _context.Candidates.AnyAsync(c =>
                     (c.Email == request.Email ||
-                     c.PhoneNumber == request.PhoneNumber ||
+                     c.Phonenumber == request.PhoneNumber ||
                      (c.Pan != null && c.Pan == request.Pan) ||
                      (c.Aadhaar != null && c.Aadhaar == request.Aadhaar))
-                    && c.IsBlacklisted);
+                    && c.Isblacklisted);
 
                 return isBlacklisted;
             }
@@ -145,7 +144,7 @@ namespace axionpro.persistance.Repositories
                 // Duplicate check (Blacklist ko ignore karte hue)
                 var isDuplicate = await _context.Candidates.AnyAsync(c =>
                     c.Email == request.Email ||
-                    c.PhoneNumber == request.PhoneNumber ||
+                    c.Phonenumber == request.PhoneNumber ||
                     (c.Pan != null && c.Pan == request.Pan) ||
                     (c.Aadhaar != null && c.Aadhaar == request.Aadhaar)
                 );

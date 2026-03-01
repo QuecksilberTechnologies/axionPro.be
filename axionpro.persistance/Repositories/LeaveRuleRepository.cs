@@ -3,7 +3,7 @@ using axionpro.application.DTOs.Leave;
 using axionpro.application.DTOs.Leave.LeaveRule;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
@@ -17,10 +17,10 @@ namespace axionpro.persistance.Repositories
 {
     public class LeaveRuleRepository : ILeaveRuleRepository
     {
-        private readonly WorkforceDbContext _context;
+        private readonly WorkforcedbContext _context;
         private readonly ILogger<LeaveRuleRepository> _logger;
 
-        public LeaveRuleRepository(WorkforceDbContext context, ILogger<LeaveRuleRepository> logger)
+        public LeaveRuleRepository(WorkforcedbContext context, ILogger<LeaveRuleRepository> logger)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

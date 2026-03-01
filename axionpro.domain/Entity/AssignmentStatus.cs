@@ -1,33 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class AssignmentStatus
+
+public partial class Assignmentstatus
 {
     public int Id { get; set; }
 
-    public string StatusName { get; set; } = null!;
+    public string? Statusname { get; set; }
 
     public string? Description { get; set; }
 
-    public bool? IsActive { get; set; }
+    public bool? Isactive { get; set; }
 
-    public bool IsSoftDeleted { get; set; }
+    public bool Issoftdeleted { get; set; }
 
-    public long AddedById { get; set; }
+    public long Addedbyid { get; set; }
 
-    public DateTime? AddedDateTime { get; set; }
+    public DateTime? Addeddatetime { get; set; }
 
-    public long? UpdatedById { get; set; }
+    public long? Updatedbyid { get; set; }
 
-    public DateTime? UpdatedDateTime { get; set; }
+    public DateTime? Updateddatetime { get; set; }
 
-    public long? SoftDeletedById { get; set; }
+    public long? Softdeletedbyid { get; set; }
 
-    public DateTime? DeletedDateTime { get; set; }
-
-    public virtual ICollection<AssetAssignment> AssetAssignments { get; set; } = new List<AssetAssignment>();
-
-    public virtual ICollection<AssetHistory> AssetHistories { get; set; } = new List<AssetHistory>();
+    public DateTime? Deleteddatetime { get; set; }
 }

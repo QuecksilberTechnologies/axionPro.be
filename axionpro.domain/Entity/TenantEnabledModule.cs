@@ -1,31 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class TenantEnabledModule
+
+public partial class Tenantenabledmodule
 {
     public long Id { get; set; }
 
-    public long TenantId { get; set; }
+    public long Tenantid { get; set; }
 
-    public int? ParentModuleId { get; set; }
+    public int? Parentmoduleid { get; set; }
 
-    public int ModuleId { get; set; }
+    public int Moduleid { get; set; }
 
-    public bool? IsLeafNode { get; set; }
+    public bool? Isleafnode { get; set; }
 
-    public bool IsEnabled { get; set; }
+    public bool Isenabled { get; set; }
 
-    public long? AddedById { get; set; }
+    public long? Addedbyid { get; set; }
 
-    public DateTime? AddedDateTime { get; set; }
+    public DateTime? Addeddatetime { get; set; }
 
-    public long? UpdatedById { get; set; }
+    public long? Updatedbyid { get; set; }
 
-    public DateTime? UpdatedDateTime { get; set; }
-
-    public virtual Module Module { get; set; } = null!;
-    public virtual Tenant Tenant { get; set; } = null!;
-
+    public DateTime? Updateddatetime { get; set; }
 }

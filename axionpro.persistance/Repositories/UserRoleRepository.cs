@@ -1,6 +1,6 @@
 ﻿using axionpro.application.Constants;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
+
  
 using axionpro.persistance.Data.Context;
 using FluentValidation;
@@ -14,10 +14,10 @@ namespace axionpro.persistance.Repositories
 {
     public class UserRoleRepository : IUserRoleRepository
     {
-        private readonly WorkforceDbContext _context;
+        private readonly WorkforcedbContext _context;
         private readonly ILogger<UserRoleRepository>? _logger;
 
-        public UserRoleRepository(WorkforceDbContext context, ILogger<UserRoleRepository>? logger)
+        public UserRoleRepository(WorkforcedbContext context, ILogger<UserRoleRepository>? logger)
         {
             _context = context;
              _logger = logger;

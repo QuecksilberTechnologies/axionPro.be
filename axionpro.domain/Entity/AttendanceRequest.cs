@@ -1,29 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class AttendanceRequest
+
+public partial class Attendancerequest
 {
     public int Id { get; set; }
 
-    public long EmployeeId { get; set; }
+    public long Employeeid { get; set; }
 
-    public DateTime AttendanceDate { get; set; }
+    public DateTime Attendancedate { get; set; }
 
-    public int AttendanceDeviceTypeId { get; set; }
+    public int Attendancedevicetypeid { get; set; }
 
-    public int WorkstationTypeId { get; set; }
+    public int Workstationtypeid { get; set; }
 
     public double? Latitude { get; set; }
 
-    public bool? IsActive { get; set; }
+    public bool? Isactive { get; set; }
 
     public string? Remark { get; set; }
 
     public double? Longitude { get; set; }
 
-    public string? AttendanceImagePath { get; set; }
+    public string? Attendanceimagepath { get; set; }
 
-    public string? AttendanceImageUrl { get; set; }
+    public string? Attendanceimageurl { get; set; }
 }

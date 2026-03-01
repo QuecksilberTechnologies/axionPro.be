@@ -5,7 +5,7 @@ using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -14,14 +14,14 @@ namespace axionpro.persistance.Repositories
 {
     public class InsuranceRepository : IInsuranceRepository
     {
-        private readonly WorkforceDbContext _context;
+        private readonly WorkforcedbContext _context;
         private readonly ILogger<InsuranceRepository> _logger;
 
         public InsuranceRepository(
-            WorkforceDbContext context,
+            WorkforcedbContext context,
             IMapper mapper,
             ILogger<InsuranceRepository> logger,
-            IDbContextFactory<WorkforceDbContext> contextFactory,
+            IDbContextFactory<WorkforcedbContext> contextFactory,
             IPasswordService passwordService,
             IEncryptionService encryptionService)
         {

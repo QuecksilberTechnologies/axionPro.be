@@ -1,33 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
+
 
 public partial class Operation
 {
     public int Id { get; set; }
 
-    public string OperationName { get; set; } = null!;
+    public string? Operationname { get; set; }
 
     public string? Remark { get; set; }
 
-    public int? OperationType { get; set; }
+    public int? Operationtype { get; set; }
 
-    public bool IsActive { get; set; }
+    public bool Isactive { get; set; }
 
-    public long? AddedById { get; set; }
+    public long? Addedbyid { get; set; }
 
-    public DateTime AddedDateTime { get; set; }
+    public DateTime Addeddatetime { get; set; }
 
-    public long? UpdatedById { get; set; }
+    public long? Updatedbyid { get; set; }
 
-    public DateTime? UpdateDateTime { get; set; }
+    public DateTime? Updatedatetime { get; set; }
 
-    public string? IconImage { get; set; }
-
-    public virtual ICollection<ModuleOperationMapping> ModuleOperationMappings { get; set; } = new List<ModuleOperationMapping>();
-
-    public virtual ICollection<RoleModuleAndPermission> RoleModuleAndPermissions { get; set; } = new List<RoleModuleAndPermission>();
-
-    public virtual ICollection<TenantEnabledOperation> TenantEnabledOperations { get; set; } = new List<TenantEnabledOperation>();
+    public string? Iconimage { get; set; }
 }

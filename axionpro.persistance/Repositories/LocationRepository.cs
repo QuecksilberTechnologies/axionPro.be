@@ -4,7 +4,7 @@ using axionpro.application.DTOS.Gender;
 using axionpro.application.DTOS.Location;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -18,12 +18,12 @@ namespace axionpro.persistance.Repositories
 {
     public class LocationRepository : ILocationRepository
     {
-        private readonly WorkforceDbContext _context;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+        private readonly WorkforcedbContext _context;
+        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
         private readonly ILogger<LocationRepository> _logger;
         private readonly IMapper _mapper;
 
-        public LocationRepository(WorkforceDbContext context, ILogger<LocationRepository> logger, IMapper mapper, IDbContextFactory<WorkforceDbContext> contextFactory)
+        public LocationRepository(WorkforcedbContext context, ILogger<LocationRepository> logger, IMapper mapper, IDbContextFactory<WorkforcedbContext> contextFactory)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

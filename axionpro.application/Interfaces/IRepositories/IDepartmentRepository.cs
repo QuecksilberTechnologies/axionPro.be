@@ -4,7 +4,7 @@ using axionpro.application.DTOS.Department;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Features.DepartmentCmd.Handlers;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System;
 using System.Collections.Generic;

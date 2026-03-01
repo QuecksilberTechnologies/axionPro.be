@@ -2,7 +2,7 @@
 using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Employee.Education;
-using axionpro.domain.Entity;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;

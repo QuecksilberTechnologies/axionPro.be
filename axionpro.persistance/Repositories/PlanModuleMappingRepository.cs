@@ -1,7 +1,7 @@
 ﻿using axionpro.application.DTOs.Module;
 using axionpro.application.DTOs.Tenant;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -16,12 +16,12 @@ namespace axionpro.persistance.Repositories
 {
     public class PlanModuleMappingRepository : IPlanModuleMappingRepository
     {
-        private readonly WorkforceDbContext? _context;
+        private readonly WorkforcedbContext? _context;
         private readonly ILogger? _logger;
 
 
 
-        public PlanModuleMappingRepository(WorkforceDbContext context, ILogger<PlanModuleMappingRepository> logger)
+        public PlanModuleMappingRepository(WorkforcedbContext context, ILogger<PlanModuleMappingRepository> logger)
         {
             _context = context;
 

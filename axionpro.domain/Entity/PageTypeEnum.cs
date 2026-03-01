@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class PageTypeEnum
+
+public partial class Pagetypeenum
 {
     public int Id { get; set; }
 
-    public string? PageTypeName { get; set; }
-
-    public virtual ICollection<ModuleOperationMapping> ModuleOperationMappings { get; set; } = new List<ModuleOperationMapping>();
+    public string? Pagetypename { get; set; }
 }

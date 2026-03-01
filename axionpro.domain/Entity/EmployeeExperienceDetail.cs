@@ -1,143 +1,151 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class EmployeeExperienceDetail
+
+public partial class Employeeexperiencedetail
 {
- 
-        // ---------------------------------------------------------
-        // 🔹 Basic Identifiers
-        // ---------------------------------------------------------
-        public long Id { get; set; }
-        public long EmployeeId { get; set; }
-        public long? EmployeeExperienceId { get; set; }
+    public long Id { get; set; }
 
-        // ---------------------------------------------------------
-        // 🔹 Employment Information
-        // ---------------------------------------------------------
-        public string? CompanyName { get; set; }
-        public string? Designation { get; set; }
-        public string? EmployeeIdOfCompany { get; set; }
-        public bool IsInfoLatestYear { get; set; }
-        public int Experience { get; set; }
-        public bool IsWFH { get; set; }
+    public long Employeeid { get; set; }
 
-        // ---------------------------------------------------------
-        // 🔹 Employment Duration
-        // ---------------------------------------------------------
-        public DateTime? StartDate { get; set; }
-        public DateTime? EndDate { get; set; }
-        public string? ReasonForLeaving { get; set; }
-        public string? Remark { get; set; }
+    public string? Companyname { get; set; }
 
-        // ---------------------------------------------------------
-        // 🔹 Colleague & Reporting Manager Info
-        // ---------------------------------------------------------
-        public string? ColleagueName { get; set; }
-        public string? ColleagueDesignation { get; set; }
-        public string? ColleagueContactNumber { get; set; }
-        public string? ReportingManagerName { get; set; }
-        public string? ReportingManagerNumber { get; set; }
-        public string? VerificationEmail { get; set; }
+    public bool Isinfolatestyear { get; set; }
 
-        // ---------------------------------------------------------
-        // 🔹 Gap Details
-        // ---------------------------------------------------------
-        public bool IsAnyGap { get; set; }
-        public string? ReasonOfGap { get; set; }
-        public DateTime? GapYearFrom { get; set; }
-        public DateTime? GapYearTo { get; set; }
-        public bool HasUploadedGapCertificate { get; set; }
-        public string? GapCertificateDocName { get; set; }
-        public string? GapCertificateDocPath { get; set; }
+    public int Experience { get; set; }
 
-        // ---------------------------------------------------------
-        // 🔹 Location (Local or Foreign)
-        // ---------------------------------------------------------
-        public int WorkingCountryId { get; set; }
-        public int WorkingStateId { get; set; }
-        public int WorkingDistrictId { get; set; }
-        public bool IsForeignExperience { get; set; }
+    public bool Isanygap { get; set; }
 
-        // ---------------------------------------------------------
-        // 🔹 Taxation / Finance Documents
-        // ---------------------------------------------------------
-        public bool HasTaxationDoc { get; set; }
-        public bool HasUploadedTaxationDoc { get; set; }
-        public string? TaxationDocFileName { get; set; }
-        public string? TaxationDocFilePath { get; set; }
-        public bool? HasBankStatementUploaded { get; set; }
-        public string? BankStatementDocName { get; set; }
-        public string? BankStatementDocPath { get; set; }
+    public string? Reasonofgap { get; set; }
 
-        // ---------------------------------------------------------
-        // 🔹 Experience Proof Documents
-        // ---------------------------------------------------------
-        public bool HasUploadedExperienceLetter { get; set; }
-        public string? ExperienceLetterDocName { get; set; }
-        public string? ExperienceLetterDocPath { get; set; }
+    public DateTime? Gapyearfrom { get; set; }
 
-        public bool HasUploadedJoiningLetter { get; set; }
-        public string? JoiningLetterDocName { get; set; }
-        public string? JoiningLetterDocPath { get; set; }
+    public DateTime? Gapyearto { get; set; }
 
-        // ---------------------------------------------------------
-        // 🔹 Foreign Experience Documents
-        // ---------------------------------------------------------
-        public string? VisaType { get; set; }
-        public string? WorkPermitNumber { get; set; }
+    public bool Hasuploadedgapcertificate { get; set; }
 
-        public string? VisaDocName { get; set; }
-        public string? VisaDocPath { get; set; }
+    public string? Gapcertificatedocname { get; set; }
 
-        public string? WorkPermitDocName { get; set; }
-        public string? WorkPermitDocPath { get; set; }
+    public string? Gapcertificatedocpath { get; set; }
 
-        public string? ImmigrationStampDocName { get; set; }
-        public string? ImmigrationStampDocPath { get; set; }
+    public bool Hasuploadedbankstatement { get; set; }
 
-        public string? ForeignContractDocName { get; set; }
-        public string? ForeignContractDocPath { get; set; }
+    public bool Iswfh { get; set; }
 
-        public bool? HasVisaUploaded { get; set; }
-        public bool? HasWorkPermitUploaded { get; set; }
-        public bool? HasImmigrationStampUploaded { get; set; }
-        public bool? HasForeignContractUploaded { get; set; }
+    public int? Workingcountryid { get; set; }
 
-        // ---------------------------------------------------------
-        // 🔹 Verification Info
-        // ---------------------------------------------------------
-        public bool? IsExperienceVerified { get; set; }
-        public bool? IsExperienceVerifiedByMail { get; set; }
-        public bool? IsExperienceVerifiedByCall { get; set; }
-        public long? InfoVerifiedById { get; set; }
-        public DateTime? InfoVerifiedDateTime { get; set; }
-        public bool? IsInfoVerified { get; set; }
-        public bool? IsEditAllowed { get; set; }
+    public int? Workingstateid { get; set; }
 
-        // ---------------------------------------------------------
-        // 🔹 System Fields (Audit)
-        // ---------------------------------------------------------
-        public bool IsActive { get; set; }
-        public bool? IsSoftDeleted { get; set; }
-        public long? SoftDeletedById { get; set; }
+    public int? Workingdistrictid { get; set; }
 
-        public long AddedById { get; set; }
-        public long? UpdatedById { get; set; }
+    public bool Hastaxationdoc { get; set; }
 
-        public DateTime AddedDateTime { get; set; }
-        public DateTime? UpdatedDateTime { get; set; }
+    public bool Hasuploadedtaxationdoc { get; set; }
 
-        // ---------------------------------------------------------
-        // 🔹 Navigation Properties
-        // ---------------------------------------------------------
-        public virtual Employee Employee { get; set; } = null!;
-        public virtual EmployeeExperience? EmployeeExperience { get; set; }
-        public virtual ICollection<EmployeeExperiencePayslipUpload> EmployeeExperiencePayslipUploads { get; set; }
-            = new List<EmployeeExperiencePayslipUpload>();
-    }
+    public string? Taxationdocfilename { get; set; }
 
- 
+    public string? Taxationdocfilepath { get; set; }
 
+    public bool Hasuploadedexperienceletter { get; set; }
 
+    public string? Experienceletterdocname { get; set; }
+
+    public string? Experienceletterdocpath { get; set; }
+
+    public bool Hasuploadedjoiningletter { get; set; }
+
+    public string? Joiningletterdocname { get; set; }
+
+    public string? Joiningletterdocpath { get; set; }
+
+    public string? Employeeidofcompany { get; set; }
+
+    public string? Colleaguename { get; set; }
+
+    public string? Colleaguedesignation { get; set; }
+
+    public string? Colleaguecontactnumber { get; set; }
+
+    public string? Reportingmanagername { get; set; }
+
+    public string? Reportingmanagernumber { get; set; }
+
+    public string? Verificationemail { get; set; }
+
+    public string? Reasonforleaving { get; set; }
+
+    public string? Remark { get; set; }
+
+    public string? Designation { get; set; }
+
+    public DateTime? Startdate { get; set; }
+
+    public DateTime? Enddate { get; set; }
+
+    public bool? Isexperienceverified { get; set; }
+
+    public bool? Isexperienceverifiedbymail { get; set; }
+
+    public bool? Isexperienceverifiedbycall { get; set; }
+
+    public long? Infoverifiedbyid { get; set; }
+
+    public bool? Iseditallowed { get; set; }
+
+    public DateTime? Infoverifieddatetime { get; set; }
+
+    public bool? Isinfoverified { get; set; }
+
+    public bool Isactive { get; set; }
+
+    public bool? Issoftdeleted { get; set; }
+
+    public long? Softdeletedbyid { get; set; }
+
+    public long Addedbyid { get; set; }
+
+    public long? Updatedbyid { get; set; }
+
+    public DateTime Addeddatetime { get; set; }
+
+    public DateTime? Updateddatetime { get; set; }
+
+    public bool? Hasbankstatementuploaded { get; set; }
+
+    public string? Bankstatementdocname { get; set; }
+
+    public string? Bankstatementdocpath { get; set; }
+
+    public long? Employeeexperienceid { get; set; }
+
+    public bool Isforeignexperience { get; set; }
+
+    public string? Visatype { get; set; }
+
+    public string? Workpermitnumber { get; set; }
+
+    public string? Visadocname { get; set; }
+
+    public string? Visadocpath { get; set; }
+
+    public string? Workpermitdocname { get; set; }
+
+    public string? Workpermitdocpath { get; set; }
+
+    public string? Immigrationstampdocname { get; set; }
+
+    public string? Immigrationstampdocpath { get; set; }
+
+    public string? Foreigncontractdocname { get; set; }
+
+    public string? Foreigncontractdocpath { get; set; }
+
+    public bool? Hasvisauploaded { get; set; }
+
+    public bool? Hasworkpermituploaded { get; set; }
+
+    public bool? Hasimmigrationstampuploaded { get; set; }
+
+    public bool? Hasforeigncontractuploaded { get; set; }
+}

@@ -1,37 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class TenderProject
+
+public partial class Tenderproject
 {
     public int Id { get; set; }
 
-    public int TenderServiceProviderId { get; set; }
+    public int Tenderserviceproviderid { get; set; }
 
-    public string ProjectName { get; set; } = null!;
+    public string? Projectname { get; set; }
 
     public string? Description { get; set; }
 
     public string? Remark { get; set; }
 
-    public long UserRoleId { get; set; }
+    public long Userroleid { get; set; }
 
-    public int StatusId { get; set; }
+    public int Statusid { get; set; }
 
-    public DateTime? StartDate { get; set; }
+    public DateTime? Startdate { get; set; }
 
-    public DateTime? EndDate { get; set; }
+    public DateTime? Enddate { get; set; }
 
-    public decimal? EstimatedBudget { get; set; }
+    public decimal? Estimatedbudget { get; set; }
 
-    public bool? IsActive { get; set; }
+    public bool? Isactive { get; set; }
 
-    public int? ExpectedTeamSize { get; set; }
-
-    public virtual TenderStatus Status { get; set; } = null!;
-
-    public virtual TenderServiceProvider TenderServiceProvider { get; set; } = null!;
-
-    public virtual UserRole UserRole { get; set; } = null!;
+    public int? Expectedteamsize { get; set; }
 }

@@ -1,6 +1,6 @@
 ﻿using axionpro.application.DTOs.PolicyType;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using MediatR;
 using System.Collections.Generic;
 using System.Threading.Tasks;

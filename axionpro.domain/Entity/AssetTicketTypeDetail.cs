@@ -1,37 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class AssetTicketTypeDetail
+
+public partial class Assettickettypedetail
 {
     public long Id { get; set; }
 
-    public long TicketTypeId { get; set; }
+    public long Tickettypeid { get; set; }
 
-    public int AssetTypeId { get; set; }
+    public int Assettypeid { get; set; }
 
-    public int ResponsibleRoleId { get; set; }
+    public int Responsibleroleid { get; set; }
 
-    public bool IsActive { get; set; }
+    public bool Isactive { get; set; }
 
-    public bool IsSoftDeleted { get; set; }
+    public bool Issoftdeleted { get; set; }
 
-    public long? AddedById { get; set; }
+    public long? Addedbyid { get; set; }
 
-    public DateTime AddedDateTime { get; set; }
+    public DateTime Addeddatetime { get; set; }
 
-    public long? UpdatedById { get; set; }
+    public long? Updatedbyid { get; set; }
 
-    public DateTime? UpdatedDateTime { get; set; }
+    public DateTime? Updateddatetime { get; set; }
 
-    public long? SoftDeletedById { get; set; }
+    public long? Softdeletedbyid { get; set; }
 
-    public DateTime? SoftDeletedTime { get; set; }
-
-    public virtual AssetType AssetType { get; set; } = null!;
-
-    public virtual Role ResponsibleRole { get; set; } = null!;
-
-    public virtual TicketType TicketType { get; set; } = null!;
+    public DateTime? Softdeletedtime { get; set; }
 }

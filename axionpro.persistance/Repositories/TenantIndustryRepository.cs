@@ -1,5 +1,5 @@
 ﻿using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -13,9 +13,9 @@ namespace axionpro.persistance.Repositories
 {
     public class TenantIndustryRepository: ITenantIndustryRepository
     {
-        private readonly WorkforceDbContext _context;
+        private readonly WorkforcedbContext _context;
         private ILogger<TenantIndustryRepository> _logger;
-        public TenantIndustryRepository(WorkforceDbContext context, ILogger<TenantIndustryRepository> logger)
+        public TenantIndustryRepository(WorkforcedbContext context, ILogger<TenantIndustryRepository> logger)
         {
             this._context = context;
             this._logger = logger;

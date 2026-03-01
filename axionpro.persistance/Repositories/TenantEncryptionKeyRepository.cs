@@ -2,7 +2,7 @@
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces.IContext;
-using axionpro.domain.Entity;
+
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
@@ -14,16 +14,16 @@ namespace axionpro.persistance.Repositories
 
     public class TenantEncryptionKeyRepository : ITenantEncryptionKeyRepository
     {
-        private readonly WorkforceDbContext _context;
+        private readonly WorkforcedbContext _context;
         private readonly IMapper _mapper;
         private readonly ILogger<TenantEncryptionKeyRepository> _logger;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
 
         public TenantEncryptionKeyRepository(
-            WorkforceDbContext context,
+            WorkforcedbContext context,
             IMapper mapper,
             ILogger<TenantEncryptionKeyRepository> logger,
-            IDbContextFactory<WorkforceDbContext> contextFactory)
+            IDbContextFactory<WorkforcedbContext> contextFactory)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));

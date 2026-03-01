@@ -1,5 +1,5 @@
 ﻿using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.Extensions.Logging;
 using System;
@@ -12,11 +12,11 @@ namespace axionpro.persistance.Repositories
 {
     public class CandidateCategorySkillRepository : ICandidateCategorySkillRepository
     {
-        private WorkforceDbContext _context;
+        private WorkforcedbContext _context;
         private ILogger _logger;
 
 
-        public CandidateCategorySkillRepository(WorkforceDbContext context, ILogger<CandidateCategorySkillRepository> logger)
+        public CandidateCategorySkillRepository(WorkforcedbContext context, ILogger<CandidateCategorySkillRepository> logger)
         {
             this._context = context;
             this._logger = logger;

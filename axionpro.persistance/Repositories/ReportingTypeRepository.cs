@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using axionpro.application.DTOs.Manager.ReportingType;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
+
  
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
@@ -16,16 +16,16 @@ namespace axionpro.persistance.Repositories
     public class ReportingTypeRepository : IReportingTypeRepository
     {
         #region Fields
-        private readonly WorkforceDbContext _context;
+        private readonly WorkforcedbContext _context;
         private readonly ILogger<ReportingTypeRepository> _logger;
         private readonly IMapper _mapper;
-        private readonly IDbContextFactory<WorkforceDbContext>  _contextFactory;
+        private readonly IDbContextFactory<WorkforcedbContext>  _contextFactory;
         #endregion
 
 
 
         #region Constructor
-        public ReportingTypeRepository(WorkforceDbContext context, ILogger<ReportingTypeRepository> logger, IMapper mapper, IDbContextFactory<WorkforceDbContext> contextFactory)
+        public ReportingTypeRepository(WorkforcedbContext context, ILogger<ReportingTypeRepository> logger, IMapper mapper, IDbContextFactory<WorkforcedbContext> contextFactory)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

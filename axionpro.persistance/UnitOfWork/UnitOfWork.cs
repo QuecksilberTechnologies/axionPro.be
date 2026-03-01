@@ -27,9 +27,9 @@ public class UnitOfWork : IUnitOfWork
 
 
 
-    private readonly WorkforceDbContext _context;
+    private readonly WorkforcedbContext _context;
 
-    private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+    private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
     private readonly IQRService _qrService;
 
     private readonly IMapper _mapper;
@@ -111,17 +111,17 @@ public class UnitOfWork : IUnitOfWork
 
 
 
-    //public UnitOfWork(WorkforceDbContext context, IMapper mapper, ILoggerFactory loggerFactory)
+    //public UnitOfWork(WorkforcedbContext context, IMapper mapper, ILoggerFactory loggerFactory)
     //{
     //    _context = context;
     //   // _mapper = mapper;
     //    _loggerFactory = loggerFactory;
     //}
     public UnitOfWork(
-        WorkforceDbContext context,
+        WorkforcedbContext context,
         ILoggerFactory loggerFactory,
         IQRService qrService,
-        IFileStorageService fileStorageService, IMapper mapper, IDbContextFactory<WorkforceDbContext> dbContextFactory, 
+        IFileStorageService fileStorageService, IMapper mapper, IDbContextFactory<WorkforcedbContext> dbContextFactory, 
         IPasswordService passwordService, IConfiguration configuration,IPasswordService password , IPermissionService permissionService, ICacheService cacheService,
         IEncryptionService encryptionService, IIdEncoderService idEncoderService)
     {

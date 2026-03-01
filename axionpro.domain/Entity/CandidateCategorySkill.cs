@@ -1,23 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class CandidateCategorySkill
+
+public partial class Candidatecategoryskill
 {
     public int Id { get; set; }
 
-    public long CandidateId { get; set; }
+    public long Candidateid { get; set; }
 
-    public int CategoryId { get; set; }
+    public int Categoryid { get; set; }
 
     public string? Description { get; set; }
 
-    public DateTime AddedDateTime { get; set; }
+    public DateTime Addeddatetime { get; set; }
 
-    public bool IsActive { get; set; }
-
-    public virtual Candidate Candidate { get; set; } = null!;
-
-    public virtual Category Category { get; set; } = null!;
+    public bool Isactive { get; set; }
 }

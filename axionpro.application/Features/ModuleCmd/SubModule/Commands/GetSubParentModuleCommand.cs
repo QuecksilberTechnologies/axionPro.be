@@ -3,7 +3,7 @@ using axionpro.application.DTOs.Module.NewFolder;
 using axionpro.application.DTOS.Module.ManualModule;
 using axionpro.application.DTOS.Module.ParentModule;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using MediatR;
 using System;
 using System.Collections.Generic;

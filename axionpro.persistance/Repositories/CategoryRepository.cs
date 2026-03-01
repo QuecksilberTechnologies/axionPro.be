@@ -1,6 +1,6 @@
 ﻿using axionpro.application.DTOs.Category;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -14,11 +14,11 @@ namespace axionpro.persistance.Repositories
 {
     public class CategoryRepository : ICategoryRepository
     {
-        private WorkforceDbContext _context;
+        private WorkforcedbContext _context;
         private ILogger _logger;
 
 
-        public CategoryRepository(WorkforceDbContext context, ILogger<CategoryRepository> logger)
+        public CategoryRepository(WorkforcedbContext context, ILogger<CategoryRepository> logger)
         {
             this._context = context;
             this._logger = logger;
@@ -30,7 +30,7 @@ namespace axionpro.persistance.Repositories
                 _logger.LogInformation("Fetching all main categories where ParentCategoryId is NULL.");
 
                 var mainCategories = await _context.Categories
-                    .Where(c => c.ParentId == null && c.IsActive)// Using AutoMapper projection
+                    .Where(c => c.Parentid == null && c.Isactive)// Using AutoMapper projection
                     .ToListAsync();
 
                 return mainCategories;
@@ -114,7 +114,7 @@ namespace axionpro.persistance.Repositories
             try
             {
                 _logger.LogInformation("Fetching categories based on request conditions.");
-                var mainCategories = await _context.Categories.Where(c => c.ParentId == categoryParentId && c.IsActive).ToListAsync();
+                var mainCategories = await _context.Categories.Where(c => c.Parentid == categoryParentId && c.Isactive).ToListAsync();
 
                 _logger.LogInformation("Filtering by ParentCategoryId: {ParentCategoryId}", categoryParentId);
                 

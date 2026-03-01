@@ -1,27 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class TenantEmailConfig
+
+public partial class Tenantemailconfig
 {
     public int Id { get; set; }
 
-    public long TenantId { get; set; }
+    public long Tenantid { get; set; }
 
-    public string? SmtpHost { get; set; }
+    public string? Smtphost { get; set; }
 
-    public int? SmtpPort { get; set; }
+    public int? Smtpport { get; set; }
 
-    public string? SmtpUsername { get; set; }
+    public string? Smtpusername { get; set; }
 
-    public string? SmtpPasswordEncrypted { get; set; }
+    public string? Smtppasswordencrypted { get; set; }
 
-    public string? FromEmail { get; set; }
+    public string? Fromemail { get; set; }
 
-    public string? FromName { get; set; }
+    public string? Fromname { get; set; }
 
-    public bool IsActive { get; set; }
-
-    public virtual Tenant Tenant { get; set; } = null!;
+    public bool Isactive { get; set; }
 }

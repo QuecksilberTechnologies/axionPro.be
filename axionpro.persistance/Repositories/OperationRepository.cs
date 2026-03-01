@@ -1,5 +1,5 @@
 ﻿using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -13,10 +13,10 @@ namespace axionpro.persistance.Repositories
 {
     public class OperationRepository : IOperationRepository
     {
-        private readonly WorkforceDbContext _context;
+        private readonly WorkforcedbContext _context;
         private readonly ILogger<OperationRepository> _logger;
 
-        public OperationRepository(WorkforceDbContext context, ILogger<OperationRepository> logger)
+        public OperationRepository(WorkforcedbContext context, ILogger<OperationRepository> logger)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

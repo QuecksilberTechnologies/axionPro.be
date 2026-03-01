@@ -10,7 +10,7 @@ using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

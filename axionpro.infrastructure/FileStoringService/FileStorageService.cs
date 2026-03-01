@@ -1,5 +1,5 @@
 ﻿using axionpro.application.Interfaces.IFileStorage;
-using axionpro.domain.Entity;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using System;

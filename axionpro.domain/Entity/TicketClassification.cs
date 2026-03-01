@@ -1,35 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class TicketClassification
+
+public partial class Ticketclassification
 {
     public int Id { get; set; }
 
-    public long? TenantId { get; set; }
+    public long? Tenantid { get; set; }
 
-    public string ClassificationName { get; set; } = null!;
+    public string? Classificationname { get; set; }
 
     public string? Description { get; set; }
 
-    public bool IsActive { get; set; }
+    public bool Isactive { get; set; }
 
-    public bool IsSoftDeleted { get; set; }
+    public bool Issoftdeleted { get; set; }
 
-    public long? AddedById { get; set; }
+    public long? Addedbyid { get; set; }
 
-    public DateTime? AddedDateTime { get; set; }
+    public DateTime? Addeddatetime { get; set; }
 
-    public long? UpdatedById { get; set; }
+    public long? Updatedbyid { get; set; }
 
-    public DateTime? UpdatedDateTime { get; set; }
+    public DateTime? Updateddatetime { get; set; }
 
-    public long? SoftDeletedById { get; set; }
+    public long? Softdeletedbyid { get; set; }
 
-    public DateTime? SoftDeletedTime { get; set; }
-
-    public virtual Tenant? Tenant { get; set; }
-
-    public virtual ICollection<TicketHeader> TicketHeaders { get; set; } = new List<TicketHeader>();
+    public DateTime? Softdeletedtime { get; set; }
 }

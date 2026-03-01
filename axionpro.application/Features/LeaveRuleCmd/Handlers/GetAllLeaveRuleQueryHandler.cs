@@ -3,7 +3,7 @@ using axionpro.application.DTOs.Leave.LeaveRule;
 using axionpro.application.Features.LeaveRuleCmd.Queries;
 using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System;

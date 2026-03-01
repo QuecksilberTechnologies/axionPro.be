@@ -1,46 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
+
 
 public partial class Role
 {
     public int Id { get; set; }
 
-    public long? TenantId { get; set; }  
+    public long? Tenantid { get; set; }
 
-    public string? RoleName { get; set; }
+    public string? Rolename { get; set; }
 
-    public int RoleType { get; set; }
+    public int? Roletype { get; set; }
 
     public string? Remark { get; set; }
 
-    public bool IsActive { get; set; }
+    public bool Isactive { get; set; }
 
-    public bool? IsSystemDefault { get; set; }
+    public bool? Issystemdefault { get; set; }
 
-    public bool? IsSoftDeleted { get; set; }
+    public bool? Issoftdeleted { get; set; }
 
-    public long? AddedById { get; set; }
+    public long Addedbyid { get; set; }
 
-    public DateTime AddedDateTime { get; set; }
+    public DateTime Addeddatetime { get; set; }
 
-    public long? UpdatedById { get; set; }
+    public long? Updatedbyid { get; set; }
 
-    public DateTime? UpdatedDateTime { get; set; }
+    public DateTime? Updateddatetime { get; set; }
 
-    public long? SoftDeletedById { get; set; }
+    public long? Softdeletedbyid { get; set; }
 
-    public DateTime? DeletedDateTime { get; set; }
-
-    public virtual ICollection<AssetTicketTypeDetail> AssetTicketTypeDetails { get; set; } = new List<AssetTicketTypeDetail>();
-
-  
-    public virtual ICollection<RoleModuleAndPermission> RoleModuleAndPermissions { get; set; } = new List<RoleModuleAndPermission>();
-
-    public virtual Tenant? Tenant { get; set; }
-
-    public virtual ICollection<TicketType> TicketTypes { get; set; } = new List<TicketType>();
-
-    public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+    public DateTime? Deleteddatetime { get; set; }
 }

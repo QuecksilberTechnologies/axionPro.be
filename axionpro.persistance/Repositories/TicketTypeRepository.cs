@@ -4,7 +4,7 @@ using axionpro.application.DTOs.Leave;
 using axionpro.application.DTOS.TicketDTO.TicketType;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
@@ -21,16 +21,16 @@ namespace axionpro.persistance.Repositories
     public class TicketTypeRepository : ITicketTypeRepository
     {
         #region Fields
-        private readonly WorkforceDbContext _context;
+        private readonly WorkforcedbContext _context;
         private readonly ILogger<TicketTypeRepository> _logger;
         private readonly IMapper _mapper;
-        private IDbContextFactory<WorkforceDbContext> _contextFactory;
+        private IDbContextFactory<WorkforcedbContext> _contextFactory;
         #endregion
 
 
 
         #region Constructor
-        public TicketTypeRepository(WorkforceDbContext context, ILogger<TicketTypeRepository> logger, IMapper mapper, IDbContextFactory<WorkforceDbContext> contextFactory
+        public TicketTypeRepository(WorkforcedbContext context, ILogger<TicketTypeRepository> logger, IMapper mapper, IDbContextFactory<WorkforcedbContext> contextFactory
             )
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));

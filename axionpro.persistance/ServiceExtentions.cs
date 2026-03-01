@@ -3,7 +3,7 @@ using axionpro.application.Interfaces.ICacheService;
 using axionpro.application.Interfaces.IContext;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces.ITokenService;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using axionpro.persistance.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -24,22 +24,24 @@ namespace axionpro.persistance
                 throw new Exception("Connection String is null or empty!");
 
             // ✅ Register DbContextFactory for safe multi-threading
-            services.AddDbContextFactory<WorkforceDbContext>(options =>
+            services.AddDbContextFactory<WorkforcedbContext>(options =>
                 options.UseNpgsql(connectionString)
                        .EnableSensitiveDataLogging()
                        .EnableDetailedErrors()
                        .LogTo(Console.WriteLine, LogLevel.Information));
 
             // ✅ Register DbContext (for direct injection)
-            services.AddDbContext<WorkforceDbContext>(options =>
+            services.AddDbContext<WorkforcedbContext>(options =>
                 options.UseNpgsql(connectionString)
                        .EnableSensitiveDataLogging()
                        .EnableDetailedErrors()
                        .LogTo(Console.WriteLine, LogLevel.Information));
 
-            // ✅ Register IWorkforceDbContext (Interface based usage)
-            services.AddScoped<IWorkforceDbContext>(provider =>
-                provider.GetRequiredService<WorkforceDbContext>());
+
+
+            // ✅ Register IWorkforcedbContext (Interface based usage)
+            services.AddScoped<IWorkforcedbContext>(provider =>
+                (IWorkforcedbContext)provider.GetRequiredService<WorkforcedbContext>());
 
             // ✅ Unit of Work
             services.AddScoped<IUnitOfWork, UnitOfWork>();

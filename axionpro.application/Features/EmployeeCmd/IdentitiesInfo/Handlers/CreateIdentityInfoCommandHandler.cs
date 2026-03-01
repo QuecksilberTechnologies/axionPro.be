@@ -15,7 +15,7 @@ using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;

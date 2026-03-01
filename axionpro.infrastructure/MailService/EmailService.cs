@@ -19,11 +19,11 @@ namespace axionpro.infrastructure.MailService
         private readonly ITenantEmailConfigRepository _configRepo;
         private readonly IEmailTemplateRepository _templateRepo;
         private readonly ILogger<EmailService> _logger;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
         public EmailService(
             ITenantEmailConfigRepository configRepo,
             IEmailTemplateRepository templateRepo,
-            ILogger<EmailService> logger, IDbContextFactory<WorkforceDbContext> contextFactory)
+            ILogger<EmailService> logger, IDbContextFactory<WorkforcedbContext> contextFactory)
         {
             _configRepo = configRepo;
             _templateRepo = templateRepo;

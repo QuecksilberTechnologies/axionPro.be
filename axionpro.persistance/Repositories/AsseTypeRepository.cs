@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using axionpro.application.DTOS.AssetDTO.type;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -15,16 +15,16 @@ namespace axionpro.persistance.Repositories
 
     public class AssetTypeRepository : IAssetTypeRepository
     {
-        private readonly WorkforceDbContext _context;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+        private readonly WorkforcedbContext _context;
+        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
         private readonly IMapper _mapper;
         private readonly ILogger<AssetTypeRepository> _logger;
 
         public AssetTypeRepository(
-            WorkforceDbContext context,
+            WorkforcedbContext context,
             ILogger<AssetTypeRepository> logger,
             IMapper mapper,
-            IDbContextFactory<WorkforceDbContext> contextFactory)
+            IDbContextFactory<WorkforcedbContext> contextFactory)
         {
             _context = context;
             _logger = logger;

@@ -1,23 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class CandidateHistory
+
+public partial class Candidatehistory
 {
     public long Id { get; set; }
 
-    public long CandidateId { get; set; }
+    public long Candidateid { get; set; }
 
-    public string Status { get; set; } = null!;
+    public string? Status { get; set; }
 
     public string Reason { get; set; } = null!;
 
-    public long AddedById { get; set; }
+    public long Addedbyid { get; set; }
 
-    public DateTime? ReapplyAllowedAfter { get; set; }
+    public DateTime? Reapplyallowedafter { get; set; }
 
-    public DateTime CreatedDateTime { get; set; }
-
-    public virtual Candidate Candidate { get; set; } = null!;
+    public DateTime Createddatetime { get; set; }
 }

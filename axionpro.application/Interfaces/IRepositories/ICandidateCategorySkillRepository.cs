@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.Interfaces.IRepositories
 {
-    using axionpro.domain.Entity;
+    
     using System.Collections.Generic;
     using System.Threading.Tasks;
 

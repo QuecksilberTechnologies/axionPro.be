@@ -1,6 +1,0 @@
-﻿namespace axionpro.domain.Entity
-{
-
-    
-
-}

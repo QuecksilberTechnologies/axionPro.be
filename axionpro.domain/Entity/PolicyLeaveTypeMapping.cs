@@ -1,71 +1,63 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class PolicyLeaveTypeMapping
+
+public partial class Policyleavetypemapping
 {
     public long Id { get; set; }
 
-    public int PolicyTypeId { get; set; }
+    public int Policytypeid { get; set; }
 
-    public int LeaveTypeId { get; set; }
+    public int Leavetypeid { get; set; }
 
-    public long TenantId { get; set; }
+    public long? Tenantid { get; set; }
 
-    public int EmployeeTypeId { get; set; }
+    public int? Employeetypeid { get; set; }
 
-    public int? ApplicableGenderId { get; set; }
+    public int? Applicablegenderid { get; set; }
 
-    public bool? IsMarriedApplicable { get; set; }
+    public bool? Ismarriedapplicable { get; set; }
 
-    public bool? IsEmployeeMapped { get; set; }
+    public bool? Isemployeemapped { get; set; }
 
-    public int TotalLeavesPerYear { get; set; }
+    public int Totalleavesperyear { get; set; }
 
-    public bool MonthlyAccrual { get; set; }
+    public bool Monthlyaccrual { get; set; }
 
-    public bool CarryForward { get; set; }
+    public bool Carryforward { get; set; }
 
-    public int? MaxCarryForward { get; set; }
+    public int? Maxcarryforward { get; set; }
 
-    public int? CarryForwardExpiryMonths { get; set; }
+    public int? Carryforwardexpirymonths { get; set; }
 
     public bool Encashable { get; set; }
 
-    public int? MaxEncashable { get; set; }
+    public int? Maxencashable { get; set; }
 
-    public bool IsProofRequired { get; set; }
+    public bool Isproofrequired { get; set; }
 
-    public string? ProofDocumentType { get; set; }
+    public string? Proofdocumenttype { get; set; }
 
-    public DateTime EffectiveFrom { get; set; }
+    public DateTime Effectivefrom { get; set; }
 
-    public DateTime? EffectiveTo { get; set; }
+    public DateTime? Effectiveto { get; set; }
 
-    public bool IsActive { get; set; }
+    public bool Isactive { get; set; }
 
     public string? Remark { get; set; }
 
-    public long AddedById { get; set; }
+    public long Addedbyid { get; set; }
 
-    public DateTime AddedDateTime { get; set; }
+    public DateTime Addeddatetime { get; set; }
 
-    public long? UpdatedById { get; set; }
+    public long? Updatedbyid { get; set; }
 
-    public DateTime? UpdatedDateTime { get; set; }
+    public DateTime? Updateddatetime { get; set; }
 
-    public bool? IsSoftDeleted { get; set; }
+    public bool? Issoftdeleted { get; set; }
 
-    public DateTime? SoftDeleteDateTime { get; set; }
+    public DateTime? Softdeletedatetime { get; set; }
 
-    public long? SoftDeleteById { get; set; }
-
-    public virtual Gender? ApplicableGender { get; set; }
-
-    public virtual ICollection<EmployeeLeavePolicyMapping> EmployeeLeavePolicyMappings { get; set; } = new List<EmployeeLeavePolicyMapping>();
-
-    public virtual ICollection<LeaveRequest> LeaveRequests { get; set; } = new List<LeaveRequest>();
-
-    public virtual ICollection<LeaveRule> LeaveRules { get; set; } = new List<LeaveRule>();
+    public long? Softdeletebyid { get; set; }
 }

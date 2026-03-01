@@ -1,5 +1,5 @@
 ﻿using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -13,10 +13,10 @@ namespace axionpro.persistance.Repositories
 {
     public class TenantEmailConfigRepository : ITenantEmailConfigRepository
     {
-        private readonly WorkforceDbContext _context;
+        private readonly WorkforcedbContext _context;
         private readonly ILogger<TenantEmailConfigRepository> _logger;
 
-        public TenantEmailConfigRepository(WorkforceDbContext context, ILogger<TenantEmailConfigRepository> logger)
+        public TenantEmailConfigRepository(WorkforcedbContext context, ILogger<TenantEmailConfigRepository> logger)
         {
             _context = context;
             _logger = logger;

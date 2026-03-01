@@ -52,7 +52,7 @@ using axionpro.application.DTOS.TicketDTO.Header;
 using axionpro.application.DTOS.TicketDTO.TicketType;
 using axionpro.application.Features.TicketFeatures.Classification.Commands;
 using axionpro.application.Interfaces.IEncryptionService;
-using axionpro.domain.Entity;
+
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Options;

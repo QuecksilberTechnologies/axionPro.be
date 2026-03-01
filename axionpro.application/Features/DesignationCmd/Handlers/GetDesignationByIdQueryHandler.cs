@@ -3,7 +3,7 @@ using axionpro.application.DTOs.Designation;
 using axionpro.application.DTOS.Designation;
 using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using MediatR;
 using Microsoft.Extensions.Logging;
 

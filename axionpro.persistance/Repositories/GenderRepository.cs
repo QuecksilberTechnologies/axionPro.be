@@ -4,7 +4,7 @@ using axionpro.application.DTOS.Department;
 using axionpro.application.DTOS.Gender;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -21,12 +21,12 @@ namespace axionpro.persistance.Repositories
 {
         public class GenderRepository : IGenderRepository
         {
-            private readonly WorkforceDbContext _context;
-            private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+            private readonly WorkforcedbContext _context;
+            private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
             private readonly ILogger<GenderRepository> _logger;
             private readonly IMapper _mapper;
 
-            public GenderRepository(WorkforceDbContext context, ILogger<GenderRepository> logger, IMapper mapper, IDbContextFactory<WorkforceDbContext> contextFactory)
+            public GenderRepository(WorkforcedbContext context, ILogger<GenderRepository> logger, IMapper mapper, IDbContextFactory<WorkforcedbContext> contextFactory)
             {
                 _context = context ?? throw new ArgumentNullException(nameof(context));
                 _logger = logger ?? throw new ArgumentNullException(nameof(logger));

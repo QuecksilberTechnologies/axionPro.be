@@ -1,74 +1,59 @@
-﻿using axionpro.application.DTOs.Module.NewFolder;
-using axionpro.application.DTOs.Operation;
+﻿
 
-using axionpro.application.DTOs.RoleModulePermission;
-using axionpro.application.DTOS.RoleModulePermission;
-using axionpro.application.DTOS.StoreProcedures;
-using axionpro.application.DTOS.StoreProcedures.DashboardSummeries;
-using axionpro.application.DTOS.Tenant;
-using axionpro.application.Interfaces.IContext;
-using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
+
 
 using Microsoft.EntityFrameworkCore;
-using System.ComponentModel;
 
 namespace axionpro.persistance.Data.Context
 {
-    public class WorkforceDbContext : DbContext, IWorkforceDbContext
+    public partial class WorkforcedbContext : DbContext
     {
-
-
-        public WorkforceDbContext(DbContextOptions<WorkforceDbContext> options) : base(options)
+        public WorkforcedbContext()
         {
-
         }
 
+        public WorkforcedbContext(DbContextOptions<WorkforcedbContext> options)
+            : base(options)
+        {
+        }
 
-        public DbSet<RoleModuleOperationResponseDTO> RoleModuleOperationResponse { get; set; }
+        public virtual DbSet<Accoumndationallowancepolicybydesignation> Accoumndationallowancepolicybydesignations { get; set; }
 
-
-        public virtual DbSet<EmployeeContact> EmployeeContacts { get; set; }
-        public virtual DbSet<District> Districts { get; set; }
-
-        public virtual DbSet<AccoumndationAllowancePolicyByDesignation> AccoumndationAllowancePolicyByDesignations { get; set; }
-
-        public virtual DbSet<ApprovalWorkflow> ApprovalWorkflows { get; set; }
+        public virtual DbSet<Approvalworkflow> Approvalworkflows { get; set; }
 
         public virtual DbSet<Asset> Assets { get; set; }
 
-        public virtual DbSet<PolicyTypeInsuranceMapping> PolicyTypeInsuranceMappings { get; set; }
-        public virtual DbSet<AssetAssignment> AssetAssignments { get; set; }
+        public virtual DbSet<Assetassignment> Assetassignments { get; set; }
 
-        public virtual DbSet<AssetCategory> AssetCategories { get; set; }
+        public virtual DbSet<Assetcategory> Assetcategories { get; set; }
 
-        public virtual DbSet<AssetHistory> AssetHistories { get; set; }
+        public virtual DbSet<Assethistory> Assethistories { get; set; }
 
-        public virtual DbSet<AssetImage> AssetImages { get; set; }
+        public virtual DbSet<Assetimage> Assetimages { get; set; }
 
-        public virtual DbSet<AssetStatus> AssetStatuses { get; set; }
+        public virtual DbSet<Assetstatus> Assetstatuses { get; set; }
 
-        public virtual DbSet<AssetTicketTypeDetail> AssetTicketTypeDetails { get; set; }
+        public virtual DbSet<Assettickettypedetail> Assettickettypedetails { get; set; }
 
-        public virtual DbSet<AssetType> AssetTypes { get; set; }
+        public virtual DbSet<Assettype> Assettypes { get; set; }
 
-        public virtual DbSet<AssignmentStatus> AssignmentStatuses { get; set; }
+        public virtual DbSet<Assignmentstatus> Assignmentstatuses { get; set; }
 
         public virtual DbSet<Attendance> Attendances { get; set; }
 
-        public virtual DbSet<AttendanceDeviceType> AttendanceDeviceTypes { get; set; }
+        public virtual DbSet<Attendancedevicetype> Attendancedevicetypes { get; set; }
 
-        public virtual DbSet<AttendanceHistory> AttendanceHistories { get; set; }
+        public virtual DbSet<Attendancehistory> Attendancehistories { get; set; }
 
-        public virtual DbSet<AttendanceRequest> AttendanceRequests { get; set; }
+        public virtual DbSet<Attendancerequest> Attendancerequests { get; set; }
 
-        public virtual DbSet<BasicMenu> BasicMenus { get; set; }
+        public virtual DbSet<Basicmenu> Basicmenus { get; set; }
 
         public virtual DbSet<Candidate> Candidates { get; set; }
 
-        public virtual DbSet<CandidateCategorySkill> CandidateCategorySkills { get; set; }
+        public virtual DbSet<Candidatecategoryskill> Candidatecategoryskills { get; set; }
 
-        public virtual DbSet<CandidateHistory> CandidateHistories { get; set; }
+        public virtual DbSet<Candidatehistory> Candidatehistories { get; set; }
 
         public virtual DbSet<Category> Categories { get; set; }
 
@@ -76,3152 +61,4696 @@ namespace axionpro.persistance.Data.Context
 
         public virtual DbSet<Client> Clients { get; set; }
 
-        public virtual DbSet<ClientType> ClientTypes { get; set; }
+        public virtual DbSet<Clienttype> Clienttypes { get; set; }
+
+        public virtual DbSet<Companypolicydocument> Companypolicydocuments { get; set; }
 
         public virtual DbSet<Country> Countries { get; set; }
 
-        public virtual DbSet<DataViewStructure> DataViewStructures { get; set; }
+        public virtual DbSet<Countryidentityrule> Countryidentityrules { get; set; }
 
-        public virtual DbSet<DayCombination> DayCombinations { get; set; }
+        public virtual DbSet<Countrystatutoryrule> Countrystatutoryrules { get; set; }
+
+        public virtual DbSet<Dataviewstructure> Dataviewstructures { get; set; }
+
+        public virtual DbSet<Daycombination> Daycombinations { get; set; }
+
+        public virtual DbSet<Demorequest> Demorequests { get; set; }
+
+        public virtual DbSet<Demorequestbiometricdetail> Demorequestbiometricdetails { get; set; }
 
         public virtual DbSet<Department> Departments { get; set; }
 
         public virtual DbSet<Designation> Designations { get; set; }
 
-        public virtual DbSet<EmailQueue> EmailQueues { get; set; }
+        public virtual DbSet<District> Districts { get; set; }
 
-        public virtual DbSet<EmailTemplate> EmailTemplates { get; set; }
+        public virtual DbSet<Districtmaster> Districtmasters { get; set; }
 
-        public virtual DbSet<EmailsLog> EmailsLogs { get; set; }
+        public virtual DbSet<Emailqueue> Emailqueues { get; set; }
+
+        public virtual DbSet<Emailslog> Emailslogs { get; set; }
+
+        public virtual DbSet<Emailtemplate> Emailtemplates { get; set; }
 
         public virtual DbSet<Employee> Employees { get; set; }
 
-        public virtual DbSet<EmployeeBankDetail> EmployeeBankDetails { get; set; }
+        public virtual DbSet<Employeebankdetail> Employeebankdetails { get; set; }
 
-        public virtual DbSet<EmployeeCategorySkill> EmployeeCategorySkills { get; set; }
+        public virtual DbSet<Employeecategoryskill> Employeecategoryskills { get; set; }
 
-        public virtual DbSet<EmployeeDailyAttendance> EmployeeDailyAttendances { get; set; }
+        public virtual DbSet<Employeecodepattern> Employeecodepatterns { get; set; }
 
-        public virtual DbSet<EmployeeDependent> EmployeeDependents { get; set; }
+        public virtual DbSet<Employeecontact> Employeecontacts { get; set; }
 
-        public virtual DbSet<EmployeeEducation> EmployeeEducations { get; set; }
+        public virtual DbSet<Employeedailyattendance> Employeedailyattendances { get; set; }
 
-        public virtual DbSet<EmployeeExperience> EmployeeExperiences { get; set; }
+        public virtual DbSet<Employeedependent> Employeedependents { get; set; }
 
-        public virtual DbSet<EmployeeExperienceDetail> EmployeeExperienceDetails { get; set; }
+        public virtual DbSet<Employeeeducation> Employeeeducations { get; set; }
 
-        public virtual DbSet<EmployeeExperiencePayslipUpload> EmployeeExperiencePayslipUploads { get; set; }
+        public virtual DbSet<Employeeexperience> Employeeexperiences { get; set; }
 
-        public virtual DbSet<EmployeeImage> EmployeeImages { get; set; }
+        public virtual DbSet<Employeeexperiencedetail> Employeeexperiencedetails { get; set; }
 
-        public virtual DbSet<EmployeeInsuranceMapping> EmployeeInsuranceMappings { get; set; }
-        public virtual DbSet<CompanyPolicyDocument> CompanyPolicyDocuments { get; set; }
-        public virtual DbSet<InsurancePolicyDocument> InsurancePolicyDocuments { get; set; }
-        
+        public virtual DbSet<Employeeexperiencepayslipupload> Employeeexperiencepayslipuploads { get; set; }
 
-        public virtual DbSet<EmployeeLeaveBalance> EmployeeLeaveBalances { get; set; }
+        public virtual DbSet<Employeeidentity> Employeeidentities { get; set; }
 
-        public virtual DbSet<EmployeeLeavePolicyMapping> EmployeeLeavePolicyMappings { get; set; }
+        public virtual DbSet<Employeeimage> Employeeimages { get; set; }
 
-        public virtual DbSet<EmployeeManagerMapping> EmployeeManagerMappings { get; set; }
+        public virtual DbSet<Employeeinsurancemapping> Employeeinsurancemappings { get; set; }
 
-        public virtual DbSet<EmployeePersonalDetail> EmployeePersonalDetails { get; set; }
+        public virtual DbSet<Employeeinsurancepolicy> Employeeinsurancepolicies { get; set; }
 
-        public virtual DbSet<EmployeeType> EmployeeTypes { get; set; }
+        public virtual DbSet<Employeeleavebalance> Employeeleavebalances { get; set; }
 
-        public virtual DbSet<EmployeeTypeBasicMenu> EmployeeTypeBasicMenus { get; set; }
+        public virtual DbSet<Employeeleavepolicymapping> Employeeleavepolicymappings { get; set; }
 
-        public virtual DbSet<EmployeesChangedTypeHistory> EmployeesChangedTypeHistories { get; set; }
+        public virtual DbSet<Employeemanagermapping> Employeemanagermappings { get; set; }
 
-        public virtual DbSet<ForgotPasswordOTPDetail> ForgotPasswordOTPDetails { get; set; }
+        public virtual DbSet<Employeepersonaldetail> Employeepersonaldetails { get; set; }
+
+        public virtual DbSet<Employeeschangedtypehistory> Employeeschangedtypehistories { get; set; }
+
+        public virtual DbSet<Employeestatutoryaccount> Employeestatutoryaccounts { get; set; }
+
+        public virtual DbSet<Employeetype> Employeetypes { get; set; }
+
+        public virtual DbSet<Employeetypebasicmenu> Employeetypebasicmenus { get; set; }
+
+        public virtual DbSet<Employeeworkdocument> Employeeworkdocuments { get; set; }
+
+        public virtual DbSet<Employeeworkhistory> Employeeworkhistories { get; set; }
+
+        public virtual DbSet<Employeeworkprofile> Employeeworkprofiles { get; set; }
+
+        public virtual DbSet<Forgotpasswordotpdetail> Forgotpasswordotpdetails { get; set; }
 
         public virtual DbSet<Gender> Genders { get; set; }
 
-        public virtual DbSet<HolidayMaster> HolidayMasters { get; set; }
+        public virtual DbSet<Holidaymaster> Holidaymasters { get; set; }
 
-        public virtual DbSet<InsurancePolicy> InsurancePolicies { get; set; }
+        public virtual DbSet<Identitycategory> Identitycategories { get; set; }
 
-        public virtual DbSet<InterviewFeedback> InterviewFeedbacks { get; set; }
+        public virtual DbSet<Identitycategorydocument> Identitycategorydocuments { get; set; }
 
-        public virtual DbSet<InterviewPanel> InterviewPanels { get; set; }
+        public virtual DbSet<Insurancepolicy> Insurancepolicies { get; set; }
 
-        public virtual DbSet<InterviewPanelMember> InterviewPanelMembers { get; set; }
+        public virtual DbSet<Insurancepolicydocument> Insurancepolicydocuments { get; set; }
 
-        public virtual DbSet<InterviewSchedule> InterviewSchedules { get; set; }
+        public virtual DbSet<Interviewfeedback> Interviewfeedbacks { get; set; }
 
-        public virtual DbSet<InterviewSdule> InterviewSdules { get; set; }
+        public virtual DbSet<Interviewpanel> Interviewpanels { get; set; }
 
-        public virtual DbSet<LeaveRequest> LeaveRequests { get; set; }
+        public virtual DbSet<Interviewpanelmember> Interviewpanelmembers { get; set; }
 
-        public virtual DbSet<LeaveRule> LeaveRules { get; set; }
+        public virtual DbSet<Interviewschedule> Interviewschedules { get; set; }
 
-        public virtual DbSet<LeaveSandwichRule> SandwitchRules { get; set; }
+        public virtual DbSet<Interviewsdule> Interviewsdules { get; set; }
 
-        public virtual DbSet<LeaveSandwichRuleMapping> LeaveSandwichRuleMappings { get; set; }
+        public virtual DbSet<Leaverequest> Leaverequests { get; set; }
 
-        public virtual DbSet<LeaveTransactionLog> LeaveTransactionLogs { get; set; }
+        public virtual DbSet<Leaverule> Leaverules { get; set; }
 
-        public virtual DbSet<LeaveType> LeaveTypes { get; set; }
+        public virtual DbSet<Leavesandwichrule> Leavesandwichrules { get; set; }
 
-        //public virtual DbSet<License> Licenses { get; set; }
+        public virtual DbSet<Leavesandwichrulemapping> Leavesandwichrulemappings { get; set; }
 
-        public virtual DbSet<LoginCredential> LoginCredentials { get; set; }
+        public virtual DbSet<Leavetransactionlog> Leavetransactionlogs { get; set; }
 
-        public virtual DbSet<MealAllowancePolicyByDesignation> MealAllowancePolicyByDesignations { get; set; }
+        public virtual DbSet<Leavetype> Leavetypes { get; set; }
+
+        public virtual DbSet<License> Licenses { get; set; }
+
+        public virtual DbSet<Logincredential> Logincredentials { get; set; }
+
+        public virtual DbSet<Mealallowancepolicybydesignation> Mealallowancepolicybydesignations { get; set; }
 
         public virtual DbSet<Module> Modules { get; set; }
 
-        public virtual DbSet<ModuleOperationMapping> ModuleOperationMappings { get; set; }
+        public virtual DbSet<Module1> Modules1 { get; set; }
 
-        public virtual DbSet<NoImagePath> NoImagePaths { get; set; }
+        public virtual DbSet<Moduleoperationmapping> Moduleoperationmappings { get; set; }
+
+        public virtual DbSet<Noimagepath> Noimagepaths { get; set; }
 
         public virtual DbSet<Operation> Operations { get; set; }
 
-        public virtual DbSet<OrganizationHolidayCalendar> OrganizationHolidayCalendars { get; set; }
+        public virtual DbSet<Organizationholidaycalendar> Organizationholidaycalendars { get; set; }
 
-        public virtual DbSet<PageTypeEnum> PageTypeEnums { get; set; }
+        public virtual DbSet<Pagetypeenum> Pagetypeenums { get; set; }
 
-        public virtual DbSet<PlanModuleMapping> PlanModuleMappings { get; set; }
+        public virtual DbSet<Planmodulemapping> Planmodulemappings { get; set; }
 
-        public virtual DbSet<PolicyLeaveTypeMapping> PolicyLeaveTypeMappings { get; set; }
-        public virtual DbSet<EmployeeIdentity> EmployeeIdentities { get; set; }
+        public virtual DbSet<Policyleavetypemapping> Policyleavetypemappings { get; set; }
 
-        public virtual DbSet<PolicyType> PolicyTypes { get; set; }
+        public virtual DbSet<Policytype> Policytypes { get; set; }
 
-        public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
+        public virtual DbSet<Policytypeinsurancemapping> Policytypeinsurancemappings { get; set; }
 
-        public virtual DbSet<ReportingType> ReportingTypes { get; set; }
+        public virtual DbSet<Refreshtoken> Refreshtokens { get; set; }
 
-        public virtual DbSet<RequestType> RequestTypes { get; set; }
+        public virtual DbSet<Reportingtype> Reportingtypes { get; set; }
+
+        public virtual DbSet<Requesttype> Requesttypes { get; set; }
 
         public virtual DbSet<Role> Roles { get; set; }
 
-        public virtual DbSet<RoleModuleAndPermission> RoleModuleAndPermissions { get; set; }
+        public virtual DbSet<Role1> Roles1 { get; set; }
 
-        public virtual DbSet<ServiceProvider> ServiceProviders { get; set; }
+        public virtual DbSet<Rolemoduleandpermission> Rolemoduleandpermissions { get; set; }
+
+        public virtual DbSet<Serviceprovider> Serviceproviders { get; set; }
 
         public virtual DbSet<State> States { get; set; }
 
-        public virtual DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
+        public virtual DbSet<Statutorytype> Statutorytypes { get; set; }
 
-        public virtual DbSet<CountryIdentityRule> CountryIdentityRules { get; set; }
-        public virtual DbSet<IdentityCategory> IdentityCategories { get; set; }
-        public virtual DbSet<IdentityCategoryDocument> IdentityCategoryDocuments { get; set; }
+        public virtual DbSet<Subscriptionplan> Subscriptionplans { get; set; }
+
         public virtual DbSet<Tenant> Tenants { get; set; }
 
-        public virtual DbSet<TenantEmailConfig> TenantEmailConfigs { get; set; }
+        public virtual DbSet<Tenantemailconfig> Tenantemailconfigs { get; set; }
 
-        public virtual DbSet<TenantEnabledModule> TenantEnabledModules { get; set; }
+        public virtual DbSet<Tenantenabledmodule> Tenantenabledmodules { get; set; }
 
-        public virtual DbSet<TenantEnabledOperation> TenantEnabledOperations { get; set; }
+        public virtual DbSet<Tenantenabledoperation> Tenantenabledoperations { get; set; }
 
-        public virtual DbSet<TenantIndustry> TenantIndustries { get; set; }
+        public virtual DbSet<Tenantencryptionkey> Tenantencryptionkeys { get; set; }
 
-        public virtual DbSet<TenantProfile> TenantProfiles { get; set; }
+        public virtual DbSet<Tenantindustry> Tenantindustries { get; set; }
 
-        public virtual DbSet<TenantSubscription> TenantSubscriptions { get; set; }
+        public virtual DbSet<Tenantprofile> Tenantprofiles { get; set; }
+
+        public virtual DbSet<Tenantsubscription> Tenantsubscriptions { get; set; }
 
         public virtual DbSet<Tender> Tenders { get; set; }
 
-        public virtual DbSet<TenderProject> TenderProjects { get; set; }
+        public virtual DbSet<Tenderproject> Tenderprojects { get; set; }
 
+        public virtual DbSet<Tenderservice> Tenderservices { get; set; }
 
-        public virtual DbSet<TenderService> TenderServices { get; set; }
+        public virtual DbSet<Tenderservicehistory> Tenderservicehistories { get; set; }
 
-        public virtual DbSet<TenderServiceHistory> TenderServiceHistories { get; set; }
+        public virtual DbSet<Tenderserviceprovider> Tenderserviceproviders { get; set; }
 
-        public virtual DbSet<TenderServiceProvider> TenderServiceProviders { get; set; }
+        public virtual DbSet<Tenderservicespecification> Tenderservicespecifications { get; set; }
 
-        public virtual DbSet<TenderServiceSpecification> TenderServiceSpecifications { get; set; }
+        public virtual DbSet<Tenderservicetype> Tenderservicetypes { get; set; }
 
-        public virtual DbSet<TenderServiceType> TenderServiceTypes { get; set; }
+        public virtual DbSet<Tenderstatus> Tenderstatuses { get; set; }
 
-        public virtual DbSet<TenderStatus> TenderStatuses { get; set; }
+        public virtual DbSet<Ticketclassification> Ticketclassifications { get; set; }
 
-        public virtual DbSet<TicketClassification> TicketClassifications { get; set; }
-        public virtual DbSet<TenantEncryptionKey> TenantEncryptionKeys { get; set; }
+        public virtual DbSet<Ticketheader> Ticketheaders { get; set; }
 
-        public virtual DbSet<TicketHeader> TicketHeaders { get; set; }
+        public virtual DbSet<Tickettype> Tickettypes { get; set; }
 
-        public virtual DbSet<TicketType> TicketTypes { get; set; }
+        public virtual DbSet<Travelallowancepolicybydesignation> Travelallowancepolicybydesignations { get; set; }
 
-        public virtual DbSet<TravelAllowancePolicyByDesignation> TravelAllowancePolicyByDesignations { get; set; }
+        public virtual DbSet<Travelmode> Travelmodes { get; set; }
 
-        public virtual DbSet<TravelMode> TravelModes { get; set; }
+        public virtual DbSet<Userattendancesetting> Userattendancesettings { get; set; }
 
-        public virtual DbSet<UserAttendanceSetting> UserAttendanceSettings { get; set; }
+        public virtual DbSet<Userrole> Userroles { get; set; }
 
-        public virtual DbSet<UserRole> UserRoles { get; set; }
-        public virtual DbSet<EmployeeCodePattern> EmployeeCodePatterns { get; set; }
+        public virtual DbSet<Workdocumenttype> Workdocumenttypes { get; set; }
 
-        public virtual DbSet<WorkflowStage> WorkflowStages { get; set; }
+        public virtual DbSet<Workflowstage> Workflowstages { get; set; }
 
-        public virtual DbSet<WorkflowStep> WorkflowSteps { get; set; }
+        public virtual DbSet<Workflowstep> Workflowsteps { get; set; }
 
-        public virtual DbSet<WorkstationType> WorkstationTypes { get; set; }
-        public virtual DbSet<SubscribedModuleResponseDTO> SubscribedModuleResponseDTOs { get; set; }
-        public virtual DbSet<FlatModuleOperationDto> TenantModulesConfigurations { get; set; }
-        public virtual DbSet<GetEmployeeIdentitySp> GetEmployeeIdentitySps { get; set; }
-        public virtual DbSet<EmployeeCountResponseStatsSp> EmployeeCountResponseStatsSps { get; set; }
+        public virtual DbSet<Workstationtype> Workstationtypes { get; set; }
 
-        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        // #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        //    => optionsBuilder.UseSqlServer("Server=acer;Database=workforcedb-dev-pre;User Id=sa;Password=123;Encrypt=True;TrustServerCertificate=True;Command Timeout=300");
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) => optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=workforcedb;Username=postgres;Password=1234");
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<AccoumndationAllowancePolicyByDesignation>(entity =>
+            modelBuilder.Entity<Accoumndationallowancepolicybydesignation>(entity =>
             {
-            
-                entity.HasKey(e => e.Id).HasName("PK__Accoumnd__3214EC071BDF4022");
+                entity
+                    .HasNoKey()
+                    .ToTable("accoumndationallowancepolicybydesignation", "axionpro");
 
-                entity.ToTable("AccoumndationAllowancePolicyByDesignation", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.FixedStayAllowance)
-                    .HasDefaultValue(0.00m)
-                    .HasColumnType("decimal(10, 2)");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsMetro).HasDefaultValue(false);
-                entity.Property(e => e.IsSoftDelete).HasDefaultValue(false);
-                entity.Property(e => e.MetroBonus)
-                    .HasDefaultValue(0.00m)
-                    .HasColumnType("decimal(10, 2)");
-                entity.Property(e => e.MinDaysRequired).HasDefaultValue(0);
-                entity.Property(e => e.RequiredDocuments).HasColumnType("text");
-                entity.Property(e => e.SoftDeleteDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Designation).WithMany(p => p.AccoumndationAllowancePolicyByDesignations)
-                    .HasForeignKey(d => d.DesignationId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Accoumnda__Desig__11158940");
-
-                entity.HasOne(d => d.EmployeeType).WithMany(p => p.AccoumndationAllowancePolicyByDesignations)
-                    .HasForeignKey(d => d.EmployeeTypeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Accoumnda__Emplo__1209AD79");
-
-                entity.HasOne(d => d.PolicyType).WithMany(p => p.AccoumndationAllowancePolicyByDesignations)
-                    .HasForeignKey(d => d.PolicyTypeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Accoumnda__Polic__12FDD1B2");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Designationid).HasColumnName("designationid");
+                entity.Property(e => e.Employeetypeid).HasColumnName("employeetypeid");
+                entity.Property(e => e.Fixedstayallowance)
+                    .HasPrecision(10, 2)
+                    .HasColumnName("fixedstayallowance");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Ismetro).HasColumnName("ismetro");
+                entity.Property(e => e.Issoftdelete).HasColumnName("issoftdelete");
+                entity.Property(e => e.Metrobonus)
+                    .HasPrecision(10, 2)
+                    .HasColumnName("metrobonus");
+                entity.Property(e => e.Mindaysrequired).HasColumnName("mindaysrequired");
+                entity.Property(e => e.Policytypeid).HasColumnName("policytypeid");
+                entity.Property(e => e.Requireddocuments).HasColumnName("requireddocuments");
+                entity.Property(e => e.Softdeletedatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("softdeletedatetime");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
-            modelBuilder.Entity<ApprovalWorkflow>(entity =>
+            modelBuilder.Entity<Approvalworkflow>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Approval__3214EC071F76BFC6");
+                entity
+                    .HasNoKey()
+                    .ToTable("approvalworkflow", "axionpro");
 
-                entity.ToTable("ApprovalWorkflow", "AxionPro");
-
-                entity.Property(e => e.ActionName).HasMaxLength(150);
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsDeleted).HasDefaultValue(false);
-                entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
-                entity.Property(e => e.Remark).HasMaxLength(250);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.WorkflowName).HasMaxLength(150);
+                entity.Property(e => e.Actionname)
+                    .HasMaxLength(150)
+                    .HasColumnName("actionname");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Isdeleted).HasColumnName("isdeleted");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Projectchildmoduledetailid).HasColumnName("projectchildmoduledetailid");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(250)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+                entity.Property(e => e.Workflowname)
+                    .HasMaxLength(150)
+                    .HasColumnName("workflowname");
             });
-
-
-            modelBuilder.Entity<AssetTicketTypeDetail>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__AssetTic__3214EC0706DC5F37");
-
-                entity.ToTable("AssetTicketTypeDetail", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("(sysutcdatetime())");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-
-                entity.HasOne(d => d.AssetType).WithMany(p => p.AssetTicketTypeDetails)
-                    .HasForeignKey(d => d.AssetTypeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_AssetType_AssetTckTypeDetail_ID");
-
-                entity.HasOne(d => d.ResponsibleRole).WithMany(p => p.AssetTicketTypeDetails)
-                    .HasForeignKey(d => d.ResponsibleRoleId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_ResponsibleRole_AssetTckTypeDetail_ID");
-
-                entity.HasOne(d => d.TicketType).WithMany(p => p.AssetTicketTypeDetails)
-                    .HasForeignKey(d => d.TicketTypeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_TckType_AstTypeDetail_ID");
-            });
-
 
             modelBuilder.Entity<Asset>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Asset__3214EC076178ABAE");
+                entity
+                    .HasNoKey()
+                    .ToTable("asset", "axionpro");
 
-                entity.ToTable("Asset", "AxionPro");
-
-                entity.Property(e => e.AssetName).HasMaxLength(100);
-                entity.Property(e => e.Barcode).HasMaxLength(100);
-                entity.Property(e => e.Color).HasMaxLength(50);
-                entity.Property(e => e.Company).HasMaxLength(100);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsAssigned).HasDefaultValue(false);
-                entity.Property(e => e.IsRepairable).HasDefaultValue(true);
-                entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
-                //entity.Property(e => e.PurchaseDate).HasColumnType("datetime");
-                entity.Property(e => e.Qrcode)
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Assetname)
                     .HasMaxLength(100)
-                    .HasColumnName("QRCode");
-                // Common Entities
-                entity.ConfigureBaseEntity();
-                entity.Property(e => e.SerialNumber).HasMaxLength(100);
-                entity.Property(e => e.WarrantyExpiryDate).HasColumnType("datetime");
-                entity.HasOne(d => d.AssetStatus).WithMany(p => p.Assets)
-                    .HasForeignKey(d => d.AssetStatusId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Asset_AssetStatus");
-                entity.HasOne(d => d.AssetType).WithMany(p => p.Assets)
-                    .HasForeignKey(d => d.AssetTypeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Asset_AssetType");
-
+                    .HasColumnName("assetname");
+                entity.Property(e => e.Assetstatusid).HasColumnName("assetstatusid");
+                entity.Property(e => e.Assettypeid).HasColumnName("assettypeid");
+                entity.Property(e => e.Barcode)
+                    .HasMaxLength(100)
+                    .HasColumnName("barcode");
+                entity.Property(e => e.Color)
+                    .HasMaxLength(50)
+                    .HasColumnName("color");
+                entity.Property(e => e.Company)
+                    .HasMaxLength(100)
+                    .HasColumnName("company");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Isassigned).HasColumnName("isassigned");
+                entity.Property(e => e.Isrepairable).HasColumnName("isrepairable");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Modelno)
+                    .HasMaxLength(50)
+                    .HasColumnName("modelno");
+                entity.Property(e => e.Price)
+                    .HasPrecision(18, 2)
+                    .HasColumnName("price");
+                entity.Property(e => e.Purchasedate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("purchasedate");
+                entity.Property(e => e.Qrcode)
+                    .HasMaxLength(250)
+                    .HasColumnName("qrcode");
+                entity.Property(e => e.Serialnumber)
+                    .HasMaxLength(100)
+                    .HasColumnName("serialnumber");
+                entity.Property(e => e.Size).HasMaxLength(50);
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+                entity.Property(e => e.Warrantyexpirydate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("warrantyexpirydate");
+                entity.Property(e => e.Weight)
+                    .HasMaxLength(50)
+                    .HasColumnName("weight");
             });
 
-            modelBuilder.Entity<AssetImage>(entity =>
+            modelBuilder.Entity<Assetassignment>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__AssetIma__3214EC0752335BEC");
+                entity
+                    .HasNoKey()
+                    .ToTable("assetassignment", "axionpro");
 
-                entity.ToTable("AssetImage", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.AssetImagePath).HasMaxLength(500);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.Remark).HasMaxLength(250);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Asset).WithMany(p => p.AssetImages)
-                    .HasForeignKey(d => d.AssetId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_AssetImage_Asset");
-            });
-            modelBuilder.Entity<AssetAssignment>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__AssetAss__3214EC07CFA2D85C");
-
-                entity.ToTable("AssetAssignment", "AxionPro");
-
-                entity.Property(e => e.ActualReturnDate).HasColumnType("datetime");
-
-                entity.Property(e => e.AssetConditionAtAssign).HasMaxLength(255);
-                entity.Property(e => e.AssetConditionAtReturn).HasMaxLength(255);
-                entity.Property(e => e.AssignedDate)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.ExpectedReturnDate).HasColumnType("datetime");
-                entity.Property(e => e.IdentificationMethod).HasMaxLength(50);
-                entity.Property(e => e.IdentificationValue).HasMaxLength(100);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-
-                // Common Entities
-                entity.ConfigureBaseEntity();
-
-                entity.HasOne(d => d.Asset).WithMany(p => p.AssetAssignments)
-                    .HasForeignKey(d => d.AssetId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_AssetAssignment_Asset");
-
-                entity.HasOne(d => d.AssignmentStatus).WithMany(p => p.AssetAssignments)
-                    .HasForeignKey(d => d.AssignmentStatusId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_AssetAssignment_AssignmentStatus");
-
-                entity.HasOne(d => d.Employee).WithMany(p => p.AssetAssignments)
-                    .HasForeignKey(d => d.EmployeeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_AssetAssignment_Employee");
+                entity.Property(e => e.Actualreturndate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("actualreturndate");
+                entity.Property(e => e.Addedbydatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addedbydatetime");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Approvalid).HasColumnName("approvalid");
+                entity.Property(e => e.Assetconditionatassign)
+                    .HasMaxLength(255)
+                    .HasColumnName("assetconditionatassign");
+                entity.Property(e => e.Assetconditionatreturn)
+                    .HasMaxLength(255)
+                    .HasColumnName("assetconditionatreturn");
+                entity.Property(e => e.Assetid).HasColumnName("assetid");
+                entity.Property(e => e.Assigneddate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("assigneddate");
+                entity.Property(e => e.Assignmentstatusid).HasColumnName("assignmentstatusid");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Expectedreturndate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("expectedreturndate");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Identificationmethod)
+                    .HasMaxLength(50)
+                    .HasColumnName("identificationmethod");
+                entity.Property(e => e.Identificationvalue)
+                    .HasMaxLength(100)
+                    .HasColumnName("identificationvalue");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Isapproved).HasColumnName("isapproved");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatebyid).HasColumnName("updatebyid");
+                entity.Property(e => e.Updatedbydatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updatedbydatetime");
             });
 
-            modelBuilder.Entity<AssetHistory>(entity =>
+            modelBuilder.Entity<Assetcategory>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__AssetHis__3214EC07599816A6");
+                entity
+                    .HasNoKey()
+                    .ToTable("assetcategory", "axionpro");
 
-                entity.ToTable("AssetHistory", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.AssetConditionAtAssign).HasMaxLength(100);
-                entity.Property(e => e.AssetConditionAtReturn).HasMaxLength(100);
-                entity.Property(e => e.AssignedDate).HasColumnType("datetime");
-                entity.Property(e => e.IdentificationMethod).HasMaxLength(50);
-                entity.Property(e => e.IdentificationValue).HasMaxLength(255);
-                entity.Property(e => e.IsScrapped).HasDefaultValue(false);
-                entity.Property(e => e.Remarks).HasMaxLength(500);
-                entity.Property(e => e.ReturnedDate).HasColumnType("datetime");
-                entity.Property(e => e.ScrapDate).HasColumnType("datetime");
-                entity.Property(e => e.ScrapReason).HasMaxLength(255);
-               
-                entity.HasOne(d => d.AssignmentStatus).WithMany(p => p.AssetHistories)
-                    .HasForeignKey(d => d.AssignmentStatusId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__AssetHist__Assig__7AF13DF7");
-
-                entity.HasOne(d => d.Employee).WithMany(p => p.AssetHistoryEmployees)
-                    .HasForeignKey(d => d.EmployeeId)
-                    .HasConstraintName("FK__AssetHist__Emplo__79FD19BE");
-
-                entity.HasOne(d => d.ScrapApprovedByNavigation).WithMany(p => p.AssetHistoryScrapApprovedByNavigations)
-                    .HasForeignKey(d => d.ScrapApprovedBy)
-                    .HasConstraintName("FK__AssetHist__Scrap__7BE56230");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Categoryname)
+                    .HasMaxLength(200)
+                    .HasColumnName("categoryname");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(500)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Softdeleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("softdeleteddatetime");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
-            modelBuilder.Entity<AssetStatus>(entity =>
+            modelBuilder.Entity<Assethistory>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__AssetSta__3214EC0722A59445");
+                entity
+                    .HasNoKey()
+                    .ToTable("assethistory", "axionpro");
 
-                entity.ToTable("AssetStatus", "AxionPro");
-
-                // Common Entities
-                entity.ConfigureBaseEntity();
-                entity.Property(e => e.Description).HasMaxLength(255);
-                entity.Property(e => e.StatusName).HasMaxLength(50);
-
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Assetconditionatassign)
+                    .HasMaxLength(100)
+                    .HasColumnName("assetconditionatassign");
+                entity.Property(e => e.Assetconditionatreturn)
+                    .HasMaxLength(100)
+                    .HasColumnName("assetconditionatreturn");
+                entity.Property(e => e.Assetid).HasColumnName("assetid");
+                entity.Property(e => e.Assigneddate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("assigneddate");
+                entity.Property(e => e.Assignmentstatusid).HasColumnName("assignmentstatusid");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Identificationmethod)
+                    .HasMaxLength(50)
+                    .HasColumnName("identificationmethod");
+                entity.Property(e => e.Identificationvalue)
+                    .HasMaxLength(255)
+                    .HasColumnName("identificationvalue");
+                entity.Property(e => e.Isscrapped).HasColumnName("isscrapped");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Remarks)
+                    .HasMaxLength(500)
+                    .HasColumnName("remarks");
+                entity.Property(e => e.Returneddate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("returneddate");
+                entity.Property(e => e.Scrapapprovedby).HasColumnName("scrapapprovedby");
+                entity.Property(e => e.Scrapdate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("scrapdate");
+                entity.Property(e => e.Scrapreason)
+                    .HasMaxLength(255)
+                    .HasColumnName("scrapreason");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatebyid).HasColumnName("updatebyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
-            modelBuilder.Entity<AssetCategory>(entity =>
+
+            modelBuilder.Entity<Assetimage>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__AssetCat__3214EC07E9FE2792");
+                entity
+                    .HasNoKey()
+                    .ToTable("assetimage", "axionpro");
 
-                entity.ToTable("AssetCategory", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.CategoryName).HasMaxLength(200);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.Remark).HasMaxLength(500);
-                entity.Property(e => e.SoftDeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Tenant).WithMany(p => p.AssetCategories)
-                    .HasForeignKey(d => d.TenantId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_AssetCategory_Tenant");
-
-            });
-            modelBuilder.Entity<AssetType>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__AssetTyp__3214EC077375A9AA");
-
-                entity.ToTable("AssetType", "AxionPro");
-
-                entity.HasIndex(e => e.TypeName, "UQ__AssetTyp__D4E7DFA8692FD5DF").IsUnique();
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.Description).HasMaxLength(255);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.TypeName).HasMaxLength(100);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-                entity.HasOne(d => d.AssetCategory).WithMany(p => p.AssetTypes)
-                    .HasForeignKey(d => d.AssetCategoryId)
-                    .HasConstraintName("FK_AssetType_AssetCategory");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Assetid).HasColumnName("assetid");
+                entity.Property(e => e.Assetimagepath)
+                    .HasMaxLength(500)
+                    .HasColumnName("assetimagepath");
+                entity.Property(e => e.Assetimagetype).HasColumnName("assetimagetype");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Isprimary).HasColumnName("isprimary");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(250)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
-
-
-          
-
-
-            modelBuilder.Entity<AssignmentStatus>(entity =>
+            modelBuilder.Entity<Assetstatus>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Assignme__3214EC07BCFD76FA");
+                entity
+                    .HasNoKey()
+                    .ToTable("assetstatus", "axionpro");
 
-                entity.ToTable("AssignmentStatus", "AxionPro");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Colorkey)
+                    .HasMaxLength(50)
+                    .HasColumnName("colorkey");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(255)
+                    .HasColumnName("description");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Statusname)
+                    .HasMaxLength(50)
+                    .HasColumnName("statusname");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
 
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.Description).HasMaxLength(255);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.StatusName).HasMaxLength(50);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+            modelBuilder.Entity<Assettickettypedetail>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("assettickettypedetail", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Assettypeid).HasColumnName("assettypeid");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Responsibleroleid).HasColumnName("responsibleroleid");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Softdeletedtime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("softdeletedtime");
+                entity.Property(e => e.Tickettypeid).HasColumnName("tickettypeid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Assettype>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("assettype", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Assetcategoryid).HasColumnName("assetcategoryid");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(255)
+                    .HasColumnName("description");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Typename)
+                    .HasMaxLength(100)
+                    .HasColumnName("typename");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Assignmentstatus>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("assignmentstatus", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(255)
+                    .HasColumnName("description");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Statusname)
+                    .HasMaxLength(50)
+                    .HasColumnName("statusname");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
             modelBuilder.Entity<Attendance>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Attendan__3214EC079EEE2ABB");
+                entity
+                    .HasNoKey()
+                    .ToTable("attendance", "axionpro");
 
-                entity.ToTable("Attendance", "AxionPro");
-
-                entity.Property(e => e.AttendanceImagePath).HasMaxLength(200);
-                entity.Property(e => e.AttendanceImageUrl)
+                entity.Property(e => e.Attendancedate).HasColumnName("attendancedate");
+                entity.Property(e => e.Attendanceimagepath)
                     .HasMaxLength(200)
-                    .HasColumnName("AttendanceImageURL");
-            });
-
-            modelBuilder.Entity<AttendanceDeviceType>(entity =>
-            {
-                entity.ToTable("AttendanceDeviceType", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.DeviceType).HasMaxLength(50);
-                entity.Property(e => e.IsDeviceRegister).HasDefaultValue(false);
-                entity.Property(e => e.Remark).HasMaxLength(255);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-            });
-
-            modelBuilder.Entity<AttendanceHistory>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__Attendan__3214EC07AC1B1F0C");
-
-                entity.ToTable("AttendanceHistory", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.InTime).HasColumnType("datetime");
-                entity.Property(e => e.OutTime).HasColumnType("datetime");
-                entity.Property(e => e.Remarks).HasMaxLength(255);
-                entity.Property(e => e.Status).HasMaxLength(20);
-                entity.Property(e => e.TotalBreakHours).HasColumnType("decimal(5, 2)");
-                entity.Property(e => e.TotalWorkHours).HasColumnType("decimal(5, 2)");
-                entity.Property(e => e.UpdatedDateTime)
-                    .HasDefaultValueSql("(NULL)")
-                    .HasColumnType("datetime");
-
-                entity.HasOne(d => d.Employee).WithMany(p => p.AttendanceHistories)
-                    .HasForeignKey(d => d.EmployeeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_AttendanceHistory_Employee");
-            });
-
-            modelBuilder.Entity<AttendanceRequest>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__Attendan__3214EC07DA4D2CA6");
-
-                entity.ToTable("AttendanceRequest", "AxionPro");
-
-                entity.Property(e => e.AttendanceDate).HasColumnType("datetime");
-                entity.Property(e => e.AttendanceImagePath).HasMaxLength(200);
-                entity.Property(e => e.AttendanceImageUrl)
+                    .HasColumnName("attendanceimagepath");
+                entity.Property(e => e.Attendanceimageurl)
                     .HasMaxLength(200)
-                    .HasColumnName("AttendanceImageURL");
-                entity.Property(e => e.Remark).HasMaxLength(255);
+                    .HasColumnName("attendanceimageurl");
+                entity.Property(e => e.Deviceid).HasColumnName("deviceid");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Latitude).HasColumnName("latitude");
+                entity.Property(e => e.Longitude).HasColumnName("longitude");
             });
 
-            modelBuilder.Entity<BasicMenu>(entity =>
+            modelBuilder.Entity<Attendancedevicetype>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK_BasicMenu_Id");
+                entity
+                    .HasNoKey()
+                    .ToTable("attendancedevicetype", "axionpro");
 
-                entity.ToTable("BasicMenu", "AxionPro");
-
-                entity.Property(e => e.ImageIcon).HasMaxLength(100);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.MenuName).HasMaxLength(100);
-                entity.Property(e => e.MenuUrl)
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Devicetype)
+                    .HasMaxLength(50)
+                    .HasColumnName("devicetype");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Isdeviceregister).HasColumnName("isdeviceregister");
+                entity.Property(e => e.Remark)
                     .HasMaxLength(255)
-                    .HasColumnName("MenuURL");
-                entity.Property(e => e.Remark).HasMaxLength(200);
+                    .HasColumnName("remark");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
 
-                entity.HasOne(d => d.ParentMenu).WithMany(p => p.InverseParentMenu)
-                    .HasForeignKey(d => d.ParentMenuId)
-                    .HasConstraintName("FK_BasicMenu_ParentMenu");
+            modelBuilder.Entity<Attendancehistory>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("attendancehistory", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Attendancedate).HasColumnName("attendancedate");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Intime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("intime");
+                entity.Property(e => e.Outtime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("outtime");
+                entity.Property(e => e.Remarks)
+                    .HasMaxLength(255)
+                    .HasColumnName("remarks");
+                entity.Property(e => e.Status)
+                    .HasMaxLength(20)
+                    .HasColumnName("status");
+                entity.Property(e => e.Totalbreakhours)
+                    .HasPrecision(5, 2)
+                    .HasColumnName("totalbreakhours");
+                entity.Property(e => e.Totalworkhours)
+                    .HasPrecision(5, 2)
+                    .HasColumnName("totalworkhours");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Attendancerequest>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("attendancerequest", "axionpro");
+
+                entity.Property(e => e.Attendancedate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("attendancedate");
+                entity.Property(e => e.Attendancedevicetypeid).HasColumnName("attendancedevicetypeid");
+                entity.Property(e => e.Attendanceimagepath)
+                    .HasMaxLength(200)
+                    .HasColumnName("attendanceimagepath");
+                entity.Property(e => e.Attendanceimageurl)
+                    .HasMaxLength(200)
+                    .HasColumnName("attendanceimageurl");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Latitude).HasColumnName("latitude");
+                entity.Property(e => e.Longitude).HasColumnName("longitude");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(255)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Workstationtypeid).HasColumnName("workstationtypeid");
+            });
+
+            modelBuilder.Entity<Basicmenu>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("basicmenu", "axionpro");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Imageicon)
+                    .HasMaxLength(100)
+                    .HasColumnName("imageicon");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Menuname)
+                    .HasMaxLength(100)
+                    .HasColumnName("menuname");
+                entity.Property(e => e.Menuurl)
+                    .HasMaxLength(255)
+                    .HasColumnName("menuurl");
+                entity.Property(e => e.Parentmenuid).HasColumnName("parentmenuid");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(200)
+                    .HasColumnName("remark");
             });
 
             modelBuilder.Entity<Candidate>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Candidat__3214EC078AAEC326");
+                entity
+                    .HasNoKey()
+                    .ToTable("candidate", "axionpro");
 
-                entity.ToTable("Candidate", "AxionPro");
-
-                entity.HasIndex(e => e.PhoneNumber, "UQ__Candidat__85FB4E384EF74606").IsUnique();
-
-                entity.HasIndex(e => e.Email, "UQ__Candidat__A9D10534B67C36A0").IsUnique();
-
-                entity.HasIndex(e => e.Aadhaar, "UQ__Candidat__C4B3336970636589").IsUnique();
-
-                entity.HasIndex(e => e.Pan, "UQ__Candidat__C577943D11665D42").IsUnique();
-
-                entity.HasIndex(e => e.CandidateReferenceCode, "UQ__Candidat__CF22B81A936408F4").IsUnique();
-
-                entity.Property(e => e.Aadhaar).HasMaxLength(12);
-                entity.Property(e => e.ActionStatus).HasMaxLength(20);
-                entity.Property(e => e.AppliedDate)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.CandidateReferenceCode).HasMaxLength(20);
-                entity.Property(e => e.CurrentCompany).HasMaxLength(200);
-                entity.Property(e => e.CurrentLocation).HasMaxLength(200);
-                entity.Property(e => e.Education).HasMaxLength(50);
-                entity.Property(e => e.Email).HasMaxLength(200);
-                entity.Property(e => e.ExpectedSalary).HasColumnType("decimal(18, 2)");
-                entity.Property(e => e.ExperienceYears).HasColumnType("decimal(4, 1)");
-                entity.Property(e => e.FewWords).HasMaxLength(1000);
-                entity.Property(e => e.FirstName).HasMaxLength(100);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.LastName).HasMaxLength(100);
-                entity.Property(e => e.LastUpdatedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                entity.Property(e => e.Aadhaar)
+                    .HasMaxLength(12)
+                    .HasColumnName("aadhaar");
+                entity.Property(e => e.Actionstatus)
+                    .HasMaxLength(20)
+                    .HasColumnName("actionstatus");
+                entity.Property(e => e.Applieddate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("applieddate");
+                entity.Property(e => e.Candidatereferencecode)
+                    .HasMaxLength(20)
+                    .HasColumnName("candidatereferencecode");
+                entity.Property(e => e.Currentcompany)
+                    .HasMaxLength(200)
+                    .HasColumnName("currentcompany");
+                entity.Property(e => e.Currentlocation)
+                    .HasMaxLength(200)
+                    .HasColumnName("currentlocation");
+                entity.Property(e => e.Dateofbirth).HasColumnName("dateofbirth");
+                entity.Property(e => e.Education)
+                    .HasMaxLength(50)
+                    .HasColumnName("education");
+                entity.Property(e => e.Email)
+                    .HasMaxLength(200)
+                    .HasColumnName("email");
+                entity.Property(e => e.Expectedsalary)
+                    .HasPrecision(18, 2)
+                    .HasColumnName("expectedsalary");
+                entity.Property(e => e.Experienceyears)
+                    .HasPrecision(4, 1)
+                    .HasColumnName("experienceyears");
+                entity.Property(e => e.Fewwords)
+                    .HasMaxLength(1000)
+                    .HasColumnName("fewwords");
+                entity.Property(e => e.Firstname)
+                    .HasMaxLength(100)
+                    .HasColumnName("firstname");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Isblacklisted).HasColumnName("isblacklisted");
+                entity.Property(e => e.Isfresher).HasColumnName("isfresher");
+                entity.Property(e => e.Lastname)
+                    .HasMaxLength(100)
+                    .HasColumnName("lastname");
+                entity.Property(e => e.Lastupdateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("lastupdateddatetime");
+                entity.Property(e => e.Noticeperiod).HasColumnName("noticeperiod");
                 entity.Property(e => e.Pan)
                     .HasMaxLength(10)
-                    .HasColumnName("PAN");
-                entity.Property(e => e.PhoneNumber).HasMaxLength(15);
-                entity.Property(e => e.ResumePath).HasMaxLength(200);
-                entity.Property(e => e.ResumeUrl)
+                    .HasColumnName("pan");
+                entity.Property(e => e.Phonenumber)
+                    .HasMaxLength(50)
+                    .HasColumnName("phonenumber");
+                entity.Property(e => e.Resumepath)
                     .HasMaxLength(200)
-                    .HasColumnName("ResumeURL");
+                    .HasColumnName("resumepath");
+                entity.Property(e => e.Resumeurl)
+                    .HasMaxLength(200)
+                    .HasColumnName("resumeurl");
+                entity.Property(e => e.Skillset)
+                    .HasColumnType("character varying")
+                    .HasColumnName("skillset");
             });
 
-            modelBuilder.Entity<CandidateCategorySkill>(entity =>
+            modelBuilder.Entity<Candidatecategoryskill>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Candidat__3214EC07853F4240");
+                entity
+                    .HasNoKey()
+                    .ToTable("candidatecategoryskill", "axionpro");
 
-                entity.ToTable("CandidateCategorySkill", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.Description).HasMaxLength(255);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-
-                entity.HasOne(d => d.Candidate).WithMany(p => p.CandidateCategorySkills)
-                    .HasForeignKey(d => d.CandidateId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Candidate__Candi__15DA3E5D");
-
-                entity.HasOne(d => d.Category).WithMany(p => p.CandidateCategorySkills)
-                    .HasForeignKey(d => d.CategoryId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Candidate__Categ__16CE6296");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Candidateid).HasColumnName("candidateid");
+                entity.Property(e => e.Categoryid).HasColumnName("categoryid");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(255)
+                    .HasColumnName("description");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
             });
 
-            modelBuilder.Entity<CandidateHistory>(entity =>
+            modelBuilder.Entity<Candidatehistory>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Candidat__3214EC07F93DEB9C");
+                entity
+                    .HasNoKey()
+                    .ToTable("candidatehistory", "axionpro");
 
-                entity.ToTable("CandidateHistory", "AxionPro");
-
-                entity.Property(e => e.CreatedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.ReapplyAllowedAfter).HasColumnType("datetime");
-                entity.Property(e => e.Status).HasMaxLength(50);
-
-                entity.HasOne(d => d.Candidate).WithMany(p => p.CandidateHistories)
-                    .HasForeignKey(d => d.CandidateId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Candidate__Candi__17C286CF");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Candidateid).HasColumnName("candidateid");
+                entity.Property(e => e.Createddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("createddatetime");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Reapplyallowedafter)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("reapplyallowedafter");
+                entity.Property(e => e.Reason)
+                    .HasColumnType("character varying")
+                    .HasColumnName("reason");
+                entity.Property(e => e.Status)
+                    .HasMaxLength(50)
+                    .HasColumnName("status");
             });
 
             modelBuilder.Entity<Category>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Category__3214EC070D4D0C80");
+                entity
+                    .HasNoKey()
+                    .ToTable("category", "axionpro");
 
-                entity.ToTable("Category", "AxionPro");
-
-                entity.Property(e => e.Code).HasMaxLength(50);
-                entity.Property(e => e.Description).HasMaxLength(255);
-                entity.Property(e => e.Name).HasMaxLength(100);
-                entity.Property(e => e.ParentId).HasColumnName("ParentID");
-                entity.Property(e => e.Remark).HasMaxLength(50);
-                entity.Property(e => e.Tags).HasMaxLength(255);
-
-                entity.HasOne(d => d.Parent).WithMany(p => p.InverseParent)
-                    .HasForeignKey(d => d.ParentId)
-                    .HasConstraintName("FK_Category_Parent");
+                entity.Property(e => e.Code)
+                    .HasMaxLength(50)
+                    .HasColumnName("code");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(255)
+                    .HasColumnName("description");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Name)
+                    .HasMaxLength(100)
+                    .HasColumnName("name");
+                entity.Property(e => e.Parentid).HasColumnName("parentid");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(50)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Tags)
+                    .HasMaxLength(255)
+                    .HasColumnName("tags");
             });
 
-            modelBuilder.Entity<District>(entity =>
+            modelBuilder.Entity<City>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__District__3214EC077686EC47");
+                entity
+                    .HasNoKey()
+                    .ToTable("city", "axionpro");
 
-                entity.ToTable("District", "AxionPro");
-
-                entity.HasIndex(e => e.DistrictName, "IX_District_DistrictName");
-
-                entity.HasIndex(e => e.StateId, "IX_District_StateId");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.DistrictCode).HasMaxLength(50);
-                entity.Property(e => e.DistrictName).HasMaxLength(200);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.PinCode).HasMaxLength(50);
-                entity.Property(e => e.Remark).HasMaxLength(500);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.State).WithMany(p => p.Districts)
-                    .HasForeignKey(d => d.StateId)
-                    .HasConstraintName("FK_District_State");
+                entity.Property(e => e.Cityname)
+                    .HasMaxLength(100)
+                    .HasColumnName("cityname");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Stateid).HasColumnName("stateid");
             });
-
 
             modelBuilder.Entity<Client>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK_TenderClient");
-
-                entity.ToTable("Client", "AxionPro");
+                entity
+                    .HasNoKey()
+                    .ToTable("client", "axionpro");
 
                 entity.Property(e => e.Address)
                     .HasMaxLength(255)
-                    .IsUnicode(false);
-                entity.Property(e => e.ClientName)
+                    .HasColumnName("address");
+                entity.Property(e => e.Clientname)
                     .HasMaxLength(255)
-                    .IsUnicode(false);
-                entity.Property(e => e.ContactPerson)
+                    .HasColumnName("clientname");
+                entity.Property(e => e.Clienttypeid).HasColumnName("clienttypeid");
+                entity.Property(e => e.Contactperson)
                     .HasMaxLength(255)
-                    .IsUnicode(false);
+                    .HasColumnName("contactperson");
                 entity.Property(e => e.Email)
                     .HasMaxLength(255)
-                    .IsUnicode(false);
-                entity.Property(e => e.PhoneNumber)
+                    .HasColumnName("email");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Phonenumber)
                     .HasMaxLength(15)
-                    .IsUnicode(false);
+                    .HasColumnName("phonenumber");
                 entity.Property(e => e.Remark)
                     .HasMaxLength(255)
-                    .IsUnicode(false);
-
-                entity.HasOne(d => d.ClientType).WithMany(p => p.Clients)
-                    .HasForeignKey(d => d.ClientTypeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Client_ClientType");
+                    .HasColumnName("remark");
             });
 
-            modelBuilder.Entity<ClientType>(entity =>
+            modelBuilder.Entity<Clienttype>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__ClientTy__3214EC078D984A16");
+                entity
+                    .HasNoKey()
+                    .ToTable("clienttype", "axionpro");
 
-                entity.ToTable("ClientType", "AxionPro");
-
-                entity.Property(e => e.Description).HasMaxLength(255);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.Description)
+                    .HasMaxLength(255)
+                    .HasColumnName("description");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
                 entity.Property(e => e.Remark)
                     .HasMaxLength(255)
-                    .IsUnicode(false);
-                entity.Property(e => e.TypeName)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Typename)
                     .HasMaxLength(50)
-                    .IsUnicode(false);
+                    .HasColumnName("typename");
             });
+
+            modelBuilder.Entity<Companypolicydocument>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("companypolicydocument", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Documenttitle)
+                    .HasMaxLength(200)
+                    .HasColumnName("documenttitle");
+                entity.Property(e => e.Filename)
+                    .HasMaxLength(200)
+                    .HasColumnName("filename");
+                entity.Property(e => e.Filepath)
+                    .HasMaxLength(500)
+                    .HasColumnName("filepath");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Policytypeid).HasColumnName("policytypeid");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Softdeleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("softdeleteddatetime");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
             modelBuilder.Entity<Country>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Country__3214EC070584DCC0");
+                entity
+                    .HasNoKey()
+                    .ToTable("country", "axionpro");
 
-                entity.ToTable("Country", "AxionPro");
-
-                entity.Property(e => e.CountryCode).HasMaxLength(10);
-                entity.Property(e => e.CountryName).HasMaxLength(100);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-            });
-            modelBuilder.Entity<DataViewStructure>(entity =>
-            {
-                entity.ToTable("DataViewStructure", "AxionPro");
-
-                entity.Property(e => e.Discription).HasMaxLength(150);
-                entity.Property(e => e.DisplayOn).HasMaxLength(50);
-                entity.Property(e => e.Remark).HasMaxLength(150);
+                entity.Property(e => e.Countrycode)
+                    .HasMaxLength(10)
+                    .HasColumnName("countrycode");
+                entity.Property(e => e.Countryname)
+                    .HasMaxLength(100)
+                    .HasColumnName("countryname");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
             });
 
-            modelBuilder.Entity<DayCombination>(entity =>
+            modelBuilder.Entity<Countryidentityrule>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__DayCombi__3214EC070D2CF976");
+                entity
+                    .HasNoKey()
+                    .ToTable("countryidentityrule", "axionpro");
 
-                entity.ToTable("DayCombination", "AxionPro");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Countryid).HasColumnName("countryid");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Identitycategorydocumentid).HasColumnName("identitycategorydocumentid");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Ismandatory).HasColumnName("ismandatory");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
 
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.CombinationName).HasMaxLength(100);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.Remark).HasMaxLength(250);
-                entity.Property(e => e.AddedById).HasColumnType("long");
-                entity.Property(e => e.SoftDeletedById).HasColumnType("long");
-                entity.Property(e => e.SoftDeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+            modelBuilder.Entity<Countrystatutoryrule>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("countrystatutoryrule", "axionpro");
 
-                entity.HasOne(d => d.Tenant).WithMany(p => p.DayCombinations)
-                    .HasForeignKey(d => d.TenantId)
-                    .HasConstraintName("FK_DayCombination_Tenant");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Countryid).HasColumnName("countryid");
+                entity.Property(e => e.Deletedbyid).HasColumnName("deletedbyid");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Ismandatory).HasColumnName("ismandatory");
+                entity.Property(e => e.Salarythreshold)
+                    .HasPrecision(18, 2)
+                    .HasColumnName("salarythreshold");
+                entity.Property(e => e.Statutorytypeid).HasColumnName("statutorytypeid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Dataviewstructure>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("dataviewstructure", "axionpro");
+
+                entity.Property(e => e.Discription)
+                    .HasMaxLength(150)
+                    .HasColumnName("discription");
+                entity.Property(e => e.Displayon)
+                    .HasMaxLength(50)
+                    .HasColumnName("displayon");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isdisplayedatpriority).HasColumnName("isdisplayedatpriority");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(150)
+                    .HasColumnName("remark");
+            });
+
+            modelBuilder.Entity<Daycombination>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("daycombination", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Combinationname)
+                    .HasMaxLength(100)
+                    .HasColumnName("combinationname");
+                entity.Property(e => e.Endday).HasColumnName("endday");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(250)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Softdeleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("softdeleteddatetime");
+                entity.Property(e => e.Startday).HasColumnName("startday");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Demorequest>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("demorequest", "axionpro");
+
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Companyname)
+                    .HasMaxLength(200)
+                    .HasColumnName("companyname");
+                entity.Property(e => e.Contactnumber)
+                    .HasMaxLength(20)
+                    .HasColumnName("contactnumber");
+                entity.Property(e => e.Currenthrms)
+                    .HasMaxLength(200)
+                    .HasColumnName("currenthrms");
+                entity.Property(e => e.Deploymentpreference)
+                    .HasMaxLength(50)
+                    .HasColumnName("deploymentpreference");
+                entity.Property(e => e.Firstname)
+                    .HasMaxLength(100)
+                    .HasColumnName("firstname");
+                entity.Property(e => e.Hasexistingbiometric).HasColumnName("hasexistingbiometric");
+                entity.Property(e => e.Hrchallenges)
+                    .HasColumnType("character varying")
+                    .HasColumnName("hrchallenges");
+                entity.Property(e => e.Id)
+                    .HasMaxLength(50)
+                    .HasColumnName("id");
+                entity.Property(e => e.Industrytype)
+                    .HasMaxLength(150)
+                    .HasColumnName("industrytype");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Isbiometricrequired).HasColumnName("isbiometricrequired");
+                entity.Property(e => e.Lastname)
+                    .HasMaxLength(100)
+                    .HasColumnName("lastname");
+                entity.Property(e => e.Numberofemployees).HasColumnName("numberofemployees");
+                entity.Property(e => e.Requiredmachinecount).HasColumnName("requiredmachinecount");
+                entity.Property(e => e.Requiresintegration).HasColumnName("requiresintegration");
+                entity.Property(e => e.Status)
+                    .HasMaxLength(50)
+                    .HasColumnName("status");
+                entity.Property(e => e.Workemail)
+                    .HasMaxLength(150)
+                    .HasColumnName("workemail");
+            });
+
+            modelBuilder.Entity<Demorequestbiometricdetail>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("demorequestbiometricdetail", "axionpro");
+
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Biometriccompanyname)
+                    .HasMaxLength(200)
+                    .HasColumnName("biometriccompanyname");
+                entity.Property(e => e.Demorequestid)
+                    .HasMaxLength(50)
+                    .HasColumnName("demorequestid");
+                entity.Property(e => e.Id)
+                    .HasMaxLength(50)
+                    .HasColumnName("id");
+                entity.Property(e => e.Machinecount).HasColumnName("machinecount");
+                entity.Property(e => e.Machinelocation)
+                    .HasMaxLength(250)
+                    .HasColumnName("machinelocation");
+                entity.Property(e => e.Modelnumber)
+                    .HasMaxLength(150)
+                    .HasColumnName("modelnumber");
             });
 
             modelBuilder.Entity<Department>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Departme__3214EC071E7B0B0B");
+                entity
+                    .HasNoKey()
+                    .ToTable("department", "axionpro");
 
-                entity.ToTable("Department", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.DepartmentName).HasMaxLength(255);
-                entity.Property(e => e.Description).HasMaxLength(500);
-                entity.Property(e => e.Remark).HasMaxLength(200);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Tenant).WithMany(p => p.Departments)
-                    .HasForeignKey(d => d.TenantId)
-                    .HasConstraintName("FK_Department_Tenant");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Departmentname)
+                    .HasMaxLength(255)
+                    .HasColumnName("departmentname");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(500)
+                    .HasColumnName("description");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Isexecutiveoffice).HasColumnName("isexecutiveoffice");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(200)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
             modelBuilder.Entity<Designation>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Designat__3214EC07F9FF4C75");
+                entity
+                    .HasNoKey()
+                    .ToTable("designation", "axionpro");
 
-                entity.ToTable("Designation", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.Description).HasMaxLength(500);
-                entity.Property(e => e.DesignationName).HasMaxLength(255);
-                entity.Property(e => e.SoftDeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Department).WithMany(p => p.Designations)
-                    .HasForeignKey(d => d.DepartmentId)
-                    .HasConstraintName("FK_Designation_Department");
-
-                entity.HasOne(d => d.Tenant).WithMany(p => p.Designations)
-                    .HasForeignKey(d => d.TenantId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Designation_Tenant");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Departmentid).HasColumnName("departmentid");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(500)
+                    .HasColumnName("description");
+                entity.Property(e => e.Designationname)
+                    .HasMaxLength(255)
+                    .HasColumnName("designationname");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Softdeleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("softdeleteddatetime");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
-            modelBuilder.Entity<EmailQueue>(entity =>
+            modelBuilder.Entity<District>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__EmailQue__3214EC0705218438");
+                entity
+                    .HasNoKey()
+                    .ToTable("district", "axionpro");
 
-                entity.ToTable("EmailQueue", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.IsSent).HasDefaultValue(false);
-                entity.Property(e => e.RetryCount).HasDefaultValue(0);
-                entity.Property(e => e.SendDateTime).HasColumnType("datetime");
-                entity.Property(e => e.Subject).HasMaxLength(500);
-                entity.Property(e => e.ToEmail).HasMaxLength(250);
-
-                entity.HasOne(d => d.Template).WithMany(p => p.EmailQueues)
-                    .HasForeignKey(d => d.TemplateId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__EmailQueu__Templ__44B528D7");
-            });
-
-            modelBuilder.Entity<EmailTemplate>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__EmailTem__3214EC072FE49A64");
-
-                entity.ToTable("EmailTemplate", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.AddedFromIp)
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Districtcode)
                     .HasMaxLength(50)
-                    .HasColumnName("AddedFromIP");
-                entity.Property(e => e.Category).HasMaxLength(100);
-                entity.Property(e => e.FromEmail).HasMaxLength(150);
-                entity.Property(e => e.FromName).HasMaxLength(100);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.LanguageCode).HasMaxLength(10);
-                entity.Property(e => e.Subject).HasMaxLength(250);
-                entity.Property(e => e.TemplateCode).HasMaxLength(100);
-                entity.Property(e => e.TemplateName).HasMaxLength(150);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedFromIp)
+                    .HasColumnName("districtcode");
+                entity.Property(e => e.Districtname)
+                    .HasMaxLength(200)
+                    .HasColumnName("districtname");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Pincode)
                     .HasMaxLength(50)
-                    .HasColumnName("UpdatedFromIP");
+                    .HasColumnName("pincode");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(500)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Stateid).HasColumnName("stateid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
-            modelBuilder.Entity<EmailsLog>(entity =>
+            modelBuilder.Entity<Districtmaster>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__EmailsLo__3214EC0779530258");
+                entity
+                    .HasNoKey()
+                    .ToTable("districtmaster", "axionpro");
 
-                entity.ToTable("EmailsLog", "AxionPro");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Districtcode)
+                    .HasMaxLength(50)
+                    .HasColumnName("districtcode");
+                entity.Property(e => e.Districtname)
+                    .HasMaxLength(200)
+                    .HasColumnName("districtname");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Pincode)
+                    .HasMaxLength(50)
+                    .HasColumnName("pincode");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(500)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Stateid).HasColumnName("stateid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
 
-                entity.Property(e => e.AddedFromIp).HasMaxLength(50);
-                entity.Property(e => e.BccEmail).HasMaxLength(1000);
-                entity.Property(e => e.CcEmail).HasMaxLength(1000);
-                entity.Property(e => e.CreatedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.ErrorMessage).HasMaxLength(1000);
-                entity.Property(e => e.SentDateTime).HasColumnType("datetime");
+            modelBuilder.Entity<Emailqueue>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("emailqueue", "axionpro");
+
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Bccemail)
+                    .HasColumnType("character varying")
+                    .HasColumnName("bccemail");
+                entity.Property(e => e.Body)
+                    .HasColumnType("character varying")
+                    .HasColumnName("body");
+                entity.Property(e => e.Ccemail)
+                    .HasColumnType("character varying")
+                    .HasColumnName("ccemail");
+                entity.Property(e => e.Errormessage)
+                    .HasColumnType("character varying")
+                    .HasColumnName("errormessage");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Issent).HasColumnName("issent");
+                entity.Property(e => e.Retrycount).HasColumnName("retrycount");
+                entity.Property(e => e.Senddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("senddatetime");
+                entity.Property(e => e.Subject)
+                    .HasMaxLength(500)
+                    .HasColumnName("subject");
+                entity.Property(e => e.Templateid).HasColumnName("templateid");
+                entity.Property(e => e.Toemail)
+                    .HasMaxLength(250)
+                    .HasColumnName("toemail");
+            });
+
+            modelBuilder.Entity<Emailslog>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("emailslog", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addedfromip)
+                    .HasMaxLength(50)
+                    .HasColumnName("addedfromip");
+                entity.Property(e => e.Additionalinfojson)
+                    .HasColumnType("character varying")
+                    .HasColumnName("additionalinfojson");
+                entity.Property(e => e.Bccemail)
+                    .HasMaxLength(1000)
+                    .HasColumnName("bccemail");
+                entity.Property(e => e.Body)
+                    .HasColumnType("character varying")
+                    .HasColumnName("body");
+                entity.Property(e => e.Ccemail)
+                    .HasMaxLength(1000)
+                    .HasColumnName("ccemail");
+                entity.Property(e => e.Createddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("createddatetime");
+                entity.Property(e => e.Emailqueueid).HasColumnName("emailqueueid");
+                entity.Property(e => e.Errormessage)
+                    .HasMaxLength(1000)
+                    .HasColumnName("errormessage");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Retrycount).HasColumnName("retrycount");
+                entity.Property(e => e.Sentdatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("sentdatetime");
                 entity.Property(e => e.Status)
                     .HasMaxLength(20)
-                    .IsUnicode(false)
-                    .HasDefaultValue("Queued");
-                entity.Property(e => e.Subject).HasMaxLength(500);
-                entity.Property(e => e.ToEmail).HasMaxLength(500);
-                entity.Property(e => e.TriggeredBy).HasMaxLength(100);
+                    .HasColumnName("status");
+                entity.Property(e => e.Subject)
+                    .HasMaxLength(500)
+                    .HasColumnName("subject");
+                entity.Property(e => e.Templateid).HasColumnName("templateid");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Toemail)
+                    .HasMaxLength(500)
+                    .HasColumnName("toemail");
+                entity.Property(e => e.Triggeredby)
+                    .HasMaxLength(100)
+                    .HasColumnName("triggeredby");
             });
-            modelBuilder.Entity<CountryIdentityRule>(entity =>
+
+            modelBuilder.Entity<Emailtemplate>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__CountryI__3214EC0748E4A649");
+                entity
+                    .HasNoKey()
+                    .ToTable("emailtemplate", "axionpro");
 
-                entity.ToTable("CountryIdentityRule", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsMandatory).HasDefaultValue(true);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Country).WithMany(p => p.CountryIdentityRules)
-                    .HasForeignKey(d => d.CountryId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Country");
-
-                entity.HasOne(d => d.IdentityCategoryDocument).WithMany(p => p.CountryIdentityRules)
-                    .HasForeignKey(d => d.IdentityCategoryDocumentId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Country_Document");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Addedfromip)
+                    .HasMaxLength(50)
+                    .HasColumnName("addedfromip");
+                entity.Property(e => e.Bccemail)
+                    .HasColumnType("character varying")
+                    .HasColumnName("bccemail");
+                entity.Property(e => e.Body)
+                    .HasColumnType("character varying")
+                    .HasColumnName("body");
+                entity.Property(e => e.Category)
+                    .HasMaxLength(100)
+                    .HasColumnName("category");
+                entity.Property(e => e.Ccemail)
+                    .HasColumnType("character varying")
+                    .HasColumnName("ccemail");
+                entity.Property(e => e.Fromemail)
+                    .HasMaxLength(150)
+                    .HasColumnName("fromemail");
+                entity.Property(e => e.Fromname)
+                    .HasMaxLength(100)
+                    .HasColumnName("fromname");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Languagecode)
+                    .HasMaxLength(10)
+                    .HasColumnName("languagecode");
+                entity.Property(e => e.Subject)
+                    .HasMaxLength(250)
+                    .HasColumnName("subject");
+                entity.Property(e => e.Templatecode)
+                    .HasMaxLength(100)
+                    .HasColumnName("templatecode");
+                entity.Property(e => e.Templatename)
+                    .HasMaxLength(150)
+                    .HasColumnName("templatename");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+                entity.Property(e => e.Updatedfromip)
+                    .HasMaxLength(50)
+                    .HasColumnName("updatedfromip");
             });
-
 
             modelBuilder.Entity<Employee>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC07E3264254");
+                entity
+                    .HasNoKey()
+                    .ToTable("employee", "axionpro");
 
-                entity.ToTable("Employee", "AxionPro");
-
-                entity.HasIndex(e => e.OfficialEmail, "UX_Employee_SystemUser_OnlyOnce")
-                    .IsUnique()
-                    .HasFilter("([TenantId] IS NULL AND [IsSoftDeleted]=(0))");
-
-                entity.HasIndex(e => e.Id, "UX_Employee_TenantIdNullOnce")
-                    .IsUnique()
-                    .HasFilter("([TenantId] IS NULL AND [IsSoftDeleted]=(0))");
-
-                entity.HasIndex(e => e.Id, "UX_Employee_TenantId_Null_OnlyOnce")
-                    .IsUnique()
-                    .HasFilter("([TenantId] IS NULL AND [IsSoftDeleted]=(0))");
-
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.DateOfBirth).HasColumnType("datetime");
-                entity.Property(e => e.DateOfExit).HasColumnType("datetime");
-                entity.Property(e => e.DateOfOnBoarding).HasColumnType("datetime");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.Description).HasMaxLength(500);
-                entity.Property(e => e.EmployementCode).HasMaxLength(50);
-                entity.Property(e => e.FirstName).HasMaxLength(100);
-                entity.Property(e => e.InfoVerifiedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
-                entity.Property(e => e.LastName).HasMaxLength(100);
-                entity.Property(e => e.MiddleName).HasMaxLength(100);
-                entity.Property(e => e.OfficialEmail).HasMaxLength(255);
-                entity.Property(e => e.Remark).HasMaxLength(200);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Country).WithMany(p => p.Employees)
-                    .HasForeignKey(d => d.CountryId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Employee_Country");
-
-                entity.HasOne(d => d.Designation).WithMany(p => p.Employees)
-                    .HasForeignKey(d => d.DesignationId)
-                    .OnDelete(DeleteBehavior.SetNull)
-                    .HasConstraintName("FK_Employee_Designation");
-
-                entity.HasOne(d => d.EmployeeType).WithMany(p => p.Employees)
-                    .HasForeignKey(d => d.EmployeeTypeId)
-                    .HasConstraintName("FK_Employee_EmployeeType");
-
-                entity.HasOne(d => d.Gender).WithMany(p => p.Employees)
-                    .HasForeignKey(d => d.GenderId)
-                    .HasConstraintName("FK_Employee_Gender");
-
-                entity.HasOne(d => d.Tenant).WithMany(p => p.Employees)
-                    .HasForeignKey(d => d.TenantId)
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .HasConstraintName("FK_Employee_Tenant");
-            });
-
-            modelBuilder.Entity<EmployeeContact>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC0701BE71BF");
-
-                entity.ToTable("EmployeeContact", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.AlternateNumber).HasMaxLength(20);
-                entity.Property(e => e.ContactNumber).HasMaxLength(20);
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.Description).HasMaxLength(500);
-                entity.Property(e => e.Email).HasMaxLength(100);
-                entity.Property(e => e.HouseNo).HasMaxLength(250);
-                entity.Property(e => e.InfoVerifiedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsEditAllowed).HasDefaultValue(false);
-                entity.Property(e => e.IsInfoVerified).HasDefaultValue(false);
-                entity.Property(e => e.IsPrimary).HasDefaultValue(false);
-                entity.Property(e => e.IsSoftDeleted).HasDefaultValue(true);
-                entity.Property(e => e.LandMark).HasMaxLength(250);
-                entity.Property(e => e.Address).HasMaxLength(250);               
-                entity.Property(e => e.Remark).HasMaxLength(250);
-                entity.Property(e => e.Street).HasMaxLength(250);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeContacts)
-                    .HasForeignKey(d => d.EmployeeId)
-                    .HasConstraintName("FK_EmployeeContact_Employee");
-            });
-
-
-            modelBuilder.Entity<EmployeeBankDetail>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC072E9F930F");
-
-                entity.ToTable("EmployeeBankDetail", "AxionPro");
-
-                entity.Property(e => e.AccountNumber).HasMaxLength(50);
-                entity.Property(e => e.AccountType).HasMaxLength(50);
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.BankName).HasMaxLength(100);
-                entity.Property(e => e.BranchName).HasMaxLength(100);
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.IFSCCode)
-                    .HasMaxLength(20)
-                    .HasColumnName("IFSCCode");
-                entity.Property(e => e.InfoVerifiedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.IsPrimaryAccount).HasDefaultValue(true);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UPIId)
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Bloodgroup)
+                    .HasMaxLength(10)
+                    .HasColumnName("bloodgroup");
+                entity.Property(e => e.Countryid).HasColumnName("countryid");
+                entity.Property(e => e.Dateofbirth)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("dateofbirth");
+                entity.Property(e => e.Dateofexit)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("dateofexit");
+                entity.Property(e => e.Dateofonboarding)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("dateofonboarding");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Departmentid).HasColumnName("departmentid");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(500)
+                    .HasColumnName("description");
+                entity.Property(e => e.Designationid).HasColumnName("designationid");
+                entity.Property(e => e.Emergencycontactnumber)
+                    .HasMaxLength(50)
+                    .HasColumnName("emergencycontactnumber");
+                entity.Property(e => e.Emergencycontactperson)
                     .HasMaxLength(100)
-                    .HasColumnName("UPIId");
-
-                entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeBankDetails)
-                    .HasForeignKey(d => d.EmployeeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_EmployeeBank_Employee");
+                    .HasColumnName("emergencycontactperson");
+                entity.Property(e => e.Employeedocumentid).HasColumnName("employeedocumentid");
+                entity.Property(e => e.Employeetypeid).HasColumnName("employeetypeid");
+                entity.Property(e => e.Employementcode)
+                    .HasMaxLength(50)
+                    .HasColumnName("employementcode");
+                entity.Property(e => e.Firstname)
+                    .HasMaxLength(100)
+                    .HasColumnName("firstname");
+                entity.Property(e => e.Functionalid).HasColumnName("functionalid");
+                entity.Property(e => e.Genderid).HasColumnName("genderid");
+                entity.Property(e => e.Haspermanent).HasColumnName("haspermanent");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Infoverifiedbyid).HasColumnName("infoverifiedbyid");
+                entity.Property(e => e.Infoverifieddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("infoverifieddatetime");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Iseditallowed).HasColumnName("iseditallowed");
+                entity.Property(e => e.Isinfoverified).HasColumnName("isinfoverified");
+                entity.Property(e => e.Ismarried).HasColumnName("ismarried");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Lastname)
+                    .HasMaxLength(100)
+                    .HasColumnName("lastname");
+                entity.Property(e => e.Middlename)
+                    .HasMaxLength(100)
+                    .HasColumnName("middlename");
+                entity.Property(e => e.Mobilenumber)
+                    .HasMaxLength(50)
+                    .HasColumnName("mobilenumber");
+                entity.Property(e => e.Officialemail)
+                    .HasMaxLength(255)
+                    .HasColumnName("officialemail");
+                entity.Property(e => e.Referalid).HasColumnName("referalid");
+                entity.Property(e => e.Relation).HasColumnName("relation");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(200)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
-            modelBuilder.Entity<EmployeeCodePattern>(entity =>
+            modelBuilder.Entity<Employeebankdetail>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC070ECDA69B");
+                entity
+                    .HasNoKey()
+                    .ToTable("employeebankdetail", "axionpro");
 
-                entity.ToTable("EmployeeCodePattern", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasPrecision(0)
-                    .HasDefaultValueSql("(getutcdate())");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.Prefix)
+                entity.Property(e => e.Accountnumber)
+                    .HasMaxLength(50)
+                    .HasColumnName("accountnumber");
+                entity.Property(e => e.Accounttype)
+                    .HasMaxLength(50)
+                    .HasColumnName("accounttype");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Bankname)
+                    .HasMaxLength(100)
+                    .HasColumnName("bankname");
+                entity.Property(e => e.Branchname)
+                    .HasMaxLength(100)
+                    .HasColumnName("branchname");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Filename)
+                    .HasMaxLength(100)
+                    .HasColumnName("filename");
+                entity.Property(e => e.Filepath)
+                    .HasMaxLength(500)
+                    .HasColumnName("filepath");
+                entity.Property(e => e.Filetype).HasColumnName("filetype");
+                entity.Property(e => e.Haschequedocuploaded).HasColumnName("haschequedocuploaded");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Ifsccode)
                     .HasMaxLength(20)
-                    .IsUnicode(false);
-                entity.Property(e => e.RunningNumberLength).HasDefaultValue(4);
-                entity.Property(e => e.Separator)
-                    .HasMaxLength(5)
-                    .IsUnicode(false)
-                    .HasDefaultValue("/");
-                entity.Property(e => e.UpdatedDateTime).HasPrecision(0);
-
-                entity.HasOne(d => d.Tenant).WithMany(p => p.EmployeeCodePatterns)
-                    .HasForeignKey(d => d.TenantId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_EmployeeCodePattern_Tenant");
+                    .HasColumnName("ifsccode");
+                entity.Property(e => e.Infoverifiedbyid).HasColumnName("infoverifiedbyid");
+                entity.Property(e => e.Infoverifieddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("infoverifieddatetime");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Iseditallowed).HasColumnName("iseditallowed");
+                entity.Property(e => e.Isinfoverified).HasColumnName("isinfoverified");
+                entity.Property(e => e.Isprimaryaccount).HasColumnName("isprimaryaccount");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+                entity.Property(e => e.Upiid)
+                    .HasMaxLength(100)
+                    .HasColumnName("upiid");
             });
 
-            modelBuilder.Entity<EmployeeCategorySkill>(entity =>
+            modelBuilder.Entity<Employeecategoryskill>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC07BB3C49C9");
+                entity
+                    .HasNoKey()
+                    .ToTable("employeecategoryskill", "axionpro");
 
-                entity.ToTable("EmployeeCategorySkill", "AxionPro");
-
+                entity.Property(e => e.Categoryid).HasColumnName("categoryid");
                 entity.Property(e => e.Description)
                     .HasMaxLength(255)
-                    .IsUnicode(false);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-
-                entity.HasOne(d => d.Category).WithMany(p => p.EmployeeCategorySkills)
-                    .HasForeignKey(d => d.CategoryId)
-                    .HasConstraintName("FK_EmployeeCategorySkill_Category");
-
-                entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeCategorySkills)
-                    .HasForeignKey(d => d.EmployeeId)
-                    .HasConstraintName("FK_EmployeeCategorySkill_Employee");
+                    .HasColumnName("description");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
             });
 
-            modelBuilder.Entity<EmployeeDailyAttendance>(entity =>
+            modelBuilder.Entity<Employeecodepattern>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC078C36F2DB");
+                entity
+                    .HasNoKey()
+                    .ToTable("employeecodepattern", "axionpro");
 
-                entity.ToTable("EmployeeDailyAttendance", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.AttendanceDate).HasColumnType("datetime");
-                entity.Property(e => e.IsLate).HasDefaultValue(false);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.AttendanceDeviceType).WithMany(p => p.EmployeeDailyAttendances)
-                    .HasForeignKey(d => d.AttendanceDeviceTypeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_AttendanceDeviceType");
-
-                entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeDailyAttendances)
-                    .HasForeignKey(d => d.EmployeeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Employee");
-
-                entity.HasOne(d => d.WorkstationType).WithMany(p => p.EmployeeDailyAttendances)
-                    .HasForeignKey(d => d.WorkstationTypeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_WorkstationType");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Includedepartment).HasColumnName("includedepartment");
+                entity.Property(e => e.Includemonth).HasColumnName("includemonth");
+                entity.Property(e => e.Includeyear).HasColumnName("includeyear");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Lastusednumber).HasColumnName("lastusednumber");
+                entity.Property(e => e.Prefix)
+                    .HasMaxLength(20)
+                    .HasColumnName("prefix");
+                entity.Property(e => e.Runningnumberlength).HasColumnName("runningnumberlength");
+                entity.Property(e => e.Separator)
+                    .HasMaxLength(5)
+                    .HasColumnName("separator");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
-            modelBuilder.Entity<EmployeeDependent>(entity =>
+            modelBuilder.Entity<Employeecontact>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC074B6A13E2");
+                entity
+                    .HasNoKey()
+                    .ToTable("employeecontact", "axionpro");
 
-                entity.ToTable("EmployeeDependent", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.DependentName).HasMaxLength(200);
-                entity.Property(e => e.Description).HasMaxLength(255);
-                entity.Property(e => e.InfoVerifiedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.IsCoveredInPolicy).HasDefaultValue(false);
-              //  entity.Property(e => e.Relation).HasMaxLength(50);
-                entity.Property(e => e.Remark).HasMaxLength(255);
-                entity.Property(e => e.UpdatedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-
-                entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeDependents)
-                    .HasForeignKey(d => d.EmployeeId)
-                    .HasConstraintName("FK_EmployeeDependents_Employee");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Address)
+                    .HasMaxLength(250)
+                    .HasColumnName("address");
+                entity.Property(e => e.Alternatenumber)
+                    .HasMaxLength(20)
+                    .HasColumnName("alternatenumber");
+                entity.Property(e => e.Contactname)
+                    .HasMaxLength(20)
+                    .HasColumnName("contactname");
+                entity.Property(e => e.Contactnumber)
+                    .HasMaxLength(20)
+                    .HasColumnName("contactnumber");
+                entity.Property(e => e.Contacttype).HasColumnName("contacttype");
+                entity.Property(e => e.Countryid).HasColumnName("countryid");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(500)
+                    .HasColumnName("description");
+                entity.Property(e => e.Districtid).HasColumnName("districtid");
+                entity.Property(e => e.Email)
+                    .HasMaxLength(100)
+                    .HasColumnName("email");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Houseno)
+                    .HasMaxLength(250)
+                    .HasColumnName("houseno");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Infoverifiedbyid).HasColumnName("infoverifiedbyid");
+                entity.Property(e => e.Infoverifieddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("infoverifieddatetime");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Iseditallowed).HasColumnName("iseditallowed");
+                entity.Property(e => e.Isinfoverified).HasColumnName("isinfoverified");
+                entity.Property(e => e.Isprimary).HasColumnName("isprimary");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Landmark)
+                    .HasMaxLength(250)
+                    .HasColumnName("landmark");
+                entity.Property(e => e.Relation).HasColumnName("relation");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(250)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Stateid).HasColumnName("stateid");
+                entity.Property(e => e.Street)
+                    .HasMaxLength(250)
+                    .HasColumnName("street");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
-            modelBuilder.Entity<EmployeeEducation>(entity =>
+            modelBuilder.Entity<Employeedailyattendance>(entity =>
             {
-                entity.ToTable("EmployeeEducation", "AxionPro");
+                entity
+                    .HasNoKey()
+                    .ToTable("employeedailyattendance", "axionpro");
 
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Attendancedate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("attendancedate");
+                entity.Property(e => e.Attendancedevicetypeid).HasColumnName("attendancedevicetypeid");
+                entity.Property(e => e.Clickedimage).HasColumnName("clickedimage");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Islate).HasColumnName("islate");
+                entity.Property(e => e.Ismarked).HasColumnName("ismarked");
+                entity.Property(e => e.Latitude).HasColumnName("latitude");
+                entity.Property(e => e.Longitude).HasColumnName("longitude");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+                entity.Property(e => e.Workstationtypeid).HasColumnName("workstationtypeid");
+            });
+
+            modelBuilder.Entity<Employeedependent>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("employeedependent", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Dateofbirth)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("dateofbirth");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Dependentname)
+                    .HasMaxLength(200)
+                    .HasColumnName("dependentname");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(255)
+                    .HasColumnName("description");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Filename)
+                    .HasMaxLength(100)
+                    .HasColumnName("filename");
+                entity.Property(e => e.Filepath)
+                    .HasMaxLength(500)
+                    .HasColumnName("filepath");
+                entity.Property(e => e.Filetype).HasColumnName("filetype");
+                entity.Property(e => e.Hasproofuploaded).HasColumnName("hasproofuploaded");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Infoverifiedbyid).HasColumnName("infoverifiedbyid");
+                entity.Property(e => e.Infoverifieddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("infoverifieddatetime");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Iscoveredinpolicy).HasColumnName("iscoveredinpolicy");
+                entity.Property(e => e.Iseditallowed).HasColumnName("iseditallowed");
+                entity.Property(e => e.Isinfoverified).HasColumnName("isinfoverified");
+                entity.Property(e => e.Ismarried).HasColumnName("ismarried");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Relation).HasColumnName("relation");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(255)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Employeeeducation>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("employeeeducation", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
                 entity.Property(e => e.Degree).HasMaxLength(50);
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.EducationGap).HasDefaultValue(false);
-                entity.Property(e => e.FileName).HasMaxLength(100);
-                entity.Property(e => e.FilePath).HasMaxLength(500);
-            
-                entity.Property(e => e.ScoreValue).HasMaxLength(50);
-                entity.Property(e => e.GradeDivision).HasMaxLength(10);
-                entity.Property(e => e.InfoVerifiedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.InstituteName).HasMaxLength(100);
-                entity.Property(e => e.ReasonOfEducationGap).HasMaxLength(255);
-                entity.Property(e => e.Remark).HasMaxLength(100);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Educationgap).HasColumnName("educationgap");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Enddate).HasColumnName("enddate");
+                entity.Property(e => e.Filename)
+                    .HasMaxLength(100)
+                    .HasColumnName("filename");
+                entity.Property(e => e.Filepath)
+                    .HasMaxLength(500)
+                    .HasColumnName("filepath");
+                entity.Property(e => e.Filetype).HasColumnName("filetype");
+                entity.Property(e => e.Gapyears).HasColumnName("gapyears");
+                entity.Property(e => e.Gradedivision)
+                    .HasMaxLength(10)
+                    .HasColumnName("gradedivision");
+                entity.Property(e => e.Haseducationdocuploded).HasColumnName("haseducationdocuploded");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Infoverifiedbyid).HasColumnName("infoverifiedbyid");
+                entity.Property(e => e.Infoverifieddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("infoverifieddatetime");
+                entity.Property(e => e.Institutename)
+                    .HasMaxLength(100)
+                    .HasColumnName("institutename");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Iseditallowed).HasColumnName("iseditallowed");
+                entity.Property(e => e.Isinfoverified).HasColumnName("isinfoverified");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Reasonofeducationgap)
+                    .HasMaxLength(255)
+                    .HasColumnName("reasonofeducationgap");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(100)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Scoretype).HasColumnName("scoretype");
+                entity.Property(e => e.Scorevalue)
+                    .HasMaxLength(50)
+                    .HasColumnName("scorevalue");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Startdate).HasColumnName("startdate");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
-            modelBuilder.Entity<EmployeeExperience>(entity =>
+
+            modelBuilder.Entity<Employeeexperience>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC071B15DEB3");
+                entity
+                    .HasNoKey()
+                    .ToTable("employeeexperience", "axionpro");
 
-                entity.ToTable("EmployeeExperience", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
                 entity.Property(e => e.Comment).HasMaxLength(500);
                 entity.Property(e => e.Ctc)
-                    .HasColumnType("decimal(18, 2)")
-                    .HasColumnName("CTC");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.HasEPFAccount).HasColumnName("HasEPFAccount");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                    .HasPrecision(18, 2)
+                    .HasColumnName("ctc");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Hasepfaccount).HasColumnName("hasepfaccount");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Iseditallowed).HasColumnName("iseditallowed");
+                entity.Property(e => e.Isforeignexperience).HasColumnName("isforeignexperience");
+                entity.Property(e => e.Isfresher).HasColumnName("isfresher");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
-            modelBuilder.Entity<EmployeeExperienceDetail>(entity =>
+            modelBuilder.Entity<Employeeexperiencedetail>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC07A52190B4");
+                entity
+                    .HasNoKey()
+                    .ToTable("employeeexperiencedetail", "axionpro");
 
-                entity.ToTable("EmployeeExperienceDetail", "AxionPro");
-
-                entity.Property(e => e.ColleagueContactNumber)
-                    .HasMaxLength(15)
-                    .IsUnicode(false);
-                entity.Property(e => e.ColleagueDesignation).HasMaxLength(100);
-                entity.Property(e => e.ColleagueName)
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Bankstatementdocname)
                     .HasMaxLength(100)
-                    .IsUnicode(false);
-                entity.Property(e => e.CompanyName)
-                    .HasMaxLength(100)
-                    .IsUnicode(false);
-                entity.Property(e => e.Designation).HasMaxLength(50);
-                entity.Property(e => e.WorkingCountryId)
-                    .HasMaxLength(100)
-                    .IsUnicode(false);
-                entity.Property(e => e.WorkingDistrictId)
-                    .HasMaxLength(100)
-                    .IsUnicode(false);
-                entity.Property(e => e.WorkingStateId)
-                    .HasMaxLength(100)
-                    .IsUnicode(false);
-                entity.Property(e => e.EmployeeIdOfCompany)
-                    .HasMaxLength(100)
-                    .IsUnicode(false);
-                entity.Property(e => e.ExperienceLetterDocName)
-                    .HasMaxLength(100)                    
-                    .IsUnicode(false);
-                entity.Property(e => e.BankStatementDocName)
-                    .HasMaxLength(100)                    
-                    .IsUnicode(false);
-                entity.Property(e => e.BankStatementDocPath).HasMaxLength(500);
-
-                entity.Property(e => e.TaxationDocFilePath).HasMaxLength(500);
-                entity.Property(e => e.ExperienceLetterDocPath).HasMaxLength(500);
-                entity.Property(e => e.TaxationDocFilePath).HasMaxLength(500);
-                entity.Property(e => e.TaxationDocFileName)
-                    .HasMaxLength(100)
-                    .IsUnicode(false);
-                entity.Property(e => e.GapCertificateDocName)
-                    .HasMaxLength(100)
-                    .IsUnicode(false);
-                entity.Property(e => e.GapCertificateDocPath).HasMaxLength(500);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsWFH).HasColumnName("IsWFH");
-                entity.Property(e => e.JoiningLetterDocName)
-                    .HasMaxLength(100)
-                    .IsUnicode(false);
-                entity.Property(e => e.JoiningLetterDocPath).HasMaxLength(500);
-                entity.Property(e => e.ReasonForLeaving).HasMaxLength(200);
-                entity.Property(e => e.ReasonOfGap).HasMaxLength(500);
-                entity.Property(e => e.Remark).HasMaxLength(200);
-                entity.Property(e => e.ReportingManagerName)
-                    .HasMaxLength(100)
-                    .IsUnicode(false);
-                entity.Property(e => e.ReportingManagerNumber)
-                    .HasMaxLength(15)
-                    .IsUnicode(false);
-                entity.Property(e => e.VerificationEmail).HasMaxLength(50);
-                entity.Property(e => e.TaxationDocFileName)
-               .HasMaxLength(100)
-               .IsUnicode(false);
-                entity.Property(e => e.TaxationDocFilePath).HasMaxLength(500);
-                entity.Property(e => e.VerificationEmail).HasMaxLength(50);
-                entity.Property(e => e.VisaDocName)
-                    .HasMaxLength(200)
-                    .IsUnicode(false);
-                entity.Property(e => e.VisaDocPath)
+                    .HasColumnName("bankstatementdocname");
+                entity.Property(e => e.Bankstatementdocpath)
                     .HasMaxLength(500)
-                    .IsUnicode(false);
-                entity.Property(e => e.VisaType)
-                    .HasMaxLength(50)
-                    .IsUnicode(false);
-                entity.Property(e => e.WorkPermitDocName)
-                    .HasMaxLength(200)
-                    .IsUnicode(false);
-                entity.Property(e => e.WorkPermitDocPath)
-                    .HasMaxLength(500)
-                    .IsUnicode(false);
-                entity.Property(e => e.WorkPermitNumber)
-                    .HasMaxLength(50)
-                    .IsUnicode(false);
-
-                entity.HasOne(d => d.EmployeeExperience).WithMany(p => p.EmployeeExperienceDetails)
-               .HasForeignKey(d => d.EmployeeExperienceId)
-               .OnDelete(DeleteBehavior.Cascade)
-               .HasConstraintName("FK_ExperienceDetail_Experience");
-
-                entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeExperienceDetails)
-                    .HasForeignKey(d => d.EmployeeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_EmployeeExperienceUploadDoc_Employee");
-            });
-
-            modelBuilder.Entity<EmployeeExperiencePayslipUpload>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC07BDB4A1FB");
-
-                entity.ToTable("EmployeeExperiencePayslipUpload", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("(getdate())");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.PayslipDocName)
-                    .HasMaxLength(200)
-                    .IsUnicode(false);
-                entity.Property(e => e.PayslipDocPath).HasMaxLength(500);
-
-                entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeExperiencePayslipUploads)
-                    .HasForeignKey(d => d.EmployeeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_EmployeeExperiencePayslipUpload_Employee");
-
-                entity.HasOne(d => d.ExperienceDetail).WithMany(p => p.EmployeeExperiencePayslipUploads)
-                    .HasForeignKey(d => d.ExperienceDetailId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_EmployeeExperiencePayslipUpload_ExperienceDetail");
-            });
-            modelBuilder.Entity<IdentityCategory>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__Identity__3214EC07393AF557");
-
-                entity.ToTable("IdentityCategory", "AxionPro");
-
-                entity.HasIndex(e => e.Code, "UQ__Identity__A25C5AA7EC142E9A").IsUnique();
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.Code)
-                    .HasMaxLength(50)
-                    .IsUnicode(false);
-                entity.Property(e => e.Description)
-                    .HasMaxLength(250)
-                    .IsUnicode(false);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.Name)
+                    .HasColumnName("bankstatementdocpath");
+                entity.Property(e => e.Colleaguecontactnumber)
+                    .HasMaxLength(15)
+                    .HasColumnName("colleaguecontactnumber");
+                entity.Property(e => e.Colleaguedesignation)
                     .HasMaxLength(100)
-                    .IsUnicode(false);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                    .HasColumnName("colleaguedesignation");
+                entity.Property(e => e.Colleaguename)
+                    .HasMaxLength(100)
+                    .HasColumnName("colleaguename");
+                entity.Property(e => e.Companyname)
+                    .HasMaxLength(100)
+                    .HasColumnName("companyname");
+                entity.Property(e => e.Designation)
+                    .HasMaxLength(50)
+                    .HasColumnName("designation");
+                entity.Property(e => e.Employeeexperienceid).HasColumnName("employeeexperienceid");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Employeeidofcompany)
+                    .HasMaxLength(100)
+                    .HasColumnName("employeeidofcompany");
+                entity.Property(e => e.Enddate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("enddate");
+                entity.Property(e => e.Experience).HasColumnName("experience");
+                entity.Property(e => e.Experienceletterdocname)
+                    .HasMaxLength(100)
+                    .HasColumnName("experienceletterdocname");
+                entity.Property(e => e.Experienceletterdocpath)
+                    .HasMaxLength(500)
+                    .HasColumnName("experienceletterdocpath");
+                entity.Property(e => e.Foreigncontractdocname)
+                    .HasMaxLength(200)
+                    .HasColumnName("foreigncontractdocname");
+                entity.Property(e => e.Foreigncontractdocpath)
+                    .HasMaxLength(500)
+                    .HasColumnName("foreigncontractdocpath");
+                entity.Property(e => e.Gapcertificatedocname)
+                    .HasMaxLength(100)
+                    .HasColumnName("gapcertificatedocname");
+                entity.Property(e => e.Gapcertificatedocpath)
+                    .HasMaxLength(500)
+                    .HasColumnName("gapcertificatedocpath");
+                entity.Property(e => e.Gapyearfrom)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("gapyearfrom");
+                entity.Property(e => e.Gapyearto)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("gapyearto");
+                entity.Property(e => e.Hasbankstatementuploaded).HasColumnName("hasbankstatementuploaded");
+                entity.Property(e => e.Hasforeigncontractuploaded).HasColumnName("hasforeigncontractuploaded");
+                entity.Property(e => e.Hasimmigrationstampuploaded).HasColumnName("hasimmigrationstampuploaded");
+                entity.Property(e => e.Hastaxationdoc).HasColumnName("hastaxationdoc");
+                entity.Property(e => e.Hasuploadedbankstatement).HasColumnName("hasuploadedbankstatement");
+                entity.Property(e => e.Hasuploadedexperienceletter).HasColumnName("hasuploadedexperienceletter");
+                entity.Property(e => e.Hasuploadedgapcertificate).HasColumnName("hasuploadedgapcertificate");
+                entity.Property(e => e.Hasuploadedjoiningletter).HasColumnName("hasuploadedjoiningletter");
+                entity.Property(e => e.Hasuploadedtaxationdoc).HasColumnName("hasuploadedtaxationdoc");
+                entity.Property(e => e.Hasvisauploaded).HasColumnName("hasvisauploaded");
+                entity.Property(e => e.Hasworkpermituploaded).HasColumnName("hasworkpermituploaded");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Immigrationstampdocname)
+                    .HasMaxLength(200)
+                    .HasColumnName("immigrationstampdocname");
+                entity.Property(e => e.Immigrationstampdocpath)
+                    .HasMaxLength(500)
+                    .HasColumnName("immigrationstampdocpath");
+                entity.Property(e => e.Infoverifiedbyid).HasColumnName("infoverifiedbyid");
+                entity.Property(e => e.Infoverifieddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("infoverifieddatetime");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Isanygap).HasColumnName("isanygap");
+                entity.Property(e => e.Iseditallowed).HasColumnName("iseditallowed");
+                entity.Property(e => e.Isexperienceverified).HasColumnName("isexperienceverified");
+                entity.Property(e => e.Isexperienceverifiedbycall).HasColumnName("isexperienceverifiedbycall");
+                entity.Property(e => e.Isexperienceverifiedbymail).HasColumnName("isexperienceverifiedbymail");
+                entity.Property(e => e.Isforeignexperience).HasColumnName("isforeignexperience");
+                entity.Property(e => e.Isinfolatestyear).HasColumnName("isinfolatestyear");
+                entity.Property(e => e.Isinfoverified).HasColumnName("isinfoverified");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Iswfh).HasColumnName("iswfh");
+                entity.Property(e => e.Joiningletterdocname)
+                    .HasMaxLength(100)
+                    .HasColumnName("joiningletterdocname");
+                entity.Property(e => e.Joiningletterdocpath)
+                    .HasMaxLength(500)
+                    .HasColumnName("joiningletterdocpath");
+                entity.Property(e => e.Reasonforleaving)
+                    .HasMaxLength(100)
+                    .HasColumnName("reasonforleaving");
+                entity.Property(e => e.Reasonofgap)
+                    .HasMaxLength(500)
+                    .HasColumnName("reasonofgap");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(100)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Reportingmanagername)
+                    .HasMaxLength(100)
+                    .HasColumnName("reportingmanagername");
+                entity.Property(e => e.Reportingmanagernumber)
+                    .HasMaxLength(15)
+                    .HasColumnName("reportingmanagernumber");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Startdate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("startdate");
+                entity.Property(e => e.Taxationdocfilename)
+                    .HasMaxLength(100)
+                    .HasColumnName("taxationdocfilename");
+                entity.Property(e => e.Taxationdocfilepath)
+                    .HasMaxLength(500)
+                    .HasColumnName("taxationdocfilepath");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+                entity.Property(e => e.Verificationemail)
+                    .HasMaxLength(50)
+                    .HasColumnName("verificationemail");
+                entity.Property(e => e.Visadocname)
+                    .HasMaxLength(200)
+                    .HasColumnName("visadocname");
+                entity.Property(e => e.Visadocpath)
+                    .HasMaxLength(500)
+                    .HasColumnName("visadocpath");
+                entity.Property(e => e.Visatype)
+                    .HasMaxLength(50)
+                    .HasColumnName("visatype");
+                entity.Property(e => e.Workingcountryid).HasColumnName("workingcountryid");
+                entity.Property(e => e.Workingdistrictid).HasColumnName("workingdistrictid");
+                entity.Property(e => e.Workingstateid).HasColumnName("workingstateid");
+                entity.Property(e => e.Workpermitdocname)
+                    .HasMaxLength(200)
+                    .HasColumnName("workpermitdocname");
+                entity.Property(e => e.Workpermitdocpath)
+                    .HasMaxLength(500)
+                    .HasColumnName("workpermitdocpath");
+                entity.Property(e => e.Workpermitnumber)
+                    .HasMaxLength(50)
+                    .HasColumnName("workpermitnumber");
             });
 
-
-            modelBuilder.Entity<IdentityCategoryDocument>(entity =>
+            modelBuilder.Entity<Employeeexperiencepayslipupload>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Identity__3214EC07AA61914F");
+                entity
+                    .HasNoKey()
+                    .ToTable("employeeexperiencepayslipupload", "axionpro");
 
-                entity.ToTable("IdentityCategoryDocument", "AxionPro");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Experiencedetailid).HasColumnName("experiencedetailid");
+                entity.Property(e => e.Hasuploadedpayslip).HasColumnName("hasuploadedpayslip");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Payslipdocname)
+                    .HasMaxLength(200)
+                    .HasColumnName("payslipdocname");
+                entity.Property(e => e.Payslipdocpath)
+                    .HasMaxLength(500)
+                    .HasColumnName("payslipdocpath");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
 
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.Code)
+            modelBuilder.Entity<Employeeidentity>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("employeeidentity", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Documentfilename)
+                    .HasMaxLength(255)
+                    .HasColumnName("documentfilename");
+                entity.Property(e => e.Documentfilepath)
+                    .HasMaxLength(500)
+                    .HasColumnName("documentfilepath");
+                entity.Property(e => e.Effectivefrom).HasColumnName("effectivefrom");
+                entity.Property(e => e.Effectiveto).HasColumnName("effectiveto");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Hasidentityuploaded).HasColumnName("hasidentityuploaded");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Identitycategorydocumentid).HasColumnName("identitycategorydocumentid");
+                entity.Property(e => e.Identityvalue)
+                    .HasMaxLength(100)
+                    .HasColumnName("identityvalue");
+                entity.Property(e => e.Infoverifiedbyid).HasColumnName("infoverifiedbyid");
+                entity.Property(e => e.Infoverifieddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("infoverifieddatetime");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Iseditallowed).HasColumnName("iseditallowed");
+                entity.Property(e => e.Isinfoverified).HasColumnName("isinfoverified");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Employeeimage>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("employeeimage", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Filename)
                     .HasMaxLength(50)
-                    .IsUnicode(false);
-                entity.Property(e => e.Description)
+                    .HasColumnName("filename");
+                entity.Property(e => e.Filepath)
+                    .HasMaxLength(500)
+                    .HasColumnName("filepath");
+                entity.Property(e => e.Filetype).HasColumnName("filetype");
+                entity.Property(e => e.Hasimageuploaded).HasColumnName("hasimageuploaded");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Isprimary).HasColumnName("isprimary");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatebyid).HasColumnName("updatebyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Employeeinsurancemapping>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("employeeinsurancemapping", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Coverageenddate).HasColumnName("coverageenddate");
+                entity.Property(e => e.Coveragestartdate).HasColumnName("coveragestartdate");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Insurancepolicyid).HasColumnName("insurancepolicyid");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Employeeinsurancepolicy>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("employeeinsurancepolicy", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Approvedbyid).HasColumnName("approvedbyid");
+                entity.Property(e => e.Assigneddate).HasColumnName("assigneddate");
+                entity.Property(e => e.Createddate).HasColumnName("createddate");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Description).HasColumnName("description");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Insurancepolicyid).HasColumnName("insurancepolicyid");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Employeeleavebalance>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("employeeleavebalance", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Availed)
+                    .HasPrecision(5, 2)
+                    .HasColumnName("availed");
+                entity.Property(e => e.Carryforwarded)
+                    .HasPrecision(5, 2)
+                    .HasColumnName("carryforwarded");
+                entity.Property(e => e.Currentbalance)
+                    .HasPrecision(6, 2)
+                    .HasColumnName("currentbalance");
+                entity.Property(e => e.Employeeleavepolicymappingid).HasColumnName("employeeleavepolicymappingid");
+                entity.Property(e => e.Encashed)
+                    .HasPrecision(5, 2)
+                    .HasColumnName("encashed");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Isallbalanceonhold).HasColumnName("isallbalanceonhold");
+                entity.Property(e => e.Leavesonhold)
+                    .HasPrecision(5, 2)
+                    .HasColumnName("leavesonhold");
+                entity.Property(e => e.Leaveyear).HasColumnName("leaveyear");
+                entity.Property(e => e.Openingbalance)
+                    .HasPrecision(5, 2)
+                    .HasColumnName("openingbalance");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Employeeleavepolicymapping>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("employeeleavepolicymapping", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Effectivefrom)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("effectivefrom");
+                entity.Property(e => e.Effectiveto)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("effectiveto");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Isleavebalanceassigned).HasColumnName("isleavebalanceassigned");
+                entity.Property(e => e.Policyleavetypemappingid).HasColumnName("policyleavetypemappingid");
+                entity.Property(e => e.Remark)
                     .HasMaxLength(250)
-                    .IsUnicode(false);
-                entity.Property(e => e.DocumentName)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Employeemanagermapping>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("employeemanagermapping", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Departmentid).HasColumnName("departmentid");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(500)
+                    .HasColumnName("description");
+                entity.Property(e => e.Designationid).HasColumnName("designationid");
+                entity.Property(e => e.Effectivefrom)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("effectivefrom");
+                entity.Property(e => e.Effectiveto)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("effectiveto");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Managerid).HasColumnName("managerid");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(250)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Reportingtypeid).HasColumnName("reportingtypeid");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Employeepersonaldetail>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("employeepersonaldetail", "axionpro");
+
+                entity.Property(e => e.Aadhaardocname)
+                    .HasMaxLength(100)
+                    .HasColumnName("aadhaardocname");
+                entity.Property(e => e.Aadhaardocpath)
+                    .HasMaxLength(500)
+                    .HasColumnName("aadhaardocpath");
+                entity.Property(e => e.Aadhaarnumber)
+                    .HasMaxLength(20)
+                    .HasColumnName("aadhaarnumber");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Bloodgroup)
+                    .HasMaxLength(10)
+                    .HasColumnName("bloodgroup");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Drivinglicensenumber)
+                    .HasMaxLength(20)
+                    .HasColumnName("drivinglicensenumber");
+                entity.Property(e => e.Emergencycontactname)
+                    .HasMaxLength(100)
+                    .HasColumnName("emergencycontactname");
+                entity.Property(e => e.Emergencycontactnumber)
+                    .HasMaxLength(15)
+                    .HasColumnName("emergencycontactnumber");
+                entity.Property(e => e.Emergencycontactrelation)
+                    .HasMaxLength(50)
+                    .HasColumnName("emergencycontactrelation");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Hasaadhaariduploaded).HasColumnName("hasaadhaariduploaded");
+                entity.Property(e => e.Hasepfaccount).HasColumnName("hasepfaccount");
+                entity.Property(e => e.Haspaniduploaded).HasColumnName("haspaniduploaded");
+                entity.Property(e => e.Haspassportiduploaded).HasColumnName("haspassportiduploaded");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Infoverifiedbyid).HasColumnName("infoverifiedbyid");
+                entity.Property(e => e.Infoverifieddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("infoverifieddatetime");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Iseditallowed).HasColumnName("iseditallowed");
+                entity.Property(e => e.Isinfoverified).HasColumnName("isinfoverified");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Maritalstatus).HasColumnName("maritalstatus");
+                entity.Property(e => e.Nationality)
+                    .HasMaxLength(50)
+                    .HasColumnName("nationality");
+                entity.Property(e => e.Pandocname)
+                    .HasMaxLength(100)
+                    .HasColumnName("pandocname");
+                entity.Property(e => e.Pandocpath)
+                    .HasMaxLength(500)
+                    .HasColumnName("pandocpath");
+                entity.Property(e => e.Pannumber)
+                    .HasMaxLength(20)
+                    .HasColumnName("pannumber");
+                entity.Property(e => e.Passportdocname)
+                    .HasMaxLength(100)
+                    .HasColumnName("passportdocname");
+                entity.Property(e => e.Passportdocpath)
+                    .HasMaxLength(500)
+                    .HasColumnName("passportdocpath");
+                entity.Property(e => e.Passportnumber)
+                    .HasMaxLength(20)
+                    .HasColumnName("passportnumber");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Uannumber)
+                    .HasMaxLength(20)
+                    .HasColumnName("uannumber");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+                entity.Property(e => e.Voterid)
+                    .HasMaxLength(20)
+                    .HasColumnName("voterid");
+            });
+
+            modelBuilder.Entity<Employeeschangedtypehistory>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("employeeschangedtypehistory", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Changedatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("changedatetime");
+                entity.Property(e => e.Changedbyid).HasColumnName("changedbyid");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Newemployeetypeid).HasColumnName("newemployeetypeid");
+                entity.Property(e => e.Oldemployeetypeid).HasColumnName("oldemployeetypeid");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(200)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Employeestatutoryaccount>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("employeestatutoryaccount", "axionpro");
+
+                entity.Property(e => e.Accountnumber)
+                    .HasMaxLength(100)
+                    .HasColumnName("accountnumber");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Contributionenddate).HasColumnName("contributionenddate");
+                entity.Property(e => e.Contributionstartdate).HasColumnName("contributionstartdate");
+                entity.Property(e => e.Deletedbyid).HasColumnName("deletedbyid");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Employercode)
+                    .HasMaxLength(100)
+                    .HasColumnName("employercode");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Statutorytypeid).HasColumnName("statutorytypeid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Employeetype>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("employeetype", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(255)
+                    .HasColumnName("description");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(255)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Softdeleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("softdeleteddatetime");
+                entity.Property(e => e.Typename)
+                    .HasMaxLength(255)
+                    .HasColumnName("typename");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Employeetypebasicmenu>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("employeetypebasicmenu", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Basicmenuid).HasColumnName("basicmenuid");
+                entity.Property(e => e.Employeetypeid).HasColumnName("employeetypeid");
+                entity.Property(e => e.Forplatform).HasColumnName("forplatform");
+                entity.Property(e => e.Hasaccess).HasColumnName("hasaccess");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Isdisplayable).HasColumnName("isdisplayable");
+                entity.Property(e => e.Ismenudisplayinui).HasColumnName("ismenudisplayinui");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Employeeworkdocument>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("employeeworkdocument", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Employeeworkhistoryid).HasColumnName("employeeworkhistoryid");
+                entity.Property(e => e.Filename)
+                    .HasMaxLength(250)
+                    .HasColumnName("filename");
+                entity.Property(e => e.Filepath)
+                    .HasMaxLength(500)
+                    .HasColumnName("filepath");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Isverified).HasColumnName("isverified");
+                entity.Property(e => e.Verifiedbyid).HasColumnName("verifiedbyid");
+                entity.Property(e => e.Verifieddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("verifieddatetime");
+                entity.Property(e => e.Workdocumenttypeid).HasColumnName("workdocumenttypeid");
+            });
+
+            modelBuilder.Entity<Employeeworkhistory>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("employeeworkhistory", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Companyname)
+                    .HasMaxLength(200)
+                    .HasColumnName("companyname");
+                entity.Property(e => e.Ctc)
+                    .HasPrecision(18, 2)
+                    .HasColumnName("ctc");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Designation)
                     .HasMaxLength(150)
-                    .IsUnicode(false);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsUnique).HasDefaultValue(true);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.IdentityCategory).WithMany(p => p.IdentityCategoryDocuments)
-                    .HasForeignKey(d => d.IdentityCategoryId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_IdentityDocument_Category");
+                    .HasColumnName("designation");
+                entity.Property(e => e.Employeeworkprofileid).HasColumnName("employeeworkprofileid");
+                entity.Property(e => e.Enddate).HasColumnName("enddate");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Iseditallowed).HasColumnName("iseditallowed");
+                entity.Property(e => e.Isforeignexperience).HasColumnName("isforeignexperience");
+                entity.Property(e => e.Isverified).HasColumnName("isverified");
+                entity.Property(e => e.Iswfh).HasColumnName("iswfh");
+                entity.Property(e => e.Reasonforleaving)
+                    .HasMaxLength(500)
+                    .HasColumnName("reasonforleaving");
+                entity.Property(e => e.Reportingmanagername)
+                    .HasMaxLength(150)
+                    .HasColumnName("reportingmanagername");
+                entity.Property(e => e.Reportingmanagernumber)
+                    .HasMaxLength(20)
+                    .HasColumnName("reportingmanagernumber");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Startdate).HasColumnName("startdate");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+                entity.Property(e => e.Verificationemail)
+                    .HasMaxLength(150)
+                    .HasColumnName("verificationemail");
+                entity.Property(e => e.Verificationmode)
+                    .HasMaxLength(50)
+                    .HasColumnName("verificationmode");
+                entity.Property(e => e.Verifiedbyid).HasColumnName("verifiedbyid");
+                entity.Property(e => e.Verifieddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("verifieddatetime");
+                entity.Property(e => e.Workingcountryid).HasColumnName("workingcountryid");
+                entity.Property(e => e.Workingdistrictid).HasColumnName("workingdistrictid");
+                entity.Property(e => e.Workingstateid).HasColumnName("workingstateid");
             });
 
-            modelBuilder.Entity<EmployeeIdentity>(entity =>
+            modelBuilder.Entity<Employeeworkprofile>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC074FF9BCC1");
+                entity
+                    .HasNoKey()
+                    .ToTable("employeeworkprofile", "axionpro");
 
-                entity.ToTable("EmployeeIdentity", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("(sysdatetime())");
-                entity.Property(e => e.DocumentFileName).HasMaxLength(255);
-                entity.Property(e => e.DocumentFilePath).HasMaxLength(500);
-                entity.Property(e => e.EffectiveFrom).HasDefaultValueSql("(getdate())");
-                entity.Property(e => e.IdentityValue).HasMaxLength(100);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsEditAllowed).HasDefaultValue(true);
-
-                entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeIdentities)
-                    .HasForeignKey(d => d.EmployeeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_EmployeeIdentity_Employee");
-
-                entity.HasOne(d => d.IdentityCategoryDocument).WithMany(p => p.EmployeeIdentities)
-                    .HasForeignKey(d => d.IdentityCategoryDocumentId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_EmployeeIdentity_Document");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Comment).HasMaxLength(500);
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Iseditallowed).HasColumnName("iseditallowed");
+                entity.Property(e => e.Isfresher).HasColumnName("isfresher");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
-            modelBuilder.Entity<EmployeeImage>(entity =>
+            modelBuilder.Entity<Forgotpasswordotpdetail>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC07C583D80F");
+                entity
+                    .HasNoKey()
+                    .ToTable("forgotpasswordotpdetail", "axionpro");
 
-                entity.ToTable("EmployeeImage", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.FileName).HasMaxLength(50);
-                entity.Property(e => e.FilePath).HasMaxLength(500);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeImages)
-                    .HasForeignKey(d => d.EmployeeId)
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .HasConstraintName("FK_EmployeeImages_Employee");
-            });
-
-
-            modelBuilder.Entity<CompanyPolicyDocument>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__CompanyP__3214EC07BADB592E");
-
-                entity.ToTable("CompanyPolicyDocument", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("(getdate())");
-                entity.Property(e => e.DocumentTitle).HasMaxLength(200);
-               
-                entity.Property(e => e.FileName).HasMaxLength(200);
-                entity.Property(e => e.FilePath).HasMaxLength(500);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                
-
-                entity.HasOne(d => d.PolicyType).WithMany(p => p.CompanyPolicyDocuments)
-                    .HasForeignKey(d => d.PolicyTypeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_CompanyPolicyDocument_PolicyType");
-            });
-            modelBuilder.Entity<InsurancePolicyDocument>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__Insuranc__3214EC07B3D0A432");
-
-                entity.ToTable("InsurancePolicyDocument", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("(getdate())");
-                entity.Property(e => e.DocumentType).HasMaxLength(50);
-                entity.Property(e => e.FileName).HasMaxLength(200);
-                entity.Property(e => e.FilePath).HasMaxLength(500);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.LanguageCode).HasMaxLength(10);
-
-                entity.HasOne(d => d.InsurancePolicy).WithMany(p => p.InsurancePolicyDocuments)
-                    .HasForeignKey(d => d.InsurancePolicyId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_InsurancePolicyDocument_InsurancePolicy");
-            });
-
-            modelBuilder.Entity<EmployeeInsuranceMapping>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC07EADC980E");
-
-                entity.ToTable("EmployeeInsuranceMapping", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("(getdate())");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-
-                entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeInsuranceMappings)
-                    .HasForeignKey(d => d.EmployeeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_EmployeeInsuranceMapping_Employee");
-
-                entity.HasOne(d => d.InsurancePolicy).WithMany(p => p.EmployeeInsuranceMappings)
-                    .HasForeignKey(d => d.InsurancePolicyId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_EmployeeInsuranceMapping_InsurancePolicy");
-            });
-
-            modelBuilder.Entity<EmployeeLeaveBalance>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC07B6CC8062");
-
-                entity.ToTable("EmployeeLeaveBalance", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.Availed).HasColumnType("decimal(5, 2)");
-                entity.Property(e => e.CarryForwarded).HasColumnType("decimal(5, 2)");
-                entity.Property(e => e.CurrentBalance)
-                    .HasComputedColumnSql("([OpeningBalance]-[Availed])", true)
-                    .HasColumnType("decimal(6, 2)");
-                entity.Property(e => e.Encashed).HasColumnType("decimal(5, 2)");
-                entity.Property(e => e.LeavesOnHold)
-                    .HasDefaultValue(0m)
-                    .HasColumnType("decimal(5, 2)");
-                entity.Property(e => e.OpeningBalance).HasColumnType("decimal(5, 2)");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.EmployeeLeavePolicyMapping).WithMany(p => p.EmployeeLeaveBalances)
-                    .HasForeignKey(d => d.EmployeeLeavePolicyMappingId)
-                    .HasConstraintName("FK_EmployeeLeaveBalance_EmployeeLeavePolicyMapping");
-
-                entity.HasOne(d => d.Tenant).WithMany(p => p.EmployeeLeaveBalances)
-                    .HasForeignKey(d => d.TenantId)
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .HasConstraintName("FK_EmployeeLeaveBalance_Tenant");
-            });
-
-            modelBuilder.Entity<EmployeeLeavePolicyMapping>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC07305828A7");
-
-                entity.ToTable("EmployeeLeavePolicyMapping", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.EffectiveFrom).HasColumnType("datetime");
-                entity.Property(e => e.EffectiveTo).HasColumnType("datetime");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.Remark).HasMaxLength(250);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeLeavePolicyMappings)
-                    .HasForeignKey(d => d.EmployeeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__EmployeeL__Emplo__73D00A73");
-
-                entity.HasOne(d => d.PolicyLeaveTypeMapping).WithMany(p => p.EmployeeLeavePolicyMappings)
-                    .HasForeignKey(d => d.PolicyLeaveTypeMappingId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__EmployeeL__Leave__74C42EAC");
-
-                entity.HasOne(d => d.Tenant).WithMany(p => p.EmployeeLeavePolicyMappings)
-                    .HasForeignKey(d => d.TenantId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__EmployeeL__Tenan__72DBE63A");
-            });
-
-            modelBuilder.Entity<EmployeeManagerMapping>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC075BB6D3FC");
-
-                entity.ToTable("EmployeeManagerMapping", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.Description).HasMaxLength(500);
-                entity.Property(e => e.EffectiveFrom).HasColumnType("datetime");
-                entity.Property(e => e.EffectiveTo).HasColumnType("datetime");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.Remark).HasMaxLength(250);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Department).WithMany(p => p.EmployeeManagerMappings)
-                    .HasForeignKey(d => d.DepartmentId)
-                    .HasConstraintName("FK_EmployeeManagerMapping_Department");
-
-                entity.HasOne(d => d.Designation).WithMany(p => p.EmployeeManagerMappings)
-                    .HasForeignKey(d => d.DesignationId)
-                    .HasConstraintName("FK_EmployeeManagerMapping_Designation");
-
-                entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeManagerMappingEmployees)
-                    .HasForeignKey(d => d.EmployeeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_EmployeeManagerMapping_Employee");
-
-                entity.HasOne(d => d.Manager).WithMany(p => p.EmployeeManagerMappingManagers)
-                    .HasForeignKey(d => d.ManagerId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_EmployeeManagerMapping_Manager");
-
-                entity.HasOne(d => d.ReportingType).WithMany(p => p.EmployeeManagerMappings)
-                    .HasForeignKey(d => d.ReportingTypeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_EmployeeManagerMapping_ReportingType");
-
-                entity.HasOne(d => d.Tenant).WithMany(p => p.EmployeeManagerMappings)
-                    .HasForeignKey(d => d.TenantId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_EmployeeManagerMapping_Tenant");
-            });
-
-            modelBuilder.Entity<EmployeePersonalDetail>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC074796302D");
-
-                entity.ToTable("EmployeePersonalDetail", "AxionPro");
-                entity.Property(e => e.AadhaarNumber).HasMaxLength(20);
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.BloodGroup).HasMaxLength(10);
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.AadhaarDocPath).HasMaxLength(200);
-                entity.Property(e => e.PanDocPath).HasMaxLength(200);
-                entity.Property(e => e.PassportDocPath).HasMaxLength(200);
-                entity.Property(e => e.DrivingLicenseNumber).HasMaxLength(20);
-                entity.Property(e => e.EmergencyContactName).HasMaxLength(100);
-                entity.Property(e => e.EmergencyContactRelation).HasMaxLength(49);
-                entity.Property(e => e.UANNumber).HasMaxLength(15);
-                entity.Property(e => e.EmergencyContactNumber).HasMaxLength(15);
-                entity.Property(e => e.InfoVerifiedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.MaritalStatus).HasMaxLength(20);
-                entity.Property(e => e.Nationality).HasMaxLength(50);
-                entity.Property(e => e.PanNumber).HasMaxLength(20);
-                entity.Property(e => e.PassportNumber).HasMaxLength(20);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.VoterId).HasMaxLength(20);
-
-                entity.HasOne(d => d.Employee).WithMany(p => p.EmployeePersonalDetails)
-                    .HasForeignKey(d => d.EmployeeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_EmployeePersonalDetail_Employee");
-            });
-
-            modelBuilder.Entity<EmployeeType>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC0760C5ED38");
-
-                entity.ToTable("EmployeeType", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.Description).HasMaxLength(255);
-                entity.Property(e => e.Remark).HasMaxLength(255);
-                entity.Property(e => e.SoftDeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.TypeName).HasMaxLength(255);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-            });
-
-            modelBuilder.Entity<EmployeeTypeBasicMenu>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC07A773CB3F");
-
-                entity.ToTable("EmployeeTypeBasicMenu", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsMenuDisplayInUi).HasColumnName("IsMenuDisplayInUI");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.BasicMenu).WithMany(p => p.EmployeeTypeBasicMenus)
-                    .HasForeignKey(d => d.BasicMenuId)
-                    .HasConstraintName("FK_EmployeeTypeBasicMenu_BasicMenu");
-
-                entity.HasOne(d => d.EmployeeType).WithMany(p => p.EmployeeTypeBasicMenus)
-                    .HasForeignKey(d => d.EmployeeTypeId)
-                    .HasConstraintName("FK_EmployeeTypeBasicMenu_EmployeeType");
-            });
-
-            modelBuilder.Entity<EmployeesChangedTypeHistory>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC0779153EAD");
-
-                entity.ToTable("EmployeesChangedTypeHistory", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.ChangeDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.Remark).HasMaxLength(200);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Employee).WithMany(p => p.EmployeesChangedTypeHistories)
-                    .HasForeignKey(d => d.EmployeeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_EmployeeStatusHistory_Employee");
-
-                entity.HasOne(d => d.NewEmployeeType).WithMany(p => p.EmployeesChangedTypeHistoryNewEmployeeTypes)
-                    .HasForeignKey(d => d.NewEmployeeTypeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_EmployeeStatusHistory_NewEmployeeType");
-
-                entity.HasOne(d => d.OldEmployeeType).WithMany(p => p.EmployeesChangedTypeHistoryOldEmployeeTypes)
-                    .HasForeignKey(d => d.OldEmployeeTypeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_EmployeeStatusHistory_OldEmployeeType");
-            });
-
-
-            modelBuilder.Entity<ForgotPasswordOTPDetail>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__ForgotPa__3214EC071E853072");
-
-                entity.ToTable("ForgotPasswordOTPDetail", "AxionPro");
-
-                entity.Property(e => e.CreatedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                entity.Property(e => e.Createddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("createddatetime");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isused).HasColumnName("isused");
+                entity.Property(e => e.Isvalidate).HasColumnName("isvalidate");
                 entity.Property(e => e.Otp)
                     .HasMaxLength(10)
-                    .HasColumnName("OTP");
-                entity.Property(e => e.OtpexpireDateTime)
-                    .HasColumnType("datetime")
-                    .HasColumnName("OTPExpireDateTime");
-                entity.Property(e => e.UsedDateTime).HasColumnType("datetime");
-
-                //entity.HasOne(d => d.Tenant).WithMany(p => p.ForgotPasswordRequests)
-                //    .HasForeignKey(d => d.TenantId)
-                //    .OnDelete(DeleteBehavior.ClientSetNull)
-                //    .HasConstraintName("FK_ForgotPasswordRequest_Tenant");
-
-                entity.HasOne(d => d.LoginCredential).WithMany(p => p.ForgotPasswordRequests)
-                    .HasForeignKey(d => d.UserId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_ForgotPasswordOTPDetail_LoginCredential");
+                    .HasColumnName("otp");
+                entity.Property(e => e.Otpexpiredatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("otpexpiredatetime");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Useddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("useddatetime");
+                entity.Property(e => e.Userid).HasColumnName("userid");
             });
-
 
             modelBuilder.Entity<Gender>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Gender__3214EC07EF3CD03D");
+                entity
+                    .HasNoKey()
+                    .ToTable("gender", "axionpro");
 
-                entity.ToTable("Gender", "AxionPro");
-
-                entity.HasIndex(e => e.GenderName, "UQ__Gender__F7C177153AF55502").IsUnique();
-
-                entity.Property(e => e.GenderName)
+                entity.Property(e => e.Gendername)
                     .HasMaxLength(50)
-                    .IsUnicode(false);
-
+                    .HasColumnName("gendername");
+                entity.Property(e => e.Id).HasColumnName("id");
             });
 
-            modelBuilder.Entity<HolidayMaster>(entity =>
+            modelBuilder.Entity<Holidaymaster>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__HolidayM__3214EC0743457A80");
+                entity
+                    .HasNoKey()
+                    .ToTable("holidaymaster", "axionpro");
 
-                entity.ToTable("HolidayMaster", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.HolidayName).HasMaxLength(200);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.Region).HasMaxLength(100);
-                entity.Property(e => e.Remark).HasMaxLength(250);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-            });
-
-        
-
-            modelBuilder.Entity<InterviewFeedback>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__Intervie__3214EC07C20637CB");
-
-                entity.ToTable("InterviewFeedback", "AxionPro");
-
-                entity.Property(e => e.CreatedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.Rating).HasColumnType("decimal(3, 1)");
-                entity.Property(e => e.ReapplyAfter).HasColumnType("datetime");
-                entity.Property(e => e.Status).HasMaxLength(50);
-
-                entity.HasOne(d => d.Candidate).WithMany(p => p.InterviewFeedbacks)
-                    .HasForeignKey(d => d.CandidateId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Interview__Candi__2AD55B43");
-
-                entity.HasOne(d => d.InterviewSchedule).WithMany(p => p.InterviewFeedbacks)
-                    .HasForeignKey(d => d.InterviewScheduleId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Interview__Inter__2BC97F7C");
-            });
-
-            modelBuilder.Entity<InterviewPanel>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__Intervie__3214EC07076FDC5F");
-
-                entity.ToTable("InterviewPanel", "AxionPro");
-
-                entity.Property(e => e.Description)
-                    .HasMaxLength(255)
-                    .IsUnicode(false);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.PanelName)
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Holidaydate).HasColumnName("holidaydate");
+                entity.Property(e => e.Holidayname)
+                    .HasMaxLength(200)
+                    .HasColumnName("holidayname");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Isregionalholiday).HasColumnName("isregionalholiday");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Isweekend).HasColumnName("isweekend");
+                entity.Property(e => e.Region)
                     .HasMaxLength(100)
-                    .IsUnicode(false);
-                entity.Property(e => e.Remarks)
-                    .HasMaxLength(255)
-                    .IsUnicode(false);
+                    .HasColumnName("region");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(250)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
-            modelBuilder.Entity<InterviewPanelMember>(entity =>
+            modelBuilder.Entity<Identitycategory>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Intervie__3214EC07205CE980");
+                entity
+                    .HasNoKey()
+                    .ToTable("identitycategory", "axionpro");
 
-                entity.ToTable("InterviewPanelMember", "AxionPro");
-
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Code)
+                    .HasMaxLength(50)
+                    .HasColumnName("code");
                 entity.Property(e => e.Description)
-                    .HasMaxLength(255)
-                    .IsUnicode(false);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.Remarks)
-                    .HasMaxLength(255)
-                    .IsUnicode(false);
-
-                entity.HasOne(d => d.Panel).WithMany(p => p.InterviewPanelMembers)
-                    .HasForeignKey(d => d.PanelId)
-                    .HasConstraintName("FK_InterviewPanelMember_Panel");
-
-                entity.HasOne(d => d.UserRole).WithMany(p => p.InterviewPanelMembers)
-                    .HasForeignKey(d => d.UserRoleId)
-                    .HasConstraintName("FK_InterviewPanelMember_UserRole");
+                    .HasMaxLength(250)
+                    .HasColumnName("description");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Name)
+                    .HasMaxLength(100)
+                    .HasColumnName("name");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
-            modelBuilder.Entity<InterviewSchedule>(entity =>
+            modelBuilder.Entity<Identitycategorydocument>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Intervie__3214EC073C91635C");
+                entity
+                    .HasNoKey()
+                    .ToTable("identitycategorydocument", "axionpro");
 
-                entity.ToTable("InterviewSchedule", "AxionPro");
-
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.Remarks)
-                    .HasMaxLength(255)
-                    .IsUnicode(false);
-                entity.Property(e => e.ScheduledDate).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Candidate).WithMany(p => p.InterviewSchedules)
-                    .HasForeignKey(d => d.CandidateId)
-                    .HasConstraintName("FK_InterviewSchedule_Candidate");
-
-                entity.HasOne(d => d.Panel).WithMany(p => p.InterviewSchedules)
-                    .HasForeignKey(d => d.PanelId)
-                    .HasConstraintName("FK_InterviewSchedule_Panel");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Code)
+                    .HasMaxLength(50)
+                    .HasColumnName("code");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(250)
+                    .HasColumnName("description");
+                entity.Property(e => e.Documentname)
+                    .HasMaxLength(150)
+                    .HasColumnName("documentname");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Identitycategoryid).HasColumnName("identitycategoryid");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Isunique).HasColumnName("isunique");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
-            modelBuilder.Entity<InterviewSdule>(entity =>
+            modelBuilder.Entity<Insurancepolicy>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Intervie__3214EC0702C95E26");
+                entity
+                    .HasNoKey()
+                    .ToTable("insurancepolicy", "axionpro");
 
-                entity.ToTable("InterviewSdule", "AxionPro");
-
-                entity.Property(e => e.CreatedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.InterviewMode).HasMaxLength(50);
-                entity.Property(e => e.ScheduledDateTime).HasColumnType("datetime");
-                entity.Property(e => e.Status).HasMaxLength(50);
-            });
-
-            modelBuilder.Entity<LeaveRequest>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__LeaveReq__3214EC07D95D9BAD");
-
-                entity.ToTable("LeaveRequest", "AxionPro");
-
-                entity.Property(e => e.ApprovedDate).HasColumnType("datetime");
-                entity.Property(e => e.CancellationDate).HasColumnType("datetime");
-                entity.Property(e => e.CreatedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.IsHalfDay).HasDefaultValue(false);
-                entity.Property(e => e.IsSandwich).HasDefaultValue(false);
-                entity.Property(e => e.Reason).HasMaxLength(500);
-                entity.Property(e => e.Remark).HasMaxLength(100);
-                entity.Property(e => e.Status).HasDefaultValueSql("('Pending')");
-                entity.Property(e => e.TotalLeaveDays).HasColumnType("decimal(5, 2)");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Employee).WithMany(p => p.LeaveRequests)
-                    .HasForeignKey(d => d.EmployeeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__LeaveRequ__Emplo__05EEBAAE");
-
-                entity.HasOne(d => d.LeavePolicy).WithMany(p => p.LeaveRequests)
-                    .HasForeignKey(d => d.LeavePolicyId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__LeaveRequ__Leave__07D70320");
-
-                entity.HasOne(d => d.LeaveType).WithMany(p => p.LeaveRequests)
-                    .HasForeignKey(d => d.LeaveTypeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__LeaveRequ__Leave__06E2DEE7");
-
-                entity.HasOne(d => d.Tenant).WithMany(p => p.LeaveRequests)
-                    .HasForeignKey(d => d.TenantId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__LeaveRequ__Tenan__04FA9675");
-            });
-
-            modelBuilder.Entity<LeaveRule>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__LeaveRul__3214EC07C443E6FB");
-
-                entity.ToTable("LeaveRule", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsHalfDayAllowed).HasDefaultValue(true);
-                entity.Property(e => e.Remark).HasMaxLength(500);
-                entity.Property(e => e.SoftDeleteDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.PolicyLeaveType).WithMany(p => p.LeaveRules)
-                    .HasForeignKey(d => d.PolicyLeaveTypeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_LeaveRule_PolicyLeaveType");
-
-                entity.HasOne(d => d.Tenant).WithMany(p => p.LeaveRules)
-                    .HasForeignKey(d => d.TenantId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_LeaveRule_Tenant");
-            });
-
-            modelBuilder.Entity<LeaveSandwichRule>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__LeaveSan__3214EC0757F4038B");
-
-                entity.ToTable("LeaveSandwichRule", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.Remark).HasMaxLength(250);
-                entity.Property(e => e.RuleName).HasMaxLength(100);
-                entity.Property(e => e.SoftDeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-            });
-
-            modelBuilder.Entity<LeaveSandwichRuleMapping>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__LeaveSan__3214EC07EB5FE9CE");
-
-                entity.ToTable("LeaveSandwichRuleMapping", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.Remark).HasMaxLength(250);
-                entity.Property(e => e.SoftDeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.DayCombination).WithMany(p => p.LeaveSandwichRuleMappings)
-                    .HasForeignKey(d => d.DayCombinationId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_DayCombination");
-
-                entity.HasOne(d => d.LeaveRule).WithMany(p => p.LeaveSandwichRuleMappings)
-                    .HasForeignKey(d => d.LeaveRuleId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_LeaveRule");
-
-                entity.HasOne(d => d.LeaveSandwichRule).WithMany(p => p.LeaveSandwichRuleMappings)
-                    .HasForeignKey(d => d.LeaveSandwichRuleId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_SandwichRule");
-            });
-
-            modelBuilder.Entity<LeaveTransactionLog>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__LeaveTra__3214EC0737FE86DD");
-
-                entity.ToTable("LeaveTransactionLog", "AxionPro");
-
-                entity.Property(e => e.LeaveDays).HasColumnType("decimal(5, 2)");
-                entity.Property(e => e.Remarks).HasMaxLength(500);
-                entity.Property(e => e.TransactionDate).HasColumnType("datetime");
-                entity.Property(e => e.TransactionType)
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Agentcontactnumber)
                     .HasMaxLength(20)
-                    .IsUnicode(false);
-            });
-
-            modelBuilder.Entity<LeaveType>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__LeaveTyp__3214EC0788A5EF9C");
-
-                entity.ToTable("LeaveType", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
+                    .HasColumnName("agentcontactnumber");
+                entity.Property(e => e.Agentname)
+                    .HasMaxLength(150)
+                    .HasColumnName("agentname");
+                entity.Property(e => e.Agentofficenumber)
+                    .HasMaxLength(20)
+                    .HasColumnName("agentofficenumber");
+                entity.Property(e => e.Countryid).HasColumnName("countryid");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
                 entity.Property(e => e.Description)
                     .HasMaxLength(500)
-                    .IsUnicode(false);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.LeaveName)
+                    .HasColumnName("description");
+                entity.Property(e => e.Employeeallowed).HasColumnName("employeeallowed");
+                entity.Property(e => e.Enddate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("enddate");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Inlawsallowed).HasColumnName("inlawsallowed");
+                entity.Property(e => e.Insurancepolicyname)
+                    .HasMaxLength(200)
+                    .HasColumnName("insurancepolicyname");
+                entity.Property(e => e.Insurancepolicynumber)
+                    .HasMaxLength(100)
+                    .HasColumnName("insurancepolicynumber");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Maxchildallowed).HasColumnName("maxchildallowed");
+                entity.Property(e => e.Maxspouseallowed).HasColumnName("maxspouseallowed");
+                entity.Property(e => e.Parentsallowed).HasColumnName("parentsallowed");
+                entity.Property(e => e.Policytypeid).HasColumnName("policytypeid");
+                entity.Property(e => e.Providername)
+                    .HasMaxLength(100)
+                    .HasColumnName("providername");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(500)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Startdate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("startdate");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Insurancepolicydocument>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("insurancepolicydocument", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Documenttype)
+                    .HasMaxLength(20)
+                    .HasColumnName("documenttype");
+                entity.Property(e => e.Filename)
+                    .HasMaxLength(200)
+                    .HasColumnName("filename");
+                entity.Property(e => e.Filepath)
+                    .HasMaxLength(500)
+                    .HasColumnName("filepath");
+                entity.Property(e => e.Filetype).HasColumnName("filetype");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Insurancepolicyid).HasColumnName("insurancepolicyid");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Languagecode)
+                    .HasMaxLength(10)
+                    .HasColumnName("languagecode");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Softdeleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("softdeleteddatetime");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Interviewfeedback>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("interviewfeedback", "axionpro");
+
+                entity.Property(e => e.Candidateid).HasColumnName("candidateid");
+                entity.Property(e => e.Createddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("createddatetime");
+                entity.Property(e => e.Feedback)
+                    .HasColumnType("character varying")
+                    .HasColumnName("feedback");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Interviewscheduleid).HasColumnName("interviewscheduleid");
+                entity.Property(e => e.Rating)
+                    .HasPrecision(3, 1)
+                    .HasColumnName("rating");
+                entity.Property(e => e.Reapplyafter)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("reapplyafter");
+                entity.Property(e => e.Status)
                     .HasMaxLength(50)
-                    .IsUnicode(false);
-                entity.Property(e => e.SoftDeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdateDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Tenant).WithMany(p => p.LeaveTypes)
-                    .HasForeignKey(d => d.TenantId)
-                    .HasConstraintName("FK_LeaveType_TenantId");
+                    .HasColumnName("status");
             });
 
-            //modelBuilder.Entity<License>(entity =>
-            //{
-            //    entity.HasKey(e => e.Id).HasName("PK__License__3214EC07FF575687");
-
-            //    entity.ToTable("License", "AxionPro");
-
-            //    entity.Property(e => e.IsActive).HasDefaultValue(true);
-            //    entity.Property(e => e.LicenseEndDate).HasColumnType("datetime");
-            //    entity.Property(e => e.LicenseStartDate).HasColumnType("datetime");
-            //});
-
-            modelBuilder.Entity<LoginCredential>(entity =>
+            modelBuilder.Entity<Interviewpanel>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__LoginCre__3214EC0750429DFA");
+                entity
+                    .HasNoKey()
+                    .ToTable("interviewpanel", "axionpro");
 
-                entity.ToTable("LoginCredential", "AxionPro");
-
-                entity.HasIndex(e => e.LoginId, "UQ_LoginId").IsUnique();
-
-                entity.Property(e => e.AddedById).HasDefaultValue(0L);
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.SoftDeletedById).HasDefaultValue(0L);
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.HasFirstLogin).HasDefaultValue(true);
-                entity.Property(e => e.IpAddressLocal).HasMaxLength(50);
-                entity.Property(e => e.IpAddressPublic).HasMaxLength(50);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
-                entity.Property(e => e.Latitude).HasDefaultValue(0.0);
-                entity.Property(e => e.LoginDevice).HasDefaultValue(0);
-                entity.Property(e => e.LoginId).HasMaxLength(255);
-                entity.Property(e => e.Longitude).HasDefaultValue(0.0);
-                entity.Property(e => e.MacAddress).HasMaxLength(255);
-                entity.Property(e => e.Password).HasMaxLength(555);
-                entity.Property(e => e.Remark).HasMaxLength(255);
-                entity.Property(e => e.UpdatedById).HasDefaultValue(0L);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-                entity.HasOne(d => d.Employee).WithMany(p => p.LoginCredentials)
-                   .HasForeignKey(d => d.EmployeeId)
-                   .OnDelete(DeleteBehavior.Cascade)
-                   .HasConstraintName("FK_LoginCredential_Employee");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(255)
+                    .HasColumnName("description");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Isapproved).HasColumnName("isapproved");
+                entity.Property(e => e.Panelname)
+                    .HasMaxLength(100)
+                    .HasColumnName("panelname");
+                entity.Property(e => e.Remarks)
+                    .HasMaxLength(255)
+                    .HasColumnName("remarks");
             });
 
-            modelBuilder.Entity<MealAllowancePolicyByDesignation>(entity =>
+            modelBuilder.Entity<Interviewpanelmember>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__MealAllo__3214EC07BB4E4E52");
+                entity
+                    .HasNoKey()
+                    .ToTable("interviewpanelmember", "axionpro");
 
-                entity.ToTable("MealAllowancePolicyByDesignation", "AxionPro");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(255)
+                    .HasColumnName("description");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Isapproved).HasColumnName("isapproved");
+                entity.Property(e => e.Panelid).HasColumnName("panelid");
+                entity.Property(e => e.Remarks)
+                    .HasMaxLength(255)
+                    .HasColumnName("remarks");
+                entity.Property(e => e.Userroleid).HasColumnName("userroleid");
+            });
 
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.BreakfastAllowance)
-                    .HasDefaultValue(0.00m)
-                    .HasColumnType("decimal(10, 2)");
-                entity.Property(e => e.DinnerAllowance)
-                    .HasDefaultValue(0.00m)
-                    .HasColumnType("decimal(10, 2)");
-                entity.Property(e => e.FixedFoodAllowance)
-                    .HasDefaultValue(0.00m)
-                    .HasColumnType("decimal(10, 2)");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsMetro).HasDefaultValue(false);
-                entity.Property(e => e.IsSoftDelete).HasDefaultValue(false);
-                entity.Property(e => e.LunchAllowance)
-                    .HasDefaultValue(0.00m)
-                    .HasColumnType("decimal(10, 2)");
-                entity.Property(e => e.MetroBonus)
-                    .HasDefaultValue(0.00m)
-                    .HasColumnType("decimal(10, 2)");
-                entity.Property(e => e.MinDaysRequired).HasDefaultValue(0);
-                entity.Property(e => e.RequiredDocuments).HasColumnType("text");
-                entity.Property(e => e.SoftDeleteDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+            modelBuilder.Entity<Interviewschedule>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("interviewschedule", "axionpro");
 
-                entity.HasOne(d => d.Designation).WithMany(p => p.MealAllowancePolicyByDesignations)
-                    .HasForeignKey(d => d.DesignationId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__MealAllow__Desig__39237A9A");
+                entity.Property(e => e.Candidateid).HasColumnName("candidateid");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Panelid).HasColumnName("panelid");
+                entity.Property(e => e.Remarks)
+                    .HasMaxLength(255)
+                    .HasColumnName("remarks");
+                entity.Property(e => e.Scheduleddate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("scheduleddate");
+            });
 
-                entity.HasOne(d => d.EmployeeType).WithMany(p => p.MealAllowancePolicyByDesignations)
-                    .HasForeignKey(d => d.EmployeeTypeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__MealAllow__Emplo__3A179ED3");
+            modelBuilder.Entity<Interviewsdule>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("interviewsdule", "axionpro");
 
-                entity.HasOne(d => d.PolicyType).WithMany(p => p.MealAllowancePolicyByDesignations)
-                    .HasForeignKey(d => d.PolicyTypeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__MealAllow__Polic__3B0BC30C");
+                entity.Property(e => e.Createddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("createddatetime");
+                entity.Property(e => e.Description)
+                    .HasColumnType("character varying")
+                    .HasColumnName("description");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Interviewerid).HasColumnName("interviewerid");
+                entity.Property(e => e.Interviewmode)
+                    .HasMaxLength(50)
+                    .HasColumnName("interviewmode");
+                entity.Property(e => e.Remarks)
+                    .HasColumnType("character varying")
+                    .HasColumnName("remarks");
+                entity.Property(e => e.Scheduleddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("scheduleddatetime");
+                entity.Property(e => e.Status)
+                    .HasMaxLength(50)
+                    .HasColumnName("status");
+            });
+
+            modelBuilder.Entity<Leaverequest>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("leaverequest", "axionpro");
+
+                entity.Property(e => e.Approvedbyid).HasColumnName("approvedbyid");
+                entity.Property(e => e.Approveddate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("approveddate");
+                entity.Property(e => e.Cancellationdate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("cancellationdate");
+                entity.Property(e => e.Createdbyid).HasColumnName("createdbyid");
+                entity.Property(e => e.Createddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("createddatetime");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Fromdate).HasColumnName("fromdate");
+                entity.Property(e => e.Halfdaydate).HasColumnName("halfdaydate");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isdocumentattached).HasColumnName("isdocumentattached");
+                entity.Property(e => e.Isfirsthalf).HasColumnName("isfirsthalf");
+                entity.Property(e => e.Ishalfday).HasColumnName("ishalfday");
+                entity.Property(e => e.Issandwich).HasColumnName("issandwich");
+                entity.Property(e => e.Leavepolicyid).HasColumnName("leavepolicyid");
+                entity.Property(e => e.Leavetypeid).HasColumnName("leavetypeid");
+                entity.Property(e => e.Reason)
+                    .HasMaxLength(500)
+                    .HasColumnName("reason");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(100)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Status).HasColumnName("status");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Todate).HasColumnName("todate");
+                entity.Property(e => e.Totalleavedays)
+                    .HasPrecision(5, 2)
+                    .HasColumnName("totalleavedays");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Leaverule>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("leaverule", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Applysandwichrule).HasColumnName("applysandwichrule");
+                entity.Property(e => e.Halfdaynoticehours).HasColumnName("halfdaynoticehours");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Ishalfdayallowed).HasColumnName("ishalfdayallowed");
+                entity.Property(e => e.Islinkedsandwichrule).HasColumnName("islinkedsandwichrule");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Maxcontinuousleaves).HasColumnName("maxcontinuousleaves");
+                entity.Property(e => e.Mingapbetweenleaves).HasColumnName("mingapbetweenleaves");
+                entity.Property(e => e.Noticeperioddays).HasColumnName("noticeperioddays");
+                entity.Property(e => e.Policyleavetypeid).HasColumnName("policyleavetypeid");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(500)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Softdeletebyid).HasColumnName("softdeletebyid");
+                entity.Property(e => e.Softdeletedatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("softdeletedatetime");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Leavesandwichrule>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("leavesandwichrule", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Isincludeholiday).HasColumnName("isincludeholiday");
+                entity.Property(e => e.Isincludeweekend).HasColumnName("isincludeweekend");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(250)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Rulename)
+                    .HasMaxLength(100)
+                    .HasColumnName("rulename");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Softdeleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("softdeleteddatetime");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Leavesandwichrulemapping>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("leavesandwichrulemapping", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Daycombinationid).HasColumnName("daycombinationid");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Leaveruleid).HasColumnName("leaveruleid");
+                entity.Property(e => e.Leavesandwichruleid).HasColumnName("leavesandwichruleid");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(250)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Softdeleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("softdeleteddatetime");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Leavetransactionlog>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("leavetransactionlog", "axionpro");
+
+                entity.Property(e => e.Employeeleavebalanceid).HasColumnName("employeeleavebalanceid");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Leavedays)
+                    .HasPrecision(5, 2)
+                    .HasColumnName("leavedays");
+                entity.Property(e => e.Performedby).HasColumnName("performedby");
+                entity.Property(e => e.Remarks)
+                    .HasMaxLength(500)
+                    .HasColumnName("remarks");
+                entity.Property(e => e.Transactiondate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("transactiondate");
+                entity.Property(e => e.Transactiontype)
+                    .HasMaxLength(20)
+                    .HasColumnName("transactiontype");
+            });
+
+            modelBuilder.Entity<Leavetype>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("leavetype", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(500)
+                    .HasColumnName("description");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Leavename)
+                    .HasMaxLength(50)
+                    .HasColumnName("leavename");
+                entity.Property(e => e.Softdeletedby).HasColumnName("softdeletedby");
+                entity.Property(e => e.Softdeleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("softdeleteddatetime");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatebyid).HasColumnName("updatebyid");
+                entity.Property(e => e.Updatedatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updatedatetime");
+            });
+
+            modelBuilder.Entity<License>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("license", "axionpro");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Licenseenddate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("licenseenddate");
+                entity.Property(e => e.Licensestartdate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("licensestartdate");
+            });
+
+            modelBuilder.Entity<Logincredential>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("logincredential", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Hasfirstlogin).HasColumnName("hasfirstlogin");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Ipaddresslocal)
+                    .HasMaxLength(50)
+                    .HasColumnName("ipaddresslocal");
+                entity.Property(e => e.Ipaddresspublic)
+                    .HasMaxLength(50)
+                    .HasColumnName("ipaddresspublic");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Ispasswordchangerequired).HasColumnName("ispasswordchangerequired");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Latitude).HasColumnName("latitude");
+                entity.Property(e => e.Logindevice).HasColumnName("logindevice");
+                entity.Property(e => e.Loginid)
+                    .HasMaxLength(255)
+                    .HasColumnName("loginid");
+                entity.Property(e => e.Longitude).HasColumnName("longitude");
+                entity.Property(e => e.Macaddress)
+                    .HasMaxLength(255)
+                    .HasColumnName("macaddress");
+                entity.Property(e => e.Password).HasMaxLength(550);
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(255)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Mealallowancepolicybydesignation>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("mealallowancepolicybydesignation", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Breakfastallowance)
+                    .HasPrecision(10, 2)
+                    .HasColumnName("breakfastallowance");
+                entity.Property(e => e.Designationid).HasColumnName("designationid");
+                entity.Property(e => e.Dinnerallowance)
+                    .HasPrecision(10, 2)
+                    .HasColumnName("dinnerallowance");
+                entity.Property(e => e.Employeetypeid).HasColumnName("employeetypeid");
+                entity.Property(e => e.Fixedfoodallowance)
+                    .HasPrecision(10, 2)
+                    .HasColumnName("fixedfoodallowance");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Ismetro).HasColumnName("ismetro");
+                entity.Property(e => e.Issoftdelete).HasColumnName("issoftdelete");
+                entity.Property(e => e.Lunchallowance)
+                    .HasPrecision(10, 2)
+                    .HasColumnName("lunchallowance");
+                entity.Property(e => e.Metrobonus)
+                    .HasPrecision(10, 2)
+                    .HasColumnName("metrobonus");
+                entity.Property(e => e.Mindaysrequired).HasColumnName("mindaysrequired");
+                entity.Property(e => e.Policytypeid).HasColumnName("policytypeid");
+                entity.Property(e => e.Requireddocuments).HasColumnName("requireddocuments");
+                entity.Property(e => e.Softdeletedatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("softdeletedatetime");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
             modelBuilder.Entity<Module>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Module__3214EC078891AB2D");
+                entity
+                    .HasNoKey()
+                    .ToTable("Module", "axionpro");
 
-                entity.ToTable("Module", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.DisplayName).HasMaxLength(100);
-                entity.Property(e => e.ImageIconMobile)
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Displayname)
+                    .HasMaxLength(100)
+                    .HasColumnName("displayname");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Imageiconmobile)
                     .HasMaxLength(255)
-                    .IsUnicode(false);
-                entity.Property(e => e.ImageIconWeb)
+                    .HasColumnName("imageiconmobile");
+                entity.Property(e => e.Imageiconweb)
                     .HasMaxLength(255)
-                    .IsUnicode(false);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsModuleDisplayInUi)
-                    .HasDefaultValue(true)
-                    .HasColumnName("IsModuleDisplayInUI");
-                entity.Property(e => e.ItemPriority).HasDefaultValue(0);
-                entity.Property(e => e.ModuleCode).HasMaxLength(50);
-                entity.Property(e => e.ModuleName).HasMaxLength(100);                
-                entity.Property(e => e.Remark).HasMaxLength(200);
-                entity.Property(e => e.URLPath).HasMaxLength(500).HasColumnName("URLPath");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.ParentModule).WithMany(p => p.InverseParentModule)
-                    .HasForeignKey(d => d.ParentModuleId)
-                    .HasConstraintName("FK_Module_ParentModule");
+                    .HasColumnName("imageiconweb");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Iscommonmenu).HasColumnName("iscommonmenu");
+                entity.Property(e => e.Isleafnode).HasColumnName("isleafnode");
+                entity.Property(e => e.Ismoduledisplayinui).HasColumnName("ismoduledisplayinui");
+                entity.Property(e => e.Itempriority).HasColumnName("itempriority");
+                entity.Property(e => e.Modulecode)
+                    .HasMaxLength(50)
+                    .HasColumnName("modulecode");
+                entity.Property(e => e.Modulename)
+                    .HasMaxLength(100)
+                    .HasColumnName("modulename");
+                entity.Property(e => e.Parentmoduleid).HasColumnName("parentmoduleid");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(200)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+                entity.Property(e => e.Urlpath)
+                    .HasMaxLength(500)
+                    .HasColumnName("urlpath");
             });
 
-            modelBuilder.Entity<ModuleOperationMapping>(entity =>
+            modelBuilder.Entity<Module1>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__ModuleOp__3214EC07BF86A196");
+                entity
+                    .HasNoKey()
+                    .ToTable("module", "axionpro");
 
-                entity.ToTable("ModuleOperationMapping", "AxionPro");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Displayname)
+                    .HasMaxLength(100)
+                    .HasColumnName("displayname");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Imageiconmobile)
+                    .HasMaxLength(255)
+                    .HasColumnName("imageiconmobile");
+                entity.Property(e => e.Imageiconweb)
+                    .HasMaxLength(255)
+                    .HasColumnName("imageiconweb");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Iscommonmenu).HasColumnName("iscommonmenu");
+                entity.Property(e => e.Isleafnode).HasColumnName("isleafnode");
+                entity.Property(e => e.Ismoduledisplayinui).HasColumnName("ismoduledisplayinui");
+                entity.Property(e => e.Itempriority).HasColumnName("itempriority");
+                entity.Property(e => e.Modulecode)
+                    .HasMaxLength(50)
+                    .HasColumnName("modulecode");
+                entity.Property(e => e.Modulename)
+                    .HasMaxLength(100)
+                    .HasColumnName("modulename");
+                entity.Property(e => e.Parentmoduleid).HasColumnName("parentmoduleid");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(200)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+                entity.Property(e => e.Urlpath)
+                    .HasMaxLength(500)
+                    .HasColumnName("urlpath");
+            });
 
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.IconUrl)
+            modelBuilder.Entity<Moduleoperationmapping>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("moduleoperationmapping", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Dataviewstructureid).HasColumnName("dataviewstructureid");
+                entity.Property(e => e.Iconurl)
                     .HasMaxLength(255)
-                    .IsUnicode(false)
-                    .HasColumnName("IconURL");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsCommonItem).HasDefaultValue(false);
-                entity.Property(e => e.IsOperational).HasDefaultValue(true);
-                entity.Property(e => e.PageUrl)
+                    .HasColumnName("iconurl");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Iscommonitem).HasColumnName("iscommonitem");
+                entity.Property(e => e.Isoperational).HasColumnName("isoperational");
+                entity.Property(e => e.Moduleid).HasColumnName("moduleid");
+                entity.Property(e => e.Operationid).HasColumnName("operationid");
+                entity.Property(e => e.Pagetypeid).HasColumnName("pagetypeid");
+                entity.Property(e => e.Pageurl)
                     .HasMaxLength(255)
-                    .IsUnicode(false)
-                    .HasColumnName("PageURL");
-                entity.Property(e => e.Priority).HasDefaultValue(0);
+                    .HasColumnName("pageurl");
+                entity.Property(e => e.Priority).HasColumnName("priority");
                 entity.Property(e => e.Remark)
                     .HasMaxLength(255)
-                    .IsUnicode(false);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.DataViewStructure).WithMany(p => p.ModuleOperationMappings)
-                    .HasForeignKey(d => d.DataViewStructureId)
-                    .HasConstraintName("FK_ModuleOperationMapping_DataViewStructure");
-
-                entity.HasOne(d => d.Module).WithMany(p => p.ModuleOperationMappings)
-                    .HasForeignKey(d => d.ModuleId)
-                    .HasConstraintName("FK_ModuleOperationMapping_Module");
-
-                entity.HasOne(d => d.Operation).WithMany(p => p.ModuleOperationMappings)
-                    .HasForeignKey(d => d.OperationId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_ModuleOperation_Operation");
-
-                entity.HasOne(d => d.PageType).WithMany(p => p.ModuleOperationMappings)
-                    .HasForeignKey(d => d.PageTypeId)
-                    .HasConstraintName("FK_ModuleOperationMapping_PageTypeEnum");
+                    .HasColumnName("remark");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
-            modelBuilder.Entity<NoImagePath>(entity =>
+            modelBuilder.Entity<Noimagepath>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__NoImageP__3214EC07B56BC19F");
+                entity
+                    .HasNoKey()
+                    .ToTable("noimagepath", "axionpro");
 
-                entity.ToTable("NoImagePath", "AxionPro");
-
-                entity.Property(e => e.DefaultImagePath).HasMaxLength(500);
-                entity.Property(e => e.ImageName)
+                entity.Property(e => e.Defaultimagepath)
+                    .HasMaxLength(500)
+                    .HasColumnName("defaultimagepath");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Imagename)
                     .HasMaxLength(50)
-                    .IsUnicode(false);
-                entity.Property(e => e.ImageType).HasDefaultValue(1);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                    .HasColumnName("imagename");
+                entity.Property(e => e.Imagetype).HasColumnName("imagetype");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
             });
 
             modelBuilder.Entity<Operation>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Operatio__3214EC079C437610");
+                entity
+                    .HasNoKey()
+                    .ToTable("operation", "axionpro");
 
-                entity.ToTable("Operation", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.IconImage).HasMaxLength(250);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.OperationName).HasMaxLength(200);
-                entity.Property(e => e.Remark).HasMaxLength(200);
-                entity.Property(e => e.UpdateDateTime).HasColumnType("datetime");
-            });
-
-            modelBuilder.Entity<OrganizationHolidayCalendar>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__Organiza__3214EC077FBA239C");
-
-                entity.ToTable("OrganizationHolidayCalendar", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.CountryCode).HasMaxLength(5);
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.Description).HasMaxLength(255);
-                entity.Property(e => e.HolidayDate).HasColumnType("datetime");
-                entity.Property(e => e.HolidayName).HasMaxLength(100);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
-                entity.Property(e => e.Remark).HasMaxLength(255);
-                entity.Property(e => e.StateCode).HasMaxLength(10);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Tenant).WithMany(p => p.OrganizationHolidayCalendars)
-                    .HasForeignKey(d => d.TenantId)
-                    .HasConstraintName("FK_OrganizationHolidayCalendar_Tenant");
-            });
-
-            modelBuilder.Entity<PageTypeEnum>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__PageType__3214EC07D71C5D81");
-
-                entity.ToTable("PageTypeEnum", "AxionPro");
-
-                entity.Property(e => e.Id).ValueGeneratedNever();
-                entity.Property(e => e.PageTypeName)
-                    .HasMaxLength(20)
-                    .IsUnicode(false);
-            });
-
-            modelBuilder.Entity<PlanModuleMapping>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__PlanModu__3214EC0729948732");
-
-                entity.ToTable("PlanModuleMapping", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Iconimage)
+                    .HasMaxLength(250)
+                    .HasColumnName("iconimage");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Operationname)
+                    .HasMaxLength(200)
+                    .HasColumnName("operationname");
+                entity.Property(e => e.Operationtype).HasColumnName("operationtype");
                 entity.Property(e => e.Remark)
-                    .HasMaxLength(255)
-                    .IsUnicode(false);
-                entity.Property(e => e.UpdatedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-
-                entity.HasOne(d => d.Module).WithMany(p => p.PlanModuleMappings)
-                    .HasForeignKey(d => d.ModuleId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_PlanModuleMapping_Module");
-
-                entity.HasOne(d => d.SubscriptionPlan).WithMany(p => p.PlanModuleMappings)
-                    .HasForeignKey(d => d.SubscriptionPlanId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_PMM_SubscriptionPlan");
+                    .HasMaxLength(200)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Updatedatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updatedatetime");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
             });
 
-            modelBuilder.Entity<PolicyTypeInsuranceMapping>(entity =>
+            modelBuilder.Entity<Organizationholidaycalendar>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__PolicyTy__3214EC07E433096D");
+                entity
+                    .HasNoKey()
+                    .ToTable("organizationholidaycalendar", "axionpro");
 
-                entity.ToTable("PolicyTypeInsuranceMapping", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("(getdate())");
-                entity.Property(e => e.SoftDeleteDateTime).HasDefaultValueSql("datetime");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
-
-                entity.HasOne(d => d.InsurancePolicy).WithMany(p => p.PolicyTypeInsuranceMappings)
-                    .HasForeignKey(d => d.InsurancePolicyId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_PTIM_InsurancePolicy");
-
-                entity.HasOne(d => d.PolicyType).WithMany(p => p.PolicyTypeInsuranceMappings)
-                    .HasForeignKey(d => d.PolicyTypeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_PTIM_PolicyType");
-                // 🚫 FORCEFULLY IGNORE WRONG NAVIGATIONS
-                entity.Ignore(e => e.PolicyType);
-               
-               // entity.Ignore(e => e.InsurancePolicyDocuments); // self-reference
-            });
-
-            modelBuilder.Entity<PolicyLeaveTypeMapping>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__LeavePol__3214EC07A76146FC");
-
-                entity.ToTable("PolicyLeaveTypeMapping", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.EffectiveFrom).HasColumnType("datetime");
-                entity.Property(e => e.EffectiveTo).HasColumnType("datetime");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.ProofDocumentType).HasMaxLength(100);
-                entity.Property(e => e.Remark).HasMaxLength(250);
-                entity.Property(e => e.SoftDeleteDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.ApplicableGender).WithMany(p => p.PolicyLeaveTypeMappings)
-                    .HasForeignKey(d => d.ApplicableGenderId)
-                    .HasConstraintName("FK_PolicyLeaveTypeMapping_Gender");
-            });
-
-            modelBuilder.Entity<PolicyType>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__PolicyTy__3214EC07AAE08A64");
-                entity.ToTable("PolicyType", "AxionPro");
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.Description).HasColumnType("text");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsSoftDelete).HasDefaultValue(false);
-                entity.Property(e => e.PolicyName).HasMaxLength(255);
-                entity.Property(e => e.SoftDeleteDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdateDateTime).HasColumnType("datetime");
-                entity.HasOne(d => d.Tenant).WithMany(p => p.PolicyTypes)
-                    .HasForeignKey(d => d.TenantId)
-                    .HasConstraintName("FK_PolicyType_Tenant");
-                
-              
-            });
-
-            modelBuilder.Entity<InsurancePolicy>(entity =>  {
-                entity.HasKey(e => e.Id)
-                      .HasName("PK__PolicyMa__3214EC07A7865FF0");
-
-                entity.ToTable("InsurancePolicy", "AxionPro");
-
-                // 🔗 PolicyType FK (MOST IMPORTANT)
-                entity.HasOne(e => e.PolicyType)
-                      .WithMany(p => p.InsurancePolicies)
-                      .HasForeignKey(e => e.PolicyTypeId)
-                      .HasConstraintName("FK_InsurancePolicy_PolicyType")
-                      .OnDelete(DeleteBehavior.Restrict);
-
-                entity.Property(e => e.InsurancePolicyName)
-                      .HasMaxLength(200)
-                      .IsRequired();
-
-                // 🔗 PolicyType FK mapping (MOST IMPORTANT)
-                entity.HasOne(e => e.PolicyType)
-                      .WithMany(p => p.InsurancePolicies)
-                      .HasForeignKey(e => e.PolicyTypeId)
-                      .OnDelete(DeleteBehavior.Restrict);
-
-
-                entity.Property(e => e.InsurancePolicyNumber)
-                      .HasMaxLength(100);
-
-                entity.Property(e => e.ProviderName)
-                      .HasMaxLength(100);
-
-                entity.Property(e => e.AgentName)
-                      .HasMaxLength(150);
-
-                entity.Property(e => e.AgentContactNumber)
-                      .HasMaxLength(20);
-
-                entity.Property(e => e.AgentOfficeNumber)
-                      .HasMaxLength(20);
-
-                entity.Property(e => e.Description)
-                      .HasMaxLength(500);
-
-                entity.Property(e => e.Remark)
-                      .HasMaxLength(500);
-
-                entity.Property(e => e.StartDate)
-                      .HasColumnType("datetime");
-
-                entity.Property(e => e.EndDate)
-                      .HasColumnType("datetime");
-
-                entity.Property(e => e.AddedDateTime)
-                      .HasColumnType("datetime");
-
-                entity.Property(e => e.UpdatedDateTime)
-                      .HasColumnType("datetime");
-
-                entity.Property(e => e.DeletedDateTime)
-                      .HasColumnType("datetime");
-
-                // 🔹 Defaults (IMPORTANT)
-                entity.Property(e => e.IsActive)
-                      .HasDefaultValue(true);
-
-                entity.Property(e => e.EmployeeAllowed)
-                      .HasDefaultValue(true);
-
-                entity.Property(e => e.MaxSpouseAllowed)
-                      .HasDefaultValue(0);
-
-                entity.Property(e => e.MaxChildAllowed)
-                      .HasDefaultValue(0);
-
-                entity.Property(e => e.ParentsAllowed)
-                      .HasDefaultValue(false);
-
-                entity.Property(e => e.InLawsAllowed)
-                      .HasDefaultValue(false);
-
-                // 🔗 FK
-                entity.HasOne(e => e.Country)
-                      .WithMany()
-                      .HasForeignKey(e => e.CountryId)
-                      .OnDelete(DeleteBehavior.Restrict);
-
-
-
-            });
-
-            modelBuilder.Entity<RefreshToken>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__RefreshT__3214EC0731D02168");
-
-                entity.ToTable("RefreshToken", "AxionPro");
-
-                entity.Property(e => e.CreatedAt)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.CreatedByIp).HasMaxLength(50);
-                entity.Property(e => e.ExpiryDate)
-                    .HasDefaultValueSql("(dateadd(day,(5),getdate()))")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.IsRevoked).HasDefaultValue(false);
-                entity.Property(e => e.LoginId).HasMaxLength(255);
-                entity.Property(e => e.ReplacedByToken).HasMaxLength(500);
-                entity.Property(e => e.RevokedAt).HasColumnType("datetime");
-                entity.Property(e => e.RevokedByIp).HasMaxLength(50);
-                entity.Property(e => e.Token).HasMaxLength(500);
-
-                entity.HasOne(d => d.Login).WithMany(p => p.RefreshTokens)
-                    .HasPrincipalKey(p => p.LoginId)
-                    .HasForeignKey(d => d.LoginId)
-                    .HasConstraintName("FK__RefreshTo__Login__7132C993");
-            });
-
-            modelBuilder.Entity<ReportingType>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__Reportin__3214EC0773736C22");
-
-                entity.ToTable("ReportingType", "AxionPro");
-
-                entity.HasIndex(e => e.TypeName, "UQ__Reportin__D4E7DFA8AC2E2E45").IsUnique();
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.Description).HasMaxLength(250);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.TypeName)
-                    .HasMaxLength(50)
-                    .IsUnicode(false);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-            });
-
-            modelBuilder.Entity<RequestType>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__RequestT__3214EC07E53AD996");
-
-                entity.ToTable("RequestType", "AxionPro");
-
-                entity.HasIndex(e => new { e.TenantId, e.RequestTypeName }, "UQ_RequestType_Tenant").IsUnique();
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Countrycode)
+                    .HasMaxLength(5)
+                    .HasColumnName("countrycode");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
                 entity.Property(e => e.Description)
                     .HasMaxLength(255)
-                    .IsUnicode(false);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
-                entity.Property(e => e.RequestTypeName)
+                    .HasColumnName("description");
+                entity.Property(e => e.Holidaydate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("holidaydate");
+                entity.Property(e => e.Holidayname)
                     .HasMaxLength(100)
-                    .IsUnicode(false);
-                entity.Property(e => e.UpdatedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasColumnName("holidayname");
+                entity.Property(e => e.Holidayyear).HasColumnName("holidayyear");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Isoptional).HasColumnName("isoptional");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(255)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Statecode)
+                    .HasMaxLength(10)
+                    .HasColumnName("statecode");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
 
-                entity.HasOne(d => d.Tenant).WithMany(p => p.RequestTypes)
-                    .HasForeignKey(d => d.TenantId)
-                    .HasConstraintName("FK_RequestType_Tenant");
+            modelBuilder.Entity<Pagetypeenum>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("pagetypeenum", "axionpro");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Pagetypename)
+                    .HasMaxLength(20)
+                    .HasColumnName("pagetypename");
+            });
+
+            modelBuilder.Entity<Planmodulemapping>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("planmodulemapping", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Moduleid).HasColumnName("moduleid");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(255)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Subscriptionplanid).HasColumnName("subscriptionplanid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Policyleavetypemapping>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("policyleavetypemapping", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Applicablegenderid).HasColumnName("applicablegenderid");
+                entity.Property(e => e.Carryforward).HasColumnName("carryforward");
+                entity.Property(e => e.Carryforwardexpirymonths).HasColumnName("carryforwardexpirymonths");
+                entity.Property(e => e.Effectivefrom)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("effectivefrom");
+                entity.Property(e => e.Effectiveto)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("effectiveto");
+                entity.Property(e => e.Employeetypeid).HasColumnName("employeetypeid");
+                entity.Property(e => e.Encashable).HasColumnName("encashable");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Isemployeemapped).HasColumnName("isemployeemapped");
+                entity.Property(e => e.Ismarriedapplicable).HasColumnName("ismarriedapplicable");
+                entity.Property(e => e.Isproofrequired).HasColumnName("isproofrequired");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Leavetypeid).HasColumnName("leavetypeid");
+                entity.Property(e => e.Maxcarryforward).HasColumnName("maxcarryforward");
+                entity.Property(e => e.Maxencashable).HasColumnName("maxencashable");
+                entity.Property(e => e.Monthlyaccrual).HasColumnName("monthlyaccrual");
+                entity.Property(e => e.Policytypeid).HasColumnName("policytypeid");
+                entity.Property(e => e.Proofdocumenttype)
+                    .HasMaxLength(100)
+                    .HasColumnName("proofdocumenttype");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(250)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Softdeletebyid).HasColumnName("softdeletebyid");
+                entity.Property(e => e.Softdeletedatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("softdeletedatetime");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Totalleavesperyear).HasColumnName("totalleavesperyear");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Policytype>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("policytype", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Description).HasColumnName("description");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Issoftdelete).HasColumnName("issoftdelete");
+                entity.Property(e => e.Isstructured).HasColumnName("isstructured");
+                entity.Property(e => e.Policyname)
+                    .HasMaxLength(255)
+                    .HasColumnName("policyname");
+                entity.Property(e => e.Softdeletebyid).HasColumnName("softdeletebyid");
+                entity.Property(e => e.Softdeletedatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("softdeletedatetime");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatebyid).HasColumnName("updatebyid");
+                entity.Property(e => e.Updatedatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updatedatetime");
+            });
+
+            modelBuilder.Entity<Policytypeinsurancemapping>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("policytypeinsurancemapping", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Insurancepolicyid).HasColumnName("insurancepolicyid");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Policytypeid).HasColumnName("policytypeid");
+                entity.Property(e => e.Softdeletebyid).HasColumnName("softdeletebyid");
+                entity.Property(e => e.Softdeletedatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("softdeletedatetime");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Refreshtoken>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("refreshtoken", "axionpro");
+
+                entity.Property(e => e.Createdat)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("createdat");
+                entity.Property(e => e.Createdbyip)
+                    .HasMaxLength(50)
+                    .HasColumnName("createdbyip");
+                entity.Property(e => e.Expirydate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("expirydate");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isrevoked).HasColumnName("isrevoked");
+                entity.Property(e => e.Loginid)
+                    .HasMaxLength(255)
+                    .HasColumnName("loginid");
+                entity.Property(e => e.Replacedbytoken)
+                    .HasMaxLength(500)
+                    .HasColumnName("replacedbytoken");
+                entity.Property(e => e.Revokedat)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("revokedat");
+                entity.Property(e => e.Revokedbyip)
+                    .HasMaxLength(50)
+                    .HasColumnName("revokedbyip");
+                entity.Property(e => e.Token).HasMaxLength(500);
+            });
+
+            modelBuilder.Entity<Reportingtype>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("reportingtype", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(250)
+                    .HasColumnName("description");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Typename)
+                    .HasMaxLength(50)
+                    .HasColumnName("typename");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Requesttype>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("requesttype", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(255)
+                    .HasColumnName("description");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Requesttypename)
+                    .HasMaxLength(100)
+                    .HasColumnName("requesttypename");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
             modelBuilder.Entity<Role>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Role__3214EC0723371271");
+                entity
+                    .HasNoKey()
+                    .ToTable("role", "axionpro");
 
-                entity.ToTable("Role", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.DeletedDateTime)
-                    .HasDefaultValueSql("(NULL)")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
-                entity.Property(e => e.IsSystemDefault).HasDefaultValue(false);
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Issystemdefault).HasColumnName("issystemdefault");
                 entity.Property(e => e.Remark)
                     .HasMaxLength(200)
-                    .HasDefaultValueSql("(NULL)");
-                entity.Property(e => e.RoleName).HasMaxLength(100);
-                entity.Property(e => e.RoleType).HasDefaultValue(null);
-                entity.Property(e => e.SoftDeletedById).HasDefaultValueSql("(NULL)");
-                entity.Property(e => e.UpdatedById).HasDefaultValueSql("(NULL)");
-                entity.Property(e => e.UpdatedDateTime)
-                    .HasDefaultValueSql("(NULL)")
-                    .HasColumnType("datetime");
-
-                //entity.HasOne(d => d.Designation).WithMany(p => p.Roles)
-                //    .HasForeignKey(d => d.DesignationId)
-                //    .HasConstraintName("FK_Role_Designation");
-
-                //entity.HasOne(d => d.Tenant).WithMany(p => p.Roles)
-                //    .HasForeignKey(d => d.TenantId)
-                //    .HasConstraintName("FK_Role_Tenant");
+                    .HasColumnName("remark");
+                entity.Property(e => e.Rolename)
+                    .HasMaxLength(100)
+                    .HasColumnName("rolename");
+                entity.Property(e => e.Roletype).HasColumnName("roletype");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
-            modelBuilder.Entity<RoleModuleAndPermission>(entity =>
+            modelBuilder.Entity<Role1>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK_RoleModuleAndPermission_Id");
+                entity
+                    .HasNoKey()
+                    .ToTable("Role", "axionpro");
 
-                entity.ToTable("RoleModuleAndPermission", "AxionPro");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Issystemdefault).HasColumnName("issystemdefault");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(200)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Rolename)
+                    .HasMaxLength(100)
+                    .HasColumnName("rolename");
+                entity.Property(e => e.Roletype).HasColumnName("roletype");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
 
-                entity.HasIndex(e => e.OperationId, "IDX_RolesPermission_OperationId");
+            modelBuilder.Entity<Rolemoduleandpermission>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("rolemoduleandpermission", "axionpro");
 
-                entity.HasIndex(e => e.RoleId, "IDX_RolesPermission_RoleId");
-
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.ImageIcon).HasMaxLength(200);
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Hasaccess).HasColumnName("hasaccess");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Imageicon)
+                    .HasMaxLength(200)
+                    .HasColumnName("imageicon");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Isoperational).HasColumnName("isoperational");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Moduleid).HasColumnName("moduleid");
+                entity.Property(e => e.Operationid).HasColumnName("operationid");
                 entity.Property(e => e.Remark)
                     .HasMaxLength(255)
-                    .IsUnicode(false);
-                entity.Property(e => e.SoftDeletedById).HasDefaultValue(0L);
-                entity.Property(e => e.UpdateDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Module).WithMany(p => p.RoleModuleAndPermissions)
-                    .HasForeignKey(d => d.ModuleId)
-                    .HasConstraintName("FK_RoleModulePermission_Module");
-
-                entity.HasOne(d => d.Operation).WithMany(p => p.RoleModuleAndPermissions)
-                    .HasForeignKey(d => d.OperationId)
-                    .HasConstraintName("FK_RoleModulePermission_Operation");
-
-                entity.HasOne(d => d.Role).WithMany(p => p.RoleModuleAndPermissions)
-                    .HasForeignKey(d => d.RoleId)
-                    .HasConstraintName("FK_RoleModulePermission_Role");
+                    .HasColumnName("remark");
+                entity.Property(e => e.Roleid).HasColumnName("roleid");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Updatedatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updatedatetime");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
-            modelBuilder.Entity<ServiceProvider>(entity =>
+            modelBuilder.Entity<Serviceprovider>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__ServiceP__3214EC07B0695346");
+                entity
+                    .HasNoKey()
+                    .ToTable("serviceprovider", "axionpro");
 
-                entity.ToTable("ServiceProvider", "AxionPro");
-
-                entity.Property(e => e.Address).HasMaxLength(500);
+                entity.Property(e => e.Address)
+                    .HasMaxLength(500)
+                    .HasColumnName("address");
                 entity.Property(e => e.Ceoname)
                     .HasMaxLength(255)
-                    .HasColumnName("CEOName");
-                entity.Property(e => e.CompanyEmail).HasMaxLength(255);
-                entity.Property(e => e.CompanyName).HasMaxLength(255);
-                entity.Property(e => e.CompanyType).HasMaxLength(50);
-                entity.Property(e => e.Description).HasMaxLength(1000);
-                entity.Property(e => e.Fax).HasMaxLength(50);
+                    .HasColumnName("ceoname");
+                entity.Property(e => e.Companyemail)
+                    .HasMaxLength(255)
+                    .HasColumnName("companyemail");
+                entity.Property(e => e.Companyname)
+                    .HasMaxLength(255)
+                    .HasColumnName("companyname");
+                entity.Property(e => e.Companytype)
+                    .HasMaxLength(50)
+                    .HasColumnName("companytype");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(1000)
+                    .HasColumnName("description");
+                entity.Property(e => e.Establishedyear).HasColumnName("establishedyear");
+                entity.Property(e => e.Fax)
+                    .HasMaxLength(50)
+                    .HasColumnName("fax");
                 entity.Property(e => e.Gstnumber)
                     .HasMaxLength(50)
-                    .HasColumnName("GSTNumber");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                    .HasColumnName("gstnumber");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
                 entity.Property(e => e.Location).HasMaxLength(255);
-                entity.Property(e => e.Phone).HasMaxLength(50);
-                entity.Property(e => e.PinCode).HasMaxLength(10);
-                entity.Property(e => e.Profile).HasMaxLength(500);
-                entity.Property(e => e.Remark).HasMaxLength(500);
-                entity.Property(e => e.WebsiteUrl)
+                entity.Property(e => e.Phone)
+                    .HasMaxLength(50)
+                    .HasColumnName("phone");
+                entity.Property(e => e.Pincode)
+                    .HasMaxLength(10)
+                    .HasColumnName("pincode");
+                entity.Property(e => e.Profile)
+                    .HasMaxLength(500)
+                    .HasColumnName("profile");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(500)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Websiteurl)
                     .HasMaxLength(255)
-                    .HasColumnName("WebsiteURL");
+                    .HasColumnName("websiteurl");
             });
 
             modelBuilder.Entity<State>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__State__3214EC0705AF0D74");
+                entity
+                    .HasNoKey()
+                    .ToTable("state", "axionpro");
 
-                entity.ToTable("State", "AxionPro");
-
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.StateName).HasMaxLength(100);
-
-                entity.HasOne(d => d.Country).WithMany(p => p.States)
-                    .HasForeignKey(d => d.CountryId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__State__CountryId__6B0FDBE9");
-
-            
+                entity.Property(e => e.Countryid).HasColumnName("countryid");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Statename)
+                    .HasMaxLength(100)
+                    .HasColumnName("statename");
             });
 
-            modelBuilder.Entity<SubscriptionPlan>(entity =>
+            modelBuilder.Entity<Statutorytype>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Subscrip__3214EC07BED0F0D0");
+                entity
+                    .HasNoKey()
+                    .ToTable("statutorytype", "axionpro");
 
-                entity.ToTable("SubscriptionPlan", "AxionPro");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Code)
+                    .HasMaxLength(50)
+                    .HasColumnName("code");
+                entity.Property(e => e.Countryid).HasColumnName("countryid");
+                entity.Property(e => e.Deletedbyid).HasColumnName("deletedbyid");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Isemployeecontributionrequired).HasColumnName("isemployeecontributionrequired");
+                entity.Property(e => e.Isemployercontributionrequired).HasColumnName("isemployercontributionrequired");
+                entity.Property(e => e.Name)
+                    .HasMaxLength(200)
+                    .HasColumnName("name");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
 
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.CurrencyKey).HasMaxLength(20);
-                entity.Property(e => e.MonthlyPrice).HasColumnType("decimal(10, 2)");
-                entity.Property(e => e.PerDayPrice).HasColumnType("decimal(10, 2)");
-                entity.Property(e => e.PlanName).HasMaxLength(100);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.YearlyPrice).HasColumnType("decimal(10, 2)");
+            modelBuilder.Entity<Subscriptionplan>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("subscriptionplan", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Currencykey)
+                    .HasMaxLength(20)
+                    .HasColumnName("currencykey");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Iscustom).HasColumnName("iscustom");
+                entity.Property(e => e.Isfree).HasColumnName("isfree");
+                entity.Property(e => e.Ismostpopular).HasColumnName("ismostpopular");
+                entity.Property(e => e.Maxusers).HasColumnName("maxusers");
+                entity.Property(e => e.Monthlyprice)
+                    .HasPrecision(10, 2)
+                    .HasColumnName("monthlyprice");
+                entity.Property(e => e.Perdayprice)
+                    .HasPrecision(10, 2)
+                    .HasColumnName("perdayprice");
+                entity.Property(e => e.Planname)
+                    .HasMaxLength(100)
+                    .HasColumnName("planname");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+                entity.Property(e => e.Yearlyprice)
+                    .HasPrecision(10, 2)
+                    .HasColumnName("yearlyprice");
             });
 
             modelBuilder.Entity<Tenant>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Tenant__3214EC0728DD7C6E");
+                entity
+                    .HasNoKey()
+                    .ToTable("tenant", "axionpro");
 
-                entity.ToTable("Tenant", "AxionPro");
-
-                entity.HasIndex(e => e.TenantCode);
-
-                entity.HasIndex(e => e.TenantEmail, "UQ__Tenant__F7C944DD7E3D53D9").IsUnique();
-
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.CompanyEmailDomain).HasMaxLength(255);
-                entity.Property(e => e.CompanyName).HasMaxLength(200);
-                entity.Property(e => e.ContactNumber).HasMaxLength(20);
-                entity.Property(e => e.ContactPersonName).HasMaxLength(100);
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.TenantCode).HasMaxLength(100);
-                entity.Property(e => e.TenantEmail).HasMaxLength(200);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.TenantIndustry).WithMany(p => p.Tenants)
-                    .HasForeignKey(d => d.TenantIndustryId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Tenant_TenantIndustry");
-                 entity.HasOne(d => d.Gender).WithMany(p => p.Tenants)
-                 .HasForeignKey(d => d.GenderId)
-                .HasConstraintName("FK_Gender_Tenant");
-
-
-
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Companyemaildomain)
+                    .HasMaxLength(255)
+                    .HasColumnName("companyemaildomain");
+                entity.Property(e => e.Companyname)
+                    .HasMaxLength(200)
+                    .HasColumnName("companyname");
+                entity.Property(e => e.Contactnumber)
+                    .HasMaxLength(20)
+                    .HasColumnName("contactnumber");
+                entity.Property(e => e.Contactpersonname)
+                    .HasMaxLength(100)
+                    .HasColumnName("contactpersonname");
+                entity.Property(e => e.Countryid).HasColumnName("countryid");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Genderid).HasColumnName("genderid");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Isverified).HasColumnName("isverified");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Tenantcode)
+                    .HasMaxLength(100)
+                    .HasColumnName("tenantcode");
+                entity.Property(e => e.Tenantemail)
+                    .HasMaxLength(200)
+                    .HasColumnName("tenantemail");
+                entity.Property(e => e.Tenantindustryid).HasColumnName("tenantindustryid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
-            modelBuilder.Entity<TenantEmailConfig>(entity =>
+            modelBuilder.Entity<Tenantemailconfig>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__TenantEm__3214EC077A90B3A3");
+                entity
+                    .HasNoKey()
+                    .ToTable("tenantemailconfig", "axionpro");
 
-                entity.ToTable("TenantEmailConfig", "AxionPro");
-
-                entity.Property(e => e.FromEmail).HasMaxLength(200);
-                entity.Property(e => e.FromName).HasMaxLength(100);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.SmtpHost).HasMaxLength(200);
-                entity.Property(e => e.SmtpPasswordEncrypted).HasMaxLength(500);
-                entity.Property(e => e.SmtpUsername).HasMaxLength(200);
-
-                entity.HasOne(d => d.Tenant).WithMany(p => p.TenantEmailConfigs)
-                    .HasForeignKey(d => d.TenantId)
-                    .HasConstraintName("FK_TenantEmailConfig_Tenant");
+                entity.Property(e => e.Fromemail)
+                    .HasMaxLength(200)
+                    .HasColumnName("fromemail");
+                entity.Property(e => e.Fromname)
+                    .HasMaxLength(100)
+                    .HasColumnName("fromname");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Smtphost)
+                    .HasMaxLength(200)
+                    .HasColumnName("smtphost");
+                entity.Property(e => e.Smtppasswordencrypted)
+                    .HasMaxLength(500)
+                    .HasColumnName("smtppasswordencrypted");
+                entity.Property(e => e.Smtpport).HasColumnName("smtpport");
+                entity.Property(e => e.Smtpusername)
+                    .HasMaxLength(200)
+                    .HasColumnName("smtpusername");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
             });
 
-            modelBuilder.Entity<TenantEnabledModule>(entity =>
+            modelBuilder.Entity<Tenantenabledmodule>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__TenantEn__3214EC07AC610092");
+                entity
+                    .HasNoKey()
+                    .ToTable("tenantenabledmodule", "axionpro");
 
-                entity.ToTable("TenantEnabledModule", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.IsEnabled).HasDefaultValue(true);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Module).WithMany(p => p.TenantEnabledModules)
-                    .HasForeignKey(d => d.ModuleId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_TenantEnabledModules_Module");
-                entity.HasOne(d => d.Tenant).WithMany(p => p.TenantEnabledModules)
-                   .HasForeignKey(d => d.TenantId)
-                   .OnDelete(DeleteBehavior.ClientSetNull)
-                   .HasConstraintName("FK_TenantEnabledModules_Tenant");
-
-
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isenabled).HasColumnName("isenabled");
+                entity.Property(e => e.Isleafnode).HasColumnName("isleafnode");
+                entity.Property(e => e.Moduleid).HasColumnName("moduleid");
+                entity.Property(e => e.Parentmoduleid).HasColumnName("parentmoduleid");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
-            modelBuilder.Entity<TenantEnabledOperation>(entity =>
+            modelBuilder.Entity<Tenantenabledoperation>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__TenantEn__3214EC07047C5B46");
+                entity
+                    .HasNoKey()
+                    .ToTable("tenantenabledoperation", "axionpro");
 
-                entity.ToTable("TenantEnabledOperation", "AxionPro");
-
-               
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.IsEnabled).HasDefaultValue(true);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Module).WithMany(p => p.TenantEnabledOperations)
-                    .HasForeignKey(d => d.ModuleId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_TenantEnabledOperations_Module");
-
-                entity.HasOne(d => d.Operation).WithMany(p => p.TenantEnabledOperations)
-                    .HasForeignKey(d => d.OperationId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_TenantEnabledOperations_Operation");
-
-                entity.HasOne(d => d.Tenant).WithMany(p => p.TenantEnabledOperations)
-          .HasForeignKey(d => d.TenantId)
-          .OnDelete(DeleteBehavior.ClientSetNull)
-          .HasConstraintName("FK_TenantEnabledOperations_Tenant");
-
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isenabled).HasColumnName("isenabled");
+                entity.Property(e => e.Isoperationused).HasColumnName("isoperationused");
+                entity.Property(e => e.Moduleid).HasColumnName("moduleid");
+                entity.Property(e => e.Operationid).HasColumnName("operationid");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
-            modelBuilder.Entity<TenantIndustry>(entity =>
+            modelBuilder.Entity<Tenantencryptionkey>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__TenantIn__3214EC0765258C5E");
+                entity
+                    .HasNoKey()
+                    .ToTable("tenantencryptionkeys", "axionpro");
 
-                entity.ToTable("TenantIndustry", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.Description).HasMaxLength(255);
-                entity.Property(e => e.IndustryName).HasMaxLength(100);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.Remark).HasMaxLength(255);
-                entity.Property(e => e.SoftDeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Encryptionkey)
+                    .HasMaxLength(1000)
+                    .HasColumnName("encryptionkey");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
-            modelBuilder.Entity<TenantProfile>(entity =>
+            modelBuilder.Entity<Tenantindustry>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__TenantPr__3214EC0796A1B93D");
+                entity
+                    .HasNoKey()
+                    .ToTable("tenantindustry", "axionpro");
 
-                entity.ToTable("TenantProfile", "AxionPro");
-
-                entity.Property(e => e.Address).HasMaxLength(300);
-                entity.Property(e => e.BusinessType).HasMaxLength(100);
-                entity.Property(e => e.Industry).HasMaxLength(100);
-                entity.Property(e => e.LogoUrl).HasMaxLength(255);
-                entity.Property(e => e.ThemeColor).HasMaxLength(50);
-                entity.Property(e => e.WebsiteUrl).HasMaxLength(200);
-
-                entity.HasOne(d => d.Tenant).WithMany(p => p.TenantProfiles)
-                    .HasForeignKey(d => d.TenantId)
-                    .HasConstraintName("FK_TenantProfile_Tenant");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(255)
+                    .HasColumnName("description");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Industryname)
+                    .HasMaxLength(100)
+                    .HasColumnName("industryname");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Issoftdeted).HasColumnName("issoftdeted");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(255)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Softdeleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("softdeleteddatetime");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
-            modelBuilder.Entity<TenantSubscription>(entity =>
+            modelBuilder.Entity<Tenantprofile>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__TenantSu__3214EC07CF143048");
+                entity
+                    .HasNoKey()
+                    .ToTable("tenantprofile", "axionpro");
 
-                entity.ToTable("TenantSubscription", "AxionPro");
+                entity.Property(e => e.Address)
+                    .HasMaxLength(300)
+                    .HasColumnName("address");
+                entity.Property(e => e.Businesstype)
+                    .HasMaxLength(100)
+                    .HasColumnName("businesstype");
+                entity.Property(e => e.Foundedyear).HasColumnName("foundedyear");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Industry)
+                    .HasMaxLength(100)
+                    .HasColumnName("industry");
+                entity.Property(e => e.Logourl)
+                    .HasMaxLength(255)
+                    .HasColumnName("logourl");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Themecolor)
+                    .HasMaxLength(50)
+                    .HasColumnName("themecolor");
+                entity.Property(e => e.Totalbranches).HasColumnName("totalbranches");
+                entity.Property(e => e.Totalemployees).HasColumnName("totalemployees");
+                entity.Property(e => e.Websiteurl)
+                    .HasMaxLength(200)
+                    .HasColumnName("websiteurl");
+            });
 
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.PaymentMode).HasMaxLength(50);
-                entity.Property(e => e.PaymentTxnId).HasMaxLength(100);
-                entity.Property(e => e.SubscriptionStartDate).HasDefaultValueSql("(getdate())");
+            modelBuilder.Entity<Tenantsubscription>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("tenantsubscription", "axionpro");
 
-                entity.HasOne(d => d.SubscriptionPlan).WithMany(p => p.TenantSubscriptions)
-                    .HasForeignKey(d => d.SubscriptionPlanId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_TenantSubscription_Plan");
-
-                entity.HasOne(d => d.Tenant).WithMany(p => p.TenantSubscriptions)
-                    .HasForeignKey(d => d.TenantId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_TenantSubscription_Tenant");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Istrial).HasColumnName("istrial");
+                entity.Property(e => e.Paymentmode)
+                    .HasMaxLength(50)
+                    .HasColumnName("paymentmode");
+                entity.Property(e => e.Paymenttxnid)
+                    .HasMaxLength(100)
+                    .HasColumnName("paymenttxnid");
+                entity.Property(e => e.Subscriptionenddate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("subscriptionenddate");
+                entity.Property(e => e.Subscriptionplanid).HasColumnName("subscriptionplanid");
+                entity.Property(e => e.Subscriptionstartdate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("subscriptionstartdate");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
             });
 
             modelBuilder.Entity<Tender>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Tender__3214EC076E847502");
+                entity
+                    .HasNoKey()
+                    .ToTable("tender", "axionpro");
 
-                entity.ToTable("Tender", "AxionPro");
-
+                entity.Property(e => e.Clientid).HasColumnName("clientid");
                 entity.Property(e => e.Description)
                     .HasMaxLength(255)
-                    .IsUnicode(false);
+                    .HasColumnName("description");
+                entity.Property(e => e.Enddate).HasColumnName("enddate");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
                 entity.Property(e => e.Remark)
                     .HasMaxLength(255)
-                    .IsUnicode(false);
-                entity.Property(e => e.TenderName)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Startdate).HasColumnName("startdate");
+                entity.Property(e => e.Tendername)
                     .HasMaxLength(255)
-                    .IsUnicode(false);
-                entity.Property(e => e.TenderValue).HasColumnType("decimal(18, 2)");
-
-                entity.HasOne(d => d.Client).WithMany(p => p.Tenders)
-                    .HasForeignKey(d => d.ClientId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Tender_ClientId");
-
-                entity.HasOne(d => d.TenderStatus).WithMany(p => p.Tenders)
-                    .HasForeignKey(d => d.TenderStatusId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__Tender__TenderSt__3EDC53F0");
+                    .HasColumnName("tendername");
+                entity.Property(e => e.Tenderstatusid).HasColumnName("tenderstatusid");
+                entity.Property(e => e.Tendervalue)
+                    .HasPrecision(18, 2)
+                    .HasColumnName("tendervalue");
             });
 
-            modelBuilder.Entity<TenantEncryptionKey>(entity =>
+            modelBuilder.Entity<Tenderproject>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__TenantEn__3214EC074AAC9A36");
+                entity
+                    .HasNoKey()
+                    .ToTable("tenderproject", "axionpro");
 
-                entity.ToTable("TenantEncryptionKeys", "AxionPro");
-
-                entity.HasIndex(e => e.TenantId, "UQ_TenantKey_TenantId").IsUnique();
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.EncryptionKey).HasMaxLength(1000);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-            });
-            modelBuilder.Entity<TenderProject>(entity =>
-            {
-                entity.HasKey(e => e.Id).HasName("PK__TenderPr__3214EC073A6AC46E");
-
-                entity.ToTable("TenderProject", "AxionPro");
-
-                entity.Property(e => e.Description).HasMaxLength(1000);
-                entity.Property(e => e.EndDate).HasColumnType("datetime");
-                entity.Property(e => e.EstimatedBudget).HasColumnType("decimal(18, 2)");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.ProjectName).HasMaxLength(255);
-                entity.Property(e => e.Remark).HasMaxLength(1000);
-                entity.Property(e => e.StartDate)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-
-                entity.HasOne(d => d.Status).WithMany(p => p.TenderProjects)
-                    .HasForeignKey(d => d.StatusId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__TenderPro__Statu__40C49C62");
-
-                entity.HasOne(d => d.TenderServiceProvider).WithMany(p => p.TenderProjects)
-                    .HasForeignKey(d => d.TenderServiceProviderId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_TenderProject_TenderServiceProvider");
-
-                entity.HasOne(d => d.UserRole).WithMany(p => p.TenderProjects)
-                    .HasForeignKey(d => d.UserRoleId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__TenderPro__UserR__42ACE4D4");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(1000)
+                    .HasColumnName("description");
+                entity.Property(e => e.Enddate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("enddate");
+                entity.Property(e => e.Estimatedbudget)
+                    .HasPrecision(18, 2)
+                    .HasColumnName("estimatedbudget");
+                entity.Property(e => e.Expectedteamsize).HasColumnName("expectedteamsize");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Projectname)
+                    .HasMaxLength(255)
+                    .HasColumnName("projectname");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(1000)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Startdate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("startdate");
+                entity.Property(e => e.Statusid).HasColumnName("statusid");
+                entity.Property(e => e.Tenderserviceproviderid).HasColumnName("tenderserviceproviderid");
+                entity.Property(e => e.Userroleid).HasColumnName("userroleid");
             });
 
-            modelBuilder.Entity<TenderService>(entity =>
+            modelBuilder.Entity<Tenderservice>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__TenderSe__3214EC07620086F4");
+                entity
+                    .HasNoKey()
+                    .ToTable("tenderservice", "axionpro");
 
-                entity.ToTable("TenderService", "AxionPro");
-
-                entity.Property(e => e.Description).HasMaxLength(1000);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.Remark).HasMaxLength(500);
-
-                entity.HasOne(d => d.Tender).WithMany(p => p.TenderServices)
-                    .HasForeignKey(d => d.TenderId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__TenderSer__Tende__43A1090D");
-
-                entity.HasOne(d => d.TenderServiceType).WithMany(p => p.TenderServices)
-                    .HasForeignKey(d => d.TenderServiceTypeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__TenderSer__Tende__44952D46");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(1000)
+                    .HasColumnName("description");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(500)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Tenderid).HasColumnName("tenderid");
+                entity.Property(e => e.Tenderservicetypeid).HasColumnName("tenderservicetypeid");
             });
 
-            modelBuilder.Entity<TenderServiceHistory>(entity =>
+            modelBuilder.Entity<Tenderservicehistory>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__TenderSe__3214EC07F4765A9B");
+                entity
+                    .HasNoKey()
+                    .ToTable("tenderservicehistory", "axionpro");
 
-                entity.ToTable("TenderServiceHistory", "AxionPro");
-
+                entity.Property(e => e.Id).HasColumnName("id");
                 entity.Property(e => e.Remark)
                     .HasMaxLength(255)
-                    .IsUnicode(false);
+                    .HasColumnName("remark");
                 entity.Property(e => e.Status)
                     .HasMaxLength(100)
-                    .IsUnicode(false);
+                    .HasColumnName("status");
+                entity.Property(e => e.Tenderserviceid).HasColumnName("tenderserviceid");
             });
 
-            modelBuilder.Entity<TenderServiceProvider>(entity =>
+            modelBuilder.Entity<Tenderserviceprovider>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__TenderSe__3214EC0765F55078");
+                entity
+                    .HasNoKey()
+                    .ToTable("tenderserviceprovider", "axionpro");
 
-                entity.ToTable("TenderServiceProvider", "AxionPro");
-
-                entity.Property(e => e.ContractAmount).HasColumnType("decimal(18, 2)");
-                entity.Property(e => e.Description).HasMaxLength(1000);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsInHouse).HasDefaultValue(false);
-                entity.Property(e => e.IsPrimaryProvider).HasDefaultValue(true);
-                entity.Property(e => e.Remark).HasMaxLength(500);
-
-                entity.HasOne(d => d.Status).WithMany(p => p.TenderServiceProviders)
-                    .HasForeignKey(d => d.StatusId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__TenderSer__Statu__4589517F");
-
-                entity.HasOne(d => d.TenderServiceSpecification).WithMany(p => p.TenderServiceProviders)
-                    .HasForeignKey(d => d.TenderServiceSpecificationId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_TenderServiceProvider_TenderServiceSpecification");
-
-                entity.HasOne(d => d.TenderServiceSpecificationNavigation).WithMany(p => p.TenderServiceProviders)
-                    .HasForeignKey(d => d.TenderServiceSpecificationId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__TenderSer__Tende__467D75B8");
+                entity.Property(e => e.Contractamount)
+                    .HasPrecision(18, 2)
+                    .HasColumnName("contractamount");
+                entity.Property(e => e.Contractenddate).HasColumnName("contractenddate");
+                entity.Property(e => e.Contractstartdate).HasColumnName("contractstartdate");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(1000)
+                    .HasColumnName("description");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Isinhouse).HasColumnName("isinhouse");
+                entity.Property(e => e.Isprimaryprovider).HasColumnName("isprimaryprovider");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(500)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Serviceproviderid).HasColumnName("serviceproviderid");
+                entity.Property(e => e.Statusid).HasColumnName("statusid");
+                entity.Property(e => e.Tenderservicespecificationid).HasColumnName("tenderservicespecificationid");
             });
 
-            modelBuilder.Entity<TenderServiceSpecification>(entity =>
+            modelBuilder.Entity<Tenderservicespecification>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__TenderSe__3214EC07FBF10311");
+                entity
+                    .HasNoKey()
+                    .ToTable("tenderservicespecification", "axionpro");
 
-                entity.ToTable("TenderServiceSpecification", "AxionPro");
-
-                entity.Property(e => e.EstimatedBudget).HasColumnType("decimal(18, 2)");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.ProductPlatform).HasMaxLength(255);
-                entity.Property(e => e.ProductSpecification).HasMaxLength(1000);
-                entity.Property(e => e.SpecificationName).HasMaxLength(255);
-                entity.Property(e => e.SpecificationType).HasMaxLength(50);
-
-                entity.HasOne(d => d.TenderService).WithMany(p => p.TenderServiceSpecifications)
-                    .HasForeignKey(d => d.TenderServiceId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_TenderServiceSpecification_TenderService");
+                entity.Property(e => e.Estimatedbudget)
+                    .HasPrecision(18, 2)
+                    .HasColumnName("estimatedbudget");
+                entity.Property(e => e.Experiencerequired).HasColumnName("experiencerequired");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Noticeperiodconsidered).HasColumnName("noticeperiodconsidered");
+                entity.Property(e => e.Productplatform)
+                    .HasMaxLength(255)
+                    .HasColumnName("productplatform");
+                entity.Property(e => e.Productspecification)
+                    .HasMaxLength(1000)
+                    .HasColumnName("productspecification");
+                entity.Property(e => e.Quantity).HasColumnName("quantity");
+                entity.Property(e => e.Specificationname)
+                    .HasMaxLength(255)
+                    .HasColumnName("specificationname");
+                entity.Property(e => e.Specificationtype)
+                    .HasMaxLength(50)
+                    .HasColumnName("specificationtype");
+                entity.Property(e => e.Tenderserviceid).HasColumnName("tenderserviceid");
             });
 
-            modelBuilder.Entity<TenderServiceType>(entity =>
+            modelBuilder.Entity<Tenderservicetype>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__TenderSe__3214EC072E505507");
+                entity
+                    .HasNoKey()
+                    .ToTable("tenderservicetype", "axionpro");
 
-                entity.ToTable("TenderServiceType", "AxionPro");
-
-                entity.Property(e => e.Description).HasMaxLength(1000);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.ServiceName).HasMaxLength(255);
+                entity.Property(e => e.Description)
+                    .HasMaxLength(1000)
+                    .HasColumnName("description");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Parentserviceid).HasColumnName("parentserviceid");
+                entity.Property(e => e.Servicename)
+                    .HasMaxLength(255)
+                    .HasColumnName("servicename");
             });
 
-            modelBuilder.Entity<TenderStatus>(entity =>
+            modelBuilder.Entity<Tenderstatus>(entity =>
             {
-                entity.ToTable("TenderStatus", "AxionPro");
+                entity
+                    .HasNoKey()
+                    .ToTable("tenderstatus", "axionpro");
 
                 entity.Property(e => e.Description)
                     .HasMaxLength(255)
-                    .IsUnicode(false);
+                    .HasColumnName("description");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
                 entity.Property(e => e.Remark)
                     .HasMaxLength(255)
-                    .IsUnicode(false);
-                entity.Property(e => e.StatusName)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Statusname)
                     .HasMaxLength(100)
-                    .IsUnicode(false);
+                    .HasColumnName("statusname");
             });
 
-            modelBuilder.Entity<TicketClassification>(entity =>
+            modelBuilder.Entity<Ticketclassification>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__TicketCl__3214EC07BA509F8F");
+                entity
+                    .HasNoKey()
+                    .ToTable("ticketclassification", "axionpro");
 
-                entity.ToTable("TicketClassification", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.ClassificationName).HasMaxLength(100);
-                entity.Property(e => e.Description).HasMaxLength(255);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.SoftDeletedTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Tenant).WithMany(p => p.TicketClassifications)
-                    .HasForeignKey(d => d.TenantId)
-                    .HasConstraintName("FK_TicketClassification_Tenant");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Classificationname)
+                    .HasMaxLength(100)
+                    .HasColumnName("classificationname");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(255)
+                    .HasColumnName("description");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Softdeletedtime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("softdeletedtime");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
-            modelBuilder.Entity<TicketHeader>(entity =>
+            modelBuilder.Entity<Ticketheader>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__TicketHe__3214EC07EADE3F1B");
+                entity
+                    .HasNoKey()
+                    .ToTable("ticketheader", "axionpro");
 
-                entity.ToTable("TicketHeader", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.Description).HasMaxLength(255);
-                entity.Property(e => e.HeaderName).HasMaxLength(150);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.SoftDeletedTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Tenant).WithMany(p => p.TicketHeaders)
-                    .HasForeignKey(d => d.TenantId)
-                    .HasConstraintName("FK_TicketHeader_TenantId");
-
-                entity.HasOne(d => d.TicketClassification).WithMany(p => p.TicketHeaders)
-                    .HasForeignKey(d => d.TicketClassificationId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_TicketHeaderType_TicketClassification");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(255)
+                    .HasColumnName("description");
+                entity.Property(e => e.Headername)
+                    .HasMaxLength(150)
+                    .HasColumnName("headername");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Isassetrelated).HasColumnName("isassetrelated");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Softdeletedtime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("softdeletedtime");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Ticketclassificationid).HasColumnName("ticketclassificationid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
-            modelBuilder.Entity<TicketType>(entity =>
+            modelBuilder.Entity<Tickettype>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__TicketTy__3214EC07554DC568");
+                entity
+                    .HasNoKey()
+                    .ToTable("tickettype", "axionpro");
 
-                entity.ToTable("TicketType", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.Description).HasMaxLength(500);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsSoftDeleted).HasDefaultValue(true);
-                entity.Property(e => e.SoftDeletedTime).HasColumnType("datetime");
-                entity.Property(e => e.TicketTypeName).HasMaxLength(100);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.ResponsibleRole).WithMany(p => p.TicketTypes)
-                    .HasForeignKey(d => d.ResponsibleRoleId)
-                    .HasConstraintName("FK_TicketType_ResponsibleRole");
-
-                entity.HasOne(d => d.Tenant).WithMany(p => p.TicketTypes)
-                    .HasForeignKey(d => d.TenantId)
-                    .HasConstraintName("FK_TicketType_Tenant");
-
-                entity.HasOne(d => d.TicketHeader).WithMany(p => p.TicketTypes)
-                    .HasForeignKey(d => d.TicketHeaderId)
-                    .HasConstraintName("FK_TicketType_Header");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(500)
+                    .HasColumnName("description");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Responsibleroleid).HasColumnName("responsibleroleid");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Softdeletedtime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("softdeletedtime");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Ticketheaderid).HasColumnName("ticketheaderid");
+                entity.Property(e => e.Tickettypename)
+                    .HasMaxLength(100)
+                    .HasColumnName("tickettypename");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
-            modelBuilder.Entity<TravelAllowancePolicyByDesignation>(entity =>
+            modelBuilder.Entity<Travelallowancepolicybydesignation>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__TravelAl__3214EC072DD6C86A");
+                entity
+                    .HasNoKey()
+                    .ToTable("travelallowancepolicybydesignation", "axionpro");
 
-                entity.ToTable("TravelAllowancePolicyByDesignation", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.AdvanceAllowed).HasDefaultValue(false);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsMetro).HasDefaultValue(false);
-                entity.Property(e => e.IsSoftDelete).HasDefaultValue(false);
-                entity.Property(e => e.MaxAdvanceAmount)
-                    .HasDefaultValue(0.00m)
-                    .HasColumnType("decimal(10, 2)");
-                entity.Property(e => e.MetroBonus)
-                    .HasDefaultValue(0.00m)
-                    .HasColumnType("decimal(10, 2)");
-                entity.Property(e => e.ReimbursementPerKm)
-                    .HasColumnType("decimal(10, 2)")
-                    .HasColumnName("ReimbursementPerKM");
-                entity.Property(e => e.RequiredDocuments).HasColumnType("text");
-                entity.Property(e => e.SoftDeleteDateTime).HasColumnType("datetime");
-                entity.Property(e => e.TravelClass)
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Advanceallowed).HasColumnName("advanceallowed");
+                entity.Property(e => e.Designationid).HasColumnName("designationid");
+                entity.Property(e => e.Employeetypeid).HasColumnName("employeetypeid");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Ismetro).HasColumnName("ismetro");
+                entity.Property(e => e.Issoftdelete).HasColumnName("issoftdelete");
+                entity.Property(e => e.Maxadvanceamount)
+                    .HasPrecision(10, 2)
+                    .HasColumnName("maxadvanceamount");
+                entity.Property(e => e.Maxtraveldistance).HasColumnName("maxtraveldistance");
+                entity.Property(e => e.Metrobonus)
+                    .HasPrecision(10, 2)
+                    .HasColumnName("metrobonus");
+                entity.Property(e => e.Mintraveldistance).HasColumnName("mintraveldistance");
+                entity.Property(e => e.Policytypeid).HasColumnName("policytypeid");
+                entity.Property(e => e.Reimbursementperkm)
+                    .HasPrecision(10, 2)
+                    .HasColumnName("reimbursementperkm");
+                entity.Property(e => e.Requireddocuments).HasColumnName("requireddocuments");
+                entity.Property(e => e.Softdeletedatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("softdeletedatetime");
+                entity.Property(e => e.Travelclass)
                     .HasMaxLength(50)
-                    .IsUnicode(false);
-
-                entity.HasOne(d => d.Designation).WithMany(p => p.TravelAllowancePolicyByDesignations)
-                    .HasForeignKey(d => d.DesignationId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__TravelAll__Desig__4959E263");
-
-                entity.HasOne(d => d.EmployeeType).WithMany(p => p.TravelAllowancePolicyByDesignations)
-                    .HasForeignKey(d => d.EmployeeTypeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__TravelAll__Emplo__4A4E069C");
-
-                entity.HasOne(d => d.PolicyType).WithMany(p => p.TravelAllowancePolicyByDesignations)
-                    .HasForeignKey(d => d.PolicyTypeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__TravelAll__Polic__4B422AD5");
+                    .HasColumnName("travelclass");
+                entity.Property(e => e.Travelmodeid).HasColumnName("travelmodeid");
             });
 
-            modelBuilder.Entity<TravelMode>(entity =>
+            modelBuilder.Entity<Travelmode>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__TravelMo__3214EC075A97AC69");
+                entity
+                    .HasNoKey()
+                    .ToTable("travelmode", "axionpro");
 
-                entity.ToTable("TravelMode", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.Description).HasMaxLength(500);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.TravelModeName).HasMaxLength(255);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(500)
+                    .HasColumnName("description");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Travelmodename)
+                    .HasMaxLength(255)
+                    .HasColumnName("travelmodename");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
-            modelBuilder.Entity<UserAttendanceSetting>(entity =>
+            modelBuilder.Entity<Userattendancesetting>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__UserAtte__3214EC0750CE7646");
+                entity
+                    .HasNoKey()
+                    .ToTable("userattendancesetting", "axionpro");
 
-                entity.ToTable("UserAttendanceSetting", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.GeofenceLatitude).HasColumnType("decimal(10, 8)");
-                entity.Property(e => e.GeofenceLongitude).HasColumnType("decimal(10, 8)");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsAllowed).HasDefaultValue(true);
-                entity.Property(e => e.Remark).HasMaxLength(255);
-                entity.Property(e => e.ReportingTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.AttendanceDeviceType).WithMany(p => p.UserAttendanceSettings)
-                    .HasForeignKey(d => d.AttendanceDeviceTypeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_UserAttendanceSetting_AttendanceDeviceType");
-
-                entity.HasOne(d => d.Employee).WithMany(p => p.UserAttendanceSettings)
-                    .HasForeignKey(d => d.EmployeeId)
-                    .HasConstraintName("FK_UserAttendanceSetting_Employee");
-
-                entity.HasOne(d => d.WorkstationType).WithMany(p => p.UserAttendanceSettings)
-                    .HasForeignKey(d => d.WorkstationTypeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_UserAttendanceSetting_WorkstationType");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Attendancedevicetypeid).HasColumnName("attendancedevicetypeid");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Geofencelatitude)
+                    .HasPrecision(10, 8)
+                    .HasColumnName("geofencelatitude");
+                entity.Property(e => e.Geofencelongitude)
+                    .HasPrecision(10, 8)
+                    .HasColumnName("geofencelongitude");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Isallowed).HasColumnName("isallowed");
+                entity.Property(e => e.Isgeofenceenabled).HasColumnName("isgeofenceenabled");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(255)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Reportingtime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("reportingtime");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+                entity.Property(e => e.Workstationtypeid).HasColumnName("workstationtypeid");
             });
 
-            modelBuilder.Entity<UserRole>(entity =>
+            modelBuilder.Entity<Userrole>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__UserRole__3214EC07C9E25EB9");
+                entity
+                    .HasNoKey()
+                    .ToTable("userrole", "axionpro");
 
-                entity.ToTable("UserRole", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.ApprovalStatus)
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Approvalrequired).HasColumnName("approvalrequired");
+                entity.Property(e => e.Approvalstatus)
                     .HasMaxLength(20)
-                    .IsFixedLength();
-                entity.Property(e => e.AssignedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
-                entity.Property(e => e.Remark).HasMaxLength(255);
-                entity.Property(e => e.RemovedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Employee).WithMany(p => p.UserRoles)
-                    .HasForeignKey(d => d.EmployeeId)
-                    .HasConstraintName("FK_Role_Employee");
-
-                entity.HasOne(d => d.Role).WithMany(p => p.UserRoles)
-                    .HasForeignKey(d => d.RoleId)
-                    .HasConstraintName("FK_UserRole_Role");
+                    .HasColumnName("approvalstatus");
+                entity.Property(e => e.Assignedbyid).HasColumnName("assignedbyid");
+                entity.Property(e => e.Assigneddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("assigneddatetime");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Employeeid).HasColumnName("employeeid");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Isprimaryrole).HasColumnName("isprimaryrole");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(255)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Removeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("removeddatetime");
+                entity.Property(e => e.Roleid).HasColumnName("roleid");
+                entity.Property(e => e.Rolestartdate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("rolestartdate");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
 
-            modelBuilder.Entity<WorkflowStage>(entity =>
+            modelBuilder.Entity<Workdocumenttype>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Workflow__3214EC07428E99CC");
+                entity
+                    .HasNoKey()
+                    .ToTable("workdocumenttype", "axionpro");
 
-                entity.ToTable("WorkflowStage", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.ColorKey).HasMaxLength(50);
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.Description).HasMaxLength(500);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.StageName).HasMaxLength(100);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.Documenttypename)
+                    .HasMaxLength(100)
+                    .HasColumnName("documenttypename");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
             });
 
-            modelBuilder.Entity<WorkflowStep>(entity =>
+            modelBuilder.Entity<Workflowstage>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Workflow__3214EC07E62FF378");
+                entity
+                    .HasNoKey()
+                    .ToTable("workflowstage", "axionpro");
 
-                entity.ToTable("WorkflowStep", "AxionPro");
-
-                entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsMandatory).HasDefaultValue(true);
-                entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
-                entity.Property(e => e.Remark).HasMaxLength(250);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Colorkey)
+                    .HasMaxLength(50)
+                    .HasColumnName("colorkey");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Description)
+                    .HasMaxLength(500)
+                    .HasColumnName("description");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Stagename)
+                    .HasMaxLength(100)
+                    .HasColumnName("stagename");
+                entity.Property(e => e.Stageorder).HasColumnName("stageorder");
+                entity.Property(e => e.Tenantid).HasColumnName("tenantid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
             });
-            modelBuilder.Entity<RoleModuleOperationResponseDTO>().HasNoKey();
-            modelBuilder.Entity<GetEmployeeCodePatternResponseDTO>().HasNoKey();
 
+            modelBuilder.Entity<Workflowstep>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("workflowstep", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Approvallevel).HasColumnName("approvallevel");
+                entity.Property(e => e.Approvalworkflowid).HasColumnName("approvalworkflowid");
+                entity.Property(e => e.Approverreferenceid).HasColumnName("approverreferenceid");
+                entity.Property(e => e.Approvertype).HasColumnName("approvertype");
+                entity.Property(e => e.Deleteddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("deleteddatetime");
+                entity.Property(e => e.Escalateafterdays).HasColumnName("escalateafterdays");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Ismandatory).HasColumnName("ismandatory");
+                entity.Property(e => e.Issoftdeleted).HasColumnName("issoftdeleted");
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(250)
+                    .HasColumnName("remark");
+                entity.Property(e => e.Softdeletedbyid).HasColumnName("softdeletedbyid");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+            });
+
+            modelBuilder.Entity<Workstationtype>(entity =>
+            {
+                entity
+                    .HasNoKey()
+                    .ToTable("workstationtype", "axionpro");
+
+                entity.Property(e => e.Addedbyid).HasColumnName("addedbyid");
+                entity.Property(e => e.Addeddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("addeddatetime");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Isactive).HasColumnName("isactive");
+                entity.Property(e => e.Updatedbyid).HasColumnName("updatedbyid");
+                entity.Property(e => e.Updateddatetime)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("updateddatetime");
+                entity.Property(e => e.Workstation)
+                    .HasMaxLength(20)
+                    .HasColumnName("workstation");
+            });
+
+            OnModelCreatingPartial(modelBuilder);
         }
 
-        public async Task<int> SaveChangesAsync()
-        {
-            return await base.SaveChangesAsync();
-        }
+        partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
     }
-
 
 
 }

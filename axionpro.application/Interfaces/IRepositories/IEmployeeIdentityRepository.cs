@@ -4,7 +4,7 @@ using axionpro.application.DTOS.Employee.Type;
 
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.DTOS.StoreProcedures;
-using axionpro.domain.Entity;
+
 using MediatR;
 using System.Collections.Generic;
 

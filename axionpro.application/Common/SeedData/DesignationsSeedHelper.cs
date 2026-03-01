@@ -1,5 +1,5 @@
 ﻿using axionpro.application.Constants;
-using axionpro.domain.Entity;
+
 using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Serilog.Core;

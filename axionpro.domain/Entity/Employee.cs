@@ -1,144 +1,85 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 
-namespace axionpro.domain.Entity;
 
 
 public partial class Employee
 {
     public long Id { get; set; }
 
-    public long? TenantId { get; set; }
+    public long? Tenantid { get; set; }
 
-    public int? EmployeeDocumentId { get; set; }
+    public int? Employeedocumentid { get; set; }
 
-    public string? EmployementCode { get; set; }
+    public string? Employementcode { get; set; }
 
-    public string? LastName { get; set; }
+    public string? Lastname { get; set; }
 
-    public string? MiddleName { get; set; }
+    public string? Middlename { get; set; }
 
-    public int? GenderId { get; set; }
+    public int? Genderid { get; set; }
 
-    public string? FirstName { get; set; }
+    public string? Firstname { get; set; }
 
-    public DateTime? DateOfBirth { get; set; }
+    public DateTime? Dateofbirth { get; set; }
 
-    public DateTime? DateOfOnBoarding { get; set; }
+    public DateTime? Dateofonboarding { get; set; }
 
-    public DateTime? DateOfExit { get; set; }
+    public DateTime? Dateofexit { get; set; }
 
-    public int? DesignationId { get; set; }
+    public int? Designationid { get; set; }
 
-    public int? EmployeeTypeId { get; set; }
+    public int? Employeetypeid { get; set; }
 
-    public int? DepartmentId { get; set; }
+    public int? Departmentid { get; set; }
 
-    public string? OfficialEmail { get; set; }
+    public string? Officialemail { get; set; }
 
-    public bool HasPermanent { get; set; }
+    public bool Haspermanent { get; set; }
 
-    public bool IsActive { get; set; }
+    public bool Isactive { get; set; }
 
-    public int? FunctionalId { get; set; }
+    public int? Functionalid { get; set; }
 
-    public int? ReferalId { get; set; }
+    public int? Referalid { get; set; }
 
     public string? Remark { get; set; }
 
-    public bool? IsEditAllowed { get; set; }
+    public bool? Iseditallowed { get; set; }
 
-    public bool? IsInfoVerified { get; set; }
+    public bool? Isinfoverified { get; set; }
 
-    public long AddedById { get; set; }
+    public long Addedbyid { get; set; }
 
-    public DateTime AddedDateTime { get; set; }
+    public DateTime Addeddatetime { get; set; }
 
-    public long? InfoVerifiedById { get; set; }
+    public long? Infoverifiedbyid { get; set; }
 
-    public long? UpdatedById { get; set; }
+    public long? Updatedbyid { get; set; }
 
-    public DateTime? UpdatedDateTime { get; set; }
+    public DateTime? Updateddatetime { get; set; }
 
-    public long? SoftDeletedById { get; set; }
+    public long? Softdeletedbyid { get; set; }
 
-    public DateTime? DeletedDateTime { get; set; }
+    public DateTime? Deleteddatetime { get; set; }
 
-    public bool? IsSoftDeleted { get; set; }
+    public bool? Issoftdeleted { get; set; }
 
-    public DateTime? InfoVerifiedDateTime { get; set; }
+    public DateTime? Infoverifieddatetime { get; set; }
 
     public string? Description { get; set; }
 
-    public int CountryId { get; set; }
+    public int Countryid { get; set; }
 
-    public string? EmergencyContactNumber { get; set; }
+    public string? Emergencycontactnumber { get; set; }
 
     public int? Relation { get; set; }
 
-    public string? BloodGroup { get; set; }
+    public string? Bloodgroup { get; set; }
 
-    public string? MobileNumber { get; set; }
+    public string? Mobilenumber { get; set; }
 
-    public bool? IsMarried { get; set; }
+    public bool? Ismarried { get; set; }
 
-    public string? EmergencyContactPerson { get; set; }
-
-    public virtual ICollection<AssetAssignment> AssetAssignments { get; set; } = new List<AssetAssignment>();
-
-    public virtual ICollection<AssetHistory> AssetHistoryEmployees { get; set; } = new List<AssetHistory>();
-
-    public virtual ICollection<AssetHistory> AssetHistoryScrapApprovedByNavigations { get; set; } = new List<AssetHistory>();
-
-    public virtual ICollection<AttendanceHistory> AttendanceHistories { get; set; } = new List<AttendanceHistory>();
-
-    public virtual Country Country { get; set; } = null!;
-
-    public virtual Designation? Designation { get; set; }
-
-    public virtual ICollection<EmployeeBankDetail> EmployeeBankDetails { get; set; } = new List<EmployeeBankDetail>();
-
-    public virtual ICollection<EmployeeCategorySkill> EmployeeCategorySkills { get; set; } = new List<EmployeeCategorySkill>();
-
-    public virtual ICollection<EmployeeContact> EmployeeContacts { get; set; } = new List<EmployeeContact>();
-
-    public virtual ICollection<EmployeeDailyAttendance> EmployeeDailyAttendances { get; set; } = new List<EmployeeDailyAttendance>();
-
-    public virtual ICollection<EmployeeDependent> EmployeeDependents { get; set; } = new List<EmployeeDependent>();
-
-    public virtual ICollection<EmployeeExperienceDetail> EmployeeExperienceDetails { get; set; } = new List<EmployeeExperienceDetail>();
-
-    public virtual ICollection<EmployeeExperiencePayslipUpload> EmployeeExperiencePayslipUploads { get; set; } = new List<EmployeeExperiencePayslipUpload>();
-
-    public virtual ICollection<EmployeeIdentity> EmployeeIdentities { get; set; } = new List<EmployeeIdentity>();
-
-    public virtual ICollection<EmployeeImage> EmployeeImages { get; set; } = new List<EmployeeImage>();
-
-    public virtual ICollection<EmployeeInsuranceMapping> EmployeeInsuranceMappings { get; set; } = new List<EmployeeInsuranceMapping>();
-
-    public virtual ICollection<EmployeeLeavePolicyMapping> EmployeeLeavePolicyMappings { get; set; } = new List<EmployeeLeavePolicyMapping>();
-
-    public virtual ICollection<EmployeeManagerMapping> EmployeeManagerMappingEmployees { get; set; } = new List<EmployeeManagerMapping>();
-
-    public virtual ICollection<EmployeeManagerMapping> EmployeeManagerMappingManagers { get; set; } = new List<EmployeeManagerMapping>();
-
-    public virtual ICollection<EmployeePersonalDetail> EmployeePersonalDetails { get; set; } = new List<EmployeePersonalDetail>();
-
-    public virtual EmployeeType? EmployeeType { get; set; }
-
-    public virtual ICollection<EmployeesChangedTypeHistory> EmployeesChangedTypeHistories { get; set; } = new List<EmployeesChangedTypeHistory>();
-
-    public virtual Gender? Gender { get; set; }
-
-    public virtual ICollection<LeaveRequest> LeaveRequests { get; set; } = new List<LeaveRequest>();
-
-    public virtual ICollection<LoginCredential> LoginCredentials { get; set; } = new List<LoginCredential>();
-
-    public virtual Tenant? Tenant { get; set; }
-
-    public virtual ICollection<UserAttendanceSetting> UserAttendanceSettings { get; set; } = new List<UserAttendanceSetting>();
-
-    public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+    public string? Emergencycontactperson { get; set; }
 }
-

@@ -5,7 +5,7 @@ using axionpro.application.DTOS.Token;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;

@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using axionpro.domain.Entity; // ← jahan ForgotPasswordOtp entity rakhi hai
+ // ← jahan ForgotPasswordOtp entity rakhi hai
 
 namespace axionpro.application.Interfaces.IRepositories
 {

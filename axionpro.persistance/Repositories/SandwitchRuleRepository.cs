@@ -5,7 +5,7 @@ using axionpro.application.DTOs.SandwitchRule.DayCombination;
 using axionpro.application.Features.ReportTypeCmd.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -21,14 +21,14 @@ namespace axionpro.persistance.Repositories
     public class SandwitchRuleRepository : ISandwitchRuleRepository
     {
         private readonly IMapper _mapper;
-        private readonly WorkforceDbContext _context;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+        private readonly WorkforcedbContext _context;
+        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
         private readonly ILogger<SandwitchRuleRepository> _logger;
 
         public SandwitchRuleRepository(
             IMapper mapper,
-            WorkforceDbContext context,
-            IDbContextFactory<WorkforceDbContext> contextFactory,
+            WorkforcedbContext context,
+            IDbContextFactory<WorkforcedbContext> contextFactory,
             ILogger<SandwitchRuleRepository> logger)
         {
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));

@@ -2,7 +2,7 @@
 
 using axionpro.application.DTOS.TicketDTO.Header;
 using axionpro.application.DTOS.TicketDTO.TicketType;
-using axionpro.domain.Entity;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;

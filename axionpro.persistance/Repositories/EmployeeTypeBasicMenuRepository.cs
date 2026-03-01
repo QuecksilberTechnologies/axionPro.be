@@ -21,11 +21,11 @@ namespace axionpro.persistance.Repositories
 {
     public class EmployeeTypeBasicMenuRepository : IEmployeeTypeBasicMenuRepository
     {
-        private readonly WorkforceDbContext? _context;
+        private readonly WorkforcedbContext? _context;
         private readonly ILogger? _logger;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
         private readonly IMapper _mapper;
-        public EmployeeTypeBasicMenuRepository(WorkforceDbContext? context, ILogger<EmployeeTypeBasicMenuRepository>? logger, IMapper mapper, IDbContextFactory<WorkforceDbContext> contextFactory)
+        public EmployeeTypeBasicMenuRepository(WorkforcedbContext? context, ILogger<EmployeeTypeBasicMenuRepository>? logger, IMapper mapper, IDbContextFactory<WorkforcedbContext> contextFactory)
         {
             _context = context;
             _logger = logger;

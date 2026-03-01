@@ -1,69 +1,61 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class InsurancePolicy
+
+public partial class Insurancepolicy
 {
     public int Id { get; set; }
 
-    public long TenantId { get; set; }
+    public long Tenantid { get; set; }
 
-    public string InsurancePolicyName { get; set; } = null!;
+    public string? Insurancepolicyname { get; set; }
 
-    public string InsurancePolicyNumber { get; set; } = null!;
+    public string? Insurancepolicynumber { get; set; }
 
-    public string? ProviderName { get; set; }
+    public string? Providername { get; set; }
 
-    public DateTime? StartDate { get; set; }
-    public int PolicyTypeId { get; set; }   // FK
+    public DateTime? Startdate { get; set; }
 
+    public DateTime? Enddate { get; set; }
 
-    public DateTime? EndDate { get; set; }
+    public string? Agentname { get; set; }
 
-    public string? AgentName { get; set; }
+    public string? Agentcontactnumber { get; set; }
 
-    public string? AgentContactNumber { get; set; }
+    public string? Agentofficenumber { get; set; }
 
-    public string? AgentOfficeNumber { get; set; }
-
-    // 🌍 Coverage Rules (NEW – UAE Ready)
-    public bool EmployeeAllowed { get; set; }
-    public int MaxSpouseAllowed { get; set; }
-    public int MaxChildAllowed { get; set; }
-    public bool ParentsAllowed { get; set; }
-    public bool InLawsAllowed { get; set; }
-
-    public int? CountryId { get; set; }
-
-    // 🔘 Status
-    public bool IsActive { get; set; }
+    public bool Isactive { get; set; }
 
     public string? Remark { get; set; }
 
     public string? Description { get; set; }
 
-    // 🔹 Audit
-    public long? AddedById { get; set; }
+    public long? Addedbyid { get; set; }
 
-    public DateTime? AddedDateTime { get; set; }
+    public DateTime? Addeddatetime { get; set; }
 
-    public long? UpdatedById { get; set; }
+    public long? Updatedbyid { get; set; }
 
-    public DateTime? UpdatedDateTime { get; set; }
+    public DateTime? Updateddatetime { get; set; }
 
-    public bool IsSoftDeleted { get; set; }
+    public bool Issoftdeleted { get; set; }
 
-    public long? SoftDeletedById { get; set; }
+    public long? Softdeletedbyid { get; set; }
 
-    public DateTime? DeletedDateTime { get; set; }
+    public DateTime? Deleteddatetime { get; set; }
 
-    // 🔗 Navigation (optional but clean)
-    public virtual Country? Country { get; set; }
-    public virtual PolicyType PolicyType { get; set; } = null!;
-    public virtual ICollection<PolicyTypeInsuranceMapping> PolicyTypeInsuranceMappings { get; set; } = new List<PolicyTypeInsuranceMapping>();
-    public virtual ICollection<InsurancePolicyDocument> InsurancePolicyDocuments { get; set; } = new List<InsurancePolicyDocument>();
-    public virtual ICollection<EmployeeInsuranceMapping> EmployeeInsuranceMappings { get; set; } = new List<EmployeeInsuranceMapping>();
+    public bool Employeeallowed { get; set; }
 
+    public int Maxspouseallowed { get; set; }
 
+    public int Maxchildallowed { get; set; }
+
+    public int? Countryid { get; set; }
+
+    public bool Parentsallowed { get; set; }
+
+    public bool Inlawsallowed { get; set; }
+
+    public int? Policytypeid { get; set; }
 }

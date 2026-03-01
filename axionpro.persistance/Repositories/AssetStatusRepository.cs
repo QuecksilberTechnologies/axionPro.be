@@ -2,7 +2,7 @@
 using axionpro.application.Constants;
 using axionpro.application.DTOS.AssetDTO.status;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -19,16 +19,16 @@ namespace axionpro.persistance.Repositories
     /// </summary>
     public class AssetStatusRepository : IAssetStatusRepository
     {
-        private readonly WorkforceDbContext _context;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+        private readonly WorkforcedbContext _context;
+        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
         private readonly IMapper _mapper;
         private readonly ILogger<AssetStatusRepository> _logger;
 
         public AssetStatusRepository(
-            WorkforceDbContext context,
+            WorkforcedbContext context,
             ILogger<AssetStatusRepository> logger,
             IMapper mapper,
-            IDbContextFactory<WorkforceDbContext> contextFactory)
+            IDbContextFactory<WorkforcedbContext> contextFactory)
         {
             _context = context;
             _logger = logger;

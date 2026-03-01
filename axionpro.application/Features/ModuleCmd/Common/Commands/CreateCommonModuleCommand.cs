@@ -2,7 +2,7 @@
 using axionpro.application.DTOs.Module.NewFolder;
 using axionpro.application.DTOS.Module.CommonModule;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using MediatR;
 using System;
 using System.Collections.Generic;

@@ -8,7 +8,7 @@ using axionpro.application.DTOS.RoleModulePermission;
 using axionpro.application.DTOS.StoreProcedures;
 using axionpro.application.DTOS.StoreProcedures.DashboardSummeries;
 using axionpro.application.DTOS.Tenant;
-using axionpro.domain.Entity;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;

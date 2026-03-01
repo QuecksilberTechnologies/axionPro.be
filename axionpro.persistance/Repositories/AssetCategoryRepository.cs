@@ -2,7 +2,7 @@
 using axionpro.application.Constants;
 using axionpro.application.DTOS.AssetDTO.category;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -12,16 +12,16 @@ namespace axionpro.persistance.Repositories
 {
     public class AssetCategoryRepository : IAssetCategoryRepository
     {
-        private readonly WorkforceDbContext _context;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+        private readonly WorkforcedbContext _context;
+        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
         private readonly IMapper _mapper;
         private readonly ILogger<AssetCategoryRepository> _logger;
 
         public AssetCategoryRepository(
-            WorkforceDbContext context,
+            WorkforcedbContext context,
             ILogger<AssetCategoryRepository> logger,
             IMapper mapper,
-            IDbContextFactory<WorkforceDbContext> contextFactory)
+            IDbContextFactory<WorkforcedbContext> contextFactory)
         {
             _context = context;
             _logger = logger;
@@ -29,14 +29,14 @@ namespace axionpro.persistance.Repositories
             _contextFactory = contextFactory;
         }
 
-        public async Task<bool> IsAssetCategoryDuplicate(AssetCategory asset)
+        public async Task<bool> IsAssetCategoryDuplicate(Assetcategory asset)
         {
             try
             {
                 await using var context = await _contextFactory.CreateDbContextAsync();
 
-                return await context.AssetCategories.AnyAsync(a =>
-                    (a.CategoryName == asset.CategoryName));
+                return await context.Assetcategories.AnyAsync(a =>
+                    (a.Categoryname == asset.Categoryname));
             }
             catch (Exception ex)
             {
@@ -69,8 +69,8 @@ namespace axionpro.persistance.Repositories
                 }
 
                 // ✅ 2️⃣ Build Query with Filters
-                IQueryable<AssetCategory> query = _context.AssetCategories
-                    .Where(x => x.TenantId == dto.Prop.TenantId && x.IsSoftDeleted != true);
+                IQueryable<Assetcategory> query = _context.Assetcategories
+                    .Where(x => x.Tenantid == dto.Prop.TenantId && x.Issoftdeleted != true);
 
                 // 🔹 Filter by Id (if provided)
                 if (dto.Id >  0)
@@ -81,7 +81,7 @@ namespace axionpro.persistance.Repositories
                 // 🔹 Filter by Active status (true/false/null)
                 if (dto.IsActive.HasValue)
                 {
-                    query = query.Where(x => x.IsActive == dto.IsActive.Value);
+                    query = query.Where(x => x.Isactive == dto.IsActive.Value);
                 }
 
                 // ✅ 3️⃣ Execute Query
@@ -123,11 +123,11 @@ namespace axionpro.persistance.Repositories
                     Dto.Prop.TenantId, Dto.CategoryName);
 
                 // ✅ 2️⃣ Duplicate check
-                var existingCategory = await _context.AssetCategories
+                var existingCategory = await _context.Assetcategories
                     .FirstOrDefaultAsync(ac =>
-                        ac.TenantId == Dto.Prop.TenantId &&
-                        ac.CategoryName.ToLower() == Dto.CategoryName.ToLower() &&
-                        ac.IsSoftDeleted == false);
+                        ac.Tenantid == Dto.Prop.TenantId &&
+                        ac.Categoryname.ToLower() == Dto.CategoryName.ToLower() &&
+                        ac.Issoftdeleted == false);
 
                 if (existingCategory != null)
                 {
@@ -140,20 +140,20 @@ namespace axionpro.persistance.Repositories
                 }
 
                 // ✅ 3️⃣ Map DTO → Entity
-                var newCategory = new AssetCategory
+                var newCategory = new Assetcategory
                 {
-                    TenantId = Dto.Prop.TenantId,
-                    CategoryName = Dto.CategoryName.Trim(),
+                    Tenantid = Dto.Prop.TenantId,
+                    Categoryname = Dto.CategoryName.Trim(),
                     Remark = Dto.Remark?.Trim(),
                    // IsActive = Dto.IsActive,
-                    IsActive =true,
-                    IsSoftDeleted = false,
-                    AddedById = Dto.Prop.EmployeeId,
-                    AddedDateTime = DateTime.UtcNow
+                    Isactive =true,
+                    Issoftdeleted = false,
+                    Addedbyid = Dto.Prop.EmployeeId,
+                    Addeddatetime = DateTime.UtcNow
                 };
 
                 // ✅ 4️⃣ Save record
-                await _context.AssetCategories.AddAsync(newCategory);
+                await _context.Assetcategories.AddAsync(newCategory);
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation(
@@ -197,10 +197,10 @@ namespace axionpro.persistance.Repositories
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
 
-            return await context.AssetCategories.AnyAsync(x =>
-                x.TenantId == tenantId &&
-                x.CategoryName.ToLower() == categoryName.ToLower() &&
-                x.IsSoftDeleted == false &&
+            return await context.Assetcategories.AnyAsync(x =>
+                x.Tenantid == tenantId &&
+                x.Categoryname.ToLower() == categoryName.ToLower() &&
+                x.Issoftdeleted == false &&
                 (!excludeId.HasValue || x.Id != excludeId.Value));
         }
 
@@ -209,19 +209,19 @@ namespace axionpro.persistance.Repositories
         {
       
 
-            var entity = await _context.AssetCategories.FirstOrDefaultAsync(x =>
+            var entity = await _context.Assetcategories.FirstOrDefaultAsync(x =>
                 x.Id == dto.Id &&
-                x.TenantId == dto.Prop.TenantId &&
-                x.IsSoftDeleted == false);
+                x.Tenantid == dto.Prop.TenantId &&
+                x.Issoftdeleted == false);
 
             if (entity == null)
                 return false;
 
-            entity.CategoryName = dto.CategoryName.Trim();
+            entity.Categoryname = dto.CategoryName.Trim();
             entity.Remark = dto.Remark?.Trim();
-            entity.IsActive = dto.IsActive ?? entity.IsActive;
-            entity.UpdatedById = dto.Prop.UserEmployeeId;
-            entity.UpdatedDateTime = DateTime.UtcNow;
+            entity.Isactive = dto.IsActive ?? entity.Isactive;
+            entity.Updatedbyid = dto.Prop.UserEmployeeId;
+            entity.Updateddatetime = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
             return true;
@@ -232,18 +232,18 @@ namespace axionpro.persistance.Repositories
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
 
-            var entity = await context.AssetCategories.FirstOrDefaultAsync(x =>
+            var entity = await context.Assetcategories.FirstOrDefaultAsync(x =>
                 x.Id == dto.Id &&
-                x.TenantId == dto.Prop.TenantId &&
-                x.IsSoftDeleted == false);
+                x.Tenantid == dto.Prop.TenantId &&
+                x.Issoftdeleted == false);
 
             if (entity == null)
                 return false;
 
-            entity.IsSoftDeleted = true;
-            entity.IsActive = false;
-            entity.SoftDeletedById = dto.Prop.EmployeeId;
-            entity.SoftDeletedDateTime = DateTime.UtcNow;
+            entity.Issoftdeleted = true;
+            entity.Isactive = false;
+            entity.Softdeletedbyid = dto.Prop.EmployeeId;
+            entity.Softdeleteddatetime = DateTime.UtcNow;
 
             await context.SaveChangesAsync();
             return true;
@@ -251,16 +251,16 @@ namespace axionpro.persistance.Repositories
 
 
 
-        public async Task<List<AssetCategory>> GetAllAssetCategoryAsync(long tenantId, bool isActive)
+        public async Task<List<Assetcategory>> GetAllAssetCategoryAsync(long tenantId, bool isActive)
         {
             try
             {
                 _logger.LogInformation("Fetching Asset Categories for TenantId: {TenantId}, IsActive: {IsActive}", tenantId, isActive);
 
-                var categories = await _context.AssetCategories
-                    .Where(ac => ac.TenantId == tenantId
-                              && ac.IsActive == isActive
-                              && (ac.IsSoftDeleted == ConstantValues.IsByDefaultFalse || ac.IsSoftDeleted == null))
+                var categories = await _context.Assetcategories
+                    .Where(ac => ac.Tenantid == tenantId
+                              && ac.Isactive == isActive
+                              && (ac.Issoftdeleted == ConstantValues.IsByDefaultFalse || ac.Issoftdeleted == null))
                     .OrderByDescending(ac => ac.Id) // Latest sabse pehle
                     .ToListAsync();
 

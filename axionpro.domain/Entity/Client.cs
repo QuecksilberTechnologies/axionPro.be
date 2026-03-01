@@ -1,27 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
+
 
 public partial class Client
 {
     public int Id { get; set; }
 
-    public int ClientTypeId { get; set; }
+    public int Clienttypeid { get; set; }
 
-    public string ClientName { get; set; } = null!;
+    public string? Clientname { get; set; }
 
-    public string? ContactPerson { get; set; }
+    public string? Contactperson { get; set; }
 
     public string? Email { get; set; }
 
-    public string? PhoneNumber { get; set; }
+    public string? Phonenumber { get; set; }
 
     public string? Address { get; set; }
 
-    public bool IsActive { get; set; }
+    public bool Isactive { get; set; }
 
     public string? Remark { get; set; }
-
-    public virtual ClientType ClientType { get; set; } = null!;
 }

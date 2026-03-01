@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 
-using axionpro.domain.Entity;
+
 using axionpro.application.DTOs.Module.NewFolder;
 using axionpro.application.DTOS.Module.CommonModule;
 namespace axionpro.application.Features.ModuleCmd.Common.Commands

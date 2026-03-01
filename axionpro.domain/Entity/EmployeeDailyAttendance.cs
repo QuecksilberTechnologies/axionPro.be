@@ -1,43 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class EmployeeDailyAttendance
+
+public partial class Employeedailyattendance
 {
     public int Id { get; set; }
 
-    public long EmployeeId { get; set; }
+    public long Employeeid { get; set; }
 
-    public DateTime AttendanceDate { get; set; }
+    public DateTime Attendancedate { get; set; }
 
-    public int AttendanceDeviceTypeId { get; set; }
+    public int Attendancedevicetypeid { get; set; }
 
-    public int WorkstationTypeId { get; set; }
+    public int Workstationtypeid { get; set; }
 
     public double? Latitude { get; set; }
 
     public double? Longitude { get; set; }
 
-    public bool? IsLate { get; set; }
+    public bool? Islate { get; set; }
 
-    public byte[]? ClickedImage { get; set; }
+    public byte[]? Clickedimage { get; set; }
 
-    public bool IsActive { get; set; }
+    public bool Isactive { get; set; }
 
-    public bool IsMarked { get; set; }
+    public bool Ismarked { get; set; }
 
-    public long AddedById { get; set; }
+    public long Addedbyid { get; set; }
 
-    public DateTime? AddedDateTime { get; set; }
+    public DateTime? Addeddatetime { get; set; }
 
-    public long? UpdatedById { get; set; }
+    public long? Updatedbyid { get; set; }
 
-    public DateTime? UpdatedDateTime { get; set; }
-
-    public virtual AttendanceDeviceType AttendanceDeviceType { get; set; } = null!;
-
-    public virtual Employee Employee { get; set; } = null!;
-
-    public virtual WorkstationType WorkstationType { get; set; } = null!;
+    public DateTime? Updateddatetime { get; set; }
 }

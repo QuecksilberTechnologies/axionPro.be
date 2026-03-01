@@ -20,13 +20,13 @@ namespace axionpro.persistance.Repositories
 {
     public class StoreProcedureRepository : IStoreProcedureRepository
     {
-        private readonly WorkforceDbContext _context;
+        private readonly WorkforcedbContext _context;
         private readonly ILogger<StoreProcedureRepository> _logger;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
         private readonly IMapper _mapper;
         
 
-        public StoreProcedureRepository(WorkforceDbContext context, ILogger<StoreProcedureRepository> logger, IMapper mapper, IDbContextFactory<WorkforceDbContext> contextFactory)
+        public StoreProcedureRepository(WorkforcedbContext context, ILogger<StoreProcedureRepository> logger, IMapper mapper, IDbContextFactory<WorkforcedbContext> contextFactory)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

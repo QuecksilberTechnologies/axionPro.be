@@ -1,61 +1,53 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class LeaveRequest
+
+public partial class Leaverequest
 {
     public long Id { get; set; }
 
-    public long TenantId { get; set; }
+    public long Tenantid { get; set; }
 
-    public long EmployeeId { get; set; }
+    public long Employeeid { get; set; }
 
-    public int LeaveTypeId { get; set; }
+    public int Leavetypeid { get; set; }
 
-    public DateOnly FromDate { get; set; }
+    public DateOnly Fromdate { get; set; }
 
-    public DateOnly ToDate { get; set; }
+    public DateOnly Todate { get; set; }
 
-    public bool? IsHalfDay { get; set; }
+    public bool? Ishalfday { get; set; }
 
-    public DateOnly? HalfDayDate { get; set; }
+    public DateOnly? Halfdaydate { get; set; }
 
-    public bool? IsFirstHalf { get; set; }
+    public bool? Isfirsthalf { get; set; }
 
-    public decimal TotalLeaveDays { get; set; }
+    public decimal? Totalleavedays { get; set; }
 
     public string? Reason { get; set; }
 
     public int Status { get; set; }
 
-    public long? ApprovedById { get; set; }
+    public long? Approvedbyid { get; set; }
 
-    public DateTime? ApprovedDate { get; set; }
+    public DateTime? Approveddate { get; set; }
 
-    public long LeavePolicyId { get; set; }
+    public long Leavepolicyid { get; set; }
 
-    public bool? IsSandwich { get; set; }
+    public bool? Issandwich { get; set; }
 
-    public long CreatedById { get; set; }
+    public long Createdbyid { get; set; }
 
-    public DateTime? CreatedDateTime { get; set; }
+    public DateTime? Createddatetime { get; set; }
 
-    public DateTime? CancellationDate { get; set; }
+    public DateTime? Cancellationdate { get; set; }
 
-    public long? UpdatedById { get; set; }
+    public long? Updatedbyid { get; set; }
 
-    public DateTime? UpdatedDateTime { get; set; }
+    public DateTime? Updateddatetime { get; set; }
 
     public string? Remark { get; set; }
 
-    public bool? IsDocumentAttached { get; set; }
-
-    public virtual Employee Employee { get; set; } = null!;
-
-    public virtual PolicyLeaveTypeMapping LeavePolicy { get; set; } = null!;
-
-    public virtual LeaveType LeaveType { get; set; } = null!;
-
-    public virtual Tenant Tenant { get; set; } = null!;
+    public bool? Isdocumentattached { get; set; }
 }

@@ -4,7 +4,7 @@ using axionpro.application.DTOs.Verify;
 using axionpro.application.Features.TransportCmd.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using MediatR;
 using System;
 using System.Collections.Generic;

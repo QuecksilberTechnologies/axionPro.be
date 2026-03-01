@@ -3,7 +3,6 @@ using axionpro.application.DTOs.EmployeeType;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.EmployeeType;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -19,12 +18,12 @@ namespace axionpro.persistance.Repositories
     {
        
         private ILogger _logger;
-        private WorkforceDbContext _context;
+        private WorkforcedbContext _context;
         private ILogger<EmployeeTypeRepository> logger;
 
       
 
-        public EmployeeTypeRepository(WorkforceDbContext context, ILogger<EmployeeTypeRepository> logger)
+        public EmployeeTypeRepository(WorkforcedbContext context, ILogger<EmployeeTypeRepository> logger)
         {
             this._context = context;
             this.logger = logger;
@@ -35,12 +34,12 @@ namespace axionpro.persistance.Repositories
             try
             {
                 // 🔹 Base query
-                var query = _context.EmployeeTypes.AsQueryable();
+                var query = _context.Employeetypes.AsQueryable();
 
                 // 🔹 Filter: Active + Not SoftDeleted
                 query = query.Where(et =>
-                    et.IsActive == true
-                    && (et.IsSoftDeleted == null || et.IsSoftDeleted == false)
+                    et.Isactive == true
+                    && (et.Issoftdeleted == null || et.Issoftdeleted == false)
                 );
 
                 // 🔹 Data map into ResponseDTO
@@ -48,7 +47,7 @@ namespace axionpro.persistance.Repositories
                     .Select(et => new GetEmployeeTypeResponseOptionDTO
                     {
                         Id = et.Id,
-                        TypeName = et.TypeName ?? string.Empty,
+                        TypeName = et.Typename ?? string.Empty,
                        
                     })
                     .ToListAsync();
@@ -64,7 +63,7 @@ namespace axionpro.persistance.Repositories
         }
 
         // Method to fetch employee type by ID
-        public async Task<EmployeeType> GetEmployeeTypeByIdAsync(int? employeeTypeId)
+        public async Task<Employeetype> GetEmployeeTypeByIdAsync(int? employeeTypeId)
         {
             try
             {
@@ -92,7 +91,7 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        Task<EmployeeType> IEmployeeTypeRepository.GetEmployeeTypeByIdAsync(int? employeeTypeId)
+        Task<Employeetype> IEmployeeTypeRepository.GetEmployeeTypeByIdAsync(int? employeeTypeId)
         {
             throw new NotImplementedException();
         }

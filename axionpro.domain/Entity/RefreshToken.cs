@@ -1,29 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class RefreshToken
+
+public partial class Refreshtoken
 {
     public long Id { get; set; }
 
-    public string LoginId { get; set; } = null!;
+    public string? Loginid { get; set; }
 
-    public string Token { get; set; } = null!;
+    public string? Token { get; set; }
 
-    public DateTime ExpiryDate { get; set; }
+    public DateTime Expirydate { get; set; }
 
-    public bool IsRevoked { get; set; }
+    public bool? Isrevoked { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
+    public DateTime? Createdat { get; set; }
 
-    public string? CreatedByIp { get; set; }
+    public string? Createdbyip { get; set; }
 
-    public DateTime? RevokedAt { get; set; }
+    public DateTime? Revokedat { get; set; }
 
-    public string? RevokedByIp { get; set; }
+    public string? Revokedbyip { get; set; }
 
-    public string? ReplacedByToken { get; set; }
-
-    public virtual LoginCredential Login { get; set; } = null!;
+    public string? Replacedbytoken { get; set; }
 }

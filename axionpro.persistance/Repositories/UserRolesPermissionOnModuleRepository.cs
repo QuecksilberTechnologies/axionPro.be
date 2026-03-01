@@ -1,7 +1,7 @@
 ﻿using axionpro.application.DTOs.BasicAndRoleBaseMenu;
 using axionpro.application.DTOs.Role;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.Extensions.Logging;
 
@@ -10,10 +10,10 @@ namespace axionpro.persistance.Repositories
 
     public class UserRolesPermissionOnModuleRepository : IUserRolesPermissionOnModuleRepository
     {
-        private readonly WorkforceDbContext? _context;
+        private readonly WorkforcedbContext? _context;
         private readonly ILogger<UserRolesPermissionOnModuleRepository>? _logger;
 
-        public UserRolesPermissionOnModuleRepository(WorkforceDbContext? context, ILogger<UserRolesPermissionOnModuleRepository>? logger)
+        public UserRolesPermissionOnModuleRepository(WorkforcedbContext? context, ILogger<UserRolesPermissionOnModuleRepository>? logger)
         {
             _context = context;
             _logger = logger;

@@ -2,7 +2,7 @@
 using axionpro.application.DTOS.Department;
 using axionpro.application.DTOS.Gender;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;

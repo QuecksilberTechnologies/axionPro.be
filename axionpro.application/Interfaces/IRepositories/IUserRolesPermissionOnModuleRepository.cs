@@ -1,7 +1,7 @@
 ﻿using axionpro.application.DTOs.BasicAndRoleBaseMenu;
 using axionpro.application.DTOs.Role;
 using axionpro.application.DTOs.RoleModulePermission;
-using axionpro.domain.Entity;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;

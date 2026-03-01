@@ -3,7 +3,7 @@ using axionpro.application.DTOS.TicketDTO.Classification;
 using axionpro.application.Features.TicketFeatures.Classification.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System;

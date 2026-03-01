@@ -5,7 +5,7 @@ using axionpro.application.Interfaces.IFileStorage;
 
 using axionpro.application.Interfaces.IQRService;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -18,17 +18,17 @@ namespace axionpro.persistance.Repositories
 
     public class AssetRepository : IAssetRepository
     {
-        private WorkforceDbContext _context;
+        private WorkforcedbContext _context;
 
         private ILogger<AssetRepository> _logger;
         private readonly IQRService _qrService;
         private readonly IFileStorageService _fileStorageService;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
         private readonly IMapper _mapper;
 
 
-        public AssetRepository(WorkforceDbContext context, ILogger<AssetRepository> logger, IQRService qrService, IFileStorageService fileStorageService,
-            IMapper mapper, IDbContextFactory<WorkforceDbContext> contextFactory)
+        public AssetRepository(WorkforcedbContext context, ILogger<AssetRepository> logger, IQRService qrService, IFileStorageService fileStorageService,
+            IMapper mapper, IDbContextFactory<WorkforcedbContext> contextFactory)
         {
             _context = context;
             _logger = logger;

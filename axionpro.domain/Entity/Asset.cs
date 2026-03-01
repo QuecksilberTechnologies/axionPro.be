@@ -1,49 +1,59 @@
-﻿using axionpro.domain.Common;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class Asset : BaseEntity
+
+public partial class Asset
 {
     public long Id { get; set; }
 
-    public long TenantId { get; set; } 
+    public long Tenantid { get; set; }
 
-    public string? AssetName { get; set; }
+    public string? Assetname { get; set; }
 
-    public int? AssetTypeId { get; set; }
+    public int Assettypeid { get; set; }
 
     public string? Company { get; set; }
-    public string? ModelNo { get; set; }
-    public string? Size { get; set; }
-    public string? Weight { get; set; }
+
     public string? Color { get; set; }
 
-    public bool? IsRepairable { get; set; }
+    public bool? Isrepairable { get; set; }
 
     public decimal? Price { get; set; }
 
-    public string? SerialNumber { get; set; }
+    public string? Serialnumber { get; set; }
 
     public string? Barcode { get; set; }
 
     public string? Qrcode { get; set; }
 
-    public DateTime? PurchaseDate { get; set; }
+    public DateTime? Purchasedate { get; set; }
 
-    public DateTime? WarrantyExpiryDate { get; set; }
+    public DateTime? Warrantyexpirydate { get; set; }
 
-    public int? AssetStatusId { get; set; }
+    public string? Size { get; set; }
 
-    public bool? IsAssigned { get; set; }
-    public virtual ICollection<AssetImage> AssetImages { get; set; } = new List<AssetImage>();
+    public string? Modelno { get; set; }
 
-    public virtual ICollection<AssetAssignment> AssetAssignments { get; set; } = new List<AssetAssignment>();
+    public string? Weight { get; set; }
 
-    public virtual AssetStatus AssetStatus { get; set; } = null!;
+    public int Assetstatusid { get; set; }
 
-    public virtual AssetType AssetType { get; set; } = null!;
+    public bool? Isassigned { get; set; }
+
+    public bool? Isactive { get; set; }
+
+    public bool Issoftdeleted { get; set; }
+
+    public long? Softdeletedbyid { get; set; }
+
+    public long Addedbyid { get; set; }
+
+    public DateTime? Addeddatetime { get; set; }
+
+    public long? Updatedbyid { get; set; }
+
+    public DateTime? Updateddatetime { get; set; }
+
+    public DateTime? Deleteddatetime { get; set; }
 }
-
- 

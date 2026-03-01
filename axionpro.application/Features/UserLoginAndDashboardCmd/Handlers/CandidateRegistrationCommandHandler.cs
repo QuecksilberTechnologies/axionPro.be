@@ -9,7 +9,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using axionpro.application.Features.UserLoginAndDashboardCmd.Commands;
-using axionpro.domain.Entity;
+
 using axionpro.application.DTOs.Registration;
 
 namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers

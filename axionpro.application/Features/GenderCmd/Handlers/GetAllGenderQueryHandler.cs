@@ -6,7 +6,7 @@ using axionpro.application.Features.LeaveCmd.Handlers;
 using axionpro.application.Features.LeaveCmd.Queries;
 using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System;

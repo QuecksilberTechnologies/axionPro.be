@@ -9,7 +9,7 @@ using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 
 using Microsoft.EntityFrameworkCore;
@@ -20,17 +20,17 @@ namespace axionpro.persistance.Repositories
 {
     public class DepartmentRepository : IDepartmentRepository
     {
-        private readonly WorkforceDbContext _context;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+        private readonly WorkforcedbContext _context;
+        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
         private readonly IMapper _mapper;
         private readonly ILogger<DepartmentRepository> _logger;
         private readonly IEncryptionService _encryptionService;
 
         public DepartmentRepository(
-            WorkforceDbContext context,
+            WorkforcedbContext context,
             ILogger<DepartmentRepository> logger,
             IMapper mapper,
-            IDbContextFactory<WorkforceDbContext> contextFactory, IEncryptionService encryptionService)
+            IDbContextFactory<WorkforcedbContext> contextFactory, IEncryptionService encryptionService)
         {
             _context = context;
             _logger = logger;

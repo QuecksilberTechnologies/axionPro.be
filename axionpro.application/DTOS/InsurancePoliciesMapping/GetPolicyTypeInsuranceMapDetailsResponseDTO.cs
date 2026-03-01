@@ -1,6 +1,6 @@
 ﻿using axionpro.application.DTOS.CompanyPolicyDocument;
 using axionpro.application.DTOS.Pagination;
-using axionpro.domain.Entity;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;

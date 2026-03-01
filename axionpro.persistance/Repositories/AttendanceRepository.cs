@@ -3,7 +3,7 @@ using axionpro.application.DTOs.Attendance;
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -17,9 +17,9 @@ namespace axionpro.persistance.Repositories
 {
     public class AttendanceRepository : IAttendanceRepository
     {
-        private readonly WorkforceDbContext? _context;
+        private readonly WorkforcedbContext? _context;
         private readonly ILogger? _logger;
-        public AttendanceRepository(WorkforceDbContext? context, ILogger<AttendanceRepository>? logger)
+        public AttendanceRepository(WorkforcedbContext? context, ILogger<AttendanceRepository>? logger)
         {
             _context = context;
             _logger = logger;

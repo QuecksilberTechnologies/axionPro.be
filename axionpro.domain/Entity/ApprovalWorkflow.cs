@@ -1,37 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class ApprovalWorkflow
+
+public partial class Approvalworkflow
 {
     public long Id { get; set; }
 
-    public long TenantId { get; set; }
+    public long Tenantid { get; set; }
 
-    public long ProjectChildModuleDetailId { get; set; }
+    public long Projectchildmoduledetailid { get; set; }
 
-    public string ActionName { get; set; } = null!;
+    public string? Actionname { get; set; }
 
-    public string WorkflowName { get; set; } = null!;
+    public string? Workflowname { get; set; }
 
-    public bool? IsSoftDeleted { get; set; }
+    public bool? Issoftdeleted { get; set; }
 
-    public bool? IsActive { get; set; }
+    public bool? Isactive { get; set; }
 
-    public bool? IsDeleted { get; set; }
+    public bool? Isdeleted { get; set; }
 
     public string? Remark { get; set; }
 
-    public long? AddedById { get; set; }
+    public long? Addedbyid { get; set; }
 
-    public DateTime? AddedDateTime { get; set; }
+    public DateTime? Addeddatetime { get; set; }
 
-    public long? UpdatedById { get; set; }
+    public long? Updatedbyid { get; set; }
 
-    public DateTime? UpdatedDateTime { get; set; }
+    public DateTime? Updateddatetime { get; set; }
 
-    public long? SoftDeletedById { get; set; }
+    public long? Softdeletedbyid { get; set; }
 
-    public DateTime? DeletedDateTime { get; set; }
+    public DateTime? Deleteddatetime { get; set; }
 }

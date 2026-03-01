@@ -1,7 +1,7 @@
 ﻿using axionpro.application.DTOs.PolicyType;
 using axionpro.application.DTOS.CompanyPolicyDocument;
 using axionpro.application.DTOS.Pagination;
-using axionpro.domain.Entity;
+
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,19 +10,19 @@ namespace axionpro.application.Interfaces.IRepositories
     public interface ICompanyPolicyDocumentRepository
     {
         // 🔹 CREATE
-          Task<GetCompanyPolicyDocumentResponseDTO> AddAsync(CompanyPolicyDocument entity);
+          Task<GetCompanyPolicyDocumentResponseDTO> AddAsync(Companypolicydocument entity);
 
         // 🔹 GET BY ID
-        Task<CompanyPolicyDocument?> GetByIdAsync( int id, long tenantId, bool isActive );
+        Task<Companypolicydocument?> GetByIdAsync( int id, long tenantId, bool isActive );
 
         // 🔹 BULK FETCH (PolicyType wise)
-        Task<List<CompanyPolicyDocument>>  GetByPolicyTypeIdsAsync(  List<int> policyTypeIds, long tenantId);
+        Task<List<Companypolicydocument>>  GetByPolicyTypeIdsAsync(  List<int> policyTypeIds, long tenantId);
 
         // 🔹 GET LIST (PolicyType wise / grid)
         Task<PagedResponseDTO<GetCompanyPolicyDocumentResponseDTO>> GetListAsync(GetCompanyPolicyDocumentRequestDTO request);
 
         // 🔹 UPDATE (metadata / replace file path etc.)
-        Task<bool> UpdateAsync(CompanyPolicyDocument entity);
+        Task<bool> UpdateAsync(Companypolicydocument entity);
 
         // 🔹 SOFT DELETE
 

@@ -3,7 +3,7 @@
 using axionpro.application.DTOS.AssetDTO.asset;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Pagination;
-using axionpro.domain.Entity;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;

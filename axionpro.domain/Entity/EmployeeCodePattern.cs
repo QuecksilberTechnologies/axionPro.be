@@ -1,37 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class EmployeeCodePattern
+
+public partial class Employeecodepattern
 {
     public int Id { get; set; }
 
-    public long TenantId { get; set; }
+    public long Tenantid { get; set; }
 
     public string? Prefix { get; set; }
 
-    public bool IncludeYear { get; set; }
+    public bool Includeyear { get; set; }
 
-    public bool IncludeMonth { get; set; }
+    public bool Includemonth { get; set; }
 
-    public bool IncludeDepartment { get; set; }
+    public bool Includedepartment { get; set; }
 
-    public string Separator { get; set; } = null!;
+    public string? Separator { get; set; }
 
-    public int RunningNumberLength { get; set; }
+    public int Runningnumberlength { get; set; }
 
-    public int LastUsedNumber { get; set; }
+    public int Lastusednumber { get; set; }
 
-    public bool IsActive { get; set; }
+    public bool Isactive { get; set; }
 
-    public long AddedById { get; set; }
+    public long Addedbyid { get; set; }
 
-    public DateTime AddedDateTime { get; set; }
+    public DateTime Addeddatetime { get; set; }
 
-    public long? UpdatedById { get; set; }
+    public long? Updatedbyid { get; set; }
 
-    public DateTime? UpdatedDateTime { get; set; }
-
-    public virtual Tenant Tenant { get; set; } = null!;
+    public DateTime? Updateddatetime { get; set; }
 }

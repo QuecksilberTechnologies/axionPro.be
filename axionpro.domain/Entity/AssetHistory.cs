@@ -1,59 +1,53 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class AssetHistory
+
+public partial class Assethistory
 {
     public int Id { get; set; }
 
-    public long? TenantId { get; set; }
+    public long? Tenantid { get; set; }
 
-    public int AssetId { get; set; }
+    public int Assetid { get; set; }
 
-    public long? EmployeeId { get; set; }
+    public long? Employeeid { get; set; }
 
-    public DateTime? AssignedDate { get; set; }
+    public DateTime? Assigneddate { get; set; }
 
-    public DateTime? ReturnedDate { get; set; }
+    public DateTime? Returneddate { get; set; }
 
-    public int AssignmentStatusId { get; set; }
+    public int Assignmentstatusid { get; set; }
 
-    public string AssetConditionAtAssign { get; set; } = null!;
+    public string? Assetconditionatassign { get; set; }
 
-    public string? AssetConditionAtReturn { get; set; }
+    public string? Assetconditionatreturn { get; set; }
 
-    public string IdentificationMethod { get; set; } = null!;
+    public string? Identificationmethod { get; set; }
 
-    public string IdentificationValue { get; set; } = null!;
+    public string? Identificationvalue { get; set; }
 
-    public bool? IsScrapped { get; set; }
+    public bool? Isscrapped { get; set; }
 
-    public string? ScrapReason { get; set; }
+    public string? Scrapreason { get; set; }
 
-    public long? ScrapApprovedBy { get; set; }
+    public long? Scrapapprovedby { get; set; }
 
-    public DateTime? ScrapDate { get; set; }
+    public DateTime? Scrapdate { get; set; }
 
     public string? Remarks { get; set; }
 
-    public bool IsSoftDeleted { get; set; }
+    public bool Issoftdeleted { get; set; }
 
-    public long AddedById { get; set; }
+    public long Addedbyid { get; set; }
 
-    public DateTime? AddedDateTime { get; set; }
+    public DateTime? Addeddatetime { get; set; }
 
-    public long? UpdateById { get; set; }
+    public long? Updatebyid { get; set; }
 
-    public DateTime? UpdatedDateTime { get; set; }
+    public DateTime? Updateddatetime { get; set; }
 
-    public long? SoftDeletedById { get; set; }
+    public long? Softdeletedbyid { get; set; }
 
-    public DateTime? DeletedDateTime { get; set; }
-
-    public virtual AssignmentStatus AssignmentStatus { get; set; } = null!;
-
-    public virtual Employee? Employee { get; set; }
-
-    public virtual Employee? ScrapApprovedByNavigation { get; set; }
+    public DateTime? Deleteddatetime { get; set; }
 }

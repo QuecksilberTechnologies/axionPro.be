@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
+ 
 
 public partial class License
 {
     public int Id { get; set; }
 
-    public DateTime? LicenseStartDate { get; set; }
+    public DateTime? Licensestartdate { get; set; }
 
-    public DateTime? LicenseEndDate { get; set; }
+    public DateTime? Licenseenddate { get; set; }
 
-    public bool? IsActive { get; set; }
+    public bool? Isactive { get; set; }
 }

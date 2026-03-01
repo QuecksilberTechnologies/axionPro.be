@@ -3,7 +3,7 @@ using axionpro.application.DTOS.EmployeeLeavePolicyMap;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -17,13 +17,13 @@ namespace axionpro.persistance.Repositories
 {
     public class EmployeeLeaveRepository :IEmployeeLeaveRepository
     {
-        private readonly WorkforceDbContext _context;
+        private readonly WorkforcedbContext _context;
         private readonly IMapper _mapper;
         private readonly ILogger<EmployeeLeaveRepository> _logger;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
         private readonly IPasswordService _passwordService;
         private readonly IEncryptionService _encryptionService;
-        public EmployeeLeaveRepository(WorkforceDbContext context, IMapper mapper, ILogger<EmployeeLeaveRepository> logger, IDbContextFactory<WorkforceDbContext> contextFactory,
+        public EmployeeLeaveRepository(WorkforcedbContext context, IMapper mapper, ILogger<EmployeeLeaveRepository> logger, IDbContextFactory<WorkforcedbContext> contextFactory,
             IPasswordService passwordService, IEncryptionService encryptionService)
         {
             this._context = context;

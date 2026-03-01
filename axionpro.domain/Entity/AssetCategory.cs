@@ -1,43 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace axionpro.domain.Entity
+
+
+public partial class Assetcategory
 {
-    public class AssetCategory
-    {
-        public long Id { get; set; }
+    public long Id { get; set; }
 
-        public long TenantId { get; set; }
+    public long Tenantid { get; set; }
 
-        public string CategoryName { get; set; } = null!;
+    public string? Categoryname { get; set; }
 
-        public string? Remark { get; set; }
+    public string? Remark { get; set; }
 
-        public bool IsActive { get; set; }
+    public bool Isactive { get; set; }
 
-        public bool? IsSoftDeleted { get; set; }
+    public bool Issoftdeleted { get; set; }
 
-        public long? AddedById { get; set; }
+    public long? Addedbyid { get; set; }
 
-        public DateTime AddedDateTime { get; set; }
+    public DateTime Addeddatetime { get; set; }
 
-        public long? UpdatedById { get; set; }
+    public long? Updatedbyid { get; set; }
 
-        public DateTime? UpdatedDateTime { get; set; }
+    public DateTime? Updateddatetime { get; set; }
 
-        public long? SoftDeletedById { get; set; }
+    public long? Softdeletedbyid { get; set; }
 
-        public DateTime? SoftDeletedDateTime { get; set; }
- 
-        public virtual ICollection<AssetType> AssetTypes { get; set; } = new List<AssetType>();
-
-
-        public virtual Tenant Tenant { get; set; } = null!;
-    }
-
-
-
+    public DateTime? Softdeleteddatetime { get; set; }
 }

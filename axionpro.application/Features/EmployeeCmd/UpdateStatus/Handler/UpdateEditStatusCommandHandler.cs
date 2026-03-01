@@ -19,7 +19,7 @@ using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;

@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using axionpro.application.DTOs.Tenant;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -10,16 +10,16 @@ namespace axionpro.persistance.Repositories
 {
     public class TenantModuleConfigurationRepository : ITenantModuleConfigurationRepository
     {
-        private readonly WorkforceDbContext _context;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+        private readonly WorkforcedbContext _context;
+        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
         private readonly IMapper _mapper;
         private readonly ILogger<TenantModuleConfigurationRepository> _logger;
 
         public TenantModuleConfigurationRepository(
-            WorkforceDbContext context,
+            WorkforcedbContext context,
             ILogger<TenantModuleConfigurationRepository> logger,
             IMapper mapper,
-            IDbContextFactory<WorkforceDbContext> contextFactory)
+            IDbContextFactory<WorkforcedbContext> contextFactory)
         {
             _context = context;
             this._logger = logger;

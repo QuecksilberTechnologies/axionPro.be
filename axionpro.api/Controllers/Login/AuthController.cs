@@ -7,7 +7,7 @@ using axionpro.application.Features.UserLoginAndDashboardCmd.Commands;
 using axionpro.application.Features.UserLoginAndDashboardCmd.Handlers;
 using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity.Data;

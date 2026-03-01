@@ -8,7 +8,7 @@ using axionpro.application.DTOS.Module.SubModule;
 using axionpro.application.Features.ModuleCmd.Parent.Commands;
 using axionpro.application.Features.ModuleCmd.SubModule.Commands;
 using axionpro.application.Features.OperationCmd.Queries;
-using axionpro.domain.Entity;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;

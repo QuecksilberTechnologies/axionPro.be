@@ -1,5 +1,5 @@
 ﻿using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -14,11 +14,11 @@ namespace axionpro.persistance.Repositories
     public class ClientRepository : IClientRepository
     {
         private ILogger _logger;
-        private WorkforceDbContext _context;
+        private WorkforcedbContext _context;
         private ILogger<ClientRepository> logger;
 
 
-        public ClientRepository(WorkforceDbContext context, ILogger<ClientRepository> logger)
+        public ClientRepository(WorkforcedbContext context, ILogger<ClientRepository> logger)
         {
             this._context = context;
             this._logger = logger;

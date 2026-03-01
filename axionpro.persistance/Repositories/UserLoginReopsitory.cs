@@ -3,7 +3,7 @@ using axionpro.application.Constants;
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -19,15 +19,15 @@ namespace axionpro.persistance.Repositories
 {
     public class UserLoginReopsitory : IUserLoginReopsitory
     {
-        private readonly WorkforceDbContext _context;
+        private readonly WorkforcedbContext _context;
         private readonly ILogger<UserLoginReopsitory> _logger;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
         private readonly IMapper _mapper;
         private readonly IPasswordService _passwordService;
         private readonly IConfiguration _configuration;
 
-        public UserLoginReopsitory(WorkforceDbContext context, ILogger<UserLoginReopsitory> logger, IMapper mapper,
-            IDbContextFactory<WorkforceDbContext> contextFactory, IPasswordService passwordService , IConfiguration configuration)
+        public UserLoginReopsitory(WorkforcedbContext context, ILogger<UserLoginReopsitory> logger, IMapper mapper,
+            IDbContextFactory<WorkforcedbContext> contextFactory, IPasswordService passwordService , IConfiguration configuration)
         {
             _context = context;
             _logger = logger;

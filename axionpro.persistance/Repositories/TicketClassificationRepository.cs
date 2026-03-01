@@ -2,7 +2,7 @@
  
 using axionpro.application.DTOS.TicketDTO.Classification;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -15,16 +15,16 @@ namespace axionpro.persistance.Repositories
 {
     public class TicketClassificationRepository : ITicketClassificationRepository
     {
-        private readonly WorkforceDbContext _context;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+        private readonly WorkforcedbContext _context;
+        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
         private readonly IMapper _mapper;
         private readonly ILogger<TicketClassificationRepository> _logger;
 
         public TicketClassificationRepository(
-            WorkforceDbContext context,
+            WorkforcedbContext context,
             ILogger<TicketClassificationRepository> logger,
             IMapper mapper,
-            IDbContextFactory<WorkforceDbContext> contextFactory)
+            IDbContextFactory<WorkforcedbContext> contextFactory)
         {
             _context = context;
             _logger = logger;

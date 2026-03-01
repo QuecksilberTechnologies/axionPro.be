@@ -2,7 +2,7 @@
 using axionpro.application.DTOs.Tenant;
 using axionpro.application.Interfaces.IRepositories;
 
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -11,13 +11,13 @@ namespace axionpro.persistance.Repositories
 {
     public class TenantSubscriptionRepository : ITenantSubscriptionRepository
     {
-        private readonly WorkforceDbContext _context;
+        private readonly WorkforcedbContext _context;
         private readonly ILogger<TenantSubscriptionRepository> _logger;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
         private readonly IMapper _mapper;
 
-        public TenantSubscriptionRepository(WorkforceDbContext context, ILogger<TenantSubscriptionRepository> logger, IMapper mapper,
-            IDbContextFactory<WorkforceDbContext> contextFactory)
+        public TenantSubscriptionRepository(WorkforcedbContext context, ILogger<TenantSubscriptionRepository> logger, IMapper mapper,
+            IDbContextFactory<WorkforcedbContext> contextFactory)
         {
             _context = context;
             _logger = logger;

@@ -4,7 +4,7 @@ using axionpro.application.DTOs.ModuleOperation;
 using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOS.RoleModulePermission;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -15,13 +15,13 @@ namespace axionpro.persistance.Repositories
     public class ModuleOperationMappingRepository : IModuleOperationMappingRepository
     {
 
-        private readonly WorkforceDbContext _context;
+        private readonly WorkforcedbContext _context;
         private readonly ILogger<ModuleOperationMappingRepository> _logger;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
         private readonly IMapper _mapper;
 
-        public ModuleOperationMappingRepository(WorkforceDbContext context, ILogger<ModuleOperationMappingRepository> logger, IMapper mapper,
-            IDbContextFactory<WorkforceDbContext> contextFactory)
+        public ModuleOperationMappingRepository(WorkforcedbContext context, ILogger<ModuleOperationMappingRepository> logger, IMapper mapper,
+            IDbContextFactory<WorkforcedbContext> contextFactory)
         {
             _context = context;
             _logger = logger;

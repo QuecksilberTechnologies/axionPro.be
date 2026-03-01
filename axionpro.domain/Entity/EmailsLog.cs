@@ -1,43 +1,43 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class EmailsLog
+
+public partial class Emailslog
 {
     public long Id { get; set; }
 
-    public long? EmailQueueId { get; set; }
+    public long? Emailqueueid { get; set; }
 
-    public int TemplateId { get; set; }
+    public int Templateid { get; set; }
 
-    public string ToEmail { get; set; } = null!;
+    public string? Toemail { get; set; }
 
-    public string? CcEmail { get; set; }
+    public string? Ccemail { get; set; }
 
-    public string? BccEmail { get; set; }
+    public string? Bccemail { get; set; }
 
-    public string Subject { get; set; } = null!;
+    public string? Subject { get; set; }
 
     public string Body { get; set; } = null!;
 
-    public string Status { get; set; } = null!;
+    public string? Status { get; set; }
 
-    public string? ErrorMessage { get; set; }
+    public string? Errormessage { get; set; }
 
-    public int RetryCount { get; set; }
+    public int Retrycount { get; set; }
 
-    public DateTime? SentDateTime { get; set; }
+    public DateTime? Sentdatetime { get; set; }
 
-    public DateTime CreatedDateTime { get; set; }
+    public DateTime Createddatetime { get; set; }
 
-    public int TenantId { get; set; }
+    public int Tenantid { get; set; }
 
-    public string? TriggeredBy { get; set; }
+    public string? Triggeredby { get; set; }
 
-    public string? AdditionalInfoJson { get; set; }
+    public string? Additionalinfojson { get; set; }
 
-    public long? AddedById { get; set; }
+    public long? Addedbyid { get; set; }
 
-    public string? AddedFromIp { get; set; }
+    public string? Addedfromip { get; set; }
 }

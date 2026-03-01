@@ -7,7 +7,7 @@ using axionpro.application.Features.UserLoginAndDashboardCmd.Commands;
 using axionpro.application.Features.UserLoginAndDashboardCmd.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Serilog;

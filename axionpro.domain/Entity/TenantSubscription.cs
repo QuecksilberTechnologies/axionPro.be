@@ -1,29 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class TenantSubscription
+
+public partial class Tenantsubscription
 {
     public long Id { get; set; }
 
-    public long TenantId { get; set; }
+    public long Tenantid { get; set; }
 
-    public int SubscriptionPlanId { get; set; }
+    public int Subscriptionplanid { get; set; }
 
-    public DateTime SubscriptionStartDate { get; set; }
+    public DateTime Subscriptionstartdate { get; set; }
 
-    public DateTime SubscriptionEndDate { get; set; }
+    public DateTime Subscriptionenddate { get; set; }
 
-    public bool IsActive { get; set; }
+    public bool Isactive { get; set; }
 
-    public bool IsTrial { get; set; }
+    public bool Istrial { get; set; }
 
-    public string? PaymentTxnId { get; set; }
+    public string? Paymenttxnid { get; set; }
 
-    public string? PaymentMode { get; set; }
-
-    public virtual SubscriptionPlan SubscriptionPlan { get; set; } = null!;
-
-    public virtual Tenant Tenant { get; set; } = null!;
+    public string? Paymentmode { get; set; }
 }

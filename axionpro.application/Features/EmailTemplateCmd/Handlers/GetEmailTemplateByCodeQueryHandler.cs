@@ -4,7 +4,7 @@ using axionpro.application.Features.EmailTemplateCmd.Queries;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IContext;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System;

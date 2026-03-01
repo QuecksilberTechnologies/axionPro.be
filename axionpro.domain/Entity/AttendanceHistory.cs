@@ -1,35 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class AttendanceHistory
+
+public partial class Attendancehistory
 {
     public long Id { get; set; }
 
-    public long EmployeeId { get; set; }
+    public long Employeeid { get; set; }
 
-    public DateOnly AttendanceDate { get; set; }
+    public DateOnly Attendancedate { get; set; }
 
-    public DateTime? InTime { get; set; }
+    public DateTime? Intime { get; set; }
 
-    public DateTime? OutTime { get; set; }
+    public DateTime? Outtime { get; set; }
 
-    public decimal? TotalWorkHours { get; set; }
+    public decimal? Totalworkhours { get; set; }
 
-    public decimal? TotalBreakHours { get; set; }
+    public decimal? Totalbreakhours { get; set; }
 
-    public string Status { get; set; } = null!;
+    public string? Status { get; set; }
 
     public string? Remarks { get; set; }
 
-    public long AddedById { get; set; }
+    public long Addedbyid { get; set; }
 
-    public DateTime? AddedDateTime { get; set; }
+    public DateTime? Addeddatetime { get; set; }
 
-    public long? UpdatedById { get; set; }
+    public long? Updatedbyid { get; set; }
 
-    public DateTime? UpdatedDateTime { get; set; }
-
-    public virtual Employee Employee { get; set; } = null!;
+    public DateTime? Updateddatetime { get; set; }
 }

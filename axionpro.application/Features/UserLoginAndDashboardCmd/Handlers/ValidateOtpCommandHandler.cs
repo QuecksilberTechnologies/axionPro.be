@@ -7,7 +7,7 @@ using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEmail;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System;

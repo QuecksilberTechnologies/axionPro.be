@@ -18,7 +18,7 @@ using axionpro.application.DTOS.StoreProcedures;
 using axionpro.application.Features.TenantConfigurationCmd.Configuration.EmployeeCodeCmd.Handlers;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
-using axionpro.domain.Entity;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Win32.SafeHandles;
 using System;

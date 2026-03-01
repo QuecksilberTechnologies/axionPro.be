@@ -4,7 +4,7 @@ using axionpro.application.Constants;
 using axionpro.application.DTOs.WorkflowStage;
 using axionpro.application.Interfaces.IRepositories;
  
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -20,18 +20,18 @@ namespace axionpro.persistance.Repositories
     public class WorkflowStageRepository : IWorkflowStagesRepository
     {
         #region Fields
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
-        private readonly WorkforceDbContext _context;
+        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
+        private readonly WorkforcedbContext _context;
         private readonly ILogger<WorkflowStageRepository> _logger;
         private readonly IMapper _mapper;
         #endregion
 
         #region Constructor
         public WorkflowStageRepository(
-            WorkforceDbContext context,
+            WorkforcedbContext context,
             ILogger<WorkflowStageRepository> logger,
             IMapper mapper,
-            IDbContextFactory<WorkforceDbContext> contextFactory)
+            IDbContextFactory<WorkforcedbContext> contextFactory)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

@@ -5,7 +5,7 @@ using axionpro.application.DTOS.Module.ManualModule;
 using axionpro.application.DTOS.Module.SubModule;
 using axionpro.application.Features.ModuleCmd.Parent.Handlers;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using MediatR;
 using System;
 using System.Collections.Generic;

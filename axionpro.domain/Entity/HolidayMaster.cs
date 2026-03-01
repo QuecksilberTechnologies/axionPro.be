@@ -1,39 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class HolidayMaster
+
+public partial class Holidaymaster
 {
     public long Id { get; set; }
 
-    public long? TenantId { get; set; }
+    public long? Tenantid { get; set; }
 
     public int Year { get; set; }
 
-    public DateOnly HolidayDate { get; set; }
+    public DateOnly Holidaydate { get; set; }
 
-    public string HolidayName { get; set; } = null!;
+    public string? Holidayname { get; set; }
 
     public string? Region { get; set; }
 
-    public bool IsRegionalHoliday { get; set; }
+    public bool Isregionalholiday { get; set; }
 
-    public bool IsWeekend { get; set; }
+    public bool Isweekend { get; set; }
 
-    public bool IsActive { get; set; }
+    public bool Isactive { get; set; }
 
-    public bool IsSoftDeleted { get; set; }
+    public bool Issoftdeleted { get; set; }
 
     public string? Remark { get; set; }
 
-    public long? AddedById { get; set; }
+    public long? Addedbyid { get; set; }
 
-    public DateTime AddedDateTime { get; set; }
+    public DateTime Addeddatetime { get; set; }
 
-    public long? UpdatedById { get; set; }
+    public long? Updatedbyid { get; set; }
 
-    public DateTime? UpdatedDateTime { get; set; }
+    public DateTime? Updateddatetime { get; set; }
 
-    public long? SoftDeletedById { get; set; }
+    public long? Softdeletedbyid { get; set; }
 }

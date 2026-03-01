@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.Interfaces.IContext
 {
-    public interface IWorkforceDbContext
+    public interface IWorkforcedbContext
     {
           
     }

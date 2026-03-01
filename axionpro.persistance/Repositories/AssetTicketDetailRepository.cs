@@ -4,7 +4,7 @@ using axionpro.application.DTOS.TicketDTO.AssetTicketMap;
 using axionpro.application.DTOS.TicketDTO.Header;
 using axionpro.application.DTOS.TicketDTO.TicketType;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -18,18 +18,18 @@ namespace axionpro.persistance.Repositories
     public class AssetTicketDetailRepository : IAssetTicketDetailRepository
     {
         #region Fields
-        private readonly WorkforceDbContext _context;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+        private readonly WorkforcedbContext _context;
+        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
         private readonly IMapper _mapper;
         private readonly ILogger<AssetTicketDetailRepository> _logger;
         #endregion
 
         #region Constructor
         public AssetTicketDetailRepository(
-            WorkforceDbContext context,
+            WorkforcedbContext context,
             ILogger<AssetTicketDetailRepository> logger,
             IMapper mapper,
-            IDbContextFactory<WorkforceDbContext> contextFactory)
+            IDbContextFactory<WorkforcedbContext> contextFactory)
         {
             _context = context;
             _logger = logger;

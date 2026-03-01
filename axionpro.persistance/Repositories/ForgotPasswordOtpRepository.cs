@@ -1,5 +1,5 @@
 ﻿using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -14,9 +14,9 @@ namespace axionpro.persistance.Repositories
 {
     class ForgotPasswordOtpRepository : IForgotPasswordOtpRepository
     {
-        private readonly WorkforceDbContext _context;         
+        private readonly WorkforcedbContext _context;         
         private ILogger<ForgotPasswordOtpRepository> _logger;
-        public ForgotPasswordOtpRepository(WorkforceDbContext context, ILogger<ForgotPasswordOtpRepository> logger)
+        public ForgotPasswordOtpRepository(WorkforcedbContext context, ILogger<ForgotPasswordOtpRepository> logger)
         {
             this._context = context;
             this._logger = logger;

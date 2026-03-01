@@ -1,68 +1,79 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class EmployeePersonalDetail
+
+public partial class Employeepersonaldetail
 {
     public long Id { get; set; }
 
-    public long EmployeeId { get; set; }
+    public long Employeeid { get; set; }
 
-    public string? AadhaarNumber { get; set; }
+    public string? Aadhaarnumber { get; set; }
 
-    public string? PanNumber { get; set; }
+    public string? Pannumber { get; set; }
 
-    public string? PassportNumber { get; set; }
+    public string? Passportnumber { get; set; }
 
-    public string? DrivingLicenseNumber { get; set; }
-    public string? EmergencyContactRelation { get; set; }
-    public bool HasEPFAccount { get; set; }
-    public string? UANNumber { get; set; }
-    public string? VoterId { get; set; }
-    public bool HasPanIdUploaded { get; set; }
-    public bool HasAadhaarIdUploaded { get; set; }
-    public bool HasPassportIdUploaded { get; set; }
-    public string? PanDocName { get; set; }
-    public string? PassportDocName { get; set; }
-    public string? AadhaarDocName { get; set; }
-    public string? PassportDocPath { get; set; }
-    public string? AadhaarDocPath { get; set; }
-    public string? PanDocPath { get; set; }
+    public string? Drivinglicensenumber { get; set; }
 
-    public string? BloodGroup { get; set; }
+    public string? Voterid { get; set; }
 
-    public required bool MaritalStatus { get; set; }
+    public string? Bloodgroup { get; set; }
 
-    public required string Nationality { get; set; }
+    public bool Maritalstatus { get; set; }
 
-    public string? EmergencyContactName { get; set; }
+    public string? Nationality { get; set; }
 
-    public string? EmergencyContactNumber { get; set; }
+    public string? Emergencycontactname { get; set; }
 
-    public bool IsActive { get; set; }
+    public string? Emergencycontactnumber { get; set; }
 
-    public bool IsEditAllowed { get; set; }
+    public bool Isactive { get; set; }
 
-    public bool? IsSoftDeleted { get; set; }
+    public bool? Iseditallowed { get; set; }
 
-    public long? AddedById { get; set; }
+    public bool? Issoftdeleted { get; set; }
 
-    public DateTime? AddedDateTime { get; set; }
+    public long? Addedbyid { get; set; }
 
-    public long? UpdatedById { get; set; }
+    public DateTime? Addeddatetime { get; set; }
 
-    public DateTime? UpdatedDateTime { get; set; }
+    public long? Updatedbyid { get; set; }
 
-    public long? SoftDeletedById { get; set; }
+    public DateTime? Updateddatetime { get; set; }
 
-    public DateTime? DeletedDateTime { get; set; }
+    public long? Softdeletedbyid { get; set; }
 
-    public long? InfoVerifiedById { get; set; }
+    public DateTime? Deleteddatetime { get; set; }
 
-    public DateTime? InfoVerifiedDateTime { get; set; }
+    public long? Infoverifiedbyid { get; set; }
 
-    public bool? IsInfoVerified { get; set; }
+    public DateTime? Infoverifieddatetime { get; set; }
 
-    public virtual Employee Employee { get; set; } = null!;
+    public bool? Isinfoverified { get; set; }
+
+    public bool? Haspaniduploaded { get; set; }
+
+    public bool? Hasaadhaariduploaded { get; set; }
+
+    public bool? Haspassportiduploaded { get; set; }
+
+    public string? Pandocname { get; set; }
+
+    public string? Passportdocname { get; set; }
+
+    public string? Aadhaardocname { get; set; }
+
+    public string? Pandocpath { get; set; }
+
+    public string? Passportdocpath { get; set; }
+
+    public string? Aadhaardocpath { get; set; }
+
+    public string? Emergencycontactrelation { get; set; }
+
+    public string? Uannumber { get; set; }
+
+    public bool? Hasepfaccount { get; set; }
 }

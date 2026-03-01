@@ -1,35 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class EmployeeInsuranceMapping
+
+public partial class Employeeinsurancemapping
 {
     public long Id { get; set; }
 
-    public long TenantId { get; set; }
+    public long Tenantid { get; set; }
 
-    public long EmployeeId { get; set; }
+    public long Employeeid { get; set; }
 
-    public int InsurancePolicyId { get; set; }
+    public int Insurancepolicyid { get; set; }
 
-    public DateOnly CoverageStartDate { get; set; }
+    public DateOnly Coveragestartdate { get; set; }
 
-    public DateOnly? CoverageEndDate { get; set; }
+    public DateOnly? Coverageenddate { get; set; }
 
-    public bool IsActive { get; set; }
+    public bool Isactive { get; set; }
 
-    public bool IsSoftDeleted { get; set; }
+    public bool Issoftdeleted { get; set; }
 
-    public long? AddedById { get; set; }
+    public long? Addedbyid { get; set; }
 
-    public DateTime AddedDateTime { get; set; }
+    public DateTime Addeddatetime { get; set; }
 
-    public long? UpdatedById { get; set; }
+    public long? Updatedbyid { get; set; }
 
-    public DateTime? UpdatedDateTime { get; set; }
-
-    public virtual Employee Employee { get; set; } = null!;
-
-    public virtual InsurancePolicy InsurancePolicy { get; set; } = null!;
+    public DateTime? Updateddatetime { get; set; }
 }

@@ -16,11 +16,11 @@ namespace axionpro.persistance.Repositories
     public class PermissionRepository : IPermissionRepository
     {
         private readonly ILogger<PermissionRepository> _logger;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
         private readonly ICacheService _cacheService;
 
         public PermissionRepository(
-            IDbContextFactory<WorkforceDbContext> contextFactory,
+            IDbContextFactory<WorkforcedbContext> contextFactory,
             ILogger<PermissionRepository> logger,
             ICacheService cacheService)
         {

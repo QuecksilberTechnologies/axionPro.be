@@ -1,51 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace axionpro.domain.Entity;
 
-public partial class MealAllowancePolicyByDesignation
+
+public partial class Mealallowancepolicybydesignation
 {
     public int Id { get; set; }
 
-    public int PolicyTypeId { get; set; }
+    public int Policytypeid { get; set; }
 
-    public int EmployeeTypeId { get; set; }
+    public int Employeetypeid { get; set; }
 
-    public int DesignationId { get; set; }
+    public int Designationid { get; set; }
 
-    public int? MinDaysRequired { get; set; }
+    public int? Mindaysrequired { get; set; }
 
-    public decimal? FixedFoodAllowance { get; set; }
+    public decimal? Fixedfoodallowance { get; set; }
 
-    public decimal? BreakfastAllowance { get; set; }
+    public decimal? Breakfastallowance { get; set; }
 
-    public decimal? LunchAllowance { get; set; }
+    public decimal? Lunchallowance { get; set; }
 
-    public decimal? DinnerAllowance { get; set; }
+    public decimal? Dinnerallowance { get; set; }
 
-    public bool? IsMetro { get; set; }
+    public bool? Ismetro { get; set; }
 
-    public decimal? MetroBonus { get; set; }
+    public decimal? Metrobonus { get; set; }
 
-    public string? RequiredDocuments { get; set; }
+    public string? Requireddocuments { get; set; }
 
-    public bool? IsActive { get; set; }
+    public bool? Isactive { get; set; }
 
-    public bool? IsSoftDelete { get; set; }
+    public bool? Issoftdelete { get; set; }
 
-    public DateTime? SoftDeleteDateTime { get; set; }
+    public DateTime? Softdeletedatetime { get; set; }
 
-    public int AddedById { get; set; }
+    public int Addedbyid { get; set; }
 
-    public DateTime? AddedDateTime { get; set; }
+    public DateTime? Addeddatetime { get; set; }
 
-    public int? UpdatedById { get; set; }
+    public int? Updatedbyid { get; set; }
 
-    public DateTime? UpdatedDateTime { get; set; }
-
-    public virtual Designation Designation { get; set; } = null!;
-
-    public virtual EmployeeType EmployeeType { get; set; } = null!;
-
-    public virtual PolicyType PolicyType { get; set; } = null!;
+    public DateTime? Updateddatetime { get; set; }
 }

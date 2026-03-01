@@ -1,6 +1,6 @@
 ﻿
 
-using axionpro.domain.Entity;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,8 +15,8 @@ namespace axionpro.application.Interfaces.IRepositories
                 
         #region AssetStatus         
         Task<List<GetStatusResponseDTO>> GetAllAsync(GetStatusRequestDTO? assetStatus);        
-        Task<AssetStatus> GetByIdAsync(int?  id);        
-        Task<GetStatusResponseDTO>AddAsync(AssetStatus? assetStatus);
+        Task<Assetstatus> GetByIdAsync(int?  id);        
+        Task<GetStatusResponseDTO>AddAsync(Assetstatus? assetStatus);
         Task<bool> UpdateAsync(UpdateStatusRequestDTO assetStatus);
       
         Task<bool>DeleteAsync(DeleteStatusReqestDTO assetStatus);

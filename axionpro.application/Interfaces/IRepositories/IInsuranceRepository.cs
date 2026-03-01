@@ -1,7 +1,7 @@
 ﻿using axionpro.application.DTOS.InsurancePolicy;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;

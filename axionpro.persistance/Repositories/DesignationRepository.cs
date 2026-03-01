@@ -5,7 +5,7 @@ using axionpro.application.DTOS.Designation;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -17,16 +17,16 @@ namespace axionpro.persistance.Repositories
   
     public   class DesignationRepository : IDesignationRepository
     {
-        private readonly WorkforceDbContext _context;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+        private readonly WorkforcedbContext _context;
+        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
         private readonly IMapper _mapper;
         private readonly ILogger<DesignationRepository> _logger;
 
         public DesignationRepository(
-            WorkforceDbContext context,
+            WorkforcedbContext context,
             ILogger<DesignationRepository> logger,
             IMapper mapper,
-            IDbContextFactory<WorkforceDbContext> contextFactory)
+            IDbContextFactory<WorkforcedbContext> contextFactory)
         {
             _context = context;
             this._logger = logger;
