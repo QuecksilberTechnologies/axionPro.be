@@ -24,7 +24,7 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    builder.WebHost.UseIISIntegration();
+    //builder.WebHost.UseIISIntegration();
 
     // ✅ Serilog integration
     builder.Host.UseSerilog();
@@ -111,7 +111,7 @@ try
 
         c.OperationFilter<AuthorizeCheckOperationFilter>();
     });
-
+    builder.Host.UseDefaultServiceProvider(opts => opts.ValidateScopes = true);
     // ✅ Build the app
     var app = builder.Build();
     // Enable static files

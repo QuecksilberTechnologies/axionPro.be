@@ -1,31 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
 
+namespace axionpro.domain.Entity;
 
-
-public partial class Leavetype
+public partial class LeaveType
 {
     public int Id { get; set; }
 
-    public long? Tenantid { get; set; }
+    public long? TenantId { get; set; }
 
-    public string? Leavename { get; set; }
+    public string LeaveName { get; set; } = null!;
 
     public string? Description { get; set; }
 
-    public bool? Isactive { get; set; }
+    public bool? IsActive { get; set; }
 
-    public long? Addedbyid { get; set; }
+    public long? AddedById { get; set; }
 
-    public DateTime? Addeddatetime { get; set; }
+    public DateTime? AddedDateTime { get; set; }
 
-    public long? Updatebyid { get; set; }
+    public long? UpdateById { get; set; }
 
-    public DateTime? Updatedatetime { get; set; }
+    public DateTime? UpdateDateTime { get; set; }
 
-    public bool? Issoftdeleted { get; set; }
+    public bool? IsSoftDeleted { get; set; }
 
-    public long? Softdeletedby { get; set; }
+    public long? SoftDeletedBy { get; set; }
 
-    public DateTime? Softdeleteddatetime { get; set; }
+    public DateTime? SoftDeletedDateTime { get; set; }
+
+    public virtual ICollection<LeaveRequest> LeaveRequests { get; set; } = new List<LeaveRequest>();
+
+    public virtual Tenant? Tenant { get; set; }
 }

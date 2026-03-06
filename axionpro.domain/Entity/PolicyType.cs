@@ -1,33 +1,50 @@
 ﻿using System;
 using System.Collections.Generic;
 
+namespace axionpro.domain.Entity;
 
-
-public partial class Policytype
+public partial class PolicyType
 {
     public int Id { get; set; }
 
-    public long? Tenantid { get; set; }
+    public long TenantId { get; set; }
 
-    public string? Policyname { get; set; }
+    public string PolicyName { get; set; } = null!;
 
     public string? Description { get; set; }
 
-    public bool? Isactive { get; set; }
+    public bool? IsActive { get; set; }
 
-    public bool? Issoftdelete { get; set; }
+    public bool? IsSoftDelete { get; set; }
+    public  bool IsStructured { get; set; }
 
-    public long? Addedbyid { get; set; }
 
-    public DateTime? Addeddatetime { get; set; }
+    public long? AddedById { get; set; }
 
-    public long? Updatebyid { get; set; }
+    public DateTime? AddedDateTime { get; set; }
 
-    public DateTime? Updatedatetime { get; set; }
+    public long? UpdateById { get; set; }
 
-    public long? Softdeletebyid { get; set; }
+    public DateTime? UpdateDateTime { get; set; }
 
-    public DateTime? Softdeletedatetime { get; set; }
+    public long? SoftDeleteById { get; set; }
 
-    public bool? Isstructured { get; set; }
+    public DateTime? SoftDeleteDateTime { get; set; }
+
+    public virtual ICollection<AccoumndationAllowancePolicyByDesignation> AccoumndationAllowancePolicyByDesignations { get; set; } = new List<AccoumndationAllowancePolicyByDesignation>();
+
+    public virtual ICollection<CompanyPolicyDocument> CompanyPolicyDocuments { get; set; } = new List<CompanyPolicyDocument>();
+    public virtual ICollection<MealAllowancePolicyByDesignation> MealAllowancePolicyByDesignations { get; set; } = new List<MealAllowancePolicyByDesignation>();
+
+    public virtual ICollection<InsurancePolicy> InsurancePolicies { get; set; } = new List<InsurancePolicy>();
+
+    public virtual ICollection<PolicyTypeInsuranceMapping> PolicyTypeInsuranceMappings { get; set; } = new List<PolicyTypeInsuranceMapping>();
+
+    public virtual Tenant? Tenant { get; set; }
+
+    public virtual ICollection<TravelAllowancePolicyByDesignation> TravelAllowancePolicyByDesignations { get; set; } = new List<TravelAllowancePolicyByDesignation>();
+
+    // 🔗 Navigation (ONE → MANY)
+   
 }
+

@@ -12,7 +12,7 @@ using axionpro.application.Extentions;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
-
+using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -22,13 +22,13 @@ namespace axionpro.persistance.Repositories
   
     public class BaseEmployeeRepository : IBaseEmployeeRepository
     {
-        private readonly WorkforcedbContext _context;
+        private readonly WorkforceDbContext _context;
         private readonly IMapper _mapper;                           
         private readonly ILogger<BaseEmployeeRepository> _logger;
-        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
+        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
         private readonly IPasswordService _passwordService;
         private readonly IEncryptionService _encryptionService;
-        public BaseEmployeeRepository(WorkforcedbContext context, IMapper mapper, ILogger<BaseEmployeeRepository> logger, IDbContextFactory<WorkforcedbContext> contextFactory,
+        public BaseEmployeeRepository(WorkforceDbContext context, IMapper mapper, ILogger<BaseEmployeeRepository> logger, IDbContextFactory<WorkforceDbContext> contextFactory,
             IPasswordService passwordService, IEncryptionService encryptionService)
         {
             this._context = context;
@@ -1793,43 +1793,44 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-
-         public async Task<GetMinimalEmployeeResponseDTO> GetSingleRecordAsync(long id, bool isActive)
+        public async Task<GetMinimalEmployeeResponseDTO> GetSingleRecordAsync(long id, bool isActive)
         {
             try
             {
-                // 🧩 Validation
                 if (id <= 0)
                     throw new ArgumentException("Invalid Id provided for fetching employee record.");
-                // 🔍 Fetch employee + type + gender + department + designation info
-                var record = await (
-                    from emp in _context.Employees.AsNoTracking()
-                    join et in _context.EmployeeTypes.AsNoTracking()
-                        on emp.EmployeeTypeId equals et.Id
-                    join gt in _context.Genders.AsNoTracking()
-                        on emp.GenderId equals gt.Id into genderGroup
-                    from gt in genderGroup.DefaultIfEmpty()
 
-                        // 👇 Department join
-                    join dept in _context.Departments.AsNoTracking()
-                        on emp.DepartmentId equals dept.Id into deptGroup
-                    from dept in deptGroup.DefaultIfEmpty()
-                       join nc in _context.Countries
-                      on emp.CountryId equals nc.Id into countryJoin
-                     from nationCountry in countryJoin.DefaultIfEmpty()
-                   
-                        // 👇 Designation join
-                    join desig in _context.Designations.AsNoTracking()
-                        on emp.DesignationId equals desig.Id into desigGroup
-                    from desig in desigGroup.DefaultIfEmpty()
+                await using var context = await _contextFactory.CreateDbContextAsync();
+
+                var record = await (
+                    from emp in context.Employees.AsNoTracking()
+
+                    join et in context.EmployeeTypes.AsNoTracking()
+                        on emp.EmployeeTypeId equals et.Id
+
+                    join gt in context.Genders.AsNoTracking()
+                        on emp.GenderId equals gt.Id into genderJoin
+                    from gender in genderJoin.DefaultIfEmpty()
+
+                    join dept in context.Departments.AsNoTracking()
+                        on emp.DepartmentId equals dept.Id into deptJoin
+                    from department in deptJoin.DefaultIfEmpty()
+
+                    join desig in context.Designations.AsNoTracking()
+                        on emp.DesignationId equals desig.Id into desigJoin
+                    from designation in desigJoin.DefaultIfEmpty()
+
+                    join country in context.Countries.AsNoTracking()
+                        on emp.CountryId equals country.Id into countryJoin
+                    from nation in countryJoin.DefaultIfEmpty()
 
                     where emp.Id == id
                        && emp.IsActive == isActive
                        && emp.IsSoftDeleted != true
                        && et.IsActive == true
                        && et.IsSoftDeleted != true
-                       && (dept == null || (dept.IsActive == true && dept.IsSoftDeleted != true))
-                       && (desig == null || (desig.IsActive == true && desig.IsSoftDeleted != true))
+                       && (department == null || (department.IsActive && department.IsSoftDeleted != true))
+                       && (designation == null || (designation.IsActive && designation.IsSoftDeleted != true))
 
                     select new GetMinimalEmployeeResponseDTO
                     {
@@ -1841,36 +1842,29 @@ namespace axionpro.persistance.Repositories
                         EmployementCode = emp.EmployementCode,
                         EmployeeTypeId = emp.EmployeeTypeId ?? 0,
                         EmployeeTypeName = et.TypeName,
-                         CountryId = nationCountry.Id,
-                         Nationality =nationCountry.CountryName ,
+                        GenderId = emp.GenderId ?? 0,
+                        GenderName = gender != null ? gender.GenderName : null,
+                        DepartmentId = emp.DepartmentId ?? 0,
+                        DepartmentName = department != null ? department.DepartmentName : null,
+                        DesignationId = emp.DesignationId ?? 0,
+                        DesignationName = designation != null ? designation.DesignationName : null,
+                        CountryId = nation != null ? nation.Id : 0,
+                        Nationality = nation != null ? nation.CountryName : null,
+                        CountryCode = nation != null ? nation.CountryCode : null,
                         DateOfOnBoarding = emp.DateOfOnBoarding,
                         DateOfBirth = emp.DateOfBirth,
                         EmergencyContactNumber = emp.EmergencyContactNumber,
                         EmergencyContactPerson = emp.EmergencyContactPerson,
                         MobileNumber = emp.MobileNumber,
-                         CountryCode= emp.Country.CountryCode,
+                        OfficialEmail = emp.OfficialEmail,
                         IsActive = emp.IsActive,
-                        HasPermanent = emp.HasPermanent,
-                        GenderId = emp.GenderId ?? 0,
-                        GenderName = gt.GenderName,
-                        DepartmentId = emp.DepartmentId ?? 0,
-                        DepartmentName = dept.DepartmentName,  // ✅ added
-                        DesignationId = emp.DesignationId ?? 0,
-                        DesignationName = desig.DesignationName // ✅ added,
-                        ,OfficialEmail = emp.OfficialEmail
-
+                        HasPermanent = emp.HasPermanent
                     }
                 ).FirstOrDefaultAsync();
 
-
-                // 🚫 Handle null result
                 if (record == null)
-                {
-                    _logger.LogWarning("⚠️ No employee record found for Id: {Id} (IsActive: {IsActive})", id, isActive);
-                    throw new InvalidOperationException($"No employee record found for Id: {id} (IsActive: {isActive})");
-                }
+                    throw new InvalidOperationException($"No employee record found for Id: {id}");
 
-                // ✅ Return DTO result
                 return record;
             }
             catch (Exception ex)
@@ -1879,6 +1873,92 @@ namespace axionpro.persistance.Repositories
                 throw;
             }
         }
+
+        // public async Task<GetMinimalEmployeeResponseDTO> GetSingleRecordAsync(long id, bool isActive)
+        //{
+        //    try
+        //    {
+        //        // 🧩 Validation
+        //        if (id <= 0)
+        //            throw new ArgumentException("Invalid Id provided for fetching employee record.");
+        //        // 🔍 Fetch employee + type + gender + department + designation info
+        //        var record = await (
+        //            from emp in _context.Employees.AsNoTracking()
+        //            join et in _context.EmployeeTypes.AsNoTracking()
+        //                on emp.EmployeeTypeId equals et.Id
+        //            join gt in _context.Genders.AsNoTracking()
+        //                on emp.GenderId equals gt.Id into genderGroup
+        //            from gt in genderGroup.DefaultIfEmpty()
+
+        //                // 👇 Department join
+        //            join dept in _context.Departments.AsNoTracking()
+        //                on emp.DepartmentId equals dept.Id into deptGroup
+        //            from dept in deptGroup.DefaultIfEmpty()
+        //               join nc in _context.Countries
+        //              on emp.CountryId equals nc.Id into countryJoin
+        //             from nationCountry in countryJoin.DefaultIfEmpty()
+
+        //                // 👇 Designation join
+        //            join desig in _context.Designations.AsNoTracking()
+        //                on emp.DesignationId equals desig.Id into desigGroup
+        //            from desig in desigGroup.DefaultIfEmpty()
+
+        //            where emp.Id == id
+        //               && emp.IsActive == isActive
+        //               && emp.IsSoftDeleted != true
+        //               && et.IsActive == true
+        //               && et.IsSoftDeleted != true
+        //               && (dept == null || (dept.IsActive == true && dept.IsSoftDeleted != true))
+        //               && (desig == null || (desig.IsActive == true && desig.IsSoftDeleted != true))
+
+        //            select new GetMinimalEmployeeResponseDTO
+        //            {
+        //                Id = emp.Id,
+        //                TenantId = emp.TenantId ?? 0,
+        //                FirstName = emp.FirstName,
+        //                MiddleName = emp.MiddleName,
+        //                LastName = emp.LastName,
+        //                EmployementCode = emp.EmployementCode,
+        //                EmployeeTypeId = emp.EmployeeTypeId ?? 0,
+        //                EmployeeTypeName = et.TypeName,
+        //                 CountryId = nationCountry.Id,
+        //                 Nationality =nationCountry.CountryName ,
+        //                DateOfOnBoarding = emp.DateOfOnBoarding,
+        //                DateOfBirth = emp.DateOfBirth,
+        //                EmergencyContactNumber = emp.EmergencyContactNumber,
+        //                EmergencyContactPerson = emp.EmergencyContactPerson,
+        //                MobileNumber = emp.MobileNumber,
+        //                 CountryCode= emp.Country.CountryCode,
+        //                IsActive = emp.IsActive,
+        //                HasPermanent = emp.HasPermanent,
+        //                GenderId = emp.GenderId ?? 0,
+        //                GenderName = gt.GenderName,
+        //                DepartmentId = emp.DepartmentId ?? 0,
+        //                DepartmentName = dept.DepartmentName,  // ✅ added
+        //                DesignationId = emp.DesignationId ?? 0,
+        //                DesignationName = desig.DesignationName // ✅ added,
+        //                ,OfficialEmail = emp.OfficialEmail
+
+        //            }
+        //        ).FirstOrDefaultAsync();
+
+
+        //        // 🚫 Handle null result
+        //        if (record == null)
+        //        {
+        //            _logger.LogWarning("⚠️ No employee record found for Id: {Id} (IsActive: {IsActive})", id, isActive);
+        //            throw new InvalidOperationException($"No employee record found for Id: {id} (IsActive: {isActive})");
+        //        }
+
+        //        // ✅ Return DTO result
+        //        return record;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "❌ Error while fetching employee record for Id: {Id}", id);
+        //        throw;
+        //    }
+        //}
 
 
         public async Task<bool> UpdateEmployeeAsync(Employee entity, long tenantId)      

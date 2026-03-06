@@ -8,22 +8,22 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
     public class TicketHeaderRepository : ITicketHeaderRepository
     {
-        private readonly WorkforcedbContext _context;
-        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
+        private readonly WorkforceDbContext _context;
+        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
         private readonly IMapper _mapper;
         private readonly ILogger<TicketHeaderRepository> _logger;
 
         public TicketHeaderRepository(
-            WorkforcedbContext context,
+            WorkforceDbContext context,
             ILogger<TicketHeaderRepository> logger,
             IMapper mapper,
-            IDbContextFactory<WorkforcedbContext> contextFactory)
+            IDbContextFactory<WorkforceDbContext> contextFactory)
         {
             _context = context;
             _logger = logger;

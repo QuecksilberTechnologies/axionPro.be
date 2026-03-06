@@ -3,17 +3,18 @@
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
     public class RefreshTokenRepository : IRefreshTokenRepository
     {
-        private readonly WorkforcedbContext _context;
+        private readonly WorkforceDbContext _context;
         private readonly ILogger<RefreshTokenRepository> _logger;
 
 
         public RefreshTokenRepository(
-            WorkforcedbContext context,
+            WorkforceDbContext context,
             ILogger<RefreshTokenRepository> logger)
         {
             _context = context;

@@ -9,18 +9,18 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
     public class PermissionRepository : IPermissionRepository
     {
         private readonly ILogger<PermissionRepository> _logger;
-        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
+        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
         private readonly ICacheService _cacheService;
 
         public PermissionRepository(
-            IDbContextFactory<WorkforcedbContext> contextFactory,
+            IDbContextFactory<WorkforceDbContext> contextFactory,
             ILogger<PermissionRepository> logger,
             ICacheService cacheService)
         {

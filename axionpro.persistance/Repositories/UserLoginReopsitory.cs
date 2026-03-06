@@ -13,21 +13,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
-using System.Threading.Tasks;
+using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
     public class UserLoginReopsitory : IUserLoginReopsitory
     {
-        private readonly WorkforcedbContext _context;
+        private readonly WorkforceDbContext _context;
         private readonly ILogger<UserLoginReopsitory> _logger;
-        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
+        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
         private readonly IMapper _mapper;
         private readonly IPasswordService _passwordService;
         private readonly IConfiguration _configuration;
 
-        public UserLoginReopsitory(WorkforcedbContext context, ILogger<UserLoginReopsitory> logger, IMapper mapper,
-            IDbContextFactory<WorkforcedbContext> contextFactory, IPasswordService passwordService , IConfiguration configuration)
+        public UserLoginReopsitory(WorkforceDbContext context, ILogger<UserLoginReopsitory> logger, IMapper mapper,
+            IDbContextFactory<WorkforceDbContext> contextFactory, IPasswordService passwordService , IConfiguration configuration)
         {
             _context = context;
             _logger = logger;

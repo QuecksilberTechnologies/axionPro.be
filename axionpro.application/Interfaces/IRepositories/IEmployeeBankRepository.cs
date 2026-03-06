@@ -10,9 +10,9 @@ using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Employee.Type;
 
 using axionpro.application.DTOS.Pagination;
- 
+ using axionpro.domain.Entity; using MediatR;  
 
-using MediatR;
+using axionpro.domain.Entity; using MediatR;
 using System.Collections.Generic;
 
 namespace axionpro.application.Interfaces.IRepositories;

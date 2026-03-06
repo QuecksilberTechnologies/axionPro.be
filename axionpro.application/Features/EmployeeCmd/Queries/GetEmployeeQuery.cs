@@ -1,6 +1,6 @@
 ﻿using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IRepositories;
-using MediatR;
+using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Features.EmployeeCmd.Queries;
 

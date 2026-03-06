@@ -10,18 +10,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Text;
-using System.Threading.Tasks;
+using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
     public class PlanModuleMappingRepository : IPlanModuleMappingRepository
     {
-        private readonly WorkforcedbContext? _context;
+        private readonly WorkforceDbContext? _context;
         private readonly ILogger? _logger;
 
 
 
-        public PlanModuleMappingRepository(WorkforcedbContext context, ILogger<PlanModuleMappingRepository> logger)
+        public PlanModuleMappingRepository(WorkforceDbContext context, ILogger<PlanModuleMappingRepository> logger)
         {
             _context = context;
 

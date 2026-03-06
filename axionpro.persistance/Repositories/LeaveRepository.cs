@@ -10,16 +10,16 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
     public class LeaveRepository : ILeaveRepository
     {
-        private readonly WorkforcedbContext _context;
+        private readonly WorkforceDbContext _context;
         private readonly ILogger<LeaveRepository> _logger;
 
-        public LeaveRepository(WorkforcedbContext context, ILogger<LeaveRepository> logger)
+        public LeaveRepository(WorkforceDbContext context, ILogger<LeaveRepository> logger)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

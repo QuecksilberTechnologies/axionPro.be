@@ -6,17 +6,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
     public class CandidateCategorySkillRepository : ICandidateCategorySkillRepository
     {
-        private WorkforcedbContext _context;
+        private WorkforceDbContext _context;
         private ILogger _logger;
 
 
-        public CandidateCategorySkillRepository(WorkforcedbContext context, ILogger<CandidateCategorySkillRepository> logger)
+        public CandidateCategorySkillRepository(WorkforceDbContext context, ILogger<CandidateCategorySkillRepository> logger)
         {
             this._context = context;
             this._logger = logger;

@@ -1,6 +1,6 @@
 ﻿using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Pagination;
-using MediatR;
+using axionpro.domain.Entity; using MediatR;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;

@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
@@ -19,16 +19,16 @@ namespace axionpro.persistance.Repositories
     /// </summary>
     public class AssetStatusRepository : IAssetStatusRepository
     {
-        private readonly WorkforcedbContext _context;
-        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
+        private readonly WorkforceDbContext _context;
+        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
         private readonly IMapper _mapper;
         private readonly ILogger<AssetStatusRepository> _logger;
 
         public AssetStatusRepository(
-            WorkforcedbContext context,
+            WorkforceDbContext context,
             ILogger<AssetStatusRepository> logger,
             IMapper mapper,
-            IDbContextFactory<WorkforcedbContext> contextFactory)
+            IDbContextFactory<WorkforceDbContext> contextFactory)
         {
             _context = context;
             _logger = logger;

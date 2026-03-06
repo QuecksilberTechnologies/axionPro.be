@@ -22,7 +22,7 @@ using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 
 using FluentValidation;
-using MediatR;
+using axionpro.domain.Entity; using MediatR;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,7 +33,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
-using System.Threading.Tasks;
+using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 using static System.Formats.Asn1.AsnWriter;
 
 

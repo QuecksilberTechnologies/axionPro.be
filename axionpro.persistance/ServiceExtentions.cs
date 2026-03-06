@@ -18,30 +18,60 @@ namespace axionpro.persistance
     {
         public static void AddPersistence(this IServiceCollection services, IConfiguration configuration)
         {
-            // ✅ Connection string check
             var connectionString = configuration.GetConnectionString("DefaultConnection");
-            if (string.IsNullOrEmpty(connectionString))
+
+            if (string.IsNullOrWhiteSpace(connectionString))
                 throw new Exception("Connection String is null or empty!");
 
-            // ✅ Register DbContextFactory for safe multi-threading
-            services.AddDbContextFactory<WorkforcedbContext>(options =>
+            // common options
+            Action<DbContextOptionsBuilder> dbOptions = options =>
                 options.UseNpgsql(connectionString)
-                       .EnableSensitiveDataLogging()
                        .EnableDetailedErrors()
-                       .LogTo(Console.WriteLine, LogLevel.Information));
-
-            // ✅ Register DbContext (for direct injection)
-            services.AddDbContext<WorkforcedbContext>(options =>
-                options.UseNpgsql(connectionString)
                        .EnableSensitiveDataLogging()
-                       .EnableDetailedErrors()
-                       .LogTo(Console.WriteLine, LogLevel.Information));
+                       .LogTo(Console.WriteLine, LogLevel.Information);
 
+            // ✔ Scoped DbContext
+            services.AddDbContext<WorkforceDbContext>(dbOptions);
 
+            // ✔ DbContextFactory (uses same options safely)
+            services.AddDbContextFactory<WorkforceDbContext>(options =>
+                options.UseNpgsql(connectionString));
 
-            // ✅ Register IWorkforcedbContext (Interface based usage)
+            // ✔ Interface mapping
             services.AddScoped<IWorkforcedbContext>(provider =>
-                (IWorkforcedbContext)provider.GetRequiredService<WorkforcedbContext>());
+                provider.GetRequiredService<WorkforceDbContext>());
+
+
+
+            //// ✅ Connection string check
+            //var connectionString = configuration.GetConnectionString("DefaultConnection");
+            //if (string.IsNullOrEmpty(connectionString))
+            //    throw new Exception("Connection String is null or empty!");
+
+            //// ✅ Register DbContextFactory for safe multi-threading
+            //services.AddDbContextFactory<WorkforceDbContext>(options =>
+            //    options.UseNpgsql(connectionString)
+            //           .EnableSensitiveDataLogging()
+            //           .EnableDetailedErrors()
+            //           .LogTo(Console.WriteLine, LogLevel.Information));
+
+            //// ✅ Register DbContext using AddDbContextPool instead of AddDbContext
+            //// DbContextPool is safe for root-level access and prevents "Cannot resolve scoped service" errors
+            //// This solves the issue where Swagger/singleton middleware tries to access DbContext
+            //services.AddDbContextPool<WorkforceDbContext>(options =>
+            //    options.UseNpgsql(connectionString)
+            //           .EnableSensitiveDataLogging()
+            //           .EnableDetailedErrors()
+            //           .LogTo(Console.WriteLine, LogLevel.Information),
+            //    poolSize: 128);
+
+
+
+            // ✅ Register IWorkforceDbContext (Interface based usage)
+            // Use direct implementation registration to avoid resolving scoped DbContext from the root provider
+            // which can cause "Cannot resolve scoped service ... from root provider" errors when a singleton
+            // tries to capture the interface during startup.
+            services.AddScoped<IWorkforcedbContext, WorkforceDbContext>();
 
             // ✅ Unit of Work
             services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -54,6 +84,7 @@ namespace axionpro.persistance
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
             services.AddScoped<IAssetRepository, AssetRepository>();
             services.AddScoped<IBaseEmployeeRepository, BaseEmployeeRepository>();
+ 
             services.AddScoped<IUserLoginReopsitory, UserLoginReopsitory>();
             services.AddScoped<ILeaveRepository, LeaveRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();

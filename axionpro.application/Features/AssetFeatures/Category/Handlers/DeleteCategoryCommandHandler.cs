@@ -1,4 +1,4 @@
-﻿using MediatR;
+﻿using axionpro.domain.Entity; using MediatR;
 using Microsoft.Extensions.Logging;
 using axionpro.application.DTOS.AssetDTO.category;
 using axionpro.application.Interfaces;

@@ -10,18 +10,20 @@ using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
+using axionpro.domain.Entity;
+
 namespace axionpro.persistance.Repositories
 {
     public class InsuranceRepository : IInsuranceRepository
     {
-        private readonly WorkforcedbContext _context;
+        private readonly WorkforceDbContext _context;
         private readonly ILogger<InsuranceRepository> _logger;
 
         public InsuranceRepository(
-            WorkforcedbContext context,
+            WorkforceDbContext context,
             IMapper mapper,
             ILogger<InsuranceRepository> logger,
-            IDbContextFactory<WorkforcedbContext> contextFactory,
+            IDbContextFactory<WorkforceDbContext> contextFactory,
             IPasswordService passwordService,
             IEncryptionService encryptionService)
         {

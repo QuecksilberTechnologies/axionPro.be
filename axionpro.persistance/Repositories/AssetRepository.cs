@@ -9,7 +9,7 @@ using axionpro.application.Interfaces.IRepositories;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Data;
+using System.Data; using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
@@ -18,17 +18,17 @@ namespace axionpro.persistance.Repositories
 
     public class AssetRepository : IAssetRepository
     {
-        private WorkforcedbContext _context;
+        private WorkforceDbContext _context;
 
         private ILogger<AssetRepository> _logger;
         private readonly IQRService _qrService;
         private readonly IFileStorageService _fileStorageService;
-        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
+        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
         private readonly IMapper _mapper;
 
 
-        public AssetRepository(WorkforcedbContext context, ILogger<AssetRepository> logger, IQRService qrService, IFileStorageService fileStorageService,
-            IMapper mapper, IDbContextFactory<WorkforcedbContext> contextFactory)
+        public AssetRepository(WorkforceDbContext context, ILogger<AssetRepository> logger, IQRService qrService, IFileStorageService fileStorageService,
+            IMapper mapper, IDbContextFactory<WorkforceDbContext> contextFactory)
         {
             _context = context;
             _logger = logger;
@@ -38,9 +38,7 @@ namespace axionpro.persistance.Repositories
             _contextFactory = contextFactory;
         }
 
-        public async Task<GetAssetResponseDTO> UpdateAsync(
-     Asset asset,
-     string? path)
+        public async Task<GetAssetResponseDTO> UpdateAsync(Asset asset,string? path)
         {
             try
             {

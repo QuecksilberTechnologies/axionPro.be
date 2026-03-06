@@ -9,23 +9,23 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
     public class ReportingTypeRepository : IReportingTypeRepository
     {
         #region Fields
-        private readonly WorkforcedbContext _context;
+        private readonly WorkforceDbContext _context;
         private readonly ILogger<ReportingTypeRepository> _logger;
         private readonly IMapper _mapper;
-        private readonly IDbContextFactory<WorkforcedbContext>  _contextFactory;
+        private readonly IDbContextFactory<WorkforceDbContext>  _contextFactory;
         #endregion
 
 
 
         #region Constructor
-        public ReportingTypeRepository(WorkforcedbContext context, ILogger<ReportingTypeRepository> logger, IMapper mapper, IDbContextFactory<WorkforcedbContext> contextFactory)
+        public ReportingTypeRepository(WorkforceDbContext context, ILogger<ReportingTypeRepository> logger, IMapper mapper, IDbContextFactory<WorkforceDbContext> contextFactory)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

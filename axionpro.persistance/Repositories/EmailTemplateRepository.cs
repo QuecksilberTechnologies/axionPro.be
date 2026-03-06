@@ -1,5 +1,5 @@
 ﻿using axionpro.application.Interfaces.IRepositories;
-
+using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -9,10 +9,10 @@ namespace axionpro.persistance.Repositories
 {
     public class EmailTemplateRepository : IEmailTemplateRepository
     {
-        private readonly WorkforcedbContext _context;
+        private readonly WorkforceDbContext _context;
         private readonly ILogger<EmailTemplateRepository> _logger;
          
-        public EmailTemplateRepository(WorkforcedbContext context, ILogger<EmailTemplateRepository> logger    )
+        public EmailTemplateRepository(WorkforceDbContext context, ILogger<EmailTemplateRepository> logger    )
         {
             _context = context;
             _logger = logger;

@@ -16,7 +16,7 @@ using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using axionpro.domain.Common;
 
-using MediatR;
+using axionpro.domain.Entity; using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

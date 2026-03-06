@@ -6,23 +6,25 @@ using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
-
+using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+
+
 
 namespace axionpro.persistance.Repositories
 {
   
    public class EmployeeInsuranceRepository : IEmployeeInsuranceRepository
     {
-        private readonly WorkforcedbContext _context;
+        private readonly WorkforceDbContext _context;
         private readonly IMapper _mapper;
         private readonly ILogger<EmployeeInsuranceRepository> _logger;
-        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
+        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
         private readonly IPasswordService _passwordService;
         private readonly IEncryptionService _encryptionService;
-        public EmployeeInsuranceRepository(WorkforcedbContext context, IMapper mapper, ILogger<EmployeeInsuranceRepository> logger, IDbContextFactory<WorkforcedbContext> contextFactory,
+        public EmployeeInsuranceRepository(WorkforceDbContext context, IMapper mapper, ILogger<EmployeeInsuranceRepository> logger, IDbContextFactory<WorkforceDbContext> contextFactory,
             IPasswordService passwordService, IEncryptionService encryptionService)
         {
             this._context = context;

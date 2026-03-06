@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 
+namespace axionpro.domain.Entity;
 
-
-public partial class Noimagepath
+public partial class NoImagePath
 {
     public int Id { get; set; }
 
-    public string? Imagename { get; set; }
+    public string? ImageName { get; set; }
 
-    public string? Defaultimagepath { get; set; }
+    public string DefaultImagePath { get; set; } = null!;
 
-    public int Imagetype { get; set; }
+    public int ImageType { get; set; }
 
-    public bool Isactive { get; set; }
+    public bool IsActive { get; set; }
 }

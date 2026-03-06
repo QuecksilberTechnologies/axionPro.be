@@ -1,39 +1,47 @@
 ﻿using System;
 using System.Collections.Generic;
 
+namespace axionpro.domain.Entity;
 
-
-public partial class Moduleoperationmapping
+public partial class ModuleOperationMapping
 {
     public int Id { get; set; }
 
-    public int? Moduleid { get; set; }
+    public int ModuleId { get; set; }
 
-    public int Operationid { get; set; }
+    public int OperationId { get; set; }
 
-    public int? Dataviewstructureid { get; set; }
+    public int? DataViewStructureId { get; set; }
 
-    public int? Pagetypeid { get; set; }
+    public int? PageTypeId { get; set; }
 
-    public string? Pageurl { get; set; }
+    public string? PageUrl { get; set; }
 
-    public string? Iconurl { get; set; }
+    public string? IconUrl { get; set; }
 
-    public bool? Iscommonitem { get; set; }
+    public bool? IsCommonItem { get; set; }
 
-    public bool? Isoperational { get; set; }
+    public bool? IsOperational { get; set; }
 
     public int? Priority { get; set; }
 
     public string? Remark { get; set; }
 
-    public bool? Isactive { get; set; }
+    public bool? IsActive { get; set; }
 
-    public long Addedbyid { get; set; }
+    public long AddedById { get; set; }
 
-    public DateTime Addeddatetime { get; set; }
+    public DateTime AddedDateTime { get; set; }
 
-    public long? Updatedbyid { get; set; }
+    public long? UpdatedById { get; set; }
 
-    public DateTime? Updateddatetime { get; set; }
+    public DateTime? UpdatedDateTime { get; set; }
+
+    public virtual DataViewStructure? DataViewStructure { get; set; }
+
+    public virtual Module? Module { get; set; }
+
+    public virtual Operation Operation { get; set; } = null!;
+
+    public virtual PageTypeEnum? PageType { get; set; }
 }

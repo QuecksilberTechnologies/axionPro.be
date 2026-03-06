@@ -9,19 +9,20 @@ using axionpro.persistance.Data.Context;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
     public class ModuleOperationMappingRepository : IModuleOperationMappingRepository
     {
 
-        private readonly WorkforcedbContext _context;
+        private readonly WorkforceDbContext _context;
         private readonly ILogger<ModuleOperationMappingRepository> _logger;
-        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
+        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
         private readonly IMapper _mapper;
 
-        public ModuleOperationMappingRepository(WorkforcedbContext context, ILogger<ModuleOperationMappingRepository> logger, IMapper mapper,
-            IDbContextFactory<WorkforcedbContext> contextFactory)
+        public ModuleOperationMappingRepository(WorkforceDbContext context, ILogger<ModuleOperationMappingRepository> logger, IMapper mapper,
+            IDbContextFactory<WorkforceDbContext> contextFactory)
         {
             _context = context;
             _logger = logger;

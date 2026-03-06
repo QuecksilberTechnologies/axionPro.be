@@ -1,65 +1,60 @@
 ﻿using System;
 using System.Collections.Generic;
 
+namespace axionpro.domain.Entity;
 
-
-public partial class Employeeeducation
+public partial class EmployeeEducation
 {
     public int Id { get; set; }
 
-    public long Employeeid { get; set; }
+    public long EmployeeId { get; set; }
 
     public string? Degree { get; set; }
 
-    public string? Institutename { get; set; }
+    public string? InstituteName { get; set; }
 
     public string? Remark { get; set; }
+    public double GapYears { get; set; }
 
-    public DateOnly? Startdate { get; set; }
+    public DateTime? StartDate { get; set; }
 
-    public DateOnly? Enddate { get; set; }
+    public bool  HasEducationDocUploded { get; set; }
+    public DateTime? EndDate { get; set; }
+    public string? ScoreValue { get; set; }
+    public int? ScoreType { get; set; } // 1=GPA, 2=Percentage, 3=CGPA, etc.
+    public string? GradeDivision { get; set; }
+    public string? FilePath { get; set; }
+    public int? FileType { get; set; }
+    public string? FileName { get; set; } 
 
-    public string? Scorevalue { get; set; }
+    public bool? EducationGap { get; set; }
 
-    public string? Gradedivision { get; set; }
+    public string? ReasonOfEducationGap { get; set; }
 
-    public bool? Educationgap { get; set; }
+    public long AddedById { get; set; }
 
-    public string? Reasonofeducationgap { get; set; }
+    public DateTime AddedDateTime { get; set; }
 
-    public long Addedbyid { get; set; }
+    public long? UpdatedById { get; set; }
 
-    public DateTime Addeddatetime { get; set; }
+    public DateTime? UpdatedDateTime { get; set; }
 
-    public long? Updatedbyid { get; set; }
+    public long? SoftDeletedById { get; set; }
 
-    public DateTime? Updateddatetime { get; set; }
+    public DateTime? DeletedDateTime { get; set; }
 
-    public long? Softdeletedbyid { get; set; }
+    public bool? IsSoftDeleted { get; set; }
 
-    public DateTime? Deleteddatetime { get; set; }
+    public long? InfoVerifiedById { get; set; }
 
-    public bool? Issoftdeleted { get; set; }
+    public bool? IsInfoVerified { get; set; }
 
-    public long? Infoverifiedbyid { get; set; }
+    public DateTime? InfoVerifiedDateTime { get; set; }
 
-    public bool? Isinfoverified { get; set; }
+    public bool? IsEditAllowed { get; set; }
 
-    public DateTime? Infoverifieddatetime { get; set; }
+    public bool? IsActive { get; set; }
+    public virtual Employee Employee { get; set; } = null!;
 
-    public bool? Iseditallowed { get; set; }
 
-    public bool? Isactive { get; set; }
-
-    public string? Filepath { get; set; }
-
-    public int? Filetype { get; set; }
-
-    public string? Filename { get; set; }
-
-    public bool? Haseducationdocuploded { get; set; }
-
-    public int? Scoretype { get; set; }
-
-    public double? Gapyears { get; set; }
 }

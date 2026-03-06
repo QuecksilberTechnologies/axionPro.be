@@ -13,7 +13,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using axionpro.domain.Entity;
+
 
 
 
@@ -21,12 +22,12 @@ namespace axionpro.persistance.Repositories
 {
         public class GenderRepository : IGenderRepository
         {
-            private readonly WorkforcedbContext _context;
-            private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
+            private readonly WorkforceDbContext _context;
+            private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
             private readonly ILogger<GenderRepository> _logger;
             private readonly IMapper _mapper;
 
-            public GenderRepository(WorkforcedbContext context, ILogger<GenderRepository> logger, IMapper mapper, IDbContextFactory<WorkforcedbContext> contextFactory)
+            public GenderRepository(WorkforceDbContext context, ILogger<GenderRepository> logger, IMapper mapper, IDbContextFactory<WorkforceDbContext> contextFactory)
             {
                 _context = context ?? throw new ArgumentNullException(nameof(context));
                 _logger = logger ?? throw new ArgumentNullException(nameof(logger));

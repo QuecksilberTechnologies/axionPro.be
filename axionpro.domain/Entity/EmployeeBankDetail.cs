@@ -1,57 +1,55 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 
+namespace axionpro.domain.Entity;
 
-
-public partial class Employeebankdetail
+public partial class EmployeeBankDetail
 {
-    public int Id { get; set; }
+    public int? Id { get; set; }
 
-    public long Employeeid { get; set; }
+    public long EmployeeId { get; set; }
 
-    public string? Bankname { get; set; }
+    public string? BankName { get; set; }
 
-    public string? Accountnumber { get; set; }
+    public string? AccountNumber { get; set; }
 
-    public string? Ifsccode { get; set; }
+    public string? IFSCCode { get; set; }
 
-    public string? Branchname { get; set; }
+    public string? BranchName { get; set; }
 
-    public string? Accounttype { get; set; }
+    public string? AccountType { get; set; }
+    public int FileType { get; set; }
 
-    public string? Upiid { get; set; }
+    public string? UPIId { get; set; }
 
-    public bool? Isprimaryaccount { get; set; }
+    public bool IsPrimaryAccount { get; set; }
 
-    public long Addedbyid { get; set; }
+    public long AddedById { get; set; }
+    public bool HasChequeDocUploaded { get; set; }
+    public string? FileName { get; set; }
+    public string? FilePath { get; set; }   
+    public DateTime AddedDateTime { get; set; }
 
-    public DateTime Addeddatetime { get; set; }
+    public long? UpdatedById { get; set; }
 
-    public long? Updatedbyid { get; set; }
+    public DateTime? UpdatedDateTime { get; set; }
 
-    public DateTime? Updateddatetime { get; set; }
+    public long? SoftDeletedById { get; set; }
 
-    public long? Softdeletedbyid { get; set; }
+    public DateTime? DeletedDateTime { get; set; }
 
-    public DateTime? Deleteddatetime { get; set; }
+    public bool? IsSoftDeleted { get; set; }
 
-    public bool? Issoftdeleted { get; set; }
+    public long? InfoVerifiedById { get; set; }
 
-    public long? Infoverifiedbyid { get; set; }
+    public bool IsInfoVerified { get; set; }
 
-    public bool? Isinfoverified { get; set; }
+    public DateTime? InfoVerifiedDateTime { get; set; }
 
-    public DateTime? Infoverifieddatetime { get; set; }
+    public bool IsEditAllowed { get; set; }
 
-    public bool? Iseditallowed { get; set; }
+    public bool IsActive { get; set; }
 
-    public bool? Isactive { get; set; }
-
-    public bool? Haschequedocuploaded { get; set; }
-
-    public string? Filename { get; set; }
-
-    public string? Filepath { get; set; }
-
-    public int? Filetype { get; set; }
+    public virtual Employee Employee { get; set; } = null!;
 }

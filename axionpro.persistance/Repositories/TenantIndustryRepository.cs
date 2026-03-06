@@ -7,15 +7,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
     public class TenantIndustryRepository: ITenantIndustryRepository
     {
-        private readonly WorkforcedbContext _context;
+        private readonly WorkforceDbContext _context;
         private ILogger<TenantIndustryRepository> _logger;
-        public TenantIndustryRepository(WorkforcedbContext context, ILogger<TenantIndustryRepository> logger)
+        public TenantIndustryRepository(WorkforceDbContext context, ILogger<TenantIndustryRepository> logger)
         {
             this._context = context;
             this._logger = logger;

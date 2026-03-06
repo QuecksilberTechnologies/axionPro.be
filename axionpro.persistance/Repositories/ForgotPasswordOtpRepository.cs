@@ -8,15 +8,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using axionpro.domain.Entity;
+
 
 namespace axionpro.persistance.Repositories
 {
     class ForgotPasswordOtpRepository : IForgotPasswordOtpRepository
     {
-        private readonly WorkforcedbContext _context;         
+        private readonly WorkforceDbContext _context;         
         private ILogger<ForgotPasswordOtpRepository> _logger;
-        public ForgotPasswordOtpRepository(WorkforcedbContext context, ILogger<ForgotPasswordOtpRepository> logger)
+        public ForgotPasswordOtpRepository(WorkforceDbContext context, ILogger<ForgotPasswordOtpRepository> logger)
         {
             this._context = context;
             this._logger = logger;

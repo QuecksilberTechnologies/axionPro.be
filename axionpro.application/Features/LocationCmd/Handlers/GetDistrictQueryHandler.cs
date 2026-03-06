@@ -3,7 +3,7 @@ using axionpro.application.DTOS.Location;
 using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
 
-using MediatR;
+using axionpro.domain.Entity; using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.LocationCmd.Handlers

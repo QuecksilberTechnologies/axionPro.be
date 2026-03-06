@@ -4,7 +4,7 @@ using axionpro.application.Features.TicketFeatures.TicketType.Queries;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
-using MediatR;
+using axionpro.domain.Entity; using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.TicketFeatures.TicketType.Handlers

@@ -1,57 +1,65 @@
 ﻿using System;
 using System.Collections.Generic;
 
-
+namespace axionpro.domain.Entity;
 
 public partial class Candidate
 {
     public long Id { get; set; }
 
-    public string? Firstname { get; set; }
+    public string FirstName { get; set; } = null!;
 
-    public string? Lastname { get; set; }
+    public string? LastName { get; set; }
 
-    public string? Email { get; set; }
+    public string Email { get; set; } = null!;
 
-    public string? Phonenumber { get; set; }
+    public string PhoneNumber { get; set; } = null!;
 
     public string? Pan { get; set; }
 
     public string? Aadhaar { get; set; }
 
-    public string? Candidatereferencecode { get; set; }
+    public string CandidateReferenceCode { get; set; } = null!;
 
-    public bool Isblacklisted { get; set; }
+    public bool IsBlacklisted { get; set; }
 
-    public decimal? Experienceyears { get; set; }
+    public decimal ExperienceYears { get; set; }
 
-    public string? Currentlocation { get; set; }
+    public string? CurrentLocation { get; set; }
 
-    public decimal? Expectedsalary { get; set; }
+    public decimal? ExpectedSalary { get; set; }
 
-    public string? Currentcompany { get; set; }
+    public string? CurrentCompany { get; set; }
 
-    public int? Noticeperiod { get; set; }
+    public int? NoticePeriod { get; set; }
 
-    public DateOnly? Dateofbirth { get; set; }
+    public DateOnly? DateOfBirth { get; set; }
 
-    public DateTime Applieddate { get; set; }
+    public DateTime AppliedDate { get; set; }
 
-    public DateTime? Lastupdateddatetime { get; set; }
+    public DateTime? LastUpdatedDateTime { get; set; }
 
-    public string? Skillset { get; set; }
+    public string? SkillSet { get; set; }
 
-    public bool Isactive { get; set; }
+    public bool IsActive { get; set; }
 
-    public string? Actionstatus { get; set; }
+    public string? ActionStatus { get; set; }
 
     public string? Education { get; set; }
 
-    public bool? Isfresher { get; set; }
+    public bool? IsFresher { get; set; }
 
-    public string? Fewwords { get; set; }
+    public string? FewWords { get; set; }
 
-    public string? Resumepath { get; set; }
+    public string? ResumePath { get; set; }
 
-    public string? Resumeurl { get; set; }
+    public string? ResumeUrl { get; set; }
+
+    public virtual ICollection<CandidateCategorySkill> CandidateCategorySkills { get; set; } = new List<CandidateCategorySkill>();
+
+    public virtual ICollection<CandidateHistory> CandidateHistories { get; set; } = new List<CandidateHistory>();
+
+    public virtual ICollection<InterviewFeedback> InterviewFeedbacks { get; set; } = new List<InterviewFeedback>();
+
+    public virtual ICollection<InterviewSchedule> InterviewSchedules { get; set; } = new List<InterviewSchedule>();
 }

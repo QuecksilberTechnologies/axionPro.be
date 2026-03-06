@@ -10,7 +10,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using axionpro.domain.Entity;
+
 
 namespace axionpro.persistance.Repositories
 {
@@ -18,12 +19,12 @@ namespace axionpro.persistance.Repositories
     {
        
         private ILogger _logger;
-        private WorkforcedbContext _context;
+        private WorkforceDbContext _context;
         private ILogger<EmployeeTypeRepository> logger;
 
       
 
-        public EmployeeTypeRepository(WorkforcedbContext context, ILogger<EmployeeTypeRepository> logger)
+        public EmployeeTypeRepository(WorkforceDbContext context, ILogger<EmployeeTypeRepository> logger)
         {
             this._context = context;
             this.logger = logger;
@@ -34,12 +35,12 @@ namespace axionpro.persistance.Repositories
             try
             {
                 // 🔹 Base query
-                var query = _context.Employeetypes.AsQueryable();
+                var query = _context.EmployeeTypes.AsQueryable();
 
                 // 🔹 Filter: Active + Not SoftDeleted
                 query = query.Where(et =>
-                    et.Isactive == true
-                    && (et.Issoftdeleted == null || et.Issoftdeleted == false)
+                    et.IsActive == true
+                    && (et.IsSoftDeleted == null || et.IsSoftDeleted == false)
                 );
 
                 // 🔹 Data map into ResponseDTO
@@ -47,7 +48,7 @@ namespace axionpro.persistance.Repositories
                     .Select(et => new GetEmployeeTypeResponseOptionDTO
                     {
                         Id = et.Id,
-                        TypeName = et.Typename ?? string.Empty,
+                        TypeName = et.TypeName ?? string.Empty,
                        
                     })
                     .ToListAsync();
@@ -63,7 +64,7 @@ namespace axionpro.persistance.Repositories
         }
 
         // Method to fetch employee type by ID
-        public async Task<Employeetype> GetEmployeeTypeByIdAsync(int? employeeTypeId)
+        public async Task<EmployeeType> GetEmployeeTypeByIdAsync(int? employeeTypeId)
         {
             try
             {
@@ -91,7 +92,7 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        Task<Employeetype> IEmployeeTypeRepository.GetEmployeeTypeByIdAsync(int? employeeTypeId)
+        Task<EmployeeType> IEmployeeTypeRepository.GetEmployeeTypeByIdAsync(int? employeeTypeId)
         {
             throw new NotImplementedException();
         }

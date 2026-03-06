@@ -14,21 +14,21 @@ using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
     public class SandwitchRuleRepository : ISandwitchRuleRepository
     {
         private readonly IMapper _mapper;
-        private readonly WorkforcedbContext _context;
-        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
+        private readonly WorkforceDbContext _context;
+        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
         private readonly ILogger<SandwitchRuleRepository> _logger;
 
         public SandwitchRuleRepository(
             IMapper mapper,
-            WorkforcedbContext context,
-            IDbContextFactory<WorkforcedbContext> contextFactory,
+            WorkforceDbContext context,
+            IDbContextFactory<WorkforceDbContext> contextFactory,
             ILogger<SandwitchRuleRepository> logger)
         {
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));

@@ -10,16 +10,16 @@ using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
-using MediatR;
+using axionpro.domain.Entity; using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyModel;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
+using System.Security.Claims; using axionpro.domain.Entity; using MediatR;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers

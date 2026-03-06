@@ -1,6 +1,6 @@
 ﻿using axionpro.application.DTOs.EmailTemplate;
 using axionpro.application.Wrappers;
-using MediatR;
+using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Features.EmailTemplateCmd.Queries
 {

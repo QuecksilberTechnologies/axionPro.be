@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using axionpro.application.DTOs.Tenant;
 using axionpro.application.Interfaces.IRepositories;
+using axionpro.domain.Entity;
 
 
 using axionpro.persistance.Data.Context;
@@ -11,29 +12,32 @@ namespace axionpro.persistance.Repositories
 {
     public class TenantSubscriptionRepository : ITenantSubscriptionRepository
     {
-        private readonly WorkforcedbContext _context;
+        private readonly WorkforceDbContext _context;
         private readonly ILogger<TenantSubscriptionRepository> _logger;
-        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
+        
         private readonly IMapper _mapper;
+        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
 
-        public TenantSubscriptionRepository(WorkforcedbContext context, ILogger<TenantSubscriptionRepository> logger, IMapper mapper,
-            IDbContextFactory<WorkforcedbContext> contextFactory)
+
+
+        public TenantSubscriptionRepository(WorkforceDbContext context, ILogger<TenantSubscriptionRepository> logger, IMapper mapper,
+            IDbContextFactory<WorkforceDbContext> contextFactory)
         {
             _context = context;
             _logger = logger;
             _mapper = mapper;
-            _contextFactory = contextFactory;
+           // _contextFactory = contextFactory;
         }
        
         public async Task<TenantSubscription> AddTenantSubscriptionAsync(TenantSubscription subscription)
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
+              //  await using var context = await _contextFactory.CreateDbContextAsync();
 
 
-                await context.TenantSubscriptions.AddAsync(subscription);
-                await context.SaveChangesAsync();
+                await _context.TenantSubscriptions.AddAsync(subscription);
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation("✅ TenantSubscription inserted successfully for TenantId: {TenantId}", subscription.TenantId);
 
@@ -61,17 +65,21 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                // ✅ Basic validation
                 if (dto == null || dto.TenantId <= 0)
                 {
-                    _logger?.LogWarning("Invalid DTO passed to GetValidateTenantPlan. DTO is null or TenantId is invalid.");
+                    _logger?.LogWarning("❌ Invalid DTO passed. DTO is null or TenantId <= 0");
                     return new TenantSubscriptionPlanResponseDTO();
                 }
 
-                _logger?.LogInformation("Validating active tenant plan for TenantId: {TenantId}", dto.TenantId);
+                _logger?.LogInformation("🔍 Validating tenant plan for TenantId: {TenantId}", dto.TenantId);
 
-                // ✅ Query for active subscription
-                var subscription = await _context.TenantSubscriptions
+                // 🔎 DB connection state trace
+                var connectionState = _context.Database.GetDbConnection().State;
+                _logger?.LogInformation("📡 DB Connection State before query: {State}", connectionState);
+
+                // 🔎 Query
+                var query = _context.TenantSubscriptions
+                    .AsNoTracking()
                     .Where(x => x.TenantId == dto.TenantId && x.IsActive)
                     .Select(x => new TenantSubscriptionPlanResponseDTO
                     {
@@ -81,24 +89,45 @@ namespace axionpro.persistance.Repositories
                         SubscriptionStartDate = x.SubscriptionStartDate,
                         SubscriptionEndDate = x.SubscriptionEndDate,
                         IsActive = x.IsActive
-                    })
-                    .FirstOrDefaultAsync();
+                    });
+
+                _logger?.LogInformation("📜 Generated SQL:\n{SQL}", query.ToQueryString());
+
+                var subscription = await query.FirstOrDefaultAsync();
 
                 if (subscription == null)
                 {
-                    _logger?.LogWarning("No active subscription found for TenantId: {TenantId}", dto.TenantId);
+                    _logger?.LogWarning("⚠ No active subscription found for TenantId: {TenantId}", dto.TenantId);
                     return new TenantSubscriptionPlanResponseDTO();
-                    
                 }
 
-                _logger?.LogInformation("Active subscription found for TenantId: {TenantId}", dto.TenantId);
+                _logger?.LogInformation("✅ Active subscription found for TenantId: {TenantId}", dto.TenantId);
+
                 return subscription;
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Error occurred while validating tenant subscription plan for TenantId: {TenantId}", dto?.TenantId);
-                return new TenantSubscriptionPlanResponseDTO();
+                // 🔴 FULL ERROR TRACE
+                _logger?.LogError("❌ Exception occurred while validating tenant plan");
 
+                _logger?.LogError("📛 Message: {Message}", ex.Message);
+
+                _logger?.LogError("📛 StackTrace: {StackTrace}", ex.StackTrace);
+
+                if (ex.InnerException != null)
+                {
+                    _logger?.LogError("📛 InnerException: {Inner}", ex.InnerException.Message);
+                }
+
+                // 🔎 DbContext connection state
+                try
+                {
+                    var state = _context.Database.GetDbConnection().State;
+                    _logger?.LogError("📡 DB Connection State during error: {State}", state);
+                }
+                catch { }
+
+                throw; // 🚨 IMPORTANT → don't swallow error
             }
         }
 
@@ -108,7 +137,7 @@ namespace axionpro.persistance.Repositories
     {
         try
         {
-                await using var context = await _contextFactory.CreateDbContextAsync();
+                
 
                 if (dto == null)
             {
@@ -119,7 +148,7 @@ namespace axionpro.persistance.Repositories
             _logger.LogInformation("Fetching TenantSubscription records with filters: {@dto}", dto);
 
             // Base query
-            var query = context.TenantSubscriptions.AsQueryable();
+            var query = _context.TenantSubscriptions.AsQueryable();
 
             // ✅ Apply filters dynamically
             if (dto.TenantId>0)

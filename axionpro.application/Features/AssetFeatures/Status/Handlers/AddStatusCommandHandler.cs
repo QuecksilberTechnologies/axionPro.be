@@ -1,19 +1,12 @@
 ﻿using AutoMapper;
-using axionpro.application.DTOS.AssetDTO.category;
 using axionpro.application.DTOS.AssetDTO.status;
-using axionpro.application.Features.AssetFeatures.Category.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
+using axionpro.domain.Entity; using MediatR; 
 
-using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace axionpro.application.Features.AssetFeatures.Status.Handlers
 {

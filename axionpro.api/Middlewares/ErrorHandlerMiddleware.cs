@@ -8,9 +8,11 @@ namespace axionpro.api.Middlewares
     public class ErrorHandlerMiddleware
     {
         private readonly RequestDelegate _next;
-        public ErrorHandlerMiddleware(RequestDelegate next)
+        private readonly ILogger<ErrorHandlerMiddleware> _logger;
+        public ErrorHandlerMiddleware(RequestDelegate next, ILogger<ErrorHandlerMiddleware> logger)
         {
             _next = next;
+            _logger = logger;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -21,6 +23,7 @@ namespace axionpro.api.Middlewares
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, ex.Message);
                 var response = context.Response;
                 response.ContentType = "application/json";
                 var responseModel = new ApiResponse<string> { IsSucceeded = false, Message = ex.Message };

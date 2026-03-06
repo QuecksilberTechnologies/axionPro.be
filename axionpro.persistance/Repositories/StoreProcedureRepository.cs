@@ -12,7 +12,7 @@ using axionpro.persistance.Data.Context;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Data;
+using System.Data; using axionpro.domain.Entity;
 using Npgsql;
 using NpgsqlTypes;
 
@@ -20,17 +20,17 @@ namespace axionpro.persistance.Repositories
 {
     public class StoreProcedureRepository : IStoreProcedureRepository
     {
-        private readonly WorkforcedbContext _context;
+        private readonly WorkforceDbContext _context;
         private readonly ILogger<StoreProcedureRepository> _logger;
-        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
+      //  private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
         private readonly IMapper _mapper;
         
 
-        public StoreProcedureRepository(WorkforcedbContext context, ILogger<StoreProcedureRepository> logger, IMapper mapper, IDbContextFactory<WorkforcedbContext> contextFactory)
+        public StoreProcedureRepository(WorkforceDbContext context, ILogger<StoreProcedureRepository> logger, IMapper mapper, IDbContextFactory<WorkforceDbContext> contextFactory)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _contextFactory = contextFactory;
+          //  _contextFactory = contextFactory;
             _mapper = mapper;   
         }
 
@@ -38,11 +38,11 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
+             //   await using var _context = await _contextFactory.CreateDbContextAsync();
 
                 string sqlQuery = "EXEC AxionPro.GetActiveRoleModuleOperations @TenantId = {0}, @RoleIds = {1}";
 
-                var result = await context.Set<RoleModuleOperationResponseDTO>()
+                var result = await _context.Set<RoleModuleOperationResponseDTO>()
                     .FromSqlRaw(sqlQuery, request.TenantId, request.RoleIds)
                     .ToListAsync();
 
@@ -59,9 +59,9 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
+                //await using var context = await _contextFactory.CreateDbContextAsync();
 
-                var result = await context
+                var result = await _context
                     .Set<GetEmployeeCodePatternResponseDTO>()
                     .FromSqlRaw(
                         "EXEC [AxionPro].[GetEmployeeCodePatternByTenant] @TenantId = {0}",
@@ -215,7 +215,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
+               // await using var context = await _contextFactory.CreateDbContextAsync();
 
                 // var ttt = _context.Database.GetDbConnection().ToString();
                 _logger.LogInformation("Updating login credential for LoginId: {LoginId}", loginRequest.LoginId);
@@ -229,7 +229,7 @@ namespace axionpro.persistance.Repositories
                 var statusParam = new NpgsqlParameter("@Status", NpgsqlDbType.Integer) { Direction = ParameterDirection.Output };
                 var errorMsgParam = new NpgsqlParameter("@ErrorMessage", NpgsqlDbType.Text, 4000) { Direction = ParameterDirection.Output };
 
-                await context.Database.ExecuteSqlRawAsync(sqlQuery,
+                await _context.Database.ExecuteSqlRawAsync(sqlQuery,
                     new NpgsqlParameter("@LoginId", loginRequest.LoginId ?? (object)DBNull.Value),
                     new NpgsqlParameter("@Latitude", loginRequest.Latitude),
                     new NpgsqlParameter("@Longitude", loginRequest.Longitude),
@@ -263,45 +263,111 @@ namespace axionpro.persistance.Repositories
             }
         }
 
+
         public async Task<long> ValidateActiveUserLoginOnlyAsync(string loginId)
         {
             try
             {
-             
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
                 _logger.LogInformation("Validating user login for LoginId: {LoginId}", loginId);
 
-                var loginParam = new NpgsqlParameter("@LoginId", loginId ?? (object)DBNull.Value);
-                var resultParam = new NpgsqlParameter("@Result", SqlDbType.BigInt)
-                {
-                    Direction = ParameterDirection.Output
-                };
+                await using var conn = _context.Database.GetDbConnection();
+                  await conn.OpenAsync();
 
-                string sqlQuery = "EXEC AxionPro.ValidateActiveUserLoginOnly @LoginId, @Result OUTPUT";
+                await using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT axionpro.\"ValidateActiveUserLoginOnly\"(@p_loginid)";
+                cmd.Parameters.Add(new NpgsqlParameter("p_loginid", loginId ?? (object)DBNull.Value));
 
-                await context.Database.ExecuteSqlRawAsync(sqlQuery, loginParam, resultParam);
-
-                return (long)resultParam.Value;  // Output Parameter से Result Return करें
-            }
-            catch (NpgsqlException ex)
-            {
-                _logger.LogError(ex, "SQL Exception occurred while validating user login for LoginId: {LoginId}", loginId);
-                return -1;  // Error Case
+                var resultObj = await cmd.ExecuteScalarAsync();
+                await conn.CloseAsync();
+                return Convert.ToInt64(resultObj);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while validating user login for LoginId: {LoginId}", loginId);
-                return -1;  // Error Case
+                _logger.LogError(ex, "Error validating login for LoginId {LoginId}", loginId);
+                return -1;
             }
         }
+
+        //public async Task<long> ValidateActiveUserLoginOnlyAsync(string loginId)
+        //{
+        //    try
+        //    {
+        //        await using var context = await _contextFactory.CreateDbContextAsync();
+
+        //        _logger.LogInformation("Validating user login for LoginId: {LoginId}", loginId);
+
+        //        await using var conn = context.Database.GetDbConnection();
+        //        await conn.OpenAsync();
+
+        //        await using var cmd = conn.CreateCommand();
+        //        cmd.CommandText = "SELECT axionpro.\"validateactiveuserloginonly\"(@p_loginId)";
+        //        cmd.Parameters.Add(new NpgsqlParameter("p_loginId", loginId ?? (object)DBNull.Value));
+
+        //        var resultObj = await cmd.ExecuteScalarAsync();
+
+        //        long result = Convert.ToInt64(resultObj);
+        //        return result;
+        //    }
+        //    catch (NpgsqlException ex)
+        //    {
+        //        _logger.LogError(ex, "SQL Exception occurred while validating user login for LoginId: {LoginId}", loginId);
+        //        return -1;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "An error occurred while validating user login for LoginId: {LoginId}", loginId);
+        //        return -1;
+        //    }
+        //}
+
+        //public async Task<long> ValidateActiveUserLoginOnlyAsync(string loginId)
+        //{
+        //    try
+        //    {
+
+        //        await using var context = await _contextFactory.CreateDbContextAsync();
+
+        //        _logger.LogInformation("Validating user login for LoginId: {LoginId}", loginId);
+
+        //        var loginParam = new NpgsqlParameter("p_loginId", loginId ?? (object)DBNull.Value);
+        //        //var resultParam = new NpgsqlParameter("@Result", SqlDbType.BigInt)
+        //        //{
+        //        //    Direction = ParameterDirection.Output
+        //        //};
+        //        _logger.LogInformation("Passed param: {Param}", loginParam.Value);
+
+        //        string sqlQuery = "SELECT axionpro.\"validateactiveuserloginonly\"(@p_loginId) ";
+        //        //long result = await context
+        //        //    .Database
+        //        //    .SqlQueryRaw<long>(sqlQuery, loginParam)
+        //        //    .FirstAsync();
+        //        var result = await context
+        //    .Set<ScalarLong>()
+        //    .FromSqlRaw(sqlQuery, loginParam)
+        //    .Select(x => x.Value)
+        //    .FirstAsync();
+        //        //await context.Database.ExecuteSqlRawAsync(sqlQuery, loginParam, resultParam);
+        //        // return (long)resultParam.Value;  // Output Parameter से Result Return करें
+        //        return result;
+        //    }
+        //    catch (NpgsqlException ex)
+        //    {
+        //        _logger.LogError(ex, "SQL Exception occurred while validating user login for LoginId: {LoginId}", loginId);
+        //        return -1;  // Error Case
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "An error occurred while validating user login for LoginId: {LoginId}", loginId);
+        //        return -1;  // Error Case
+        //    }
+        //}
 
 
         public async Task<EmployeeCountResponseStatsSp?> GetEmployeeCountsAsync(long tenantId)
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
+              //  await using var context = await _contextFactory.CreateDbContextAsync();
 
                 _logger.LogInformation(
                     "Fetching employee count statistics. TenantId: {TenantId}",
@@ -310,7 +376,7 @@ namespace axionpro.persistance.Repositories
                 var sql = @"EXEC AxionPro.AllEmployeeCountData @TenantId";
                 var tenantParam = new NpgsqlParameter("@TenantId", tenantId);
 
-                var result = context.EmployeeCountResponseStatsSps
+                var result = _context.EmployeeCountResponseStatsSps
                     .FromSqlRaw(sql, tenantParam)
                     .AsNoTracking()
                     .AsEnumerable()     // 🔑 MOST IMPORTANT LINE
@@ -342,7 +408,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
+              //  await using var context = await _contextFactory.CreateDbContextAsync();
 
                 _logger.LogInformation(
                     "Fetching Employee Identity records. EmployeeId: {EmployeeId}, CountryId: {CountryId}",
@@ -360,7 +426,7 @@ namespace axionpro.persistance.Repositories
             new NpgsqlParameter("@IsActive", isActive)
                 };
 
-                var result = await context.GetEmployeeIdentitySps
+                var result = await _context.GetEmployeeIdentitySps
                     .FromSqlRaw(sql, parameters)
                     .AsNoTracking()
                     .ToListAsync();
@@ -387,7 +453,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
+             //   await using var context = await _contextFactory.CreateDbContextAsync();
                 _logger.LogInformation("Validating user login for LoginId: {LoginId}", loginId);
 
                 var loginParam = new NpgsqlParameter("@LoginId", loginId ?? (object)DBNull.Value);
@@ -398,7 +464,7 @@ namespace axionpro.persistance.Repositories
 
                 string sqlQuery = "EXEC AxionPro.ValidateActiveUserCrendentialOnly @LoginId, @Result OUTPUT";
 
-                await context.Database.ExecuteSqlRawAsync(sqlQuery, loginParam, resultParam);
+                await _context.Database.ExecuteSqlRawAsync(sqlQuery, loginParam, resultParam);
 
                 return (long)resultParam.Value;  // Output Parameter से Result Return करें
             }
@@ -420,7 +486,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
+             //   await using var context = await _contextFactory.CreateDbContextAsync();
 
                 // SQL query calling the stored procedure and returning the result
                 string sqlQuery = @"EXEC AxionPro.CheckPermission 
@@ -436,7 +502,7 @@ namespace axionpro.persistance.Repositories
         };
 
                 // Executing the stored procedure and getting the result (BIT value)
-                var result = await context.Database.SqlQueryRaw<bool>(sqlQuery, parameters).ToListAsync();
+                var result = await _context.Database.SqlQueryRaw<bool>(sqlQuery, parameters).ToListAsync();
 
                 // If result is 1 (HasAccess), return true, otherwise false
                 if (result != null && result.Count > 0)
@@ -474,7 +540,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
+              //  await using var context = await _contextFactory.CreateDbContextAsync();
 
                 _logger.LogInformation("Get new Module Operations from ModuleOperation: {TenantId}", request.TenantId);
 
@@ -483,7 +549,7 @@ namespace axionpro.persistance.Repositories
                 // SQL query (no need for output param, as your procedure returns scalar)
                 string sqlQuery = "DECLARE @Result INT; EXEC @Result = AxionPro.UpdateTenantEnabledOperationFromModuleOperation @TenantId; SELECT @Result";
 
-                var result = await context.Database.ExecuteSqlRawAsync(sqlQuery, tenantIdParam);
+                var result = await _context.Database.ExecuteSqlRawAsync(sqlQuery, tenantIdParam);
 
                 return new UpdateTenantEnabledOperationFromModuleOperationResponseDTO
                 {
@@ -514,11 +580,11 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
+             //   await using var context = await _contextFactory.CreateDbContextAsync();
 
                 var tenantIdParam = new NpgsqlParameter("@TenantId", request.TenantId);
 
-                var flatList = await context.TenantModulesConfigurations
+                var flatList = await _context.TenantModulesConfigurations
                     .FromSqlRaw("EXEC AxionPro.GetTenantModuleOperationalConfigData @TenantId", tenantIdParam)
                     .ToListAsync();
 
@@ -617,3 +683,4 @@ namespace axionpro.persistance.Repositories
 
     }
 }
+ 

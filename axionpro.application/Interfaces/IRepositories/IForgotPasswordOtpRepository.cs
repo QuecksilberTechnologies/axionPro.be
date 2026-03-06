@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
  // ← jahan ForgotPasswordOtp entity rakhi hai
 
 namespace axionpro.application.Interfaces.IRepositories

@@ -7,16 +7,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
     public class TenantEmailConfigRepository : ITenantEmailConfigRepository
     {
-        private readonly WorkforcedbContext _context;
+        private readonly WorkforceDbContext _context;
         private readonly ILogger<TenantEmailConfigRepository> _logger;
 
-        public TenantEmailConfigRepository(WorkforcedbContext context, ILogger<TenantEmailConfigRepository> logger)
+        public TenantEmailConfigRepository(WorkforceDbContext context, ILogger<TenantEmailConfigRepository> logger)
         {
             _context = context;
             _logger = logger;

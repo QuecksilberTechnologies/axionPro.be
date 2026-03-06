@@ -1,29 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
 
+namespace axionpro.domain.Entity;
 
-
-public partial class Identitycategorydocument
+public partial class IdentityCategoryDocument
 {
     public int Id { get; set; }
 
-    public int Identitycategoryid { get; set; }
+    public int IdentityCategoryId { get; set; }
 
-    public string? Code { get; set; }
+    public string Code { get; set; } = null!;
 
-    public string? Documentname { get; set; }
+    public string DocumentName { get; set; } = null!;
 
     public string? Description { get; set; }
 
-    public bool Isunique { get; set; }
+    public bool IsUnique { get; set; }
 
-    public bool Isactive { get; set; }
+    public bool IsActive { get; set; }
 
-    public long? Addedbyid { get; set; }
+    public long? AddedById { get; set; }
 
-    public long? Updatedbyid { get; set; }
+    public long? UpdatedById { get; set; }
 
-    public DateTime Addeddatetime { get; set; }
+    public DateTime AddedDateTime { get; set; }
 
-    public DateTime? Updateddatetime { get; set; }
+    public DateTime? UpdatedDateTime { get; set; }
+
+    public virtual ICollection<CountryIdentityRule> CountryIdentityRules { get; set; } = new List<CountryIdentityRule>();
+
+    public virtual ICollection<EmployeeIdentity> EmployeeIdentities { get; set; } = new List<EmployeeIdentity>();
+
+    public virtual IdentityCategory IdentityCategory { get; set; } = null!;
 }

@@ -8,8 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
-using MediatR;
+using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Features.TicketFeatures.TicketHeader.Handlers
 {

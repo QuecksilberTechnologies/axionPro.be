@@ -7,18 +7,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
     public class ClientRepository : IClientRepository
     {
         private ILogger _logger;
-        private WorkforcedbContext _context;
+        private WorkforceDbContext _context;
         private ILogger<ClientRepository> logger;
 
 
-        public ClientRepository(WorkforcedbContext context, ILogger<ClientRepository> logger)
+        public ClientRepository(WorkforceDbContext context, ILogger<ClientRepository> logger)
         {
             this._context = context;
             this._logger = logger;

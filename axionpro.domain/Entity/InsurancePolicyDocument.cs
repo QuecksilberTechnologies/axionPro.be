@@ -1,39 +1,42 @@
 ﻿using System;
 using System.Collections.Generic;
 
+namespace axionpro.domain.Entity;
 
-
-public partial class Insurancepolicydocument
+public partial class InsurancePolicyDocument
 {
     public long Id { get; set; }
 
-    public long Tenantid { get; set; }
+    public long TenantId { get; set; }
 
-    public int Insurancepolicyid { get; set; }
+    public int InsurancePolicyId { get; set; }
 
-    public string? Filename { get; set; }
+    public string FileName { get; set; } = null!;
 
-    public string? Filepath { get; set; }
+    public string FilePath { get; set; } = null!;
 
-    public int Filetype { get; set; }
+    public int FileType { get; set; }
 
-    public string? Languagecode { get; set; }
+    public string LanguageCode { get; set; } = null!;
 
-    public string? Documenttype { get; set; }
+    public string DocumentType { get; set; } = null!;
 
-    public bool Isactive { get; set; }
+    public bool IsActive { get; set; }
 
-    public bool Issoftdeleted { get; set; }
+    public bool IsSoftDeleted { get; set; }
 
-    public long Addedbyid { get; set; }
+    public long? AddedById { get; set; }
 
-    public DateTime Addeddatetime { get; set; }
+    public DateTime AddedDateTime { get; set; }
 
-    public long? Updatedbyid { get; set; }
+    public long? UpdatedById { get; set; }
 
-    public DateTime? Updateddatetime { get; set; }
+    public DateTime? UpdatedDateTime { get; set; }
 
-    public long? Softdeletedbyid { get; set; }
+    public long? SoftDeletedById { get; set; }
 
-    public DateTime? Softdeleteddatetime { get; set; }
-}
+    public DateTime? SoftDeletedDateTime { get; set; }
+
+    public virtual InsurancePolicy InsurancePolicy { get; set; } = null!;
+ 
+}  

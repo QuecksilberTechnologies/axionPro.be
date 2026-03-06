@@ -1,23 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 
+namespace axionpro.domain.Entity;
 
-
-public partial class Reportingtype
+public partial class ReportingType
 {
     public int Id { get; set; }
 
-    public string? Typename { get; set; }
+    public string TypeName { get; set; } = null!;
 
     public string? Description { get; set; }
 
-    public bool Isactive { get; set; }
+    public bool IsActive { get; set; }
 
-    public long? Addedbyid { get; set; }
+    public long? AddedById { get; set; }
 
-    public DateTime? Addeddatetime { get; set; }
+    public DateTime? AddedDateTime { get; set; }
 
-    public long? Updatedbyid { get; set; }
+    public long? UpdatedById { get; set; }
 
-    public DateTime? Updateddatetime { get; set; }
+    public DateTime? UpdatedDateTime { get; set; }
+
+    public virtual ICollection<EmployeeManagerMapping> EmployeeManagerMappings { get; set; } = new List<EmployeeManagerMapping>();
 }

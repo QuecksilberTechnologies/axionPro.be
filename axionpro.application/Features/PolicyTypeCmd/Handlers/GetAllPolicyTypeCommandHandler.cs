@@ -2,7 +2,7 @@
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
-using MediatR;
+using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Features.PolicyTypeCmd.Handlers
 {

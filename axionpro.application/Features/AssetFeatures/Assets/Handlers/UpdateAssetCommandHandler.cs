@@ -6,13 +6,15 @@ using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
-using MediatR;
+using axionpro.domain.Entity; using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Threading;
-using System.Threading.Tasks;
+using System.Threading.Tasks; 
+using axionpro.domain.Entity; using MediatR;
+
 
 namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
 {

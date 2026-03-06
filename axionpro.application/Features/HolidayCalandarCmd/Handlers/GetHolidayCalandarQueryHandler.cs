@@ -4,7 +4,7 @@ using axionpro.application.Features.HolidayCalandarCmd.Queries;
 using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
 
-using MediatR;
+using axionpro.domain.Entity; using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.HolidayCalandarCmd.Handlers

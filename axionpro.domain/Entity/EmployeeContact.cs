@@ -1,67 +1,67 @@
 ﻿using System;
 using System.Collections.Generic;
 
+namespace axionpro.domain.Entity;
 
-
-public partial class Employeecontact
+public partial class EmployeeContact
 {
     public long Id { get; set; }
 
-    public long Employeeid { get; set; }
+    public long EmployeeId { get; set; }
 
-    public int? Contacttype { get; set; }
+    public int? ContactType { get; set; }
 
-    public int? Relation { get; set; }
+    public string? ContactNumber { get; set; } 
 
-    public string? Contactname { get; set; }
-
-    public string? Contactnumber { get; set; }
-
-    public string? Alternatenumber { get; set; }
+    public string? AlternateNumber { get; set; }
 
     public string? Email { get; set; }
 
-    public bool? Isprimary { get; set; }
+    public bool IsPrimary { get; set; }
 
-    public int? Countryid { get; set; }
+    public int? CountryId { get; set; }
+    public int? Relation { get; set; }
 
-    public int? Stateid { get; set; }
+    public int? StateId { get; set; }
 
-    public int? Districtid { get; set; }
+    public int? DistrictId { get; set; }
+    public string? ContactName { get; set; }
 
-    public string? Houseno { get; set; }
+    public string? HouseNo { get; set; }
 
-    public string? Landmark { get; set; }
+    public string? LandMark { get; set; }
 
-    public string? Street { get; set; }
+    public string? Street { get; set; }  
 
     public string? Address { get; set; }
 
     public string? Remark { get; set; }
 
-    public bool? Isactive { get; set; }
+    public bool? IsActive { get; set; }
 
-    public bool? Issoftdeleted { get; set; }
+    public bool? IsSoftDeleted { get; set; }
 
-    public long Addedbyid { get; set; }
+    public long AddedById { get; set; }
 
-    public DateTime Addeddatetime { get; set; }
+    public DateTime AddedDateTime { get; set; }
 
-    public long? Updatedbyid { get; set; }
+    public long? UpdatedById { get; set; }
 
-    public DateTime? Updateddatetime { get; set; }
+    public DateTime? UpdatedDateTime { get; set; }
 
-    public long? Softdeletedbyid { get; set; }
+    public long? SoftDeletedById { get; set; }
 
-    public DateTime? Deleteddatetime { get; set; }
+    public DateTime? DeletedDateTime { get; set; }
+    
+    public bool? IsEditAllowed { get; set; }
 
-    public bool? Iseditallowed { get; set; }
+    public bool? IsInfoVerified { get; set; }
 
-    public bool? Isinfoverified { get; set; }
+    public long? InfoVerifiedById { get; set; }
 
-    public long? Infoverifiedbyid { get; set; }
-
-    public DateTime? Infoverifieddatetime { get; set; }
+    public DateTime? InfoVerifiedDateTime { get; set; }
 
     public string? Description { get; set; }
+
+    public virtual Employee Employee { get; set; } = null!;
 }

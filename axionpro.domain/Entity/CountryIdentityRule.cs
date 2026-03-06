@@ -1,25 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 
+namespace axionpro.domain.Entity;
 
-
-public partial class Countryidentityrule
+public partial class CountryIdentityRule
 {
     public int Id { get; set; }
 
-    public int Countryid { get; set; }
+    public int CountryId { get; set; }
 
-    public int Identitycategorydocumentid { get; set; }
+    public int IdentityCategoryDocumentId { get; set; }
 
-    public bool Ismandatory { get; set; }
+    public bool IsMandatory { get; set; }
 
-    public bool Isactive { get; set; }
+    public bool IsActive { get; set; }
 
-    public long? Addedbyid { get; set; }
+    public long? AddedById { get; set; }
 
-    public long? Updatedbyid { get; set; }
+    public long? UpdatedById { get; set; }
 
-    public DateTime Addeddatetime { get; set; }
+    public DateTime AddedDateTime { get; set; }
 
-    public DateTime? Updateddatetime { get; set; }
+    public DateTime? UpdatedDateTime { get; set; }
+
+    public virtual Country Country { get; set; } = null!;
+
+    public virtual IdentityCategoryDocument IdentityCategoryDocument { get; set; } = null!;
 }

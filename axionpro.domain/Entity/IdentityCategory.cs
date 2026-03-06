@@ -1,25 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 
+namespace axionpro.domain.Entity;
 
-
-public partial class Identitycategory
+public partial class IdentityCategory
 {
     public int Id { get; set; }
 
-    public string? Code { get; set; }
+    public string Code { get; set; } = null!;
 
-    public string? Name { get; set; }
+    public string Name { get; set; } = null!;
 
     public string? Description { get; set; }
 
-    public bool Isactive { get; set; }
+    public bool IsActive { get; set; }
 
-    public long? Addedbyid { get; set; }
+    public long? AddedById { get; set; }
 
-    public long? Updatedbyid { get; set; }
+    public long? UpdatedById { get; set; }
 
-    public DateTime Addeddatetime { get; set; }
+    public DateTime AddedDateTime { get; set; }
 
-    public DateTime? Updateddatetime { get; set; }
+    public DateTime? UpdatedDateTime { get; set; }
+
+    public virtual ICollection<IdentityCategoryDocument> IdentityCategoryDocuments { get; set; } = new List<IdentityCategoryDocument>();
 }

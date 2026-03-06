@@ -7,16 +7,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using axionpro.domain.Entity;
+
+
 
 namespace axionpro.persistance.Repositories
 {
     public class HolidayCalandarRepository : IHolidayCalandarRepository
     {
-        private readonly WorkforcedbContext _context;
+        private readonly WorkforceDbContext _context;
         private readonly ILogger<HolidayCalandarRepository> _logger;
 
-        public HolidayCalandarRepository(WorkforcedbContext context, ILogger<HolidayCalandarRepository> logger)
+        public HolidayCalandarRepository(WorkforceDbContext context, ILogger<HolidayCalandarRepository> logger)
         {
             _context = context;
             _logger = logger;

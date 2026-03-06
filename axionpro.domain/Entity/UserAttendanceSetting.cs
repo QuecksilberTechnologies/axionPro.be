@@ -1,37 +1,43 @@
 ﻿using System;
 using System.Collections.Generic;
 
+namespace axionpro.domain.Entity;
 
-
-public partial class Userattendancesetting
+public partial class UserAttendanceSetting
 {
     public int Id { get; set; }
 
-    public long Employeeid { get; set; }
+    public long EmployeeId { get; set; }
 
-    public int Attendancedevicetypeid { get; set; }
+    public int AttendanceDeviceTypeId { get; set; }
 
-    public int Workstationtypeid { get; set; }
+    public int WorkstationTypeId { get; set; }
 
-    public bool Isallowed { get; set; }
+    public bool IsAllowed { get; set; }
 
     public string? Remark { get; set; }
 
-    public decimal? Geofencelatitude { get; set; }
+    public decimal? GeofenceLatitude { get; set; }
 
-    public decimal? Geofencelongitude { get; set; }
+    public decimal? GeofenceLongitude { get; set; }
 
-    public bool Isgeofenceenabled { get; set; }
+    public bool IsGeofenceEnabled { get; set; }
 
-    public bool Isactive { get; set; }
+    public bool IsActive { get; set; }
 
-    public long Addedbyid { get; set; }
+    public long AddedById { get; set; }
 
-    public DateTime Addeddatetime { get; set; }
+    public DateTime AddedDateTime { get; set; }
 
-    public long? Updatedbyid { get; set; }
+    public long? UpdatedById { get; set; }
 
-    public DateTime? Updateddatetime { get; set; }
+    public DateTime? UpdatedDateTime { get; set; }
 
-    public DateTime? Reportingtime { get; set; }
+    public DateTime? ReportingTime { get; set; }
+
+    public virtual AttendanceDeviceType AttendanceDeviceType { get; set; } = null!;
+
+    public virtual Employee Employee { get; set; } = null!;
+
+    public virtual WorkstationType WorkstationType { get; set; } = null!;
 }

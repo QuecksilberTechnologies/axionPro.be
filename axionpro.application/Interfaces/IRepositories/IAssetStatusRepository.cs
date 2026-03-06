@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 using axionpro.application.DTOS.AssetDTO.status;
 
 namespace axionpro.application.Interfaces.IRepositories
@@ -15,8 +15,8 @@ namespace axionpro.application.Interfaces.IRepositories
                 
         #region AssetStatus         
         Task<List<GetStatusResponseDTO>> GetAllAsync(GetStatusRequestDTO? assetStatus);        
-        Task<Assetstatus> GetByIdAsync(int?  id);        
-        Task<GetStatusResponseDTO>AddAsync(Assetstatus? assetStatus);
+        Task<AssetStatus> GetByIdAsync(int?  id);        
+        Task<GetStatusResponseDTO>AddAsync(AssetStatus? assetStatus);
         Task<bool> UpdateAsync(UpdateStatusRequestDTO assetStatus);
       
         Task<bool>DeleteAsync(DeleteStatusReqestDTO assetStatus);

@@ -12,24 +12,24 @@ using axionpro.persistance.Data.Context;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Data;
+using System.Data; using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories;
 
 public class RoleRepository : IRoleRepository
 {
 
-    private readonly WorkforcedbContext _context;
-    private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
+    private readonly WorkforceDbContext _context;
+    private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
     private readonly IMapper _mapper;
     private readonly ILogger<RoleRepository> _logger;
     private readonly IEncryptionService _encryptionService;
 
     public RoleRepository(
- WorkforcedbContext context,
+ WorkforceDbContext context,
  ILogger<RoleRepository> logger,
  IMapper mapper,
- IDbContextFactory<WorkforcedbContext> contextFactory,
+ IDbContextFactory<WorkforceDbContext> contextFactory,
  IEncryptionService encryptionService)
     {
         _context = context;

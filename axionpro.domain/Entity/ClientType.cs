@@ -1,17 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 
+namespace axionpro.domain.Entity;
 
-
-public partial class Clienttype
+public partial class ClientType
 {
     public int Id { get; set; }
 
-    public string? Typename { get; set; }
+    public string TypeName { get; set; } = null!;
 
-    public bool Isactive { get; set; }
+    public bool IsActive { get; set; }
 
     public string? Remark { get; set; }
 
     public string? Description { get; set; }
+
+    public virtual ICollection<Client> Clients { get; set; } = new List<Client>();
+
+    public virtual ICollection<Tender> Tenders { get; set; } = new List<Tender>();
 }

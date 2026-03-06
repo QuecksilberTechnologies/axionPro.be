@@ -1,0 +1,1198 @@
+CREATE OR REPLACE FUNCTION axionpro."AllEmployeeCountData"(
+    p_tenantid INT
+)
+RETURNS TABLE(
+    "TotalCount" BIGINT,
+    "ActiveCount" BIGINT,
+    "InActiveCount" BIGINT,
+    "OnLeaveCount" INT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        COUNT(*) AS "TotalCount",
+
+        COALESCE(SUM(
+            CASE 
+                WHEN "IsActive" = true THEN 1 
+                ELSE 0 
+            END
+        ),0) AS "ActiveCount",
+
+        COALESCE(SUM(
+            CASE 
+                WHEN "IsActive" = false THEN 1 
+                ELSE 0 
+            END
+        ),0) AS "InActiveCount",
+
+        10 AS "OnLeaveCount"
+
+    FROM axionpro."Employee"
+    WHERE COALESCE("IsSoftDeleted", false) = false
+      AND "TenantId" = p_tenantid;
+END;
+$$;
+
+
+
+
+CREATE OR REPLACE FUNCTION axionpro."CheckPermission"(
+    p_roleid varchar,
+    p_projectchildmoduledetailid int,
+    p_operationid int,
+    p_hasaccess boolean,
+    p_isactive boolean
+)
+RETURNS TABLE("HasAccess" boolean)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    Result boolean := false;
+BEGIN
+
+    -- Check permission for any role
+    IF EXISTS (
+        SELECT 1
+        FROM axionpro."RoleModuleAndPermission"
+        WHERE "RoleId" IN (
+            SELECT unnest(string_to_array(p_roleid, ','))::int
+        )
+        AND "ProjectChildModuleDetailId" = p_projectchildmoduledetailid
+        AND "OperationId" = p_operationid
+        AND "HasAccess" = p_hasaccess
+        AND "IsActive" = p_isactive
+    ) THEN
+        Result := true;
+    END IF;
+
+    RETURN QUERY SELECT Result;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN QUERY SELECT false;
+
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION axionpro."GetActiveRoleModuleOperations"(
+    p_tenantid INT,
+    p_roleids TEXT
+)
+RETURNS TABLE(
+    "RoleId" INT,
+    "TenantId" INT,
+    "ModuleId" INT,
+    "ModuleName" TEXT,
+    "URLPath" TEXT,
+    "DisplayName" TEXT,
+    "ImageIconWeb" TEXT,
+    "ImageIconMobile" TEXT,
+    "ParentModuleId" INT,
+    "SubModuleName" TEXT,
+    "MainModuleId" INT,
+    "MainModuleName" TEXT,
+    "OperationId" INT,
+    "OperationName" TEXT,
+    "DataViewStructureId" INT,
+    "DisplayOn" TEXT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+
+RETURN QUERY
+
+WITH "RoleIdTable" AS (
+    SELECT CAST(value AS INT) AS "RoleId"
+    FROM unnest(string_to_array(p_roleids, ',')) AS value
+    WHERE value ~ '^[0-9]+$'
+)
+
+SELECT
+    rep."RoleId",
+    COALESCE(tem."TenantId", p_tenantid) AS "TenantId",
+
+    m."Id" AS "ModuleId",
+    m."ModuleName",
+    COALESCE(m."URLPath",'') AS "URLPath",
+    m."DisplayName",
+    m."ImageIconWeb",
+    m."ImageIconMobile",
+    m."ParentModuleId",
+
+    COALESCE(sm."ModuleName",'') AS "SubModuleName",
+    COALESCE(mm."Id",0) AS "MainModuleId",
+    COALESCE(mm."ModuleName",'') AS "MainModuleName",
+
+    rep."OperationId",
+    op."OperationName",
+
+    mom."DataViewStructureId",
+    COALESCE(dvs."DisplayOn",'') AS "DisplayOn"
+
+FROM axionpro."RoleModuleAndPermission" rep
+
+INNER JOIN "RoleIdTable" rid
+    ON rid."RoleId" = rep."RoleId"
+
+LEFT JOIN axionpro."TenantEnabledModule" tem
+    ON tem."TenantId" = p_tenantid
+    AND tem."ModuleId" = rep."ModuleId"
+    AND tem."IsEnabled" = true
+
+LEFT JOIN axionpro."Module" m
+    ON m."Id" = rep."ModuleId"
+    AND m."IsActive" = true
+
+LEFT JOIN axionpro."Module" sm
+    ON sm."Id" = m."ParentModuleId"
+    AND sm."IsActive" = true
+
+LEFT JOIN axionpro."Module" mm
+    ON mm."Id" = sm."ParentModuleId"
+    AND mm."IsActive" = true
+
+LEFT JOIN axionpro."Operation" op
+    ON op."Id" = rep."OperationId"
+    AND op."IsActive" = true
+
+LEFT JOIN axionpro."ModuleOperationMapping" mom
+    ON mom."ModuleId" = rep."ModuleId"
+    AND mom."OperationId" = rep."OperationId"
+    AND mom."IsActive" = true
+
+LEFT JOIN axionpro."DataViewStructure" dvs
+    ON dvs."Id" = mom."DataViewStructureId"
+
+WHERE rep."IsActive" = true
+  AND (rep."IsSoftDeleted" = false OR rep."IsSoftDeleted" IS NULL)
+  AND rep."HasAccess" = true
+
+ORDER BY
+    COALESCE(mm."Id",0),
+    COALESCE(sm."Id",0),
+    m."Id",
+    rep."OperationId";
+
+END;
+$$;
+
+
+
+
+CREATE OR REPLACE FUNCTION axionpro."GetCountryIdentityDocument"(
+    p_countryid INT
+)
+RETURNS TABLE(
+    "CountryCode" TEXT,
+    "CountryName" TEXT,
+    "IdentityCategoryName" TEXT,
+    "IdentityCategoryDocumentId" INT,
+    "DocumentName" TEXT,
+    "IsMandatory" BOOLEAN
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+
+RETURN QUERY
+SELECT
+    c."CountryCode",
+    c."CountryName",
+
+    ic."Name" AS "IdentityCategoryName",
+
+    icd."Id" AS "IdentityCategoryDocumentId",
+    icd."DocumentName",
+
+    cir."IsMandatory"
+
+FROM axionpro."CountryIdentityRule" cir
+
+JOIN axionpro."Country" c
+    ON c."Id" = cir."CountryId"
+   AND c."IsActive" = true
+
+JOIN axionpro."IdentityCategoryDocument" icd
+    ON icd."Id" = cir."IdentityCategoryDocumentId"
+   AND icd."IsActive" = true
+
+JOIN axionpro."IdentityCategory" ic
+    ON ic."Id" = icd."IdentityCategoryId"
+   AND ic."IsActive" = true
+
+WHERE cir."CountryId" = p_countryid
+  AND cir."IsActive" = true
+
+ORDER BY ic."Name", icd."DocumentName";
+
+END;
+$$;
+
+
+
+CREATE OR REPLACE FUNCTION axionpro."GetDetailsForPermission"(
+    p_tenantid BIGINT
+)
+RETURNS TABLE(
+    "ParentModuleId" INT,
+    "ModuleId" INT,
+    "ModuleName" TEXT,
+    "IsLeafNode" BOOLEAN,
+    "IsEnabled" BOOLEAN,
+    "OperationId" INT,
+    "OperationName" TEXT,
+    "IsOperationUsed" BOOLEAN,
+    "Level" INT,
+    "BreadCrum" TEXT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+
+RETURN QUERY
+
+WITH RECURSIVE
+
+-- Step 1
+"LeafModules" AS (
+    SELECT DISTINCT "ModuleId"
+    FROM axionpro."TenantEnabledOperation"
+    WHERE "TenantId" = p_tenantid
+),
+
+-- Step 2
+"AllModules" AS (
+    SELECT DISTINCT "ModuleId"
+    FROM axionpro."TenantEnabledModule"
+    WHERE "TenantId" = p_tenantid
+
+    UNION
+
+    SELECT "ModuleId"
+    FROM "LeafModules"
+),
+
+-- Step 3 Recursive Hierarchy
+"ModuleHierarchy" AS (
+
+    SELECT
+        m."Id" AS "ModuleId",
+        m."ParentModuleId",
+        0 AS "Level",
+        CAST(m."ModuleName" AS TEXT) AS "BreadCrum"
+    FROM axionpro."Module" m
+    INNER JOIN "AllModules" am ON m."Id" = am."ModuleId"
+    WHERE m."ParentModuleId" IS NULL
+
+    UNION ALL
+
+    SELECT
+        child."Id",
+        child."ParentModuleId",
+        parent."Level" + 1,
+        parent."BreadCrum" || ' > ' || child."ModuleName"
+    FROM axionpro."Module" child
+    INNER JOIN "ModuleHierarchy" parent
+        ON child."ParentModuleId" = parent."ModuleId"
+)
+
+SELECT
+    mh."ParentModuleId",
+    mh."ModuleId",
+    m."ModuleName",
+    m."IsLeafNode",
+    tem."IsEnabled",
+    teo."OperationId",
+    o."OperationName",
+    teo."IsOperationUsed",
+    mh."Level",
+    mh."BreadCrum"
+
+FROM "ModuleHierarchy" mh
+
+LEFT JOIN axionpro."Module" m
+    ON mh."ModuleId" = m."Id"
+
+LEFT JOIN axionpro."TenantEnabledModule" tem
+    ON mh."ModuleId" = tem."ModuleId"
+    AND tem."TenantId" = p_tenantid
+
+LEFT JOIN axionpro."TenantEnabledOperation" teo
+    ON mh."ModuleId" = teo."ModuleId"
+    AND teo."TenantId" = p_tenantid
+
+LEFT JOIN axionpro."Operation" o
+    ON teo."OperationId" = o."Id"
+
+ORDER BY mh."BreadCrum", teo."OperationId";
+
+END;
+$$;
+
+
+
+CREATE OR REPLACE FUNCTION axionpro."GetEmployeeCodePatternByTenant"(
+    p_tenantid BIGINT
+)
+RETURNS TABLE(
+    "Id" BIGINT,
+    "TenantId" BIGINT,
+    "Prefix" TEXT,
+    "IncludeYear" BOOLEAN,
+    "IncludeMonth" BOOLEAN,
+    "IncludeDepartment" BOOLEAN,
+    "Separator" TEXT,
+    "RunningNumberLength" INT,
+    "LastUsedNumber" BIGINT,
+    "IsActive" BOOLEAN,
+    "AddedById" BIGINT,
+    "AddedDateTime" TIMESTAMP,
+    "UpdatedById" BIGINT,
+    "UpdatedDateTime" TIMESTAMP
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+
+RETURN QUERY
+SELECT
+    ECP."Id",
+    ECP."TenantId",
+    ECP."Prefix",
+    ECP."IncludeYear",
+    ECP."IncludeMonth",
+    ECP."IncludeDepartment",
+    ECP."Separator",
+    ECP."RunningNumberLength",
+    ECP."LastUsedNumber",
+    ECP."IsActive",
+    ECP."AddedById",
+    ECP."AddedDateTime",
+    ECP."UpdatedById",
+    ECP."UpdatedDateTime"
+FROM axionpro."EmployeeCodePattern" ECP
+WHERE ECP."TenantId" = p_tenantid
+  AND ECP."IsActive" = true
+ORDER BY ECP."Id" DESC
+LIMIT 1;
+
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION axionpro."GetEmployeeIdentityByCountryRule"(
+    p_employeeid BIGINT,
+    p_countryid  INT,
+    p_isactive   BOOLEAN
+)
+RETURNS TABLE(
+    "Id" BIGINT,
+    "EmployeeId" BIGINT,
+    "CountryCode" TEXT,
+    "CountryName" TEXT,
+    "IdentityCategoryName" TEXT,
+    "IdentityCategoryDocumentId" INT,
+    "DocumentCode" TEXT,
+    "DocumentName" TEXT,
+    "Description" TEXT,
+    "IsMandatory" BOOLEAN,
+    "EmployeeIdentityId" BIGINT,
+    "IdentityValue" TEXT,
+    "DocumentFileName" TEXT,
+    "DocumentFilePath" TEXT,
+    "IsVerified" BOOLEAN,
+    "IsEditAllowed" BOOLEAN,
+    "HasIdentityUploaded" BOOLEAN,
+    "EffectiveFrom" DATE,
+    "EffectiveTo" DATE,
+    "IsActive" BOOLEAN
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+
+RETURN QUERY
+SELECT
+    ei."Id",
+    ei."EmployeeId",
+
+    c."CountryCode",
+    c."CountryName",
+
+    ic."Name" AS "IdentityCategoryName",
+
+    icd."Id"   AS "IdentityCategoryDocumentId",
+    icd."Code" AS "DocumentCode",
+    icd."DocumentName",
+    icd."Description",
+
+    cir."IsMandatory",
+
+    ei."Id" AS "EmployeeIdentityId",
+    ei."IdentityValue",
+
+    ei."DocumentFileName",
+    ei."DocumentFilePath",
+
+    ei."IsVerified",
+    ei."IsEditAllowed",
+    ei."HasIdentityUploaded",
+    ei."EffectiveFrom",
+    ei."EffectiveTo",
+    ei."IsActive"
+
+FROM axionpro."CountryIdentityRule" cir
+
+JOIN axionpro."Country" c
+    ON c."Id" = cir."CountryId"
+   AND c."IsActive" = true
+
+JOIN axionpro."IdentityCategoryDocument" icd
+    ON icd."Id" = cir."IdentityCategoryDocumentId"
+   AND icd."IsActive" = true
+
+JOIN axionpro."IdentityCategory" ic
+    ON ic."Id" = icd."IdentityCategoryId"
+   AND ic."IsActive" = true
+
+LEFT JOIN axionpro."EmployeeIdentity" ei
+    ON ei."IdentityCategoryDocumentId" = icd."Id"
+   AND ei."EmployeeId" = p_employeeid
+   AND ei."IsActive" = p_isactive
+   AND ei."IsSoftDeleted" = false
+   AND (ei."EffectiveTo" IS NULL
+        OR ei."EffectiveTo" >= CURRENT_DATE)
+
+WHERE cir."CountryId" = p_countryid
+  AND cir."IsActive" = true
+
+ORDER BY ic."Name", icd."DocumentName";
+
+END;
+$$;
+
+
+
+CREATE OR REPLACE FUNCTION axionpro."GetSubscribedModuleByTenantId"(
+    p_tenantid BIGINT
+)
+RETURNS TABLE(
+    "ModuleId" INT,
+    "ModuleName" TEXT,
+    "DisplayName" TEXT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+
+RETURN QUERY
+SELECT 
+    m."Id" AS "ModuleId",
+    m."ModuleName",
+    m."DisplayName"
+FROM axionpro."TenantEnabledModule" tem
+INNER JOIN axionpro."Module" m 
+    ON tem."ModuleId" = m."Id"
+WHERE tem."TenantId" = p_tenantid
+  AND tem."IsEnabled" = true
+  AND m."ParentModuleId" IS NULL;
+
+END;
+$$;
+
+
+
+CREATE OR REPLACE FUNCTION axionpro."GetTenantModuleHierarchyWithOps_MinRoot"(
+    p_tenantid BIGINT
+)
+RETURNS TABLE(
+    "ParentModuleId" BIGINT,
+    "ModuleId" BIGINT,
+    "ModuleName" TEXT,
+    "IsLeafNode" BOOLEAN,
+    "OperationId" INT,
+    "Operations" TEXT,
+    "IsOperationUsed" BOOLEAN,
+    "Level" INT,
+    "FullPath" TEXT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+
+RETURN QUERY
+
+WITH RECURSIVE
+
+-- 1) Smallest root
+"Root" AS (
+    SELECT tem."ModuleId"
+    FROM axionpro."TenantEnabledModule" tem
+    WHERE tem."TenantId" = p_tenantid
+      AND tem."ParentModuleId" IS NULL
+    ORDER BY tem."ModuleId" ASC
+    LIMIT 1
+),
+
+-- 2) Recursive hierarchy
+"ModuleHierarchy" AS (
+
+    -- Base (root)
+    SELECT
+        tem."ParentModuleId",
+        tem."ModuleId",
+        m."ModuleName",
+        tem."IsLeafNode",
+        CAST(m."ModuleName" AS TEXT) AS "FullPath",
+        0 AS "Level"
+    FROM axionpro."TenantEnabledModule" tem
+    JOIN "Root" r ON r."ModuleId" = tem."ModuleId"
+    JOIN axionpro."Module" m ON m."Id" = tem."ModuleId"
+    WHERE tem."TenantId" = p_tenantid
+
+    UNION ALL
+
+    -- Children
+    SELECT
+        child."ParentModuleId",
+        child."ModuleId",
+        m."ModuleName",
+        child."IsLeafNode",
+        h."FullPath" || ' > ' || m."ModuleName",
+        h."Level" + 1
+    FROM axionpro."TenantEnabledModule" child
+    JOIN axionpro."Module" m ON m."Id" = child."ModuleId"
+    JOIN "ModuleHierarchy" h ON h."ModuleId" = child."ParentModuleId"
+    WHERE child."TenantId" = p_tenantid
+)
+
+-- 3) Leaf modules operations
+SELECT
+    mh."ParentModuleId",
+    mh."ModuleId",
+    mh."ModuleName",
+    mh."IsLeafNode",
+    teo."OperationId",
+    op."OperationName" AS "Operations",
+    teo."IsOperationUsed",
+    mh."Level",
+    CASE
+        WHEN mh."IsLeafNode" = true AND teo."OperationId" IS NOT NULL
+            THEN mh."FullPath" || '/' || op."OperationName"
+        ELSE mh."FullPath"
+    END AS "FullPath"
+
+FROM "ModuleHierarchy" mh
+
+LEFT JOIN axionpro."TenantEnabledOperation" teo
+    ON teo."TenantId" = p_tenantid
+   AND teo."ModuleId" = mh."ModuleId"
+
+LEFT JOIN axionpro."Operation" op
+    ON op."Id" = teo."OperationId"
+
+ORDER BY mh."FullPath", op."OperationName";
+
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION axionpro."TenantModuleOperationConfigurationData"(
+    p_tenantid BIGINT
+)
+RETURNS TABLE(
+    "ParentModuleId" INT,
+    "ModuleId" INT,
+    "ModuleName" TEXT,
+    "IsLeafNode" BOOLEAN,
+    "IsEnabled" BOOLEAN,
+    "OperationId" INT,
+    "OperationName" TEXT,
+    "IsOperationUsed" BOOLEAN,
+    "Level" INT,
+    "BreadCrum" TEXT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+
+RETURN QUERY
+
+WITH RECURSIVE
+
+-- Step 1
+"LeafModules" AS (
+    SELECT DISTINCT "ModuleId"
+    FROM axionpro."TenantEnabledOperation"
+    WHERE "TenantId" = p_tenantid
+),
+
+-- Step 2
+"AllModules" AS (
+    SELECT DISTINCT "ModuleId"
+    FROM axionpro."TenantEnabledModule"
+    WHERE "TenantId" = p_tenantid
+
+    UNION
+
+    SELECT "ModuleId"
+    FROM "LeafModules"
+),
+
+-- Step 3 Recursive hierarchy
+"ModuleHierarchy" AS (
+
+    SELECT
+        m."Id" AS "ModuleId",
+        m."ParentModuleId",
+        0 AS "Level",
+        CAST(m."ModuleName" AS TEXT) AS "BreadCrum"
+    FROM axionpro."Module" m
+    INNER JOIN "AllModules" am ON m."Id" = am."ModuleId"
+    WHERE m."ParentModuleId" IS NULL
+
+    UNION ALL
+
+    SELECT
+        child."Id",
+        child."ParentModuleId",
+        parent."Level" + 1,
+        parent."BreadCrum" || ' > ' || child."ModuleName"
+    FROM axionpro."Module" child
+    INNER JOIN "ModuleHierarchy" parent
+        ON child."ParentModuleId" = parent."ModuleId"
+)
+
+SELECT
+    mh."ParentModuleId",
+    mh."ModuleId",
+    m."ModuleName",
+    m."IsLeafNode",
+    tem."IsEnabled",
+    teo."OperationId",
+    o."OperationName",
+    teo."IsOperationUsed",
+    mh."Level",
+    mh."BreadCrum"
+
+FROM "ModuleHierarchy" mh
+
+LEFT JOIN axionpro."Module" m
+    ON mh."ModuleId" = m."Id"
+
+LEFT JOIN axionpro."TenantEnabledModule" tem
+    ON mh."ModuleId" = tem."ModuleId"
+   AND tem."TenantId" = p_tenantid
+
+LEFT JOIN axionpro."TenantEnabledOperation" teo
+    ON mh."ModuleId" = teo."ModuleId"
+   AND teo."TenantId" = p_tenantid
+
+LEFT JOIN axionpro."Operation" o
+    ON teo."OperationId" = o."Id"
+
+ORDER BY mh."BreadCrum", teo."OperationId";
+
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION axionpro."InsertOrUpdateRefreshToken"(
+    p_loginid TEXT,
+    p_token TEXT,
+    p_expirydate TIMESTAMP,
+    p_createdbyip TEXT
+)
+RETURNS TABLE(
+    "Status" INT,
+    "ErrorMessage" TEXT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+
+    BEGIN
+        -- Check if RefreshToken exists
+        IF EXISTS (
+            SELECT 1
+            FROM axionpro."RefreshToken"
+            WHERE "LoginId" = p_loginid
+        ) THEN
+
+            -- Update existing token
+            UPDATE axionpro."RefreshToken"
+            SET
+                "Token" = p_token,
+                "ExpiryDate" = p_expirydate,
+                "CreatedAt" = CURRENT_TIMESTAMP,
+                "CreatedByIp" = p_createdbyip,
+                "IsRevoked" = false
+            WHERE "LoginId" = p_loginid;
+
+        ELSE
+
+            -- Insert new token
+            INSERT INTO axionpro."RefreshToken"
+            (
+                "LoginId",
+                "Token",
+                "ExpiryDate",
+                "CreatedAt",
+                "CreatedByIp",
+                "IsRevoked"
+            )
+            VALUES
+            (
+                "LoginId",
+                "Token",
+                "ExpiryDate",
+                CURRENT_TIMESTAMP,
+                "CreatedByIp",
+                false
+            );
+
+        END IF;
+
+        -- success
+        RETURN QUERY SELECT 1, NULL::TEXT;
+
+    EXCEPTION WHEN OTHERS THEN
+
+        -- log error
+        INSERT INTO axionpro."ErrorLogs"
+        (
+            "ErrorMessage",
+            "ErrorDateTime",
+            "ProcedureName"
+        )
+        VALUES
+        (
+            SQLERRM,
+            CURRENT_TIMESTAMP,
+            'AxionPro.InsertOrUpdateRefreshToken'
+        );
+
+        RETURN QUERY SELECT 0, SQLERRM;
+
+    END;
+
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION axionpro."SyncNewOperationsForExistingModules"()
+RETURNS TABLE(
+    "OperationsInserted" INT,
+    "StatusMessage" TEXT
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    OperationsInserted INT := 0;
+BEGIN
+
+    -- Insert missing operations
+    INSERT INTO axionpro."TenantEnabledOperation"
+    (
+        "TenantId",
+        "ModuleId",
+        "OperationId",
+        "IsEnabled",
+        "AddedById",
+        "AddedDateTime"
+    )
+    SELECT
+        TEM."TenantId",
+        MOM."ModuleId",
+        MOM."OperationId",
+        false,
+        TEM."TenantId",
+        CURRENT_TIMESTAMP
+    FROM axionpro."TenantEnabledModule" TEM
+    INNER JOIN axionpro."ModuleOperationMapping" MOM
+        ON TEM."ModuleId" = MOM."ModuleId"
+       AND MOM."IsActive" = true
+    INNER JOIN axionpro."Operation" OP
+        ON OP."Id" = MOM."OperationId"
+       AND OP."IsActive" = true
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM axionpro."TenantEnabledOperation" TEO
+        WHERE TEO."TenantId" = TEM."TenantId"
+          AND TEO."ModuleId" = MOM."ModuleId"
+          AND TEO."OperationId" = MOM."OperationId"
+    );
+
+    -- get number of rows inserted
+    GET DIAGNOSTICS OperationsInserted = ROW_COUNT;
+
+    RETURN QUERY
+    SELECT
+        OperationsInserted,
+        CASE
+            WHEN OperationsInserted = 0
+                THEN 'No new operations inserted (already up-to-date)'
+            ELSE 'New operations added for existing modules across tenants successfully'
+        END;
+
+END;
+$$;
+
+
+
+CREATE OR REPLACE FUNCTION axionpro."SyncTenantModulesAndOperations"()
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    TenantId BIGINT;
+    PlanId INT;
+    ModulesInserted INT;
+    OperationsInserted INT;
+BEGIN
+
+FOR TenantId IN
+    SELECT TS."TenantId"
+    FROM axionpro."TenantSubscription" TS
+    WHERE TS."IsActive" = true
+      AND (TS."SubscriptionEndDate" IS NULL 
+           OR TS."SubscriptionEndDate"::date >= CURRENT_DATE)
+LOOP
+
+    SELECT TS."SubscriptionPlanId"
+    INTO PlanId
+    FROM axionpro."TenantSubscription" TS
+    WHERE TS."TenantId" = TenantId
+      AND TS."IsActive" = true
+    LIMIT 1;
+
+    IF PlanId IS NOT NULL THEN
+
+        ModulesInserted := 0;
+        OperationsInserted := 0;
+
+        CREATE TEMP TABLE tmp_new_modules(
+            "ModuleId" BIGINT
+        ) ON COMMIT DROP;
+
+        -- Step 1 Insert missing modules and capture inserted ids
+        WITH ins AS (
+            INSERT INTO axionpro."TenantEnabledModule"
+            (
+                "TenantId",
+                "ModuleId",
+                "ParentModuleId",
+                "IsLeafNode",
+                "IsEnabled",
+                "AddedById",
+                "AddedDateTime"
+            )
+            SELECT
+                TenantId,
+                PMM."ModuleId",
+                M."ParentModuleId",
+                M."IsLeafNode",
+                false,
+                TenantId,
+                CURRENT_TIMESTAMP
+            FROM axionpro."PlanModuleMapping" PMM
+            INNER JOIN axionpro."Module" M
+                ON M."Id" = PMM."ModuleId"
+            WHERE PMM."SubscriptionPlanId" = PlanId
+              AND PMM."IsActive" = true
+              AND NOT EXISTS (
+                    SELECT 1
+                    FROM axionpro."TenantEnabledModule" TEM
+                    WHERE TEM."TenantId" = TenantId
+                      AND TEM."ModuleId" = PMM."ModuleId"
+              )
+            RETURNING "ModuleId"
+        )
+        INSERT INTO tmp_new_modules("ModuleId")
+        SELECT "ModuleId" FROM ins;
+
+        -- ModulesInserted will reflect how many rows were inserted into tmp_new_modules
+        GET DIAGNOSTICS ModulesInserted = ROW_COUNT;
+
+        -- Step 3 Sync operations
+        INSERT INTO axionpro."TenantEnabledOperation"
+        (
+            "TenantId",
+            "ModuleId",
+            "OperationId",
+            "IsEnabled",
+            "AddedById",
+            "AddedDateTime"
+        )
+        SELECT
+            TenantId,
+            MOM."ModuleId",
+            MOM."OperationId",
+            false,
+            TenantId,
+            CURRENT_TIMESTAMP
+        FROM tmp_new_modules NM
+        INNER JOIN axionpro."ModuleOperationMapping" MOM
+            ON MOM."ModuleId" = NM."ModuleId"
+           AND MOM."IsActive" = true
+        INNER JOIN axionpro."Operation" OP
+            ON OP."Id" = MOM."OperationId"
+           AND OP."IsActive" = true
+        ON CONFLICT DO NOTHING;
+
+        GET DIAGNOSTICS OperationsInserted = ROW_COUNT;
+
+        RAISE NOTICE 'TenantId: %, Modules: %, Operations: %',
+                     TenantId, ModulesInserted, OperationsInserted;
+
+    END IF;
+
+END LOOP;
+
+RAISE NOTICE 'All active tenants synced successfully.';
+
+END;
+$$;
+
+
+
+
+CREATE OR REPLACE FUNCTION axionpro."UpdateLoginCredential"(
+    p_loginid TEXT,
+    p_latitude TEXT,
+    p_longitude TEXT,
+    p_logindevice INT,
+    p_ipaddresslocal TEXT,
+    p_ipaddresspublic TEXT,
+    p_macaddress TEXT
+)
+RETURNS TABLE(
+    "Status" INT,
+    "ErrorMessage" TEXT
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    RowsAffected INT;
+BEGIN
+    BEGIN
+
+        UPDATE axionpro."LoginCredential"
+        SET
+            "Latitude" = p_latitude,
+            "Longitude" = p_longitude,
+            "LoginDevice" = p_logindevice,
+            "IpAddressLocal" = p_ipaddresslocal,
+            "IpAddressPublic" = p_ipaddresspublic,
+            "MacAddress" = p_macaddress
+        WHERE "LoginId" = p_loginid;
+
+        GET DIAGNOSTICS RowsAffected = ROW_COUNT;
+
+        IF RowsAffected > 0 THEN
+            RETURN QUERY SELECT 1, NULL::TEXT;
+        ELSE
+            RETURN QUERY
+            SELECT
+                0,
+                'No matching record found for the provided LoginId.';
+        END IF;
+
+    EXCEPTION
+        WHEN OTHERS THEN
+
+            INSERT INTO axionpro."ErrorLog"
+            (
+                "ErrorMessage",
+                "ErrorDateTime", p_loginid)
+            VALUES
+            (
+                SQLERRM,
+                CURRENT_TIMESTAMP, p_loginid);
+
+            RETURN QUERY SELECT -1, SQLERRM;
+
+    END;
+
+END;
+$$;
+
+
+
+CREATE OR REPLACE FUNCTION axionpro."UpdateTenantEnabledOperationFromModuleOperation"(
+    p_tenantid BIGINT
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    RowCount INT := 0;
+BEGIN
+
+    IF "TenantId" IS NULL THEN
+        RETURN -1;
+    END IF;
+
+    BEGIN
+
+        INSERT INTO axionpro."TenantEnabledOperation"
+        (
+            "TenantId",
+            "ModuleId",
+            "OperationId",
+            "IsEnabled",
+            "AddedById",
+            "AddedDateTime"
+        )
+        SELECT
+            "TenantId",
+            mom."ModuleId",
+            mom."OperationId",
+            false,
+            "TenantId",
+            CURRENT_TIMESTAMP
+        FROM axionpro."ModuleOperationMapping" mom
+        WHERE mom."IsActive" = true
+          AND EXISTS (
+              SELECT 1
+              FROM axionpro."TenantEnabledOperation" teo
+              WHERE teo."TenantId" = p_tenantid
+                AND teo."ModuleId" = mom."ModuleId"
+          )
+          AND NOT EXISTS (
+              SELECT 1
+              FROM axionpro."TenantEnabledOperation" teo2
+              WHERE teo2."TenantId" = p_tenantid
+                AND teo2."ModuleId" = mom."ModuleId"
+                AND teo2."OperationId" = mom."OperationId"
+          );
+
+        GET DIAGNOSTICS RowCount = ROW_COUNT;
+
+        RETURN RowCount;
+
+    EXCEPTION
+        WHEN OTHERS THEN
+            RETURN -1;
+    END;
+
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION axionpro."ValidateActiveUserCrendentialOnly"(
+    p_LoginId TEXT
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_UserId INT;
+BEGIN
+
+    BEGIN
+        -- Check if active login exists
+        SELECT "Id"
+        INTO v_UserId
+        FROM axionpro."LoginCredential"
+        WHERE "LoginId" = p_LoginId
+          AND "IsActive" = true
+          AND "IsSoftDeleted" = false
+        LIMIT 1;
+
+        IF v_UserId IS NOT NULL THEN
+            RETURN v_UserId;  -- return LoginCredential Id
+        ELSE
+            RETURN 0;  -- user not found
+        END IF;
+
+    EXCEPTION
+        WHEN OTHERS THEN
+
+            INSERT INTO axionpro."ErrorLog"
+            (
+                "ErrorMessage",
+                "ErrorDateTime"
+            )
+            VALUES
+            (
+                SQLERRM,
+                CURRENT_TIMESTAMP
+            );
+
+            RETURN -1;  -- error case
+
+    END;
+
+END;
+$$;
+
+ 
+
+CREATE OR REPLACE FUNCTION axionpro."ValidateActiveUserLoginOnly"(
+    p_LoginId TEXT
+)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_EmployeeId INT;
+BEGIN
+
+    BEGIN
+
+        -- Check active login
+        SELECT "EmployeeId"
+        INTO v_EmployeeId
+        FROM axionpro."LoginCredential"
+        WHERE "LoginId" = p_LoginId
+          AND "IsActive" = true
+          AND "IsSoftDeleted" = false
+        LIMIT 1;
+
+        IF v_EmployeeId IS NOT NULL THEN
+            RETURN v_EmployeeId;   -- Return EmployeeId
+        ELSE
+            RETURN 0;              -- User not found
+        END IF;
+
+    EXCEPTION
+        WHEN OTHERS THEN
+
+            INSERT INTO axionpro."ErrorLog"
+            (
+                "ErrorMessage",
+                "ErrorDateTime"
+            )
+            VALUES
+            (
+                SQLERRM,
+                CURRENT_TIMESTAMP
+            );
+
+            RETURN -1;   -- Error case
+
+    END;
+
+END;
+$$;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

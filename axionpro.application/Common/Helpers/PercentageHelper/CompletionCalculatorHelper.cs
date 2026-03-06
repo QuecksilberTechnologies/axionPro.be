@@ -3,7 +3,7 @@ using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.DTOS.Employee.Education;
-
+using axionpro.domain.Entity;
 using Newtonsoft.Json.Linq;
 
 namespace axionpro.application.Common.Helpers.PercentageHelper

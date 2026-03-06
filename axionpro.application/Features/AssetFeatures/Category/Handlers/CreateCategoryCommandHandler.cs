@@ -6,10 +6,6 @@ using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace axionpro.application.Features.AssetFeatures.Category.Handlers
 {

@@ -1,15 +1,7 @@
-﻿ 
+﻿
 
 using axionpro.application.DTOS.AssetDTO.asset;
-using axionpro.application.DTOS.Employee.BaseEmployee;
-using axionpro.application.DTOS.Pagination;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+using axionpro.domain.Entity;
 namespace axionpro.application.Interfaces.IRepositories
 {
     public interface IAssetRepository

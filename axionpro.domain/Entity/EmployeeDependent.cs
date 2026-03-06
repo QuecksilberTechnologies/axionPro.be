@@ -1,57 +1,53 @@
 ﻿using System;
 using System.Collections.Generic;
 
+namespace axionpro.domain.Entity;
 
-
-public partial class Employeedependent
+public partial class EmployeeDependent
 {
     public long Id { get; set; }
 
-    public long? Employeeid { get; set; }
+    public long EmployeeId { get; set; }
 
-    public string? Dependentname { get; set; }
+    public string? DependentName { get; set; }
 
-    public int? Relation { get; set; }
+    public int Relation { get; set; }
 
-    public DateTime? Dateofbirth { get; set; }
+    public DateTime? DateOfBirth { get; set; }
 
-    public bool? Iscoveredinpolicy { get; set; }
+    public bool? IsCoveredInPolicy { get; set; }
 
-    public bool? Ismarried { get; set; }
+    public bool? IsMarried { get; set; }
 
     public string? Remark { get; set; }
 
     public string? Description { get; set; }
 
-    public DateTime? Updateddatetime { get; set; }
+    public DateTime? UpdatedDateTime { get; set; }
 
-    public long? Addedbyid { get; set; }
+    public long? AddedById { get; set; }
 
-    public DateTime? Addeddatetime { get; set; }
+    public DateTime? AddedDateTime { get; set; }
 
-    public long? Updatedbyid { get; set; }
+    public long? UpdatedById { get; set; }
 
-    public long? Softdeletedbyid { get; set; }
+    public long? SoftDeletedById { get; set; }
 
-    public DateTime? Deleteddatetime { get; set; }
+    public DateTime? DeletedDateTime { get; set; }
+    public bool HasProofUploaded { get; set; }
+    public string? FileName { get; set; }
+    public string? FilePath { get; set; }
+    public int  FileType { get; set; }
+    public bool? IsSoftDeleted { get; set; }
+    public bool? IsEditAllowed { get; set; }
+    public bool? IsActive { get; set; }
 
-    public bool? Issoftdeleted { get; set; }
+    public long? InfoVerifiedById { get; set; }
 
-    public long? Infoverifiedbyid { get; set; }
+    public bool? IsInfoVerified { get; set; }
 
-    public bool? Isinfoverified { get; set; }
+    public DateTime? InfoVerifiedDateTime { get; set; }
 
-    public DateTime? Infoverifieddatetime { get; set; }
+    public virtual Employee? Employee { get; set; }
 
-    public bool? Iseditallowed { get; set; }
-
-    public bool? Isactive { get; set; }
-
-    public string? Filepath { get; set; }
-
-    public string? Filename { get; set; }
-
-    public bool? Hasproofuploaded { get; set; }
-
-    public int? Filetype { get; set; }
 }

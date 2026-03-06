@@ -14,7 +14,7 @@ using axionpro.application.DTOS.Employee.Type;
 using axionpro.application.DTOS.Pagination;
  
 
-using MediatR;
+using axionpro.domain.Entity; using MediatR;
 using SkiaSharp;
 using System.Collections.Generic;
 

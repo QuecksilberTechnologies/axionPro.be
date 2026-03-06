@@ -1,43 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
 
+namespace axionpro.domain.Entity;
 
-
-public partial class Emailtemplate
+public partial class EmailTemplate
 {
     public int Id { get; set; }
 
-    public string? Templatename { get; set; }
+    public string TemplateName { get; set; } = null!;
 
-    public string? Templatecode { get; set; }
+    public string? TemplateCode { get; set; }
 
-    public string? Subject { get; set; }
+    public string Subject { get; set; } = null!;
 
     public string Body { get; set; } = null!;
 
-    public string? Fromemail { get; set; }
+    public string? FromEmail { get; set; }
 
-    public string? Fromname { get; set; }
+    public string? FromName { get; set; }
 
-    public string? Ccemail { get; set; }
+    public string? CcEmail { get; set; }
 
-    public string? Bccemail { get; set; }
+    public string? BccEmail { get; set; }
 
     public string? Category { get; set; }
 
-    public string? Languagecode { get; set; }
+    public string? LanguageCode { get; set; }
 
-    public bool Isactive { get; set; }
+    public bool IsActive { get; set; }
 
-    public long Addedbyid { get; set; }
+    public long AddedById { get; set; }
 
-    public DateTime Addeddatetime { get; set; }
+    public DateTime AddedDateTime { get; set; }
 
-    public long? Updatedbyid { get; set; }
+    public long? UpdatedById { get; set; }
 
-    public DateTime? Updateddatetime { get; set; }
+    public DateTime? UpdatedDateTime { get; set; }
 
-    public string? Addedfromip { get; set; }
+    public string? AddedFromIp { get; set; }
 
-    public string? Updatedfromip { get; set; }
+    public string? UpdatedFromIp { get; set; }
+
+    public virtual ICollection<EmailQueue> EmailQueues { get; set; } = new List<EmailQueue>();
 }

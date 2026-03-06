@@ -1,6 +1,6 @@
 ﻿using axionpro.application.DTOs.Leave;
 using axionpro.application.Wrappers;
-using MediatR;
+using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Features.LeaveCmd.Commands
 {

@@ -1,13 +1,6 @@
 ﻿using axionpro.application.DTOs.Employee;
-using axionpro.application.DTOs.ProjectModule;
 using axionpro.application.DTOs.RoleModulePermission;
-using axionpro.application.DTOS.Module.ParentModule;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using axionpro.domain.Entity;
 
 namespace axionpro.application.DTOs.UserLogin
 {

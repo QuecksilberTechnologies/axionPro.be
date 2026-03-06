@@ -13,19 +13,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Text;
-using System.Threading.Tasks;
+using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
     public class SubscriptionRepository : ISubscriptionRepository
     {
-        private readonly WorkforcedbContext? _context;
+        private readonly WorkforceDbContext? _context;
         private readonly ILogger? _logger;
         private readonly IMapper? _mapper;
         
 
 
-        public SubscriptionRepository(WorkforcedbContext context, ILogger<SubscriptionRepository> logger, IMapper mapper)
+        public SubscriptionRepository(WorkforceDbContext context, ILogger<SubscriptionRepository> logger, IMapper mapper)
         {
             _context = context;
             

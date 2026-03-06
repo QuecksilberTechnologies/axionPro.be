@@ -3,13 +3,13 @@ using axionpro.application.DTOS.TicketDTO.Header;
 using axionpro.application.Features.TicketFeatures.TicketHeader.Queries;
 using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
-using MediatR;
+using axionpro.domain.Entity; using MediatR;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Features.TicketFeatures.TicketHeader.Handlers
 {
@@ -21,13 +21,13 @@ using axionpro.application.DTOS.TicketDTO.Header;
 using axionpro.application.Features.TicketFeatures.TicketHeader.Queries;
 using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
-using MediatR;
+using axionpro.domain.Entity; using MediatR;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
+using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Features.TicketFeatures.TicketHeader.Handlers
     {

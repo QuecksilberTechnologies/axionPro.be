@@ -1,27 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
+namespace axionpro.domain.Entity;
 
-
-public partial class Logincredential
+ 
+public partial class LoginCredential
 {
     public long Id { get; set; }
 
-    public long? Tenantid { get; set; }
+    public long? TenantId { get; set; }
 
-    public long Employeeid { get; set; }
+    public long EmployeeId { get; set; }
 
-    public string? Loginid { get; set; }
+    public string LoginId { get; set; } = null!;
 
-    public string? Password { get; set; }
+    public  string? Password { get; set; } 
 
-    public bool Hasfirstlogin { get; set; }
+    public bool HasFirstLogin { get; set; }
 
-    public bool? Ispasswordchangerequired { get; set; }
+    public bool? IsPasswordChangeRequired { get; set; }
 
-    public string? Macaddress { get; set; }
+    public string? MacAddress { get; set; }
 
-    public bool Isactive { get; set; }
+    public bool IsActive { get; set; }
 
     public string? Remark { get; set; }
 
@@ -29,23 +31,29 @@ public partial class Logincredential
 
     public double? Longitude { get; set; }
 
-    public int? Logindevice { get; set; }
+    public int? LoginDevice { get; set; }
 
-    public string? Ipaddresslocal { get; set; }
+    public string? IpAddressLocal { get; set; }
 
-    public string? Ipaddresspublic { get; set; }
+    public string? IpAddressPublic { get; set; }
 
-    public bool? Issoftdeleted { get; set; }
+    public bool? IsSoftDeleted { get; set; }
 
-    public long? Addedbyid { get; set; }
+    public long? AddedById { get; set; }
 
-    public DateTime? Addeddatetime { get; set; }
+    public DateTime? AddedDateTime { get; set; }
 
-    public long? Updatedbyid { get; set; }
+    public long? UpdatedById { get; set; }
 
-    public DateTime? Updateddatetime { get; set; }
+    public DateTime? UpdatedDateTime { get; set; }
 
-    public long? Softdeletedbyid { get; set; }
+    public long? SoftDeletedById { get; set; }
 
-    public DateTime? Deleteddatetime { get; set; }
+    public DateTime? DeletedDateTime { get; set; }
+
+    public virtual ICollection<ForgotPasswordOTPDetail> ForgotPasswordRequests { get; set; } = new List<ForgotPasswordOTPDetail>();
+
+    public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+    public virtual Employee? Employee { get; set; }
+
 }

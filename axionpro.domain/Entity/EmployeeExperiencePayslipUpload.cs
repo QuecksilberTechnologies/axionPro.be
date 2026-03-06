@@ -1,37 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
 
+namespace axionpro.domain.Entity;
 
-
-public partial class Employeeexperiencepayslipupload
+public partial class EmployeeExperiencePayslipUpload
 {
     public long Id { get; set; }
 
-    public long Employeeid { get; set; }
+    public long EmployeeId { get; set; }
 
-    public long Experiencedetailid { get; set; }
+    public long ExperienceDetailId { get; set; }
 
     public int Year { get; set; }
 
     public int Month { get; set; }
 
-    public bool Hasuploadedpayslip { get; set; }
+    public bool HasUploadedPayslip { get; set; }
 
-    public string? Payslipdocname { get; set; }
+    public string? PayslipDocName { get; set; }
 
-    public string? Payslipdocpath { get; set; }
+    public string? PayslipDocPath { get; set; }
 
-    public bool Isactive { get; set; }
+    public bool IsActive { get; set; }
 
-    public bool Issoftdeleted { get; set; }
+    public bool IsSoftDeleted { get; set; }
 
-    public long? Softdeletedbyid { get; set; }
+    public long? SoftDeletedById { get; set; }
 
-    public long Addedbyid { get; set; }
+    public long AddedById { get; set; }
 
-    public long? Updatedbyid { get; set; }
+    public long? UpdatedById { get; set; }
 
-    public DateTime Addeddatetime { get; set; }
+    public DateTime AddedDateTime { get; set; }
 
-    public DateTime? Updateddatetime { get; set; }
+    public DateTime? UpdatedDateTime { get; set; }
+
+    public virtual Employee Employee { get; set; } = null!;
+
+    public virtual EmployeeExperienceDetail ExperienceDetail { get; set; } = null!;
 }

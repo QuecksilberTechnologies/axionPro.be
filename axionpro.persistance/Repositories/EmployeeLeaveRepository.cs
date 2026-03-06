@@ -11,19 +11,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
     public class EmployeeLeaveRepository :IEmployeeLeaveRepository
     {
-        private readonly WorkforcedbContext _context;
+        private readonly WorkforceDbContext _context;
         private readonly IMapper _mapper;
         private readonly ILogger<EmployeeLeaveRepository> _logger;
-        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
+        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
         private readonly IPasswordService _passwordService;
         private readonly IEncryptionService _encryptionService;
-        public EmployeeLeaveRepository(WorkforcedbContext context, IMapper mapper, ILogger<EmployeeLeaveRepository> logger, IDbContextFactory<WorkforcedbContext> contextFactory,
+        public EmployeeLeaveRepository(WorkforceDbContext context, IMapper mapper, ILogger<EmployeeLeaveRepository> logger, IDbContextFactory<WorkforceDbContext> contextFactory,
             IPasswordService passwordService, IEncryptionService encryptionService)
         {
             this._context = context;

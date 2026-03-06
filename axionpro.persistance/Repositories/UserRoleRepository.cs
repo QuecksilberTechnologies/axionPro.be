@@ -1,23 +1,24 @@
 ﻿using axionpro.application.Constants;
 using axionpro.application.Interfaces.IRepositories;
 
- 
+using axionpro.domain.Entity;
+
 using axionpro.persistance.Data.Context;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+
 
 namespace axionpro.persistance.Repositories
 {
     public class UserRoleRepository : IUserRoleRepository
     {
-        private readonly WorkforcedbContext _context;
+        private readonly WorkforceDbContext _context;
         private readonly ILogger<UserRoleRepository>? _logger;
 
-        public UserRoleRepository(WorkforcedbContext context, ILogger<UserRoleRepository>? logger)
+        public UserRoleRepository(WorkforceDbContext context, ILogger<UserRoleRepository>? logger)
         {
             _context = context;
              _logger = logger;

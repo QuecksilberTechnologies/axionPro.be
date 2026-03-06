@@ -9,20 +9,20 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
     public class TenantEmployeeCodePatternRepository : ITenantEmployeeCodePatternRepository
     {
-        private readonly WorkforcedbContext _context;
+        private readonly WorkforceDbContext _context;
         private readonly ILogger<TenantEmployeeCodePatternRepository> _logger;
-        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
+        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
 
         public TenantEmployeeCodePatternRepository(
-            WorkforcedbContext context,
+            WorkforceDbContext context,
             ILogger<TenantEmployeeCodePatternRepository> logger,
-            IDbContextFactory<WorkforcedbContext> contextFactory)
+            IDbContextFactory<WorkforceDbContext> contextFactory)
         {
             _context = context;
             _logger = logger;

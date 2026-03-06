@@ -20,16 +20,16 @@ using Microsoft.Extensions.Logging;
 using Serilog.Core;
 using System;
 using System.Diagnostics.Metrics;
-using System.Threading.Tasks;
+using axionpro.domain.Entity;
  
 public class UnitOfWork : IUnitOfWork
 {
 
 
 
-    private readonly WorkforcedbContext _context;
+    private readonly WorkforceDbContext _context;
 
-    private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
+    private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
     private readonly IQRService _qrService;
 
     private readonly IMapper _mapper;
@@ -111,17 +111,17 @@ public class UnitOfWork : IUnitOfWork
 
 
 
-    //public UnitOfWork(WorkforcedbContext context, IMapper mapper, ILoggerFactory loggerFactory)
+    //public UnitOfWork(WorkforceDbContext context, IMapper mapper, ILoggerFactory loggerFactory)
     //{
     //    _context = context;
     //   // _mapper = mapper;
     //    _loggerFactory = loggerFactory;
     //}
     public UnitOfWork(
-        WorkforcedbContext context,
+        WorkforceDbContext context,
         ILoggerFactory loggerFactory,
         IQRService qrService,
-        IFileStorageService fileStorageService, IMapper mapper, IDbContextFactory<WorkforcedbContext> dbContextFactory, 
+        IFileStorageService fileStorageService, IMapper mapper, IDbContextFactory<WorkforceDbContext> dbContextFactory, 
         IPasswordService passwordService, IConfiguration configuration,IPasswordService password , IPermissionService permissionService, ICacheService cacheService,
         IEncryptionService encryptionService, IIdEncoderService idEncoderService)
     {

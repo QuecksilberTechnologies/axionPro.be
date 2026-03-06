@@ -1,31 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
 
+namespace axionpro.domain.Entity;
 
-
-public partial class Policytypeinsurancemapping
+public partial class PolicyTypeInsuranceMapping
 {
     public int Id { get; set; }
 
-    public long Tenantid { get; set; }
+    public long TenantId { get; set; }
 
-    public int Policytypeid { get; set; }
+    public int PolicyTypeId { get; set; }
 
-    public int Insurancepolicyid { get; set; }
+    public int InsurancePolicyId { get; set; }
 
-    public bool Isactive { get; set; }
+    public bool IsActive { get; set; }
+   
+    public bool? IsSoftDeleted { get; set; }
+    public long? SoftDeleteById { get; set; }
+    public DateTime? SoftDeleteDateTime { get; set; }
 
-    public long? Addedbyid { get; set; }
 
-    public DateTime Addeddatetime { get; set; }
+    public long? AddedById { get; set; }
 
-    public long? Updatedbyid { get; set; }
 
-    public DateTime? Updateddatetime { get; set; }
+    public DateTime AddedDateTime { get; set; }
 
-    public bool Issoftdeleted { get; set; }
+    public long? UpdatedById { get; set; }
 
-    public DateTime? Softdeletedatetime { get; set; }
+    public DateTime? UpdatedDateTime { get; set; }
 
-    public long? Softdeletebyid { get; set; }
+    public virtual InsurancePolicy InsurancePolicy { get; set; } = null!;
+
+    public virtual PolicyType PolicyType { get; set; } = null!;
+
 }
+

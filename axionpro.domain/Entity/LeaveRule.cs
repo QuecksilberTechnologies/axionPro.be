@@ -1,45 +1,51 @@
 ﻿using System;
 using System.Collections.Generic;
 
+namespace axionpro.domain.Entity;
 
-
-public partial class Leaverule
+public partial class LeaveRule
 {
     public long Id { get; set; }
 
-    public long Tenantid { get; set; }
+    public long TenantId { get; set; }
 
-    public long Policyleavetypeid { get; set; }
+    public long PolicyLeaveTypeId { get; set; }
 
-    public bool Applysandwichrule { get; set; }
+    public bool ApplySandwichRule { get; set; }
 
-    public bool? Islinkedsandwichrule { get; set; }
+    public bool? IsLinkedSandwichRule { get; set; }
 
-    public bool Ishalfdayallowed { get; set; }
+    public bool IsHalfDayAllowed { get; set; }
 
-    public int? Halfdaynoticehours { get; set; }
+    public int? HalfDayNoticeHours { get; set; }
 
-    public int? Noticeperioddays { get; set; }
+    public int? NoticePeriodDays { get; set; }
 
-    public int? Maxcontinuousleaves { get; set; }
+    public int? MaxContinuousLeaves { get; set; }
 
-    public int? Mingapbetweenleaves { get; set; }
+    public int? MinGapBetweenLeaves { get; set; }
 
-    public bool Isactive { get; set; }
+    public bool IsActive { get; set; }
 
-    public bool? Issoftdeleted { get; set; }
+    public bool IsSoftDeleted { get; set; }
 
     public string? Remark { get; set; }
 
-    public long Addedbyid { get; set; }
+    public long AddedById { get; set; }
 
-    public DateTime Addeddatetime { get; set; }
+    public DateTime AddedDateTime { get; set; }
 
-    public long? Updatedbyid { get; set; }
+    public long? UpdatedById { get; set; }
 
-    public DateTime? Updateddatetime { get; set; }
+    public DateTime? UpdatedDateTime { get; set; }
 
-    public DateTime? Softdeletedatetime { get; set; }
+    public DateTime? SoftDeleteDateTime { get; set; }
 
-    public long? Softdeletebyid { get; set; }
+    public long? SoftDeleteById { get; set; }
+
+    public virtual ICollection<LeaveSandwichRuleMapping> LeaveSandwichRuleMappings { get; set; } = new List<LeaveSandwichRuleMapping>();
+
+    public virtual PolicyLeaveTypeMapping PolicyLeaveType { get; set; } = null!;
+
+    public virtual Tenant Tenant { get; set; } = null!;
 }

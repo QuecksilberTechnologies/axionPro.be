@@ -5,20 +5,21 @@ using axionpro.application.DTOS.Module.ParentModule;
 
 using axionpro.application.DTOS.Module.SubModule;
 using axionpro.application.Interfaces.IRepositories;
-
+using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+
 
 namespace axionpro.persistance.Repositories
 {
     public class ModuleRepository : IModuleRepository
     {
-        private readonly WorkforcedbContext? _context;
+        private readonly WorkforceDbContext? _context;
         private readonly ILogger? _logger;
-        private readonly IDbContextFactory<WorkforcedbContext> _contextFactory;
+        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
         private readonly IMapper _mapper;
-        public ModuleRepository(WorkforcedbContext? context, ILogger<ModuleRepository>? logger, IMapper mapper, IDbContextFactory<WorkforcedbContext> contextFactory)
+        public ModuleRepository(WorkforceDbContext? context, ILogger<ModuleRepository>? logger, IMapper mapper, IDbContextFactory<WorkforceDbContext> contextFactory)
         {
             _context = context;
             _logger = logger;

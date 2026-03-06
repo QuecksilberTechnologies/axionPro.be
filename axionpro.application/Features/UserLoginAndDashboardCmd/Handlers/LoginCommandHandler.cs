@@ -1,24 +1,16 @@
 ﻿using AutoMapper;
-using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.Hash;
-using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Constants;
-
 using axionpro.application.DTOs.Employee;
-using axionpro.application.DTOs.Module;
 using axionpro.application.DTOs.Operation;
-using axionpro.application.DTOs.Registration;
 using axionpro.application.DTOs.Role;
 using axionpro.application.DTOs.RoleModulePermission;
-using axionpro.application.DTOs.SubscriptionModule;
 using axionpro.application.DTOs.Tenant;
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.DTOs.UserRole;
-using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Token;
-using axionpro.application.Features.UserLoginAndDashboardCmd.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -26,23 +18,13 @@ using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
 
-
+//using axionpro.domain.Entity;
 using FluentValidation;
 using MediatR;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.UserSecrets;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualBasic;
-using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Security.Claims;
-using System.Threading;
-using System.Threading.Tasks;
-
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 {
@@ -94,7 +76,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
         {
             try
             {
-                await _unitOfWork.BeginTransactionAsync();
+               // await _unitOfWork.BeginTransactionAsync();
               
                 if (string.IsNullOrEmpty(request.DTO.LoginId) && string.IsNullOrEmpty(request.DTO.Password))
                 {
@@ -111,7 +93,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 if (empId < 1)
                 {
                     _logger.LogWarning("User validation failed for LoginId: {LoginId}", request.DTO.LoginId);
-                    await _unitOfWork.RollbackTransactionAsync();
+                   // await _unitOfWork.RollbackTransactionAsync();
                     return ApiResponse<LoginResponseDTO>.Fail("User is not authenticated or authorized to perform this action.");
                 }
                              
@@ -165,7 +147,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 
                 if (empMinimalResponse == null)
                 {
-                    await _unitOfWork.RollbackTransactionAsync();
+                  //  await _unitOfWork.RollbackTransactionAsync();
                     _logger.LogWarning("Employee may not active or deleted, please contact admin. LoginId: {LoginId}", loginRequest.LoginId);
 
                     return new ApiResponse<LoginResponseDTO>
@@ -185,7 +167,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                              !subscriptionInfo.SubscriptionEndDate.HasValue ||
                              subscriptionInfo.SubscriptionEndDate.Value.Date < DateTime.Today)
                              {
-                               await _unitOfWork.RollbackTransactionAsync();
+                           //    await _unitOfWork.RollbackTransactionAsync();
 
                                   _logger.LogWarning("Subscription expired or missing for tenant {TenantId}", dto.TenantId);
 
@@ -393,7 +375,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 
                 if(dto.TenantId==0)
                 {
-                    await _unitOfWork.RollbackTransactionAsync();
+                   // await _unitOfWork.RollbackTransactionAsync();
                     return new ApiResponse<LoginResponseDTO>
                     {
                         IsSucceeded = false,
@@ -463,7 +445,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 {
                     _logger.LogWarning("Failed to insert RefreshToken for LoginId: {LoginId}", loginRequest.LoginId);
 
-                    await _unitOfWork.RollbackTransactionAsync();
+                   // await _unitOfWork.RollbackTransactionAsync();
 
                 }
                 bool updated = await _unitOfWork.StoreProcedureRepository.UpdateLoginCredential(loginRequest);
@@ -471,7 +453,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 {
 
                     _logger.LogInformation("LoginCredential updated successfully for LoginId: {LoginId}", loginRequest.LoginId);
-                    await _unitOfWork.CommitTransactionAsync();
+                   // await _unitOfWork.CommitTransactionAsync();
                 }
                 else
                     _logger.LogWarning("Failed to update LoginCredential for LoginId: {LoginId}", loginRequest.LoginId);
@@ -506,7 +488,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
             {
                 _logger.LogError(ex, "An error occurred in LoginCommandHandler.Handle method.");
 
-                await _unitOfWork.RollbackTransactionAsync();  // ✅ Rollback Transaction in case of error
+               // await _unitOfWork.RollbackTransactionAsync();  // ✅ Rollback Transaction in case of error
 
                 return new ApiResponse<LoginResponseDTO>
                 {

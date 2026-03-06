@@ -1,6 +1,6 @@
 ﻿using axionpro.application.Interfaces;
 
-using MediatR;
+using axionpro.domain.Entity; using MediatR;
 using System.Runtime.ConstrainedExecution;
 
 namespace axionpro.application.Constants
