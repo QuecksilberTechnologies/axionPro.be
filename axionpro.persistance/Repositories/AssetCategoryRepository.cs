@@ -13,29 +13,28 @@ namespace axionpro.persistance.Repositories
     public class AssetCategoryRepository : IAssetCategoryRepository
     {
         private readonly WorkforceDbContext _context;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+       
         private readonly IMapper _mapper;
         private readonly ILogger<AssetCategoryRepository> _logger;
 
         public AssetCategoryRepository(
             WorkforceDbContext context,
             ILogger<AssetCategoryRepository> logger,
-            IMapper mapper,
-            IDbContextFactory<WorkforceDbContext> contextFactory)
+            IMapper mapper)
         {
             _context = context;
             _logger = logger;
             _mapper = mapper;
-            _contextFactory = contextFactory;
+            
         }
 
         public async Task<bool> IsAssetCategoryDuplicate(AssetCategory asset)
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
+             
 
-                return await context.AssetCategories.AnyAsync(a =>
+                return await _context.AssetCategories.AnyAsync(a =>
                     (a.CategoryName == asset.CategoryName));
             }
             catch (Exception ex)
@@ -195,9 +194,8 @@ namespace axionpro.persistance.Repositories
             string categoryName,
             long? excludeId = null)
         {
-            await using var context = await _contextFactory.CreateDbContextAsync();
-
-            return await context.AssetCategories.AnyAsync(x =>
+            
+            return await _context.AssetCategories.AnyAsync(x =>
                 x.TenantId == tenantId &&
                 x.CategoryName.ToLower() == categoryName.ToLower() &&
                 x.IsSoftDeleted == false &&
@@ -230,9 +228,9 @@ namespace axionpro.persistance.Repositories
         // 🔹 DELETE (SOFT)
         public async Task<bool> DeleteAsync(DeleteCategoryReqestDTO dto)
         {
-            await using var context = await _contextFactory.CreateDbContextAsync();
+            
 
-            var entity = await context.AssetCategories.FirstOrDefaultAsync(x =>
+            var entity = await _context.AssetCategories.FirstOrDefaultAsync(x =>
                 x.Id == dto.Id &&
                 x.TenantId == dto.Prop.TenantId &&
                 x.IsSoftDeleted == false);
@@ -245,7 +243,7 @@ namespace axionpro.persistance.Repositories
             entity.SoftDeletedById = dto.Prop.EmployeeId;
             entity.SoftDeletedDateTime = DateTime.UtcNow;
 
-            await context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
             return true;
         }
 

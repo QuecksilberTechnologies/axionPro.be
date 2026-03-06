@@ -16,20 +16,20 @@ namespace axionpro.persistance.Repositories
     public class TicketClassificationRepository : ITicketClassificationRepository
     {
         private readonly WorkforceDbContext _context;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+       
         private readonly IMapper _mapper;
         private readonly ILogger<TicketClassificationRepository> _logger;
 
         public TicketClassificationRepository(
             WorkforceDbContext context,
             ILogger<TicketClassificationRepository> logger,
-            IMapper mapper,
-            IDbContextFactory<WorkforceDbContext> contextFactory)
+            IMapper mapper)
+          
         {
             _context = context;
             _logger = logger;
             _mapper = mapper;
-            _contextFactory = contextFactory;
+            
         }
 
         //  ADD
@@ -47,10 +47,9 @@ namespace axionpro.persistance.Repositories
                   return new List<GetClassificationResponseDTO>(); ;
                 }
 
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
+               
                 // Duplicate Check
-                bool exists = await context.TicketClassifications
+                bool exists = await _context.TicketClassifications
                     .AnyAsync(x => x.ClassificationName.ToLower() == dto.ClassificationName.ToLower()
                                    && x.IsActive
                                    && (x.IsSoftDeleted == null || x.IsSoftDeleted == false) && x.TenantId==dto.TenantId);
@@ -68,8 +67,8 @@ namespace axionpro.persistance.Repositories
                 entity.AddedDateTime = DateTime.UtcNow;
                 entity.AddedById = dto.EmployeeId;
                 entity.IsActive = dto.IsActive ?? true;
-                await context.TicketClassifications.AddAsync(entity);
-                await context.SaveChangesAsync();
+                await _context.TicketClassifications.AddAsync(entity);
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation(" Ticket classification added successfully. Id: {Id}", entity.Id);
                 var request = new GetClassificationRequestDTO
@@ -105,9 +104,8 @@ namespace axionpro.persistance.Repositories
                     return null;
                 }
 
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
-                var entity = await context.TicketClassifications
+               
+                var entity = await _context.TicketClassifications
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x => x.Id == dto.Id && x.IsActive && (x.IsSoftDeleted == false || x.IsSoftDeleted == null) && x.TenantId == dto.TenantId);
 
@@ -135,9 +133,8 @@ namespace axionpro.persistance.Repositories
             var result = new List<GetClassificationResponseDTO>();
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
-                var query = context.TicketClassifications.AsQueryable();
+                
+                var query = _context.TicketClassifications.AsQueryable();
 
                
                     query = query.Where(x =>   x.TenantId == dto.TenantId && (x.IsSoftDeleted == false || x.IsSoftDeleted == null));
@@ -171,9 +168,8 @@ namespace axionpro.persistance.Repositories
                     return new GetClassificationResponseDTO();
                 }
 
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
-                var existing = await context.TicketClassifications.FirstOrDefaultAsync(x => x.Id == dto.Id && (x.IsSoftDeleted==false || x.IsSoftDeleted ==null));
+                
+                var existing = await _context.TicketClassifications.FirstOrDefaultAsync(x => x.Id == dto.Id && (x.IsSoftDeleted==false || x.IsSoftDeleted ==null));
                 if (existing == null)
                 {
                     _logger.LogWarning("⚠️ Classification not found for update. Id: {Id}", dto.Id);
@@ -186,8 +182,8 @@ namespace axionpro.persistance.Repositories
                 existing.UpdatedById = dto.EmployeeId;
                 existing.UpdatedDateTime = DateTime.UtcNow;
 
-                context.TicketClassifications.Update(existing);
-                await context.SaveChangesAsync();
+                _context.TicketClassifications.Update(existing);
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation(" Classification updated successfully. Id: {Id}", dto.Id);
 
@@ -212,10 +208,8 @@ namespace axionpro.persistance.Repositories
                     _logger.LogWarning("⚠️ Invalid DTO or Id for DeleteClassificationAsync.");
                     return false;
                 }
-
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
-                var entity = await context.TicketClassifications.FirstOrDefaultAsync(x => x.Id == dto.Id && (x.IsSoftDeleted == false || x.IsSoftDeleted == null));
+ 
+                var entity = await _context.TicketClassifications.FirstOrDefaultAsync(x => x.Id == dto.Id && (x.IsSoftDeleted == false || x.IsSoftDeleted == null));
                 if (entity == null)
                 {
                     _logger.LogWarning("⚠️ Classification not found for deletion. Id: {Id}", dto.Id);
@@ -227,8 +221,8 @@ namespace axionpro.persistance.Repositories
                 entity.SoftDeletedById = dto.EmployeeId;
                 entity.SoftDeletedTime = DateTime.UtcNow;
 
-                context.TicketClassifications.Update(entity);
-                await context.SaveChangesAsync();
+                _context.TicketClassifications.Update(entity);
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation("🗑️ Classification soft-deleted successfully. Id: {Id}", dto.Id);
                 return true;

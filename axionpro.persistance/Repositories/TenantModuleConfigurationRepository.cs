@@ -12,20 +12,20 @@ namespace axionpro.persistance.Repositories
     public class TenantModuleConfigurationRepository : ITenantModuleConfigurationRepository
     {
         private readonly WorkforceDbContext _context;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+       
         private readonly IMapper _mapper;
         private readonly ILogger<TenantModuleConfigurationRepository> _logger;
 
         public TenantModuleConfigurationRepository(
             WorkforceDbContext context,
             ILogger<TenantModuleConfigurationRepository> logger,
-            IMapper mapper,
-            IDbContextFactory<WorkforceDbContext> contextFactory)
+            IMapper mapper
+            )
         {
             _context = context;
             this._logger = logger;
             _mapper = mapper;
-            _contextFactory = contextFactory;
+            
         }
 
 

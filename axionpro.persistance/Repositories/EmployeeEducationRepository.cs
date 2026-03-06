@@ -32,7 +32,7 @@ namespace axionpro.persistance.Repositories
             this._context = context;
             this._mapper = mapper;
             this._logger = logger;
-           // _contextFactory = contextFactory;
+           // 
             _passwordService = passwordService;
             _encryptionService = encryptionService;
 

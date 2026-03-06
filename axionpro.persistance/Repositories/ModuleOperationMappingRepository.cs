@@ -18,16 +18,16 @@ namespace axionpro.persistance.Repositories
 
         private readonly WorkforceDbContext _context;
         private readonly ILogger<ModuleOperationMappingRepository> _logger;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+       
         private readonly IMapper _mapper;
 
-        public ModuleOperationMappingRepository(WorkforceDbContext context, ILogger<ModuleOperationMappingRepository> logger, IMapper mapper,
-            IDbContextFactory<WorkforceDbContext> contextFactory)
+        public ModuleOperationMappingRepository(WorkforceDbContext context, ILogger<ModuleOperationMappingRepository> logger, IMapper mapper
+           )
         {
             _context = context;
             _logger = logger;
             _mapper = mapper;
-            _contextFactory = contextFactory;
+            
         }
         
 
@@ -35,7 +35,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var _context = await _contextFactory.CreateDbContextAsync();
+                
                 if (mom == null || mom.Id <= 0)
                 {
                     _logger.LogWarning("Invalid ModuleOperationMapping object passed to update.");
@@ -83,7 +83,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var _context = await _contextFactory.CreateDbContextAsync();
+                
                 if (dto == null || dto.Operation == null || !dto.Operation.Any(o => o.IsSelected))
                     throw new ArgumentException("At least one operation must be selected.");
 
@@ -135,8 +135,7 @@ namespace axionpro.persistance.Repositories
         public async Task<ModuleOperationMappingByProductOwnerResponseDTO?> GetModuleOperationMappingsByIdAsync(int id, int moduleId)
         {
             try
-            {
-                await using var _context = await _contextFactory.CreateDbContextAsync();
+            { 
                 var mapping = await _context.ModuleOperationMappings
                     .FirstOrDefaultAsync(x => x.Id == id && x.ModuleId == moduleId);
 

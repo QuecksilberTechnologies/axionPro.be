@@ -21,16 +21,16 @@ namespace axionpro.persistance.Repositories
         private readonly WorkforceDbContext _context;
         private readonly IMapper _mapper;
         private readonly ILogger<PolicyTypeInsuranceMappingRepository> _logger;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+       
         private readonly IPasswordService _passwordService;
         private readonly IEncryptionService _encryptionService;
-        public PolicyTypeInsuranceMappingRepository(WorkforceDbContext context, IMapper mapper, ILogger<PolicyTypeInsuranceMappingRepository> logger, IDbContextFactory<WorkforceDbContext> contextFactory,
+        public PolicyTypeInsuranceMappingRepository(WorkforceDbContext context, IMapper mapper, ILogger<PolicyTypeInsuranceMappingRepository> logger,  
             IPasswordService passwordService, IEncryptionService encryptionService)
         {
             this._context = context;
             this._mapper = mapper;
             this._logger = logger;
-            _contextFactory = contextFactory;
+            
             _passwordService = passwordService;
             _encryptionService = encryptionService;
 
@@ -40,10 +40,9 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
-                await context.PolicyTypeInsuranceMappings.AddAsync(entity);
-                await context.SaveChangesAsync();
+               
+                await _context.PolicyTypeInsuranceMappings.AddAsync(entity);
+                await _context.SaveChangesAsync();
 
                 // Entity → Response DTO
                 var response = _mapper.Map<GetPolicyTypeInsuranceMappingResponseDTO>(entity);
@@ -73,10 +72,9 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context =
-                    await _contextFactory.CreateDbContextAsync();
+               
 
-                return await context.PolicyTypeInsuranceMappings
+                return await _context.PolicyTypeInsuranceMappings
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x =>
                         x.Id == id &&
@@ -158,18 +156,18 @@ namespace axionpro.persistance.Repositories
         public async Task<PagedResponseDTO<GetPolicyTypeInsuranceMappingResponseDTO>> GetListAsync(
        GetPolicyTypeInsuranceMappingRequestDTO request)
         {
-            await using var context = await _contextFactory.CreateDbContextAsync();
+            
 
             if (request.Props == null)
                 throw new ArgumentNullException(nameof(request.Props));
 
             var query =
-                from mapping in context.PolicyTypeInsuranceMappings
-                join policyType in context.PolicyTypes
+                from mapping in _context.PolicyTypeInsuranceMappings
+                join policyType in _context.PolicyTypes
                     on mapping.PolicyTypeId equals policyType.Id
 
                 // 🔥 LEFT JOIN (because InsurancePolicyId is nullable)
-                join insurance in context.InsurancePolicies
+                join insurance in _context.InsurancePolicies
                     on mapping.InsurancePolicyId equals insurance.Id
                     into insuranceGroup
                 from insurance in insuranceGroup.DefaultIfEmpty()
@@ -236,10 +234,9 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
 
-                context.PolicyTypeInsuranceMappings.Update(entity);
-                await context.SaveChangesAsync();
+                _context.PolicyTypeInsuranceMappings.Update(entity);
+                await _context.SaveChangesAsync();
 
                 return true;
             }
@@ -258,10 +255,9 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
 
-                context.PolicyTypeInsuranceMappings.Update(entity);
-                await context.SaveChangesAsync();
+                _context.PolicyTypeInsuranceMappings.Update(entity);
+                await _context.SaveChangesAsync();
 
                 return true;
             }

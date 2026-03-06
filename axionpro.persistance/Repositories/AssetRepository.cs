@@ -23,19 +23,19 @@ namespace axionpro.persistance.Repositories
         private ILogger<AssetRepository> _logger;
         private readonly IQRService _qrService;
         private readonly IFileStorageService _fileStorageService;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+       
         private readonly IMapper _mapper;
 
 
         public AssetRepository(WorkforceDbContext context, ILogger<AssetRepository> logger, IQRService qrService, IFileStorageService fileStorageService,
-            IMapper mapper, IDbContextFactory<WorkforceDbContext> contextFactory)
+            IMapper mapper)
         {
             _context = context;
             _logger = logger;
             _qrService = qrService;
             _fileStorageService = fileStorageService;
             _mapper = mapper;
-            _contextFactory = contextFactory;
+            
         }
 
         public async Task<GetAssetResponseDTO> UpdateAsync(Asset asset,string? path)

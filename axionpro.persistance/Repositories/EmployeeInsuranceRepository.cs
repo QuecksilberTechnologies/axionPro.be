@@ -21,16 +21,16 @@ namespace axionpro.persistance.Repositories
         private readonly WorkforceDbContext _context;
         private readonly IMapper _mapper;
         private readonly ILogger<EmployeeInsuranceRepository> _logger;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+       
         private readonly IPasswordService _passwordService;
         private readonly IEncryptionService _encryptionService;
-        public EmployeeInsuranceRepository(WorkforceDbContext context, IMapper mapper, ILogger<EmployeeInsuranceRepository> logger, IDbContextFactory<WorkforceDbContext> contextFactory,
+        public EmployeeInsuranceRepository(WorkforceDbContext context, IMapper mapper, ILogger<EmployeeInsuranceRepository> logger, 
             IPasswordService passwordService, IEncryptionService encryptionService)
         {
             this._context = context;
             this._mapper = mapper;
             this._logger = logger;
-            _contextFactory = contextFactory;
+            
             _passwordService = passwordService;
             _encryptionService = encryptionService;
 

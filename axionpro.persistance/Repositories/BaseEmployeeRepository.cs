@@ -25,16 +25,16 @@ namespace axionpro.persistance.Repositories
         private readonly WorkforceDbContext _context;
         private readonly IMapper _mapper;                           
         private readonly ILogger<BaseEmployeeRepository> _logger;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+       
         private readonly IPasswordService _passwordService;
         private readonly IEncryptionService _encryptionService;
-        public BaseEmployeeRepository(WorkforceDbContext context, IMapper mapper, ILogger<BaseEmployeeRepository> logger, IDbContextFactory<WorkforceDbContext> contextFactory,
+        public BaseEmployeeRepository(WorkforceDbContext context, IMapper mapper, ILogger<BaseEmployeeRepository> logger, 
             IPasswordService passwordService, IEncryptionService encryptionService)
         {
             this._context = context;
             this._mapper = mapper;
             this._logger = logger;
-            _contextFactory = contextFactory;
+            
             _passwordService = passwordService;
             _encryptionService = encryptionService;
 #if DEBUG
@@ -1800,27 +1800,27 @@ namespace axionpro.persistance.Repositories
                 if (id <= 0)
                     throw new ArgumentException("Invalid Id provided for fetching employee record.");
 
-                await using var context = await _contextFactory.CreateDbContextAsync();
+                
 
                 var record = await (
-                    from emp in context.Employees.AsNoTracking()
+                    from emp in _context.Employees.AsNoTracking()
 
-                    join et in context.EmployeeTypes.AsNoTracking()
+                    join et in _context.EmployeeTypes.AsNoTracking()
                         on emp.EmployeeTypeId equals et.Id
 
-                    join gt in context.Genders.AsNoTracking()
+                    join gt in _context.Genders.AsNoTracking()
                         on emp.GenderId equals gt.Id into genderJoin
                     from gender in genderJoin.DefaultIfEmpty()
 
-                    join dept in context.Departments.AsNoTracking()
+                    join dept in _context.Departments.AsNoTracking()
                         on emp.DepartmentId equals dept.Id into deptJoin
                     from department in deptJoin.DefaultIfEmpty()
 
-                    join desig in context.Designations.AsNoTracking()
+                    join desig in _context.Designations.AsNoTracking()
                         on emp.DesignationId equals desig.Id into desigJoin
                     from designation in desigJoin.DefaultIfEmpty()
 
-                    join country in context.Countries.AsNoTracking()
+                    join country in _context.Countries.AsNoTracking()
                         on emp.CountryId equals country.Id into countryJoin
                     from nation in countryJoin.DefaultIfEmpty()
 

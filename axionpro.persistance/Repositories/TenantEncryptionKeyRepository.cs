@@ -17,18 +17,18 @@ namespace axionpro.persistance.Repositories
         private readonly WorkforceDbContext _context;
         private readonly IMapper _mapper;
         private readonly ILogger<TenantEncryptionKeyRepository> _logger;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+       
 
         public TenantEncryptionKeyRepository(
             WorkforceDbContext context,
             IMapper mapper,
-            ILogger<TenantEncryptionKeyRepository> logger,
-            IDbContextFactory<WorkforceDbContext> contextFactory)
+            ILogger<TenantEncryptionKeyRepository> logger
+           )
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _contextFactory = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
+          
         }
 
         // ✅ Add new tenant encryption key

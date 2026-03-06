@@ -30,13 +30,13 @@ namespace axionpro.persistance.Repositories
 
 
         #region Constructor
-        public TicketTypeRepository(WorkforceDbContext context, ILogger<TicketTypeRepository> logger, IMapper mapper, IDbContextFactory<WorkforceDbContext> contextFactory
+        public TicketTypeRepository(WorkforceDbContext context, ILogger<TicketTypeRepository> logger, IMapper mapper
             )
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _contextFactory = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
+  
         }
 
 

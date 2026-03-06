@@ -22,7 +22,7 @@ namespace axionpro.persistance.Repositories
     public class DepartmentRepository : IDepartmentRepository
     {
         private readonly WorkforceDbContext _context;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+       
         private readonly IMapper _mapper;
         private readonly ILogger<DepartmentRepository> _logger;
         private readonly IEncryptionService _encryptionService;
@@ -31,12 +31,12 @@ namespace axionpro.persistance.Repositories
             WorkforceDbContext context,
             ILogger<DepartmentRepository> logger,
             IMapper mapper,
-            IDbContextFactory<WorkforceDbContext> contextFactory, IEncryptionService encryptionService)
+            IEncryptionService encryptionService)
         {
             _context = context;
             _logger = logger;
             _mapper = mapper;
-            _contextFactory = contextFactory;
+            
             _encryptionService = encryptionService;
 
 
@@ -77,10 +77,10 @@ namespace axionpro.persistance.Repositories
                     return response;
                 }
 
-                await using var context = await _contextFactory.CreateDbContextAsync();
+            
 
                 // ✅ Base Query
-                var query = context.Departments
+                var query = _context.Departments
                     .Where(d => d.TenantId == request.Prop.TenantId && d.IsSoftDeleted != true)
                     .AsQueryable();
 
@@ -167,10 +167,10 @@ namespace axionpro.persistance.Repositories
                     throw new ArgumentNullException(nameof(dto), "Department object cannot be null.");
                 }
 
-                await using var context = await _contextFactory.CreateDbContextAsync();
+             
 
                 // 🧩 2️⃣ Check for Duplicate Department (case-insensitive)
-                bool exists = await context.Departments
+                bool exists = await _context.Departments
                     .AnyAsync(d =>
                         d.TenantId == dto.Prop.TenantId &&
                         EF.Functions.Like(d.DepartmentName.ToLower(), dto.DepartmentName.ToLower()) &&
@@ -197,14 +197,14 @@ namespace axionpro.persistance.Repositories
                 entity.IsExecutiveOffice = false;
 
                 // 🧩 4️⃣ Save to Database
-                await context.Departments.AddAsync(entity);
-                await context.SaveChangesAsync();
+                await _context.Departments.AddAsync(entity);
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation("✅ Department '{Name}' created successfully with Id: {Id} for TenantId: {TenantId}",
                     dto.DepartmentName, entity.Id, dto.Prop.TenantId);
 
                 // 🧩 5️⃣ Fetch latest 10 active departments (newest first)
-                var query = context.Departments
+                var query = _context.Departments
                     .AsNoTracking()
                     .Where(d => d.TenantId == dto.Prop.TenantId && (d.IsSoftDeleted !=true))
                     .OrderByDescending(d => d.Id);
@@ -366,7 +366,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
+               
 
                 if (departments == null || !departments.Any())
                 {
@@ -374,8 +374,8 @@ namespace axionpro.persistance.Repositories
                     return -1;
                 }
 
-                await context.Departments.AddRangeAsync(departments);
-                int insertedCount = await context.SaveChangesAsync();
+                await _context.Departments.AddRangeAsync(departments);
+                int insertedCount = await _context.SaveChangesAsync();
 
                 if (insertedCount != departments.Count)
                 {
@@ -386,7 +386,7 @@ namespace axionpro.persistance.Repositories
                 long tenantId = departments.FirstOrDefault()?.TenantId ?? 0;
 
                 // ✅ Fetch the inserted Executive Office department's ID
-                var executiveOfficeDeptId = await context.Departments
+                var executiveOfficeDeptId = await _context.Departments
                     .Where(d => d.IsExecutiveOffice == true && !d.IsSoftDeleted == true && d.TenantId == tenantId)
                     .Select(d => d.Id)
                     .FirstOrDefaultAsync();
@@ -414,12 +414,12 @@ namespace axionpro.persistance.Repositories
 
                 try
                 {
-                    using var context = _contextFactory.CreateDbContext();
+                   
 
                     // ✅ Parse DepartmentId safely
 
 
-                    var query = context.Departments
+                    var query = _context.Departments
                         .Where(x => x.TenantId == dto.Prop.TenantId && x.IsSoftDeleted != true && x.IsActive == true);
 
 

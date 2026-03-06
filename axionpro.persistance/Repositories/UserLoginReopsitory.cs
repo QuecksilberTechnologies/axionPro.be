@@ -21,18 +21,18 @@ namespace axionpro.persistance.Repositories
     {
         private readonly WorkforceDbContext _context;
         private readonly ILogger<UserLoginReopsitory> _logger;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+       
         private readonly IMapper _mapper;
         private readonly IPasswordService _passwordService;
         private readonly IConfiguration _configuration;
 
         public UserLoginReopsitory(WorkforceDbContext context, ILogger<UserLoginReopsitory> logger, IMapper mapper,
-            IDbContextFactory<WorkforceDbContext> contextFactory, IPasswordService passwordService , IConfiguration configuration)
+             IPasswordService passwordService , IConfiguration configuration)
         {
             _context = context;
             _logger = logger;
             _mapper = mapper;
-            _contextFactory = contextFactory;
+            
             _passwordService = passwordService;
             _configuration = configuration;
         }
@@ -41,11 +41,11 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
+                
 
                 _logger.LogInformation("🔐 Authenticating user with LoginId: {LoginId}", loginId);
 
-                var user = await context.LoginCredentials
+                var user = await _context.LoginCredentials
                     .FirstOrDefaultAsync(u => u.LoginId == loginId && (u.IsActive==true && u.IsSoftDeleted!=true));
 
                 return user;

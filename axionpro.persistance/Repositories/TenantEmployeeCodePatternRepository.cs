@@ -17,25 +17,24 @@ namespace axionpro.persistance.Repositories
     {
         private readonly WorkforceDbContext _context;
         private readonly ILogger<TenantEmployeeCodePatternRepository> _logger;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+       
 
         public TenantEmployeeCodePatternRepository(
             WorkforceDbContext context,
-            ILogger<TenantEmployeeCodePatternRepository> logger,
-            IDbContextFactory<WorkforceDbContext> contextFactory)
+            ILogger<TenantEmployeeCodePatternRepository> logger
+             )
         {
             _context = context;
             _logger = logger;
-            _contextFactory = contextFactory;
+            
         }
 
         public async Task<GetEmployeeCodePatternResponseDTO?> GetTenantEmployeeCodePatternAsync(long tenantId, bool isActive)
         {
             try
             {
-                await using var db = await _contextFactory.CreateDbContextAsync();
-
-                var result = (await db
+              
+                var result = (await _context
                     .Set<GetEmployeeCodePatternResponseDTO>()
                     .FromSqlRaw("EXEC [AxionPro].[GetEmployeeCodePatternByTenant] @TenantId = {0}", tenantId)
                     .AsNoTracking()

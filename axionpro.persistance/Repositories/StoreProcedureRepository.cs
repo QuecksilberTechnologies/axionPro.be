@@ -22,15 +22,15 @@ namespace axionpro.persistance.Repositories
     {
         private readonly WorkforceDbContext _context;
         private readonly ILogger<StoreProcedureRepository> _logger;
-      //  private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+      // 
         private readonly IMapper _mapper;
         
 
-        public StoreProcedureRepository(WorkforceDbContext context, ILogger<StoreProcedureRepository> logger, IMapper mapper, IDbContextFactory<WorkforceDbContext> contextFactory)
+        public StoreProcedureRepository(WorkforceDbContext context, ILogger<StoreProcedureRepository> logger, IMapper mapper)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-          //  _contextFactory = contextFactory;
+          //  
             _mapper = mapper;   
         }
 
@@ -263,30 +263,42 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-
-        public async Task<long> ValidateActiveUserLoginOnlyAsync(string loginId)
+        public async Task<long> ValidateActiveUserLoginOnlyAsync(string p_loginid)
         {
             try
             {
-                _logger.LogInformation("Validating user login for LoginId: {LoginId}", loginId);
-
-                await using var conn = _context.Database.GetDbConnection();
-                  await conn.OpenAsync();
-
-                await using var cmd = conn.CreateCommand();
-                cmd.CommandText = "SELECT axionpro.\"ValidateActiveUserLoginOnly\"(@p_loginid)";
-                cmd.Parameters.Add(new NpgsqlParameter("p_loginid", loginId ?? (object)DBNull.Value));
-
-                var resultObj = await cmd.ExecuteScalarAsync();
-                await conn.CloseAsync();
-                return Convert.ToInt64(resultObj);
+                return await _context.Database
+                    .SqlQuery<long>($"SELECT axionpro.\"ValidateActiveUserLoginOnly\"(@p_loginid)")
+                    .FirstAsync();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error validating login for LoginId {LoginId}", loginId);
+                _logger.LogError(ex, "Error validating login for LoginId {LoginId}", p_loginid);
                 return -1;
             }
         }
+        //public async Task<long> ValidateActiveUserLoginOnlyAsync(string loginId)
+        //{
+        //    try
+        //    {
+        //        _logger.LogInformation("Validating user login for LoginId: {LoginId}", loginId);
+
+        //        await using var conn = _context.Database.GetDbConnection();
+
+        //        await using var cmd = conn.CreateCommand();
+        //        cmd.CommandText = "SELECT axionpro.\"ValidateActiveUserLoginOnly\"(@p_loginid)";
+        //        cmd.Parameters.Add(new NpgsqlParameter("p_loginid", loginId ?? (object)DBNull.Value));
+
+        //        var resultObj = await cmd.ExecuteScalarAsync();
+
+        //        return Convert.ToInt64(resultObj);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error validating login for LoginId {LoginId}", loginId);
+        //        return -1;
+        //    }
+        //}
 
         //public async Task<long> ValidateActiveUserLoginOnlyAsync(string loginId)
         //{

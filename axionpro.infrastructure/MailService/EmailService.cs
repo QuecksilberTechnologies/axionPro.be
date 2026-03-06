@@ -19,7 +19,7 @@ namespace axionpro.infrastructure.MailService
         private readonly ITenantEmailConfigRepository _configRepo;
         private readonly IEmailTemplateRepository _templateRepo;
         private readonly ILogger<EmailService> _logger;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+       
         public EmailService(
             ITenantEmailConfigRepository configRepo,
             IEmailTemplateRepository templateRepo,
@@ -28,7 +28,7 @@ namespace axionpro.infrastructure.MailService
             _configRepo = configRepo;
             _templateRepo = templateRepo;
             _logger = logger;
-            _contextFactory = contextFactory;
+            
         }
 
         public Task<bool> SendEmailAsync(string toEmail, string subject, string body, string token, long? TenantId)

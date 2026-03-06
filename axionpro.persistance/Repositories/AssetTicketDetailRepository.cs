@@ -19,7 +19,7 @@ namespace axionpro.persistance.Repositories
     {
         #region Fields
         private readonly WorkforceDbContext _context;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+       
         private readonly IMapper _mapper;
         private readonly ILogger<AssetTicketDetailRepository> _logger;
         #endregion
@@ -34,7 +34,7 @@ namespace axionpro.persistance.Repositories
             _context = context;
             _logger = logger;
             _mapper = mapper;
-            _contextFactory = contextFactory;
+            
         }
         #endregion
 

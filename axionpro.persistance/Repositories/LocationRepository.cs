@@ -19,16 +19,16 @@ namespace axionpro.persistance.Repositories
     public class LocationRepository : ILocationRepository
     {
         private readonly WorkforceDbContext _context;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+       
         private readonly ILogger<LocationRepository> _logger;
         private readonly IMapper _mapper;
 
-        public LocationRepository(WorkforceDbContext context, ILogger<LocationRepository> logger, IMapper mapper, IDbContextFactory<WorkforceDbContext> contextFactory)
+        public LocationRepository(WorkforceDbContext context, ILogger<LocationRepository> logger, IMapper mapper)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(_mapper));
-            _contextFactory = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
+           
         }
         public async Task<List<Country>> GetAllAsync() => await _context.Countries.ToListAsync();
         public async Task<Country> GetByIdAsync(int id) => await _context.Countries.FindAsync(id);
@@ -56,14 +56,14 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = _contextFactory.CreateDbContext();
+              
 
                 if (dto.TodaysDate.HasValue)
                 {
                     var date = dto.TodaysDate.Value.Date;
                     _logger.LogInformation("Filtering country for date: {Date}", date);
                 }
-                var countries = await context.Countries.AsNoTracking().ToListAsync();
+                var countries = await _context.Countries.AsNoTracking().ToListAsync();
                 var getCountries = _mapper.Map<List<GetCountryOptionResponseDTO>>(countries);
                 if (getCountries == null || getCountries.Count == 0)
                 {
@@ -99,7 +99,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = _contextFactory.CreateDbContext();
+              
 
                 // ✅ Validate CountryId
                 if (dto.CountryId <= 0)
@@ -114,7 +114,7 @@ namespace axionpro.persistance.Repositories
                 }
 
                 // ✅ Query only active states belonging to given country
-                var states = await context.States
+                var states = await _context.States
                     .AsNoTracking()
                     .Where(s => s.CountryId == dto.CountryId && s.IsActive==true )
                     .ToListAsync();
@@ -163,7 +163,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = _contextFactory.CreateDbContext();
+             
 
                 // ✅ Step 1: Validate input
                 if (dto.StateId <= 0)
@@ -178,7 +178,7 @@ namespace axionpro.persistance.Repositories
                 }
 
                 // ✅ Step 2: Check if the state itself is active
-                var isStateActive = await context.States
+                var isStateActive = await _context.States
                     .AsNoTracking()
                     .AnyAsync(s => s.Id == dto.StateId && s.IsActive ==true);
 
@@ -194,7 +194,7 @@ namespace axionpro.persistance.Repositories
                 }
 
                 // ✅ Step 3: Fetch all active districts of that active state
-                var districts = await context.Districts
+                var districts = await _context.Districts
                     .AsNoTracking()
                     .Where(d => d.StateId == dto.StateId && d.IsActive ==true)
                     .ToListAsync();

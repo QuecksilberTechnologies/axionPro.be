@@ -13,7 +13,7 @@ namespace axionpro.persistance.Repositories
     public class CompanyPolicyDocumentRepository : ICompanyPolicyDocumentRepository
     {
         private readonly WorkforceDbContext _context;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+       
         private readonly IMapper _mapper;
         private readonly ILogger<CompanyPolicyDocumentRepository> _logger;
         private readonly IEncryptionService _encryptionService;
@@ -22,12 +22,12 @@ namespace axionpro.persistance.Repositories
             WorkforceDbContext context,
             ILogger<CompanyPolicyDocumentRepository> logger,
             IMapper mapper,
-            IDbContextFactory<WorkforceDbContext> contextFactory, IEncryptionService encryptionService)
+            IEncryptionService encryptionService)
         {
             _context = context;
             _logger = logger;
             _mapper = mapper;
-            _contextFactory = contextFactory;
+            
             _encryptionService = encryptionService;
 
 
@@ -61,9 +61,8 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
-                return await context.CompanyPolicyDocuments
+               
+                return await _context.CompanyPolicyDocuments
                     .AsNoTracking()
                     .Where(x =>
                         policyTypeIds.Contains(x.PolicyTypeId) &&

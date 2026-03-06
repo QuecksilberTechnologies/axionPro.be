@@ -19,7 +19,7 @@ namespace axionpro.persistance.Repositories
     public class WorkflowStageRepository : IWorkflowStagesRepository
     {
         #region Fields
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+       
         private readonly WorkforceDbContext _context;
         private readonly ILogger<WorkflowStageRepository> _logger;
         private readonly IMapper _mapper;
@@ -29,13 +29,13 @@ namespace axionpro.persistance.Repositories
         public WorkflowStageRepository(
             WorkforceDbContext context,
             ILogger<WorkflowStageRepository> logger,
-            IMapper mapper,
-            IDbContextFactory<WorkforceDbContext> contextFactory)
+            IMapper mapper
+          )
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _contextFactory = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
+           
         }
         #endregion
 
@@ -48,9 +48,8 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var contextFac = await _contextFactory.CreateDbContextAsync();
-
-                var query = contextFac.WorkflowStages.AsQueryable();
+              
+                var query = _context.WorkflowStages.AsQueryable();
 
                 query = query.Where(s => (s.IsSoftDeleted == null || s.IsSoftDeleted == false) && s.StageOrder == 1);
 
@@ -84,9 +83,9 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
+              
 
-                var stage = await context.WorkflowStages
+                var stage = await _context.WorkflowStages
                     .FirstOrDefaultAsync(s => s.Id == id && s.IsActive && (s.IsSoftDeleted == null || s.IsSoftDeleted == false));
 
                 if (stage == null)
@@ -111,21 +110,20 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
+              
                 var entity = _mapper.Map<WorkflowStage>(dto);
                 entity.IsActive = ConstantValues.IsByDefaultTrue;
                 entity.AddedById = dto.EmployeeId;
                 entity.AddedDateTime = DateTime.UtcNow;
               
 
-                await context.WorkflowStages.AddAsync(entity);
-                await context.SaveChangesAsync();
+                await _context.WorkflowStages.AddAsync(entity);
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation("✅ WorkflowStage added successfully with Id {Id}.", entity.Id);
 
                 // Return all active workflow stages after addition
-                var stages = await context.WorkflowStages
+                var stages = await _context.WorkflowStages
                     .Where(s => s.IsActive && (s.IsSoftDeleted == null || s.IsSoftDeleted == false))
                     .ToListAsync();
 
@@ -155,10 +153,9 @@ namespace axionpro.persistance.Repositories
                 }
 
                 // 🧠 Step 2: Create a new DbContext instance from factory
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
+               
                 // 🧠 Step 3: Fetch the entity by Id (only active and not soft-deleted)
-                var entity = await context.WorkflowStages
+                var entity = await _context.WorkflowStages
                     .FirstOrDefaultAsync(s => s.Id == dto.Id && (s.IsSoftDeleted == null || s.IsSoftDeleted == false));
 
                 if (entity == null)
@@ -177,10 +174,10 @@ namespace axionpro.persistance.Repositories
                 // 🧠 Step 6: Update audit fields
                 entity.UpdatedById = dto.EmployeeId;
                 entity.UpdatedDateTime = DateTime.UtcNow;
-               
+
                 // 🧠 Step 7: Save changes
-                context.WorkflowStages.Update(entity);
-                var result = await context.SaveChangesAsync();
+                _context.WorkflowStages.Update(entity);
+                var result = await _context.SaveChangesAsync();
 
                 if (result > 0)
                 {
@@ -205,9 +202,8 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
-                var entity = await context.WorkflowStages
+                
+                var entity = await _context.WorkflowStages
                     .FirstOrDefaultAsync(s => s.Id == id && (s.IsSoftDeleted == null || s.IsSoftDeleted == false));
 
                 if (entity == null)
@@ -221,8 +217,8 @@ namespace axionpro.persistance.Repositories
                 entity.UpdatedById = employeeId;
                 entity.UpdatedDateTime = DateTime.UtcNow;
 
-                context.WorkflowStages.Update(entity);
-                var result = await context.SaveChangesAsync();
+                _context.WorkflowStages.Update(entity);
+                var result = await _context.SaveChangesAsync();
 
                 if (result > 0)
                 {

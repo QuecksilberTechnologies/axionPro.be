@@ -18,20 +18,20 @@ namespace axionpro.persistance.Repositories
     public   class DesignationRepository : IDesignationRepository
     {
         private readonly WorkforceDbContext _context;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+       
         private readonly IMapper _mapper;
         private readonly ILogger<DesignationRepository> _logger;
 
         public DesignationRepository(
             WorkforceDbContext context,
             ILogger<DesignationRepository> logger,
-            IMapper mapper,
-            IDbContextFactory<WorkforceDbContext> contextFactory)
+            IMapper mapper
+          )
         {
             _context = context;
             this._logger = logger;
             _mapper = mapper;
-            _contextFactory = contextFactory;
+            
         }
         
 
@@ -122,10 +122,10 @@ namespace axionpro.persistance.Repositories
                 if (dto.DepartmentId <= 0)
                     throw new ArgumentException("❌ Invalid DepartmentId provided.");
 
-                await using var context = await _contextFactory.CreateDbContextAsync();
+              
 
                 // ✅ Check if department exists and is active
-                var departmentExists = await context.Departments
+                var departmentExists = await _context.Departments
                     .AnyAsync(d => d.Id == dto.DepartmentId &&
                                    d.TenantId == dto.Prop.TenantId &&
                                    d.IsActive == true &&
@@ -138,7 +138,7 @@ namespace axionpro.persistance.Repositories
                 }
 
                 // 🧩 3️⃣ Check duplicate designation name under same tenant
-                bool exists = await context.Designations
+                bool exists = await _context.Designations
                     .AnyAsync(d =>
                         d.TenantId == dto.Prop.TenantId &&
                         d.DesignationName.ToLower() == dto.DesignationName.ToLower() &&
@@ -165,15 +165,15 @@ namespace axionpro.persistance.Repositories
                 entity.IsSoftDeleted = false;
 
                 // 🧩 5️⃣ Insert & Save
-                await context.Designations.AddAsync(entity);
-                await context.SaveChangesAsync();
+                await _context.Designations.AddAsync(entity);
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation("✅ Designation '{Name}' created successfully with Id: {Id}", dto.DesignationName, entity.Id);
 
                 // 🧩 6️⃣ Fetch latest 10 designations (with DepartmentName join)
                 var latestDesignations = await (
-                    from des in context.Designations.AsNoTracking()
-                    join dep in context.Departments.AsNoTracking()
+                    from des in _context.Designations.AsNoTracking()
+                    join dep in _context.Departments.AsNoTracking()
                         on des.DepartmentId equals dep.Id into deptGroup
                     from dep in deptGroup.DefaultIfEmpty()
                     where des.TenantId == dto.Prop.TenantId
@@ -194,7 +194,7 @@ namespace axionpro.persistance.Repositories
 
                 // 🧩 7️⃣ Prepare paged response
                 result.Items = latestDesignations;
-                result.TotalCount = await context.Designations.CountAsync(d =>
+                result.TotalCount = await _context.Designations.CountAsync(d =>
                     d.TenantId == dto.Prop.TenantId && d.IsSoftDeleted != true);
                 result.PageNumber = 1;
                 result.PageSize = 10;
@@ -216,10 +216,10 @@ namespace axionpro.persistance.Repositories
                 // 🧩 1️⃣ Validate input
                
 
-                await using var context = await _contextFactory.CreateDbContextAsync();
+                
 
                 // 🧩 2️⃣ Fetch existing Designation
-                var existingEntity = await context.Designations
+                var existingEntity = await _context.Designations
                     .FirstOrDefaultAsync(d => d.Id == dto.Id && (d.IsSoftDeleted != true));
 
                 if (existingEntity == null)
@@ -235,8 +235,8 @@ namespace axionpro.persistance.Repositories
                 existingEntity.SoftDeletedDateTime = DateTime.UtcNow;
                 existingEntity.Id = dto.Id;
 
-                context.Designations.Update(existingEntity);
-                await context.SaveChangesAsync();
+				_context.Designations.Update(existingEntity);
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation("✅ Designation Id: {Id} soft deleted successfully by EmployeeId: {EmpId}", dto.Id, dto.Prop.UserEmployeeId);
                 return true;
@@ -262,14 +262,14 @@ namespace axionpro.persistance.Repositories
                     return response;
                 }
 
-                await using var context = await _contextFactory.CreateDbContextAsync();
+           
 
 
 
                 // ✅ Base query (join with Department)
                 var query =
-                    from des in context.Designations
-                    join dep in context.Departments
+                    from des in _context.Designations
+                    join dep in _context.Departments
                         on des.DepartmentId equals dep.Id into deptGroup
                     from dept in deptGroup.DefaultIfEmpty()
                     where des.TenantId == request.Prop.TenantId
@@ -357,11 +357,10 @@ namespace axionpro.persistance.Repositories
                 }
 
                 int departmentId = SafeParser.TryParseInt(dto.DepartmentId);
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
+              
 
                 // 🧩 2️⃣ Fetch existing record
-                var existingEntity = await context.Designations
+                var existingEntity = await _context.Designations
                     .FirstOrDefaultAsync(d => d.Id == dto.Id && (d.IsSoftDeleted != true));
 
                 if (existingEntity == null)
@@ -383,8 +382,8 @@ namespace axionpro.persistance.Repositories
                 existingEntity.UpdatedDateTime = DateTime.UtcNow;
 
                 // 🧩 4️⃣ Save Changes
-                context.Designations.Update(existingEntity);
-                await context.SaveChangesAsync();
+                _context.Designations.Update(existingEntity);
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation("✅ Designation '{Name}' (Id: {Id}) updated successfully by EmployeeId: {EmployeeId}",
                     existingEntity.DesignationName, existingEntity.Id, dto.Prop.UserEmployeeId);
@@ -410,10 +409,10 @@ namespace axionpro.persistance.Repositories
                     throw new ArgumentNullException(nameof(dto), "GetSingleDesignationRequestDTO cannot be null.");
                 }
 
-                await using var context = await _contextFactory.CreateDbContextAsync();
+              
 
                 // 🧩 2️⃣ Record fetch
-                var designation = await context.Designations
+                var designation = await _context.Designations
                     .AsNoTracking()
                     .FirstOrDefaultAsync(d =>
                         d.Id == dto.Id &&
@@ -447,11 +446,10 @@ namespace axionpro.persistance.Repositories
 
             try
             {
-                using var context = _contextFactory.CreateDbContext();
-
+                
                  
                 // ✅ Base Query
-                var query = context.Designations
+                var query = _context.Designations
                     .Where(x => x.TenantId == dto.Prop.TenantId && x.IsSoftDeleted != true && x.IsActive == true);
 
                 // ✅ Conditional filter (apply only if departmentId > 0)

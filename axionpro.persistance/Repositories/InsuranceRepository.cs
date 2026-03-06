@@ -23,7 +23,7 @@ namespace axionpro.persistance.Repositories
             WorkforceDbContext context,
             IMapper mapper,
             ILogger<InsuranceRepository> logger,
-            IDbContextFactory<WorkforceDbContext> contextFactory,
+           
             IPasswordService passwordService,
             IEncryptionService encryptionService)
         {

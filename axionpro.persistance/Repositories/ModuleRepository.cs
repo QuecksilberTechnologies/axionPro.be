@@ -17,21 +17,21 @@ namespace axionpro.persistance.Repositories
     {
         private readonly WorkforceDbContext? _context;
         private readonly ILogger? _logger;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+       
         private readonly IMapper _mapper;
-        public ModuleRepository(WorkforceDbContext? context, ILogger<ModuleRepository>? logger, IMapper mapper, IDbContextFactory<WorkforceDbContext> contextFactory)
+        public ModuleRepository(WorkforceDbContext? context, ILogger<ModuleRepository>? logger, IMapper mapper)
         {
             _context = context;
             _logger = logger;
             _mapper = mapper;
-            _contextFactory = contextFactory;
+            
         }
         public async Task<Module?> GetModuleByIdAsync(long moduleId)
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-                return await context.Modules.FirstOrDefaultAsync(m => m.Id == moduleId && m.IsActive == true);
+               
+                return await _context.Modules.FirstOrDefaultAsync(m => m.Id == moduleId && m.IsActive == true);
             }
             catch (Exception ex)
             {
@@ -44,8 +44,8 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-                return await context.Modules
+               
+                return await _context.Modules
                     .FirstOrDefaultAsync(m => m.IsCommonMenu == true && m.IsModuleDisplayInUi == true && m.IsActive == true);
             }
             catch (Exception ex)
@@ -61,13 +61,12 @@ namespace axionpro.persistance.Repositories
                 List<Module> allModules;
 
                 // ✅ DbContext used only here
-                await using (var context = await _contextFactory.CreateDbContextAsync())
-                {
-                    allModules = await context.Modules
+                
+                    allModules = await _context.Modules
                         .Where(m => m.IsActive && m.IsModuleDisplayInUi)
                         .OrderBy(m => m.Id)
                         .ToListAsync();
-                }
+               
 
                 // ✅ Outside context — Safe recursion
                 var result = BuildMenuTree(allModules, parentId);
@@ -247,10 +246,10 @@ namespace axionpro.persistance.Repositories
                     return new List<GetParentModuleResponseDTO>();
                 }
 
-                await using var context = await _contextFactory.CreateDbContextAsync();
+               
 
                 // ✅ Step 2: Check for duplicate name
-                bool isDuplicate = await context.Modules
+                bool isDuplicate = await _context.Modules
                     .AnyAsync(m => m.ModuleName == module.ModuleName && m.IsActive);
 
                 if (isDuplicate)
@@ -272,8 +271,8 @@ namespace axionpro.persistance.Repositories
                 moduleEntity.IsActive = true;
 
                 // ✅ Step 5: Save to DB
-                await context.Modules.AddAsync(moduleEntity);
-                await context.SaveChangesAsync();
+                await _context.Modules.AddAsync(moduleEntity);
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation("✅ New parent module '{ModuleName}' added successfully with ID {Id}", moduleEntity.ModuleName, moduleEntity.Id);
                 var moduleDTO = _mapper.Map<GetParentModuleRequestDTO>(module);
@@ -298,16 +297,16 @@ namespace axionpro.persistance.Repositories
                     return new List<GetParentModuleResponseDTO>();
                 }
 
-                await using var context = await _contextFactory.CreateDbContextAsync();
+              
 
-                if (context.Modules == null)
+                if (_context.Modules == null)
                 {
                     _logger.LogError("❌ DbSet<Module> is null in context.");
                     return new List<GetParentModuleResponseDTO>();
                 }
 
                 // ✅ Fetch parent modules based on flags
-                var parentModules = await context.Modules
+                var parentModules = await _context.Modules
                     .Where(m => m.IsActive
                              && m.IsLeafNode == false
                              && m.IsModuleDisplayInUi == module.IsModuleDisplayInUi
@@ -335,16 +334,16 @@ namespace axionpro.persistance.Repositories
                     return new List<GetModuleChildInversResponseDTO>();
                 }
 
-                await using var context = await _contextFactory.CreateDbContextAsync();
+               
 
-                if (context.Modules == null)
+                if (_context.Modules == null)
                 {
                     _logger.LogError("❌ DbSet<Module> is null in context.");
                     return new List<GetModuleChildInversResponseDTO>();
                 }
 
                 // ✅ Fetch parent modules based on flags
-                var parentModules = await context.Modules
+                var parentModules = await _context.Modules
                     .Where(m => m.IsActive
                              && m.IsLeafNode == false
                              && m.IsModuleDisplayInUi == module.IsModuleDisplayInUi
@@ -378,16 +377,16 @@ namespace axionpro.persistance.Repositories
                     return new List<GetSubModuleResponseDTO>();
                 }
 
-                await using var context = await _contextFactory.CreateDbContextAsync();
+                
 
-                if (context.Modules == null)
+                if (_context.Modules == null)
                 {
                     _logger.LogError("❌ DbSet<Module> is null in context.");
                     return new List<GetSubModuleResponseDTO>();
                 }
 
                 // ✅ Fetch SubModules under the given ParentModule
-                var subModules = await context.Modules
+                var subModules = await _context.Modules
                     .Where(m => m.IsActive
                              && m.IsLeafNode == true
                              && m.IsModuleDisplayInUi == module.IsModuleDisplayInUi
@@ -418,9 +417,9 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
+               
 
-                var existing = await context.Modules.FindAsync(module.Id);
+                var existing = await _context.Modules.FindAsync(module.Id);
                 if (existing == null) return false;
 
                 existing.ModuleName = module.ModuleName;
@@ -432,8 +431,8 @@ namespace axionpro.persistance.Repositories
                 existing.UpdatedDateTime = DateTime.Now;
                 existing.Remark = module.Remark;
 
-                context.Modules.Update(existing);
-                await context.SaveChangesAsync();
+				_context.Modules.Update(existing);
+                await _context.SaveChangesAsync();
 
                 return true;
             }
@@ -448,16 +447,16 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
+              
 
-                var module = await context.Modules.FindAsync(moduleId);
+                var module = await _context.Modules.FindAsync(moduleId);
                 if (module == null) return false;
 
                 module.IsActive = false;
                 module.UpdatedDateTime = DateTime.Now;
 
-                context.Modules.Update(module);
-                await context.SaveChangesAsync();
+				_context.Modules.Update(module);
+                await _context.SaveChangesAsync();
 
                 return true;
             }
@@ -484,10 +483,10 @@ namespace axionpro.persistance.Repositories
                     return new List<GetModuleChildInversResponseDTO>();
                 }
 
-                await using var context = await _contextFactory.CreateDbContextAsync();
+              
 
                 // ✅ Step 2: Check for duplicate module under same parent
-                bool isDuplicate = await context.Modules
+                bool isDuplicate = await _context.Modules
                     .AnyAsync(m => m.TenantId == module.TenantId &&
                         m.ModuleName == module.ModuleName &&
                         m.ParentModuleId == module.ParentModuleId &&
@@ -512,8 +511,8 @@ namespace axionpro.persistance.Repositories
                 moduleEntity.IsActive = module.IsActive;
 
                 // ✅ Step 5: Save to DB
-                var entity = await context.Modules.AddAsync(moduleEntity);
-                await context.SaveChangesAsync();
+                var entity = await _context.Modules.AddAsync(moduleEntity);
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation("✅ New SubModule '{ModuleName}' added successfully under Parent ID {ParentId}",
                     moduleEntity.ModuleName, moduleEntity.ParentModuleId);

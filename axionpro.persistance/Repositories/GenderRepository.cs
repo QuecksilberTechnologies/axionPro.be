@@ -23,16 +23,16 @@ namespace axionpro.persistance.Repositories
         public class GenderRepository : IGenderRepository
         {
             private readonly WorkforceDbContext _context;
-            private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+           
             private readonly ILogger<GenderRepository> _logger;
             private readonly IMapper _mapper;
 
-            public GenderRepository(WorkforceDbContext context, ILogger<GenderRepository> logger, IMapper mapper, IDbContextFactory<WorkforceDbContext> contextFactory)
+            public GenderRepository(WorkforceDbContext context, ILogger<GenderRepository> logger, IMapper mapper)
             {
                 _context = context ?? throw new ArgumentNullException(nameof(context));
                 _logger = logger ?? throw new ArgumentNullException(nameof(logger));
              _mapper = mapper ?? throw new ArgumentNullException(nameof(_mapper));
-            _contextFactory =  contextFactory?? throw new ArgumentNullException(nameof(contextFactory));
+           
             }
 
             public Task AddAsync(Gender gender)
@@ -81,14 +81,14 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = _contextFactory.CreateDbContext();
+                
 
                 if (dto.TodaysDate.HasValue)
                 {
                     var date = dto.TodaysDate.Value.Date;
                     _logger.LogInformation("Filtering gender for date: {Date}", date);
                 }
-                var genders = await context.Genders.AsNoTracking().ToListAsync();
+                var genders = await _context.Genders.AsNoTracking().ToListAsync();
                 var getGender = _mapper.Map<List<GetGenderOptionResponseDTO>>(genders);
                 if (getGender == null || getGender.Count == 0)
                 {

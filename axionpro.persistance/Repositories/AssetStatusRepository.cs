@@ -20,20 +20,20 @@ namespace axionpro.persistance.Repositories
     public class AssetStatusRepository : IAssetStatusRepository
     {
         private readonly WorkforceDbContext _context;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+       
         private readonly IMapper _mapper;
         private readonly ILogger<AssetStatusRepository> _logger;
 
         public AssetStatusRepository(
             WorkforceDbContext context,
             ILogger<AssetStatusRepository> logger,
-            IMapper mapper,
-            IDbContextFactory<WorkforceDbContext> contextFactory)
+            IMapper mapper
+           )
         {
             _context = context;
             _logger = logger;
             _mapper = mapper;
-            _contextFactory = contextFactory;
+            
         }
 
         #region AssetStatus CRUD

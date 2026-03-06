@@ -15,20 +15,20 @@ namespace axionpro.persistance.Repositories
     public class TicketHeaderRepository : ITicketHeaderRepository
     {
         private readonly WorkforceDbContext _context;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+       
         private readonly IMapper _mapper;
         private readonly ILogger<TicketHeaderRepository> _logger;
 
         public TicketHeaderRepository(
             WorkforceDbContext context,
             ILogger<TicketHeaderRepository> logger,
-            IMapper mapper,
-            IDbContextFactory<WorkforceDbContext> contextFactory)
+            IMapper mapper
+          )
         {
             _context = context;
             _logger = logger;
             _mapper = mapper;
-            _contextFactory = contextFactory;
+            
         }
 
         // ✅ ADD
@@ -44,10 +44,9 @@ namespace axionpro.persistance.Repositories
                     return result;
                 }
 
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
+               
                 // ✅ Duplicate check
-                bool exists = await context.TicketHeaders
+                bool exists = await _context.TicketHeaders
                     .AnyAsync(x => x.HeaderName.ToLower() == dto.HeaderName.ToLower()
                                 && x.IsActive
                                 && (x.IsSoftDeleted == null || x.IsSoftDeleted == false)
@@ -57,7 +56,7 @@ namespace axionpro.persistance.Repositories
                 {
                     _logger.LogWarning("⚠️ Ticket header already exists: {Name}", dto.HeaderName);
                     // ✅ Return existing list instead of empty
-                    var existingHeaders = await context.TicketHeaders
+                    var existingHeaders = await _context.TicketHeaders
                         .Where(x => x.TenantId == dto.TenantId && x.IsActive && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
                         .ToListAsync();
                     return _mapper.Map<List<GetHeaderResponseDTO>>(existingHeaders);
@@ -70,13 +69,13 @@ namespace axionpro.persistance.Repositories
                 entity.IsActive = true;
 
                 // ✅ Add to DB
-                await context.TicketHeaders.AddAsync(entity);
-                await context.SaveChangesAsync();
+                await _context.TicketHeaders.AddAsync(entity);
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation("✅ Ticket header added successfully. Id: {Id}", entity.Id);
 
                 // ✅ Fetch all headers for this tenant after adding
-                var allHeaders = await context.TicketHeaders
+                var allHeaders = await _context.TicketHeaders
                     .Where(x => x.TenantId == dto.TenantId && x.IsActive && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
                     .ToListAsync();
 
@@ -108,9 +107,8 @@ namespace axionpro.persistance.Repositories
                     return result;
                 }
 
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
-                var entity = await context.TicketHeaders
+               
+                var entity = await _context.TicketHeaders
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x => x.Id == dto.Id && x.IsActive && (x.IsSoftDeleted == null || x.IsSoftDeleted == false));
 
@@ -146,10 +144,9 @@ namespace axionpro.persistance.Repositories
 
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
+            
                 // ✅ Step 1: Base Query
-                var query = context.TicketHeaders
+                var query = _context.TicketHeaders
                     .Where(x => (x.IsSoftDeleted == null || x.IsSoftDeleted == false) && x.TenantId ==dto.TenantId)
                     .AsQueryable();                
 
@@ -212,9 +209,8 @@ namespace axionpro.persistance.Repositories
                     return new GetHeaderResponseDTO();
                 }
 
-                await using var context = await _contextFactory.CreateDbContextAsync();
                 
-                var existing = await context.TicketHeaders.FirstOrDefaultAsync(x => x.Id == dto.Id && (x.IsSoftDeleted == null || x.IsSoftDeleted == false));
+                var existing = await _context.TicketHeaders.FirstOrDefaultAsync(x => x.Id == dto.Id && (x.IsSoftDeleted == null || x.IsSoftDeleted == false));
                 if (existing == null)
                 {
                     _logger.LogWarning("⚠️ Ticket header not found for update. Id: {Id}", dto.Id);
@@ -233,8 +229,8 @@ namespace axionpro.persistance.Repositories
                              ? dto.TicketClassificationId.Value
                              : existing.TicketClassificationId;
 
-                context.TicketHeaders.Update(existing);
-                await context.SaveChangesAsync();
+                _context.TicketHeaders.Update(existing);
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation("✅ Ticket header updated successfully. Id: {Id}", dto.Id);
 
@@ -261,9 +257,9 @@ namespace axionpro.persistance.Repositories
                     return false;
                 }
 
-                await using var context = await _contextFactory.CreateDbContextAsync();
+  
 
-                var entity = await context.TicketHeaders.FirstOrDefaultAsync(x => x.Id == dto.Id && (x.IsSoftDeleted == null || x.IsSoftDeleted == false));
+                var entity = await _context.TicketHeaders.FirstOrDefaultAsync(x => x.Id == dto.Id && (x.IsSoftDeleted == null || x.IsSoftDeleted == false));
                 if (entity == null)
                 {
                     _logger.LogWarning("⚠️ Ticket header not found for deletion. Id: {Id}", dto.Id);
@@ -275,8 +271,8 @@ namespace axionpro.persistance.Repositories
                 entity.SoftDeletedById = dto.EmployeeId;
                 entity.SoftDeletedTime = DateTime.UtcNow;
 
-                context.TicketHeaders.Update(entity);
-                await context.SaveChangesAsync();
+                _context.TicketHeaders.Update(entity);
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation("🗑️ Ticket header soft-deleted successfully. Id: {Id}", dto.Id);
                 return true;

@@ -16,20 +16,20 @@ namespace axionpro.persistance.Repositories
     public class AssetTypeRepository : IAssetTypeRepository
     {
         private readonly WorkforceDbContext _context;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+       
         private readonly IMapper _mapper;
         private readonly ILogger<AssetTypeRepository> _logger;
 
         public AssetTypeRepository(
             WorkforceDbContext context,
             ILogger<AssetTypeRepository> logger,
-            IMapper mapper,
-            IDbContextFactory<WorkforceDbContext> contextFactory)
+            IMapper mapper
+           )
         {
             _context = context;
             _logger = logger;
             _mapper = mapper;
-            _contextFactory = contextFactory;
+            
         }
         public async Task<List<GetTypeResponseDTO>> AddAsync(AddTypeRequestDTO? dto)
         {
@@ -129,10 +129,10 @@ namespace axionpro.persistance.Repositories
                     throw new ArgumentException("Valid Asset Type Id is required for deletion.");
                 }
 
-                await using var context = await _contextFactory.CreateDbContextAsync();
+                
 
                 // ✅ Step 2: Fetch record from DB
-                var existingType = await context.AssetTypes
+                var existingType = await _context.AssetTypes
                     .FirstOrDefaultAsync(x => x.Id == dto.Id && (x.IsSoftDeleted == null || x.IsSoftDeleted == false));
 
                 if (existingType == null)
@@ -150,7 +150,7 @@ namespace axionpro.persistance.Repositories
                 existingType.DeletedDateTime = DateTime.UtcNow;
 
                 // ✅ Step 4: Save changes
-                await context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation("✅ Asset Type with Id: {Id} deleted successfully.", dto.Id);
                 return true;

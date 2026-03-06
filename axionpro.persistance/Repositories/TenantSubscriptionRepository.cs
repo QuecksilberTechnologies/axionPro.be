@@ -16,17 +16,16 @@ namespace axionpro.persistance.Repositories
         private readonly ILogger<TenantSubscriptionRepository> _logger;
         
         private readonly IMapper _mapper;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+       
 
 
 
-        public TenantSubscriptionRepository(WorkforceDbContext context, ILogger<TenantSubscriptionRepository> logger, IMapper mapper,
-            IDbContextFactory<WorkforceDbContext> contextFactory)
+        public TenantSubscriptionRepository(WorkforceDbContext context, ILogger<TenantSubscriptionRepository> logger, IMapper mapper)
         {
             _context = context;
             _logger = logger;
             _mapper = mapper;
-           // _contextFactory = contextFactory;
+           // 
         }
        
         public async Task<TenantSubscription> AddTenantSubscriptionAsync(TenantSubscription subscription)

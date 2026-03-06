@@ -3,30 +3,36 @@ using axionpro.application.DTOs;
  
 using axionpro.application.Interfaces.ICacheService;
 using axionpro.application.Interfaces.IRepositories;
+using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
     public class PermissionRepository : IPermissionRepository
     {
         private readonly ILogger<PermissionRepository> _logger;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+       
         private readonly ICacheService _cacheService;
+        private readonly WorkforceDbContext _context;
 
-        public PermissionRepository(
-            IDbContextFactory<WorkforceDbContext> contextFactory,
+        public PermissionRepository(WorkforceDbContext context,
+
+
             ILogger<PermissionRepository> logger,
             ICacheService cacheService)
         {
-            _contextFactory = contextFactory;
+            
             _logger = logger;
             _cacheService = cacheService;
+            _context = context;
+
+
         }
 
         /// <summary>
@@ -45,10 +51,10 @@ namespace axionpro.persistance.Repositories
                     return cachedPermissions;
                 }
 
-                await using var context = await _contextFactory.CreateDbContextAsync();
+               
                 var permissions = await (
-                    from rp in context.RoleModuleAndPermissions
-                    join op in context.TenantEnabledOperations
+                    from rp in _context.RoleModuleAndPermissions
+                    join op in _context.TenantEnabledOperations
                         on rp.OperationId equals op.OperationId
                     where rp.RoleId == roleId
                           && rp.HasAccess==true

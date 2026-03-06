@@ -32,10 +32,7 @@ namespace axionpro.persistance
 
             // ✔ Scoped DbContext
             services.AddDbContext<WorkforceDbContext>(dbOptions);
-
-            // ✔ DbContextFactory (uses same options safely)
-            services.AddDbContextFactory<WorkforceDbContext>(options =>
-                options.UseNpgsql(connectionString));
+ 
 
             // ✔ Interface mapping
             services.AddScoped<IWorkforcedbContext>(provider =>

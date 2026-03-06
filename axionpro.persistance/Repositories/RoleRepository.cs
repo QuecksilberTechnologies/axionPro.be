@@ -20,7 +20,7 @@ public class RoleRepository : IRoleRepository
 {
 
     private readonly WorkforceDbContext _context;
-    private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+   
     private readonly IMapper _mapper;
     private readonly ILogger<RoleRepository> _logger;
     private readonly IEncryptionService _encryptionService;
@@ -29,13 +29,13 @@ public class RoleRepository : IRoleRepository
  WorkforceDbContext context,
  ILogger<RoleRepository> logger,
  IMapper mapper,
- IDbContextFactory<WorkforceDbContext> contextFactory,
+ 
  IEncryptionService encryptionService)
     {
         _context = context;
         _logger = logger;
         _mapper = mapper;
-        _contextFactory = contextFactory;
+        
         _encryptionService = encryptionService;
     }
 
@@ -279,9 +279,8 @@ public class RoleRepository : IRoleRepository
 
         try
         {
-            await using var context = await _contextFactory.CreateDbContextAsync();
-
-            var existingRole = await context.Roles
+            
+            var existingRole = await _context.Roles
                 .FirstOrDefaultAsync(r => r.Id == requestDTO.Id && r.IsSoftDeleted != true);
 
             if (existingRole == null)
@@ -329,7 +328,7 @@ public class RoleRepository : IRoleRepository
                 existingRole.UpdatedById = requestDTO.Prop.UserEmployeeId;
                 existingRole.UpdatedDateTime = DateTime.UtcNow;
 
-                var affected = await context.SaveChangesAsync();
+                var affected = await _context.SaveChangesAsync();
 
                 if (affected > 0)
                 {
@@ -368,12 +367,11 @@ public class RoleRepository : IRoleRepository
                 return null;
             }
 
-            await using var context = await _contextFactory.CreateDbContextAsync();
-
+          
             _logger.LogInformation("🔍 Fetching role details for RoleId: {RoleId}, TenantId:", dto.Id);
 
             // ✅ Fetch Role by Id with Tenant check and SoftDelete filter
-            var role = await context.Roles
+            var role = await _context.Roles
                 .Where(r =>
                     r.Id == dto.Id &&
                     r.IsSoftDeleted != true)
@@ -407,10 +405,9 @@ public class RoleRepository : IRoleRepository
         try
         {
             
-            await using var context = await _contextFactory.CreateDbContextAsync();
-
+            
             // 🧩 Step 3️⃣ - Fetch Role
-            var role = await context.Roles
+            var role = await _context.Roles
                 .FirstOrDefaultAsync(r => r.Id == id && (r.IsSoftDeleted != true));
 
             if (role == null)
@@ -428,10 +425,10 @@ public class RoleRepository : IRoleRepository
             role.UpdatedDateTime = DateTime.UtcNow;
 
             // 🧩 Step 5️⃣ - Update Entity
-            context.Roles.Update(role);
+            _context.Roles.Update(role);
 
             // 🧩 Step 6️⃣ - Commit Changes
-            var result = await context.SaveChangesAsync();
+            var result = await _context.SaveChangesAsync();
 
             if (result > 0)
             {
@@ -556,9 +553,8 @@ public class RoleRepository : IRoleRepository
     {
         try
         {
-            await using var context = await _contextFactory.CreateDbContextAsync();
-
-            var query = context.Roles
+            
+            var query = _context.Roles
                 .AsNoTracking()
                 .Where(r =>
                     r.TenantId == tenantId &&
@@ -603,11 +599,10 @@ public class RoleRepository : IRoleRepository
                 return response;
             }
 
-            await using var context = await _contextFactory.CreateDbContextAsync();
-
+           
             int roleType = dto.RoleType;
 
-            var query = context.Roles
+            var query = _context.Roles
                 .Where(r => r.TenantId == dto.Prop.TenantId && (r.IsSoftDeleted != true))
                 .AsQueryable();
 
@@ -673,11 +668,10 @@ public class RoleRepository : IRoleRepository
         var response = new ApiResponse<List<GetRoleOptionResponseDTO?>>();
 
         try
-        {
-            using var context = _contextFactory.CreateDbContext();
+        {   
              
             // ✅ Base Query
-            var query = context.Roles
+            var query = _context.Roles
                 .Where(x => x.TenantId == dto.Prop.TenantId && x.IsSoftDeleted != true && x.IsActive);        
 
             // ✅ Conditional filter (apply only if roleType > 0)

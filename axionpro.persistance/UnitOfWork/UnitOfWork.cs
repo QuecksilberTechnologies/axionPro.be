@@ -29,7 +29,7 @@ public class UnitOfWork : IUnitOfWork
 
     private readonly WorkforceDbContext _context;
 
-    private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+ 
     private readonly IQRService _qrService;
 
     private readonly IMapper _mapper;
@@ -121,8 +121,8 @@ public class UnitOfWork : IUnitOfWork
         WorkforceDbContext context,
         ILoggerFactory loggerFactory,
         IQRService qrService,
-        IFileStorageService fileStorageService, IMapper mapper, IDbContextFactory<WorkforceDbContext> dbContextFactory, 
-        IPasswordService passwordService, IConfiguration configuration,IPasswordService password , IPermissionService permissionService, ICacheService cacheService,
+        IFileStorageService fileStorageService, IMapper mapper,  
+        IPasswordService passwordService, IConfiguration configuration, IPermissionService permissionService, ICacheService cacheService,
         IEncryptionService encryptionService, IIdEncoderService idEncoderService)
     {
         _context = context;
@@ -130,14 +130,12 @@ public class UnitOfWork : IUnitOfWork
         _qrService = qrService;
         _fileStorageService = fileStorageService;
         _mapper = mapper;
-        _contextFactory = dbContextFactory;
-         _passwordService = passwordService;
+        _passwordService = passwordService;
         _config = configuration;
         _permissionService = permissionService;
         _cacheService = cacheService;
         _encriptionService = encryptionService;
         _idEncoderService = idEncoderService;
-
     }
 
     // Repositories
@@ -156,7 +154,7 @@ public class UnitOfWork : IUnitOfWork
     {
         get
         {
-            return _userLoginReopsitory ??= new UserLoginReopsitory(_context, _loggerFactory.CreateLogger<UserLoginReopsitory>(), _mapper, _contextFactory, _passwordService,_config);
+            return _userLoginReopsitory ??= new UserLoginReopsitory(_context, _loggerFactory.CreateLogger<UserLoginReopsitory>(), _mapper,  _passwordService,_config);
         }
     }
 
@@ -164,7 +162,7 @@ public class UnitOfWork : IUnitOfWork
     {
         get
         {
-            return _permissionRepository ??= new PermissionRepository(_contextFactory, _loggerFactory.CreateLogger<PermissionRepository>(), _cacheService);
+            return _permissionRepository ??= new PermissionRepository(_context, _loggerFactory.CreateLogger<PermissionRepository>(), _cacheService);
         }
     }
 
@@ -174,9 +172,7 @@ public class UnitOfWork : IUnitOfWork
         get
         {
             // Agar repository pehle se initialized nahi hai to create karo
-            return _ticketTypeRepository ??= new TicketTypeRepository(_context, _loggerFactory.CreateLogger<TicketTypeRepository>(), _mapper
-               , _contextFactory
-                );
+            return _ticketTypeRepository ??= new TicketTypeRepository(_context, _loggerFactory.CreateLogger<TicketTypeRepository>(), _mapper);
         }
     }
 
@@ -189,8 +185,8 @@ public class UnitOfWork : IUnitOfWork
             return _baseEmployeeContactRepository ??= new BaseEmployeeRepository(
                 _context,
                 _mapper,
-                _loggerFactory.CreateLogger<BaseEmployeeRepository>(),
-                _contextFactory,
+                _loggerFactory.CreateLogger<BaseEmployeeRepository>()
+                ,
                 _passwordService, _encriptionService
 
             );
@@ -204,8 +200,8 @@ public class UnitOfWork : IUnitOfWork
         {
             return _tenantEmployeeCodePatternRepository ??= new TenantEmployeeCodePatternRepository(
                     _context,
-                    _loggerFactory.CreateLogger<TenantEmployeeCodePatternRepository>(),
-                    _contextFactory
+                    _loggerFactory.CreateLogger<TenantEmployeeCodePatternRepository>()
+                    
                 );
         }
     }
@@ -221,9 +217,7 @@ public class UnitOfWork : IUnitOfWork
                 _context,
                 _mapper,
                 _loggerFactory.CreateLogger<EmployeeContactRepository>(),
-                _contextFactory,
                 _passwordService, _encriptionService
-
             );
         }
     }
@@ -238,9 +232,7 @@ public class UnitOfWork : IUnitOfWork
                 _context,
                 _mapper,
                 _loggerFactory.CreateLogger<EmployeeEducationRepository>(),
-              
                 _passwordService, _encriptionService
-
             );
         }
     }
@@ -254,9 +246,7 @@ public class UnitOfWork : IUnitOfWork
                 _context,
                 _mapper,
                 _loggerFactory.CreateLogger<EmployeeExpereinceRepository>(),
-                _contextFactory,
                 _passwordService, _encriptionService
-
             );
         }
     }
@@ -269,9 +259,7 @@ public class UnitOfWork : IUnitOfWork
                 _context,
                 _mapper,
                 _loggerFactory.CreateLogger<EmployeeIdentityRepository>(),
-                _contextFactory,
                 _passwordService, _encriptionService
-
             );
         }
     }
@@ -284,9 +272,7 @@ public class UnitOfWork : IUnitOfWork
                 _context,
                 _mapper,
                 _loggerFactory.CreateLogger<EmployeeInsuranceRepository>(),
-                _contextFactory,
                 _passwordService, _encriptionService
-
             );
         }
     }
@@ -299,9 +285,7 @@ public class UnitOfWork : IUnitOfWork
                 _context,
                 _mapper,
                 _loggerFactory.CreateLogger<PolicyTypeRepository>(),
-                _contextFactory,
                 _passwordService, _encriptionService
-
             );
         }
     }
@@ -315,7 +299,7 @@ public class UnitOfWork : IUnitOfWork
                 _context,
                 _loggerFactory.CreateLogger<CompanyPolicyDocumentRepository>(),
                 _mapper,
-                _contextFactory, _encriptionService
+                _encriptionService
             );
         }
     }
@@ -329,9 +313,7 @@ public class UnitOfWork : IUnitOfWork
                 _context,
                 _mapper,
                 _loggerFactory.CreateLogger<EmployeeBankRepository>(),
-                _contextFactory,
                 _passwordService, _encriptionService
-
             );
         }
     }
@@ -341,8 +323,8 @@ public class UnitOfWork : IUnitOfWork
     {
         get
         {
-            return _employeeLeaveRepository ??= new EmployeeLeaveRepository( _context,   _mapper,   _loggerFactory.CreateLogger<EmployeeLeaveRepository>(),
-                _contextFactory, _passwordService, _encriptionService
+            return _employeeLeaveRepository ??= new EmployeeLeaveRepository(_context, _mapper, _loggerFactory.CreateLogger<EmployeeLeaveRepository>(),
+                _passwordService, _encriptionService
             );
         }
     }
@@ -354,7 +336,7 @@ public class UnitOfWork : IUnitOfWork
                 _context,
                 _mapper,
                 _loggerFactory.CreateLogger<EmployeeBankRepository>(),
-                _contextFactory, _passwordService, _encriptionService
+                _passwordService, _encriptionService
             );
         }
     }
@@ -380,7 +362,7 @@ public class UnitOfWork : IUnitOfWork
                 _context,
                 _mapper,
                 _loggerFactory.CreateLogger<EmployeeDependentRepository>(),
-                _contextFactory, _passwordService, _encriptionService
+                _passwordService, _encriptionService
             );
         }
     }
@@ -392,7 +374,7 @@ public class UnitOfWork : IUnitOfWork
                 _context,
                 _mapper,
                 _loggerFactory.CreateLogger<PolicyTypeInsuranceMappingRepository>(),
-                _contextFactory, _passwordService, _encriptionService
+                _passwordService, _encriptionService
             );
         }
     }
@@ -404,7 +386,7 @@ public class UnitOfWork : IUnitOfWork
                 _context,
                 _mapper,
                 _loggerFactory.CreateLogger<EmployeeExpereinceRepository>(),
-                _contextFactory, _passwordService, _encriptionService
+                _passwordService, _encriptionService
             );
         }
     }
@@ -419,10 +401,7 @@ public class UnitOfWork : IUnitOfWork
                 _context,
                 _mapper,
                 _loggerFactory.CreateLogger<EmployeeIdentityRepository>(),
-                _contextFactory, _passwordService, _encriptionService
-
-
-
+                _passwordService, _encriptionService
             );
         }
     }
@@ -434,10 +413,7 @@ public class UnitOfWork : IUnitOfWork
                 _context,
                 _mapper,
                 _loggerFactory.CreateLogger<InsuranceRepository>(),
-                _contextFactory, _passwordService, _encriptionService
-
-
-
+                _passwordService, _encriptionService
             );
         }
     }
@@ -451,7 +427,7 @@ public class UnitOfWork : IUnitOfWork
     //            _context,
     //            _mapper,
     //            _loggerFactory.CreateLogger<EmployeeInsuranceRepository>(),
-    //            _contextFactory, _passwordService
+    //            , _passwordService
 
     //        );
     //    }
@@ -460,21 +436,21 @@ public class UnitOfWork : IUnitOfWork
     {
         get
         {
-            return _moduleOperationMappingRepository ??= new ModuleOperationMappingRepository(_context, _loggerFactory.CreateLogger<ModuleOperationMappingRepository>(), _mapper, _contextFactory);
+            return _moduleOperationMappingRepository ??= new ModuleOperationMappingRepository(_context, _loggerFactory.CreateLogger<ModuleOperationMappingRepository>(), _mapper);
         }
     }
     public IGenderRepository GenderRepository
     {
         get
         {
-            return _genderRepository ??= new GenderRepository(_context, _loggerFactory.CreateLogger<GenderRepository>(), _mapper, _contextFactory);
+            return _genderRepository ??= new GenderRepository(_context, _loggerFactory.CreateLogger<GenderRepository>(), _mapper);
         }
     }
     public ILocationRepository LocationRepository
     {
         get
         {
-            return _countryRepository ??= new LocationRepository(_context, _loggerFactory.CreateLogger<LocationRepository>(), _mapper, _contextFactory);
+            return _countryRepository ??= new LocationRepository(_context, _loggerFactory.CreateLogger<LocationRepository>(), _mapper);
         }
     }
     public IHolidayCalandarRepository HolidayCalandarRepository
@@ -488,7 +464,7 @@ public class UnitOfWork : IUnitOfWork
     {
         get
         {
-            return _tenantRepository ??= new TenantRepository(_context, _loggerFactory.CreateLogger<TenantRepository>(), _contextFactory);
+            return _tenantRepository ??= new TenantRepository(_context, _loggerFactory.CreateLogger<TenantRepository>());
         }
     }
 
@@ -580,13 +556,13 @@ public class UnitOfWork : IUnitOfWork
     //private IUserLoginReopsitory? _userLoginReopsitory;
     //public ICommonRepository CommonRepository => new CommonRepository(_context, _loggerFactory.CreateLogger<CommonRepository>());
 
-    public IUserLoginReopsitory UserLoginRepository => new UserLoginReopsitory(_context, _loggerFactory.CreateLogger<UserLoginReopsitory>(), _mapper, _contextFactory, _passwordService, _config );
+    public IUserLoginReopsitory UserLoginRepository => new UserLoginReopsitory(_context, _loggerFactory.CreateLogger<UserLoginReopsitory>(), _mapper, _passwordService, _config );
 
     public ITenantSubscriptionRepository TenantSubscriptionRepository
     {
         get
         {
-            return _tenantSubscriptionRepository ??= new TenantSubscriptionRepository(_context, _loggerFactory.CreateLogger<TenantSubscriptionRepository>(), _mapper, _contextFactory);
+            return _tenantSubscriptionRepository ??= new TenantSubscriptionRepository(_context, _loggerFactory.CreateLogger<TenantSubscriptionRepository>(), _mapper);
         }
     }
     public IRefreshTokenRepository RefreshTokenRepository => new RefreshTokenRepository(_context, _loggerFactory.CreateLogger<RefreshTokenRepository>());
@@ -597,27 +573,25 @@ public class UnitOfWork : IUnitOfWork
     {
         get
         {
-            return _employeeTypeBasicMenurepository ??= new EmployeeTypeBasicMenuRepository(_context, _loggerFactory.CreateLogger<EmployeeTypeBasicMenuRepository>(), _mapper, _contextFactory);
+            return _employeeTypeBasicMenurepository ??= new EmployeeTypeBasicMenuRepository(_context, _loggerFactory.CreateLogger<EmployeeTypeBasicMenuRepository>(), _mapper);
         }
     }
     public IStoreProcedureRepository StoreProcedureRepository
     {
         get
         {
-            return _commonRepository ??= new StoreProcedureRepository(_context, _loggerFactory.CreateLogger<StoreProcedureRepository>(), _mapper, _contextFactory);
+            return _commonRepository ??= new StoreProcedureRepository(_context, _loggerFactory.CreateLogger<StoreProcedureRepository>(), _mapper);
         }
     }
     public IModuleRepository ModuleRepository
     {
         get
         {
-            return _moduleRepository ??= new ModuleRepository(_context, _loggerFactory.CreateLogger<ModuleRepository>(), _mapper, _contextFactory);
+            return _moduleRepository ??= new ModuleRepository(_context, _loggerFactory.CreateLogger<ModuleRepository>(), _mapper);
         }
     }
     public IAssetRepository AssetRepository => new AssetRepository(_context, _loggerFactory.CreateLogger<AssetRepository>(), 
-         _qrService, _fileStorageService,
-          _mapper,  _contextFactory  
-    );
+         _qrService, _fileStorageService, _mapper);
 
 
 
@@ -677,9 +651,8 @@ public class UnitOfWork : IUnitOfWork
         {
             return _workflowStagesRepository ??= new WorkflowStageRepository(
                 _context,
-                _loggerFactory.CreateLogger<WorkflowStageRepository>(),  // ✅ only type needed
-                _mapper,
-                _contextFactory
+                _loggerFactory.CreateLogger<WorkflowStageRepository>(),
+                _mapper
             );
         }
     }
@@ -689,10 +662,9 @@ public class UnitOfWork : IUnitOfWork
         {
             // Lazy initialization with all required dependencies
             return _tenantEncryptionKeyRepository ??= new TenantEncryptionKeyRepository(
-                _context,         // DbContext
-                _mapper,          // IMapper
-                _loggerFactory.CreateLogger<TenantEncryptionKeyRepository>(), // ILogger
-                _contextFactory   // IDbContextFactory
+                _context,
+                _mapper,
+                _loggerFactory.CreateLogger<TenantEncryptionKeyRepository>()
             );
         }
     }
@@ -701,7 +673,7 @@ public class UnitOfWork : IUnitOfWork
     {
         get
         {
-            return _tenantModuleConfigurationRepository ??= new TenantModuleConfigurationRepository(_context, _loggerFactory.CreateLogger<TenantModuleConfigurationRepository>(), _mapper, _contextFactory);
+            return _tenantModuleConfigurationRepository ??= new TenantModuleConfigurationRepository(_context, _loggerFactory.CreateLogger<TenantModuleConfigurationRepository>(), _mapper);
         }
     }
     
@@ -709,14 +681,15 @@ public class UnitOfWork : IUnitOfWork
         get
         {
             // Agar repository pehle se initialized nahi hai to create karo
-            return _reportingTypeRepository ??= new ReportingTypeRepository(_context, _loggerFactory.CreateLogger<ReportingTypeRepository>(), _mapper, _contextFactory); }
+            return _reportingTypeRepository ??= new ReportingTypeRepository(_context, _loggerFactory.CreateLogger<ReportingTypeRepository>(), _mapper);
+        }
     }
     public IAssetStatusRepository AssetStatusRepository
     {
         get
         {
             // Agar repository pehle se initialized nahi hai to create karo
-            return _assetStatusRepository ??= new AssetStatusRepository(_context, _loggerFactory.CreateLogger<AssetStatusRepository>(), _mapper, _contextFactory);
+            return _assetStatusRepository ??= new AssetStatusRepository(_context, _loggerFactory.CreateLogger<AssetStatusRepository>(), _mapper);
         }
     }
     public IAssetCategoryRepository AssetCategoryRepository
@@ -724,22 +697,22 @@ public class UnitOfWork : IUnitOfWork
         get
         {
             // Agar repository pehle se initialized nahi hai to create karo
-            return _assetCategoryRepository ??= new AssetCategoryRepository(_context, _loggerFactory.CreateLogger<AssetCategoryRepository>(), _mapper, _contextFactory);
+            return _assetCategoryRepository ??= new AssetCategoryRepository(_context, _loggerFactory.CreateLogger<AssetCategoryRepository>(), _mapper);
         }
     }
      
     
 
 
-    public IDesignationRepository DesignationRepository => new DesignationRepository(_context, _loggerFactory.CreateLogger<DesignationRepository>(), _mapper, _contextFactory);
-    public IDepartmentRepository DepartmentRepository => new DepartmentRepository(_context, _loggerFactory.CreateLogger<DepartmentRepository>(), _mapper, _contextFactory, _encriptionService);
+    public IDesignationRepository DesignationRepository => new DesignationRepository(_context, _loggerFactory.CreateLogger<DesignationRepository>(), _mapper);
+    public IDepartmentRepository DepartmentRepository => new DepartmentRepository(_context, _loggerFactory.CreateLogger<DepartmentRepository>(), _mapper, _encriptionService);
 
 
     public IRoleRepository RoleRepository
     {
         get
         {
-            return _roleRepository ??= new RoleRepository(_context, _loggerFactory.CreateLogger<RoleRepository>(), _mapper, _contextFactory , _encriptionService);
+            return _roleRepository ??= new RoleRepository(_context, _loggerFactory.CreateLogger<RoleRepository>(), _mapper , _encriptionService);
             //   return _roleRepository ??= new CandidateCategorySkillRepository(_context, _loggerFactory.CreateLogger<RoleRepository>());
 
         }
@@ -750,7 +723,7 @@ public class UnitOfWork : IUnitOfWork
         get
         {
             // Agar repository pehle se initialized nahi hai to create karo
-            return _ticket_ClassificationRepository ??= new TicketClassificationRepository(_context, _loggerFactory.CreateLogger<TicketClassificationRepository>(), _mapper, _contextFactory);
+            return _ticket_ClassificationRepository ??= new TicketClassificationRepository(_context, _loggerFactory.CreateLogger<TicketClassificationRepository>(), _mapper );
         }
     }
     public IAssetTypeRepository AssetTypeRepository
@@ -758,7 +731,7 @@ public class UnitOfWork : IUnitOfWork
         get
         {
             // Agar repository pehle se initialized nahi hai to create karo
-            return _assetTypeRepository ??= new AssetTypeRepository(_context, _loggerFactory.CreateLogger<AssetTypeRepository>(), _mapper, _contextFactory);
+            return _assetTypeRepository ??= new AssetTypeRepository(_context, _loggerFactory.CreateLogger<AssetTypeRepository>(), _mapper );
         }
     }
 
@@ -769,7 +742,7 @@ public class UnitOfWork : IUnitOfWork
         get
         {
             // Fix: Use TicketHeaderRepository, not TicketClassificationRepository, and pass correct logger type
-            return _ticketHeaderRepository ??= new TicketHeaderRepository(_context, _loggerFactory.CreateLogger<TicketHeaderRepository>(), _mapper, _contextFactory);
+            return _ticketHeaderRepository ??= new TicketHeaderRepository(_context, _loggerFactory.CreateLogger<TicketHeaderRepository>(), _mapper );
         }
     }
  
@@ -779,8 +752,8 @@ public class UnitOfWork : IUnitOfWork
         {
             return _sandwitchRuleRepository ??= new SandwitchRuleRepository(
                 _mapper,
-                _context,
-                _contextFactory,
+                _context
+                ,
                 _loggerFactory.CreateLogger<SandwitchRuleRepository>()
             );
         }

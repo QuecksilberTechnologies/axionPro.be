@@ -22,18 +22,18 @@ namespace axionpro.persistance.Repositories
     {
         private readonly IMapper _mapper;
         private readonly WorkforceDbContext _context;
-        private readonly IDbContextFactory<WorkforceDbContext> _contextFactory;
+       
         private readonly ILogger<SandwitchRuleRepository> _logger;
 
         public SandwitchRuleRepository(
             IMapper mapper,
             WorkforceDbContext context,
-            IDbContextFactory<WorkforceDbContext> contextFactory,
+            
             ILogger<SandwitchRuleRepository> logger)
         {
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            _contextFactory = contextFactory ?? throw new ArgumentNullException(nameof(contextFactory));
+           
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -43,7 +43,7 @@ namespace axionpro.persistance.Repositories
             if (request == null)
                 throw new ArgumentNullException(nameof(request));
 
-            await using var context = await _contextFactory.CreateDbContextAsync();
+            
 
             try
             {
@@ -51,8 +51,8 @@ namespace axionpro.persistance.Repositories
                 entity.IsSoftDeleted = false;
                 entity.AddedDateTime = DateTime.UtcNow;
 
-                await context.DayCombinations.AddAsync(entity);
-                await context.SaveChangesAsync();
+                await _context.DayCombinations.AddAsync(entity);
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation("✅ DayCombination added successfully: {CombinationName}", entity.CombinationName);
 
@@ -71,7 +71,7 @@ namespace axionpro.persistance.Repositories
             if (request == null)
                 throw new ArgumentNullException(nameof(request));
 
-            await using var context = await _contextFactory.CreateDbContextAsync();
+           
 
             try
             {
@@ -79,8 +79,8 @@ namespace axionpro.persistance.Repositories
                 entity.IsSoftDeleted = false;
                 entity.AddedDateTime = DateTime.UtcNow;
 
-                await context.SandwitchRules.AddAsync(entity);
-                await context.SaveChangesAsync();
+                await _context.SandwitchRules.AddAsync(entity);
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation("✅ Leave Sandwich Rule added successfully: {RuleName}", entity.RuleName);
 
@@ -99,11 +99,11 @@ namespace axionpro.persistance.Repositories
             if (request == null || request.Id <= 0)
                 return false;
 
-            await using var context = await _contextFactory.CreateDbContextAsync();
+         
 
             try
             {
-                var existingCombination = await context.DayCombinations
+                var existingCombination = await _context.DayCombinations
                     .FirstOrDefaultAsync(dc => dc.Id == request.Id && dc.TenantId == request.TenantId && dc.IsSoftDeleted != true);
 
                 if (existingCombination == null)
@@ -117,8 +117,8 @@ namespace axionpro.persistance.Repositories
                 existingCombination.SoftDeletedById = request.EmployeeId;
                 existingCombination.SoftDeletedDateTime = DateTime.UtcNow;
 
-                context.Update(existingCombination);
-                await context.SaveChangesAsync();
+                _context.Update(existingCombination);
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation("🗑️ DayCombination soft-deleted successfully: {Id}", request.Id);
                 return true;
@@ -136,11 +136,11 @@ namespace axionpro.persistance.Repositories
             if (request == null || request.Id <= 0)
                 return false;
 
-            await using var context = await _contextFactory.CreateDbContextAsync();
+          
 
             try
             {
-                var existingRule = await context.SandwitchRules
+                var existingRule = await _context.SandwitchRules
                     .FirstOrDefaultAsync(r => r.Id == request.Id && r.TenantId == request.TenantId && r.IsSoftDeleted != true);
 
                 if (existingRule == null)
@@ -154,8 +154,8 @@ namespace axionpro.persistance.Repositories
                 existingRule.SoftDeletedById = request.EmployeeId;
                 existingRule.SoftDeletedDateTime = DateTime.UtcNow;
 
-                context.Update(existingRule);
-                await context.SaveChangesAsync();
+                _context.Update(existingRule);
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation("🗑️ Leave Sandwich Rule soft-deleted successfully: {Id}", request.Id);
                 return true;
@@ -169,12 +169,10 @@ namespace axionpro.persistance.Repositories
 
         // ------------------ GET ALL DAY COMBINATIONS ------------------
         public async Task<IEnumerable<GetDayCombinationResponseDTO>> GetAllActiveDayCombinationsAsync(long tenantId, bool isActive)
-        {
-            await using var context = await _contextFactory.CreateDbContextAsync();
-
+        { 
             try
             {
-                var entities = await context.DayCombinations
+                var entities = await _context.DayCombinations
                     .Where(x => x.TenantId == tenantId && x.IsActive == isActive && (x.IsSoftDeleted == false || x.IsSoftDeleted == null))
                     .OrderByDescending(x => x.Id)
                     .ToListAsync();
@@ -191,11 +189,11 @@ namespace axionpro.persistance.Repositories
         // ------------------ GET ALL SANDWICH RULES ------------------
         public async Task<IEnumerable<GetLeaveSandwitchRuleResponseDTO>> GetAllActiveSandwichRulesAsync(long tenantId, bool isActive)
         {
-            await using var context = await _contextFactory.CreateDbContextAsync();
+            
 
             try
             {
-                var entities = await context.SandwitchRules
+                var entities = await _context.SandwitchRules
                     .Where(x => x.TenantId == tenantId && x.IsActive == isActive && (x.IsSoftDeleted == false || x.IsSoftDeleted == null))
                     .OrderByDescending(x => x.Id)
                     .ToListAsync();
@@ -214,11 +212,11 @@ namespace axionpro.persistance.Repositories
         // ------------------ UPDATE DAY COMBINATION ------------------
         public async Task<bool> UpdateDayCombinationAsync(UpdateDayCombinationRequestDTO request)
         {
-            await using var context = await _contextFactory.CreateDbContextAsync();
+             
 
             try
             {
-                var existing = await context.DayCombinations
+                var existing = await _context.DayCombinations
                     .FirstOrDefaultAsync(dc => dc.Id == request.Id && dc.TenantId == request.TenantId);
 
                 if (existing == null)
@@ -227,8 +225,8 @@ namespace axionpro.persistance.Repositories
                 _mapper.Map(request, existing);
                 existing.UpdatedDateTime = DateTime.UtcNow;
 
-                context.Update(existing);
-                await context.SaveChangesAsync();
+                _context.Update(existing);
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation("✅ DayCombination updated successfully: {Id}", request.Id);
                 return true;
@@ -243,11 +241,11 @@ namespace axionpro.persistance.Repositories
         // ------------------ UPDATE SANDWICH RULE ------------------
         public async Task<bool> UpdateSandwichAsync(UpdateLeaveSandwitchRuleRequestDTO request)
         {
-            await using var context = await _contextFactory.CreateDbContextAsync();
+           
 
             try
             {
-                var existing = await context.SandwitchRules
+                var existing = await _context.SandwitchRules
                     .FirstOrDefaultAsync(r => r.Id == request.Id && r.TenantId == request.TenantId);
 
                 if (existing == null)
@@ -256,8 +254,8 @@ namespace axionpro.persistance.Repositories
                 _mapper.Map(request, existing);
                 existing.UpdatedDateTime = DateTime.UtcNow;
 
-                context.Update(existing);
-                await context.SaveChangesAsync();
+                _context.Update(existing);
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation("✅ Leave Sandwich Rule updated successfully: {Id}", request.Id);
                 return true;
