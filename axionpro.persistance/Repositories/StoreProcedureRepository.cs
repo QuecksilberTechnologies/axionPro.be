@@ -8,14 +8,15 @@ using axionpro.application.DTOS.StoreProcedures;
 using axionpro.application.DTOS.StoreProcedures.DashboardSummeries;
 using axionpro.application.DTOS.Tenant;
 using axionpro.application.Interfaces.IRepositories;
+using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Data; using axionpro.domain.Entity;
 using Npgsql;
 using NpgsqlTypes;
-
+using SkiaSharp;
+using System.Data; 
 namespace axionpro.persistance.Repositories
 {
     public class StoreProcedureRepository : IStoreProcedureRepository
@@ -34,26 +35,7 @@ namespace axionpro.persistance.Repositories
             _mapper = mapper;   
         }
 
-        public async Task<List<RoleModuleOperationResponseDTO>> GetActiveRoleModuleOperationsAsync(GetActiveRoleModuleOperationsRequestDTO request)
-        {
-            try
-            {
-             //   await using var _context = await _contextFactory.CreateDbContextAsync();
-
-                string sqlQuery = "EXEC AxionPro.GetActiveRoleModuleOperations @TenantId = {0}, @RoleIds = {1}";
-
-                var result = await _context.Set<RoleModuleOperationResponseDTO>()
-                    .FromSqlRaw(sqlQuery, request.TenantId, request.RoleIds)
-                    .ToListAsync();
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error fetching module permissions for roles: {RoleIds}", request.RoleIds);
-                throw;
-            }
-        }
+        
         public async Task<GetEmployeeCodePatternResponseDTO?> GetTenantEmployeeCodePatternAsync(
       EmployeeCodePatternRequestDTO request)
         {
@@ -263,20 +245,99 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<long> ValidateActiveUserLoginOnlyAsync(string p_loginid)
+     
+public async Task<long> ValidateActiveUserLoginOnlyAsync(string loginId)
+    {
+        try
+        {
+            _logger.LogInformation("Validating login for {LoginId}", loginId);
+
+            var conn = (NpgsqlConnection)_context.Database.GetDbConnection();
+
+            if (conn.State != ConnectionState.Open)
+                await conn.OpenAsync();
+
+            await using var cmd = new NpgsqlCommand( "SELECT axionpro.\"ValidateActiveUserCrendentialOnly\"(@p_loginid)", conn);
+
+            cmd.Parameters.AddWithValue("p_loginid", loginId ?? (object)DBNull.Value);
+
+            var result = await cmd.ExecuteScalarAsync();
+
+            return result != null ? Convert.ToInt64(result) : 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error validating login for LoginId {LoginId}", loginId);
+            return -1;
+        }
+    }
+        public async Task<List<RoleModuleOperationResponseDTO>> GetActiveRoleModuleOperationsAsync(GetActiveRoleModuleOperationsRequestDTO request)
         {
             try
             {
-                return await _context.Database
-                    .SqlQuery<long>($"SELECT axionpro.\"ValidateActiveUserLoginOnly\"(@p_loginid)")
-                    .FirstAsync();
+                _logger.LogInformation("Fetching module operations for TenantId {TenantId} Roles {RoleIds}",
+                    request.TenantId, request.RoleIds);
+
+                var conn = (NpgsqlConnection)_context.Database.GetDbConnection();
+
+                if (conn.State != ConnectionState.Open)
+                    await conn.OpenAsync();
+
+                await using var cmd = new NpgsqlCommand(
+                    "SELECT * FROM axionpro.\"GetActiveRoleModuleOperations\"(@p_tenantid::int, @p_roleids)", conn);
+
+                cmd.Parameters.AddWithValue("p_tenantid", request.TenantId);
+                cmd.Parameters.AddWithValue("p_roleids", request.RoleIds ?? (object)DBNull.Value);
+
+                var result = new List<RoleModuleOperationResponseDTO>();
+
+                await using var reader = await cmd.ExecuteReaderAsync();
+
+                while (await reader.ReadAsync())
+                {
+                    result.Add(new RoleModuleOperationResponseDTO
+                    {
+                        RoleId = reader.GetInt32(0),
+                        TenantId = reader.GetInt32(1),
+                        ModuleId = reader.GetInt32(2),
+                        ModuleName = reader.GetString(3),
+                        URLPath = reader.GetString(4),
+                        DisplayName = reader.GetString(5),
+                        ImageIconWeb = reader.GetString(6),
+                        ImageIconMobile = reader.GetString(7),                        
+                        SubModuleName = reader.GetString(9),
+                        MainModuleId = reader.GetInt32(10),
+                        MainModuleName = reader.GetString(11),
+                        OperationId = reader.GetInt32(12),
+                        OperationName = reader.GetString(13),
+                        DataViewStructureId = reader.IsDBNull(14) ? null : reader.GetInt32(14),
+                        DisplayOn = reader.GetString(15)
+                    });
+                }
+
+                return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error validating login for LoginId {LoginId}", p_loginid);
-                return -1;
+                _logger.LogError(ex, "❌ Error fetching module permissions for roles: {RoleIds}", request.RoleIds);
+                throw;
             }
         }
+        //public async Task<long> ValidateActiveUserLoginOnlyAsync(string p_loginid)
+        //{
+        //    try
+        //    {
+        //        return await _context.Database
+        //            .SqlQuery<long>($"SELECT axionpro.\"ValidateActiveUserLoginOnly\"(@p_loginid)")
+        //            .FirstAsync();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error validating login for LoginId {LoginId}", p_loginid);
+        //        return -1;
+        //    }
+        //}
+
         //public async Task<long> ValidateActiveUserLoginOnlyAsync(string loginId)
         //{
         //    try
