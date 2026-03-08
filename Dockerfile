@@ -1,24 +1,32 @@
-# Use the official .NET SDK image for building
+# ======================
+# BUILD
+# ======================
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 
-WORKDIR /app
+WORKDIR /src
 
-# Copy everything
 COPY . .
 
-# Restore all projects
 RUN dotnet restore "AxionPro.sln"
 
-# Build and publish
-RUN dotnet publish "axionpro.api/axionpro.api.csproj" -c Release -o /app/publish
+RUN dotnet publish "axionpro.api/axionpro.api.csproj" \
+    -c Release \
+    -o /app/publish \
+    /p:UseAppHost=false
 
-# Runtime image
+
+# ======================
+# RUNTIME
+# ======================
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 
 WORKDIR /app
 
 COPY --from=build /app/publish .
 
-EXPOSE 80
+# Render port binding
+ENV ASPNETCORE_URLS=http://+:${PORT}
+
+EXPOSE 8080
 
 ENTRYPOINT ["dotnet", "axionpro.api.dll"]
