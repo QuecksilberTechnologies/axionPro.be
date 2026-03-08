@@ -7,6 +7,7 @@ using axionpro.application.DTOS.RoleModulePermission;
 using axionpro.application.DTOS.StoreProcedures;
 using axionpro.application.DTOS.StoreProcedures.DashboardSummeries;
 using axionpro.application.DTOS.Tenant;
+using axionpro.application.DTOS.UserLogin;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
@@ -35,20 +36,48 @@ namespace axionpro.persistance.Repositories
             _mapper = mapper;   
         }
 
-        
+
+        //  public async Task<GetEmployeeCodePatternResponseDTO?> GetTenantEmployeeCodePatternAsync(
+        //EmployeeCodePatternRequestDTO request)
+        //  {
+        //      try
+        //      {
+        //          //await using var context = await _contextFactory.CreateDbContextAsync();
+
+        //          var result = await _context
+        //              .Set<GetEmployeeCodePatternResponseDTO>()
+        //              .FromSqlRaw(
+        //                  "EXEC [AxionPro].[GetEmployeeCodePatternByTenant] @TenantId = {0}",
+        //                  request.TenantId
+        //              )
+        //              .AsNoTracking()
+        //              .FirstOrDefaultAsync();
+
+        //          return result;
+        //      }
+        //      catch (Exception ex)
+        //      {
+        //          _logger.LogError(
+        //              ex,
+        //              "❌ Error fetching employee code pattern for TenantId: {TenantId}",
+        //              request.TenantId
+        //          );
+        //          throw;
+        //      }
+        //  }
         public async Task<GetEmployeeCodePatternResponseDTO?> GetTenantEmployeeCodePatternAsync(
       EmployeeCodePatternRequestDTO request)
         {
             try
             {
-                //await using var context = await _contextFactory.CreateDbContextAsync();
+                var tenantParam = new NpgsqlParameter("p_tenantid", request.TenantId);
 
                 var result = await _context
                     .Set<GetEmployeeCodePatternResponseDTO>()
                     .FromSqlRaw(
-                        "EXEC [AxionPro].[GetEmployeeCodePatternByTenant] @TenantId = {0}",
-                        request.TenantId
-                    )
+                        @"SELECT *
+                  FROM axionpro.""GetEmployeeCodePatternByTenant""(@p_tenantid)",
+                        tenantParam)
                     .AsNoTracking()
                     .FirstOrDefaultAsync();
 
@@ -58,128 +87,128 @@ namespace axionpro.persistance.Repositories
             {
                 _logger.LogError(
                     ex,
-                    "❌ Error fetching employee code pattern for TenantId: {TenantId}",
-                    request.TenantId
-                );
+                    "Error fetching employee code pattern for TenantId: {TenantId}",
+                    request.TenantId);
+
                 throw;
             }
         }
+        //public async Task<List<SubscribedModuleResponseDTO>> GetSubscribedModulesByTenantAsync(long tenantId)
+        //{
+        //    try
+        //    {
+        //       // await using var context = await _contextFactory.CreateDbContextAsync();
+
+        //        _logger.LogInformation("Fetching subscribed modules for TenantId: {TenantId}", tenantId);
+
+        //        var tenantIdParam = new NpgsqlParameter("@TenantId", tenantId);
+
+        //        string sqlQuery = "EXEC AxionPro.GetSubscribedModuleByTenantId @TenantId";
+
+        //        var result = await _context.SubscribedModuleResponseDTOs
+        //            .FromSqlRaw(sqlQuery, tenantIdParam)
+        //            .ToListAsync();
+
+        //        if (result == null || !result.Any())
+        //        {
+        //            _logger.LogWarning("No modules found for TenantId: {TenantId}", tenantId);
+        //            return new List<SubscribedModuleResponseDTO>();
+        //        }
+
+        //        _logger.LogInformation("Total {Count} modules fetched for TenantId: {TenantId}", result.Count, tenantId);
+        //        return result;
+        //    }
+        //    catch (NpgsqlException ex)
+        //    {
+        //        _logger.LogError(ex, "SQL Exception occurred while fetching subscribed modules for TenantId: {TenantId}", tenantId);
+        //        return new List<SubscribedModuleResponseDTO>();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "An error occurred while fetching subscribed modules for TenantId: {TenantId}", tenantId);
+        //        return new List<SubscribedModuleResponseDTO>();
+        //    }
+        //}
+
+
+
+        //public async Task<List<SubscribedModuleResponseDTO>> GetSubscribedModulesByTenantAsync(long tenantId)
+        //{
+        //    try
+        //    {
+        //       // await using var context = await _contextFactory.CreateDbContextAsync();
+
+        //        _logger.LogInformation("Fetching subscribed modules for TenantId: {TenantId}", tenantId);
+
+        //        var tenantIdParam = new NpgsqlParameter("@TenantId", tenantId);
+
+        //        string sqlQuery = "EXEC AxionPro.GetSubscribedModuleByTenantId @TenantId";
+
+        //        var result = await _context.SubscribedModuleResponseDTOs
+        //            .FromSqlRaw(sqlQuery, tenantIdParam)
+        //            .ToListAsync();
+
+        //        if (result == null || !result.Any())
+        //        {
+        //            _logger.LogWarning("No modules found for TenantId: {TenantId}", tenantId);
+        //            return new List<SubscribedModuleResponseDTO>();
+        //        }
+
+        //        _logger.LogInformation("Total {Count} modules fetched for TenantId: {TenantId}", result.Count, tenantId);
+        //        return result;
+        //    }
+        //    catch (NpgsqlException ex)
+        //    {
+        //        _logger.LogError(ex, "SQL Exception occurred while fetching subscribed modules for TenantId: {TenantId}", tenantId);
+        //        return new List<SubscribedModuleResponseDTO>();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "An error occurred while fetching subscribed modules for TenantId: {TenantId}", tenantId);
+        //        return new List<SubscribedModuleResponseDTO>();
+        //    }
+        //}
 
         public async Task<List<SubscribedModuleResponseDTO>> GetSubscribedModulesByTenantAsync(long tenantId)
         {
             try
             {
-               // await using var context = await _contextFactory.CreateDbContextAsync();
+                _logger.LogInformation(
+                    "Fetching subscribed modules for TenantId: {TenantId}", tenantId);
 
-                _logger.LogInformation("Fetching subscribed modules for TenantId: {TenantId}", tenantId);
+                var tenantParam = new NpgsqlParameter("p_tenantid", tenantId);
 
-                var tenantIdParam = new NpgsqlParameter("@TenantId", tenantId);
-
-                string sqlQuery = "EXEC AxionPro.GetSubscribedModuleByTenantId @TenantId";
-
-                var result = await _context.SubscribedModuleResponseDTOs
-                    .FromSqlRaw(sqlQuery, tenantIdParam)
+                var result = await _context
+                    .Set<SubscribedModuleResponseDTO>()
+                    .FromSqlRaw(
+                        @"SELECT * 
+                  FROM axionpro.""GetSubscribedModuleByTenantId""(@p_tenantid)",
+                        tenantParam)
+                    .AsNoTracking()
                     .ToListAsync();
 
-                if (result == null || !result.Any())
+                if (result.Count == 0)
                 {
-                    _logger.LogWarning("No modules found for TenantId: {TenantId}", tenantId);
-                    return new List<SubscribedModuleResponseDTO>();
+                    _logger.LogWarning(
+                        "No modules found for TenantId: {TenantId}", tenantId);
                 }
 
-                _logger.LogInformation("Total {Count} modules fetched for TenantId: {TenantId}", result.Count, tenantId);
+                _logger.LogInformation(
+                    "Total {Count} modules fetched for TenantId: {TenantId}",
+                    result.Count, tenantId);
+
                 return result;
-            }
-            catch (NpgsqlException ex)
-            {
-                _logger.LogError(ex, "SQL Exception occurred while fetching subscribed modules for TenantId: {TenantId}", tenantId);
-                return new List<SubscribedModuleResponseDTO>();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while fetching subscribed modules for TenantId: {TenantId}", tenantId);
+                _logger.LogError(
+                    ex,
+                    "Error while fetching subscribed modules for TenantId: {TenantId}",
+                    tenantId);
+
                 return new List<SubscribedModuleResponseDTO>();
             }
         }
-
-
-
-        //   The required column 'ParentModuleName' was not present in the results of a 'FromSql' operation.
-
-        //public async Task<List<ProjectSubModuleDetailDTO>> GetDasboardMenuAsync(string Roles)
-        //{
-        //    try
-        //    {
-        //       // Roles = "7,5";
-        //        // 🔹 Convert List<int> to Comma-Separated String
-
-
-        //        var sqlQuery = "EXEC AxionPro.GetDashboardMenusForUser @RoleIds, @ErrorMessage OUTPUT";
-
-        //        var roleParam = new NpgsqlParameter("@RoleIds", Roles);
-        //        var errorMessageParam = new NpgsqlParameter
-        //        {
-        //            ParameterName = "@ErrorMessage",
-        //            SqlDbType = SqlDbType.NVarChar,
-        //            Size = 500,
-        //            Direction = ParameterDirection.Output
-        //        };
-
-        //        var result = await _context.ProjectSubModuleDetails
-        //            .FromSqlRaw(sqlQuery, roleParam, errorMessageParam)
-        //            .ToListAsync();
-
-        //        string errorMessage = errorMessageParam.Value?.ToString();
-        //        if (!string.IsNullOrEmpty(errorMessage))
-        //        {
-        //            _logger.LogError("Stored Procedure Error: {ErrorMessage}", errorMessage);
-        //            throw new Exception($"Stored Procedure Error: {errorMessage}");
-        //        }
-
-        //        // ✅ Parent-Child Relationship Handling
-        //        var groupedModules = result
-        //            .GroupBy(x => new
-        //            {
-        //                x.Id,
-        //                x.SubModuleName,
-        //                x.SubModuleUrl,
-        //                x.IsSubModuleDisplayInUi,
-        //                x.IsActive,
-        //                x.Remark
-        //            })
-        //            .Select(g => new ProjectSubModuleDetailDTO
-        //            {
-        //                Id = g.Key.Id,
-        //                SubModuleName = g.Key.SubModuleName,
-        //                SubModuleURL = g.Key.SubModuleUrl,
-        //                IsSubModuleDisplayInUI = g.Key.IsSubModuleDisplayInUi,
-        //                IsActive = g.Key.IsActive,
-        //                Remark = g.Key.Remark,
-        //                ChildPage = g.Select(c => new ProjectChildModuleDetailDTO
-        //                {
-        //                    Id = c.ProjectChildModuleDetails.FirstOrDefault()?.Id ?? 0,
-        //                    ChildModuleName = c.ProjectChildModuleDetails.FirstOrDefault()?.ChildModuleName,
-        //                    ChildModuleURL = c.ProjectChildModuleDetails.FirstOrDefault()?.ChildModuleUrl,
-        //                    IconImage = c.ProjectChildModuleDetails.FirstOrDefault()?.IconImage,
-        //                    IsOperational = c.ProjectChildModuleDetails.FirstOrDefault()?.IsOperational ?? false
-        //                }).Where(c => c.Id > 0).ToList()
-        //            }).ToList();
-
-        //        return groupedModules;
-        //    }
-        //    catch (SqlException ex)
-        //    {
-        //        _logger.LogError(ex, "SQL Error in GetDasboardMenuAsync for RoleIds: {RoleIds}", userRoles);
-        //        throw new Exception("Database error occurred while fetching dashboard menu.", ex);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Unexpected Error in GetDasboardMenuAsync for RoleIds: {RoleIds}", userRoles);
-        //        throw new Exception("An unexpected error occurred while fetching dashboard menu.", ex);
-        //    } await _context.Database.ExecuteSqlRawAsync
-        //} 
-
-
 
 
 
@@ -192,409 +221,499 @@ namespace axionpro.persistance.Repositories
             return Convert.ToBase64String(iconData);
         }
 
-
         public async Task<bool> UpdateLoginCredential(LoginRequestDTO loginRequest)
         {
             try
             {
-               // await using var context = await _contextFactory.CreateDbContextAsync();
-
-                // var ttt = _context.Database.GetDbConnection().ToString();
-                _logger.LogInformation("Updating login credential for LoginId: {LoginId}", loginRequest.LoginId);
-                // _logger.LogInformation("DBContext", _context.Database.GetDbConnection().ToString());
-
-                string sqlQuery = @"EXEC AxionPro.UpdateLoginCredential 
-                            @LoginId, @Latitude, @Longitude, @LoginDevice, 
-                            @IpAddressLocal, @IpAddressPublic, @MacAddress, 
-                            @Status OUTPUT, @ErrorMessage OUTPUT";
-
-                var statusParam = new NpgsqlParameter("@Status", NpgsqlDbType.Integer) { Direction = ParameterDirection.Output };
-                var errorMsgParam = new NpgsqlParameter("@ErrorMessage", NpgsqlDbType.Text, 4000) { Direction = ParameterDirection.Output };
-
-                await _context.Database.ExecuteSqlRawAsync(sqlQuery,
-                    new NpgsqlParameter("@LoginId", loginRequest.LoginId ?? (object)DBNull.Value),
-                    new NpgsqlParameter("@Latitude", loginRequest.Latitude),
-                    new NpgsqlParameter("@Longitude", loginRequest.Longitude),
-                    new NpgsqlParameter("@LoginDevice", loginRequest.LoginDevice),
-                    new NpgsqlParameter("@IpAddressLocal", loginRequest.IpAddressLocal ?? (object)DBNull.Value),
-                    new NpgsqlParameter("@IpAddressPublic", loginRequest.IpAddressPublic ?? (object)DBNull.Value),
-                    new NpgsqlParameter("@MacAddress", loginRequest.MacAddress ?? (object)DBNull.Value),
-                    statusParam,
-                    errorMsgParam
-                );
-
-                if (errorMsgParam.Value != DBNull.Value && !string.IsNullOrEmpty(errorMsgParam.Value.ToString()))
-                {
-                    _logger.LogError("Update failed for LoginId: {LoginId}, Error: {ErrorMessage}", loginRequest.LoginId, errorMsgParam.Value);
-                    return false;
-                }
-
-                return true;
-                    //(statusParam.Value != DBNull.Value && (int)statusParam.Value == 1) ? "Success" : "No record updated";
-            }
-            catch (NpgsqlException ex)
-            {
-                _logger.LogError(ex, "SQL Exception occurred while updating login credential for LoginId: {LoginId}", loginRequest.LoginId);
-              //  return "Database error occurred while updating login credential.";
-                return false;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while updating login credential for LoginId: {LoginId}", loginRequest.LoginId);
-                return   false; // "An unexpected error occurred.";
-            }
-        }
-
-     
-public async Task<long> ValidateActiveUserLoginOnlyAsync(string loginId)
-    {
-        try
-        {
-            _logger.LogInformation("Validating login for {LoginId}", loginId);
-
-            var conn = (NpgsqlConnection)_context.Database.GetDbConnection();
-
-            if (conn.State != ConnectionState.Open)
-                await conn.OpenAsync();
-
-            await using var cmd = new NpgsqlCommand( "SELECT axionpro.\"ValidateActiveUserCrendentialOnly\"(@p_loginid)", conn);
-
-            cmd.Parameters.AddWithValue("p_loginid", loginId ?? (object)DBNull.Value);
-
-            var result = await cmd.ExecuteScalarAsync();
-
-            return result != null ? Convert.ToInt64(result) : 0;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error validating login for LoginId {LoginId}", loginId);
-            return -1;
-        }
-    }
-        public async Task<List<RoleModuleOperationResponseDTO>> GetActiveRoleModuleOperationsAsync(GetActiveRoleModuleOperationsRequestDTO request)
-        {
-            try
-            {
-                _logger.LogInformation("Fetching module operations for TenantId {TenantId} Roles {RoleIds}",
-                    request.TenantId, request.RoleIds);
-
-                var conn = (NpgsqlConnection)_context.Database.GetDbConnection();
-
-                if (conn.State != ConnectionState.Open)
-                    await conn.OpenAsync();
-
-                await using var cmd = new NpgsqlCommand(
-                    "SELECT * FROM axionpro.\"GetActiveRoleModuleOperations\"(@p_tenantid::int, @p_roleids)", conn);
-
-                cmd.Parameters.AddWithValue("p_tenantid", request.TenantId);
-                cmd.Parameters.AddWithValue("p_roleids", request.RoleIds ?? (object)DBNull.Value);
-
-                var result = new List<RoleModuleOperationResponseDTO>();
-
-                await using var reader = await cmd.ExecuteReaderAsync();
-
-                while (await reader.ReadAsync())
-                {
-                    result.Add(new RoleModuleOperationResponseDTO
-                    {
-                        RoleId = reader.GetInt32(0),
-                        TenantId = reader.GetInt32(1),
-                        ModuleId = reader.GetInt32(2),
-                        ModuleName = reader.GetString(3),
-                        URLPath = reader.GetString(4),
-                        DisplayName = reader.GetString(5),
-                        ImageIconWeb = reader.GetString(6),
-                        ImageIconMobile = reader.GetString(7),                        
-                        SubModuleName = reader.GetString(9),
-                        MainModuleId = reader.GetInt32(10),
-                        MainModuleName = reader.GetString(11),
-                        OperationId = reader.GetInt32(12),
-                        OperationName = reader.GetString(13),
-                        DataViewStructureId = reader.IsDBNull(14) ? null : reader.GetInt32(14),
-                        DisplayOn = reader.GetString(15)
-                    });
-                }
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error fetching module permissions for roles: {RoleIds}", request.RoleIds);
-                throw;
-            }
-        }
-        //public async Task<long> ValidateActiveUserLoginOnlyAsync(string p_loginid)
-        //{
-        //    try
-        //    {
-        //        return await _context.Database
-        //            .SqlQuery<long>($"SELECT axionpro.\"ValidateActiveUserLoginOnly\"(@p_loginid)")
-        //            .FirstAsync();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Error validating login for LoginId {LoginId}", p_loginid);
-        //        return -1;
-        //    }
-        //}
-
-        //public async Task<long> ValidateActiveUserLoginOnlyAsync(string loginId)
-        //{
-        //    try
-        //    {
-        //        _logger.LogInformation("Validating user login for LoginId: {LoginId}", loginId);
-
-        //        await using var conn = _context.Database.GetDbConnection();
-
-        //        await using var cmd = conn.CreateCommand();
-        //        cmd.CommandText = "SELECT axionpro.\"ValidateActiveUserLoginOnly\"(@p_loginid)";
-        //        cmd.Parameters.Add(new NpgsqlParameter("p_loginid", loginId ?? (object)DBNull.Value));
-
-        //        var resultObj = await cmd.ExecuteScalarAsync();
-
-        //        return Convert.ToInt64(resultObj);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Error validating login for LoginId {LoginId}", loginId);
-        //        return -1;
-        //    }
-        //}
-
-        //public async Task<long> ValidateActiveUserLoginOnlyAsync(string loginId)
-        //{
-        //    try
-        //    {
-        //        await using var context = await _contextFactory.CreateDbContextAsync();
-
-        //        _logger.LogInformation("Validating user login for LoginId: {LoginId}", loginId);
-
-        //        await using var conn = context.Database.GetDbConnection();
-        //        await conn.OpenAsync();
-
-        //        await using var cmd = conn.CreateCommand();
-        //        cmd.CommandText = "SELECT axionpro.\"validateactiveuserloginonly\"(@p_loginId)";
-        //        cmd.Parameters.Add(new NpgsqlParameter("p_loginId", loginId ?? (object)DBNull.Value));
-
-        //        var resultObj = await cmd.ExecuteScalarAsync();
-
-        //        long result = Convert.ToInt64(resultObj);
-        //        return result;
-        //    }
-        //    catch (NpgsqlException ex)
-        //    {
-        //        _logger.LogError(ex, "SQL Exception occurred while validating user login for LoginId: {LoginId}", loginId);
-        //        return -1;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "An error occurred while validating user login for LoginId: {LoginId}", loginId);
-        //        return -1;
-        //    }
-        //}
-
-        //public async Task<long> ValidateActiveUserLoginOnlyAsync(string loginId)
-        //{
-        //    try
-        //    {
-
-        //        await using var context = await _contextFactory.CreateDbContextAsync();
-
-        //        _logger.LogInformation("Validating user login for LoginId: {LoginId}", loginId);
-
-        //        var loginParam = new NpgsqlParameter("p_loginId", loginId ?? (object)DBNull.Value);
-        //        //var resultParam = new NpgsqlParameter("@Result", SqlDbType.BigInt)
-        //        //{
-        //        //    Direction = ParameterDirection.Output
-        //        //};
-        //        _logger.LogInformation("Passed param: {Param}", loginParam.Value);
-
-        //        string sqlQuery = "SELECT axionpro.\"validateactiveuserloginonly\"(@p_loginId) ";
-        //        //long result = await context
-        //        //    .Database
-        //        //    .SqlQueryRaw<long>(sqlQuery, loginParam)
-        //        //    .FirstAsync();
-        //        var result = await context
-        //    .Set<ScalarLong>()
-        //    .FromSqlRaw(sqlQuery, loginParam)
-        //    .Select(x => x.Value)
-        //    .FirstAsync();
-        //        //await context.Database.ExecuteSqlRawAsync(sqlQuery, loginParam, resultParam);
-        //        // return (long)resultParam.Value;  // Output Parameter से Result Return करें
-        //        return result;
-        //    }
-        //    catch (NpgsqlException ex)
-        //    {
-        //        _logger.LogError(ex, "SQL Exception occurred while validating user login for LoginId: {LoginId}", loginId);
-        //        return -1;  // Error Case
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "An error occurred while validating user login for LoginId: {LoginId}", loginId);
-        //        return -1;  // Error Case
-        //    }
-        //}
-
-
-        public async Task<EmployeeCountResponseStatsSp?> GetEmployeeCountsAsync(long tenantId)
-        {
-            try
-            {
-              //  await using var context = await _contextFactory.CreateDbContextAsync();
-
                 _logger.LogInformation(
-                    "Fetching employee count statistics. TenantId: {TenantId}",
-                    tenantId);
-
-                var sql = @"EXEC AxionPro.AllEmployeeCountData @TenantId";
-                var tenantParam = new NpgsqlParameter("@TenantId", tenantId);
-
-                var result = _context.EmployeeCountResponseStatsSps
-                    .FromSqlRaw(sql, tenantParam)
-                    .AsNoTracking()
-                    .AsEnumerable()     // 🔑 MOST IMPORTANT LINE
-                    .FirstOrDefault();
-
-                return result;
-            }
-            catch (NpgsqlException ex)
-            {
-                _logger.LogError(
-                    ex,
-                    "SQL error while fetching employee count statistics. TenantId: {TenantId}",
-                    tenantId);
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(
-                    ex,
-                    "Unexpected error while fetching employee count statistics. TenantId: {TenantId}",
-                    tenantId);
-                throw;
-            }
-        }
-
-
-
-        public async Task<List<GetEmployeeIdentitySp>> GetIdentityRecordAsync(  long employeeId,   int countryId,        bool isActive)
-        {
-            try
-            {
-              //  await using var context = await _contextFactory.CreateDbContextAsync();
-
-                _logger.LogInformation(
-                    "Fetching Employee Identity records. EmployeeId: {EmployeeId}, CountryId: {CountryId}",
-                    employeeId, countryId);
-
-                var sql = @"EXEC AxionPro.GetEmployeeIdentityByCountryRule 
-                    @EmployeeId,
-                    @CountryId,
-                    @IsActive";
+                    "Updating login credential for LoginId: {LoginId}",
+                    loginRequest.LoginId);
 
                 var parameters = new[]
                 {
-            new NpgsqlParameter("@EmployeeId", employeeId),
-            new NpgsqlParameter("@CountryId", countryId),
-            new NpgsqlParameter("@IsActive", isActive)
-                };
+            new NpgsqlParameter("p_loginid", loginRequest.LoginId ?? (object)DBNull.Value),
+            new NpgsqlParameter("p_latitude", loginRequest.Latitude.ToString()),
+            new NpgsqlParameter("p_longitude", loginRequest.Longitude.ToString()),
+            new NpgsqlParameter("p_logindevice", loginRequest.LoginDevice),
+            new NpgsqlParameter("p_ipaddresslocal", loginRequest.IpAddressLocal ?? (object)DBNull.Value),
+            new NpgsqlParameter("p_ipaddresspublic", loginRequest.IpAddressPublic ?? (object)DBNull.Value),
+            new NpgsqlParameter("p_macaddress", loginRequest.MacAddress ?? (object)DBNull.Value)
+        };
 
-                var result = await _context.GetEmployeeIdentitySps
-                    .FromSqlRaw(sql, parameters)
+                var result = await _context
+                    .Set<UpdateLoginCredentialResultDTO>()
+                    .FromSqlRaw(
+                        @"SELECT * FROM axionpro.""UpdateLoginCredential""(
+                    @p_loginid,
+                    @p_latitude,
+                    @p_longitude,
+                    @p_logindevice,
+                    @p_ipaddresslocal,
+                    @p_ipaddresspublic,
+                    @p_macaddress)",
+                        parameters)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync();
+
+                return result?.Status == 1;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Error updating login credential for LoginId {LoginId}",
+                    loginRequest.LoginId);
+
+                return false;
+            }
+        }
+
+        //public async Task<bool> UpdateLoginCredential(LoginRequestDTO loginRequest)
+        //{
+        //    try
+        //    {
+        //       // await using var context = await _contextFactory.CreateDbContextAsync();
+
+        //        // var ttt = _context.Database.GetDbConnection().ToString();
+        //        _logger.LogInformation("Updating login credential for LoginId: {LoginId}", loginRequest.LoginId);
+        //        // _logger.LogInformation("DBContext", _context.Database.GetDbConnection().ToString());
+
+        //        string sqlQuery = @"EXEC AxionPro.UpdateLoginCredential 
+        //                    @LoginId, @Latitude, @Longitude, @LoginDevice, 
+        //                    @IpAddressLocal, @IpAddressPublic, @MacAddress, 
+        //                    @Status OUTPUT, @ErrorMessage OUTPUT";
+
+        //        var statusParam = new NpgsqlParameter("@Status", NpgsqlDbType.Integer) { Direction = ParameterDirection.Output };
+        //        var errorMsgParam = new NpgsqlParameter("@ErrorMessage", NpgsqlDbType.Text, 4000) { Direction = ParameterDirection.Output };
+
+        //        await _context.Database.ExecuteSqlRawAsync(sqlQuery,
+        //            new NpgsqlParameter("@LoginId", loginRequest.LoginId ?? (object)DBNull.Value),
+        //            new NpgsqlParameter("@Latitude", loginRequest.Latitude),
+        //            new NpgsqlParameter("@Longitude", loginRequest.Longitude),
+        //            new NpgsqlParameter("@LoginDevice", loginRequest.LoginDevice),
+        //            new NpgsqlParameter("@IpAddressLocal", loginRequest.IpAddressLocal ?? (object)DBNull.Value),
+        //            new NpgsqlParameter("@IpAddressPublic", loginRequest.IpAddressPublic ?? (object)DBNull.Value),
+        //            new NpgsqlParameter("@MacAddress", loginRequest.MacAddress ?? (object)DBNull.Value),
+        //            statusParam,
+        //            errorMsgParam
+        //        );
+
+        //        if (errorMsgParam.Value != DBNull.Value && !string.IsNullOrEmpty(errorMsgParam.Value.ToString()))
+        //        {
+        //            _logger.LogError("Update failed for LoginId: {LoginId}, Error: {ErrorMessage}", loginRequest.LoginId, errorMsgParam.Value);
+        //            return false;
+        //        }
+
+        //        return true;
+        //            //(statusParam.Value != DBNull.Value && (int)statusParam.Value == 1) ? "Success" : "No record updated";
+        //    }
+        //    catch (NpgsqlException ex)
+        //    {
+        //        _logger.LogError(ex, "SQL Exception occurred while updating login credential for LoginId: {LoginId}", loginRequest.LoginId);
+        //      //  return "Database error occurred while updating login credential.";
+        //        return false;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "An error occurred while updating login credential for LoginId: {LoginId}", loginRequest.LoginId);
+        //        return   false; // "An unexpected error occurred.";
+        //    }
+        //}
+        public async Task<long> ValidateActiveUserLoginOnlyAsync(string loginId)
+{
+    try
+    {
+        _logger.LogInformation("Validating login for {LoginId}", loginId);
+
+        var loginParam = new NpgsqlParameter("p_loginid", loginId);
+
+        return await _context.Database
+            .SqlQueryRaw<long>(
+                "SELECT axionpro.\"ValidateActiveUserCrendentialOnly\"(@p_loginid) AS \"Value\"",
+                loginParam)
+            .FirstOrDefaultAsync();
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error validating login for LoginId {LoginId}", loginId);
+        return -1;
+    }
+}
+        //public async Task<List<RoleModuleOperationResponseDTO>> GetActiveRoleModuleOperationsAsync(GetActiveRoleModuleOperationsRequestDTO request)
+        //{
+        //    try
+        //    {
+        //        _logger.LogInformation("Fetching module operations for TenantId {TenantId} Roles {RoleIds}",
+        //            request.TenantId, request.RoleIds);
+
+        //        var conn = (NpgsqlConnection)_context.Database.GetDbConnection();
+
+        //        if (conn.State != ConnectionState.Open)
+        //            await conn.OpenAsync();
+
+        //        await using var cmd = new NpgsqlCommand(
+        //            @"SELECT * 
+        //      FROM axionpro.""GetActiveRoleModuleOperations""(@p_tenantid, @p_roleids);",
+        //            conn);
+
+        //        cmd.Parameters.AddWithValue("p_tenantid", request.TenantId);
+        //        cmd.Parameters.AddWithValue("p_roleids", request.RoleIds);
+
+        //        var result = new List<RoleModuleOperationResponseDTO>();
+
+        //        await using var reader = await cmd.ExecuteReaderAsync();
+
+        //        while (await reader.ReadAsync())
+        //        {
+        //            result.Add(new RoleModuleOperationResponseDTO
+        //            {
+        //                RoleId = reader.GetInt32(reader.GetOrdinal("RoleId")),
+        //                TenantId = reader.GetInt64(reader.GetOrdinal("TenantId")),
+        //                ModuleId = reader.GetInt32(reader.GetOrdinal("ModuleId")),
+        //                ModuleName = reader["ModuleName"]?.ToString(),
+        //                URLPath = reader["URLPath"]?.ToString(),
+        //                DisplayName = reader["DisplayName"]?.ToString(),
+        //                ImageIconWeb = reader["ImageIconWeb"]?.ToString(),
+        //                ImageIconMobile = reader["ImageIconMobile"]?.ToString(),
+        //                ParentModuleId = reader.GetInt32(reader.GetOrdinal("ParentModuleId")),
+        //                SubModuleName = reader["SubModuleName"]?.ToString(),
+        //                MainModuleId = reader.GetInt32(reader.GetOrdinal("MainModuleId")),
+        //                MainModuleName = reader["MainModuleName"]?.ToString(),
+        //                OperationId = reader.GetInt32(reader.GetOrdinal("OperationId")),
+        //                OperationName = reader["OperationName"]?.ToString(),
+        //                DataViewStructureId = reader["DataViewStructureId"] as int?,
+        //                DisplayOn = reader["DisplayOn"]?.ToString()
+        //            });
+        //        }
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error fetching module operations");
+        //        throw;
+        //    }
+        //}
+
+        public async Task<List<RoleModuleOperationResponseDTO>> GetActiveRoleModuleOperationsAsync( GetActiveRoleModuleOperationsRequestDTO request)      
+        {
+            try
+            {
+                _logger.LogInformation(
+                    "Fetching module operations for TenantId {TenantId} Roles {RoleIds}",
+                    request.TenantId,
+                    request.RoleIds);
+
+                var parameters = new[]
+                {
+            new NpgsqlParameter("p_tenantid", request.TenantId),
+            new NpgsqlParameter("p_roleids", request.RoleIds)
+        };
+
+                var result = await _context
+                    .Set<RoleModuleOperationResponseDTO>()
+                    .FromSqlRaw(
+                        @"SELECT * 
+                  FROM axionpro.""GetActiveRoleModuleOperations""(@p_tenantid, @p_roleids)",
+                        parameters)
                     .AsNoTracking()
                     .ToListAsync();
 
                 return result;
             }
-            catch (NpgsqlException ex)
+            catch (Exception ex)
             {
-                _logger.LogError(ex,
-                    "SQL error while fetching identity records. EmployeeId: {EmployeeId}",
-                    employeeId);
+                _logger.LogError(ex, "Error fetching module operations");
                 throw;
+            }
+        }
+
+        //public async Task<EmployeeCountResponseStatsSp?> GetEmployeeCountsAsync(long tenantId)
+        //{
+        //    try
+        //    {
+        //      //  await using var context = await _contextFactory.CreateDbContextAsync();
+
+        //        _logger.LogInformation(
+        //            "Fetching employee count statistics. TenantId: {TenantId}",
+        //            tenantId);
+
+        //        var sql = @"EXEC AxionPro.AllEmployeeCountData @TenantId";
+        //        var tenantParam = new NpgsqlParameter("@TenantId", tenantId);
+
+        //        var result = _context.EmployeeCountResponseStatsSps
+        //            .FromSqlRaw(sql, tenantParam)
+        //            .AsNoTracking()
+        //            .AsEnumerable()     // 🔑 MOST IMPORTANT LINE
+        //            .FirstOrDefault();
+
+        //        return result;
+        //    }
+        //    catch (NpgsqlException ex)
+        //    {
+        //        _logger.LogError(
+        //            ex,
+        //            "SQL error while fetching employee count statistics. TenantId: {TenantId}",
+        //            tenantId);
+        //        throw;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(
+        //            ex,
+        //            "Unexpected error while fetching employee count statistics. TenantId: {TenantId}",
+        //            tenantId);
+        //        throw;
+        //    }
+        //}
+
+        public async Task<EmployeeCountResponseStatsSp?> GetEmployeeCountsAsync(long tenantId)
+        {
+            try
+            {
+                _logger.LogInformation(
+                    "Fetching employee count statistics. TenantId: {TenantId}",
+                    tenantId);
+
+                var tenantParam = new NpgsqlParameter("p_tenantid", tenantId);
+
+                var result = await _context
+                    .Set<EmployeeCountResponseStatsSp>()
+                    .FromSqlRaw(
+                        @"SELECT * 
+                  FROM axionpro.""AllEmployeeCountData""(@p_tenantid)",
+                        tenantParam)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync();
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Error fetching employee count statistics. TenantId: {TenantId}",
+                    tenantId);
+                throw;
+            }
+        }
+
+
+        //public async Task<List<GetEmployeeIdentitySp>> GetIdentityRecordAsync(  long employeeId,   int countryId,        bool isActive)
+        //{
+        //    try
+        //    {
+        //      //  await using var context = await _contextFactory.CreateDbContextAsync();
+
+        //        _logger.LogInformation(
+        //            "Fetching Employee Identity records. EmployeeId: {EmployeeId}, CountryId: {CountryId}",
+        //            employeeId, countryId);
+
+        //        var sql = @"EXEC AxionPro.GetEmployeeIdentityByCountryRule 
+        //            @EmployeeId,
+        //            @CountryId,
+        //            @IsActive";
+
+        //        var parameters = new[]
+        //        {
+        //    new NpgsqlParameter("@EmployeeId", employeeId),
+        //    new NpgsqlParameter("@CountryId", countryId),
+        //    new NpgsqlParameter("@IsActive", isActive)
+        //        };
+
+        //        var result = await _context.GetEmployeeIdentitySps
+        //            .FromSqlRaw(sql, parameters)
+        //            .AsNoTracking()
+        //            .ToListAsync();
+
+        //        return result;
+        //    }
+        //    catch (NpgsqlException ex)
+        //    {
+        //        _logger.LogError(ex,
+        //            "SQL error while fetching identity records. EmployeeId: {EmployeeId}",
+        //            employeeId);
+        //        throw;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex,
+        //            "Unexpected error while fetching identity records. EmployeeId: {EmployeeId}",
+        //            employeeId);
+        //        throw;
+        //    }
+        //}
+        public async Task<List<GetEmployeeIdentitySp>> GetIdentityRecordAsync(
+    long employeeId,
+    int countryId,
+    bool isActive)
+        {
+            try
+            {
+                _logger.LogInformation(
+                    "Fetching Employee Identity records. EmployeeId: {EmployeeId}, CountryId: {CountryId}",
+                    employeeId, countryId);
+
+                var parameters = new[]
+                {
+            new NpgsqlParameter("p_employeeid", employeeId),
+            new NpgsqlParameter("p_countryid", countryId),
+            new NpgsqlParameter("p_isactive", isActive)
+        };
+
+                var result = await _context
+                    .Set<GetEmployeeIdentitySp>()
+                    .FromSqlRaw(
+                        @"SELECT * 
+                  FROM axionpro.""GetEmployeeIdentityByCountryRule""(
+                    @p_employeeid,
+                    @p_countryid,
+                    @p_isactive)",
+                        parameters)
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                return result;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex,
-                    "Unexpected error while fetching identity records. EmployeeId: {EmployeeId}",
+                    "Error while fetching identity records. EmployeeId: {EmployeeId}",
                     employeeId);
                 throw;
             }
         }
+        //public async Task<long> ValidateActiveUserCrendentialOnlyAsync(string loginId)
+        //{
+        //    try
+        //    {
+        //     //   await using var context = await _contextFactory.CreateDbContextAsync();
+        //        _logger.LogInformation("Validating user login for LoginId: {LoginId}", loginId);
+
+        //        var loginParam = new NpgsqlParameter("@LoginId", loginId ?? (object)DBNull.Value);
+        //        var resultParam = new NpgsqlParameter("@Result", SqlDbType.BigInt)
+        //        {
+        //            Direction = ParameterDirection.Output
+        //        };
+
+        //        string sqlQuery = "EXEC AxionPro.ValidateActiveUserCrendentialOnly @LoginId, @Result OUTPUT";
+
+        //        await _context.Database.ExecuteSqlRawAsync(sqlQuery, loginParam, resultParam);
+
+        //        return (long)resultParam.Value;  // Output Parameter से Result Return करें
+        //    }
+        //    catch (NpgsqlException ex)
+        //    {
+        //        _logger.LogError(ex, "SQL Exception occurred while validating user login for LoginId: {LoginId}", loginId);
+        //        return -1;  // Error Case
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "An error occurred while validating user login for LoginId: {LoginId}");
+        //        return -1;  // Error Case
+        //    }
+        //}
 
         public async Task<long> ValidateActiveUserCrendentialOnlyAsync(string loginId)
         {
             try
             {
-             //   await using var context = await _contextFactory.CreateDbContextAsync();
-                _logger.LogInformation("Validating user login for LoginId: {LoginId}", loginId);
+                _logger.LogInformation(
+                    "Validating user login for LoginId: {LoginId}", loginId);
 
-                var loginParam = new NpgsqlParameter("@LoginId", loginId ?? (object)DBNull.Value);
-                var resultParam = new NpgsqlParameter("@Result", SqlDbType.BigInt)
-                {
-                    Direction = ParameterDirection.Output
-                };
+                var loginParam = new NpgsqlParameter("p_loginid", loginId ?? (object)DBNull.Value);
 
-                string sqlQuery = "EXEC AxionPro.ValidateActiveUserCrendentialOnly @LoginId, @Result OUTPUT";
+                var result = await _context.Database
+                    .SqlQueryRaw<long>(
+                        @"SELECT axionpro.""ValidateActiveUserCrendentialOnly""(@p_loginid) AS ""Value""",
+                        loginParam)
+                    .FirstOrDefaultAsync();
 
-                await _context.Database.ExecuteSqlRawAsync(sqlQuery, loginParam, resultParam);
-
-                return (long)resultParam.Value;  // Output Parameter से Result Return करें
-            }
-            catch (NpgsqlException ex)
-            {
-                _logger.LogError(ex, "SQL Exception occurred while validating user login for LoginId: {LoginId}", loginId);
-                return -1;  // Error Case
+                return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while validating user login for LoginId: {LoginId}");
-                return -1;  // Error Case
+                _logger.LogError(
+                    ex,
+                    "Error validating user login for LoginId: {LoginId}",
+                    loginId);
+
+                return -1;
             }
         }
 
+        //public async Task<bool> GetHasAccessOperation(GetCheckOperationPermissionRequestDTO checkOperationPermissionRequest)
+        //{
+        //    try
+        //    {
+        //     //   await using var context = await _contextFactory.CreateDbContextAsync();
 
-        
-        public async Task<bool> GetHasAccessOperation(GetCheckOperationPermissionRequestDTO checkOperationPermissionRequest)
+        //        // SQL query calling the stored procedure and returning the result
+        //        string sqlQuery = @"EXEC AxionPro.CheckPermission 
+        //                    @RoleId, @ProjectChildModuleDetailId, @OperationId, @HasAccess, @IsActive";
+
+        //        // Parameters definitione
+        //        var parameters = new[]
+        //        {
+        //           new NpgsqlParameter("@RoleId", checkOperationPermissionRequest.RoleIds),           
+        //           new NpgsqlParameter("@OperationId", checkOperationPermissionRequest.OperationId),
+        //           new NpgsqlParameter("@HasAccess", checkOperationPermissionRequest.HasAccess),
+        //           new NpgsqlParameter("@IsActive", checkOperationPermissionRequest.IsActive)
+        //};
+
+        //        // Executing the stored procedure and getting the result (BIT value)
+        //        var result = await _context.Database.SqlQueryRaw<bool>(sqlQuery, parameters).ToListAsync();
+
+        //        // If result is 1 (HasAccess), return true, otherwise false
+        //        if (result != null && result.Count > 0)
+        //        {
+        //            return result[0];
+        //        }
+        //        else
+        //        {
+        //            return false;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // Log the exception or handle accordingly
+        //        _logger.LogError($"Error in GetHasAccessOperation: {ex.Message}");
+        //        return false;
+        //    }
+        //}
+        public async Task<bool> GetHasAccessOperation(GetCheckOperationPermissionRequestDTO request)
         {
             try
             {
-             //   await using var context = await _contextFactory.CreateDbContextAsync();
-
-                // SQL query calling the stored procedure and returning the result
-                string sqlQuery = @"EXEC AxionPro.CheckPermission 
-                            @RoleId, @ProjectChildModuleDetailId, @OperationId, @HasAccess, @IsActive";
-
-                // Parameters definitione
                 var parameters = new[]
                 {
-                   new NpgsqlParameter("@RoleId", checkOperationPermissionRequest.RoleIds),           
-                   new NpgsqlParameter("@OperationId", checkOperationPermissionRequest.OperationId),
-                   new NpgsqlParameter("@HasAccess", checkOperationPermissionRequest.HasAccess),
-                   new NpgsqlParameter("@IsActive", checkOperationPermissionRequest.IsActive)
+            new NpgsqlParameter("p_roleid", request.RoleIds),
+            new NpgsqlParameter("p_projectchildmoduledetailid", request.OperationId),
+            new NpgsqlParameter("p_operationid", request.OperationId),
+            new NpgsqlParameter("p_hasaccess", request.HasAccess),
+            new NpgsqlParameter("p_isactive", request.IsActive)
         };
 
-                // Executing the stored procedure and getting the result (BIT value)
-                var result = await _context.Database.SqlQueryRaw<bool>(sqlQuery, parameters).ToListAsync();
+                var result = await _context.Database
+                    .SqlQueryRaw<bool>(
+                        @"SELECT axionpro.""CheckPermission""(
+                    @p_roleid,
+                    @p_projectchildmoduledetailid,
+                    @p_operationid,
+                    @p_hasaccess,
+                    @p_isactive
+                ) AS ""Value""",
+                        parameters)
+                    .FirstOrDefaultAsync();
 
-                // If result is 1 (HasAccess), return true, otherwise false
-                if (result != null && result.Count > 0)
-                {
-                    return result[0];
-                }
-                else
-                {
-                    return false;
-                }
+                return result;
             }
             catch (Exception ex)
             {
-                // Log the exception or handle accordingly
-                _logger.LogError($"Error in GetHasAccessOperation: {ex.Message}");
+                _logger.LogError(ex, "Error in GetHasAccessOperation");
                 return false;
             }
         }
-
         public Task<bool> HasPermissionAsync(long userId, string permissionCode)
         {
             throw new NotImplementedException();
@@ -609,38 +728,75 @@ public async Task<long> ValidateActiveUserLoginOnlyAsync(string loginId)
         {
             throw new NotImplementedException();
         }
-        public async Task<UpdateTenantEnabledOperationFromModuleOperationResponseDTO> UpdateTenantEnabledOperationFromModuleOperationRequestDTO(UpdateTenantEnabledOperationFromModuleOperationRequestDTO request)
+        //public async Task<UpdateTenantEnabledOperationFromModuleOperationResponseDTO> UpdateTenantEnabledOperationFromModuleOperationRequestDTO(UpdateTenantEnabledOperationFromModuleOperationRequestDTO request)
+        //{
+        //    try
+        //    {
+        //      //  await using var context = await _contextFactory.CreateDbContextAsync();
+
+        //        _logger.LogInformation("Get new Module Operations from ModuleOperation: {TenantId}", request.TenantId);
+
+        //        var tenantIdParam = new NpgsqlParameter("@TenantId", request.TenantId);
+
+        //        // SQL query (no need for output param, as your procedure returns scalar)
+        //        string sqlQuery = "DECLARE @Result INT; EXEC @Result = AxionPro.UpdateTenantEnabledOperationFromModuleOperation @TenantId; SELECT @Result";
+
+        //        var result = await _context.Database.ExecuteSqlRawAsync(sqlQuery, tenantIdParam);
+
+        //        return new UpdateTenantEnabledOperationFromModuleOperationResponseDTO
+        //        {
+        //            Result = result
+        //        };
+        //    }
+        //    catch (NpgsqlException ex)
+        //    {
+        //        _logger.LogError(ex, "SQL Exception occurred while updating tenant operation for TenantId: {TenantId}", request.TenantId);
+
+        //        return new UpdateTenantEnabledOperationFromModuleOperationResponseDTO
+        //        {
+        //            Result = -1
+        //        };
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "An error occurred while updating tenant operation for TenantId: {TenantId}", request.TenantId);
+
+        //        return new UpdateTenantEnabledOperationFromModuleOperationResponseDTO
+        //        {
+        //            Result = -1
+        //        };
+        //    }
+        //}
+
+        public async Task<UpdateTenantEnabledOperationFromModuleOperationResponseDTO>
+   UpdateTenantEnabledOperationFromModuleOperationRequestDTO(
+       UpdateTenantEnabledOperationFromModuleOperationRequestDTO request)
         {
             try
             {
-              //  await using var context = await _contextFactory.CreateDbContextAsync();
+                _logger.LogInformation(
+                    "Updating tenant enabled operations from module operations. TenantId: {TenantId}",
+                    request.TenantId);
 
-                _logger.LogInformation("Get new Module Operations from ModuleOperation: {TenantId}", request.TenantId);
+                var tenantParam = new NpgsqlParameter("p_tenantid", request.TenantId);
 
-                var tenantIdParam = new NpgsqlParameter("@TenantId", request.TenantId);
-
-                // SQL query (no need for output param, as your procedure returns scalar)
-                string sqlQuery = "DECLARE @Result INT; EXEC @Result = AxionPro.UpdateTenantEnabledOperationFromModuleOperation @TenantId; SELECT @Result";
-
-                var result = await _context.Database.ExecuteSqlRawAsync(sqlQuery, tenantIdParam);
+                var result = await _context.Database
+                    .SqlQueryRaw<int>(
+                        @"SELECT axionpro.""UpdateTenantEnabledOperationFromModuleOperation""(@p_tenantid) AS ""Value""",
+                        tenantParam)
+                    .SingleAsync();
 
                 return new UpdateTenantEnabledOperationFromModuleOperationResponseDTO
                 {
                     Result = result
                 };
             }
-            catch (NpgsqlException ex)
-            {
-                _logger.LogError(ex, "SQL Exception occurred while updating tenant operation for TenantId: {TenantId}", request.TenantId);
-
-                return new UpdateTenantEnabledOperationFromModuleOperationResponseDTO
-                {
-                    Result = -1
-                };
-            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while updating tenant operation for TenantId: {TenantId}", request.TenantId);
+                _logger.LogError(
+                    ex,
+                    "Error while updating tenant operations for TenantId: {TenantId}",
+                    request.TenantId);
 
                 return new UpdateTenantEnabledOperationFromModuleOperationResponseDTO
                 {
@@ -649,16 +805,89 @@ public async Task<long> ValidateActiveUserLoginOnlyAsync(string loginId)
             }
         }
 
-        public async Task<List<GetModuleOperationRolePermissionsResponseDTO>> GetTenantModulesConfigurationResponses(GetTenantModuleOperationRolePermissionsRequestDTO request)
+
+      
+
+        //public async Task<List<GetModuleOperationRolePermissionsResponseDTO>> GetTenantModulesConfigurationResponses(GetTenantModuleOperationRolePermissionsRequestDTO request)
+        //{
+        //    try
+        //    {
+        //     //   await using var context = await _contextFactory.CreateDbContextAsync();
+
+        //        var tenantIdParam = new NpgsqlParameter("@TenantId", request.TenantId);
+
+        //        var flatList = await _context.TenantModulesConfigurations
+        //            .FromSqlRaw("EXEC AxionPro.GetTenantModuleOperationalConfigData @TenantId", tenantIdParam)
+        //            .ToListAsync();
+
+        //        var moduleDict = flatList
+        //            .GroupBy(f => f.ModuleId)
+        //            .ToDictionary(
+        //                g => g.Key,
+        //                g =>
+        //                {
+        //                    var first = g.First();
+        //                    return new GetModuleOperationRolePermissionsResponseDTO
+        //                    {
+        //                        ModuleId = first.ModuleId,
+        //                        ModuleName = first.ModuleName,
+        //                        IsLeafNode = first.IsLeafNode,
+        //                        IsEnabled = first.IsEnabled,
+        //                        Level = first.Level,
+        //                        BreadCrum = first.BreadCrum,
+        //                        Operations = g
+        //                            .Where(x => x.OperationId.HasValue)
+        //                            .Select(x => new OperationDTO_Config                                    {
+        //                                OperationId = x.OperationId.Value,
+        //                                OperationName = x.OperationName,
+        //                                IsOperationUsed = x.IsOperationUsed ?? false
+        //                            }).ToList(),
+        //                        Children = new List<GetModuleOperationRolePermissionsResponseDTO>()
+        //                    };
+        //                });
+
+        //        List<GetModuleOperationRolePermissionsResponseDTO> roots = new();
+        //        foreach (var flat in flatList)
+        //        {
+        //            if (flat.ParentModuleId.HasValue && moduleDict.ContainsKey(flat.ParentModuleId.Value))
+        //            {
+        //                var parent = moduleDict[flat.ParentModuleId.Value];
+        //                if (!parent.Children.Any(c => c.ModuleId == flat.ModuleId))
+        //                {
+        //                    parent.Children.Add(moduleDict[flat.ModuleId]);
+        //                }
+        //            }
+        //            else if (!flat.ParentModuleId.HasValue)
+        //            {
+        //                if (!roots.Any(r => r.ModuleId == flat.ModuleId))
+        //                {
+        //                    roots.Add(moduleDict[flat.ModuleId]);
+        //                }
+        //            }
+        //        }
+
+        //        return roots;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error occurred while getting tenant module configuration for TenantId: {TenantId}", request.TenantId);
+        //        return new List<GetModuleOperationRolePermissionsResponseDTO>();
+        //    }
+        //}
+
+        public async Task<List<GetModuleOperationRolePermissionsResponseDTO>>
+GetTenantModulesConfigurationResponses(GetTenantModuleOperationRolePermissionsRequestDTO request)
         {
             try
             {
-             //   await using var context = await _contextFactory.CreateDbContextAsync();
-
-                var tenantIdParam = new NpgsqlParameter("@TenantId", request.TenantId);
+                var tenantParam = new NpgsqlParameter("p_tenantid", request.TenantId);
 
                 var flatList = await _context.TenantModulesConfigurations
-                    .FromSqlRaw("EXEC AxionPro.GetTenantModuleOperationalConfigData @TenantId", tenantIdParam)
+                    .FromSqlRaw(
+                        @"SELECT * 
+                  FROM axionpro.""GetTenantModuleOperationalConfigData""(@p_tenantid)",
+                        tenantParam)
+                    .AsNoTracking()
                     .ToListAsync();
 
                 var moduleDict = flatList
@@ -668,6 +897,7 @@ public async Task<long> ValidateActiveUserLoginOnlyAsync(string loginId)
                         g =>
                         {
                             var first = g.First();
+
                             return new GetModuleOperationRolePermissionsResponseDTO
                             {
                                 ModuleId = first.ModuleId,
@@ -676,34 +906,33 @@ public async Task<long> ValidateActiveUserLoginOnlyAsync(string loginId)
                                 IsEnabled = first.IsEnabled,
                                 Level = first.Level,
                                 BreadCrum = first.BreadCrum,
+
                                 Operations = g
                                     .Where(x => x.OperationId.HasValue)
-                                    .Select(x => new OperationDTO_Config                                    {
+                                    .Select(x => new OperationDTO_Config
+                                    {
                                         OperationId = x.OperationId.Value,
                                         OperationName = x.OperationName,
                                         IsOperationUsed = x.IsOperationUsed ?? false
-                                    }).ToList(),
+                                    })
+                                    .ToList(),
+
                                 Children = new List<GetModuleOperationRolePermissionsResponseDTO>()
                             };
                         });
 
-                List<GetModuleOperationRolePermissionsResponseDTO> roots = new();
+                var roots = new List<GetModuleOperationRolePermissionsResponseDTO>();
+
                 foreach (var flat in flatList)
                 {
-                    if (flat.ParentModuleId.HasValue && moduleDict.ContainsKey(flat.ParentModuleId.Value))
+                    if (flat.ParentModuleId.HasValue &&
+                        moduleDict.TryGetValue(flat.ParentModuleId.Value, out var parent))
                     {
-                        var parent = moduleDict[flat.ParentModuleId.Value];
-                        if (!parent.Children.Any(c => c.ModuleId == flat.ModuleId))
-                        {
-                            parent.Children.Add(moduleDict[flat.ModuleId]);
-                        }
+                        parent.Children.Add(moduleDict[flat.ModuleId]);
                     }
                     else if (!flat.ParentModuleId.HasValue)
                     {
-                        if (!roots.Any(r => r.ModuleId == flat.ModuleId))
-                        {
-                            roots.Add(moduleDict[flat.ModuleId]);
-                        }
+                        roots.Add(moduleDict[flat.ModuleId]);
                     }
                 }
 
@@ -711,12 +940,13 @@ public async Task<long> ValidateActiveUserLoginOnlyAsync(string loginId)
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while getting tenant module configuration for TenantId: {TenantId}", request.TenantId);
+                _logger.LogError(ex,
+                    "Error occurred while getting tenant module configuration for TenantId: {TenantId}",
+                    request.TenantId);
+
                 return new List<GetModuleOperationRolePermissionsResponseDTO>();
             }
         }
-
-
 
 
 

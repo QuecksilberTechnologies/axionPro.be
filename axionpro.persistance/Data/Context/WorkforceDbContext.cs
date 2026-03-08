@@ -6,6 +6,7 @@ using axionpro.application.DTOS.RoleModulePermission;
 using axionpro.application.DTOS.StoreProcedures;
 using axionpro.application.DTOS.StoreProcedures.DashboardSummeries;
 using axionpro.application.DTOS.Tenant;
+using axionpro.application.DTOS.UserLogin;
 using axionpro.application.Interfaces.IContext;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
@@ -3212,6 +3213,7 @@ namespace axionpro.persistance.Data.Context
             });
             modelBuilder.Entity<RoleModuleOperationResponseDTO>().HasNoKey();
             modelBuilder.Entity<GetEmployeeCodePatternResponseDTO>().HasNoKey();
+            modelBuilder.Entity<UpdateLoginCredentialResultDTO>().HasNoKey();
 
         }
 

@@ -73,7 +73,25 @@ namespace axionpro.application.DTOs.RoleModulePermission
         public string? OperationName { get; set; }
     }
 
-
+    public class RoleModuleOperationResponseDTONew
+    {
+        public int RoleId { get; set; }
+        public long TenantId { get; set; }
+        public int ModuleId { get; set; }
+        public string? ModuleName { get; set; }
+        public string? URLPath { get; set; }
+        public string? DisplayName { get; set; }
+        public string? ImageIconWeb { get; set; }
+        public string? ImageIconMobile { get; set; }
+        public int ParentModuleId { get; set; }
+        public string? SubModuleName { get; set; }
+        public int MainModuleId { get; set; }
+        public string? MainModuleName { get; set; }
+        public int OperationId { get; set; }
+        public string? OperationName { get; set; }
+        public int DataViewStructureId { get; set; }
+        public string? DisplayOn { get; set; }
+    }
 
 
 
