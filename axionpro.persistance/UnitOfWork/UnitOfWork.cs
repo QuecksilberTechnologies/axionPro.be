@@ -811,7 +811,6 @@ public class UnitOfWork : IUnitOfWork
     public void Dispose()
     {
         _currentTransaction?.Dispose();
-        _context.Dispose();
     }
 
  }
