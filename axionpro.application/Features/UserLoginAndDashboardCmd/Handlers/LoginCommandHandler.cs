@@ -189,13 +189,13 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 // ur.Role.IsActive == true &&
                 // ur.Role.IsSoftDeleted == false);
 
-                bool isAdmin = true;
-                if (isAdmin)
-                  {
-                      UpdateTenantEnabledOperationFromModuleOperationRequestDTO updateTenantEnabledOperationFromModuleOperationRequestDTO = new UpdateTenantEnabledOperationFromModuleOperationRequestDTO();
-                      updateTenantEnabledOperationFromModuleOperationRequestDTO.TenantId = empMinimalResponse.TenantId;
-                      var updatedDone = _unitOfWork.StoreProcedureRepository.UpdateTenantEnabledOperationFromModuleOperationRequestDTO(updateTenantEnabledOperationFromModuleOperationRequestDTO);
-                  }
+                //bool isAdmin = true;
+                //if (isAdmin)
+                //  {
+                //      UpdateTenantEnabledOperationFromModuleOperationRequestDTO updateTenantEnabledOperationFromModuleOperationRequestDTO = new UpdateTenantEnabledOperationFromModuleOperationRequestDTO();
+                //      updateTenantEnabledOperationFromModuleOperationRequestDTO.TenantId = empMinimalResponse.TenantId;
+                //      var updatedDone = _unitOfWork.StoreProcedureRepository.UpdateTenantEnabledOperationFromModuleOperationRequestDTO(updateTenantEnabledOperationFromModuleOperationRequestDTO);
+                //  }
                 List<UserRoleDTO>? userRoleDTOs = null;
                 string? allRoleIdsCsv = null;
                 UserRoleDTO? primaryRole = null;
