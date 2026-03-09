@@ -13,6 +13,7 @@ COPY axionpro.api/ axionpro.api/
 COPY axionpro.application/ axionpro.application/
 COPY axionpro.infrastructure/ axionpro.infrastructure/
 COPY axionpro.persistance/ axionpro.persistance/
+COPY axionpro.domain/ axionpro.domain/
 
 # restore dependencies
 RUN dotnet restore
@@ -31,15 +32,13 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0
 
 WORKDIR /app
 
-# install kerberos dependency (fix Supabase Npgsql error)
+# Supabase kerberos dependency fix
 RUN apt-get update && apt-get install -y \
     libgssapi-krb5-2 \
     && rm -rf /var/lib/apt/lists/*
 
-# copy published app
 COPY --from=build /app/publish .
 
-# Render dynamic port binding
 ENV ASPNETCORE_URLS=http://+:${PORT}
 
 EXPOSE 8080
