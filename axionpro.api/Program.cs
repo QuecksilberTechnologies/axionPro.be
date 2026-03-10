@@ -71,9 +71,11 @@ try
             policy.WithOrigins(
                 "http://localhost:4200",    // Angular local
                 "http://localhost:4201",    // React local (optional)
-                "http://15.206.90.1" ,       // Deployed app
-                "https://axion-pro.vercel.app"
                 
+                "https://axion-pro.vercel.app",
+                "https://axionpro-app.vercel.app/auth/login",
+                "https://axionpro-app.vercel.app"
+
 
             )
             .AllowAnyHeader()
