@@ -1,15 +1,15 @@
 ﻿using axionpro.application.DTOS.Tenant;
 using axionpro.application.Interfaces.IRepositories;
-
+using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
@@ -33,23 +33,30 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-              
-                var result = (await _context
-                    .Set<GetEmployeeCodePatternResponseDTO>()
-                    .FromSqlRaw("EXEC [AxionPro].[GetEmployeeCodePatternByTenant] @TenantId = {0}", tenantId)
-                    .AsNoTracking()
-                    .ToListAsync())
-                    .FirstOrDefault();
+                _logger.LogInformation(
+                    "Fetching employee code pattern for TenantId: {TenantId}", tenantId);
+
+                var tenantParam = new NpgsqlParameter("p_tenantid", tenantId);
+
+                var result = await _context.Database
+                    .SqlQueryRaw<GetEmployeeCodePatternResponseDTO>(
+                        @"SELECT * 
+                  FROM axionpro.""GetEmployeeCodePatternByTenant""(@p_tenantid)",
+                        tenantParam)
+                    .FirstOrDefaultAsync();
 
                 return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error fetching employee code pattern for TenantId {TenantId}", tenantId);
-                throw;
+                _logger.LogError(
+                    ex,
+                    "Error fetching employee code pattern for TenantId: {TenantId}",
+                    tenantId);
+
+                return null;
             }
         }
-
 
         // ============================================================
         // 2️⃣ CREATE PATTERN

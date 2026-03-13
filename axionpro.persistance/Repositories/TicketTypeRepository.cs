@@ -24,7 +24,7 @@ namespace axionpro.persistance.Repositories
         private readonly WorkforceDbContext _context;
         private readonly ILogger<TicketTypeRepository> _logger;
         private readonly IMapper _mapper;
-        private IDbContextFactory<WorkforceDbContext> _contextFactory;
+      
         #endregion
 
 
@@ -33,7 +33,7 @@ namespace axionpro.persistance.Repositories
         public TicketTypeRepository(WorkforceDbContext context, ILogger<TicketTypeRepository> logger, IMapper mapper
             )
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
+            this._context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
   
@@ -64,18 +64,18 @@ namespace axionpro.persistance.Repositories
                     return new List<GetTicketTypeResponseDTO>();
                 }
 
-                await using var context = await _contextFactory.CreateDbContextAsync();
+               
 
                 var query =
-                    from t in context.TicketTypes.AsNoTracking()
-                    join r in context.Roles.AsNoTracking() on t.ResponsibleRoleId equals r.Id into roleGroup
+                    from t in _context.TicketTypes.AsNoTracking()
+                    join r in _context.Roles.AsNoTracking() on t.ResponsibleRoleId equals r.Id into roleGroup
                     from r in roleGroup.DefaultIfEmpty()
-                    join ur in context.UserRoles.AsNoTracking()
+                    join ur in _context.UserRoles.AsNoTracking()
                         on r.Id equals ur.RoleId into userRoleGroup
                     from ur in userRoleGroup
                         .Where(x => x.IsPrimaryRole == true && x.IsActive == true)
                         .DefaultIfEmpty()
-                    join e in context.Employees.AsNoTracking()
+                    join e in _context.Employees.AsNoTracking()
                         on ur.EmployeeId equals e.Id into empGroup
                     from e in empGroup
                         .Where(emp => emp.IsActive == true)
@@ -331,14 +331,13 @@ namespace axionpro.persistance.Repositories
                     return new List<GetTicketTypeRoleResponseDTO>();
                 }
 
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
+               
                 // 1️⃣ Flattened query: TicketType → ResponsibleRole → UserRole → Employee
                 var flatData =
-                    from ticketType in context.TicketTypes.AsNoTracking()
-                    join role in context.Roles.AsNoTracking() on ticketType.ResponsibleRoleId equals role.Id
-                    join userRole in context.UserRoles.AsNoTracking() on role.Id equals userRole.RoleId
-                    join emp in context.Employees.AsNoTracking() on userRole.EmployeeId equals emp.Id
+                    from ticketType in _context.TicketTypes.AsNoTracking()
+                    join role in _context.Roles.AsNoTracking() on ticketType.ResponsibleRoleId equals role.Id
+                    join userRole in _context.UserRoles.AsNoTracking() on role.Id equals userRole.RoleId
+                    join emp in _context.Employees.AsNoTracking() on userRole.EmployeeId equals emp.Id
                     where role.IsActive
                           && userRole.IsActive
                           && emp.IsActive

@@ -28,7 +28,7 @@ namespace axionpro.persistance.Repositories
         public EmployeeEducationRepository(WorkforceDbContext context, IMapper mapper, ILogger<EmployeeEducationRepository> logger,
             IPasswordService passwordService, IEncryptionService encryptionService)
         {
-           // IDbContextFactory<WorkforceDbContext> contextFactory,
+           // <WorkforceDbContext> contextFactory,
             this._context = context;
             this._mapper = mapper;
             this._logger = logger;

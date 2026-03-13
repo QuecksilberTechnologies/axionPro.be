@@ -19,7 +19,7 @@ namespace axionpro.persistance.Repositories
         private readonly WorkforceDbContext _context;
         private readonly ILogger<ReportingTypeRepository> _logger;
         private readonly IMapper _mapper;
-        private readonly IDbContextFactory<WorkforceDbContext>  _contextFactory;
+
         #endregion
 
 
@@ -40,10 +40,9 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
+              
                 // Duplicate check
-                bool isExist = await context.ReportingTypes
+                bool isExist = await _context.ReportingTypes
                     .AnyAsync(x => x.TypeName.ToLower() == dto.TypeName.ToLower() && x.IsActive);
 
                 if (isExist)
@@ -52,13 +51,13 @@ namespace axionpro.persistance.Repositories
                 var entity = _mapper.Map<ReportingType>(dto);
                 entity.AddedDateTime = DateTime.UtcNow;
 
-                await context.ReportingTypes.AddAsync(entity);
-                await context.SaveChangesAsync();
+                await _context.ReportingTypes.AddAsync(entity);
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation("ReportingType '{TypeName}' added successfully by UserId {UserId}", dto.TypeName, dto.AddedById);
 
                 // Return updated list
-                var result = await context.ReportingTypes
+                var result = await _context.ReportingTypes
                     .Where(x => x.IsActive)
                     .OrderByDescending(x => x.AddedDateTime)
                     .ToListAsync();
@@ -78,9 +77,8 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
-                var query = context.ReportingTypes.AsQueryable();
+                 
+                var query = _context.ReportingTypes.AsQueryable();
 
                 if (!string.IsNullOrWhiteSpace(dto.TypeName))
                     query = query.Where(x => x.TypeName.Contains(dto.TypeName));
@@ -107,9 +105,8 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
-                var entity = await context.ReportingTypes.FirstOrDefaultAsync(x => x.Id == id);
+               
+                var entity = await _context.ReportingTypes.FirstOrDefaultAsync(x => x.Id == id);
                 if (entity == null)
                     return null;
 
@@ -128,14 +125,13 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
-                var existing = await context.ReportingTypes.FirstOrDefaultAsync(x => x.Id == dto.Id);
+               
+                var existing = await _context.ReportingTypes.FirstOrDefaultAsync(x => x.Id == dto.Id);
                 if (existing == null)
                     throw new Exception("Reporting type not found.");
 
                 // Duplicate check (excluding same record)
-                bool isDuplicate = await context.ReportingTypes
+                bool isDuplicate = await _context.ReportingTypes
                     .AnyAsync(x => x.TypeName.ToLower() == dto.TypeName.ToLower() && x.Id != dto.Id);
 
                 if (isDuplicate)
@@ -147,8 +143,8 @@ namespace axionpro.persistance.Repositories
                 existing.UpdatedById = dto.EmployeeId;
                 existing.UpdatedDateTime = DateTime.UtcNow;
 
-                context.ReportingTypes.Update(existing);
-                await context.SaveChangesAsync();
+                _context.ReportingTypes.Update(existing);
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation("ReportingType '{TypeName}' updated successfully by UserId {UserId}", dto.TypeName, dto.EmployeeId);
                 return true;
@@ -166,9 +162,8 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                await using var context = await _contextFactory.CreateDbContextAsync();
-
-                var existing = await context.ReportingTypes.FirstOrDefaultAsync(x => x.Id == id);
+                
+                var existing = await _context.ReportingTypes.FirstOrDefaultAsync(x => x.Id == id);
                 if (existing == null)
                     throw new Exception("Reporting type not found.");
 
@@ -176,8 +171,8 @@ namespace axionpro.persistance.Repositories
                 existing.UpdatedById = employeeId;
                 existing.UpdatedDateTime = DateTime.UtcNow;
 
-                context.ReportingTypes.Update(existing);
-                await context.SaveChangesAsync();
+                _context.ReportingTypes.Update(existing);
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation("ReportingType Id {Id} deactivated by UserId {UserId}", id, employeeId);
                 return true;

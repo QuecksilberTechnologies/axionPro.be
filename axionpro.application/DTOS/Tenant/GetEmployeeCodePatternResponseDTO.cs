@@ -2,13 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+using System.Threading.Tasks; 
+using axionpro.domain.Entity; 
+using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace axionpro.application.DTOS.Tenant
 {
+    [Keyless]
     public class GetEmployeeCodePatternResponseDTO
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
         public long TenantId { get; set; }
         public string? Prefix { get; set; }
         public bool IncludeYear { get; set; }
@@ -21,10 +25,10 @@ namespace axionpro.application.DTOS.Tenant
         public bool IsActive { get; set; }
 
         public long AddedById { get; set; }
-        public DateTime AddedDateTime { get; set; }
+        public DateTime AddedDateTime { get; set; } = DateTime.UtcNow;
 
-        public long? UpdatedById { get; set; }
-        public DateTime? UpdatedDateTime { get; set; }
+        public long? UpdatedById { get; set; } 
+        public DateTime? UpdatedDateTime { get; set; } = DateTime.UtcNow;
     }
 
 }

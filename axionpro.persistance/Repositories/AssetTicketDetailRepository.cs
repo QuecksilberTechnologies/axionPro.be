@@ -28,8 +28,7 @@ namespace axionpro.persistance.Repositories
         public AssetTicketDetailRepository(
             WorkforceDbContext context,
             ILogger<AssetTicketDetailRepository> logger,
-            IMapper mapper,
-            IDbContextFactory<WorkforceDbContext> contextFactory)
+            IMapper mapper)
         {
             _context = context;
             _logger = logger;

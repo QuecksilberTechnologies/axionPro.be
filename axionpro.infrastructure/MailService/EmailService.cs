@@ -23,7 +23,7 @@ namespace axionpro.infrastructure.MailService
         public EmailService(
             ITenantEmailConfigRepository configRepo,
             IEmailTemplateRepository templateRepo,
-            ILogger<EmailService> logger, IDbContextFactory<WorkforceDbContext> contextFactory)
+            ILogger<EmailService> logger)
         {
             _configRepo = configRepo;
             _templateRepo = templateRepo;

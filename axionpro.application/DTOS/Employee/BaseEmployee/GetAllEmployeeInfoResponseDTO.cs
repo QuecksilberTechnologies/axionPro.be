@@ -92,8 +92,8 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         public string? ProfileImage { get; set; }
         public string? City { get; set; }
         public string? Address { get; set; }
-        public DateTime? DateOfJoining { get; set; }
-        public int EmployeeTypeId { get; set; }
+        public DateTime? DateOfJoining { get; set; } 
+        public int EmployeeTypeId { get; set; } 
         public string? EmployeeTypeName { get; set; }
 
 
