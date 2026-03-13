@@ -1,13 +1,8 @@
 ﻿using axionpro.application.Common.Helpers;
-using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Interfaces.IEmail;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.persistance.Data.Context;
 using MailKit.Net.Smtp;
 using MailKit.Security;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MimeKit;
 
