@@ -36,8 +36,8 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
             public int? RoleId { get; set; }
             public int? RoleType { get; set; }
             public string? Type { get; set; }
-            public DateTime? DateOfBirth { get; set; } = DateTime.UtcNow;
-            public DateTime? DateOfOnBoarding { get; set; } = DateTime.UtcNow;
+            public DateTime? DateOfBirth { get; set; }  
+            public DateTime? DateOfOnBoarding { get; set; }  
             public DateTime? DateOfExit { get; set; }
             public int DesignationId { get; set; }
             public string? GenderName { get; set; }

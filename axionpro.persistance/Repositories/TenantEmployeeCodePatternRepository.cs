@@ -38,12 +38,13 @@ namespace axionpro.persistance.Repositories
 
                 var tenantParam = new NpgsqlParameter("p_tenantid", tenantId);
 
-                var result = await _context.Database
-                    .SqlQueryRaw<GetEmployeeCodePatternResponseDTO>(
-                        @"SELECT * 
-                  FROM axionpro.""GetEmployeeCodePatternByTenant""(@p_tenantid)",
-                        tenantParam)
-                    .FirstOrDefaultAsync();
+                var result = await _context
+     .Set<GetEmployeeCodePatternResponseDTO>()
+     .FromSqlRaw(
+         @"SELECT * FROM axionpro.""GetEmployeeCodePatternByTenant""(@p_tenantid)",
+         tenantParam)
+     .AsNoTracking()
+     .FirstOrDefaultAsync();
 
                 return result;
             }

@@ -25,10 +25,10 @@ namespace axionpro.application.DTOS.Tenant
         public bool IsActive { get; set; }
 
         public long AddedById { get; set; }
-        public DateTime AddedDateTime { get; set; } = DateTime.UtcNow;
+        public DateTime AddedDateTime { get; set; }  
 
         public long? UpdatedById { get; set; } 
-        public DateTime? UpdatedDateTime { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedDateTime { get; set; }  
     }
 
 }

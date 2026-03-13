@@ -272,6 +272,7 @@ namespace axionpro.persistance.Data.Context
         {
             modelBuilder.Entity<AccoumndationAllowancePolicyByDesignation>(entity =>
             {
+               
 
                 entity.HasKey(e => e.Id).HasName("PK__Accoumnd__3214EC071BDF4022");
 
