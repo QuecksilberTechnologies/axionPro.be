@@ -116,12 +116,11 @@ namespace axionpro.infrastructure.MailService
                 //    config.SmtpHost,
                 //    config.SmtpPort ?? 465,
                 //    SecureSocketOptions.SslOnConnect);
-                _logger.LogInformation(
-    "2 SMTP DEBUG | Host=smtp-relay.brevo.com | Port=587 | User={User}",
-    _emailConfig.SMTPUserName);
+               
 
+                smtp.Timeout = 20000;
                 await smtp.ConnectAsync("smtp-relay.brevo.com",
-                       587,
+                       2525,
                        SecureSocketOptions.StartTls);
 
                 if (!smtp.IsConnected)
@@ -129,7 +128,9 @@ namespace axionpro.infrastructure.MailService
 
                 await smtp.AuthenticateAsync( _emailConfig.SMTPUserName, _emailConfig.Secret);
 
-                
+                _logger.LogInformation(
+                   "2 SMTP DEBUG | Host=smtp-relay.brevo.com | Port=2525 | User={User}",
+                    _emailConfig.SMTPUserName);
 
                 //await smtp.AuthenticateAsync(
                 //    config.SmtpUsername,
@@ -140,7 +141,9 @@ namespace axionpro.infrastructure.MailService
 
                 // 🔥 SERVER ACK WAIT
                 smtp.Send(message);
-
+                _logger.LogInformation(
+                 "3 SMTP DEBUG | Host=smtp-relay.brevo.com | Port=2525 | User={User}",
+                  _emailConfig.SMTPUserName);
                 // 🔥 NOOP ensures server pipeline flushed
                 await smtp.NoOpAsync();
 
