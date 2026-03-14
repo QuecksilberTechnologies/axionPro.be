@@ -8,13 +8,13 @@ using MimeKit;
 
 namespace axionpro.infrastructure.MailService
 {
-    
+
     public class EmailService : IEmailService
     {
         private readonly ITenantEmailConfigRepository _configRepo;
         private readonly IEmailTemplateRepository _templateRepo;
         private readonly ILogger<EmailService> _logger;
-       
+
         public EmailService(
             ITenantEmailConfigRepository configRepo,
             IEmailTemplateRepository templateRepo,
@@ -23,7 +23,7 @@ namespace axionpro.infrastructure.MailService
             _configRepo = configRepo;
             _templateRepo = templateRepo;
             _logger = logger;
-            
+
         }
 
         public Task<bool> SendEmailAsync(string toEmail, string subject, string body, string token, long? TenantId)
@@ -92,8 +92,8 @@ namespace axionpro.infrastructure.MailService
 
                 message.To.Add(MailboxAddress.Parse(toEmail));
 
-                AddEmailAddresses(message.Cc, template.CcEmail);
-                AddEmailAddresses(message.Bcc, template.BccEmail);
+                // AddEmailAddresses(message.Cc, template.CcEmail);
+                // AddEmailAddresses(message.Bcc, template.BccEmail);
 
                 message.Subject = subject;
                 message.Body = new BodyBuilder { HtmlBody = body }.ToMessageBody();
@@ -103,17 +103,24 @@ namespace axionpro.infrastructure.MailService
 
 
 
+                //await smtp.ConnectAsync(
+                //    config.SmtpHost,
+                //    config.SmtpPort ?? 465,
+                //    SecureSocketOptions.SslOnConnect);
+
                 await smtp.ConnectAsync(
-                    config.SmtpHost,
-                    config.SmtpPort ?? 465,
-                    SecureSocketOptions.SslOnConnect);
+                    "smtp-relay.brevo.com",
+                       587,
+                       SecureSocketOptions.StartTls);
 
                 if (!smtp.IsConnected)
                     throw new Exception("SMTP not connected");
-
                 await smtp.AuthenticateAsync(
-                    config.SmtpUsername,
-                    Decrypt(config.SmtpPasswordEncrypted ?? string.Empty));
+                "a4e423001@smtp-brevo.com",
+                     "xsmtpsib-bfc132f91a456e0aabf6887b361cd64ccdd178275a1265f85cdf426de680de53-Mhw4ku1zLfc4ORxk");
+                //await smtp.AuthenticateAsync(
+                //    config.SmtpUsername,
+                //    Decrypt(config.SmtpPasswordEncrypted ?? string.Empty));
 
                 if (!smtp.IsAuthenticated)
                     throw new Exception("SMTP authentication failed");
