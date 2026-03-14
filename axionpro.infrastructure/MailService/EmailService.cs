@@ -105,8 +105,8 @@ namespace axionpro.infrastructure.MailService
 
                 await smtp.ConnectAsync(
                     config.SmtpHost,
-                    config.SmtpPort ?? 587,
-                    SecureSocketOptions.Auto);
+                    config.SmtpPort ?? 465,
+                    SecureSocketOptions.SslOnConnect);
 
                 if (!smtp.IsConnected)
                     throw new Exception("SMTP not connected");
