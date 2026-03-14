@@ -140,7 +140,7 @@ namespace axionpro.infrastructure.MailService
                     throw new Exception("SMTP authentication failed");
 
                 // 🔥 SERVER ACK WAIT
-                smtp.Send(message);
+                await smtp.SendAsync(message);
                 _logger.LogInformation(
                  "3 SMTP DEBUG | Host=smtp-relay.brevo.com | Port=2525 | User={User}",
                   _emailConfig.SMTPUserName);
