@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using System.Net.Sockets;
 
 namespace axionpro.infrastructure.MailService
 {
@@ -46,6 +47,8 @@ namespace axionpro.infrastructure.MailService
         {
             try
             {
+               await CheckSmtpPorts();
+
                 // 1️⃣ Template
                 var template = await _templateRepo.GetTemplateByCodeAsync(templateCode);
                 if (template == null || !template.IsActive)
@@ -119,9 +122,10 @@ namespace axionpro.infrastructure.MailService
                
 
                 smtp.Timeout = 20000;
-                await smtp.ConnectAsync("smtp-relay.brevo.com",
-                       2525,
-                       SecureSocketOptions.StartTls);
+                await smtp.ConnectAsync(
+                   "smtp-relay.brevo.com",
+                             465,
+                                               SecureSocketOptions.SslOnConnect);
 
                 if (!smtp.IsConnected)
                     throw new Exception("SMTP not connected");
@@ -129,7 +133,7 @@ namespace axionpro.infrastructure.MailService
                 await smtp.AuthenticateAsync( _emailConfig.SMTPUserName, _emailConfig.Secret);
 
                 _logger.LogInformation(
-                   "2 SMTP DEBUG | Host=smtp-relay.brevo.com | Port=2525 | User={User}",
+                   "2 SMTP DEBUG | Host=smtp-relay.brevo.com | Port=465 | User={User}",
                     _emailConfig.SMTPUserName);
 
                 //await smtp.AuthenticateAsync(
@@ -142,7 +146,7 @@ namespace axionpro.infrastructure.MailService
                 // 🔥 SERVER ACK WAIT
                 await smtp.SendAsync(message);
                 _logger.LogInformation(
-                 "3 SMTP DEBUG | Host=smtp-relay.brevo.com | Port=2525 | User={User}",
+                 "3 SMTP DEBUG | Host=smtp-relay.brevo.com | Port=465 | User={User}",
                   _emailConfig.SMTPUserName);
                 // 🔥 NOOP ensures server pipeline flushed
               //  await smtp.NoOpAsync();
@@ -183,7 +187,33 @@ namespace axionpro.infrastructure.MailService
                 return false;
             }
         }
+        public static async Task CheckSmtpPorts()
+        {
+            string host = "smtp-relay.brevo.com";
+            int[] ports = { 25, 465, 587, 2525 };
 
+            foreach (var port in ports)
+            {
+                try
+                {
+                    using var client = new TcpClient();
+                    var connectTask = client.ConnectAsync(host, port);
+
+                    if (await Task.WhenAny(connectTask, Task.Delay(5000)) == connectTask)
+                    {
+                        Console.WriteLine($"✅ {host}:{port} OPEN");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"❌ {host}:{port} BLOCKED");
+                    }
+                }
+                catch
+                {
+                    Console.WriteLine($"❌ {host}:{port} FAILED");
+                }
+            }
+        }
         private string Decrypt(string encrypted)
         {
             // 🔐 real encryption service yahan inject karna
