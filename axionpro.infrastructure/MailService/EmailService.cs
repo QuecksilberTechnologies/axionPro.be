@@ -145,7 +145,7 @@ namespace axionpro.infrastructure.MailService
                  "3 SMTP DEBUG | Host=smtp-relay.brevo.com | Port=2525 | User={User}",
                   _emailConfig.SMTPUserName);
                 // 🔥 NOOP ensures server pipeline flushed
-                await smtp.NoOpAsync();
+              //  await smtp.NoOpAsync();
 
                 await smtp.DisconnectAsync(true);
 
