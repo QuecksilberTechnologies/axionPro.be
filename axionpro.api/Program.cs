@@ -2,6 +2,7 @@
 using axionpro.api.Common.Swagger;
 using axionpro.api.Middlewares;
 using axionpro.application;
+using axionpro.application.DTOS.Configruations;
 using axionpro.infrastructure;
 using axionpro.persistance;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -126,6 +127,8 @@ try
             Path.Combine(builder.Environment.ContentRootPath, "wwwroot/uploads")),
             RequestPath = "/uploads"
     });
+    builder.Services.Configure<EmailConfig>(
+    builder.Configuration.GetSection("EmailConfig"));
 
     // ✅ Middleware setup
     app.UseHttpsRedirection();

@@ -1,10 +1,12 @@
 ﻿using axionpro.application.Common.Helpers;
+using axionpro.application.DTOS.Configruations;
 using axionpro.application.Interfaces.IEmail;
 using axionpro.application.Interfaces.IRepositories;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using MimeKit;
 
 namespace axionpro.infrastructure.MailService
@@ -15,17 +17,18 @@ namespace axionpro.infrastructure.MailService
         private readonly ITenantEmailConfigRepository _configRepo;
         private readonly IEmailTemplateRepository _templateRepo;
         private readonly ILogger<EmailService> _logger;
-        private readonly IConfiguration _config;
-
+        
+        private readonly EmailConfig _emailConfig;
         public EmailService(
             ITenantEmailConfigRepository configRepo,
             IEmailTemplateRepository templateRepo,
-            ILogger<EmailService> logger,IConfiguration configuration)
+            ILogger<EmailService> logger, IOptions<EmailConfig> emailConfig)
         {
             _configRepo = configRepo;
             _templateRepo = templateRepo;
             _logger = logger;
-            _config = configuration;
+
+            _emailConfig = emailConfig.Value;
 
         }
 
@@ -118,8 +121,7 @@ namespace axionpro.infrastructure.MailService
                 if (!smtp.IsConnected)
                     throw new Exception("SMTP not connected");
 
-                var emailConfig = _config.GetSection("EmailConfig");
-                await smtp.AuthenticateAsync(emailConfig["SMTPUserName"], emailConfig["Secret"] );
+                await smtp.AuthenticateAsync( _emailConfig.SMTPUserName, _emailConfig.Secret);
 
                 //await smtp.AuthenticateAsync(
                 //    config.SmtpUsername,
