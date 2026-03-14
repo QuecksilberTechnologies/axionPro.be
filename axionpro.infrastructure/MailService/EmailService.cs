@@ -120,7 +120,7 @@ namespace axionpro.infrastructure.MailService
                     throw new Exception("SMTP not connected");
 
                 var emailConfig = _config.GetSection("EmailConfig");
-                await smtp.AuthenticateAsync(emailConfig["SMTPUserName"], emailConfig["Key"] );
+                await smtp.AuthenticateAsync(emailConfig["SMTPUserName"], emailConfig["Secret"] );
 
                 //await smtp.AuthenticateAsync(
                 //    config.SmtpUsername,
