@@ -43,45 +43,49 @@ namespace axionpro.infrastructure.MailService
             throw new NotImplementedException();
         }
         //  public Task<bool> SendTemplatedEmailAsync(string templateCode, string toEmail, long? TenantId, Dictionary<string, string> placeholders)
-        public async Task<bool> SendTemplatedEmailAsync(string templateCode, string toEmail, long? tenantId, Dictionary<string, string> placeholders)
+
+        public async Task<bool> SendTemplatedEmailAsync(
+    string templateCode,
+    string toEmail,
+    long? tenantId,
+    Dictionary<string, string> placeholders)
         {
             try
             {
-               await CheckSmtpPorts();
-
-                // 1️⃣ Template
+                // 1️⃣ Get Template
                 var template = await _templateRepo.GetTemplateByCodeAsync(templateCode);
                 if (template == null || !template.IsActive)
                 {
                     _logger.LogWarning("Email template missing | Code={Code}", templateCode);
                     return false;
                 }
-                
-                // 2️⃣ SMTP + Tenant
-                var config_Db = await _configRepo.GetActiveEmailConfigAsync(tenantId);
-                if (config_Db == null || config_Db.Tenant == null)
+
+                // 2️⃣ Get Tenant SMTP config
+                var configDb = await _configRepo.GetActiveEmailConfigAsync(tenantId);
+                if (configDb == null || configDb.Tenant == null)
                 {
                     _logger.LogWarning("SMTP config missing | TenantId={TenantId}", tenantId);
                     return false;
                 }
 
-                var tenant = config_Db.Tenant;
+                var tenant = configDb.Tenant;
 
-                // 3️⃣ Placeholders
+                // 3️⃣ Prepare placeholders
                 var finalPlaceholders = new Dictionary<string, string>
                 {
-                    ["TenantName"] = tenant.CompanyName,
-                    ["TenantLogoUrl"] = tenant.TenantProfiles.Select(x => x.LogoUrl)
+                    ["TenantName"] = tenant.CompanyName ?? "",
+                    ["TenantLogoUrl"] = tenant.TenantProfiles
+                                            .Select(x => x.LogoUrl)
                                             .FirstOrDefault()
                                             ?? "https://cdn.axionpro.com/default-logo.png",
-                    ["SupportEmail"] = tenant.TenantEmail,
+                    ["SupportEmail"] = tenant.TenantEmail ?? "",
                     ["Year"] = DateTime.UtcNow.Year.ToString()
                 };
 
                 foreach (var kv in placeholders)
                     finalPlaceholders[kv.Key] = kv.Value;
 
-                // 4️⃣ Render
+                // 4️⃣ Render subject & body
                 var subject = EmailTemplateRenderer.RenderBody(
                     template.Subject ?? string.Empty,
                     finalPlaceholders);
@@ -90,76 +94,45 @@ namespace axionpro.infrastructure.MailService
                     template.Body ?? string.Empty,
                     finalPlaceholders);
 
-                // 5️⃣ Build message (🔥 CRITICAL FIX)
+                // 5️⃣ Build Email Message
                 var message = new MimeMessage();
 
-                // 🚨 ALWAYS SAME AS SMTP USER
-                message.From.Clear();
                 message.From.Add(new MailboxAddress(
-                    config_Db.FromName ?? "AxionPro",
-                    config_Db.SmtpUsername));
+                    configDb.FromName ?? "AxionPro",
+                    configDb.SmtpUsername));
 
                 message.To.Add(MailboxAddress.Parse(toEmail));
 
-                // AddEmailAddresses(message.Cc, template.CcEmail);
-                // AddEmailAddresses(message.Bcc, template.BccEmail);
-
                 message.Subject = subject;
-                message.Body = new BodyBuilder { HtmlBody = body }.ToMessageBody();
+                message.Body = new BodyBuilder
+                {
+                    HtmlBody = body
+                }.ToMessageBody();
 
-                // 6️⃣ SMTP SEND (FULLY BLOCKING FLOW)
+                // 6️⃣ Send Email
                 using var smtp = new SmtpClient();
 
-                _logger.LogInformation(
-      "SMTP User-1------------: {SMTPUserName} | Secret: {Secret}",
-      _emailConfig.SMTPUserName,
-      _emailConfig.Secret);
-
-                //await smtp.ConnectAsync(
-                //    config.SmtpHost,
-                //    config.SmtpPort ?? 465,
-                //    SecureSocketOptions.SslOnConnect);
-               
-
                 smtp.Timeout = 20000;
+
                 await smtp.ConnectAsync(
-                   "smtp-relay.brevo.com",
-                             465,
-                                               SecureSocketOptions.SslOnConnect);
+                    "smtp-relay.brevo.com",
+                    2525, // Render free plan compatible port
+                    SecureSocketOptions.StartTls);
 
-                if (!smtp.IsConnected)
-                    throw new Exception("SMTP not connected");
+                await smtp.AuthenticateAsync(
+                    _emailConfig.SMTPUserName,
+                    _emailConfig.Secret);
 
-                await smtp.AuthenticateAsync( _emailConfig.SMTPUserName, _emailConfig.Secret);
-
-                _logger.LogInformation(
-                   "2 SMTP DEBUG | Host=smtp-relay.brevo.com | Port=465 | User={User}",
-                    _emailConfig.SMTPUserName);
-
-                //await smtp.AuthenticateAsync(
-                //    config.SmtpUsername,
-                //    Decrypt(config.SmtpPasswordEncrypted ?? string.Empty));
-
-                if (!smtp.IsAuthenticated)
-                    throw new Exception("SMTP authentication failed");
-
-                // 🔥 SERVER ACK WAIT
                 await smtp.SendAsync(message);
-                _logger.LogInformation(
-                 "3 SMTP DEBUG | Host=smtp-relay.brevo.com | Port=465 | User={User}",
-                  _emailConfig.SMTPUserName);
-                // 🔥 NOOP ensures server pipeline flushed
-              //  await smtp.NoOpAsync();
 
                 await smtp.DisconnectAsync(true);
 
                 _logger.LogInformation(
-                    "SMTP ACCEPTED | Template={Template} | To={To} | Server={Host} | mesg {message}",
+                    "SMTP ACCEPTED | Template={Template} | To={To}",
                     templateCode,
-                    toEmail,
-                    config_Db.SmtpHost, message);
+                    toEmail);
 
-                return true; // ✅ ACCEPTED BY SMTP SERVER
+                return true;
             }
             catch (SmtpCommandException ex)
             {
@@ -187,6 +160,7 @@ namespace axionpro.infrastructure.MailService
                 return false;
             }
         }
+
         public static async Task CheckSmtpPorts()
         {
             string host = "smtp-relay.brevo.com";
