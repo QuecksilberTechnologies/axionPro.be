@@ -1797,7 +1797,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                id = 234;
+             
                 if (id <= 0)
                     throw new ArgumentException("Invalid Id provided for fetching employee record.");
 
