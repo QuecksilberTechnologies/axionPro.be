@@ -8,7 +8,7 @@ namespace axionpro.application.Constants
  
 
     /// <summary>
-        /// Contains default department seed data (partial). Remaining fields to be assigned at runtime.
+        /// Contains default department seed data (partial). Remaining fields to be assigned at runtime.4344434434
         /// </summary>
         public static class DepartmentConstants
         {
