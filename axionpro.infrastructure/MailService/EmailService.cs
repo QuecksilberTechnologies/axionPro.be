@@ -107,12 +107,18 @@ namespace axionpro.infrastructure.MailService
                 // 6️⃣ SMTP SEND (FULLY BLOCKING FLOW)
                 using var smtp = new SmtpClient();
 
-
+                _logger.LogInformation(
+      "SMTP User-------------: {SMTPUserName} | Secret: {Secret}",
+      _emailConfig.SMTPUserName,
+      _emailConfig.Secret);
 
                 //await smtp.ConnectAsync(
                 //    config.SmtpHost,
                 //    config.SmtpPort ?? 465,
                 //    SecureSocketOptions.SslOnConnect);
+                _logger.LogInformation(
+    "SMTP DEBUG | Host=smtp-relay.brevo.com | Port=587 | User={User}",
+    _emailConfig.SMTPUserName);
 
                 await smtp.ConnectAsync("smtp-relay.brevo.com",
                        587,
@@ -123,6 +129,8 @@ namespace axionpro.infrastructure.MailService
 
                 await smtp.AuthenticateAsync( _emailConfig.SMTPUserName, _emailConfig.Secret);
 
+                
+
                 //await smtp.AuthenticateAsync(
                 //    config.SmtpUsername,
                 //    Decrypt(config.SmtpPasswordEncrypted ?? string.Empty));
@@ -131,7 +139,7 @@ namespace axionpro.infrastructure.MailService
                     throw new Exception("SMTP authentication failed");
 
                 // 🔥 SERVER ACK WAIT
-                smtp.Send(message);
+                 await   smtp.Send(message);
 
                 // 🔥 NOOP ensures server pipeline flushed
                 await smtp.NoOpAsync();
