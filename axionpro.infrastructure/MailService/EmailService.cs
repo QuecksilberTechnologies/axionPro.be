@@ -3,6 +3,7 @@ using axionpro.application.Interfaces.IEmail;
 using axionpro.application.Interfaces.IRepositories;
 using MailKit.Net.Smtp;
 using MailKit.Security;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MimeKit;
 
@@ -14,15 +15,17 @@ namespace axionpro.infrastructure.MailService
         private readonly ITenantEmailConfigRepository _configRepo;
         private readonly IEmailTemplateRepository _templateRepo;
         private readonly ILogger<EmailService> _logger;
+        private readonly IConfiguration _config;
 
         public EmailService(
             ITenantEmailConfigRepository configRepo,
             IEmailTemplateRepository templateRepo,
-            ILogger<EmailService> logger)
+            ILogger<EmailService> logger,IConfiguration configuration)
         {
             _configRepo = configRepo;
             _templateRepo = templateRepo;
             _logger = logger;
+            _config = configuration;
 
         }
 
@@ -47,16 +50,16 @@ namespace axionpro.infrastructure.MailService
                     _logger.LogWarning("Email template missing | Code={Code}", templateCode);
                     return false;
                 }
-
+                
                 // 2️⃣ SMTP + Tenant
-                var config = await _configRepo.GetActiveEmailConfigAsync(tenantId);
-                if (config == null || config.Tenant == null)
+                var config_Db = await _configRepo.GetActiveEmailConfigAsync(tenantId);
+                if (config_Db == null || config_Db.Tenant == null)
                 {
                     _logger.LogWarning("SMTP config missing | TenantId={TenantId}", tenantId);
                     return false;
                 }
 
-                var tenant = config.Tenant;
+                var tenant = config_Db.Tenant;
 
                 // 3️⃣ Placeholders
                 var finalPlaceholders = new Dictionary<string, string>
@@ -87,8 +90,8 @@ namespace axionpro.infrastructure.MailService
                 // 🚨 ALWAYS SAME AS SMTP USER
                 message.From.Clear();
                 message.From.Add(new MailboxAddress(
-                    config.FromName ?? "AxionPro",
-                    config.SmtpUsername));
+                    config_Db.FromName ?? "AxionPro",
+                    config_Db.SmtpUsername));
 
                 message.To.Add(MailboxAddress.Parse(toEmail));
 
@@ -115,9 +118,10 @@ namespace axionpro.infrastructure.MailService
 
                 if (!smtp.IsConnected)
                     throw new Exception("SMTP not connected");
-                await smtp.AuthenticateAsync(
-                "a4e423001@smtp-brevo.com",
-                     "xsmtpsib-bfc132f91a456e0aabf6887b361cd64ccdd178275a1265f85cdf426de680de53-Mhw4ku1zLfc4ORxk");
+
+                var emailConfig = _config.GetSection("EmailConfig");
+                await smtp.AuthenticateAsync(emailConfig["SMTPUserName"], emailConfig["Key"] );
+
                 //await smtp.AuthenticateAsync(
                 //    config.SmtpUsername,
                 //    Decrypt(config.SmtpPasswordEncrypted ?? string.Empty));
@@ -137,7 +141,7 @@ namespace axionpro.infrastructure.MailService
                     "SMTP ACCEPTED | Template={Template} | To={To} | Server={Host} | mesg {message}",
                     templateCode,
                     toEmail,
-                    config.SmtpHost, message);
+                    config_Db.SmtpHost, message);
 
                 return true; // ✅ ACCEPTED BY SMTP SERVER
             }
