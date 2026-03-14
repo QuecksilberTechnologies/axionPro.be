@@ -108,7 +108,7 @@ namespace axionpro.infrastructure.MailService
                 using var smtp = new SmtpClient();
 
                 _logger.LogInformation(
-      "SMTP User-------------: {SMTPUserName} | Secret: {Secret}",
+      "SMTP User-1------------: {SMTPUserName} | Secret: {Secret}",
       _emailConfig.SMTPUserName,
       _emailConfig.Secret);
 
@@ -117,7 +117,7 @@ namespace axionpro.infrastructure.MailService
                 //    config.SmtpPort ?? 465,
                 //    SecureSocketOptions.SslOnConnect);
                 _logger.LogInformation(
-    "SMTP DEBUG | Host=smtp-relay.brevo.com | Port=587 | User={User}",
+    "2 SMTP DEBUG | Host=smtp-relay.brevo.com | Port=587 | User={User}",
     _emailConfig.SMTPUserName);
 
                 await smtp.ConnectAsync("smtp-relay.brevo.com",
@@ -139,7 +139,7 @@ namespace axionpro.infrastructure.MailService
                     throw new Exception("SMTP authentication failed");
 
                 // 🔥 SERVER ACK WAIT
-                 await   smtp.Send(message);
+                smtp.Send(message);
 
                 // 🔥 NOOP ensures server pipeline flushed
                 await smtp.NoOpAsync();
