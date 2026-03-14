@@ -61,7 +61,9 @@ try
     builder.Services.AddInfrastructure(builder.Configuration);
     builder.Services.AddPersistence(builder.Configuration);
     builder.Services.AddHttpContextAccessor();
-    
+
+    builder.Services.Configure<EmailConfig>(
+        builder.Configuration.GetSection("EmailConfig"));
 
     // ✅ Add Controllers & CORS
     builder.Services.AddControllers();
@@ -127,8 +129,7 @@ try
             Path.Combine(builder.Environment.ContentRootPath, "wwwroot/uploads")),
             RequestPath = "/uploads"
     });
-    builder.Services.Configure<EmailConfig>(
-    builder.Configuration.GetSection("EmailConfig"));
+    
 
     // ✅ Middleware setup
     app.UseHttpsRedirection();
