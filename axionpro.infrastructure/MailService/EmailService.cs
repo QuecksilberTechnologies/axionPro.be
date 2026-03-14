@@ -111,8 +111,7 @@ namespace axionpro.infrastructure.MailService
                 //    config.SmtpPort ?? 465,
                 //    SecureSocketOptions.SslOnConnect);
 
-                await smtp.ConnectAsync(
-                    "smtp-relay.brevo.com",
+                await smtp.ConnectAsync("smtp-relay.brevo.com",
                        587,
                        SecureSocketOptions.StartTls);
 
