@@ -1,18 +1,10 @@
 ﻿using AutoMapper;
-using axionpro.application.Common.Helpers;
 using axionpro.application.Common.SeedData;
 using axionpro.application.Constants;
-using axionpro.application.Constants.axionpro.application.Constants;
-using axionpro.application.DTOs.Designation;
-using axionpro.application.DTOs.Employee;
-using axionpro.application.DTOs.Module;
-using axionpro.application.DTOs.Module.NewFolder;
 using axionpro.application.DTOs.Registration;
 using axionpro.application.DTOs.Tenant;
-using axionpro.application.DTOs.UserLogin;
+using axionpro.application.DTOS.Configruations;
 using axionpro.application.DTOS.Token;
-using axionpro.application.Features.RegistrationCmd.Commands;
-using axionpro.application.Features.UserLoginAndDashboardCmd.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEmail;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -20,59 +12,64 @@ using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-
+using axionpro.domain.Entity;
 using FluentValidation;
-using axionpro.domain.Entity; using MediatR;
-using Microsoft.AspNetCore.Identity.Data;
+using MediatR;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
+using Microsoft.Extensions.Options;
 using System.Data;
-using System.Diagnostics;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
-using static System.Formats.Asn1.AsnWriter;
 
 
 namespace axionpro.application.Features.RegistrationCmd.Handlers
 {
+    // Command definition for creating tenant
     public class CreateTenantCommand : IRequest<ApiResponse<TenantCreateResponseDTO>>
     {
+        // DTO received from API
         public TenantCreateRequestDTO TenantCreateRequestDTO { get; set; }
 
         public CreateTenantCommand(TenantCreateRequestDTO createRequestDTO)
         {
             TenantCreateRequestDTO = createRequestDTO;
         }
-
     }
+
     public class CreateTenantCommandHandler : IRequestHandler<CreateTenantCommand, ApiResponse<TenantCreateResponseDTO>>
     {
+        // ===============================
+        // Dependencies injected via DI
+        // ===============================
+
         private readonly IEmailService _emailService;
         private readonly IStoreProcedureRepository _commonRepository;
         private readonly ITenantRepository _tenantRepository;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ILogger<CreateTenantCommandHandler> _logger;    
+        private readonly ILogger<CreateTenantCommandHandler> _logger;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly IEncryptionService _encryptionService;
         private readonly ITokenService _tokenService;
         private readonly IPasswordService _passwordService;
         private readonly IIdEncoderService _idEncoderService;
         private readonly IConfiguration _configuration;
-        private readonly IServiceScopeFactory _scopeFactory;
+        private readonly EmailConfig _emailConfig;
 
+
+        // Constructor injection
         public CreateTenantCommandHandler(
-            ITenantRepository tenantRepository, ITokenService tokenService, IRefreshTokenRepository refreshTokenRepository,
+            ITenantRepository tenantRepository, ITokenService tokenService,
+            IRefreshTokenRepository refreshTokenRepository,
             IMapper mapper,
             IUnitOfWork unitOfWork,
-            ILogger<CreateTenantCommandHandler> logger, IEmailService emailService, IStoreProcedureRepository commonRepository,
-            IPasswordService passwordService, IEncryptionService encryptionService, IIdEncoderService idEncoderService  
-          , IConfiguration configuration, IServiceScopeFactory scopeFactory  )
-
+            ILogger<CreateTenantCommandHandler> logger,
+            IEmailService emailService,
+            IStoreProcedureRepository commonRepository,
+            IPasswordService passwordService,
+            IEncryptionService encryptionService,
+            IIdEncoderService idEncoderService,
+            IConfiguration configuration, IOptions<EmailConfig> emailConfig
+             )
         {
             _encryptionService = encryptionService;
             _emailService = emailService;
@@ -83,38 +80,50 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
             _tokenService = tokenService;
             _refreshTokenRepository = refreshTokenRepository;
             _commonRepository = commonRepository;
-             _passwordService = passwordService;
+            _passwordService = passwordService;
             _idEncoderService = idEncoderService;
             _configuration = configuration;
-            _scopeFactory = scopeFactory;
+            _emailConfig = emailConfig.Value;
+
         }
+
         public async Task<ApiResponse<TenantCreateResponseDTO>> Handle(CreateTenantCommand request, CancellationToken cancellationToken)
         {
             try
             {
-                // Step 1️⃣: Check if Tenant already exists by email
+                // =====================================================
+                // STEP 1 : Check whether tenant already exists
+                // =====================================================
+                bool isEmailExists = await _unitOfWork.TenantRepository
+                    .CheckTenantByEmail(request.TenantCreateRequestDTO.TenantEmail);
 
-                bool isEmailExists = await _unitOfWork.TenantRepository.CheckTenantByEmail(request.TenantCreateRequestDTO.TenantEmail);
                 if (isEmailExists)
                 {
                     return new ApiResponse<TenantCreateResponseDTO>
                     {
                         IsSucceeded = false,
-                        Message = "Tenant with this email already exists.",
-                        Data = null
+                        Message = "Tenant with this email already exists."
                     };
                 }
 
-                // Inside Handle() method
+                // Password placeholder
                 string? hashedPassword = null;
-                // Step 3️⃣: Map DTO to Entity
+
+                // =====================================================
+                // STEP 2 : Map DTO → Tenant Entity
+                // =====================================================
                 var tenantEntity = _mapper.Map<Tenant>(request.TenantCreateRequestDTO);
 
-                // Step 4️⃣: Begin Transaction
+                // =====================================================
+                // STEP 3 : Start DB transaction
+                // =====================================================
                 await _unitOfWork.BeginTransactionAsync();
 
-                // Step 5️⃣: Add Tenant
-                long newTenantId = await _unitOfWork.TenantRepository.AddTenantAsync(tenantEntity);
+                // =====================================================
+                // STEP 4 : Insert Tenant
+                // =====================================================
+                long newTenantId = await _unitOfWork.TenantRepository
+                    .AddTenantAsync(tenantEntity);
 
                 if (newTenantId <= 0)
                 {
@@ -122,22 +131,24 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                     return new ApiResponse<TenantCreateResponseDTO>
                     {
                         IsSucceeded = false,
-                        Message = "Tenant creation failed.",
-                        Data = null
+                        Message = "Tenant creation failed."
                     };
                 }
 
-              
-                // Step 9️⃣: Save Subscription
-                TenantSubscription savedSub = await _unitOfWork.TenantSubscriptionRepository.AddTenantSubscriptionAsync(new TenantSubscription
-                {
-                    TenantId = newTenantId,
-                    SubscriptionPlanId = request.TenantCreateRequestDTO.SubscriptionPlanId,
-                    SubscriptionStartDate = DateTime.Now,
-                    SubscriptionEndDate = DateTime.Now.AddDays(30),
-                    IsActive = true,
-                    IsTrial = true
-                });
+                // =====================================================
+                // STEP 5 : Create Tenant Subscription
+                // =====================================================
+                TenantSubscription savedSub =
+                    await _unitOfWork.TenantSubscriptionRepository
+                    .AddTenantSubscriptionAsync(new TenantSubscription
+                    {
+                        TenantId = newTenantId,
+                        SubscriptionPlanId = request.TenantCreateRequestDTO.SubscriptionPlanId,
+                        SubscriptionStartDate = DateTime.UtcNow,
+                        SubscriptionEndDate = DateTime.UtcNow.AddDays(30),
+                        IsActive = true,
+                        IsTrial = true
+                    });
 
                 if (savedSub == null)
                 {
@@ -145,20 +156,23 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                     return new ApiResponse<TenantCreateResponseDTO>
                     {
                         IsSucceeded = false,
-                        Message = "Tenant Subscription failed.",
-                        Data = null
+                        Message = "Tenant Subscription failed."
                     };
                 }
 
-                // Step 🔟: Fetch Subscription Plan Details
-                var tenantSubscriptionPlan = await _unitOfWork.TenantSubscriptionRepository.GetTenantSubscriptionPlanInfoAsync(
-                    new TenantSubscriptionPlanRequestDTO
-                    {
-                        TenantId = newTenantId,
-                        SubscriptionPlanId = request.TenantCreateRequestDTO.SubscriptionPlanId,
-                        IsTrial = true,
-                        IsActive = true
-                    });
+                // =====================================================
+                // STEP 6 : Fetch subscription plan details
+                // =====================================================
+                var tenantSubscriptionPlan =
+                    await _unitOfWork.TenantSubscriptionRepository
+                    .GetTenantSubscriptionPlanInfoAsync(
+                        new TenantSubscriptionPlanRequestDTO
+                        {
+                            TenantId = newTenantId,
+                            SubscriptionPlanId = request.TenantCreateRequestDTO.SubscriptionPlanId,
+                            IsTrial = true,
+                            IsActive = true
+                        });
 
                 if (tenantSubscriptionPlan == null)
                 {
@@ -166,91 +180,85 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                     return new ApiResponse<TenantCreateResponseDTO>
                     {
                         IsSucceeded = false,
-                        Message = "Tenant Subscription plan details not found.",
-                        Data = null
+                        Message = "Tenant Subscription plan details not found."
                     };
                 }
 
-                // Step 11️⃣: Get All Subscribed Modules for this Tenant
+                // =====================================================
+                // STEP 7 : Get modules included in subscription plan
+                // =====================================================
                 List<domain.Entity.Module> subscriptionPlans =
-                    await _unitOfWork.PlanModuleMappingRepository.GetAllSubscribedModuleAsync(request.TenantCreateRequestDTO.SubscriptionPlanId);
+                    await _unitOfWork.PlanModuleMappingRepository
+                    .GetAllSubscribedModuleAsync(
+                        request.TenantCreateRequestDTO.SubscriptionPlanId);
 
-                // ✅ Filter leaf node and header modules
-                var leafNodeModules = subscriptionPlans.Where(m => m.IsLeafNode == true).ToList();
-                var HeaderModules = subscriptionPlans.Where(m => m.IsLeafNode == false && m.ParentModule==null).ToList();
+                // Split modules
+                var leafNodeModules = subscriptionPlans.Where(m => (bool)m.IsLeafNode).ToList();
+                var headerModules = subscriptionPlans
+                    .Where(m => m.IsLeafNode != true && m.ParentModule == null)
+                    .ToList();
 
-                // Step 12️⃣: Map Header Modules into TenantEnabledModules
-                List<TenantEnabledModule> TenantEnabledModules = HeaderModules.Select(m => new TenantEnabledModule
-                {
-                    TenantId = newTenantId,
-                    ModuleId = m.Id,
-                    IsEnabled = true,
-                    ParentModuleId = m.ParentModuleId,
-                    AddedById = newTenantId,
-                    AddedDateTime = DateTime.Now
-                }).ToList();
+                // =====================================================
+                // STEP 8 : Enable header modules for tenant
+                // =====================================================
+                List<TenantEnabledModule> TenantEnabledModules =
+                    headerModules.Select(m => new TenantEnabledModule
+                    {
+                        TenantId = newTenantId,
+                        ModuleId = m.Id,
+                        IsEnabled = true,
+                        ParentModuleId = m.ParentModuleId,
+                        AddedById = newTenantId,
+                        AddedDateTime = DateTime.UtcNow
+                    }).ToList();
 
-                 //_unitOfWork.TenantModuleConfigurationRepository.CreateByDefaultEnabledModulesAsync(TenantEnabledModules);
-
-                // Step 13️⃣: Get all module operations for Tenant
-                List<ModuleOperationMapping> allModuleOperations = await _unitOfWork.ModuleOperationMappingRepository
+                // =====================================================
+                // STEP 9 : Enable operations for modules
+                // =====================================================
+                List<ModuleOperationMapping> allModuleOperations =
+                    await _unitOfWork.ModuleOperationMappingRepository
                     .GetModuleOperationMappings(leafNodeModules);
 
-                List<TenantEnabledOperationRequestDTO> tenantEnabledOperationsTemp =
-                    _mapper.Map<List<TenantEnabledOperationRequestDTO>>(allModuleOperations);
-                List<TenantEnabledOperation> tenantEnabledOperations =
-                    _mapper.Map<List<TenantEnabledOperation>>(tenantEnabledOperationsTemp);
 
-                // Step 14️⃣: Create Default Enabled Modules and Operations
-                await _unitOfWork.TenantModuleConfigurationRepository.CreateByDefaultEnabledModulesAsync(
-                    newTenantId, TenantEnabledModules, tenantEnabledOperations);
+                var tenantEnabledOperations = _mapper.Map<List<TenantEnabledOperation>>(allModuleOperations);
 
-                // Step 15️⃣: Get Subscribed Modules for Department Creation
-                List<SubscribedModuleResponseDTO> getDepartnames =
-                    _unitOfWork.StoreProcedureRepository.GetSubscribedModulesByTenantAsync(newTenantId).Result;
+                tenantEnabledOperations.ForEach(x => { x.TenantId = newTenantId; });
 
-                if (getDepartnames == null || getDepartnames.Count == 0)
+                await _unitOfWork.TenantModuleConfigurationRepository
+                    .CreateByDefaultEnabledModulesAsync(
+                        newTenantId,
+                        TenantEnabledModules,
+                        tenantEnabledOperations);
+
+                // =====================================================
+                // STEP 10 : Create encryption key for tenant
+                // =====================================================
+                string encryptedTenantKey = _encryptionService.GenerateKey();
+
+                TenantEncryptionKey tenantEncryptionKey = new()
                 {
-                    _logger.LogWarning("No subscribed modules found for TenantId: {TenantId}", newTenantId);
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return new ApiResponse<TenantCreateResponseDTO>
-                    {
-                        IsSucceeded = false,
-                        Message = "An error occurred while adding department.",
-                        Data = null
-                    };
-                }
-
-                   //string convertedTenantId= newTenantId.ToString();
-                   string EncriptedTenantKey = _encryptionService.GenerateKey();
-
-                TenantEncryptionKey tenantEncryptionKey = new TenantEncryptionKey()
-                {
-                    IsActive = true,
                     TenantId = newTenantId,
-                    EncryptionKey = EncriptedTenantKey,
-
+                    EncryptionKey = encryptedTenantKey,
+                    IsActive = true
                 };
-                   var  insertedRecord = _unitOfWork.TenantEncryptionKeyRepository.AddAsync(tenantEncryptionKey);
-                if (insertedRecord.Id < 0)
-                {
-                    _logger.LogWarning("Tenant encryption key insertion failed for TenantId: {TenantId}", newTenantId);
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return new ApiResponse<TenantCreateResponseDTO>
-                    {
-                        IsSucceeded = false,
-                        Message = "An error occurred while adding encryption key.",
-                        Data = null
-                    };
-                }
-              
 
-                    Dictionary<int,string> departmentDict = getDepartnames.ToDictionary(x => x.ModuleId, x => x.ModuleName);
+                var insertedRecord =
+                    _unitOfWork.TenantEncryptionKeyRepository
+                    .AddAsync(tenantEncryptionKey);
 
-                List<Department> departmentList =
-                    DepartmentSeedHelper.GetRuntimeDepartmentsToSeeds(departmentDict, newTenantId, request.TenantCreateRequestDTO.TenantIndustryId, newTenantId);
+                // =====================================================
+                // STEP 11 : Seed Departments
+                // =====================================================
+                var departmentList =
+                    DepartmentSeedHelper.GetRuntimeDepartmentsToSeeds(
+                        new Dictionary<int, string>(),
+                        newTenantId,
+                        request.TenantCreateRequestDTO.TenantIndustryId,
+                        newTenantId);
 
-                int insertedAdminDepartment = await _unitOfWork.DepartmentRepository.AutoCreateDepartmentSeedAsync(departmentList);
+                int insertedAdminDepartment =
+                    await _unitOfWork.DepartmentRepository
+                    .AutoCreateDepartmentSeedAsync(departmentList);
 
                 if (insertedAdminDepartment <= 0)
                 {
@@ -258,302 +266,233 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                     return new ApiResponse<TenantCreateResponseDTO>
                     {
                         IsSucceeded = false,
-                        Message = "An error occurred while adding department.",
-                        Data = null
+                        Message = "Department creation failed."
                     };
                 }
 
-                Dictionary<string, int> deptMap = await _unitOfWork.DepartmentRepository.GetDepartmentNameIdMapAsync(newTenantId);
+                // =====================================================
+                // STEP 12 : Seed Designations
+                // =====================================================
+                Dictionary<string, int> deptMap =
+                    await _unitOfWork.DepartmentRepository
+                    .GetDepartmentNameIdMapAsync(newTenantId);
 
                 List<Designation> designations =
-                    DesignationsSeedHelper.GetRuntimeDesignationsToSeed(newTenantId, newTenantId, deptMap);
+                    DesignationsSeedHelper.GetRuntimeDesignationsToSeed(
+                        newTenantId,
+                        newTenantId,
+                        deptMap);
 
-                int adminDesignationId = await _unitOfWork.DesignationRepository.AutoCreateDesignationAsync(designations, insertedAdminDepartment);
+                int adminDesignationId =
+                    await _unitOfWork.DesignationRepository
+                    .AutoCreateDesignationAsync(
+                        designations,
+                        insertedAdminDepartment);
 
-                if (adminDesignationId <= 0)
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return new ApiResponse<TenantCreateResponseDTO>
-                    {
-                        IsSucceeded = false,
-                        Message = "An error occurred while adding designation.",
-                        Data = null
-                    };
-                }
-
-                var datePart = DateTime.UtcNow.ToString("yyyyMMdd");
-                var timePart = DateTime.UtcNow.ToString("HHmmss");
-                var randomSuffix = Path.GetRandomFileName().Replace(".", "").Substring(0, 4).ToUpper();
-
-                // Step 5️⃣: Create Employee for Tenant
+                // =====================================================
+                // STEP 13 : Create Employee (Tenant Admin)
+                // =====================================================
                 var employee = new Employee
                 {
-                     
-                    // 🔒 Encrypt Official Email before saving
-                    OfficialEmail = tenantEntity.TenantEmail,
                     TenantId = newTenantId,
-                    HasPermanent = ConstantValues.IsByDefaultTrue,
                     FirstName = request.TenantCreateRequestDTO.ContactPersonName.Trim(),
-                    IsActive = ConstantValues.IsByDefaultTrue,
                     DepartmentId = insertedAdminDepartment,
-                    EmployementCode = $"{newTenantId}/{datePart}/{timePart}-{randomSuffix}",
                     DesignationId = adminDesignationId,
-                    IsEditAllowed = ConstantValues.IsByDefaultTrue,
-                    IsInfoVerified = ConstantValues.IsByDefaultFalse,
-                    GenderId = request.TenantCreateRequestDTO.GenderId,
-                    EmployeeTypeId = ConstantValues.ParmanentEmployeeType,
-                    AddedById = newTenantId,
-                    AddedDateTime = DateTime.Now,
-                    UpdatedById = null,
-                    UpdatedDateTime = null,
-                    SoftDeletedById = null,
-                    DeletedDateTime = null,
-                    IsSoftDeleted = null,
+                    CountryId = request.TenantCreateRequestDTO.CountryId,
+                    OfficialEmail = tenantEntity.TenantEmail,
+                    EmployementCode = $"{newTenantId}/{DateTime.UtcNow:yyyyMMddHHmmss}",
+                    IsActive = true,
+                    IsSoftDeleted = false,
+                    IsEditAllowed = true,
+
                 };
-                // Step 8️⃣: Create LoginCredential
+
+                // =====================================================
+                // STEP 14 : Create login credentials
+                // =====================================================
                 var loginCredential = new LoginCredential
                 {
                     TenantId = newTenantId,
-
-                    // 🔒 Encrypt LoginId (Email) before saving
                     LoginId = tenantEntity.TenantEmail,
-
                     Employee = employee,
-                    IsActive = ConstantValues.IsByDefaultTrue,
-
-                    // 🔒 Encrypt Default Password before saving (for secure storage)
                     Password = hashedPassword,
-                    HasFirstLogin = ConstantValues.IsByDefaultTrue,
-                    IsSoftDeleted = ConstantValues.IsByDefaultFalse,
-                    IsPasswordChangeRequired = ConstantValues.IsByDefaultTrue,
-                    Remark = ConstantValues.TenantAllRoleRemark,
-                    AddedById = newTenantId,
-                    AddedDateTime = DateTime.Now,
-                    UpdatedById = null,
-                    UpdatedDateTime = null,
-                    SoftDeletedById = null,
-                    DeletedDateTime = null
-                };
-                // Step 7️⃣: Create Admin, HR, and Employee Roles
-                var rolesToCreate = new List<Role>();
-                var roleConfigs = new List<(string RoleName, int RoleType)>
-                            {
-                             (ConstantValues.TenantAdminRoleName, ConstantValues.RoleTypeAdmin),
-                              (ConstantValues.TenantHRManagerRoleName, ConstantValues.RoleTypeManager),
-                               (ConstantValues.TenantEmployeeRoleName, ConstantValues.RoleTypeEmployee)
-                             };
+                    IsActive = true,
+                    IsSoftDeleted = false,
+                    IsPasswordChangeRequired = true,
+                    HasFirstLogin = true,
+                    Remark = "System Genrated Account"
 
-                foreach (var (roleName, roleType) in roleConfigs)
+
+                };
+
+                // =====================================================
+                // STEP 15 : Create default roles
+                // =====================================================
+                var rolesToCreate = new List<Role>();
+
+                foreach (var roleName in new[]
                 {
-                    var role = new Role
+                ConstantValues.TenantAdminRoleName,
+                ConstantValues.TenantHRManagerRoleName,
+                ConstantValues.TenantEmployeeRoleName
+                })
+                {
+                    rolesToCreate.Add(new Role
                     {
                         TenantId = newTenantId,
                         RoleName = roleName,
-                        RoleType = roleType,
-                        IsSystemDefault = false,
-                        IsActive = ConstantValues.IsByDefaultTrue,
-                        IsSoftDeleted = false,
-                        Remark = ConstantValues.TenantAllRoleRemark,
-                        AddedById = newTenantId,
-                        AddedDateTime = DateTime.Now,
-                        UpdatedById = null,
-                        UpdatedDateTime = null,
-                        SoftDeletedById = null,
-                        DeletedDateTime = null
-                    };
-
-                    rolesToCreate.Add(role);
+                        IsActive = true
+                    });
                 }
 
-                var createdAdminRole = await _unitOfWork.RoleRepository.AutoCreatedForTenantRoleAsync(rolesToCreate);
+                int createdAdminRole =
+                await _unitOfWork.RoleRepository
+                .AutoCreatedForTenantRoleAsync(rolesToCreate);
 
-                if (createdAdminRole <= 0)
+                // =====================================================
+                // STEP 16 : Assign role to employee
+                // =====================================================
+                UserRole userRole = new()
                 {
-                    _logger.LogWarning("Role creation failed. Rolling back transaction.");
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return new ApiResponse<TenantCreateResponseDTO>
-                    {
-                        IsSucceeded = false,
-                        Message = "Role creation failed.",
-                        Data = null
-                    };
-                }
-
-
-                // Step 9️⃣: Assign Role to Employee
-                UserRole userRole = new UserRole
-                {
-                   Employee = employee,
+                    Employee = employee,
                     RoleId = createdAdminRole,
-                    IsPrimaryRole = ConstantValues.IsByDefaultTrue,
-                    IsActive = ConstantValues.IsByDefaultTrue,
-                    AddedById = 0,
-                    AddedDateTime = DateTime.Now,
-                    AssignedDateTime = DateTime.Now,
-                    Remark = ConstantValues.TenantAllRoleRemark,
-                    AssignedById = 0,
-                    RoleStartDate = DateTime.Now,
-                    ApprovalRequired = ConstantValues.IsByDefaultFalse
+                    IsPrimaryRole = true
                 };
 
-                //int roleId = (int)await _unitOfWork.UserRoleRepository.AddUserRoleAsync(userRole);
+                var createdEmployee =
+                await _unitOfWork.Employees
+                .CreateEmployeeAsync(employee, loginCredential, userRole);
 
-                //if (roleId <= 0)
-                //{
-                //    await _unitOfWork.RollbackTransactionAsync();
-                //    return new ApiResponse<TenantCreateResponseDTO>
-                //    {
-                //        IsSucceeded = false,
-                //        Message = "User role assignment failed.",
-                //        Data = null
-                //    };
-                //}
-                var createdEmployee = await _unitOfWork.Employees.CreateEmployeeAsync(employee, loginCredential, userRole);
-              
-                string EncriptedTenantId = _idEncoderService.EncodeId_long(newTenantId, null);
-                //string EncriptedTenantId = _encryptionService.Encrypt(convertedTenantId, EncriptedTenantKey);
-                //string EncriptedEmployeeId = _encryptionService.Encrypt(employeeId.ToString(), EncriptedTenantKey);
-                //if (string.IsNullOrEmpty(EncriptedTenantId))
-                //{
-                //    _logger.LogWarning("Tenant ID encryption failed for TenantId: {TenantId}", newTenantId);
-                //    await _unitOfWork.RollbackTransactionAsync();
-                //    return new ApiResponse<TenantCreateResponseDTO>
-                //    {
-                //        IsSucceeded = false,
-                //        Message = "An error occurred while encrypting tenant ID.",
-                //        Data = null
-                //    };
-                //}
-
-                // Step 6️⃣: Create TenantProfile
+                // =====================================================
+                // STEP 17 : Create tenant profile
+                // =====================================================
                 var tenantProfile = new TenantProfile
                 {
                     TenantId = newTenantId
                 };
 
-                long newTenantProfileId = await _unitOfWork.TenantRepository.AddTenantProfileAsync(tenantProfile);
+                await _unitOfWork.TenantRepository
+                .AddTenantProfileAsync(tenantProfile);
 
-                if (!long.TryParse(createdEmployee.Id, out long employeeId) || employeeId <= 0)
+                await _unitOfWork.TenantEmailConfigRepository.InsertEmailConfigAsync(
+                            new TenantEmailConfig
+                            {
+                                TenantId = newTenantId,
+
+                                SmtpHost = ConstantValues.DefaultSmtpHost,
+                                SmtpPort = ConstantValues.DefaultSmtpPort,
+                                SmtpUsername = ConstantValues.DefaultSmtpUserName,
+                                SmtpPasswordEncrypted = _emailConfig.Secret,
+                                FromEmail = ConstantValues.DefaultFromEmail,
+                                FromName = ConstantValues.DefaultFromName,
+                                IsActive = true,
+                                SecrateKey = _emailConfig.Secret,
+                            });
+
+                // =====================================================
+                // STEP 18 : Create role permission mapping
+                // =====================================================
+                await _unitOfWork.RoleRepository
+                .AutoCreateUserRoleAndAutomatedRolePermissionMappingAsync(
+                    newTenantId,
+                    long.Parse(createdEmployee.Id),
+                    createdAdminRole);
+
+                // =====================================================
+                // STEP 19 : Prepare Token Information
+                // =====================================================
+
+                long employeeId = long.Parse(createdEmployee.Id);
+
+                string encryptedEmployeeId =
+                _idEncoderService.EncodeId_long(employeeId, null);
+
+                string encryptedTenantId =
+                _idEncoderService.EncodeId_long(newTenantId, null);
+
+                var getTokenInfoDTO = new GetTokenInfoDTO
                 {
-                    _logger.LogError("Error occurred while creating employee.");
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return new ApiResponse<TenantCreateResponseDTO>
-                    {
-                        IsSucceeded = false,
-                        Message = "An error occurred while creating the employee.",
-                        Data = null
-                    };
-                }
-
-                //  long newLoginId = await _unitOfWork.UserLoginRepository.CreateUser(loginCredential);
-
-
-                var UserRoleAndPermissionId =
-                    await _unitOfWork.RoleRepository.AutoCreateUserRoleAndAutomatedRolePermissionMappingAsync(
-                        newTenantId, employeeId, createdAdminRole);
-                string EncriptedEmployeeId = _idEncoderService.EncodeId_long(employeeId, null);
-
-                if (UserRoleAndPermissionId <= 0)
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return new ApiResponse<TenantCreateResponseDTO>
-                    {
-                        IsSucceeded = false,
-                        Message = "User role and permission mapping failed.",
-                        Data = null
-                    };
-                }
-                string roletype = ConstantValues.RoleTypeAdmin.ToString();
-                string EmplType = ConstantValues.ParmanentEmployeeType.ToString();
-                GetTokenInfoDTO getTokenInfoDTO = new GetTokenInfoDTO()
-                {
+                    EmployeeId = encryptedEmployeeId,
+                    TenantId = encryptedTenantId,
+                    Email = employee.OfficialEmail!,
+                    FullName = employee.FirstName,
                     TokenPurpose = _idEncoderService.EncodeId_int(ConstantValues.SetPassword, ""),
+                    IssuedAt = DateTime.UtcNow,
                     Expiry = DateTime.UtcNow.AddMinutes(30),
                     IsFirstLogin = true,
-                    ClientType = "Web",
-                    EmployeeId = EncriptedEmployeeId,
-                    Email = tenantEntity.TenantEmail,// ✅ Keep as long
-                    FullName = $"{request.TenantCreateRequestDTO.ContactPersonName}", // ✅ Construct properly       // ✅ Keep as long
-                    TenantId = EncriptedTenantId, 
-                    IssuedAt = DateTime.UtcNow       
-                    
-                         
-                   };
+                    ClientType = "Web"
+                };
+
+                // =====================================================
+                // STEP 20 : Generate Token
+                // =====================================================
+
+                string token = await _tokenService.GenerateToken(getTokenInfoDTO);
+
+                // =====================================================
+                // STEP 21 : Commit Transaction FIRST
+                // =====================================================
 
 
-              
+                await _unitOfWork.CommitTransactionAsync();
 
-                // Step 13️⃣: Return Response (Decrypted Email for display)
+                // =====================================================
+                // STEP 22 : Send Welcome Email
+                // =====================================================
+
+                try
+                {
+                    string baseUrl = _configuration["FrontEndWebURL:BaseUrl"] ?? string.Empty;
+
+                    await _emailService.SendTemplatedEmailAsync(
+                        ConstantValues.WelcomeEmail,
+                        employee.OfficialEmail!,
+                        newTenantId,
+                        new Dictionary<string, string>
+                        {
+                            ["UserName"] = employee.FirstName,
+                            ["VerificationUrl"] = $"{baseUrl}/auth/set-password?token={token}",
+                            ["LinkExpiryMinutes"] = "30"
+                        });
+
+                    _logger.LogInformation(
+                        "Welcome email sent successfully | TenantId={TenantId}",
+                        newTenantId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Email send failed (non-blocking)");
+                }
+
+                // =====================================================
+                // FINAL RESPONSE
+                // =====================================================
+
                 return new ApiResponse<TenantCreateResponseDTO>
                 {
                     IsSucceeded = true,
-                    Message = "Employee registration successful.",
+                    Message = "Employee created successfully. Please check your email and set password.",
                     Data = new TenantCreateResponseDTO
                     {
-                        Success = true,                   
-                        EmailSent = true,
- 
+                        Success = true,
+                        EmailSent = true
                     }
                 };
-                // 🔐 Step 1: Generate token (DB / Auth logic)
-                string token = await _tokenService.GenerateToken(getTokenInfoDTO);
-
-                // ✅ Step 2: Commit DB transaction FIRST
-                await _unitOfWork.CommitTransactionAsync();
-
-                // 🚀 Step 3: Fire-and-forget email (NON-BLOCKING, SAFE)
-                _ = Task.Run(async () =>
-                 {
-                    try
-                    {
-                        // 🌐 Frontend URL
-                        string baseUrl =
-                            _configuration["FrontEndWebURL:BaseUrl"] ?? string.Empty;
-
-                        // 📧 Send email (FULLY ASYNC)
-                        await _emailService.SendTemplatedEmailAsync(
-                            ConstantValues.WelcomeEmail,
-                            request.TenantCreateRequestDTO.TenantEmail!,
-                            newTenantId,
-                            new Dictionary<string, string>
-                            {
-                                ["UserName"] =
-                                    request.TenantCreateRequestDTO.ContactPersonName,
-
-                                ["VerificationUrl"] =
-                                    $"{baseUrl}/auth/set-password?token={token}",
-
-                                ["LinkExpiryMinutes"] = "30"
-                            });
-
-                        // ✅ Optional success log (debug / prod)
-                        _logger.LogInformation(
-                            "Welcome email queued successfully | TenantId={TenantId}",
-                            newTenantId);
-                    }
-                    catch (Exception ex)
-                    {
-                        // ❗ NEVER throw from background thread
-                        _logger.LogError(
-                            ex,
-                            "Background email send failed | TenantId={TenantId}",
-                            newTenantId);
-                    }
-                });
-
-
             }
+
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while creating tenant.");
+                _logger.LogError(ex, "Error occurred while creating tenant");
                 await _unitOfWork.RollbackTransactionAsync();
                 return new ApiResponse<TenantCreateResponseDTO>
                 {
                     IsSucceeded = false,
-                    Message = "An error occurred while creating the tenant.",
-                    Data = null
+                    Message = "An error occurred while creating tenant. Please try again later."
                 };
             }
         }
     }
 }
+
+
+

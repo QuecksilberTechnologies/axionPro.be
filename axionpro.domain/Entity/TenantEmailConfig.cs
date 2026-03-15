@@ -18,6 +18,8 @@ public partial class TenantEmailConfig
     public string? SmtpPasswordEncrypted { get; set; }
 
     public string? FromEmail { get; set; }
+    public string? SecrateKey { get; set; }
+
 
     public string? FromName { get; set; }
 

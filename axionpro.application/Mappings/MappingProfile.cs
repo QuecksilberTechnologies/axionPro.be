@@ -682,7 +682,31 @@ namespace axionpro.application.Mappings
                     ParentModuleId = pmm.Module.ParentModuleId
                 }).ToList()));
 
-            CreateMap<ModuleOperationMapping, TenantEnabledOperationRequestDTO>();
+            CreateMap<ModuleOperationMapping, TenantEnabledOperation>()
+               .ForMember(dest => dest.Id, opt => opt.Ignore()) // IMPORTANT
+.ForMember(dest => dest.ModuleId,
+          opt => opt.MapFrom(src => src.ModuleId))
+
+.ForMember(dest => dest.OperationId,
+          opt => opt.MapFrom(src => src.OperationId))
+
+.ForMember(dest => dest.IsEnabled,
+          opt => opt.MapFrom(src => src.IsActive ?? true))
+
+.ForMember(dest => dest.IsOperationUsed,
+          opt => opt.MapFrom(src => true))
+
+.ForMember(dest => dest.AddedById,
+          opt => opt.MapFrom(src => src.AddedById))
+
+.ForMember(dest => dest.AddedDateTime,
+          opt => opt.MapFrom(src => src.AddedDateTime))
+
+// ignore navigation properties
+.ForMember(dest => dest.Module, opt => opt.Ignore())
+.ForMember(dest => dest.Operation, opt => opt.Ignore())
+.ForMember(dest => dest.Tenant, opt => opt.Ignore());
+
             CreateMap<TenantEnabledOperationRequestDTO, ModuleOperationMapping>();
 
             CreateMap<TenantEnabledOperation, TenantEnabledOperationRequestDTO>();

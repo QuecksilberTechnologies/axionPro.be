@@ -272,7 +272,7 @@ namespace axionpro.persistance.Data.Context
         {
             modelBuilder.Entity<AccoumndationAllowancePolicyByDesignation>(entity =>
             {
-               
+
 
                 entity.HasKey(e => e.Id).HasName("PK__Accoumnd__3214EC071BDF4022");
 
@@ -2688,6 +2688,7 @@ namespace axionpro.persistance.Data.Context
 
                 entity.Property(e => e.FromEmail).HasMaxLength(200);
                 entity.Property(e => e.FromName).HasMaxLength(100);
+                entity.Property(e => e.SecrateKey).HasMaxLength(50);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.SmtpHost).HasMaxLength(200);
                 entity.Property(e => e.SmtpPasswordEncrypted).HasMaxLength(500);

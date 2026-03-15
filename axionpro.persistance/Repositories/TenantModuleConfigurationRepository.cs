@@ -12,7 +12,7 @@ namespace axionpro.persistance.Repositories
     public class TenantModuleConfigurationRepository : ITenantModuleConfigurationRepository
     {
         private readonly WorkforceDbContext _context;
-       
+
         private readonly IMapper _mapper;
         private readonly ILogger<TenantModuleConfigurationRepository> _logger;
 
@@ -25,11 +25,11 @@ namespace axionpro.persistance.Repositories
             _context = context;
             this._logger = logger;
             _mapper = mapper;
-            
+
         }
 
 
-       
+
         public async Task<bool> UpdateTenantModuleAndItsOperationsAsync(TenantModuleOperationsUpdateRequestDTO request)
         {
             try
@@ -69,7 +69,7 @@ namespace axionpro.persistance.Repositories
                     }
                 }
 
-            
+
 
                 return true;
             }
@@ -111,7 +111,7 @@ namespace axionpro.persistance.Repositories
                     .Where(m => m.TenantId == tenantId && m.IsEnabled)
                     .Include(m => m.Module)
                         .ThenInclude(mod => mod.ModuleOperationMappings
-                            .Where(mop => mop.IsActive ==true)) // ✅ filtered include EF Core 5+
+                            .Where(mop => mop.IsActive == true)) // ✅ filtered include EF Core 5+
                     .ToListAsync();
 
                 return modules;
@@ -133,7 +133,7 @@ namespace axionpro.persistance.Repositories
 
                 // 🟢 Step 1: Get all enabled modules
                 var tenantModules = await _context.TenantEnabledModules
-                    .Where(t => t.TenantId == tenantId )
+                    .Where(t => t.TenantId == tenantId)
                     .Include(t => t.Module)
                     .ThenInclude(m => m.ParentModule)
                     .ToListAsync();
@@ -186,7 +186,7 @@ namespace axionpro.persistance.Repositories
 
                 // Step 1: Get all enabled modules for tenant
                 var moduleEntities = await _context.TenantEnabledModules
-                    .Where(t => t.TenantId == tenantId && t.IsEnabled && t.IsLeafNode!=true)
+                    .Where(t => t.TenantId == tenantId && t.IsEnabled && t.IsLeafNode != true)
                     .Include(t => t.Module)
                     .ThenInclude(m => m.ParentModule)
                     .ToListAsync();
@@ -283,7 +283,7 @@ namespace axionpro.persistance.Repositories
                     .ToListAsync();
 
                 // Step 5: Prepare response
-              
+
 
                 return response;
             }

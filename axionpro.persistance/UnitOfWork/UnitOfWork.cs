@@ -21,7 +21,7 @@ using Serilog.Core;
 using System;
 using System.Diagnostics.Metrics;
 using axionpro.domain.Entity;
- 
+
 public class UnitOfWork : IUnitOfWork
 {
 
@@ -29,15 +29,15 @@ public class UnitOfWork : IUnitOfWork
 
     private readonly WorkforceDbContext _context;
 
- 
+
     private readonly IQRService _qrService;
 
     private readonly IMapper _mapper;
     private readonly IEncryptionService _encriptionService;
-    private readonly IIdEncoderService  _idEncoderService;
+    private readonly IIdEncoderService _idEncoderService;
     private readonly IFileStorageService _fileStorageService;
     private readonly IPermissionService _permissionService;
-    
+
     private readonly IPasswordService _passwordService;
     private readonly IConfiguration _config;
     private readonly ICacheService _cacheService;
@@ -50,8 +50,8 @@ public class UnitOfWork : IUnitOfWork
     private IPolicyTypeRepository _policyTypeRepository;
     private ICompanyPolicyDocumentRepository _companyPolicyDocumentRepository;
 
-   
 
+    private ITenantEmailConfigRepository _tenantEmailConfigRepository;
     private IHolidayCalandarRepository _holidayCalandarRepository;
     private ITenantModuleConfigurationRepository? _tenantModuleConfigurationRepository;
     private IPlanModuleMappingRepository? _planModuleMappingRepository;
@@ -75,12 +75,12 @@ public class UnitOfWork : IUnitOfWork
 
     private IWorkflowStagesRepository? _workflowStagesRepository;
     private ITenantRepository? _tenantRepository;
-   
-   
+
+
     private IUserRoleRepository? _userRoleRepository;
     private IRoleRepository? _roleRepository;
     private IEmployeeTypeRepository? _employeeTyperepository;
-    private  ITenantEmployeeCodePatternRepository _tenantEmployeeCodePatternRepository;
+    private ITenantEmployeeCodePatternRepository _tenantEmployeeCodePatternRepository;
 
     private ICategoryRepository? _categoryRepository;
     private IEmployeeTypeBasicMenuRepository? _employeeTypeBasicMenurepository;
@@ -104,7 +104,7 @@ public class UnitOfWork : IUnitOfWork
     private IModuleOperationMappingRepository _moduleOperationMappingRepository;
     private IGenderRepository? _genderRepository;
     private ITenantEncryptionKeyRepository? _tenantEncryptionKeyRepository;
-    private  IPermissionRepository _permissionRepository;
+    private IPermissionRepository _permissionRepository;
 
 
     // private IClientRepository? _clientRepository;
@@ -121,7 +121,7 @@ public class UnitOfWork : IUnitOfWork
         WorkforceDbContext context,
         ILoggerFactory loggerFactory,
         IQRService qrService,
-        IFileStorageService fileStorageService, IMapper mapper,  
+        IFileStorageService fileStorageService, IMapper mapper,
         IPasswordService passwordService, IConfiguration configuration, IPermissionService permissionService, ICacheService cacheService,
         IEncryptionService encryptionService, IIdEncoderService idEncoderService)
     {
@@ -154,7 +154,7 @@ public class UnitOfWork : IUnitOfWork
     {
         get
         {
-            return _userLoginReopsitory ??= new UserLoginReopsitory(_context, _loggerFactory.CreateLogger<UserLoginReopsitory>(), _mapper,  _passwordService,_config);
+            return _userLoginReopsitory ??= new UserLoginReopsitory(_context, _loggerFactory.CreateLogger<UserLoginReopsitory>(), _mapper, _passwordService, _config);
         }
     }
 
@@ -201,7 +201,7 @@ public class UnitOfWork : IUnitOfWork
             return _tenantEmployeeCodePatternRepository ??= new TenantEmployeeCodePatternRepository(
                     _context,
                     _loggerFactory.CreateLogger<TenantEmployeeCodePatternRepository>()
-                    
+
                 );
         }
     }
@@ -210,7 +210,7 @@ public class UnitOfWork : IUnitOfWork
 
     public IEmployeeContactRepository EmployeeContactRepository
     {
-        
+
         get
         {
             return _employeeContactRepository ??= new EmployeeContactRepository(
@@ -276,7 +276,7 @@ public class UnitOfWork : IUnitOfWork
             );
         }
     }
- 
+
     public IPolicyTypeRepository PolicyTypeRepository
     {
         get
@@ -289,7 +289,7 @@ public class UnitOfWork : IUnitOfWork
             );
         }
     }
-    
+
 
     public ICompanyPolicyDocumentRepository CompanyPolicyDocumentRepository
     {
@@ -303,8 +303,8 @@ public class UnitOfWork : IUnitOfWork
             );
         }
     }
-     
-    
+
+
     public IEmployeeBankRepository EmployeeBankRepository
     {
         get
@@ -317,9 +317,9 @@ public class UnitOfWork : IUnitOfWork
             );
         }
     }
-    
-      
-         public IEmployeeLeaveRepository EmployeeLeaveRepository
+
+
+    public IEmployeeLeaveRepository EmployeeLeaveRepository
     {
         get
         {
@@ -353,7 +353,7 @@ public class UnitOfWork : IUnitOfWork
             );
         }
     }
-   
+
     public IEmployeeDependentRepository EmployeeDependentRepository
     {
         get
@@ -391,7 +391,7 @@ public class UnitOfWork : IUnitOfWork
         }
     }
 
-     
+
 
     public IEmployeeIdentityRepository EmployeeIdentities
     {
@@ -418,7 +418,7 @@ public class UnitOfWork : IUnitOfWork
         }
     }
 
-    
+
     //public IEmployeeInsuranceRepository EmployeeInsurances
     //{
     //    get
@@ -477,11 +477,11 @@ public class UnitOfWork : IUnitOfWork
             return _forgotPasswordOtpRepository ??= new ForgotPasswordOtpRepository(_context, _loggerFactory.CreateLogger<ForgotPasswordOtpRepository>());
         }
     }
-   
+
     /// <summary>
     /// UnitOfWork
     /// </summary>
-   
+
 
 
     public ILeaveRuleRepository LeaveRuleRepository
@@ -494,7 +494,7 @@ public class UnitOfWork : IUnitOfWork
 
 
 
-  
+
 
     public IPlanModuleMappingRepository PlanModuleMappingRepository
     {
@@ -506,7 +506,7 @@ public class UnitOfWork : IUnitOfWork
 
 
 
-  
+
 
     public IEmailTemplateRepository EmailTemplateRepository
     {
@@ -533,7 +533,7 @@ public class UnitOfWork : IUnitOfWork
     }
 
 
-  
+
     public IEmployeeTypeRepository EmployeeTypeRepository
     {
         get
@@ -542,7 +542,7 @@ public class UnitOfWork : IUnitOfWork
         }
     }
     public IClientRepository ClientsRepository => new ClientRepository(_context, _loggerFactory.CreateLogger<ClientRepository>());
-   
+
     //public INewTokenRepository NewTokenRepository
     //{
     //    get
@@ -556,7 +556,7 @@ public class UnitOfWork : IUnitOfWork
     //private IUserLoginReopsitory? _userLoginReopsitory;
     //public ICommonRepository CommonRepository => new CommonRepository(_context, _loggerFactory.CreateLogger<CommonRepository>());
 
-    public IUserLoginReopsitory UserLoginRepository => new UserLoginReopsitory(_context, _loggerFactory.CreateLogger<UserLoginReopsitory>(), _mapper, _passwordService, _config );
+    public IUserLoginReopsitory UserLoginRepository => new UserLoginReopsitory(_context, _loggerFactory.CreateLogger<UserLoginReopsitory>(), _mapper, _passwordService, _config);
 
     public ITenantSubscriptionRepository TenantSubscriptionRepository
     {
@@ -568,7 +568,7 @@ public class UnitOfWork : IUnitOfWork
     public IRefreshTokenRepository RefreshTokenRepository => new RefreshTokenRepository(_context, _loggerFactory.CreateLogger<RefreshTokenRepository>());
     public ISubscriptionRepository SubscriptionRepository => new SubscriptionRepository(_context, _loggerFactory.CreateLogger<SubscriptionRepository>(), _mapper);
 
-   
+
     public IEmployeeTypeBasicMenuRepository EmployeeTypeBasicMenuRepository
     {
         get
@@ -590,7 +590,7 @@ public class UnitOfWork : IUnitOfWork
             return _moduleRepository ??= new ModuleRepository(_context, _loggerFactory.CreateLogger<ModuleRepository>(), _mapper);
         }
     }
-    public IAssetRepository AssetRepository => new AssetRepository(_context, _loggerFactory.CreateLogger<AssetRepository>(), 
+    public IAssetRepository AssetRepository => new AssetRepository(_context, _loggerFactory.CreateLogger<AssetRepository>(),
          _qrService, _fileStorageService, _mapper);
 
 
@@ -598,7 +598,7 @@ public class UnitOfWork : IUnitOfWork
     public ITravelRepository TravelRepository => new TravelRepository(_context, _loggerFactory.CreateLogger<TravelRepository>());
 
     public IOperationRepository OperationRepository => new OperationRepository(_context, _loggerFactory.CreateLogger<OperationRepository>());
-  
+
 
     public ICategoryRepository CategoryRepository
     {
@@ -625,7 +625,7 @@ public class UnitOfWork : IUnitOfWork
         }
     }
 
-   
+
     public ILeaveRepository LeaveRepository
     {
         get
@@ -676,8 +676,9 @@ public class UnitOfWork : IUnitOfWork
             return _tenantModuleConfigurationRepository ??= new TenantModuleConfigurationRepository(_context, _loggerFactory.CreateLogger<TenantModuleConfigurationRepository>(), _mapper);
         }
     }
-    
-    public IReportingTypeRepository ReportingTypeRepository {
+
+    public IReportingTypeRepository ReportingTypeRepository
+    {
         get
         {
             // Agar repository pehle se initialized nahi hai to create karo
@@ -700,8 +701,16 @@ public class UnitOfWork : IUnitOfWork
             return _assetCategoryRepository ??= new AssetCategoryRepository(_context, _loggerFactory.CreateLogger<AssetCategoryRepository>(), _mapper);
         }
     }
-     
-    
+
+    public ITenantEmailConfigRepository TenantEmailConfigRepository
+    {
+        get
+        {
+            // Agar repository pehle se initialized nahi hai to create karo
+            return _tenantEmailConfigRepository ??= new TenantEmailConfigRepository(_context, _loggerFactory.CreateLogger<TenantEmailConfigRepository>());
+        }
+    }
+
 
 
     public IDesignationRepository DesignationRepository => new DesignationRepository(_context, _loggerFactory.CreateLogger<DesignationRepository>(), _mapper);
@@ -712,7 +721,7 @@ public class UnitOfWork : IUnitOfWork
     {
         get
         {
-            return _roleRepository ??= new RoleRepository(_context, _loggerFactory.CreateLogger<RoleRepository>(), _mapper , _encriptionService);
+            return _roleRepository ??= new RoleRepository(_context, _loggerFactory.CreateLogger<RoleRepository>(), _mapper, _encriptionService);
             //   return _roleRepository ??= new CandidateCategorySkillRepository(_context, _loggerFactory.CreateLogger<RoleRepository>());
 
         }
@@ -723,7 +732,7 @@ public class UnitOfWork : IUnitOfWork
         get
         {
             // Agar repository pehle se initialized nahi hai to create karo
-            return _ticket_ClassificationRepository ??= new TicketClassificationRepository(_context, _loggerFactory.CreateLogger<TicketClassificationRepository>(), _mapper );
+            return _ticket_ClassificationRepository ??= new TicketClassificationRepository(_context, _loggerFactory.CreateLogger<TicketClassificationRepository>(), _mapper);
         }
     }
     public IAssetTypeRepository AssetTypeRepository
@@ -731,7 +740,7 @@ public class UnitOfWork : IUnitOfWork
         get
         {
             // Agar repository pehle se initialized nahi hai to create karo
-            return _assetTypeRepository ??= new AssetTypeRepository(_context, _loggerFactory.CreateLogger<AssetTypeRepository>(), _mapper );
+            return _assetTypeRepository ??= new AssetTypeRepository(_context, _loggerFactory.CreateLogger<AssetTypeRepository>(), _mapper);
         }
     }
 
@@ -742,10 +751,10 @@ public class UnitOfWork : IUnitOfWork
         get
         {
             // Fix: Use TicketHeaderRepository, not TicketClassificationRepository, and pass correct logger type
-            return _ticketHeaderRepository ??= new TicketHeaderRepository(_context, _loggerFactory.CreateLogger<TicketHeaderRepository>(), _mapper );
+            return _ticketHeaderRepository ??= new TicketHeaderRepository(_context, _loggerFactory.CreateLogger<TicketHeaderRepository>(), _mapper);
         }
     }
- 
+
     public ISandwitchRuleRepository SandwitchRuleRepository
     {
         get
@@ -813,6 +822,6 @@ public class UnitOfWork : IUnitOfWork
         _currentTransaction?.Dispose();
     }
 
- }
+}
 
 

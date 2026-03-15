@@ -11,7 +11,8 @@ public interface IUnitOfWork : IDisposable
     // Repositories
       IModuleRepository ModuleRepository { get; }
       IEmployeeLeaveRepository EmployeeLeaveRepository { get; }
-      ITenantEmployeeCodePatternRepository TenantEmployeeCodePatternRepository { get; }
+    ITenantEmailConfigRepository TenantEmailConfigRepository { get; }
+    ITenantEmployeeCodePatternRepository TenantEmployeeCodePatternRepository { get; }
      IInsuranceRepository InsuranceRepository { get; }
       IPolicyTypeInsuranceMappingRepository PolicyTypeInsuranceMappingRepository { get; }
         IPolicyTypeRepository PolicyTypeRepository { get; }

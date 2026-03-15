@@ -1,4 +1,5 @@
 ﻿using axionpro.application.Common.Helpers;
+using axionpro.application.Constants;
 using axionpro.application.DTOS.Configruations;
 using axionpro.application.Interfaces.IEmail;
 using axionpro.application.Interfaces.IRepositories;
@@ -18,7 +19,7 @@ namespace axionpro.infrastructure.MailService
         private readonly ITenantEmailConfigRepository _configRepo;
         private readonly IEmailTemplateRepository _templateRepo;
         private readonly ILogger<EmailService> _logger;
-        
+
         private readonly EmailConfig _emailConfig;
         public EmailService(
             ITenantEmailConfigRepository configRepo,
@@ -68,17 +69,17 @@ namespace axionpro.infrastructure.MailService
                     return false;
                 }
 
-                var tenant = configDb.Tenant;
+                var tenantConfigInfo = configDb.Tenant;
 
                 // 3️⃣ Prepare placeholders
                 var finalPlaceholders = new Dictionary<string, string>
                 {
-                    ["TenantName"] = tenant.CompanyName ?? "",
-                    ["TenantLogoUrl"] = tenant.TenantProfiles
+                    ["TenantName"] = tenantConfigInfo.CompanyName ?? "",
+                    ["TenantLogoUrl"] = tenantConfigInfo.TenantProfiles
                                             .Select(x => x.LogoUrl)
                                             .FirstOrDefault()
                                             ?? "https://cdn.axionpro.com/default-logo.png",
-                    ["SupportEmail"] = tenant.TenantEmail ?? "",
+                    ["SupportEmail"] = tenantConfigInfo.TenantEmail ?? "",
                     ["Year"] = DateTime.UtcNow.Year.ToString()
                 };
 
@@ -95,33 +96,35 @@ namespace axionpro.infrastructure.MailService
                     finalPlaceholders);
 
                 // 5️⃣ Build Email Message
+
                 var message = new MimeMessage();
 
                 message.From.Add(new MailboxAddress(
-                    configDb.FromName ?? "AxionPro",
-                    configDb.SmtpUsername));
+                    configDb.FromName ?? ConstantValues.DefaultFromName,
+                    configDb.FromEmail ?? ConstantValues.DefaultFromEmail
+                ));
 
                 message.To.Add(MailboxAddress.Parse(toEmail));
 
                 message.Subject = subject;
+
                 message.Body = new BodyBuilder
                 {
                     HtmlBody = body
                 }.ToMessageBody();
 
-                // 6️⃣ Send Email
                 using var smtp = new SmtpClient();
 
                 smtp.Timeout = 20000;
 
                 await smtp.ConnectAsync(
-                    "smtp-relay.brevo.com",
-                    2525, // Render free plan compatible port
+                    configDb.SmtpHost,
+                    configDb.SmtpPort ?? 2525,
                     SecureSocketOptions.StartTls);
 
                 await smtp.AuthenticateAsync(
-                    _emailConfig.SMTPUserName,
-                    _emailConfig.Secret);
+                    configDb.SmtpUsername,
+                    configDb.SecrateKey);
 
                 await smtp.SendAsync(message);
 
