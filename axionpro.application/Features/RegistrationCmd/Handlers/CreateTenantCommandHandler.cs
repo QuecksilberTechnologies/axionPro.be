@@ -304,6 +304,9 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                     IsActive = true,
                     IsSoftDeleted = false,
                     IsEditAllowed = true,
+                    EmployeeTypeId = ConstantValues.ParmanentEmployeeType,
+                    AddedById = newTenantId,
+                    AddedDateTime = DateTime.UtcNow,
 
                 };
 
@@ -320,7 +323,10 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                     IsSoftDeleted = false,
                     IsPasswordChangeRequired = true,
                     HasFirstLogin = true,
-                    Remark = "System Genrated Account"
+                    Remark = "System Genrated Account",
+                    AddedById = employee.Id,
+                    AddedDateTime = DateTime.UtcNow,    
+                    
 
 
                 };
@@ -341,7 +347,13 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                     {
                         TenantId = newTenantId,
                         RoleName = roleName,
-                        IsActive = true
+                        IsActive = true,
+                        IsSoftDeleted = false,
+                        IsSystemDefault = false,
+                        AddedDateTime = DateTime.UtcNow,
+                        AddedById = employee.Id,
+
+
                     });
                 }
 
@@ -356,7 +368,18 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 {
                     Employee = employee,
                     RoleId = createdAdminRole,
-                    IsPrimaryRole = true
+                    IsPrimaryRole = true,
+                    IsActive = true,
+                    Remark = "Initial role assignment during employee creation",
+                    AssignedDateTime = DateTime.UtcNow,
+                    RoleStartDate = DateTime.UtcNow,
+                    ApprovalRequired = false,
+                    AddedDateTime = DateTime.UtcNow,
+                    ApprovalStatus = ConstantValues.IsByDefaultTrue ? "Approved" : "Pending",
+                    IsSoftDeleted =false,
+                    AddedById = employee.Id,
+
+                     
                 };
 
                 var createdEmployee =
