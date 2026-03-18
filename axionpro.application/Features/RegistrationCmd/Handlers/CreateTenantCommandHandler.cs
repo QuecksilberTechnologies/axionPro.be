@@ -4,6 +4,7 @@ using axionpro.application.Constants;
 using axionpro.application.DTOs.Registration;
 using axionpro.application.DTOs.Tenant;
 using axionpro.application.DTOS.Configruations;
+using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Token;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEmail;
@@ -19,6 +20,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Data;
+using System.Text.RegularExpressions;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Model;
 
 
 namespace axionpro.application.Features.RegistrationCmd.Handlers
@@ -34,7 +37,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
             TenantCreateRequestDTO = createRequestDTO;
         }
     }
-
+    
     public class CreateTenantCommandHandler : IRequestHandler<CreateTenantCommand, ApiResponse<TenantCreateResponseDTO>>
     {
         // ===============================
@@ -94,10 +97,44 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 // =====================================================
                 // STEP 1 : Check whether tenant already exists
                 // =====================================================
-                bool isEmailExists = await _unitOfWork.TenantRepository
+
+                string prefix = request.TenantCreateRequestDTO.Prefix?.Trim().ToUpper() ?? string.Empty;
+                string separator = request.TenantCreateRequestDTO.Separator?.Trim() ?? string.Empty;
+
+                if (string.IsNullOrWhiteSpace(prefix))
+                {
+                    throw new Exception("Prefix is required.");
+                }
+
+                if (prefix.Length > 10)
+                {
+                    throw new Exception("Prefix maximum length is 10 characters.");
+                }
+
+                if (!Regex.IsMatch(prefix, "^[A-Z]+$"))
+                {
+                    throw new Exception("Prefix must contain capital letters only. Example: QT, MSPL, BHEL.");
+                }
+
+                if (string.IsNullOrWhiteSpace(separator) || !new[] { "_", "/", "-" }.Contains(separator))
+                {
+                    throw new Exception("Separator must be one of these values: _, /, -");
+                }
+
+                if (!int.TryParse(request.TenantCreateRequestDTO.RunningNumberLength, out int runningNumberLength))
+                {
+                    throw new Exception("RunningNumberLength must be a valid number.");
+                }
+
+                if (!new[] { 3, 4, 5, 6, 7 }.Contains(runningNumberLength))
+                {
+                    throw new Exception("RunningNumberLength must be one of these values: 3, 4, 5, 6, 7.");
+                }
+
+                bool isTenantEmailExists = await _unitOfWork.TenantRepository
                     .CheckTenantByEmail(request.TenantCreateRequestDTO.TenantEmail);
 
-                if (isEmailExists)
+                if (isTenantEmailExists)
                 {
                     return new ApiResponse<TenantCreateResponseDTO>
                     {
@@ -105,6 +142,17 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                         Message = "Tenant with this email already exists."
                     };
                 }
+
+                // 3️⃣ Check existing login
+                var existingUser = await _unitOfWork.UserLoginRepository
+                    .GetEmployeeIdByUserLogin(request.TenantCreateRequestDTO.TenantEmail);
+
+                if (existingUser != null)
+                    return new ApiResponse<TenantCreateResponseDTO>
+                    {
+                        IsSucceeded = false,
+                        Message = "Tenant with this email already exists as an employee."
+                    };
 
                 // Password placeholder
                 string? hashedPassword = null;
@@ -289,9 +337,51 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                         designations,
                         insertedAdminDepartment);
 
-                // =====================================================
+
+                EmployeeCodePattern employeeCodePattern = new()
+                {
+                    TenantId = newTenantId,
+                    Prefix = prefix,
+                    IncludeYear = request.TenantCreateRequestDTO.IncludeYear,
+                    IncludeMonth = request.TenantCreateRequestDTO.IncludeMonth,
+                    IncludeDepartment = request.TenantCreateRequestDTO.IncludeDepartment,
+                    Separator = separator,
+                    RunningNumberLength = runningNumberLength,
+                    LastUsedNumber = 0,
+                    IsActive = true,
+                    AddedById = newTenantId,
+                    AddedDateTime = DateTime.UtcNow,
+                };
+
+                bool isEmpCodeGenrated =
+                     await _unitOfWork.TenantEmployeeCodePatternRepository.CreatePatternAsync(employeeCodePattern);
+
+                if (!isEmpCodeGenrated)
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                    return new ApiResponse<TenantCreateResponseDTO>
+                    {
+                        IsSucceeded = false,
+                        Message = "Employee code pattern creation failed."
+                    };
+                }
+
+                // 4️⃣ Generate Employee Code
+                string? employementCodeGenerated =
+                    await _unitOfWork.TenantEmployeeCodePatternRepository
+                        .GenerateEmployeeCodeAsync(newTenantId, insertedAdminDepartment);
+
+                if (string.IsNullOrWhiteSpace(employementCodeGenerated))
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                    return new ApiResponse<TenantCreateResponseDTO>
+                    {
+                        IsSucceeded = false,
+                        Message = "Employee code generation failed."
+                    };
+                }
+
                 // STEP 13 : Create Employee (Tenant Admin)
-                // =====================================================
                 var employee = new Employee
                 {
                     TenantId = newTenantId,
@@ -300,14 +390,13 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                     DesignationId = adminDesignationId,
                     CountryId = request.TenantCreateRequestDTO.CountryId,
                     OfficialEmail = tenantEntity.TenantEmail,
-                    EmployementCode = $"{newTenantId}/{DateTime.UtcNow:yyyyMMddHHmmss}",
+                    EmployementCode = employementCodeGenerated,
                     IsActive = true,
                     IsSoftDeleted = false,
                     IsEditAllowed = true,
                     EmployeeTypeId = ConstantValues.ParmanentEmployeeType,
                     AddedById = newTenantId,
                     AddedDateTime = DateTime.UtcNow,
-
                 };
 
                 // =====================================================
@@ -333,27 +422,35 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
 
                 // =====================================================
                 // STEP 15 : Create default roles
-                // =====================================================
                 var rolesToCreate = new List<Role>();
 
                 foreach (var roleName in new[]
                 {
-                ConstantValues.TenantAdminRoleName,
-                ConstantValues.TenantHRManagerRoleName,
-                ConstantValues.TenantEmployeeRoleName
-                })
+    ConstantValues.TenantAdminRoleName,
+    ConstantValues.TenantHRManagerRoleName,
+    ConstantValues.TenantEmployeeRoleName
+})
                 {
+                    int roleType = roleName switch
+                    {
+                        var r when r == ConstantValues.TenantAdminRoleName => ConstantValues.RoleTypeAdmin,
+                        var r when r == ConstantValues.TenantHRManagerRoleName => ConstantValues.RoleTypeManager,
+                        var r when r == ConstantValues.TenantEmployeeRoleName => ConstantValues.RoleTypeEmployee,
+                        _ => 0
+                    };
+
                     rolesToCreate.Add(new Role
                     {
                         TenantId = newTenantId,
                         RoleName = roleName,
+                        RoleType = roleType, // ✅ FIXED
+
                         IsActive = true,
                         IsSoftDeleted = false,
                         IsSystemDefault = false,
+
                         AddedDateTime = DateTime.UtcNow,
                         AddedById = employee.Id,
-
-
                     });
                 }
 
@@ -401,7 +498,6 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                             new TenantEmailConfig
                             {
                                 TenantId = newTenantId,
-
                                 SmtpHost = ConstantValues.DefaultSmtpHost,
                                 SmtpPort = ConstantValues.DefaultSmtpPort,
                                 SmtpUsername = ConstantValues.DefaultSmtpUserName,

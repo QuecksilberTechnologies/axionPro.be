@@ -77,7 +77,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
             try
             {
                // await _unitOfWork.BeginTransactionAsync();
-              
+              //
                 if (string.IsNullOrEmpty(request.DTO.LoginId) && string.IsNullOrEmpty(request.DTO.Password))
                 {
                     _logger.LogWarning(" LoginId and Password is not null or empty.");

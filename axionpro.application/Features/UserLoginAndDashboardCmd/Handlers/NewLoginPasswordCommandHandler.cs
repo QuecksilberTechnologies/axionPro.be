@@ -78,11 +78,11 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
         }
 
         public async Task<ApiResponse<UpdatePasswordResponseDTO>> Handle(
-  NewLoginPasswordCommand request,
-  CancellationToken cancellationToken)
+          NewLoginPasswordCommand request,
+           CancellationToken cancellationToken)
         {
             var dto = request.DTO;
-
+            //
             // 1️⃣ Validation
             if (string.IsNullOrWhiteSpace(dto.Token))
                 return ApiResponse<UpdatePasswordResponseDTO>
@@ -127,8 +127,8 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
             // Inside Handle() method 
             if (loginCredential.IsPasswordChangeRequired == false || loginCredential.HasFirstLogin==false)
             {
-                return ApiResponse<UpdatePasswordResponseDTO>
-                    .Fail("Token expired");
+               // return ApiResponse<UpdatePasswordResponseDTO>
+                   // .Fail("Token expired");
             }
             string? hashedPassword = _passwordService.HashPassword(request.DTO.NewPassword);
             if (string.IsNullOrEmpty(hashedPassword))

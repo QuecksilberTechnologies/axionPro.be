@@ -15,7 +15,18 @@ namespace axionpro.application.DTOs.Registration
         public string CompanyName { get; set; } = null!;
 
         public string TenantCode { get; set; } = null!;
- 
+        //public required string Prefix { get; set; } = null!;
+        //public bool IncludeYear { get; set; } = true;
+        //public bool IncludeMonth { get; set; } = true;
+        //public bool IncludeDepartment { get; set; } = true;
+        //public required string Separator { get; set; } = null!;
+        //public required string RunningNumberLength { get; set; } = null!; 
+        public string Prefix { get; set; } = "EMP";
+        public bool IncludeYear { get; set; } = true;
+        public bool IncludeMonth { get; set; } = true;
+        public bool IncludeDepartment { get; set; } = false;
+        public string Separator { get; set; } = "/";
+        public string RunningNumberLength { get; set; } = "4";
         public string CompanyEmailDomain { get; set; } = null!;
         public int GenderId { get; set; } 
          

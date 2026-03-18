@@ -200,7 +200,8 @@ public class RoleRepository : IRoleRepository
                     RoleName = dto.RoleName,
                     RoleType = dto.RoleType, // int type handled properly ✅
                     IsSystemDefault = false,
-                    IsActive = dto.IsActive,
+                    
+                    IsActive = true,
                     IsSoftDeleted = false,
                     Remark = dto.Remark ?? ConstantValues.TenantAllRoleRemark,
                     AddedById = dto.TenantId,
@@ -239,10 +240,13 @@ public class RoleRepository : IRoleRepository
 
 
             // ✅ Return TenantAdmin RoleId (latest one)
+            var tenantId = validRoles.First().TenantId;
+
             var tenantAdminRole = await _context.Roles
-                .Where(r => r.RoleType == ConstantValues.RoleTypeAdmin &&
+                .Where(r => r.TenantId == tenantId &&
+                            r.RoleType == ConstantValues.RoleTypeAdmin &&
                             r.IsActive == true &&
-                            r.IsSoftDeleted == false)
+                            r.IsSoftDeleted == false && r.IsSystemDefault == false)
                 .OrderByDescending(r => r.Id)
                 .FirstOrDefaultAsync();
 

@@ -1,14 +1,8 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Constants;
-using axionpro.application.DTOs.Employee;
 using axionpro.application.DTOs.UserLogin;
-using axionpro.application.DTOs.UserRole;
-using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.UserLogin;
-using axionpro.application.Features.EmployeeCmd.BankInfo.Handlers;
-using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
-using axionpro.application.Features.UserLoginAndDashboardCmd.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -17,18 +11,10 @@ using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-
-using axionpro.domain.Entity; using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
-using System.Xml.Linq;
 
 namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 {

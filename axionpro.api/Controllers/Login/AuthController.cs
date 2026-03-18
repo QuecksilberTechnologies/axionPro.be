@@ -3,6 +3,7 @@ using axionpro.application.DTOs.UserLogin;
 using axionpro.application.DTOS.Token;
 using axionpro.application.DTOS.Token.ems.application.DTOs.UserLogin;
 using axionpro.application.DTOS.UserLogin;
+using axionpro.application.Features.UserLoginAndcDsasxhboardCmd.Handlers;
 using axionpro.application.Features.UserLoginAndDashboardCmd.Commands;
 using axionpro.application.Features.UserLoginAndDashboardCmd.Handlers;
 using axionpro.application.Interfaces.ILogger;
@@ -181,7 +182,46 @@ namespace axionpro.api.Controllers.Login
 
 
         }
+        [HttpPost("create-new-password-url")]
+        public async Task<IActionResult> CreateNewLoginPasswordURL([FromBody] SetNewPasswordLinkRequestDTO request)
+        {
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.UserLoginId))
+                {
+                    return BadRequest(new ApiResponse<GetNewPasswordLinkResponseDTO>
+                    {
+                        IsSucceeded = false,
+                        Message = "UserLoginId is required.",
+                        Data = null
+                    });
+                }
 
+                var command = new GetNewLoginPasswordURLCommand(request);
+
+                var result = await _mediator.Send(command);
+
+                if (!result.IsSucceeded)
+                {
+                    return BadRequest(result);
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                
+                _logger.LogError("Exception occurred while creating new password URL.");
+
+
+                return StatusCode(500, new ApiResponse<GetNewPasswordLinkResponseDTO>
+                {
+                    IsSucceeded = false,
+                    Message = "Internal server error occurred.",
+                    Data = null
+                });
+            }
+        }
         [HttpPost("create-new-password")]
         public async Task<IActionResult> CreateLoginPassword([FromBody] NewLoginPasswordRequestDTO request)
         {
@@ -218,10 +258,6 @@ namespace axionpro.api.Controllers.Login
                     Data = null
                 });
             }
-
-
-
-
         }
 
         //[HttpGet("get-page-type")]        
@@ -281,9 +317,6 @@ namespace axionpro.api.Controllers.Login
                     Data = null
                 });
             }
-
-
-
 
         }
 
