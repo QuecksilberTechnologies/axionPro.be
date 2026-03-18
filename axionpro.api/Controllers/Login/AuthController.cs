@@ -182,7 +182,7 @@ namespace axionpro.api.Controllers.Login
 
 
         }
-        [HttpPost("create-new-password-url")]
+        [HttpPost("resend-credential")]
         public async Task<IActionResult> CreateNewLoginPasswordURL([FromBody] SetNewPasswordLinkRequestDTO request)
         {
             try
