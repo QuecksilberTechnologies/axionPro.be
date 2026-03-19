@@ -79,7 +79,30 @@ namespace axionpro.persistance.Repositories
             }
         }
 
+        public async Task AddTenantAsync(Tenant tenant)
+        {
+            try
+            {
+                tenant.AddedById = tenant.Id;
+                tenant.IsActive = true;
+                tenant.AddedDateTime = DateTime.UtcNow;
 
+                if (_context == null)
+                {
+                    _logger?.LogError("DbContext is null in AddTenantAsync.");
+                    throw new ArgumentNullException(nameof(_context), "DbContext is not initialized.");
+                }
+
+                await _context.Tenants.AddAsync(tenant);
+
+                _logger?.LogInformation("Tenant added to context successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "An error occurred while adding tenant.");
+                throw;
+            }
+        }
         public async Task<long> AddTenantAsync(Tenant tenant)
         {
             try
@@ -95,7 +118,7 @@ namespace axionpro.persistance.Repositories
                 }
 
                 await _context.Tenants.AddAsync(tenant); // `Tenants` is DbSet<Tenant>
-                await _context.SaveChangesAsync(); // Save changes to DB
+              //  await _context.SaveChangesAsync(); // Save changes to DB
 
                 _logger?.LogInformation("Tenant created successfully with ID: {TenantId}", tenant.Id);
 

@@ -93,6 +93,8 @@ public interface IUnitOfWork : IDisposable
     Task RollbackTransactionAsync();
 
     // Save changes asynchronously
+    Task  SaveChangesAsync();
+
     Task<int> CommitAsync();
   
 }

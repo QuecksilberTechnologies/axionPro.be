@@ -172,6 +172,9 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 // =====================================================
                 long newTenantId = await _unitOfWork.TenantRepository
                     .AddTenantAsync(tenantEntity);
+                await _unitOfWork.SaveChangesAsync();
+
+                long newTenantId1 = tenantEntity.Id;
 
                 if (newTenantId <= 0)
                 {

@@ -93,8 +93,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                         .Fail("User already exists.");
                 var existingEmployee = await _unitOfWork.TenantEmployeeCodePatternRepository.GetTenantEmployeeCodePatternAsync(
                     validation.TenantId, true);
-             
-
+               
                 // 3️⃣ Map Employee
                 var employee = _mapper.Map<Employee>(request.DTO);
                 employee.TenantId = validation.TenantId;
