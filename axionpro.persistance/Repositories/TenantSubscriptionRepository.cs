@@ -27,28 +27,30 @@ namespace axionpro.persistance.Repositories
             _mapper = mapper;
            // 
         }
-       
+
         public async Task<TenantSubscription> AddTenantSubscriptionAsync(TenantSubscription subscription)
         {
             try
             {
-              //  await using var context = await _contextFactory.CreateDbContextAsync();
-
+                if (subscription == null)
+                    throw new ArgumentNullException(nameof(subscription));
 
                 await _context.TenantSubscriptions.AddAsync(subscription);
-                await _context.SaveChangesAsync();
 
-                _logger.LogInformation("✅ TenantSubscription inserted successfully for TenantId: {TenantId}", subscription.TenantId);
+                _logger.LogInformation(
+                    "TenantSubscription added to DbContext successfully for TenantId: {TenantId}",
+                    subscription.TenantId);
 
                 return subscription;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error while inserting TenantSubscription for TenantId: {TenantId}", subscription.TenantId);
+                _logger.LogError(ex,
+                    "Error while adding TenantSubscription to DbContext for TenantId: {TenantId}",
+                    subscription?.TenantId);
                 throw;
             }
         }
-
 
         public Task<bool> DeleteTenantSubscriptionAsync(long id)
         {

@@ -1,97 +1,98 @@
-﻿using AutoMapper;
-using axionpro.application.Interfaces;
-using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Interfaces.IContext;
-
-using Microsoft.Extensions.Logging;
-using System;
+﻿using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
-using Microsoft.EntityFrameworkCore;
 using axionpro.persistance.Data.Context;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace axionpro.persistance.Repositories
 {
-
     public class TenantEncryptionKeyRepository : ITenantEncryptionKeyRepository
     {
         private readonly WorkforceDbContext _context;
-        private readonly IMapper _mapper;
         private readonly ILogger<TenantEncryptionKeyRepository> _logger;
-       
 
         public TenantEncryptionKeyRepository(
             WorkforceDbContext context,
-            IMapper mapper,
-            ILogger<TenantEncryptionKeyRepository> logger
-           )
+            ILogger<TenantEncryptionKeyRepository> logger)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-          
         }
 
-        // ✅ Add new tenant encryption key
-        public async Task<int> AddAsync(TenantEncryptionKey tenantKey)
+        public async Task AddAsync(TenantEncryptionKey tenantKey, CancellationToken cancellationToken = default)
         {
             try
             {
-                await _context.AddAsync(tenantKey);
-                int record = await _context.SaveChangesAsync();
-                if(record <= 0)
+                if (tenantKey == null)
                 {
-                    _logger.LogWarning("No records were added for TenantId: {TenantId}", tenantKey.TenantId);
-                    throw new ApplicationException($"No records were added for TenantId {tenantKey.TenantId}");
+                    throw new ArgumentNullException(nameof(tenantKey));
                 }
-                _logger.LogInformation("Tenant encryption key added successfully for TenantId: {TenantId}", tenantKey.TenantId);
-               
-                   return record;
+
+                await _context.TenantEncryptionKeys.AddAsync(tenantKey, cancellationToken);
+
+                _logger.LogInformation(
+                    "Tenant encryption key added to DbContext successfully for TenantId: {TenantId}",
+                    tenantKey.TenantId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error adding tenant encryption key for TenantId: {TenantId}", tenantKey.TenantId);
-                throw new ApplicationException($"Failed to add tenant key for TenantId {tenantKey.TenantId}", ex);
+                _logger.LogError(ex,
+                    "Error adding tenant encryption key to DbContext for TenantId: {TenantId}",
+                    tenantKey?.TenantId);
+                throw;
             }
         }
 
-        // ✅ Get active encryption key by tenant
-        public async Task<TenantEncryptionKey> GetActiveKeyByTenantIdAsync(long tenantId)
+        public async Task<TenantEncryptionKey?> GetActiveKeyByTenantIdAsync(long tenantId, CancellationToken cancellationToken = default)
         {
             try
             {
                 var key = await _context.TenantEncryptionKeys
-                                        .AsNoTracking()
-                                        .FirstOrDefaultAsync(x => x.TenantId == tenantId && x.IsActive==true);
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(
+                        x => x.TenantId == tenantId && x.IsActive == true,
+                        cancellationToken);
 
                 if (key == null)
                 {
                     _logger.LogWarning("No active encryption key found for TenantId: {TenantId}", tenantId);
-                    throw new KeyNotFoundException($"No active key found for TenantId {tenantId}");
+                    return null;
                 }
 
                 return key;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching active encryption key for TenantId: {TenantId}", tenantId);
-                throw new ApplicationException($"Failed to get tenant key for TenantId {tenantId}", ex);
+                _logger.LogError(ex,
+                    "Error fetching active encryption key for TenantId: {TenantId}",
+                    tenantId);
+                throw;
             }
         }
 
-        // ✅ Update/Rotate existing tenant key
-        public async Task UpdateAsync(TenantEncryptionKey tenantKey)
+        public async Task UpdateAsync(TenantEncryptionKey tenantKey, CancellationToken cancellationToken = default)
         {
             try
             {
-                _context.TenantEncryptionKeys.Update(tenantKey);
-                await _context.SaveChangesAsync();
+                if (tenantKey == null)
+                {
+                    throw new ArgumentNullException(nameof(tenantKey));
+                }
 
-                _logger.LogInformation("Tenant encryption key updated successfully for TenantId: {TenantId}", tenantKey.TenantId);
+                _context.TenantEncryptionKeys.Update(tenantKey);
+
+                await Task.CompletedTask;
+
+                _logger.LogInformation(
+                    "Tenant encryption key marked for update successfully for TenantId: {TenantId}",
+                    tenantKey.TenantId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating tenant encryption key for TenantId: {TenantId}", tenantKey.TenantId);
-                throw new ApplicationException($"Failed to update tenant key for TenantId {tenantKey.TenantId}", ex);
+                _logger.LogError(ex,
+                    "Error updating tenant encryption key for TenantId: {TenantId}",
+                    tenantKey?.TenantId);
+                throw;
             }
         }
     }

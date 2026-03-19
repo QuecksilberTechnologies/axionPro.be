@@ -1,46 +1,40 @@
 ﻿using axionpro.application.Interfaces.IRepositories;
-
+using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
     public class TenantRepository : ITenantRepository
     {
-        private readonly WorkforceDbContext? _context;
-        private readonly ILogger? _logger;
-       
+        private readonly WorkforceDbContext _context;
+        private readonly ILogger<TenantRepository> _logger;
 
-        public TenantRepository(WorkforceDbContext? context, ILogger<TenantRepository>? logger)
+        public TenantRepository(
+            WorkforceDbContext context,
+            ILogger<TenantRepository> logger)
         {
-            _context = context;
-            _logger = logger;
-            
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<List<Tenant>> GetAllTenantBySubscriptionIdAsync(Tenant tenant)
+        public async Task<List<Tenant>> GetAllTenantBySubscriptionIdAsync(
+            Tenant tenant,
+            CancellationToken cancellationToken = default)
         {
             try
             {
-                // ✅ Null check
                 if (tenant == null)
                 {
                     _logger.LogWarning("Tenant filter is null while fetching tenants.");
                     return new List<Tenant>();
                 }
-                
 
-                // ✅ Build base query
-                IQueryable<Tenant> query = _context.Tenants.Where(x => x.IsActive == true);
+                IQueryable<Tenant> query = _context.Tenants
+                    .AsNoTracking()
+                    .Where(x => x.IsActive == true && x.IsSoftDeleted != true);
 
-                // ✅ Apply dynamic filters based on non-null or non-empty values
                 if (!string.IsNullOrWhiteSpace(tenant.CompanyName))
                     query = query.Where(x => x.CompanyName.Contains(tenant.CompanyName));
 
@@ -62,11 +56,7 @@ namespace axionpro.persistance.Repositories
                 if (tenant.CountryId > 0)
                     query = query.Where(x => x.CountryId == tenant.CountryId);
 
-              //  query = query.Where(x => x.IsActive == tenant.IsActive);
-                //query = query.Where(x => x.IsVerified == tenant.IsVerified);
-
-                // ✅ Execute query
-                var result = await query.ToListAsync();
+                var result = await query.ToListAsync(cancellationToken);
 
                 _logger.LogInformation("Fetched {Count} tenants matching the criteria.", result.Count);
 
@@ -75,172 +65,180 @@ namespace axionpro.persistance.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while fetching tenant list.");
-                return new List<Tenant>();
+                throw;
             }
         }
 
-        public async Task AddTenantAsync(Tenant tenant)
+        public async Task AddTenantAsync(Tenant tenant, CancellationToken cancellationToken = default)
         {
             try
             {
-                tenant.AddedById = tenant.Id;
+                if (tenant == null)
+                {
+                    _logger.LogWarning("Tenant entity is null in AddTenantAsync.");
+                    throw new ArgumentNullException(nameof(tenant));
+                }
+
                 tenant.IsActive = true;
                 tenant.AddedDateTime = DateTime.UtcNow;
 
-                if (_context == null)
-                {
-                    _logger?.LogError("DbContext is null in AddTenantAsync.");
-                    throw new ArgumentNullException(nameof(_context), "DbContext is not initialized.");
-                }
+                // IMPORTANT:
+                // Do not set AddedById = tenant.Id here because Id is not generated yet.
+                // Set AddedById in handler if a valid creator id exists.
 
-                await _context.Tenants.AddAsync(tenant);
+                await _context.Tenants.AddAsync(tenant, cancellationToken);
 
-                _logger?.LogInformation("Tenant added to context successfully.");
+                _logger.LogInformation("Tenant added to DbContext successfully.");
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "An error occurred while adding tenant.");
-                throw;
-            }
-        }
-        public async Task<long> AddTenantAsync(Tenant tenant)
-        {
-            try
-            {
-              
-                tenant.AddedById = tenant.Id;
-                tenant.IsActive = true;
-                tenant.AddedDateTime = DateTime.Now;
-                if (_context == null)
-                {
-                    _logger?.LogError("DbContext is null in AddAsync.");
-                    throw new ArgumentNullException(nameof(_context), "DbContext is not initialized.");
-                }
-
-                await _context.Tenants.AddAsync(tenant); // `Tenants` is DbSet<Tenant>
-              //  await _context.SaveChangesAsync(); // Save changes to DB
-
-                _logger?.LogInformation("Tenant created successfully with ID: {TenantId}", tenant.Id);
-
-                return tenant.Id; // Tenant ID generated after SaveChanges
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogError(ex, "An error occurred while adding tenant.");
-                throw; // Re-throw for handler to rollback transaction
-            }
-        }
-
-        public async Task<long> AddTenantProfileAsync(TenantProfile tenantProfile)
-        {
-            try
-            {
-                
-                tenantProfile.Id = 0;
-                if (_context == null)
-                {
-                    _logger?.LogError("DbContext is null in AddAsync.");
-                    throw new ArgumentNullException(nameof(_context), "DbContext is not initialized.");
-                }
-
-                await _context.TenantProfiles.AddAsync(tenantProfile); // `Tenants` is DbSet<Tenant>
-                await _context.SaveChangesAsync(); // Save changes to DB
-
-                _logger?.LogInformation("TenantProfile created successfully with ID: {TenantId}", tenantProfile.Id);
-
-                return tenantProfile.Id; // Tenant ID generated after SaveChanges
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogError(ex, "An error occurred while adding tenant.");
-                throw; // Re-throw for handler to rollback transaction
-            }
-        }
-
-        public async Task<bool> CheckTenantByEmail(string email)
-        {
-            
-
-            try
-            {
-                return await Task.FromResult(_context.Tenants.Any(t => t.TenantEmail == email));
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogError(ex, "Error checking tenant email existence.");
+                _logger.LogError(ex, "An error occurred while adding tenant.");
                 throw;
             }
         }
 
-        public Task DeleteTenantAsync(Tenant tenant)
-        {
-            throw new NotImplementedException();
-        }
-
-      
-
-        public Task<Tenant> GetByCodeAsync(string tenantCode)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<Tenant> GetByIdAsync(long? id, bool i)
-        {
-
-
-            var tenant = await _context.Tenants
-              .Where(t => t.Id == id
-                       && (t.IsActive == i && t.IsSoftDeleted!=true))
-              .FirstOrDefaultAsync();
- 
-
-            return tenant;
-        }
-
-
-
-
-
-        public async Task<Tenant> UpdateTenantAsync(Tenant tenant)
+        public async Task AddTenantProfileAsync(TenantProfile tenantProfile, CancellationToken cancellationToken = default)
         {
             try
             {
+                if (tenantProfile == null)
+                {
+                    _logger.LogWarning("TenantProfile entity is null in AddTenantProfileAsync.");
+                    throw new ArgumentNullException(nameof(tenantProfile));
+                }
+
+                await _context.TenantProfiles.AddAsync(tenantProfile, cancellationToken);
+
+                _logger.LogInformation("TenantProfile added to DbContext successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while adding tenant profile.");
+                throw;
+            }
+        }
+
+        public async Task<bool> CheckTenantByEmailAsync(string email, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(email))
+                {
+                    return false;
+                }
+
+                return await _context.Tenants
+                    .AsNoTracking()
+                    .AnyAsync(t => t.TenantEmail == email, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking tenant email existence.");
+                throw;
+            }
+        }
+
+        public async Task DeleteTenantAsync(Tenant tenant, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                if (tenant == null)
+                {
+                    throw new ArgumentNullException(nameof(tenant));
+                }
+
+                _context.Tenants.Remove(tenant);
+
+                await Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while deleting tenant.");
+                throw;
+            }
+        }
+
+        public async Task<Tenant?> GetByCodeAsync(string tenantCode, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(tenantCode))
+                {
+                    return null;
+                }
+
+                return await _context.Tenants
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(
+                        x => x.TenantCode == tenantCode &&
+                             x.IsActive == true &&
+                             x.IsSoftDeleted != true,
+                        cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while getting tenant by code.");
+                throw;
+            }
+        }
+
+        public async Task<Tenant?> GetByIdAsync(long? id, bool isActive)
+        {
+            try
+            {
+                if (!id.HasValue || id.Value <= 0)
+                {
+                    return null;
+                }
+
+                return await _context.Tenants
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(t =>
+                        t.Id == id.Value &&
+                        t.IsActive == isActive &&
+                        t.IsSoftDeleted != true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while getting tenant by id.");
+                throw;
+            }
+        }
+
+        public async Task<Tenant?> UpdateTenantAsync(Tenant tenant, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                if (tenant == null)
+                {
+                    throw new ArgumentNullException(nameof(tenant));
+                }
+
                 var existingTenant = await _context.Tenants
-                    .FirstOrDefaultAsync(x => x.Id == tenant.Id);
+                    .FirstOrDefaultAsync(x => x.Id == tenant.Id, cancellationToken);
 
                 if (existingTenant == null)
                 {
-                    return null; // Tenant not found
-                }
-
-                existingTenant.IsActive = true;
-                existingTenant.IsVerified = true;
-
-                _context.Tenants.Update(existingTenant);
-                int result = await _context.SaveChangesAsync();
-
-                if (result > 0)
-                {
-                    // Update successful
-                    return existingTenant;
-                }
-                else
-                {
-                    // Nothing updated (maybe values were already true)
+                    _logger.LogWarning("Tenant not found for update. TenantId: {TenantId}", tenant.Id);
                     return null;
                 }
+
+                existingTenant.IsActive = tenant.IsActive;
+                existingTenant.IsVerified = tenant.IsVerified;
+                existingTenant.UpdatedDateTime = DateTime.UtcNow;
+                existingTenant.UpdatedById = tenant.UpdatedById;
+
+                _context.Tenants.Update(existingTenant);
+
+                _logger.LogInformation("Tenant updated in DbContext successfully. TenantId: {TenantId}", tenant.Id);
+
+                return existingTenant;
             }
             catch (Exception ex)
             {
-                // Optional: Agar aapke paas ILogger<TenantRepository> injected hai to use yahan log kar sakte ho
-                Console.WriteLine($"Error while updating tenant: {ex.Message}");
-
-                // Fail-safe: return null ya custom exception throw kar sakte ho
-                return null;
+                _logger.LogError(ex, "Error while updating tenant. TenantId: {TenantId}", tenant?.Id);
+                throw;
             }
         }
-
-
-
     }
 }

@@ -40,20 +40,33 @@ public class RoleRepository : IRoleRepository
     }
 
 
-
+    public async Task<Role?> GetTenantAdminRoleAsync(long tenantId)
+    {
+        try
+        {
+            return await _context.Roles
+                .AsNoTracking()
+                .FirstOrDefaultAsync(r =>
+                    r.TenantId == tenantId &&
+                    r.RoleType == ConstantValues.RoleTypeAdmin &&
+                    r.IsActive == true &&
+                    r.IsSoftDeleted == false &&
+                    r.IsSystemDefault == false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error while fetching tenant admin role for TenantId: {TenantId}", tenantId);
+            return null;
+        }
+    }
     public async Task<int> AutoCreateUserRoleAndAutomatedRolePermissionMappingAsync(long? tenantId, long employeeId, int role)
     {
         try
         {
-
-            // 3. Fetch TenantEnabledOperation list for that tenant
-            //   await using var context = await _contextFactory.CreateDbContextAsync();
-
             var enabledOperations = await _context.TenantEnabledOperations
                 .Where(x => x.TenantId == tenantId)
                 .ToListAsync();
 
-            // 4. Convert to RoleModuleAndPermission
             var rolePermissions = enabledOperations.Select(op => new RoleModuleAndPermission
             {
                 RoleId = role,
@@ -61,26 +74,29 @@ public class RoleRepository : IRoleRepository
                 OperationId = op.OperationId,
                 HasAccess = true,
                 IsActive = op.IsEnabled,
-                Remark = "System Genrate Prmission for user",
+                Remark = "System Generate Permission for user",
                 IsOperational = true,
                 AddedById = tenantId,
-                AddedDateTime = DateTime.Now,
-                IsSoftDeleted = false,
-
+                AddedDateTime = DateTime.UtcNow,
+                IsSoftDeleted = false
             }).ToList();
 
             await _context.RoleModuleAndPermissions.AddRangeAsync(rolePermissions);
 
-            // Final Save
-            return await _context.SaveChangesAsync();
+            _logger.LogInformation(
+                "RoleModuleAndPermission entries added to DbContext successfully. Count: {Count}, TenantId: {TenantId}, RoleId: {RoleId}",
+                rolePermissions.Count,
+                tenantId,
+                role);
+
+            return rolePermissions.Count;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in AutoCreateRoleUserRoleAndAutomatedRolePermissionMappingAsync");
+            _logger.LogError(ex, "Error in AutoCreateUserRoleAndAutomatedRolePermissionMappingAsync");
             throw;
         }
     }
-
 
 
 
@@ -158,120 +174,75 @@ public class RoleRepository : IRoleRepository
             throw;
         }
     }
-
-    public async Task<int> AutoCreatedForTenantRoleAsync(List<Role> roles)
+    public async Task<bool> AutoCreatedForTenantRoleAsync(List<Role> roles)
     {
         if (roles == null || !roles.Any())
         {
             _logger.LogWarning("AutoCreatedForTenantRoleAsync called with null or empty role list.");
-            return -1;
+            return false;
         }
 
         try
         {
-            //    await using var context = await _contextFactory.CreateDbContextAsync();
             var validRoles = new List<Role>();
 
             foreach (var dto in roles)
             {
-                // ✅ Validation: TenantId & RoleName required
                 if (dto.TenantId <= 0 || string.IsNullOrWhiteSpace(dto.RoleName))
                 {
-                    _logger.LogWarning("Skipping invalid role entry. TenantId: {TenantId}, RoleName: {RoleName}", dto.TenantId, dto.RoleName);
+                    _logger.LogWarning(
+                        "Skipping invalid role entry. TenantId: {TenantId}, RoleName: {RoleName}",
+                        dto.TenantId,
+                        dto.RoleName);
                     continue;
                 }
 
-                // ✅ Duplicate check (same tenant + same role name)
-                bool exists = await _context.Roles
-                    .AnyAsync(r => r.TenantId == dto.TenantId &&
-                                    r.RoleName.ToLower() == dto.RoleName.ToLower() &&
-                                   r.IsSoftDeleted == false);
+                bool exists = await _context.Roles.AnyAsync(r =>
+                    r.TenantId == dto.TenantId &&
+                    r.RoleName.ToLower() == dto.RoleName.ToLower() &&
+                    r.IsSoftDeleted == false);
 
                 if (exists)
                 {
-                    _logger.LogInformation("Role '{RoleName}' already exists for TenantId {TenantId}. Skipping insert.", dto.RoleName, dto.TenantId);
+                    _logger.LogInformation(
+                        "Role '{RoleName}' already exists for TenantId {TenantId}. Skipping insert.",
+                        dto.RoleName,
+                        dto.TenantId);
                     continue;
                 }
 
-                // ✅ Prepare entity (no mapping needed if it's already Role type)
-                var roleEntity = new Role
+                validRoles.Add(new Role
                 {
                     TenantId = dto.TenantId,
                     RoleName = dto.RoleName,
-                    RoleType = dto.RoleType, // int type handled properly ✅
+                    RoleType = dto.RoleType,
                     IsSystemDefault = false,
-                    
                     IsActive = true,
                     IsSoftDeleted = false,
                     Remark = dto.Remark ?? ConstantValues.TenantAllRoleRemark,
                     AddedById = dto.TenantId,
-                    AddedDateTime = DateTime.UtcNow,
-                    UpdatedById = null,
-                    UpdatedDateTime = null,
-                    SoftDeletedById = null,
-                    DeletedDateTime = null
-                };
-
-                validRoles.Add(roleEntity);
+                    AddedDateTime = DateTime.UtcNow
+                });
             }
 
-            // ✅ Nothing valid to insert
             if (!validRoles.Any())
             {
                 _logger.LogWarning("No valid roles to insert after validation.");
-                return -1;
+                return false;
             }
 
-            // ✅ Bulk insert all valid roles
             await _context.Roles.AddRangeAsync(validRoles);
 
-            _logger.LogInformation("Before SaveChangesAsync - total roles: {Count}", validRoles.Count);
-            try
-            {
-                var insertedCount = await _context.SaveChangesAsync();
-                _logger.LogInformation("After SaveChangesAsync - count: {Count}", insertedCount);
-
-            }
-            catch (Exception innerEx)
-            {
-                _logger.LogError(innerEx, "Error inside SaveChangesAsync()");
-                throw; // rethrow to outer catch
-            }
-
-
-            // ✅ Return TenantAdmin RoleId (latest one)
-            var tenantId = validRoles.First().TenantId;
-
-            var tenantAdminRole = await _context.Roles
-                .Where(r => r.TenantId == tenantId &&
-                            r.RoleType == ConstantValues.RoleTypeAdmin &&
-                            r.IsActive == true &&
-                            r.IsSoftDeleted == false && r.IsSystemDefault == false)
-                .OrderByDescending(r => r.Id)
-                .FirstOrDefaultAsync();
-
-            if (tenantAdminRole != null)
-            {
-                _logger.LogInformation("Tenant-Admin role created successfully with ID: {RoleId}", tenantAdminRole.Id);
-                return tenantAdminRole.Id;
-            }
-
-            _logger.LogWarning("Tenant-Admin role not found after insert operation.");
-            return -1;
-        }
-        catch (DbUpdateException dbEx)
-        {
-            _logger.LogError(dbEx, "Database update failed while auto-creating roles.");
-            return -1;
+            _logger.LogInformation("Roles added to DbContext successfully. Count: {Count}", validRoles.Count);
+            return true;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error occurred in AutoCreatedForTenantRoleAsync.");
-            return -1;
+            return false;
         }
     }
-
-
+ 
 
     public async Task<bool> UpdateAsync(UpdateRoleRequestDTO requestDTO)
     {

@@ -1,16 +1,11 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+﻿using axionpro.domain.Entity;
 
 namespace axionpro.application.Interfaces.IRepositories
 {
     public interface ITenantEncryptionKeyRepository
     {
-      public  Task<TenantEncryptionKey> GetActiveKeyByTenantIdAsync(long tenantId);
-      public  Task<int> AddAsync(TenantEncryptionKey tenantKey);
-      public  Task UpdateAsync(TenantEncryptionKey tenantKey);
+        Task<TenantEncryptionKey?> GetActiveKeyByTenantIdAsync(long tenantId, CancellationToken cancellationToken = default);
+        Task AddAsync(TenantEncryptionKey tenantKey, CancellationToken cancellationToken = default);
+        Task UpdateAsync(TenantEncryptionKey tenantKey, CancellationToken cancellationToken = default);
     }
 }

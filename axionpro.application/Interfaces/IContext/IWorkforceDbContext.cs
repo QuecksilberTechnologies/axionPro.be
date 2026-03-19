@@ -8,7 +8,9 @@ namespace axionpro.application.Interfaces.IContext
 {
     public interface IWorkforcedbContext
     {
-          
+
+        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+        int SaveChanges();
     }
     
     

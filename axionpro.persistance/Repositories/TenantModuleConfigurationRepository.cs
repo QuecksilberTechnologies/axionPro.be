@@ -80,27 +80,7 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        //public async Task<List<TenantEnabledModule>> GetAllEnabledTrueModulesWithOperationsByTenantIdAsync(long? tenantId)
-        //{
-        //    try
-        //    {
-        //        var modules = await _context.TenantEnabledModules
-        //            .Where(m => m.TenantId == tenantId )
-        //            .Include(m => m.Module)
-        //                .ThenInclude(mod => mod.ModuleOperationMappings
-        //                    .Where(mop => mop.IsActive == true)) // Only active mappings
-        //            .ToListAsync();
-
-        //        return modules;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Error while fetching enabled modules and operations for TenantId: {TenantId}", tenantId);
-        //        return new List<TenantEnabledModule>(); // Return empty list on failure
-        //    }
-        //}
-
-
+       
 
         //yeh function sirf enabled module or operation laata hai , login mei bhi used
         public async Task<List<TenantEnabledModule>> GetAllTenantEnabledModulesWithOperationsAsync(long? tenantId)
@@ -294,54 +274,71 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task CreateByDefaultEnabledModulesAsync(long tenantId,
-            List<TenantEnabledModule> moduleEntities, List<TenantEnabledOperation> operationEntities)
+        public async Task CreateByDefaultEnabledModulesAsync(
+      long tenantId,
+      List<TenantEnabledModule> moduleEntities,
+      List<TenantEnabledOperation> operationEntities)
         {
             try
             {
-                operationEntities.ForEach(op => op.TenantId = tenantId);
-
-                // Null/empty check
                 if ((moduleEntities == null || !moduleEntities.Any()) &&
                     (operationEntities == null || !operationEntities.Any()))
                 {
-                    _logger.LogWarning("No module or operation entities to insert for tenantId: {TenantId}", tenantId);
+                    _logger.LogWarning(
+                        "No module or operation entities found to add for TenantId: {TenantId}",
+                        tenantId);
                     return;
                 }
 
-                // Insert enabled modules
                 if (moduleEntities != null && moduleEntities.Any())
                 {
+                    foreach (var module in moduleEntities)
+                    {
+                        module.TenantId = tenantId;
+                        module.IsEnabled = true;
+                        module.AddedById = tenantId;
+                        module.AddedDateTime = DateTime.UtcNow;
+                    }
 
                     await _context.TenantEnabledModules.AddRangeAsync(moduleEntities);
-                    _logger.LogInformation("Inserted {Count} enabled modules for tenantId: {TenantId}", moduleEntities.Count, tenantId);
+
+                    _logger.LogInformation(
+                        "Tenant enabled modules added to DbContext. Count: {Count}, TenantId: {TenantId}",
+                        moduleEntities.Count,
+                        tenantId);
                 }
 
-                // Insert enabled operations
                 if (operationEntities != null && operationEntities.Any())
                 {
-                    operationEntities.ForEach(op =>
+                    foreach (var operation in operationEntities)
                     {
-                        op.TenantId = tenantId;
-                        op.IsEnabled = true;
-                        op.AddedById = tenantId;
-                        op.IsOperationUsed = true;
-                        op.AddedDateTime = DateTime.Now;
-                    });
+                        operation.TenantId = tenantId;
+                        operation.IsEnabled = true;
+                        operation.IsOperationUsed = true;
+                        operation.AddedById = tenantId;
+                        operation.AddedDateTime = DateTime.UtcNow;
+                    }
+
                     await _context.TenantEnabledOperations.AddRangeAsync(operationEntities);
-                    _logger.LogInformation("Inserted {Count} enabled operations for tenantId: {TenantId}", operationEntities.Count, tenantId);
+
+                    _logger.LogInformation(
+                        "Tenant enabled operations added to DbContext. Count: {Count}, TenantId: {TenantId}",
+                        operationEntities.Count,
+                        tenantId);
                 }
 
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation("Tenant default modules and operations saved successfully for tenantId: {TenantId}", tenantId);
+                _logger.LogInformation(
+                    "Tenant default module/operation entities prepared successfully for TenantId: {TenantId}",
+                    tenantId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while inserting default enabled modules/operations for tenantId: {TenantId}", tenantId);
-                throw; // Bubble up the error for global handling
+                _logger.LogError(
+                    ex,
+                    "Error while preparing default enabled modules/operations for TenantId: {TenantId}",
+                    tenantId);
+                throw;
             }
-
         }
 
     }

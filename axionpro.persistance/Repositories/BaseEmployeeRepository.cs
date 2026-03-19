@@ -51,209 +51,13 @@ namespace axionpro.persistance.Repositories
 
         }
 
-        public Task<long> AutoCreated(Employee entity)
-        {
-            throw new NotImplementedException();
-        }
-
-
-
-        public async Task<Employee> CreateEmployeeAsync( Employee employee, LoginCredential loginCredential)
-        {
-            await _context.Employees.AddAsync(employee);
-
-            var employeeImage = new EmployeeImage
-            {
-                Employee = employee,
-                TenantId = employee.TenantId,
-                IsPrimary = true,
-                HasImageUploaded = false,
-                IsActive = true,
-                AddedById = employee.AddedById,
-                AddedDateTime = DateTime.UtcNow,
-                FileType = 1
-            };
-
-            await _context.EmployeeImages.AddAsync(employeeImage);
-            await _context.LoginCredentials.AddAsync(loginCredential);
-            await _context.SaveChangesAsync();
-            return employee;
-        }
-
-        public async Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> CreateAsync(Employee entity)
-        {
-            try
-            {
-
-                // 🔹 Basic Validation
-                if (entity == null)
-                    throw new ArgumentNullException(nameof(entity), "Employee entity cannot be null.");
-
-                if (string.IsNullOrWhiteSpace(entity.FirstName))
-                    throw new ArgumentException("First name is required.");
-
-
-             
-                // 🔹 Insert Record
-                await _context.Employees.AddAsync(entity);
-
-
-                // 2️⃣ Insert record'
-                // Add Image before save (same transaction)
-                var employeeImage = new EmployeeImage
-                {
-                    Employee = entity,  // 🔥 instead of EmployeeId = entity.Id
-                    TenantId = entity.TenantId,
-                    IsPrimary = true,
-                    HasImageUploaded = false,
-                    IsActive = true,
-                    AddedById = entity.AddedById,
-                    AddedDateTime = DateTime.UtcNow,
-                    FileType = 1
-
-                };
-
-                await _context.EmployeeImages.AddAsync(employeeImage);
-                await _context.SaveChangesAsync();
-
-                // 🔹 Pagination Setup
-                const int pageNumber = 1;
-                const int pageSize = 10;
-
-                // 🔹 Base query (WITH JOINS + SELECT DTO)
-                var query = (from e in _context.Employees
-
-                             join d in _context.Designations on e.DesignationId equals d.Id into des
-                             from d in des.DefaultIfEmpty()
-
-                             join dep in _context.Departments on e.DepartmentId equals dep.Id into dept
-                             from dep in dept.DefaultIfEmpty()
-
-                             //join r in _context.Roles on e.UserRoles.FirstOrDefault equals r.Id into roleTbl
-                             //from r in roleTbl.DefaultIfEmpty()
-
-                             join g in _context.Genders on e.GenderId equals g.Id into gen
-                             from g in gen.DefaultIfEmpty()
-                             join country in _context.Countries
-                              on e.CountryId equals (int)country.Id into countryJoin
-                             from c in countryJoin.DefaultIfEmpty()
-
-                             where e.TenantId == entity.TenantId && e.IsSoftDeleted != true
-                             orderby e.Id descending
-                             join et in _context.EmployeeTypes  on e.EmployeeTypeId equals et.Id into empType
-                             from et in empType.DefaultIfEmpty()
-
-
-                             select new GetBaseEmployeeResponseDTO
-                             {
-                                 Id = e.Id.ToString(),
-                                 EmployementCode = e.EmployementCode,
-                                 FirstName = e.FirstName,
-                                 LastName = e.LastName,
-                                 MiddleName = e.MiddleName,
-
-                                 GenderId = e.GenderId??0,
-                                 GenderName = g.GenderName,
-                                  CountryId = e.CountryId,
-                                 Nationality= e.Country.CountryName,
-                                 DesignationId = e.DesignationId ?? 0,
-                                 DesignationName = d.DesignationName,
-
-                                 DepartmentId = e.DepartmentId ?? 0,
-                                 DepartmentName = dep.DepartmentName,
-
-                                
-                                 Type = et.TypeName,
-
-
-                                 //  RoleName = r.RoleName,
-                                 OfficialEmail = e.OfficialEmail,
-                                 EmployeeTypeId = e.EmployeeTypeId ?? 0,
-
-                                 DateOfBirth = e.DateOfBirth,
-                                 DateOfOnBoarding = e.DateOfOnBoarding,
-                                 DateOfExit = e.DateOfExit,
-
-                                 IsActive = e.IsActive,
-                                 HasPermanent = e.HasPermanent,
-                                 IsEditAllowed = e.IsEditAllowed,
-                                 IsInfoVerified = e.IsInfoVerified,
-                             })
-                             .AsNoTracking();
-
-
-                // 🔹 Count
-                int totalCount = await query.CountAsync();
-
-                // 🔹 Paging
-                var pagedData = await query
-                    .Skip((pageNumber - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToListAsync();
-
-                // 👉 NOTE: Yaha AutoMapper nahi chahiye, data already DTO me hai.
-                // var mappedData = _mapper.Map<List<GetBaseEmployeeResponseDTO>>(pagedData);
-
-                // 🔹 Prepare paged response
-                var result = new PagedResponseDTO<GetBaseEmployeeResponseDTO>
-                {
-                    Items = pagedData,
-                    TotalCount = totalCount,
-                    PageNumber = pageNumber,
-                    PageSize = pageSize,
-                    TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-                };
-
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error while creating employee for {TenantId}", entity.TenantId);
-                throw new Exception($"Failed to add employee: {ex.Message}");
-            }
-        }
-
+         
 
        
 
-        public async Task<bool> Delete(string id, string tenantKey)
-        {
-            try
-            {
-                // 1️⃣ Decrypt the encrypted Id using the tenant key
-                var decryptedId = _encryptionService.Decrypt(id, tenantKey);
+       
 
-                // 2️⃣ Convert to long (assuming primary key is long)
-                if (!long.TryParse(decryptedId, out long employeeId))
-                    throw new Exception("Invalid employee ID after decryption.");
-
-                // 3️⃣ Fetch the employee record
-                var employee = await _context.Employees
-                    .FirstOrDefaultAsync(e => e.Id == employeeId && e.IsActive);
-
-                if (employee == null)
-                    throw new Exception("Employee not found or already inactive.");
-
-                // 4️⃣ Soft delete (recommended)
-                employee.IsActive = false;
-                employee.UpdatedDateTime = DateTime.UtcNow;
-
-                // 5️⃣ Save changes
-                _context.Employees.Update(employee);
-                await _context.SaveChangesAsync();
-
-                // 6️⃣ Log and return success
-                _logger.LogInformation($"Employee (ID: {employeeId}) successfully deleted.");
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while deleting employee record.");
-                return false;
-            }
-        }
-
+        
         /// <summary>
         /// Common fun to for all tabs to update IsEditAllowed status
         /// </summary>
@@ -1875,93 +1679,7 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        // public async Task<GetMinimalEmployeeResponseDTO> GetSingleRecordAsync(long id, bool isActive)
-        //{
-        //    try
-        //    {
-        //        // 🧩 Validation
-        //        if (id <= 0)
-        //            throw new ArgumentException("Invalid Id provided for fetching employee record.");
-        //        // 🔍 Fetch employee + type + gender + department + designation info
-        //        var record = await (
-        //            from emp in _context.Employees.AsNoTracking()
-        //            join et in _context.EmployeeTypes.AsNoTracking()
-        //                on emp.EmployeeTypeId equals et.Id
-        //            join gt in _context.Genders.AsNoTracking()
-        //                on emp.GenderId equals gt.Id into genderGroup
-        //            from gt in genderGroup.DefaultIfEmpty()
-
-        //                // 👇 Department join
-        //            join dept in _context.Departments.AsNoTracking()
-        //                on emp.DepartmentId equals dept.Id into deptGroup
-        //            from dept in deptGroup.DefaultIfEmpty()
-        //               join nc in _context.Countries
-        //              on emp.CountryId equals nc.Id into countryJoin
-        //             from nationCountry in countryJoin.DefaultIfEmpty()
-
-        //                // 👇 Designation join
-        //            join desig in _context.Designations.AsNoTracking()
-        //                on emp.DesignationId equals desig.Id into desigGroup
-        //            from desig in desigGroup.DefaultIfEmpty()
-
-        //            where emp.Id == id
-        //               && emp.IsActive == isActive
-        //               && emp.IsSoftDeleted != true
-        //               && et.IsActive == true
-        //               && et.IsSoftDeleted != true
-        //               && (dept == null || (dept.IsActive == true && dept.IsSoftDeleted != true))
-        //               && (desig == null || (desig.IsActive == true && desig.IsSoftDeleted != true))
-
-        //            select new GetMinimalEmployeeResponseDTO
-        //            {
-        //                Id = emp.Id,
-        //                TenantId = emp.TenantId ?? 0,
-        //                FirstName = emp.FirstName,
-        //                MiddleName = emp.MiddleName,
-        //                LastName = emp.LastName,
-        //                EmployementCode = emp.EmployementCode,
-        //                EmployeeTypeId = emp.EmployeeTypeId ?? 0,
-        //                EmployeeTypeName = et.TypeName,
-        //                 CountryId = nationCountry.Id,
-        //                 Nationality =nationCountry.CountryName ,
-        //                DateOfOnBoarding = emp.DateOfOnBoarding,
-        //                DateOfBirth = emp.DateOfBirth,
-        //                EmergencyContactNumber = emp.EmergencyContactNumber,
-        //                EmergencyContactPerson = emp.EmergencyContactPerson,
-        //                MobileNumber = emp.MobileNumber,
-        //                 CountryCode= emp.Country.CountryCode,
-        //                IsActive = emp.IsActive,
-        //                HasPermanent = emp.HasPermanent,
-        //                GenderId = emp.GenderId ?? 0,
-        //                GenderName = gt.GenderName,
-        //                DepartmentId = emp.DepartmentId ?? 0,
-        //                DepartmentName = dept.DepartmentName,  // ✅ added
-        //                DesignationId = emp.DesignationId ?? 0,
-        //                DesignationName = desig.DesignationName // ✅ added,
-        //                ,OfficialEmail = emp.OfficialEmail
-
-        //            }
-        //        ).FirstOrDefaultAsync();
-
-
-        //        // 🚫 Handle null result
-        //        if (record == null)
-        //        {
-        //            _logger.LogWarning("⚠️ No employee record found for Id: {Id} (IsActive: {IsActive})", id, isActive);
-        //            throw new InvalidOperationException($"No employee record found for Id: {id} (IsActive: {isActive})");
-        //        }
-
-        //        // ✅ Return DTO result
-        //        return record;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "❌ Error while fetching employee record for Id: {Id}", id);
-        //        throw;
-        //    }
-        //}
-
-
+     
         public async Task<bool> UpdateEmployeeAsync(Employee entity, long tenantId)      
         {
             _context.Employees.Update(entity);
@@ -2214,10 +1932,157 @@ namespace axionpro.persistance.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<bool> UpdateVerificationStatusByEntity(int TabInfoType, long EmployeeId, long UserId, bool Status, bool IsActive)
+
+        public async Task AddEmployeeAggregateAsync(
+                Employee employee,
+                LoginCredential loginCredential,
+                UserRole userRole,
+                CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (employee == null) throw new ArgumentNullException(nameof(employee));
+                if (loginCredential == null) throw new ArgumentNullException(nameof(loginCredential));
+                if (userRole == null) throw new ArgumentNullException(nameof(userRole));
+
+                await _context.Employees.AddAsync(employee, cancellationToken);
+
+                var employeeImage = new EmployeeImage
+                {
+                    Employee = employee,
+                    TenantId = employee.TenantId,
+                    IsPrimary = true,
+                    HasImageUploaded = false,
+                    IsActive = true,
+                    AddedById = employee.AddedById,
+                    AddedDateTime = DateTime.UtcNow,
+                    FileType = 1
+                };
+
+                await _context.EmployeeImages.AddAsync(employeeImage, cancellationToken);
+                await _context.LoginCredentials.AddAsync(loginCredential, cancellationToken);
+                await _context.UserRoles.AddAsync(userRole, cancellationToken);
+
+                _logger.LogInformation(
+                    "Employee aggregate added to DbContext successfully for TenantId: {TenantId}, EmployeeCode: {EmployeeCode}",
+                    employee.TenantId,
+                    employee.EmployementCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Error while adding employee aggregate to DbContext for TenantId: {TenantId}, EmployeeCode: {EmployeeCode}",
+                    employee?.TenantId,
+                    employee?.EmployementCode);
+                throw;
+            }
         }
+
+        public async Task<GetBaseEmployeeResponseDTO?> GetCreatedEmployeeResponseAsync(
+            long employeeId,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var result = await
+                    (from emp in _context.Employees.AsNoTracking()
+                     where emp.Id == employeeId
+
+                     join d in _context.Designations
+                         on emp.DesignationId equals d.Id into desigJoin
+                     from desig in desigJoin.DefaultIfEmpty()
+
+                     join g in _context.Genders
+                         on emp.GenderId equals g.Id into genderJoin
+                     from gender in genderJoin.DefaultIfEmpty()
+
+                     join dept in _context.Departments
+                         on emp.DepartmentId equals dept.Id into deptJoin
+                     from department in deptJoin.DefaultIfEmpty()
+
+                     join ur in _context.UserRoles
+                         on emp.Id equals ur.EmployeeId
+
+                     join nc in _context.Countries
+                         on emp.CountryId equals nc.Id into countryJoin
+                     from nationCountry in countryJoin.DefaultIfEmpty()
+
+                     join r in _context.Roles
+                         on ur.RoleId equals r.Id
+
+                     join t in _context.EmployeeTypes
+                         on emp.EmployeeTypeId equals t.Id into empTypeJoin
+                     from empType in empTypeJoin.DefaultIfEmpty()
+
+                     select new GetBaseEmployeeResponseDTO
+                     {
+                         Id = emp.Id.ToString(),
+                         EmployementCode = emp.EmployementCode,
+                         FirstName = emp.FirstName,
+                         MiddleName = emp.MiddleName,
+                         LastName = emp.LastName,
+                         OfficialEmail = emp.OfficialEmail,
+                         GenderId = emp.GenderId ?? 0,
+                         GenderName = gender != null ? gender.GenderName : null,
+                         DesignationId = emp.DesignationId ?? 0,
+                         DesignationName = desig != null ? desig.DesignationName : null,
+                         DepartmentId = emp.DepartmentId ?? 0,
+                         DepartmentName = department != null ? department.DepartmentName : null,
+                         RoleId = r.Id,
+                         RoleType = r.RoleType,
+                         RoleName = r.RoleName,
+                         CountryId = emp.CountryId,
+                         MobileNumber = emp.MobileNumber,
+                         CountryCode = nationCountry != null ? nationCountry.CountryCode : null,
+                         Nationality = nationCountry != null ? nationCountry.CountryName : null,
+                         EmergencyContactPerson = emp.EmergencyContactPerson,
+                         EmergencyContactNumber = emp.EmergencyContactNumber,
+                         EmployeeTypeId = emp.EmployeeTypeId ?? 0,
+                         Type = empType != null ? empType.TypeName : null,
+                         DateOfBirth = emp.DateOfBirth,
+                         DateOfOnBoarding = emp.DateOfOnBoarding,
+                         DateOfExit = emp.DateOfExit,
+                         BloodGroup = emp.BloodGroup,
+                         HasPermanent = emp.HasPermanent,
+                         IsActive = emp.IsActive,
+                         IsEditAllowed = emp.IsEditAllowed,
+                         IsInfoVerified = emp.IsInfoVerified,
+                     }).FirstOrDefaultAsync(cancellationToken);
+
+                if (result == null)
+                {
+                    _logger.LogWarning("Created employee response not found for EmployeeId: {EmployeeId}", employeeId);
+                    return null;
+                }
+
+                bool hasPrimaryImage = await _context.EmployeeImages
+                    .AsNoTracking()
+                    .AnyAsync(x =>
+                        x.EmployeeId == employeeId &&
+                        x.IsPrimary == true &&
+                        x.HasImageUploaded == true &&
+                        x.IsSoftDeleted != true,
+                        cancellationToken);
+
+                var employeeEntity = await _context.Employees
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.Id == employeeId, cancellationToken);
+
+                if (employeeEntity != null)
+                {
+                    result.CompletionPercentage =
+                        CompletionCalculatorHelper.EmployeePropCalculate(employeeEntity, hasPrimaryImage);
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while fetching created employee response for EmployeeId: {EmployeeId}", employeeId);
+                throw;
+            }
+        }
+
     }
 
 

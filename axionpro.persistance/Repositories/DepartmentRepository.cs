@@ -1,28 +1,21 @@
 ﻿using AutoMapper;
-using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.DTOs.Department;
-using axionpro.application.DTOs.UserRole;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Department;
-using axionpro.application.DTOS.Designation;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
-
 using axionpro.persistance.Data.Context;
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-
 
 namespace axionpro.persistance.Repositories
 {
     public class DepartmentRepository : IDepartmentRepository
     {
         private readonly WorkforceDbContext _context;
-       
         private readonly IMapper _mapper;
         private readonly ILogger<DepartmentRepository> _logger;
         private readonly IEncryptionService _encryptionService;
@@ -33,20 +26,31 @@ namespace axionpro.persistance.Repositories
             IMapper mapper,
             IEncryptionService encryptionService)
         {
-            _context = context;
-            _logger = logger;
-            _mapper = mapper;
-            
-            _encryptionService = encryptionService;
-
-
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _encryptionService = encryptionService ?? throw new ArgumentNullException(nameof(encryptionService));
         }
-        public async Task<GetSingleDepartmentResponseDTO?> GetByIdAsync(GetSingleDepartmentRequestDTO dto)
+
+        public async Task<GetSingleDepartmentResponseDTO?> GetByIdAsync(
+            GetSingleDepartmentRequestDTO dto,
+            CancellationToken cancellationToken = default)
         {
             try
             {
+                if (dto == null)
+                {
+                    _logger.LogWarning("GetByIdAsync called with null dto.");
+                    return null;
+                }
+
                 var entity = await _context.Departments
-                    .FirstOrDefaultAsync(d => d.Id == dto.Id && d.IsSoftDeleted != true && d.IsActive == true);
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(
+                        d => d.Id == dto.Id &&
+                             d.IsSoftDeleted != true &&
+                             d.IsActive == true,
+                        cancellationToken);
 
                 if (entity == null)
                 {
@@ -54,18 +58,18 @@ namespace axionpro.persistance.Repositories
                     return null;
                 }
 
-                var dtoResult = _mapper.Map<GetSingleDepartmentResponseDTO>(entity);
-                return dtoResult;
+                return _mapper.Map<GetSingleDepartmentResponseDTO>(entity);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while fetching department by Id: {Id}", dto.Id);
-                return null;
+                _logger.LogError(ex, "Error while fetching department by Id: {Id}", dto?.Id);
+                throw;
             }
         }
 
-
-        public async Task<PagedResponseDTO<GetDepartmentResponseDTO>> GetAsync(GetDepartmentRequestDTO request)
+        public async Task<PagedResponseDTO<GetDepartmentResponseDTO>> GetAsync(
+            GetDepartmentRequestDTO request,
+            CancellationToken cancellationToken = default)
         {
             var response = new PagedResponseDTO<GetDepartmentResponseDTO>();
 
@@ -73,18 +77,15 @@ namespace axionpro.persistance.Repositories
             {
                 if (request == null)
                 {
-                    _logger.LogWarning("⚠️ GetAsync called with null request.");
+                    _logger.LogWarning("GetAsync called with null request.");
                     return response;
                 }
 
-            
-
-                // ✅ Base Query
                 var query = _context.Departments
+                    .AsNoTracking()
                     .Where(d => d.TenantId == request.Prop.TenantId && d.IsSoftDeleted != true)
                     .AsQueryable();
 
-                // ✅ Optional Filters
                 if (request.Id > 0)
                     query = query.Where(d => d.Id == request.Id);
 
@@ -94,7 +95,6 @@ namespace axionpro.persistance.Repositories
                 if (request.IsActive.HasValue)
                     query = query.Where(d => d.IsActive == request.IsActive.Value);
 
-                // ✅ Sorting
                 query = request.SortBy?.ToLower() switch
                 {
                     "departmentname" => request.SortOrder?.ToLower() == "asc"
@@ -109,85 +109,74 @@ namespace axionpro.persistance.Repositories
                         ? query.OrderBy(x => x.AddedDateTime)
                         : query.OrderByDescending(x => x.AddedDateTime),
 
-                    _ => query.OrderByDescending(x => x.Id) // ✅ Default sort by Id (desc)
+                    _ => query.OrderByDescending(x => x.Id)
                 };
 
-                // ✅ Pagination
-                var totalRecords = await query.CountAsync();
+                var totalRecords = await query.CountAsync(cancellationToken);
+
                 var departments = await query
                     .Skip((request.PageNumber - 1) * request.PageSize)
                     .Take(request.PageSize)
-                    .AsNoTracking()
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken);
 
                 var mappedList = _mapper.Map<List<GetDepartmentResponseDTO>>(departments);
 
-                // ✅ Response Setup
                 response.Items = mappedList;
                 response.TotalCount = totalRecords;
                 response.PageNumber = request.PageNumber;
                 response.PageSize = request.PageSize;
                 response.TotalPages = (int)Math.Ceiling((double)totalRecords / request.PageSize);
 
-                _logger.LogInformation("✅ Retrieved departments mappedList");
+                _logger.LogInformation("Retrieved {Count} departments for TenantId: {TenantId}", mappedList.Count, request.Prop.TenantId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error fetching departments");
+                _logger.LogError(ex, "Error fetching departments.");
                 response.Items = new List<GetDepartmentResponseDTO>();
             }
 
             return response;
         }
 
-
-        /// <summary>
-        /// Creates a new Department entry in the database.
-        /// </summary>
-        /// <param name="dto">The DTO containing department creation details.</param>
-        /// <returns>
-        /// Returns a list containing the created department details mapped to <see cref="GetDepartmentResponseDTO"/>.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">Thrown when the input DTO is null.</exception>
-        /// <exception cref="Exception">Thrown when any error occurs during database operations.</exception>
-        public async Task<PagedResponseDTO<GetDepartmentResponseDTO>> CreateAsync(CreateDepartmentRequestDTO dto)
+        public async Task<PagedResponseDTO<GetDepartmentResponseDTO>> CreateAsync(
+            CreateDepartmentRequestDTO dto,
+            CancellationToken cancellationToken = default)
         {
             var result = new PagedResponseDTO<GetDepartmentResponseDTO>();
 
             try
             {
-
                 const int pageNumber = 1;
                 const int pageSize = 10;
 
-                // 🧩 1️⃣ Validate Input
                 if (dto == null)
                 {
-                    _logger.LogWarning("⚠️ CreateAsync called with null Department DTO for TenantId: {TenantId}", dto.Prop.TenantId);
+                    _logger.LogWarning("CreateAsync called with null Department DTO.");
                     throw new ArgumentNullException(nameof(dto), "Department object cannot be null.");
                 }
 
-             
-
-                // 🧩 2️⃣ Check for Duplicate Department (case-insensitive)
                 bool exists = await _context.Departments
                     .AnyAsync(d =>
                         d.TenantId == dto.Prop.TenantId &&
-                        EF.Functions.Like(d.DepartmentName.ToLower(), dto.DepartmentName.ToLower()) &&
-                        (d.IsSoftDeleted != true));
+                        d.DepartmentName.ToLower() == dto.DepartmentName.ToLower() &&
+                        d.IsSoftDeleted != true,
+                        cancellationToken);
 
                 if (exists)
                 {
-                    _logger.LogWarning("⚠️ Department '{Name}' already exists for TenantId {TenantId}.", dto.DepartmentName, dto.Prop.TenantId);
+                    _logger.LogWarning(
+                        "Department '{Name}' already exists for TenantId {TenantId}.",
+                        dto.DepartmentName,
+                        dto.Prop.TenantId);
 
                     result.Items = new List<GetDepartmentResponseDTO>();
                     result.TotalCount = 0;
                     result.PageNumber = pageNumber;
                     result.PageSize = pageSize;
+                    result.TotalPages = 0;
                     return result;
                 }
 
-                // 🧩 3️⃣ Map DTO → Entity
                 var entity = _mapper.Map<Department>(dto);
                 entity.TenantId = dto.Prop.TenantId;
                 entity.AddedById = dto.Prop.UserEmployeeId;
@@ -196,30 +185,33 @@ namespace axionpro.persistance.Repositories
                 entity.IsSoftDeleted = false;
                 entity.IsExecutiveOffice = false;
 
-                // 🧩 4️⃣ Save to Database
-                await _context.Departments.AddAsync(entity);
-                await _context.SaveChangesAsync();
+                await _context.Departments.AddAsync(entity, cancellationToken);
 
-                _logger.LogInformation("✅ Department '{Name}' created successfully with Id: {Id} for TenantId: {TenantId}",
-                    dto.DepartmentName, entity.Id, dto.Prop.TenantId);
+                // NOTE:
+                // For independent CRUD screens this is okay for now.
+                // For transaction-controlled flows like tenant creation, do not use CreateAsync.
+                await _context.SaveChangesAsync(cancellationToken);
 
-                // 🧩 5️⃣ Fetch latest 10 active departments (newest first)
+                _logger.LogInformation(
+                    "Department '{Name}' created successfully with Id: {Id} for TenantId: {TenantId}",
+                    dto.DepartmentName,
+                    entity.Id,
+                    dto.Prop.TenantId);
+
                 var query = _context.Departments
                     .AsNoTracking()
-                    .Where(d => d.TenantId == dto.Prop.TenantId && (d.IsSoftDeleted !=true))
+                    .Where(d => d.TenantId == dto.Prop.TenantId && d.IsSoftDeleted != true)
                     .OrderByDescending(d => d.Id);
 
-                int totalCount = await query.CountAsync();
+                int totalCount = await query.CountAsync(cancellationToken);
 
                 var pagedData = await query
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken);
 
-                // 🧩 6️⃣ Map to DTO
                 var mappedData = _mapper.Map<List<GetDepartmentResponseDTO>>(pagedData);
 
-                // 🧩 7️⃣ Prepare Paged Response
                 result.Items = mappedData;
                 result.TotalCount = totalCount;
                 result.PageNumber = pageNumber;
@@ -230,75 +222,60 @@ namespace axionpro.persistance.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error while creating department for TenantId {TenantId}: {Message}", dto.Prop.TenantId, ex.Message);
-                throw new Exception("An error occurred while creating the department.", ex);
+                _logger.LogError(ex, "Error while creating department for TenantId {TenantId}", dto?.Prop?.TenantId);
+                throw;
             }
         }
 
-
-        /// <summary>
-        /// Updates an existing Department record with validation and logging.
-        /// </summary>
-        /// <param name="department">The DTO containing updated department details.</param>
-        /// <returns>True if update succeeds; otherwise false.</returns>
-        public async Task<bool> UpdateAsync(UpdateDepartmentRequestDTO requestDTO)
+        public async Task<bool> UpdateAsync(
+            UpdateDepartmentRequestDTO requestDTO,
+            CancellationToken cancellationToken = default)
         {
             try
             {
-                // 🔹 Step 1: Input validation
                 if (requestDTO == null)
                 {
                     _logger.LogWarning("UpdateAsync called with null DTO.");
                     return false;
                 }
-               
 
-                // 🔹 Step 2: Fetch existing department
                 var existing = await _context.Departments
-                    .FirstOrDefaultAsync(d => d.Id == requestDTO.Id && d.IsSoftDeleted != true);
-
+                    .FirstOrDefaultAsync(
+                        d => d.Id == requestDTO.Id && d.IsSoftDeleted != true,
+                        cancellationToken);
 
                 if (existing == null)
                 {
                     _logger.LogWarning("Update failed: Department not found for Id: {Id}", requestDTO.Id);
                     return false;
                 }
-                if (existing.IsExecutiveOffice != true)
+
+                if (existing.IsExecutiveOffice == true)
                 {
-
-                    // 🔹 Step 3: Field updates with null-safety
-                    if (!string.IsNullOrWhiteSpace(requestDTO.DepartmentName))
-                        existing.DepartmentName = requestDTO.DepartmentName;
-
-                    if (!string.IsNullOrWhiteSpace(requestDTO.Description))
-                        existing.Description = requestDTO.Description;
-
-                    if (!string.IsNullOrWhiteSpace(requestDTO.Remark))
-                        existing.Remark = requestDTO.Remark;
-
-                    if (requestDTO.IsActive.HasValue)
-                        existing.IsActive = requestDTO.IsActive.Value;
-
-                    existing.UpdatedById = requestDTO.Prop.UserEmployeeId;
-                    existing.UpdatedDateTime = DateTime.UtcNow;
-
-                    // Optional: Handle TenantIndustryId only if present
-                    if (requestDTO.GetType().GetProperty("TenantIndustryId") != null)
-                    {
-                        var tenantIndustryIdValue = requestDTO.GetType().GetProperty("TenantIndustryId")?.GetValue(requestDTO);
-                        if (tenantIndustryIdValue != null)
-                            existing.GetType().GetProperty("TenantIndustryId")?.SetValue(existing, tenantIndustryIdValue);
-                    }
-
-
-                    // 🔹 Step 4: Save changes
-                    _context.Departments.Update(existing);
-                    await _context.SaveChangesAsync();
-
-                    _logger.LogInformation("Department updated successfully. Id: {Id}", requestDTO.Id);
-                    return true;
+                    _logger.LogWarning("Executive Office department cannot be updated. Id: {Id}", requestDTO.Id);
+                    return false;
                 }
-                return false;
+
+                if (!string.IsNullOrWhiteSpace(requestDTO.DepartmentName))
+                    existing.DepartmentName = requestDTO.DepartmentName;
+
+                if (!string.IsNullOrWhiteSpace(requestDTO.Description))
+                    existing.Description = requestDTO.Description;
+
+                if (!string.IsNullOrWhiteSpace(requestDTO.Remark))
+                    existing.Remark = requestDTO.Remark;
+
+                if (requestDTO.IsActive.HasValue)
+                    existing.IsActive = requestDTO.IsActive.Value;
+
+                existing.UpdatedById = requestDTO.Prop.UserEmployeeId;
+                existing.UpdatedDateTime = DateTime.UtcNow;
+
+                _context.Departments.Update(existing);
+                await _context.SaveChangesAsync(cancellationToken);
+
+                _logger.LogInformation("Department updated successfully. Id: {Id}", requestDTO.Id);
+                return true;
             }
             catch (Exception ex)
             {
@@ -306,15 +283,19 @@ namespace axionpro.persistance.Repositories
                 return false;
             }
         }
-        public async Task<bool> DeleteAsync(DeleteDepartmentRequestDTO dto, long employeeId, int id)
+
+        public async Task<bool> DeleteAsync(
+            DeleteDepartmentRequestDTO dto,
+            long employeeId,
+            int id,
+            CancellationToken cancellationToken = default)
         {
             try
             {
-              
-
-                // ✅ Record fetch with safety check
                 var department = await _context.Departments
-                    .FirstOrDefaultAsync(d => d.Id == dto.Id && d.IsSoftDeleted != true);
+                    .FirstOrDefaultAsync(
+                        d => d.Id == dto.Id && d.IsSoftDeleted != true,
+                        cancellationToken);
 
                 if (department == null)
                 {
@@ -322,15 +303,13 @@ namespace axionpro.persistance.Repositories
                     return false;
                 }
 
-                // ✅ Soft delete setup
                 department.IsSoftDeleted = true;
                 department.IsActive = false;
                 department.SoftDeletedById = employeeId;
-                department.DeletedDateTime = DateTime.UtcNow; // Use UTC for consistency
+                department.DeletedDateTime = DateTime.UtcNow;
 
-                // ✅ Update and save
                 _context.Departments.Update(department);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation("Department soft deleted successfully. Id: {Id}", dto.Id);
                 return true;
@@ -342,11 +321,18 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<bool> ExistsAsync(long id, long tenantId)
+        public async Task<bool> ExistsAsync(
+            long id,
+            long tenantId,
+            CancellationToken cancellationToken = default)
         {
             try
             {
-                return await _context.Departments.AnyAsync(d => d.Id == id && d.TenantId == tenantId && !d.IsSoftDeleted == true);
+                return await _context.Departments.AnyAsync(
+                    d => d.Id == id &&
+                         d.TenantId == tenantId &&
+                         d.IsSoftDeleted != true,
+                    cancellationToken);
             }
             catch (Exception ex)
             {
@@ -354,111 +340,92 @@ namespace axionpro.persistance.Repositories
                 return false;
             }
         }
-        public async Task<Dictionary<string, int>> GetDepartmentNameIdMapAsync(long tenantId)
-        {
-            return await _context.Departments
-                .Where(d => !d.IsSoftDeleted == true && d.TenantId == tenantId)
-                .ToDictionaryAsync(d => d.DepartmentName, d => d.Id);
-        }
 
-
-        public async Task<int> AutoCreateDepartmentSeedAsync(List<Department>? departments)
+        public async Task<Dictionary<string, int>> GetDepartmentNameIdMapAsync(
+            long tenantId,
+            CancellationToken cancellationToken = default)
         {
             try
             {
-               
-
-                if (departments == null || !departments.Any())
-                {
-                    _logger.LogWarning("Department seed list is null or empty. Seeding aborted.");
-                    return -1;
-                }
-
-                await _context.Departments.AddRangeAsync(departments);
-                int insertedCount = await _context.SaveChangesAsync();
-
-                if (insertedCount != departments.Count)
-                {
-                    _logger.LogError("Mismatch in inserted department count. Expected: {Expected}, Inserted: {Inserted}", departments.Count, insertedCount);
-                    return -1;
-                }
-
-                long tenantId = departments.FirstOrDefault()?.TenantId ?? 0;
-
-                // ✅ Fetch the inserted Executive Office department's ID
-                var executiveOfficeDeptId = await _context.Departments
-                    .Where(d => d.IsExecutiveOffice == true && !d.IsSoftDeleted == true && d.TenantId == tenantId)
-                    .Select(d => d.Id)
-                    .FirstOrDefaultAsync();
-
-                if (executiveOfficeDeptId == 0)
-                {
-                    _logger.LogWarning("Executive Office department not found after insertion.");
-                    return -1;
-                }
-
-                _logger.LogInformation("Successfully inserted {Count} departments. Executive Office DepartmentId: {ExecutiveOfficeId}", insertedCount, executiveOfficeDeptId);
-                return executiveOfficeDeptId;
+                return await _context.Departments
+                    .AsNoTracking()
+                    .Where(d => d.TenantId == tenantId && d.IsSoftDeleted != true)
+                    .ToDictionaryAsync(d => d.DepartmentName, d => d.Id, cancellationToken);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Exception occurred while inserting department seed data.");
-                return -1;
+                _logger.LogError(ex, "Error while getting department name-id map for TenantId: {TenantId}", tenantId);
+                throw;
             }
         }
 
-        public async Task<ApiResponse<List<GetDepartmentOptionResponse?>>> GetOptionAsync(GetOptionRequestDTO dto)
-        {
-            {
-                var response = new ApiResponse<List<GetDepartmentOptionResponse?>>();
-
-                try
+                    public async Task<bool> AutoCreateDepartmentSeedAsync(
+                    List<Department>? departments,
+                    CancellationToken cancellationToken = default)
                 {
-                   
-
-                    // ✅ Parse DepartmentId safely
-
-
-                    var query = _context.Departments
-                        .Where(x => x.TenantId == dto.Prop.TenantId && x.IsSoftDeleted != true && x.IsActive == true);
-
-
-                    // ✅ Projection
-                    var designations = await query
-                        .OrderBy(x => x.DepartmentName)
-                        .Select(r => new GetDepartmentOptionResponse
-                        {
-                            Id = r.Id,
-                            DepartmentName = r.DepartmentName.ToString(),
-
-                            // IsActive = r.IsActive
-                        })
-                        .AsNoTracking()
-                        .ToListAsync();
-
-                    // ✅ Response setup
-                    response.Data = designations;
-                    response.Message = designations.Any()
-                        ? "✅ Department options fetched successfully."
-                        : "⚠️ No Department found for this tenant.";
-
-                    return response;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "❌ Error fetching department options");
-
-                    return new ApiResponse<List<GetDepartmentOptionResponse?>>
+                    try
                     {
-                        Message = "❌ An error occurred while fetching department options.",
-                        Data = new List<GetDepartmentOptionResponse?>()
-                    };
+                        if (departments == null || !departments.Any())
+                        {
+                            _logger.LogWarning("Department seed list is null or empty. Seeding aborted.");
+                            return false;
+                        }
+
+                        await _context.Departments.AddRangeAsync(departments, cancellationToken);
+
+                        _logger.LogInformation(
+                            "Department seeds added to DbContext successfully. Count: {Count}",
+                            departments.Count);
+
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Exception occurred while adding department seed data to context.");
+                        return false;
+                    }
                 }
+        public async Task<ApiResponse<List<GetDepartmentOptionResponse?>>> GetOptionAsync(
+            GetOptionRequestDTO dto,
+            CancellationToken cancellationToken = default)
+        {
+            var response = new ApiResponse<List<GetDepartmentOptionResponse?>>();
 
+            try
+            {
+                var departments = await _context.Departments
+                    .AsNoTracking()
+                    .Where(x =>
+                        x.TenantId == dto.Prop.TenantId &&
+                        x.IsSoftDeleted != true &&
+                        x.IsActive == true)
+                    .OrderBy(x => x.DepartmentName)
+                    .Select(r => new GetDepartmentOptionResponse
+                    {
+                        Id = r.Id,
+                        DepartmentName = r.DepartmentName
+                    })
+                    .ToListAsync(cancellationToken);
+
+                response.Data = departments;
+                response.Message = departments.Any()
+                    ? "Department options fetched successfully."
+                    : "No department found for this tenant.";
+
+                return response;
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching department options.");
 
-
+                return new ApiResponse<List<GetDepartmentOptionResponse?>>
+                {
+                    Message = "An error occurred while fetching department options.",
+                    Data = new List<GetDepartmentOptionResponse?>()
+                };
+            }
         }
 
+       
     }
 }

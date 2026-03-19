@@ -66,12 +66,22 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
+                if (entity == null)
+                    throw new ArgumentNullException(nameof(entity));
+
                 await _context.EmployeeCodePatterns.AddAsync(entity);
-                return await _context.SaveChangesAsync() > 0;
+
+                _logger.LogInformation(
+                    "Employee code pattern added to DbContext for TenantId: {TenantId}",
+                    entity.TenantId);
+
+                return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error creating pattern for TenantId {TenantId}", entity.TenantId);
+                _logger.LogError(ex,
+                    "Error while adding employee code pattern to DbContext for TenantId: {TenantId}",
+                    entity?.TenantId);
                 throw;
             }
         }
@@ -83,12 +93,22 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
+                if (entity == null)
+                    throw new ArgumentNullException(nameof(entity));
+
                 _context.EmployeeCodePatterns.Update(entity);
-                return await _context.SaveChangesAsync() > 0;
+
+                _logger.LogInformation(
+                    "Employee code pattern marked for update for PatternId: {PatternId}",
+                    entity.Id);
+
+                return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error updating employee code pattern Id {Id}", entity.Id);
+                _logger.LogError(ex,
+                    "Error while updating employee code pattern for PatternId: {PatternId}",
+                    entity?.Id);
                 throw;
             }
         }
@@ -113,11 +133,17 @@ namespace axionpro.persistance.Repositories
                     p.UpdatedDateTime = DateTime.UtcNow;
                 }
 
-                return await _context.SaveChangesAsync() > 0;
+                _logger.LogInformation(
+                    "Existing active employee code patterns marked inactive for TenantId: {TenantId}",
+                    tenantId);
+
+                return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error deactivating existing patterns for TenantId {TenantId}", tenantId);
+                _logger.LogError(ex,
+                    "Error deactivating existing patterns for TenantId: {TenantId}",
+                    tenantId);
                 throw;
             }
         }
@@ -127,7 +153,6 @@ namespace axionpro.persistance.Repositories
         // ============================================================
         public async Task<int> IncrementAndGetNextRunningNumberAsync(long tenantId)
         {
-            
             try
             {
                 var pattern = await _context.EmployeeCodePatterns
@@ -137,17 +162,20 @@ namespace axionpro.persistance.Repositories
                     throw new Exception("Active employee code pattern not found.");
 
                 pattern.LastUsedNumber += 1;
-                int next = pattern.LastUsedNumber;
+                pattern.UpdatedDateTime = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
-               
+                _logger.LogInformation(
+                    "Employee code running number incremented in DbContext for TenantId: {TenantId}, NextNumber: {NextNumber}",
+                    tenantId,
+                    pattern.LastUsedNumber);
 
-                return next;
+                return pattern.LastUsedNumber;
             }
             catch (Exception ex)
             {
-             
-                _logger.LogError(ex, "❌ Error incrementing running number for TenantId {TenantId}", tenantId);
+                _logger.LogError(ex,
+                    "Error incrementing running number for TenantId: {TenantId}",
+                    tenantId);
                 throw;
             }
         }
@@ -165,12 +193,10 @@ namespace axionpro.persistance.Repositories
                 if (pattern == null)
                     throw new Exception("Employee code pattern not configured for tenant.");
 
-                // SINGLE INCREMENT HERE (Correct)
                 pattern.LastUsedNumber += 1;
-                int nextSeq = pattern.LastUsedNumber;
-
                 pattern.UpdatedDateTime = DateTime.UtcNow;
-                await _context.SaveChangesAsync();
+
+                int nextSeq = pattern.LastUsedNumber;
 
                 List<string> parts = new();
 
@@ -188,14 +214,23 @@ namespace axionpro.persistance.Repositories
 
                 parts.Add(nextSeq.ToString().PadLeft(pattern.RunningNumberLength, '0'));
 
-                return string.Join(pattern.Separator, parts);
+                string employeeCode = string.Join(pattern.Separator, parts);
+
+                _logger.LogInformation(
+                    "Employee code generated in DbContext for TenantId: {TenantId}, EmployeeCode: {EmployeeCode}",
+                    tenantId,
+                    employeeCode);
+
+                return employeeCode;
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex,
+                    "Error generating employee code for TenantId: {TenantId}",
+                    tenantId);
                 throw;
             }
         }
-
     }
 
 }

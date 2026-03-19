@@ -33,6 +33,19 @@ namespace axionpro.persistance.Repositories
                     x.IsActive == true);
         }
 
+        
+        public async Task<TenantEmailConfig?> InsertEmailConfigAsync(TenantEmailConfig? config)
+        {
+            if (config == null)
+                return null;
+
+            await _context.TenantEmailConfigs.AddAsync(config);
+
+            _logger.LogInformation("Tenant email config added to DbContext for TenantId: {TenantId}", config.TenantId);
+
+            return config;
+        }
+
         public async Task<TenantEmailConfig?> UpdateEmailConfigAsync(TenantEmailConfig? config)
         {
             if (config == null)
@@ -52,20 +65,10 @@ namespace axionpro.persistance.Repositories
             existing.FromName = config.FromName;
             existing.IsActive = config.IsActive;
             existing.SecrateKey = config.SecrateKey;
-            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Tenant email config updated in DbContext for Id: {Id}", config.Id);
 
             return existing;
-        }
-        public async Task<TenantEmailConfig?> InsertEmailConfigAsync(TenantEmailConfig? config)
-        {
-            if (config == null)
-                return null;
-
-            await _context.TenantEmailConfigs.AddAsync(config);
-
-            await _context.SaveChangesAsync();
-
-            return config;
         }
     }
 

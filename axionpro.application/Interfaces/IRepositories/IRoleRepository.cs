@@ -27,11 +27,11 @@ namespace axionpro.application.Interfaces.IRepositories
         public Task<List<GetRoleResponseDTO>> GetRoleAsync(long tenantId, int roleTypeId, bool isActive);
         Task<bool> UpdateAsync(UpdateRoleRequestDTO requestDTO); 
         Task<Role> AutoCreatedSingleTenantRoleAsync(Role role);
-        Task<int> AutoCreatedForTenantRoleAsync(List<Role> roles);
+        Task<bool> AutoCreatedForTenantRoleAsync(List<Role> roles);
         Task<int> AutoCreateUserRoleAndAutomatedRolePermissionMappingAsync(long? TenantId, long employeeId, int role);
-         
-            
-        }
+
+        Task<Role?> GetTenantAdminRoleAsync(long tenantId);
+    }
      
 
  
