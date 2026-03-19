@@ -169,6 +169,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
 
                 var savedSub = await _unitOfWork.TenantSubscriptionRepository.AddTenantSubscriptionAsync(subscription);
 
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
                 if (savedSub == null)
                 {
                     await SafeRollbackAsync();
@@ -246,7 +247,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                     newTenantId,
                     tenantEnabledModules,
                     tenantEnabledOperations);
-
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
                 // =====================================================
                 // STEP 11 : Create tenant encryption key
                 // =====================================================
@@ -260,7 +261,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 };
 
                 await _unitOfWork.TenantEncryptionKeyRepository.AddAsync(tenantEncryptionKey);
-
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
                 // =====================================================
                 // STEP 12 : Seed departments
                 // =====================================================
@@ -277,9 +278,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                     await SafeRollbackAsync();
                     return Fail("Department creation failed.");
                 }
-
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
-
+ 
                 // Save required here so seeded departments get real IDs
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
