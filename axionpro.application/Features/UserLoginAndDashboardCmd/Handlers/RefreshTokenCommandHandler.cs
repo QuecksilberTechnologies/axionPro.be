@@ -1,26 +1,31 @@
-﻿using axionpro.application.Common.Helpers.Converters;
+﻿using AutoMapper;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.Hash;
+using axionpro.application.Constants;
+using axionpro.application.DTOs.Employee;
+using axionpro.application.DTOs.Operation;
+using axionpro.application.DTOs.Role;
+using axionpro.application.DTOs.RoleModulePermission;
+using axionpro.application.DTOs.Tenant;
+using axionpro.application.DTOs.UserLogin;
+using axionpro.application.DTOs.UserRole;
+using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Token;
 using axionpro.application.DTOS.Token.ems.application.DTOs.UserLogin;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
-using axionpro.application.Interfaces.IPermission;
+using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-
-using axionpro.domain.Entity; using MediatR;
+using axionpro.domain.Entity;
+using MediatR;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 {
-    // =========================
-    // COMMAND
-    // =========================
-    public class RefreshTokenCommand : IRequest<ApiResponse<TokenInfoResponseDTO>>
+    public class RefreshTokenCommand : IRequest<ApiResponse<LoginResponseDTO>>
     {
         public RefreshTokenRequestDTO DTO { get; }
 
@@ -30,155 +35,410 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
         }
     }
 
-    // =========================
-    // HANDLER
-    // =========================
-    public class RefreshTokenCommandHandler
-     : IRequestHandler<RefreshTokenCommand, ApiResponse<TokenInfoResponseDTO>>
+    public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, ApiResponse<LoginResponseDTO>>
     {
-        private readonly IRefreshTokenRepository _refreshTokenRepository;
-        private readonly ITokenService _tokenService;
+        private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IIdEncoderService _idEncoderService;
+        private readonly ITokenService _tokenService;
+        private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly ILogger<RefreshTokenCommandHandler> _logger;
+        private readonly IConfiguration _configuration;
+        private readonly IEncryptionService _encryptionService;
+        private readonly IIdEncoderService _idEncoderService;
+        private readonly ICommonRequestService _commonRequestService;
 
         public RefreshTokenCommandHandler(
-            IRefreshTokenRepository refreshTokenRepository,
-            ITokenService tokenService,
+            IMapper mapper,
             IUnitOfWork unitOfWork,
+            ITokenService tokenService,
+            IRefreshTokenRepository refreshTokenRepository,
+            ILogger<RefreshTokenCommandHandler> logger,
+            IConfiguration configuration,
+            IEncryptionService encryptionService,
             IIdEncoderService idEncoderService,
-            ILogger<RefreshTokenCommandHandler> logger)
+            ICommonRequestService commonRequestService)
         {
-            _refreshTokenRepository = refreshTokenRepository;
-            _tokenService = tokenService;
+            _mapper = mapper;
             _unitOfWork = unitOfWork;
-            _idEncoderService = idEncoderService;
+            _tokenService = tokenService;
+            _refreshTokenRepository = refreshTokenRepository;
             _logger = logger;
+            _configuration = configuration;
+            _encryptionService = encryptionService;
+            _idEncoderService = idEncoderService;
+            _commonRequestService = commonRequestService;
         }
 
-        public async Task<ApiResponse<TokenInfoResponseDTO>> Handle(
+        public async Task<ApiResponse<LoginResponseDTO>> Handle(
             RefreshTokenCommand request,
             CancellationToken cancellationToken)
         {
             try
             {
-                // =====================================================
-                // STEP 1: Incoming refresh token → HASH
-                // =====================================================
-                var incomingHashedToken =
-                    HashHelper.Sha256(request.DTO.RefreshToken);
+                if (request?.DTO == null || string.IsNullOrWhiteSpace(request.DTO.RefreshToken))
+                {
+                    return ApiResponse<LoginResponseDTO>.Fail("Refresh token is required.");
+                }
 
                 // =====================================================
-                // STEP 2: DB se VALID refresh token uthao
+                // STEP 1: Validate incoming refresh token
                 // =====================================================
-                var oldToken =
-                    await _refreshTokenRepository
-                        .GetValidByHashedTokenAsync(incomingHashedToken);
+                var incomingHashedToken = HashHelper.Sha256(request.DTO.RefreshToken);
+
+                var oldToken = await _refreshTokenRepository.GetValidByHashedTokenAsync(incomingHashedToken);
 
                 if (oldToken == null)
                 {
-                    _logger.LogWarning(
-                        "Invalid refresh token attempt | IP={IP}",
-                        request.DTO.IpAddress);
-
-                    return ApiResponse<TokenInfoResponseDTO>
-                        .Fail("Invalid refresh token.");
+                    _logger.LogWarning("Invalid refresh token attempt. IP={IP}", request.DTO.IpAddress);
+                    return ApiResponse<LoginResponseDTO>.Fail("Invalid refresh token.");
                 }
 
-                if (oldToken.IsRevoked || oldToken.ExpiryDate < DateTime.UtcNow)
+                if (oldToken.IsRevoked)
                 {
-                    _logger.LogCritical(
-                        "Refresh token reuse detected | LoginId={LoginId} | IP={IP}",
-                        oldToken.LoginId,
-                        request.DTO.IpAddress);
+                    _logger.LogWarning("Refresh token reuse detected. LoginId={LoginId}, IP={IP}",
+                        oldToken.LoginId, request.DTO.IpAddress);
+                    return ApiResponse<LoginResponseDTO>.Fail("Refresh token revoked.");
+                }
 
-                    return ApiResponse<TokenInfoResponseDTO>
-                        .Fail("Refresh token expired or revoked.");
+                if (oldToken.ExpiryDate < DateTime.UtcNow)
+                {
+                    _logger.LogInformation("Expired refresh token used. LoginId={LoginId}, IP={IP}",
+                        oldToken.LoginId, request.DTO.IpAddress);
+                    return ApiResponse<LoginResponseDTO>.Fail("Refresh token expired.");
                 }
 
                 // =====================================================
-                // STEP 3: LoginId se MINIMUM info lao (JWT ke liye)
-                // ❌ roles / permissions / menus nahi
+                // STEP 2: Fresh loginId from token row
                 // =====================================================
-                var tokenInfo =
-                    await _tokenService .GetUserInfoByLoginIdAsync(oldToken.LoginId);
+                string loginId = oldToken.LoginId;
 
-                if (tokenInfo == null)
-                    return ApiResponse<TokenInfoResponseDTO>
-                        .Fail("User not found.");
-
-                long  empid = SafeParser.TryParseLong(tokenInfo.EmployeeId);
-                long  tenantid = SafeParser.TryParseLong(tokenInfo.TenantId);
-             
-                
-                
-              
-                string finalKey = EncryptionSanitizer.SuperSanitize(tokenInfo.TenantEncriptionKey);                 
-                string encriptedEmployeeId = _idEncoderService.EncodeId_long(empid, finalKey);
-                string encriptedTenantId = _idEncoderService.EncodeId_long(tenantid, finalKey);
-
-
+                if (string.IsNullOrWhiteSpace(loginId))
+                {
+                    _logger.LogWarning("Refresh token has empty LoginId. TokenId={TokenId}", oldToken.Id);
+                    return ApiResponse<LoginResponseDTO>.Fail("Invalid refresh token data.");
+                }
 
                 // =====================================================
-                // STEP 4: NEW ACCESS TOKEN (JWT)
-                // (TenantId / EmployeeId ENCODED string hi rahega)
+                // STEP 3: Validate active user fresh from DB
                 // =====================================================
-                var newAccessToken =
-                    await _tokenService.GenerateToken(tokenInfo);
+                long empId = await _unitOfWork.StoreProcedureRepository.ValidateActiveUserLoginOnlyAsync(loginId);
+
+                _logger.LogInformation("Refresh validation for LoginId {LoginId}: EmployeeId = {empId}", loginId, empId);
+
+                if (empId < 1)
+                {
+                    _logger.LogWarning("User validation failed during refresh for LoginId: {LoginId}", loginId);
+                    return ApiResponse<LoginResponseDTO>.Fail("User is not authenticated or authorized to perform this action.");
+                }
 
                 // =====================================================
-                // STEP 5: NEW REFRESH TOKEN (ROTATION)
+                // STEP 4: Fresh employee info
                 // =====================================================
-                var newRefreshToken =
-                    await _tokenService.GenerateRefreshToken(); // PLAIN
+                GetMinimalEmployeeResponseDTO empMinimalResponse =
+                    await _unitOfWork.Employees.GetSingleRecordAsync(empId, true);
 
-                var newHashedRefreshToken =
-                    HashHelper.Sha256(newRefreshToken);
+                TenantSubscriptionPlanRequestDTO dto = new TenantSubscriptionPlanRequestDTO();
 
-                // =====================================================
-                // STEP 6: OLD TOKEN REVOKE + REPLACE TRACK
-                // =====================================================
-                await _refreshTokenRepository
-                    .UpdateReplacedByTokenAsync(
-                        oldToken.Id,
-                        newHashedRefreshToken);
+                if (empMinimalResponse == null)
+                {
+                    _logger.LogWarning("Employee may not active or deleted during refresh. LoginId: {LoginId}", loginId);
 
-                await _refreshTokenRepository
-                    .RevokeAsync(oldToken.Id, request.DTO.IpAddress);
-
-                // =====================================================
-                // STEP 7: INSERT NEW REFRESH TOKEN
-                // =====================================================
-                await _refreshTokenRepository.InsertAsync(
-                    new RefreshToken
+                    return new ApiResponse<LoginResponseDTO>
                     {
-                        LoginId = oldToken.LoginId,
-                        Token = newHashedRefreshToken,
-                        ExpiryDate = DateTime.UtcNow.AddDays(7),
-                        IsRevoked = false,
-                        CreatedAt = DateTime.UtcNow,
-                        CreatedByIp = request.DTO.IpAddress
-                    });
+                        IsSucceeded = false,
+                        Message = "Employee not active. Please contact admin."
+                    };
+                }
 
                 // =====================================================
-                // STEP 8: CLIENT RESPONSE
+                // STEP 5: Fresh subscription validation
                 // =====================================================
-                return ApiResponse<TokenInfoResponseDTO>.Success(
-                    new TokenInfoResponseDTO
+                dto.TenantId = empMinimalResponse.TenantId;
+
+                var subscriptionInfo = await _unitOfWork.TenantSubscriptionRepository.GetValidateTenantPlan(dto);
+
+                if (subscriptionInfo == null ||
+                    !subscriptionInfo.SubscriptionEndDate.HasValue ||
+                    subscriptionInfo.SubscriptionEndDate.Value.Date < DateTime.Today)
+                {
+                    _logger.LogWarning("Subscription expired or missing for tenant {TenantId} during refresh", dto.TenantId);
+
+                    return new ApiResponse<LoginResponseDTO>
                     {
-                        Token = newAccessToken,          // JWT
-                        RefreshToken = newRefreshToken  // PLAIN
-                    },
-                    "Token refreshed successfully.");
+                        IsSucceeded = false,
+                        Message = "Your subscription has expired. Please contact admin to renew the plan."
+                    };
+                }
+
+                // =====================================================
+                // STEP 6: Fresh roles
+                // =====================================================
+                var userRoles = await _unitOfWork.UserRoleRepository
+                    .GetEmployeeRolesWithDetailsByIdAsync(empId, empMinimalResponse.TenantId);
+
+                if (userRoles == null || userRoles.Count == 0)
+                {
+                    _logger.LogWarning("No roles found during refresh for LoginId: {LoginId}", loginId);
+                    return ApiResponse<LoginResponseDTO>.Fail("No active role found for this user.");
+                }
+
+                var roleInfo = userRoles.FirstOrDefault(x => x.IsPrimaryRole == true);
+
+                if (roleInfo == null || roleInfo.Role == null)
+                {
+                    _logger.LogWarning("Primary role missing during refresh for LoginId: {LoginId}", loginId);
+                    return ApiResponse<LoginResponseDTO>.Fail("Primary role not found for this user.");
+                }
+
+                List<UserRoleDTO>? userRoleDTOs = null;
+                string? allRoleIdsCsv = null;
+                UserRoleDTO? primaryRole = null;
+
+                allRoleIdsCsv = userRoles
+                    .Where(r => r.RoleId != null)
+                    .Select(r => r.RoleId.ToString())
+                    .Aggregate((a, b) => $"{a},{b}");
+
+                if (!string.IsNullOrEmpty(allRoleIdsCsv))
+                    _logger.LogInformation("Fetched Role IDs during refresh for LoginId {LoginId}: {Roles}", loginId, allRoleIdsCsv);
+                else
+                    _logger.LogWarning("No roles CSV formed during refresh for LoginId {LoginId}", loginId);
+
+                userRoleDTOs = _mapper.Map<List<UserRoleDTO>>(userRoles);
+
+                primaryRole = userRoleDTOs.FirstOrDefault(ur => ur.IsPrimaryRole && ur.IsActive);
+
+                if (primaryRole != null)
+                    userRoleDTOs.Remove(primaryRole);
+
+                // =====================================================
+                // STEP 7: Fresh common items
+                // =====================================================
+                var parent = await _unitOfWork.ModuleRepository.GetCommonMenuParentAsync();
+                if (parent == null)
+                {
+                    return ApiResponse<LoginResponseDTO>.Fail("Common menu parent not found.");
+                }
+
+                List<ModuleDTO> CommonItems = await _unitOfWork.ModuleRepository.GetCommonMenuTreeAsync(parent.Id);
+
+                // =====================================================
+                // STEP 8: Fresh operational menus / permissions
+                // =====================================================
+                var requestDto = new GetActiveRoleModuleOperationsRequestDTO
+                {
+                    RoleIds = allRoleIdsCsv,
+                    TenantId = empMinimalResponse.TenantId
+                };
+
+                var rolePermissions = await _unitOfWork.StoreProcedureRepository.GetActiveRoleModuleOperationsAsync(requestDto);
+
+                var grouped = rolePermissions
+                    .GroupBy(m => new { m.MainModuleId, m.MainModuleName })
+                    .Select(main => new MainModuleDto
+                    {
+                        MainModuleId = main.Key.MainModuleId,
+                        MainModuleName = main.Key.MainModuleName,
+
+                        SubModules = main
+                            .GroupBy(sm => new { sm.ParentModuleId, sm.SubModuleName })
+                            .Select(sub => new SubModuleDto
+                            {
+                                SubModuleId = sub.Key.ParentModuleId,
+                                SubModuleName = sub.Key.SubModuleName,
+
+                                Modules = sub
+                                    .GroupBy(mod => new
+                                    {
+                                        mod.ModuleId,
+                                        mod.ModuleName,
+                                        mod.DisplayName,
+                                        mod.ImageIconWeb,
+                                        mod.ImageIconMobile,
+                                        mod.URLPath,
+                                        mod.DataViewStructureId,
+                                        mod.DisplayOn
+                                    })
+                                    .Select(mod => new ModuleDto
+                                    {
+                                        ModuleId = mod.Key.ModuleId,
+                                        ModuleName = mod.Key.ModuleName,
+                                        DisplayName = mod.Key.DisplayName,
+                                        ImageIconWeb = mod.Key.ImageIconWeb,
+                                        ImageIconMobile = mod.Key.ImageIconMobile,
+                                        SubModuleURL = mod.Key.URLPath,
+                                        DataViewStructureId = mod.Key.DataViewStructureId,
+                                        DisplayOn = mod.Key.DisplayOn,
+
+                                        Operations = mod
+                                            .Select(op => new OperationDto
+                                            {
+                                                OperationId = op.OperationId,
+                                                OperationName = op.OperationName
+                                            }).ToList()
+                                    }).ToList()
+                            }).ToList()
+                    }).ToList();
+
+                var TenantEnabledModulesWithOperationData =
+                    await _unitOfWork.TenantModuleConfigurationRepository
+                        .GetAllTenantEnabledModulesWithOperationsAsync(empMinimalResponse.TenantId);
+
+                // =====================================================
+                // STEP 9: Fresh encryption key
+                // =====================================================
+                long tempTenantId = empMinimalResponse?.TenantId ?? 0;
+                long tempEmployeeId = empMinimalResponse?.Id ?? 0;
+
+                var tenantEncryptionKey = await _unitOfWork.TenantEncryptionKeyRepository
+                    .GetActiveKeyByTenantIdAsync(tempTenantId);
+
+                if (tenantEncryptionKey == null || string.IsNullOrEmpty(tenantEncryptionKey.EncryptionKey))
+                {
+                    throw new Exception("Tenant encryption key not found or invalid.");
+                }
+
+                string finalKey = EncryptionSanitizer.SuperSanitize(tenantEncryptionKey.EncryptionKey);
+                string encriptedEmployeeId = _idEncoderService.EncodeId_long(tempEmployeeId, finalKey);
+                string encriptedTenantId = _idEncoderService.EncodeId_long(tempTenantId, finalKey);
+
+                // =====================================================
+                // STEP 10: Fresh profile image + employee response
+                // =====================================================
+                string? ProfileImagePath =
+                    $"{_configuration["FileSettings:BaseUrl"] ?? string.Empty}{await _unitOfWork.Employees.ProfileImage(empId) ?? null}";
+
+                bool? isPasswordChange = null;
+
+                var user = await _unitOfWork.UserLoginRepository.AuthenticateUser(loginId);
+                if (user != null)
+                {
+                    isPasswordChange = user.IsPasswordChangeRequired;
+                }
+
+                GetEmployeeLoginInfoResponseDTO? employeeInfo =
+                    _mapper.Map<GetEmployeeLoginInfoResponseDTO>(empMinimalResponse);
+
+                employeeInfo.IsPasswordChangeRequired = isPasswordChange;
+                employeeInfo.UserPrimaryRole = primaryRole;
+                employeeInfo.RoleTypeId = roleInfo.Role.RoleType;
+                employeeInfo.RoleTypeName = roleInfo.Role.RoleName;
+                employeeInfo.EmployeeId = encriptedEmployeeId.Trim();
+                employeeInfo.UserSecondryRoles = userRoleDTOs;
+                employeeInfo.ProfileImageLink = ProfileImagePath;
+
+                var tenant = await _unitOfWork.TenantRepository.GetByIdAsync(dto.TenantId, true);
+
+                GetRoleRequestDTO getRoleRequestDTO = new GetRoleRequestDTO
+                {
+                    Id = employeeInfo.UserPrimaryRole?.RoleId ?? 0,
+                    RoleType = roleInfo.Role.RoleType,
+                    IsActive = true,
+                    Prop = new()
+                    {
+                        TenantId = dto.TenantId
+                    }
+                };
+
+                var roleTypeList = await _unitOfWork.RoleRepository.GetAsync(getRoleRequestDTO);
+                var roleType = roleTypeList.Items.FirstOrDefault(r =>
+                    r.Id == employeeInfo.UserPrimaryRole.RoleId && r.IsActive == true);
+
+                if (dto.TenantId == 0)
+                {
+                    return new ApiResponse<LoginResponseDTO>
+                    {
+                        IsSucceeded = false,
+                        Message = "Tenant information is invalid. Please contact admin."
+                    };
+                }
+
+                employeeInfo.TenantName = tenant?.CompanyName ?? string.Empty;
+
+                // =====================================================
+                // STEP 11: Fresh token info DTO
+                // =====================================================
+                GetTokenInfoDTO getTokenInfoDTO = new GetTokenInfoDTO()
+                {
+                    TenantEncriptionKey = finalKey,
+                    TenantId = encriptedTenantId,
+                    UserId = loginId,
+                    EmployeeId = encriptedEmployeeId.Trim(),
+                    RoleId = employeeInfo.UserPrimaryRole.RoleId.ToString(),
+                    RoleTypeId = employeeInfo.RoleTypeId.ToString() ?? "0",
+                    RoleTypeName = employeeInfo.RoleTypeName ?? "",
+                    EmployeeTypeId = employeeInfo.EmployeeTypeId.ToString() ?? "0",
+                    GenderId = empMinimalResponse.GenderId.ToString(),
+                    GenderName = empMinimalResponse.GenderName,
+                    Email = loginId,
+                    FullName = ((empMinimalResponse.FirstName ?? "") + "-" + (empMinimalResponse.LastName ?? "")).Trim('-'),
+                    Expiry = DateTime.UtcNow.AddMinutes(15),
+                    TokenPurpose = ConstantValues.Auth.ToString(),
+                };
+
+                // =====================================================
+                // STEP 12: Generate new token pair
+                // =====================================================
+                var token = await _tokenService.GenerateToken(getTokenInfoDTO);
+
+                var newRefreshToken = await _tokenService.GenerateRefreshToken();
+                var newHashedRefreshToken = HashHelper.Sha256(newRefreshToken);
+
+                // =====================================================
+                // STEP 13: Rotate refresh token in transaction
+                // =====================================================
+                await _unitOfWork.BeginTransactionAsync();
+
+                await _refreshTokenRepository.UpdateReplacedByTokenAsync(oldToken.Id, newHashedRefreshToken);
+                await _refreshTokenRepository.RevokeAsync(oldToken.Id, request.DTO.IpAddress);
+
+                bool isInserted = await _refreshTokenRepository.InsertAsync(new RefreshToken
+                {
+                    LoginId = loginId,
+                    Token = newHashedRefreshToken,
+                    ExpiryDate = DateTime.UtcNow.AddDays(7),
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedByIp = request.DTO.IpAddress,
+                    IsRevoked = false
+                });
+
+                if (!isInserted)
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                    return ApiResponse<LoginResponseDTO>.Fail("Unable to issue new refresh token.");
+                }
+
+                await _unitOfWork.CommitTransactionAsync();
+
+                // =====================================================
+                // STEP 14: Full login-style response
+                // =====================================================
+                var loginResponse = new LoginResponseDTO
+                {
+                    Token = token,
+                    RefreshToken = newRefreshToken,
+                    Success = ConstantValues.isSucceeded,
+                    EmployeeInfo = employeeInfo,
+                    CommonItems = CommonItems,
+                    OperationalMenus = grouped,
+                    Allroles = allRoleIdsCsv?.Trim()
+                };
+
+                return ApiResponse<LoginResponseDTO>.Success(loginResponse, "Token refreshed successfully.");
             }
             catch (Exception ex)
             {
+                try
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                }
+                catch
+                {
+                }
+
                 _logger.LogError(ex, "Error while refreshing token.");
-                return ApiResponse<TokenInfoResponseDTO>
-                    .Fail("Error while refreshing token.");
+                return ApiResponse<LoginResponseDTO>.Fail("Error while refreshing token.");
             }
         }
     }
-
-
 }
