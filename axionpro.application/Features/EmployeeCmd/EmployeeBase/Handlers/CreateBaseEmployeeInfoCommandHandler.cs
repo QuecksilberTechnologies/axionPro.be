@@ -123,6 +123,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     IsPasswordChangeRequired = true,
                     IsActive = true,
                     IsSoftDeleted = false,
+                    IsOnboard = false,
                     AddedById = employee.AddedById,
                     AddedDateTime = DateTime.UtcNow,
                     Employee = employee,

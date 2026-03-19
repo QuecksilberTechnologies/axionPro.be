@@ -1663,7 +1663,9 @@ namespace axionpro.persistance.Repositories
                         MobileNumber = emp.MobileNumber,
                         OfficialEmail = emp.OfficialEmail,
                         IsActive = emp.IsActive,
-                        HasPermanent = emp.HasPermanent
+                        HasPermanent = emp.HasPermanent,
+                        
+
                     }
                 ).FirstOrDefaultAsync();
 

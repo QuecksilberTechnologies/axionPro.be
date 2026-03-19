@@ -326,6 +326,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 employeeInfo.EmployeeId = encriptedEmployeeId.Trim();
                 employeeInfo.UserSecondryRoles = userRoleDTOs;
                 employeeInfo.ProfileImageLink = ProfileImagePath;
+                employeeInfo.IsOnboard = user.IsOnboard ;
 
                 var tenant = await _unitOfWork.TenantRepository.GetByIdAsync(dto.TenantId, true);
 

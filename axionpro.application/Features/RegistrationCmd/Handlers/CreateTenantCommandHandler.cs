@@ -447,6 +447,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                     IsPasswordChangeRequired = true,
                     HasFirstLogin = true,
                     Remark = "System Generated Account",
+                    IsOnboard =true,
                     AddedById = newTenantId,
                     AddedDateTime = DateTime.UtcNow
                 };

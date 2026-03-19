@@ -2067,6 +2067,7 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.IpAddressPublic).HasMaxLength(50);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
+                entity.Property(e => e.IsOnboard).HasDefaultValue(false);
                 entity.Property(e => e.Latitude).HasDefaultValue(0.0);
                 entity.Property(e => e.LoginDevice).HasDefaultValue(0);
                 entity.Property(e => e.LoginId).HasMaxLength(255);

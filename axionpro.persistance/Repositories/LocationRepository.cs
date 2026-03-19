@@ -1,47 +1,50 @@
 ﻿using AutoMapper;
-using axionpro.application.DTOS.Common;
-using axionpro.application.DTOS.Gender;
 using axionpro.application.DTOS.Location;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
-
+using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using axionpro.domain.Entity;
+using System.Threading.Tasks;
 
 namespace axionpro.persistance.Repositories
 {
     public class LocationRepository : ILocationRepository
     {
         private readonly WorkforceDbContext _context;
-       
         private readonly ILogger<LocationRepository> _logger;
         private readonly IMapper _mapper;
 
-        public LocationRepository(WorkforceDbContext context, ILogger<LocationRepository> logger, IMapper mapper)
+        public LocationRepository(
+            WorkforceDbContext context,
+            ILogger<LocationRepository> logger,
+            IMapper mapper)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(_mapper));
-           
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
+
         public async Task<List<Country>> GetAllAsync() => await _context.Countries.ToListAsync();
+
         public async Task<Country> GetByIdAsync(int id) => await _context.Countries.FindAsync(id);
+
         public async Task AddAsync(Country country)
         {
             await _context.Countries.AddAsync(country);
             await _context.SaveChangesAsync();
         }
+
         public async Task UpdateAsync(Country country)
         {
             _context.Countries.Update(country);
             await _context.SaveChangesAsync();
         }
+
         public async Task DeleteAsync(int id)
         {
             var country = await _context.Countries.FindAsync(id);
@@ -56,16 +59,25 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-              
-
                 if (dto.TodaysDate.HasValue)
                 {
                     var date = dto.TodaysDate.Value.Date;
                     _logger.LogInformation("Filtering country for date: {Date}", date);
                 }
-                var countries = await _context.Countries.AsNoTracking().ToListAsync();
-                var getCountries = _mapper.Map<List<GetCountryOptionResponseDTO>>(countries);
-                if (getCountries == null || getCountries.Count == 0)
+
+                var countries = await _context.Countries
+                    .AsNoTracking()
+                    .Where(c => c.IsActive == true)
+                    .Select(c => new GetCountryOptionResponseDTO
+                    {
+                        Id = c.Id,
+                        CountryName = c.CountryName ?? string.Empty,
+                        CountryCode = c.CountryCode ?? string.Empty,
+                        IsActive = c.IsActive
+                    })
+                    .ToListAsync();
+
+                if (countries == null || countries.Count == 0)
                 {
                     _logger.LogWarning("No active country found");
                     return new ApiResponse<List<GetCountryOptionResponseDTO?>>
@@ -79,8 +91,8 @@ namespace axionpro.persistance.Repositories
                 return new ApiResponse<List<GetCountryOptionResponseDTO?>>
                 {
                     IsSucceeded = true,
-                    Message = "country options fetched successfully.",
-                    Data = getCountries
+                    Message = "Country options fetched successfully.",
+                    Data = countries.Cast<GetCountryOptionResponseDTO?>().ToList()
                 };
             }
             catch (Exception ex)
@@ -95,13 +107,11 @@ namespace axionpro.persistance.Repositories
                 };
             }
         }
+
         public async Task<ApiResponse<List<GetStateOptionResponseDTO?>>> GetStateOptionAsync(GetStateOptionRequestDTO dto)
         {
             try
             {
-              
-
-                // ✅ Validate CountryId
                 if (dto.CountryId <= 0)
                 {
                     _logger.LogWarning("Invalid CountryId provided: {CountryId}", dto.CountryId);
@@ -113,40 +123,44 @@ namespace axionpro.persistance.Repositories
                     };
                 }
 
-                // ✅ Query only active states belonging to given country
                 var states = await _context.States
                     .AsNoTracking()
-                    .Where(s => s.CountryId == dto.CountryId && s.IsActive==true )
+                    .Where(s => s.CountryId == dto.CountryId && s.IsActive == true)
+                    .Select(s => new GetStateOptionResponseDTO
+                    {
+                        Id = s.Id,
+                        CountryId = s.CountryId,
+                        CountryCode = s.Country != null ? (s.Country.CountryCode ?? string.Empty) : string.Empty,
+                        StateName = s.StateName ?? string.Empty,
+                        IsActive = s.IsActive
+                    })
                     .ToListAsync();
 
-                // ✅ Map to DTO using AutoMapper
-                var mappedStates = _mapper.Map<List<GetStateOptionResponseDTO>>(states);
-
-                // ✅ Handle empty data
-                if (mappedStates == null || mappedStates.Count == 0)
+                if (states == null || states.Count == 0)
                 {
                     _logger.LogWarning("No active states found for CountryId: {CountryId}", dto.CountryId);
                     return new ApiResponse<List<GetStateOptionResponseDTO?>>
                     {
                         IsSucceeded = false,
-                        Message = "No active states found for the selected state.",
+                        Message = "No active states found for the selected country.",
                         Data = new List<GetStateOptionResponseDTO?>()
                     };
                 }
 
-                // ✅ Success response
-                _logger.LogInformation("Successfully retrieved {Count} active states for CountryId: {CountryId}", mappedStates.Count, dto.CountryId);
+                _logger.LogInformation(
+                    "Successfully retrieved {Count} active states for CountryId: {CountryId}",
+                    states.Count,
+                    dto.CountryId);
 
                 return new ApiResponse<List<GetStateOptionResponseDTO?>>
                 {
                     IsSucceeded = true,
                     Message = "State options fetched successfully.",
-                    Data = mappedStates
+                    Data = states.Cast<GetStateOptionResponseDTO?>().ToList()
                 };
             }
             catch (Exception ex)
             {
-                // ✅ Error handling
                 _logger.LogError(ex, "Error while fetching state options for CountryId: {CountryId}", dto.CountryId);
 
                 return new ApiResponse<List<GetStateOptionResponseDTO?>>
@@ -158,14 +172,10 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-
         public async Task<ApiResponse<List<GetDistrictOptionResponseDTO?>>> GetDistrictOptionAsync(GetDistrictOptionRequestDTO dto)
         {
             try
             {
-             
-
-                // ✅ Step 1: Validate input
                 if (dto.StateId <= 0)
                 {
                     _logger.LogWarning("Invalid StateId provided: {StateId}", dto.StateId);
@@ -177,10 +187,9 @@ namespace axionpro.persistance.Repositories
                     };
                 }
 
-                // ✅ Step 2: Check if the state itself is active
                 var isStateActive = await _context.States
                     .AsNoTracking()
-                    .AnyAsync(s => s.Id == dto.StateId && s.IsActive ==true);
+                    .AnyAsync(s => s.Id == dto.StateId && s.IsActive == true);
 
                 if (!isStateActive)
                 {
@@ -193,17 +202,22 @@ namespace axionpro.persistance.Repositories
                     };
                 }
 
-                // ✅ Step 3: Fetch all active districts of that active state
                 var districts = await _context.Districts
                     .AsNoTracking()
-                    .Where(d => d.StateId == dto.StateId && d.IsActive ==true)
+                    .Where(d => d.StateId == dto.StateId && d.IsActive == true)
+                    .Select(d => new GetDistrictOptionResponseDTO
+                    {
+                        Id = d.Id,
+                        StateId = d.StateId,
+                        CountryCode = d.State != null && d.State.Country != null
+                            ? (d.State.Country.CountryCode ?? string.Empty)
+                            : string.Empty,
+                        DistrictName = d.DistrictName ?? string.Empty,
+                        IsActive = d.IsActive
+                    })
                     .ToListAsync();
 
-                // ✅ Step 4: Map to DTO
-                var mappedDistricts = _mapper.Map<List<GetDistrictOptionResponseDTO>>(districts);
-
-                // ✅ Step 5: Handle no data
-                if (mappedDistricts == null || mappedDistricts.Count == 0)
+                if (districts == null || districts.Count == 0)
                 {
                     _logger.LogWarning("No active districts found for StateId: {StateId}", dto.StateId);
                     return new ApiResponse<List<GetDistrictOptionResponseDTO?>>
@@ -214,19 +228,22 @@ namespace axionpro.persistance.Repositories
                     };
                 }
 
-                // ✅ Step 6: Success response
-                _logger.LogInformation("Successfully retrieved {Count} districts for StateId: {StateId}", mappedDistricts.Count, dto.StateId);
+                _logger.LogInformation(
+                    "Successfully retrieved {Count} districts for StateId: {StateId}",
+                    districts.Count,
+                    dto.StateId);
+
                 return new ApiResponse<List<GetDistrictOptionResponseDTO?>>
                 {
                     IsSucceeded = true,
                     Message = "District options fetched successfully.",
-                    Data = mappedDistricts
+                    Data = districts.Cast<GetDistrictOptionResponseDTO?>().ToList()
                 };
             }
             catch (Exception ex)
             {
-                // ✅ Step 7: Error handling
                 _logger.LogError(ex, "Error while fetching district options for StateId: {StateId}", dto.StateId);
+
                 return new ApiResponse<List<GetDistrictOptionResponseDTO?>>
                 {
                     IsSucceeded = false,
@@ -235,9 +252,5 @@ namespace axionpro.persistance.Repositories
                 };
             }
         }
-
-
-
     }
-
 }

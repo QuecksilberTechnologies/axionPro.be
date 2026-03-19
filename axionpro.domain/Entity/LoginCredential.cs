@@ -20,6 +20,7 @@ public partial class LoginCredential
     public bool HasFirstLogin { get; set; }
 
     public bool? IsPasswordChangeRequired { get; set; }
+    public bool IsOnboard { get; set; }
 
     public string? MacAddress { get; set; }
 

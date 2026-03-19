@@ -20,6 +20,7 @@ namespace axionpro.application.DTOs.Employee
         public bool? IsPasswordChangeRequired { get; set; }
         public string? DesignationName { get; set; }
         public int DesignationId { get; set; }
+        public bool IsOnboard {  get; set; }
         public int DepartmentId { get; set; }
         public int? CountryId { get; set; }
         public string? Nationality { get; set; }

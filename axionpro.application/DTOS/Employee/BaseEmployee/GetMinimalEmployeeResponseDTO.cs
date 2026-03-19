@@ -31,6 +31,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         public int DesignationId { get; set; }
         public string? OfficialEmail { get; set; }
         public bool IsActive { get; set; }
+       // public bool IsOnboard { get; set; }
         public bool IsSoftDeleted { get; set; }
         public bool? IsEditAllowed { get; set; }
         public bool HasPermanent { get; set; }
