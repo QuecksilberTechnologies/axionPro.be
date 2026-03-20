@@ -1,9 +1,9 @@
 ﻿using axionpro.application.DTOs.Department;
 using axionpro.application.DTOS.Common;
-using axionpro.application.DTOS.Employee.Dependent;
+using axionpro.application.DTOS.Department;
 using axionpro.application.Features.DepartmentCmd.Handlers;
-using axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers;
 using axionpro.application.Interfaces.ILogger;
+using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -33,6 +33,9 @@ namespace axionpro.api.Controllers.Department
         /// <param name="departmentRequestDTO">Filter criteria for departments.</param>
         /// <returns>List of departments matching the filter.</returns>
         [HttpGet("get")]
+        [ProducesResponseType(typeof(ApiResponse<GetDepartmentResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllDepartmentsAsync([FromQuery] GetDepartmentRequestDTO departmentRequestDTO)
         {
             _logger.LogInfo($"Request received to get departments for TenantId: {departmentRequestDTO.UserEmployeeId}");
@@ -56,6 +59,9 @@ namespace axionpro.api.Controllers.Department
         /// <param name="createDto">Department details to create.</param>
         /// <returns>Success or failure response with created data.</returns>
         [HttpPost("add")]
+        [ProducesResponseType(typeof(ApiResponse<GetDepartmentResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateDepartmentAsync([FromBody] CreateDepartmentRequestDTO createDto)
         {
             if (createDto == null)
@@ -85,6 +91,9 @@ namespace axionpro.api.Controllers.Department
         /// <param name="updateDto">Updated department details.</param>
         /// <returns>Boolean status indicating success or failure.</returns>
         [HttpPut("update")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateDepartmentAsync([FromBody] UpdateDepartmentRequestDTO updateDto)
         {
             if (updateDto == null)
@@ -107,7 +116,9 @@ namespace axionpro.api.Controllers.Department
         /// Get all department.
         /// </summary>
         [HttpGet("option")]
-
+        [ProducesResponseType(typeof(ApiResponse<GetDepartmentOptionResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> getDepartment([FromQuery] GetOptionRequestDTO requestDTO)
         {
             _logger.LogInfo($"Received request to get Department : {requestDTO.UserEmployeeId}");
@@ -131,6 +142,9 @@ namespace axionpro.api.Controllers.Department
         /// <param name="deleteDto">Department delete request DTO.</param>
         /// <returns>Boolean status indicating success or failure.</returns>
         [HttpDelete("delete")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeleteDepartmentAsync([FromQuery] DeleteDepartmentRequestDTO deleteDto)
         {
             if (deleteDto == null)

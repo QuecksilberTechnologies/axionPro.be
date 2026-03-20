@@ -1,8 +1,7 @@
 ﻿using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.Dependent;
-using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers;
-using axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers;
 using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
 using FluentValidation;
@@ -39,10 +38,9 @@ namespace axionpro.api.Controllers.Employee
         /// <param name="DTO"></param>
         /// <param name="Dto">Employee-Dependent details</param>
         [HttpPost("create")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<GetBankResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateDependentInfo([FromForm] CreateDependentRequestDTO Dto)
         {
             try
@@ -124,6 +122,9 @@ namespace axionpro.api.Controllers.Employee
       /// Deletes employee education record by Id.
       /// </summary>
       [HttpDelete("delete")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Delete([FromQuery] DeleteRequestDTO dto)
         {
             try
@@ -156,7 +157,9 @@ namespace axionpro.api.Controllers.Employee
         /// Updates employee details.
         /// </summary>
         [HttpPost("update")]
-
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Update([FromForm] UpdateDependentRequestDTO dto)
         {
             try

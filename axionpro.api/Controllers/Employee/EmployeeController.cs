@@ -1,5 +1,6 @@
 ﻿ 
 using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
@@ -41,9 +42,9 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         /// <param name="employeeCreateDto">Employee details</param>
         [HttpPost("create")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ApiResponse<GetBaseEmployeeResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateEmployee([FromBody] CreateBaseEmployeeRequestDTO employeeCreateDto)
         {
             try
@@ -89,10 +90,9 @@ namespace axionpro.api.Controllers.Employee
 
 
         [HttpPost("profile/pic/update")]
-       
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         // [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> UpdateProfieImage([FromForm] UpdateEmployeeImageRequestDTO requestDto)
         {
@@ -125,10 +125,10 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
 
         [HttpGet("Image/get")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
-       // [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<GetEmployeeImageReponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        // [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> GetAllEmployeeImage([FromQuery] GetEmployeeImageRequestDTO requestDto)
         {
             try
@@ -159,7 +159,9 @@ namespace axionpro.api.Controllers.Employee
         ///  update  edit permission status for an employee.
         /// </summary>
         [HttpPost("update-edit-status")]
-       
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateSectionStatusBulk( [FromBody] UpdateEditStatusRequestDTO_ dto)
         {
             if (dto == null)
@@ -175,7 +177,9 @@ namespace axionpro.api.Controllers.Employee
         ///  update  verification permission status for an employee.
         /// </summary>
         [HttpPost("update-verification-status")]
-       
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateVerificationStatus([FromBody] UpdateVerificationStatusRequestDTO_ dto)
         {
             if (dto == null)
@@ -193,7 +197,8 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         [HttpPost("update-bulk")]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateSectionStatusBulk( [FromBody] UpdateEmployeeSectionStatusRequestDTO dto)
         {
             if (dto == null)
@@ -206,6 +211,9 @@ namespace axionpro.api.Controllers.Employee
         }
 
         [HttpGet("get-all-percentage")]
+        [ProducesResponseType(typeof(ApiResponse<CompletionSectionDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ApiResponse<List<CompletionSectionDTO>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllEmployeePercentageAsync([FromQuery] string employeeId)
         {
@@ -285,10 +293,9 @@ namespace axionpro.api.Controllers.Employee
         /// Get all employees based on TenantId or filters.
         /// </summary>
         [HttpGet("get")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<GetBaseEmployeeResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetEmployee([FromQuery] GetBaseEmployeeRequestDTO requestDto)
         {
             try
@@ -318,11 +325,9 @@ namespace axionpro.api.Controllers.Employee
         /// Get  summary based on TenantId or filters.
         /// </summary>
         [HttpGet("get-summary")]
-
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<SummaryEmployeeInfo>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetEmployeeSummary([FromQuery] GetEmployeeSummaryRequestDTO requestDto)
         {
             try
@@ -350,10 +355,9 @@ namespace axionpro.api.Controllers.Employee
         }
         [HttpGet("get-profile-summary")]
 
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<EmployeeProfileSummaryInfo>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetEmployeeProfileSummary([FromQuery] GetEmployeeSummaryRequestDTO requestDto)
         {
             try
@@ -384,10 +388,9 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         [HttpGet("get-all")]
 
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<GetAllEmployeeInfoResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllEmployee([FromQuery] GetAllEmployeeInfoRequestDTO requestDto)
         {
             try
@@ -419,8 +422,8 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         [HttpDelete("delete-all")]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Delete([FromQuery] DeleteBaseEmployeeRequestDTO dto)
         {
             try
@@ -452,8 +455,8 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         [HttpPut("update-status")]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateEmployeeStatus(
             [FromQuery] ActivateAllEmployeeRequestDTO dto)
         {
@@ -495,9 +498,9 @@ namespace axionpro.api.Controllers.Employee
         // </summary>
         [HttpPost("update")]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
-   
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+
         public async Task<IActionResult> Update([FromBody] UpdateEmployeeRequestDTO dto)
         {
             try
@@ -529,9 +532,8 @@ namespace axionpro.api.Controllers.Employee
         // </summary>
         [HttpPost("official/update")]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
-   
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> OfficialUpdate([FromBody] UpdateEmployeeRequestOfficialDTO dto)
         {
             try

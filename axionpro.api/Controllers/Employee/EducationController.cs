@@ -1,7 +1,5 @@
-﻿using axionpro.application.DTOs.Employee;
-using axionpro.application.DTOS.Common;
+﻿using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.Education;
-using axionpro.application.Features.EmployeeCmd.Contact.Handlers;
 using axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers;
 using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
@@ -30,10 +28,9 @@ namespace axionpro.api.Controllers.Employee
         /// Create new employee education record.
         /// </summary>
         [HttpPost("create")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<GetEducationResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateEmployee([FromForm] CreateEducationRequestDTO dto)
 
         {
@@ -60,10 +57,9 @@ namespace axionpro.api.Controllers.Employee
         /// Get all education records (Paginated).
         /// </summary>
         [HttpGet("get")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<GetEducationResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllEmployeeInfo([FromQuery] GetEducationRequestDTO commandDto)
         {
             try
@@ -88,6 +84,9 @@ namespace axionpro.api.Controllers.Employee
        /// Deletes employee education record by Id.
        /// </summary>
        [HttpDelete("delete")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Delete([FromQuery] DeleteEducationRequestDTO dto)
         {
             try
@@ -117,12 +116,11 @@ namespace axionpro.api.Controllers.Employee
         /// <summary>
         /// Updates employee details.
         /// </summary>
-        [HttpPost("update-education")]      
+        [HttpPost("update-education")]
 
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateEducation(UpdateEducationRequestDTO dto)
 
         {

@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using axionpro.application.DTOS.Employee.Bank;
+using axionpro.application.Wrappers;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Net;
 
@@ -20,6 +22,9 @@ public class ClientInfoController : ControllerBase
         return ip;
     }
     [HttpGet("detect-device")]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
     public IActionResult GetDeviceInfo()
     {
         var userAgent = Request.Headers["User-Agent"].ToString();

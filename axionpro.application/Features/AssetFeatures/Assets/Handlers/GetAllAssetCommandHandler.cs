@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.DTOS.AssetDTO.asset;
-using axionpro.application.Features.EmployeeCmd.BankInfo.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -9,19 +8,18 @@ using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+using System.Threading.Tasks;
 
 namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
 {
-    public class GetAllAssetCommand
-        : IRequest<ApiResponse<List<GetAssetResponseDTO>>>
+    public class GetAllAssetCommand : IRequest<ApiResponse<List<GetAssetResponseDTO>>>
     {
         public GetAssetRequestDTO DTO { get; set; }
 
@@ -48,16 +46,19 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
         private readonly IIdEncoderService _idEncoderService;
         private readonly IFileStorageService _fileStorageService;
         private readonly ICommonRequestService _commonRequestService;
-        public GetAllAssetCommandHandler(IUnitOfWork unitOfWork,
+
+        public GetAllAssetCommandHandler(
+            IUnitOfWork unitOfWork,
             IMapper mapper,
             IHttpContextAccessor httpContextAccessor,
             ILogger<GetAllAssetCommandHandler> logger,
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,
-            IEncryptionService encryptionService, IIdEncoderService idEncoderService
-            , IFileStorageService fileStorageService,
-             ICommonRequestService commonRequestService)
+            IEncryptionService encryptionService,
+            IIdEncoderService idEncoderService,
+            IFileStorageService fileStorageService,
+            ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -80,69 +81,57 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
             {
                 _logger.LogInformation("Fetching all Assets");
 
-                // ===============================
-                // 1️⃣ COMMON VALIDATION (MANDATORY)
-                // ===============================
-                var validation =
-                    await _commonRequestService.ValidateRequestAsync();
+                // 1️⃣ COMMON VALIDATION
+                var validation = await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
-                    return ApiResponse<List<GetAssetResponseDTO>>
-                        .Fail(validation.ErrorMessage);
+                {
+                    return ApiResponse<List<GetAssetResponseDTO>>.Fail(validation.ErrorMessage);
+                }
 
-                // Assign decoded values
+                // 2️⃣ ASSIGN COMMON VALUES
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
-                // ===============================
-                // 2️⃣ PERMISSION CHECK (OPTIONAL)
-                // ===============================
-                var permissions =
-                    await _permissionService.GetPermissionsAsync(validation.RoleId);
+                // 3️⃣ PERMISSION CHECK (optional)
+                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
 
                 // if (!permissions.Contains("ViewAsset"))
                 // {
-                //     return ApiResponse<List<GetAssetResponseDTO>>
-                //         .Fail("You do not have permission to view assets.");
+                //     return ApiResponse<List<GetAssetResponseDTO>>.Fail("You do not have permission to view assets.");
                 // }
 
-                // ===============================
-                // 3️⃣ FETCH FROM REPOSITORY
-                // ===============================
-                var assets =
-                    await _unitOfWork.AssetRepository
-                        .GetAssetsByFilterAsync(request.DTO);
+                // 4️⃣ FETCH DATA
+                var assets = await _unitOfWork.AssetRepository.GetAssetsByFilterAsync(request.DTO);
 
+                // ✅ Empty record bhi success maana jayega
                 if (assets == null || assets.Count == 0)
                 {
                     _logger.LogInformation(
-                        "No Assets found for TenantId: {TenantId}",
+                        "No assets found for TenantId: {TenantId}",
                         request.DTO.Prop.TenantId);
 
-                    return new ApiResponse<List<GetAssetResponseDTO>>
-                    {
-                        IsSucceeded = true,
-                        Message = "No assets found.",
-                        Data = new List<GetAssetResponseDTO>()
-                    };
+                    return ApiResponse<List<GetAssetResponseDTO>>.Success(
+                        new List<GetAssetResponseDTO>(),
+                        "No assets found.");
                 }
-                var encryptedList = ProjectionHelper.ToGetAssetResponseDTOs(assets, _idEncoderService, validation.Claims.TenantEncriptionKey, _config);
 
+                // 5️⃣ PROJECTION / ENCRYPTION
+                var encryptedList = ProjectionHelper.ToGetAssetResponseDTOs(
+                    assets,
+                    _idEncoderService,
+                    validation.Claims.TenantEncriptionKey,
+                    _config);
 
                 _logger.LogInformation(
                     "Successfully retrieved {Count} assets for TenantId: {TenantId}",
-                    assets.Count,
+                    encryptedList.Count,
                     request.DTO.Prop.TenantId);
 
-                // ===============================
-                // 4️⃣ RETURN RESPONSE
-                // ===============================
-                return new ApiResponse<List<GetAssetResponseDTO>>
-                {
-                    IsSucceeded = true,
-                    Message = "Assets fetched successfully.",
-                    Data = assets
-                };
+                // 6️⃣ SUCCESS RESPONSE
+                return ApiResponse<List<GetAssetResponseDTO>>.Success(
+                    encryptedList,
+                    "Assets fetched successfully.");
             }
             catch (Exception ex)
             {
@@ -151,12 +140,9 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
                     "Error occurred while fetching assets for TenantId: {TenantId}",
                     request?.DTO?.Prop?.TenantId);
 
-                return new ApiResponse<List<GetAssetResponseDTO>>
-                {
-                    IsSucceeded = false,
-                    Message = "An unexpected error occurred while fetching assets.",
-                    Data = new List<GetAssetResponseDTO>()
-                };
+                return ApiResponse<List<GetAssetResponseDTO>>.Fail(
+                    "An unexpected error occurred while fetching assets.",
+                    new List<string> { ex.Message });
             }
         }
     }

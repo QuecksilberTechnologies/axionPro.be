@@ -22,6 +22,7 @@ using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Serilog.Core;
 
 namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 {
@@ -90,23 +91,22 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 if (oldToken == null)
                 {
                     _logger.LogWarning("Invalid refresh token attempt. IP={IP}", request.DTO.IpAddress);
-                    return ApiResponse<LoginResponseDTO>.Fail("Invalid refresh token.");
+                    throw new UnauthorizedAccessException("Invalid refresh token.");
                 }
 
                 if (oldToken.IsRevoked)
                 {
                     _logger.LogWarning("Refresh token reuse detected. LoginId={LoginId}, IP={IP}",
                         oldToken.LoginId, request.DTO.IpAddress);
-                    return ApiResponse<LoginResponseDTO>.Fail("Refresh token revoked.");
+                    throw new UnauthorizedAccessException("Refresh token revoked.");
                 }
 
                 if (oldToken.ExpiryDate < DateTime.UtcNow)
                 {
                     _logger.LogInformation("Expired refresh token used. LoginId={LoginId}, IP={IP}",
                         oldToken.LoginId, request.DTO.IpAddress);
-                    return ApiResponse<LoginResponseDTO>.Fail("Refresh token expired.");
+                    throw new UnauthorizedAccessException("Refresh token expired.");
                 }
-
                 // =====================================================
                 // STEP 2: Fresh loginId from token row
                 // =====================================================
@@ -115,7 +115,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 if (string.IsNullOrWhiteSpace(loginId))
                 {
                     _logger.LogWarning("Refresh token has empty LoginId. TokenId={TokenId}", oldToken.Id);
-                    return ApiResponse<LoginResponseDTO>.Fail("Invalid refresh token data.");
+                    throw new UnauthorizedAccessException("Invalid refresh token data.");
                 }
 
                 // =====================================================
@@ -437,8 +437,8 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 {
                 }
 
-                _logger.LogError(ex, "Error while refreshing token.");
-                return ApiResponse<LoginResponseDTO>.Fail("Error while refreshing token.");
+                _logger.LogError(ex, "Error while refreshing token.");                          
+                throw;
             }
         }
     }

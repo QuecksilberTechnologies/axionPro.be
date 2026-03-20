@@ -4,6 +4,7 @@ using axionpro.application.DTOS.Designation;
 using axionpro.application.Features.DepartmentCmd.Handlers;
 using axionpro.application.Features.DesignationCmd.Handlers;
 using axionpro.application.Interfaces.ILogger;
+using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -36,6 +37,9 @@ namespace axionpro.api.Controllers.Designation
         /// <response code="400">Invalid request parameters.</response>
         /// <response code="401">Unauthorized request or invalid tenant.</response>
         [HttpGet("get")]
+        [ProducesResponseType(typeof(ApiResponse<GetDesignationResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllDesignationAsyc([FromQuery] GetDesignationRequestDTO designationRequestDTO)
         {
          //   _logger.LogInfo($"Received request to get designation from userId: {designationRequestDTO.Id}");
@@ -58,6 +62,9 @@ namespace axionpro.api.Controllers.Designation
         /// <response code="400">Invalid request parameters.</response>
         /// <response code="401">Unauthorized request or invalid tenant.</response>
         [HttpPost("Department/Group/get")]
+        [ProducesResponseType(typeof(ApiResponse<GetDepartmentResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllDepartmentAsyc([FromBody] GetDepartmentRequestDTO designationRequestDTO)
         {
             _logger.LogInfo($"Received request to get tenant from tenantId: {designationRequestDTO.Id}");
@@ -76,7 +83,9 @@ namespace axionpro.api.Controllers.Designation
         /// Get all designation.
         /// </summary>
         [HttpGet("option")]
-
+        [ProducesResponseType(typeof(ApiResponse<GetDesignationOptionResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> getDesignation([FromQuery] GetDesignationOptionRequestDTO requestDTO)
         {
             _logger.LogInfo($"Received request to get Designation : {requestDTO.UserEmployeeId}");
@@ -99,6 +108,9 @@ namespace axionpro.api.Controllers.Designation
         /// <response code="200">Designation created successfully.</response>
         /// <response code="400">Invalid request payload.</response>
         [HttpPost("add")]
+        [ProducesResponseType(typeof(ApiResponse<GetDesignationResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateDesignation([FromBody] CreateDesignationRequestDTO dTO)
         {
             if (dTO == null)
@@ -128,6 +140,9 @@ namespace axionpro.api.Controllers.Designation
         /// <response code="200">Designation deleted successfully.</response>
         /// <response code="400">Invalid request payload.</response>
         [HttpDelete("delete")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Delete([FromQuery] DeleteDesignationRequestDTO dTO)
         {
             if (dTO == null)
@@ -157,6 +172,9 @@ namespace axionpro.api.Controllers.Designation
         /// <response code="200">Designation updated successfully.</response>
         /// <response code="400">Invalid update request.</response>
         [HttpPut("update")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateDesignation([FromBody] UpdateDesignationRequestDTO updateDesignationDTO)
         {
             _logger.LogInfo("Received request for update designation: " + updateDesignationDTO.ToString());

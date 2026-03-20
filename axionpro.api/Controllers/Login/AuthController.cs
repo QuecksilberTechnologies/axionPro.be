@@ -47,16 +47,13 @@ namespace axionpro.api.Controllers.Login
 
         [HttpPost("refresh-token")]
         [ProducesResponseType(typeof(ApiResponse<LoginResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDTO request)
         {
-            var command = new RefreshTokenCommand(request);          
+            var command = new RefreshTokenCommand(request);
             var result = await _mediator.Send(command);
-            if (!result.IsSucceeded)
-            {
-                return Unauthorized(result);
-            }
             return Ok(result);
-            
         }
 
         //[HttpPost("AccessDetails")]

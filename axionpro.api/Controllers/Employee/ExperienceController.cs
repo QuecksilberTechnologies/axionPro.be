@@ -1,9 +1,9 @@
-﻿
+﻿using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.Experience;
 
 using axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers;
 using axionpro.application.Interfaces.ILogger;
-
+using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -29,6 +29,9 @@ namespace axionpro.api.Controllers.Employee
         // Create new employee experience record.
         // </summary>
         [HttpPost("create")]
+        [ProducesResponseType(typeof(ApiResponse<GetBaseEmployeeResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> CreateExperience([FromForm] CreateExperienceRequestDTO dto)
         {

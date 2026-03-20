@@ -1,12 +1,6 @@
 ﻿using AutoMapper;
-using axionpro.application.Common.Helpers;
-using axionpro.application.Common.Helpers.axionpro.application.Configuration;
-using axionpro.application.Common.Helpers.Converters;
-using axionpro.application.Common.Helpers.EncryptionHelper;
-using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.Education;
-using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -14,11 +8,10 @@ using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Linq;
 
 namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 {

@@ -1,7 +1,9 @@
 ﻿using axionpro.application.DTOs.EmailTemplate;
+using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.Features.EmailTemplateCmd.Queries;
 using axionpro.application.Interfaces.IEmail;
 using axionpro.application.Interfaces.ILogger;
+using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -31,6 +33,9 @@ namespace axionpro.api.Controllers.EmailTemplate
         /// <param name="code">Template code</param>
         /// <returns>List of matching email templates</returns>
         [HttpGet("get-template-by-code")]
+        [ProducesResponseType(typeof(ApiResponse<EmailTemplateDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetTemplateByCodeAsync([FromQuery] string code)
         {
             _logger.LogInfo($"Getting email templates for code: {code}");
@@ -51,6 +56,9 @@ namespace axionpro.api.Controllers.EmailTemplate
         /// Send email using template
         /// </summary>
         [HttpPost("send-template")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> SendTemplatedEmail([FromBody] SendEmailTemplatRequestDTO request)
         {
             _logger.LogInfo($"Sending email to {request.ToEmail} using template {request.TemplateCode}");

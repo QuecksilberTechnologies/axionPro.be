@@ -108,14 +108,33 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 
 
                 // 🧩 STEP 4: Call Repository to get data GetBankReqestDTO dto, int id, long EmployeeId
+                
                 var bankEntities = await _unitOfWork.EmployeeBankRepository.GetInfoAsync(request.DTO);
-                if (bankEntities == null || !bankEntities.Items.Any())
-                    return ApiResponse<List<GetBankResponseDTO>>.Fail("No bank info found.");
+
+                // ✅ Empty record  
+                if (bankEntities == null || bankEntities.Items == null || !bankEntities.Items.Any())
+                {
+                    return ApiResponse<List<GetBankResponseDTO>>.SuccessPaginatedPercentage(
+                        Data: new List<GetBankResponseDTO>(),
+                        Message: "No bank info found.",
+                        PageNumber: bankEntities?.PageNumber ?? 1,
+                        PageSize: bankEntities?.PageSize ?? 0,
+                        TotalRecords: bankEntities?.TotalCount ?? 0,
+                        TotalPages: bankEntities?.TotalPages ?? 0,
+                        HasUploadedAll: bankEntities?.HasUploadedAll ?? false,
+                        CompletionPercentage: bankEntities?.CompletionPercentage ?? 0
+                    );
+                }
 
                 // 5️⃣ Projection (fastest approach)
-                var result = ProjectionHelper.ToGetBankResponseDTOs(bankEntities, _idEncoderService, validation.Claims.TenantEncriptionKey, _config);
+                var result = ProjectionHelper.ToGetBankResponseDTOs(
+                    bankEntities,
+                    _idEncoderService,
+                    validation.Claims.TenantEncriptionKey,
+                    _config
+                );
 
-                // ✅ Correct paginated return
+                // ✅ Success response with pagination + completion info
                 return ApiResponse<List<GetBankResponseDTO>>.SuccessPaginatedPercentage(
                     Data: result,
                     Message: "Bank info retrieved successfully.",
@@ -125,8 +144,6 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                     TotalPages: bankEntities.TotalPages,
                     HasUploadedAll: bankEntities.HasUploadedAll,
                     CompletionPercentage: bankEntities.CompletionPercentage
-
-
                 );
             }
             catch (Exception ex)

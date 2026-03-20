@@ -1,6 +1,7 @@
 ﻿using axionpro.application.DTOs.EmployeeType;
 using axionpro.application.DTOs.Leave;
 using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.EmployeeType;
 using axionpro.application.Features.EmployeeTypeCmd.Handlers;
 using axionpro.application.Features.LeaveCmd.Commands;
 using axionpro.application.Features.LeaveCmd.Queries;
@@ -49,15 +50,16 @@ namespace axionpro.api.Controllers.EmployeeType
         /// </summary>
 
         [HttpGet("get")]
-        [ProducesResponseType(typeof(ApiResponse<List<application.DTOs.EmployeeType.GetEmployeeTypeResponseDTO>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<List<application.DTOs.EmployeeType.GetEmployeeTypeResponseDTO>>), StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ApiResponse<GetEmployeeTypeResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllEmployeeType([FromQuery] application.DTOS.Employee.Type.GetEmployeeTypeRequestDTO requestDto)
         {
             try
             {
                 _logger.LogInformation("Fetching all employee types.");
 
-                var employeeTypes = new List<application.DTOs.EmployeeType.GetEmployeeTypeResponseDTO>
+                var employeeTypes = new List<GetEmployeeTypeResponseDTO>
                 {
                     new() { Id = 1, TypeName = "Full-Time", Description = "Permanent employee with all benefits", IsActive = true },
                     new() { Id = 2, TypeName = "Contract", Description = "Contract-based employee", IsActive = true },
@@ -76,6 +78,9 @@ namespace axionpro.api.Controllers.EmployeeType
             }
         }
         [HttpGet("option")]
+        [ProducesResponseType(typeof(ApiResponse<GetEmployeeTypeResponseOptionDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
 
         public async Task<IActionResult> GetAllEmployeeType([FromQuery] GetOptionRequestDTO requestDTO)
         {

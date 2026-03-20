@@ -1,11 +1,10 @@
-﻿using axionpro.application.Common.Helpers;
-using axionpro.application.Common.Helpers.axionpro.application.Configuration;
+﻿using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

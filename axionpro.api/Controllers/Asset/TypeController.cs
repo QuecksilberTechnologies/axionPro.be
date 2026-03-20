@@ -1,6 +1,8 @@
 ﻿using axionpro.application.DTOS.AssetDTO.type;
+using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.Features.AssetFeatures.Type.Handlers;
 using axionpro.application.Interfaces.ILogger;
+using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -31,6 +33,9 @@ namespace axionpro.api.Controllers.Asset
         /// Retrieves all asset types for a specific tenant.
         /// </summary>
         [HttpGet("get")]
+        [ProducesResponseType(typeof(ApiResponse<GetTypeResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllAssetType([FromQuery] GetTypeRequestDTO request)
         {
             try
@@ -52,6 +57,9 @@ namespace axionpro.api.Controllers.Asset
         /// Adds a new asset type record for a tenant.
         /// </summary>
         [HttpPost("add")]
+        [ProducesResponseType(typeof(ApiResponse<GetTypeResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> AddAssetType([FromBody] AddTypeRequestDTO request)
         {
             try
@@ -73,6 +81,9 @@ namespace axionpro.api.Controllers.Asset
         /// </summary>
         // [HttpPost("update")]
         [HttpPut("update")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateAssetType([FromBody] UpdateTypeRequestDTO request)
         {
             try
@@ -93,6 +104,9 @@ namespace axionpro.api.Controllers.Asset
         /// Deletes an existing asset type record (soft delete).
         /// </summary>
         [HttpDelete("delete")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeleteAssetType([FromQuery] DeleteTypeRequestDTO request)
         {
             try

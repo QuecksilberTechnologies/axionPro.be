@@ -1,9 +1,11 @@
-﻿ 
+﻿
 using axionpro.application.DTOs.Category;
+
 
 //using axionpro.application.Features.AttendanceCmd.Command;
 using axionpro.application.Features.CategoryCmd.Command;
 using axionpro.application.Interfaces.ILogger;
+using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,6 +26,9 @@ namespace axionpro.api.Controllers.Category
 
 
         [HttpPost("get")]
+        [ProducesResponseType(typeof(ApiResponse<CategoryResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllMainCategories([FromBody] CategoryRequestDTO? categoryRequestDTO)
         {
             _logger.LogInfo("Received  request to get categories from userId: {LoginId}" );
@@ -37,7 +42,7 @@ namespace axionpro.api.Controllers.Category
         }
 
 
-        [HttpPost("getalltendermaincategory")]
+     
         //public async Task<IActionResult> GetAllTenderMainCategories([FromBody] TenderCategoryRequestDTO? tenderCategoryRequestDTO)
         //{
         //    _logger.LogInfo("Received  request to get categories from userId: {LoginId}" + tenderCategoryRequestDTO.Id.ToString());
@@ -52,6 +57,9 @@ namespace axionpro.api.Controllers.Category
 
 
         [HttpPost("getallmainchildcategory")]
+        [ProducesResponseType(typeof(ApiResponse<CategoryResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllMainChildCategories([FromBody] CategoryRequestDTO? categoryRequestDTO)
         {
             _logger.LogInfo("Received  request to get sub-categories from userId: {LoginId}" );

@@ -1,5 +1,7 @@
 ﻿
+using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Employee.Sensitive;
+using axionpro.application.DTOS.StoreProcedures;
 using axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers;
 using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
@@ -27,12 +29,11 @@ namespace axionpro.api.Controllers.Employee
         /// <summary>
         /// Create new employee personal info record.
         /// </summary>
-       
-        [HttpPost("Create")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        
+         [HttpPost("Create")]
+         [ProducesResponseType(typeof(ApiResponse<GetContactResponseDTO>), StatusCodes.Status200OK)]
+         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Createpersonalinfo([FromForm] CreateEmployeeIdentityRequestDTO dto)
         {
             try
@@ -58,9 +59,9 @@ namespace axionpro.api.Controllers.Employee
         /// Get all personal info records (Paginated).
         /// </summary>
         [HttpGet("get")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<GetEmployeeIdentityResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetSensitiveData([FromQuery] GetIdentityRequestDTO commandDto)
         {
             try

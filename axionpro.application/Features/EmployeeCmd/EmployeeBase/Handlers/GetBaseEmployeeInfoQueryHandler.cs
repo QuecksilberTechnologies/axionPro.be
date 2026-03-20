@@ -1,29 +1,18 @@
 ﻿using AutoMapper;
-using axionpro.application.Common.Helpers;
-using axionpro.application.Common.Helpers.axionpro.application.Configuration;
-using axionpro.application.Common.Helpers.Converters;
-using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.RequestHelper;
-using axionpro.application.DTOs.Designation;
-using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.BaseEmployee;
-using axionpro.application.DTOS.Pagination;
 
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Drawing.Printing;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {

@@ -1,12 +1,8 @@
-﻿
-
-
-using axionpro.application.DTOs.test.dummy;
-using axionpro.application.DTOS.Common;
+﻿using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.Contact;
- 
+
 using axionpro.application.Features.EmployeeCmd.Contact.Handlers;
-using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
 using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
 using FluentValidation;
@@ -43,9 +39,9 @@ namespace axionpro.api.Controllers.Employee
         /// <param name="DTO"></param>
         /// <param name="Dto">Employee-Contact details</param>
         [HttpPost("create")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ApiResponse<GetContactResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> CreateContactInfo([FromBody] CreateContactRequestDTO Dto)
         {
@@ -94,9 +90,9 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         [HttpGet("get")]
 
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        [[ProducesResponseType(typeof(ApiResponse<GetContactResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> GetBankinfo([FromQuery] GetContactRequestDTO requestDto)
         {
@@ -131,9 +127,8 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         [HttpPost("update")]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateContact([FromBody] UpdateContactRequestDTO dto)
         {
             try
@@ -164,8 +159,10 @@ namespace axionpro.api.Controllers.Employee
         /// <summary>
         /// Deletes employee record by Id.
         /// </summary>
-        [HttpDelete("delete")]     
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [HttpDelete("delete")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Delete([FromQuery] DeleteRequestDTO dto)
         {
             try

@@ -1,12 +1,10 @@
-﻿ 
+﻿
 using axionpro.application.DTOs.Client;
 using axionpro.application.DTOS.Common;
-using axionpro.application.Features.CategoryCmd.Command;
 using axionpro.application.Features.ClientCmd.Commands;
 using axionpro.application.Features.ClientCmd.Handlers;
-using axionpro.application.Features.ClientCmd.Queries;
-using axionpro.application.Features.LeaveCmd.Commands;
 using axionpro.application.Interfaces.ILogger;
+using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,6 +26,9 @@ namespace axionpro.api.Controllers.Client
 
         
         [HttpGet("get")]
+        [ProducesResponseType(typeof(ApiResponse<GetClientOptionResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllClientType([FromQuery] GetOptionRequestDTO clientRequestType)
         {
             _logger.LogInfo($"📩 Received request to get client list for userId: {clientRequestType.UserEmployeeId}");
@@ -74,6 +75,9 @@ namespace axionpro.api.Controllers.Client
         //    return Ok(result);
         //}
         [HttpPost("add")]
+        [ProducesResponseType(typeof(ApiResponse<GetClientTypeDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateClientType([FromBody] CreateClientTypeDTO createClientTypeDTO)
         {
             if (createClientTypeDTO == null)
@@ -96,6 +100,9 @@ namespace axionpro.api.Controllers.Client
         }
 
         [HttpPost("update")]
+        [ProducesResponseType(typeof(ApiResponse<GetClientTypeDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateClientType([FromBody] UpdateClientTypeDTO updateClientTypeDTO)
         {
             _logger.LogInfo("Received request for update a leave" + updateClientTypeDTO.ToString());

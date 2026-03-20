@@ -1,25 +1,15 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers.RequestHelper;
-using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.BaseEmployee;
-using axionpro.application.DTOS.Employee.Dependent;
-using axionpro.application.DTOS.Employee.Type;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyModel;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims; using axionpro.domain.Entity; using MediatR;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers

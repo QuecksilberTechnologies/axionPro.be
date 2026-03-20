@@ -1,6 +1,8 @@
 ﻿using axionpro.application.DTOS.AssetDTO.category;
+using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.Features.AssetFeatures.Category.Handlers;
 using axionpro.application.Interfaces.ILogger;
+using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -31,6 +33,10 @@ namespace axionpro.api.Controllers.Asset
         /// Retrieves all asset categories for a specific tenant.
         /// </summary>
         [HttpGet("get")]
+
+        [ProducesResponseType(typeof(ApiResponse<GetCategoryResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllAssetCategory([FromQuery] GetCategoryReqestDTO request)
         {
             try
@@ -52,6 +58,10 @@ namespace axionpro.api.Controllers.Asset
         /// Adds a new asset category record for a tenant.
         /// </summary>
         [HttpPost("add")]
+
+        [ProducesResponseType(typeof(ApiResponse<GetCategoryResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> AddAssetCategory([FromBody] AddCategoryReqestDTO request)
         {
             try
@@ -72,6 +82,10 @@ namespace axionpro.api.Controllers.Asset
         /// Updates an existing asset category record.
         /// </summary>
         [HttpPut("update")]
+
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateAssetCategory([FromBody] UpdateCategoryReqestDTO request)
         {
             try
@@ -92,6 +106,10 @@ namespace axionpro.api.Controllers.Asset
         /// Deletes an existing asset category record (soft delete).
         /// </summary>
         [HttpDelete("delete")]
+
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeleteAssetCategory([FromQuery] DeleteCategoryReqestDTO request)
         {
             try

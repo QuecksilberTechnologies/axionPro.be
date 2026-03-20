@@ -3,6 +3,7 @@ using axionpro.application.DTOS.AssetDTO.asset;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.Features.AssetFeatures.Assets.Handlers;
 using axionpro.application.Interfaces.ILogger;
+using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
@@ -40,6 +41,10 @@ namespace axionpro.api.Controllers.Asset
         /// <param name="assetRequestDTO">Filter parameters like TenantId, TypeId, etc.</param>
         /// <returns>List of assets matching the criteria.</returns>
         [HttpGet("get")]
+
+        [ProducesResponseType(typeof(ApiResponse<GetAssetResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllAssets([FromQuery] GetAssetRequestDTO assetRequestDTO)
         {
             var command = new GetAllAssetCommand(assetRequestDTO);
@@ -53,7 +58,10 @@ namespace axionpro.api.Controllers.Asset
         /// <param name="addAssetDTO">DTO containing asset details to create.</param>
         /// <returns>Returns the created asset with its Id and other details.</returns>
         [HttpPost("add")]
-        
+
+        [ProducesResponseType(typeof(ApiResponse<GetAssetResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> AddAsset([FromForm] AddAssetRequestDTO  addAssetDTO)
         {
             _logger.LogInfo("Request: Add asset - " + addAssetDTO);
@@ -68,6 +76,10 @@ namespace axionpro.api.Controllers.Asset
         /// <param name="updateAssetDTO">DTO containing updated asset details including Id.</param>
         /// <returns>Returns the updated asset information.</returns>
         [HttpPut("update")]
+
+        [ProducesResponseType(typeof(ApiResponse<GetAssetResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateAsset([FromBody] UpdateAssetRequestDTO updateAssetDTO)
         {
             _logger.LogInfo("Request: Update asset - " + updateAssetDTO);
@@ -82,6 +94,10 @@ namespace axionpro.api.Controllers.Asset
         /// <param name = "deleteAssetDTO" > DTO containing the Id of the asset to delete.</param>
         /// <returns>Returns status of the delete operation.</returns>
         [HttpDelete("delete")]
+
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeleteAsset([FromQuery] DeleteAssetReqestDTO deleteAssetDTO)
         {
             _logger.LogInfo("Request: Delete asset - " + deleteAssetDTO);
