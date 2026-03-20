@@ -1,14 +1,10 @@
-﻿ 
+﻿
 using axionpro.application.DTOS.DocFile.axionpro.application.DTOS.FileUpload;
-
-using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.ILogger;
+using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Razor.TagHelpers;
-using System;
-using System.Threading.Tasks;
 
 namespace axionpro.api.Controllers.FileUpload
 {
@@ -33,7 +29,10 @@ namespace axionpro.api.Controllers.FileUpload
         /// <summary>
         /// Uploads an any image/doc/pdf and saves it to the server.
         /// </summary>
-        [HttpPost("UploadAsset/upload")]      
+        [HttpPost("UploadAsset/upload")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UploadAsset([FromBody] UploadFileDTO dto)
         {
             try

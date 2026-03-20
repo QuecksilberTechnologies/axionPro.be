@@ -28,6 +28,9 @@ public class TicketClassificationController : ControllerBase
     // 1️⃣ CREATE - Add new Ticket Classification
     // ----------------------------------------------------------------------------------------------------
     [HttpPost("create")]
+    [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateTicketClassification([FromBody] AddClassificationRequestDTO dto)
     {
         try
@@ -55,6 +58,9 @@ public class TicketClassificationController : ControllerBase
     // 2️⃣ READ - Get all Ticket Classifications
     // ----------------------------------------------------------------------------------------------------
     [HttpGet("all")]
+    [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetAllTicketClassifications([FromQuery] GetClassificationRequestDTO dto)
     {
         try
@@ -81,6 +87,9 @@ public class TicketClassificationController : ControllerBase
     // 3️⃣ READ (BY ID) - Get specific Ticket Classification
     // ----------------------------------------------------------------------------------------------------
     [HttpGet("get")]
+    [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetTicketClassificationById([FromQuery] GetClassificationRequestDTO dto)
     {
         try
@@ -107,6 +116,9 @@ public class TicketClassificationController : ControllerBase
     // 4️⃣ UPDATE - Modify existing Ticket Classification
     // ----------------------------------------------------------------------------------------------------
     [HttpPut("update")]
+    [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateTicketClassification([FromBody] UpdateClassificationRequestDTO dto)
     {
         try
@@ -133,6 +145,9 @@ public class TicketClassificationController : ControllerBase
     // 5️⃣ DELETE - Soft delete Ticket Classification
     // ----------------------------------------------------------------------------------------------------
     [HttpDelete("delete")]
+    [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DeleteTicketClassification([FromBody] DeleteClassificationRequestDTO dto)
     {
         try

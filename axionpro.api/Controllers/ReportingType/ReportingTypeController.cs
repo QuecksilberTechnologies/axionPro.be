@@ -1,5 +1,4 @@
 ﻿using axionpro.application.DTOs.Manager.ReportingType;
-using axionpro.application.Features.ReportTypeCmd;
 using axionpro.application.Features.ReportTypeCmd.Commands;
 using axionpro.application.Features.ReportTypeCmd.Queries;
 using axionpro.application.Wrappers;
@@ -41,7 +40,11 @@ namespace axionpro.api.Controllers.ReportingType
         /// </summary>
         /// <param name="dto">reporting type creation data.</param>
         /// <returns>Returns a response containing success status and message.</returns>
+        
         [HttpPost("create")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateReportingType([FromBody] CreateReportingTypeRequestDTO dto)
         {
             try
@@ -78,6 +81,9 @@ namespace axionpro.api.Controllers.ReportingType
         /// <param name="dto">Filter criteria (optional).</param>
         /// <returns>Returns list of reporting types.</returns>
         [HttpGet("get-all")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllReportingTypes([FromQuery] GetReportingTypeRequestDTO dto)
         {
             try
@@ -114,6 +120,9 @@ namespace axionpro.api.Controllers.ReportingType
         /// <param name="dto">DTO containing reporting type ID.</param>
         /// <returns>Returns reporting type details.</returns>
         [HttpGet("get")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetReportingTypeById([FromQuery] GetReportingTypeByIdRequestDTO dto)
         {
             try
@@ -150,6 +159,9 @@ namespace axionpro.api.Controllers.ReportingType
         /// <param name="dto">reporting type update details.</param>
         /// <returns>Returns a response indicating success or failure.</returns>
         [HttpPut("update")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateReportingType([FromBody] UpdateReportingTypeRequestDTO dto)
         {
             try
@@ -186,6 +198,9 @@ namespace axionpro.api.Controllers.ReportingType
         /// <param name="dto">reporting type ID to be deleted.</param>
         /// <returns>Returns success or failure message.</returns>
         [HttpDelete("delete")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeleteReportingType([FromBody] DeleteReportingTypeRequestDTO dto)
         {
             try

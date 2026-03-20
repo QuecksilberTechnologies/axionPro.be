@@ -33,6 +33,9 @@ namespace axionpro.api.Controllers.Operation
         /// Get all operations.
         /// </summary>
         [HttpGet("get")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllOperationAsyc([FromQuery] GetOperationRequestDTO operationRequestDTO)
         {
             _logger.LogInfo($"Received request to get operationRequestDTO from userId: {operationRequestDTO.EmployeeId}");
@@ -53,6 +56,9 @@ namespace axionpro.api.Controllers.Operation
         /// Get insert operation.
         /// </summary>
         [HttpPost("create")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateOperation([FromBody] CreateOperationRequestDTO createOperationDTO)
         {
             if (createOperationDTO == null)
@@ -78,6 +84,9 @@ namespace axionpro.api.Controllers.Operation
         /// Update Operation.
         /// </summary>
         [HttpPost("update")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateOperation([FromBody] UpdateOperationRequestDTO updateOperationDTO)
         {
             _logger.LogInfo("Received request for update a leave" + updateOperationDTO.ToString());
@@ -91,6 +100,9 @@ namespace axionpro.api.Controllers.Operation
         }
          [Authorize]
         [HttpGet("has-access")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> HasPageOperationAccess([FromQuery] GetCheckOperationPermissionRequestDTO? checkOperationPermissionRequest)
         {
             if (checkOperationPermissionRequest == null)

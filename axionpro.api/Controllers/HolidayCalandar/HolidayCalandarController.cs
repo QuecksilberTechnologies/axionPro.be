@@ -30,7 +30,9 @@ namespace axionpro.api.Controllers.HolidayCalandar
         /// </summary>
 
         [HttpGet("get")]
- 
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllEmployeeInfo([FromQuery] BasicRequestDTO basicRequestDTO)
         {
 

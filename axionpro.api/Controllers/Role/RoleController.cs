@@ -38,6 +38,9 @@ namespace axionpro.api.Controllers.Role
         /// <param name="updateRoleDTO">DTO containing updated role details.</param>
         /// <returns>Returns the result of the update operation.</returns>
         [HttpPut("update")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         // [Authorize]
         public async Task<IActionResult> UpdateRole([FromBody] UpdateRoleRequestDTO updateRoleDTO)
         {
@@ -50,7 +53,9 @@ namespace axionpro.api.Controllers.Role
         /// Get all Role.
         /// </summary>
         [HttpGet("option")]
-
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> getRole([FromQuery] GetRoleOptionRequestDTO requestDTO)
         {
             _logger.LogInfo($"Received request to get Role : {requestDTO.UserEmployeeId}");
@@ -71,6 +76,9 @@ namespace axionpro.api.Controllers.Role
         /// <param name="createRoleDTO">DTO containing details of the role to be created.</param>
         /// <returns>Returns the result of the creation operation.</returns>
         [HttpPost("add")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         // [Authorize]
         public async Task<IActionResult> CreateRole([FromBody] CreateRoleRequestDTO createRoleDTO)
         {
@@ -86,6 +94,9 @@ namespace axionpro.api.Controllers.Role
         /// <param name="roleRequestDTO">Query parameters for filtering roles.</param>
         /// <returns>Returns a list of roles that match the filter criteria.</returns>
         [HttpGet("get")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllRoles([FromQuery] GetRoleRequestDTO? roleRequestDTO)
         {
             if (roleRequestDTO == null)
@@ -111,6 +122,9 @@ namespace axionpro.api.Controllers.Role
         /// <param name="deleteRole">DTO containing the ID of the role to delete.</param>
         /// <returns>Returns the result of the deletion operation.</returns>
         [HttpDelete("delete")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeleteRole([FromQuery] DeleteRoleRequestDTO deleteRole)
         {
             if (deleteRole == null)

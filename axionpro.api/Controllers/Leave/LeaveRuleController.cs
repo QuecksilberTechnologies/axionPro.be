@@ -25,6 +25,9 @@ namespace axionpro.api.Controllers.Leave
 
         // ✅ Create PolicyMappingLeaveType
         [HttpPost("create")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateLeaveRuleAsync([FromBody] CreateLeaveRuleDTORequest requestDTO)
         {
             _logger.LogInformation("Received request to create PolicyMappingLeaveType: {Request}", JsonConvert.SerializeObject(requestDTO));
@@ -39,6 +42,9 @@ namespace axionpro.api.Controllers.Leave
 
         //  ✅ Get All LeavePolicies
         [HttpGet("get")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllLeaveRuleAsync([FromQuery] GetLeaveRuleRequestDTO getLeavePolicyRequestDTO)
         {
             _logger.LogInformation("Fetching all Leave rule...");
@@ -60,6 +66,9 @@ namespace axionpro.api.Controllers.Leave
 
         //// ✅ Update LeavePolicy
         [HttpPost("update")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateLeavePolicyAsync([FromBody] UpdateLeaveRuleRequestDTO requestDTO)
         {
             _logger.LogInformation("Received request to update LeavePolicy: {Request}", JsonConvert.SerializeObject(requestDTO));
@@ -72,6 +81,9 @@ namespace axionpro.api.Controllers.Leave
             return Ok(result);
         }
         [HttpPost("delete")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         // [Authorize]
         public async Task<IActionResult> DeleteLeavePolicy([FromBody] DeleteLeaveRuleDTO request)
         {

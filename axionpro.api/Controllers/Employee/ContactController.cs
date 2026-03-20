@@ -90,7 +90,7 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         [HttpGet("get")]
 
-        [[ProducesResponseType(typeof(ApiResponse<GetContactResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<GetContactResponseDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]

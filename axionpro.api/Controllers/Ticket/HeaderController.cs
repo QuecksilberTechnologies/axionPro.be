@@ -34,6 +34,9 @@ namespace axionpro.api.Controllers.Ticket
         /// <param name="dto">Ticket header data to be created.</param>
         /// <returns>Returns the created Ticket Header with a success message.</returns>
         [HttpPost("create")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateHeader([FromBody] AddHeaderRequestDTO dto)
         {
             try
@@ -83,6 +86,9 @@ namespace axionpro.api.Controllers.Ticket
         /// </code>
         /// </remarks>
         [HttpGet("get-filter")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllHeaderFilterAsync([FromQuery] GetHeaderRequestDTO dto)
         {
             try
@@ -119,6 +125,9 @@ namespace axionpro.api.Controllers.Ticket
         /// Updates the details of an existing Ticket Header.
         /// </summary>
         [HttpPut("update")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateHeader([FromBody] UpdateHeaderRequestDTO dto)
         {
             try
@@ -150,6 +159,9 @@ namespace axionpro.api.Controllers.Ticket
         /// Soft deletes a Ticket Header based on its unique ID.
         /// </summary>
         [HttpDelete("delete")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeleteHeader([FromBody] DeleteHeaderRequestDTO dto)
         {
             try

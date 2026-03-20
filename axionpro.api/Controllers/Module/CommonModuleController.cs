@@ -4,6 +4,7 @@ using axionpro.application.DTOS.Module.CommonModule;
 using axionpro.application.DTOS.Module.ParentModule;
 using axionpro.application.Features.ModuleCmd.Common.Commands;
 using axionpro.application.Interfaces.ILogger;
+using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -31,6 +32,9 @@ namespace axionpro.api.Controllers.Module
         /// Creates a new Common module.
         /// </summary>
         [HttpPost("add")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+       
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> AddModule([FromBody] CreateCommonModuleRequestDTO? requestDto)
         {
             if (requestDto == null)

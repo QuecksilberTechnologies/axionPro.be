@@ -1,7 +1,5 @@
-﻿using axionpro.application.DTOs.Operation;
-using axionpro.application.DTOs.PolicyType;
+﻿using axionpro.application.DTOs.PolicyType;
 using axionpro.application.Features.PolicyTypeCmd.Handlers;
-using axionpro.application.Features.PolicyTypeCmd.Queries; // Query add karni hogi
 using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
 using MediatR;
@@ -15,6 +13,7 @@ namespace axionpro.api.Controllers.Policies
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
+
     public class PolicyTypeController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -30,6 +29,9 @@ namespace axionpro.api.Controllers.Policies
         /// </summary>
         /// 
         [HttpGet("get-all")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllPolicyTypesAsync([FromQuery] GetPolicyTypeRequestDTO requestDTO)
         {
             try
@@ -63,7 +65,11 @@ namespace axionpro.api.Controllers.Policies
                 return StatusCode(StatusCodes.Status500InternalServerError, errorResponse);
             }
         }
-        [HttpGet("get-ddl")]    public async Task<IActionResult> GetDDLPolicyTypesAsync(
+        [HttpGet("get-ddl")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetDDLPolicyTypesAsync(
    [FromQuery] GetAllPolicyTypeRequestDTO requestDTO)
         {
             try
@@ -145,6 +151,9 @@ namespace axionpro.api.Controllers.Policies
         /// Create new Policy Type.
         /// </summary>
         [HttpPost("create")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreatePolicyTypeAsync([FromForm] CreatePolicyTypeRequestDTO requestDTO)
         {
             _logger.LogInfo($"Received request to create PolicyType: {JsonConvert.SerializeObject(requestDTO)}");
@@ -163,6 +172,9 @@ namespace axionpro.api.Controllers.Policies
         /// Update new Policy Type.
         /// </summary>
         [HttpPost("update")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdatePolicyTypeAsync([FromForm] UpdatePolicyTypeRequestDTO requestDTO)
         {
             _logger.LogInfo($"Received request to update PolicyType: {JsonConvert.SerializeObject(requestDTO)}");
@@ -181,6 +193,9 @@ namespace axionpro.api.Controllers.Policies
         /// Delete   Policy Type.
         /// </summary>
         [HttpDelete("delete")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeletePolicyTypeAsync([FromQuery] DeletePolicyTypeDTO requestDTO)
         {
             _logger.LogInfo($"Received request to delete PolicyType: {JsonConvert.SerializeObject(requestDTO)}");

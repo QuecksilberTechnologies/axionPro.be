@@ -1,6 +1,7 @@
 ﻿using axionpro.application.DTOS.StoreProcedures.DashboardSummeries;
 using axionpro.application.Features.StatsFeatures.EmployeesCmd.Handlers;
 using axionpro.application.Interfaces.ILogger;
+using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -29,6 +30,9 @@ namespace axionpro.api.Controllers.Stats
         ///Dashboard statistics.
         // Returns employee summary statistics for dashboard widgets      
         [HttpGet("Dashboard/Employees/Statistics")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetEmployeeDashboardSummaryAsync(
             [FromQuery] EmployeeCountRequestStatsSp dto)
         {

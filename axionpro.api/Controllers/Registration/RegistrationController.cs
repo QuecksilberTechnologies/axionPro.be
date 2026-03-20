@@ -2,6 +2,7 @@
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.Features.UserLoginAndDashboardCmd.Commands;
 using axionpro.application.Interfaces.ILogger;
+using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -24,6 +25,9 @@ namespace axionpro.api.Controllers.Registration
 
 
         [HttpPost("candidate")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         // [Authorize]
         public async Task<IActionResult> Login([FromBody] CandidateRequestDTO candidateRegistrationDTO)
         {
@@ -39,8 +43,11 @@ namespace axionpro.api.Controllers.Registration
 
        
         [HttpPost("AccessDetails")]
-   // [Authorize] // Ensures the user is authenticated via token
-    public async Task<IActionResult> UserAccessDetailsAsync([FromBody] AccessDetailRequestDTO accessDetailsDTO)
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+      
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        // [Authorize] // Ensures the user is authenticated via token
+        public async Task<IActionResult> UserAccessDetailsAsync([FromBody] AccessDetailRequestDTO accessDetailsDTO)
     {
         try
         {

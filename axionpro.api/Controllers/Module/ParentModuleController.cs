@@ -4,6 +4,7 @@ using axionpro.application.DTOS.Module.ManualModule;
 using axionpro.application.DTOS.Module.ParentModule;
 using axionpro.application.Features.ModuleCmd.Parent.Commands;
 using axionpro.application.Interfaces.ILogger;
+using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -31,6 +32,9 @@ namespace axionpro.api.Controllers.Module
         /// Creates a new main module.
         /// </summary>
         [HttpPost("add")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> AddModule([FromBody] CreateParentModuleRequestDTO? createModuleRequestDTO)
         {
             if (createModuleRequestDTO == null)
@@ -102,6 +106,9 @@ namespace axionpro.api.Controllers.Module
         /// Updates an existing sub-module.
         /// </summary>
         [HttpPost("update-sub-module")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         //public async Task<IActionResult> UpdateSubModule([FromBody] UpdateAssetRequestDTO updateAssetDTO)
         //{
         //    if (updateAssetDTO == null)
@@ -127,6 +134,9 @@ namespace axionpro.api.Controllers.Module
         /// Get operational (leaf node) modules.
         /// </summary>
         [HttpPost("get-non-leafe")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+       
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetOperationalModule([FromBody] GetModuleChildInversRequestDTO? getModuleDDLRequestDTO)
         {
             if (getModuleDDLRequestDTO == null)

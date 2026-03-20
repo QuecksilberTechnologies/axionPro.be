@@ -24,6 +24,9 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 CREATE INSURANCE POLICY
         [HttpPost("create")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(typeof(ApiResponse<GetInsurancePolicyResponseDTO>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Create(
             [FromBody] CreateInsurancePolicyRequestDTO dto)
@@ -57,6 +60,9 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 GET INSURANCE LIST (GRID)
         [HttpGet("get-ddl")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetList(
             [FromQuery] GetAllInsurancePolicyRequestDTO requestDto)
         {

@@ -30,7 +30,8 @@ namespace axionpro.api.Controllers.Gender
         /// Get all designation.
         /// </summary>
         [HttpGet("option")]
-
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]         
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> getGender([FromQuery] GetOptionRequestDTO requestDTO)
         {
             _logger.LogInformation($"Received request to get Gender : {requestDTO.UserEmployeeId}");
@@ -47,7 +48,9 @@ namespace axionpro.api.Controllers.Gender
 
         //  ✅ Get All Gender 
         [HttpGet("get")]
-
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllGenderAsync([FromQuery] GetGenderRequestDTO? getGenderRequestDTO)
         {
             _logger.LogInformation("Fetching all LeavePolicies...");

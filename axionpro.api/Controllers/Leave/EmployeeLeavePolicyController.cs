@@ -4,6 +4,7 @@ using axionpro.application.DTOs.Leave;
 using axionpro.application.DTOS.EmployeeLeavePolicyMap;
 using axionpro.application.Features.EmployeeLeavePolicyMapCmd.Commands;
 using axionpro.application.Features.LeaveCmd.Queries;
+using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -24,6 +25,9 @@ namespace axionpro.api.Controllers.Leave
         }
         // ✅ Map EmployeeLeavePolicyMapping 
         [HttpPost("add")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> MapEmployeeyAsync([FromBody] AddLeaveBalanceToEmployeeRequestDTO requestDTO)
         {
             _logger.LogInformation("Received request to create EmployeeLeavePolicyMapping: {Request}", JsonConvert.SerializeObject(requestDTO));
@@ -37,6 +41,9 @@ namespace axionpro.api.Controllers.Leave
         }
         // ✅ Map EmployeeLeavePolicyMapping 
         [HttpPost("LeaveBalance/update")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateEmployeeyAsync([FromBody] UpdateLeaveBalanceToEmployeeRequestDTO requestDTO)
         {
             _logger.LogInformation("Received request to create EmployeeLeavePolicyMapping: {Request}", JsonConvert.SerializeObject(requestDTO));
@@ -51,6 +58,9 @@ namespace axionpro.api.Controllers.Leave
 
         // ✅ Map EmployeeLeavePolicyMapping 
         [HttpPost("map")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> MapEmployeeyAsync([FromBody] CreateEmployeeLeavePolicyMappingRequestDTO requestDTO)
         {
             _logger.LogInformation("Received request to create EmployeeLeavePolicyMapping: {Request}", JsonConvert.SerializeObject(requestDTO));
@@ -65,6 +75,9 @@ namespace axionpro.api.Controllers.Leave
 
         //  ✅ Get All Employee mapped EmployeeLeavePolicyMapping
         [HttpGet("Mapped/Leave/Policy/get")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllLeavePoliciesAsync([FromQuery] GetLeaveTypeWithPolicyMappingRequestDTO getLeavePolicyRequestDTO)
         {
             _logger.LogInformation("Fetching all Employee Mapped...");
@@ -75,6 +88,9 @@ namespace axionpro.api.Controllers.Leave
         }
         //  ✅ Get All Employee mapped EmployeeLeavePolicyMapping
         [HttpGet("EmployeeLeavePolicy/Mapped/get")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllEmployeeLeavePoliciesAsync([FromQuery] GetEmployeeLeavePolicyMappingRequestDTO requestDTO)
         {
             _logger.LogInformation("Fetching all Employee Mapped...");
@@ -86,6 +102,9 @@ namespace axionpro.api.Controllers.Leave
 
         //// ✅ Update EmployeeLeavePolicyMapping
         [HttpPost("update")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateLeavePolicyAsync([FromBody] UpdateEmployeeLeavePolicyMappingRequestDTO requestDTO)
         {
             _logger.LogInformation("Received request to update LeavePolicy: {Request}", JsonConvert.SerializeObject(requestDTO));

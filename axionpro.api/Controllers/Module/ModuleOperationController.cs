@@ -5,6 +5,7 @@ using axionpro.application.DTOs.ModuleOperation;
  
 using axionpro.application.Features.ModuleCmd.Parent.Commands;
 using axionpro.application.Interfaces.ILogger;
+using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -47,6 +48,9 @@ namespace axionpro.api.Controllers.Module
         //}
 
         [HttpPost("update")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+         
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> AddModuleOperation([FromBody] UpdateModuleOperationMappingByProductOwnerRequestDTO? dto)
         {
             if (dto == null)

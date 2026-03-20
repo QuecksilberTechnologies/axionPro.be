@@ -24,7 +24,9 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 CREATE INSURANCE And POLICY TYPE MAPPING
         [HttpPost("map")]
-        [ProducesResponseType(typeof(ApiResponse<GetPolicyTypeInsuranceMappingResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Create(
             [FromBody] CreatePolicyTypeInsuranceMappingRequetDTO dto)
         {
@@ -57,7 +59,10 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 GET INSURANCE LIST (GRID)
         [HttpGet("get-all")]
-         public async Task<IActionResult> GetList( [FromQuery] GetPolicyTypeInsuranceMappingRequestDTO requestDto)
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetList( [FromQuery] GetPolicyTypeInsuranceMappingRequestDTO requestDto)
           {
             _logger.LogInfo("Fetching mapped insurance policy list.");
 
@@ -68,7 +73,10 @@ namespace axionpro.api.Controllers.Insurance
         }
         // 🔹 GET INSURANCE LIST (GRID)
         [HttpGet("get-details")]
-         public async Task<IActionResult> GetDetailList( [FromQuery] GetPolicyTypeInsuranceMapDetailsRequestDTO requestDto)
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetDetailList( [FromQuery] GetPolicyTypeInsuranceMapDetailsRequestDTO requestDto)
           {
             _logger.LogInfo("Fetching mapped insurance policy list.");
 
@@ -79,6 +87,9 @@ namespace axionpro.api.Controllers.Insurance
         }
         // 🔹 DELETE POLICY INSURANCE MAPPING
         [HttpDelete("delete")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Delete(
             [FromQuery] DeletePolicyTypeInsuranceMappingRequestDTO requestDto)
         {
@@ -92,6 +103,9 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 UPDATE POLICY INSURANCE MAPPING
         [HttpPut("update")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Update(
             [FromBody] UpdatePolicyTypeInsuranceMappingRequestDTO requestDto)
         {

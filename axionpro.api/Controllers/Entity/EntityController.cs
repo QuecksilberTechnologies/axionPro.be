@@ -20,6 +20,10 @@ namespace axionpro.api.Controllers.Entity
             _logger = logger;
         }
         [HttpGet("get")]
+        [ProducesResponseType(typeof(ApiResponse<GetEntityNameResponseDTO>), StatusCodes.Status200OK)]
+ 
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+
         public IActionResult GetStaticEntityNames([FromQuery] GetEntityNameRequestDTO dTO)
         {
             var entities = new List<GetEntityNameResponseDTO>

@@ -42,6 +42,9 @@ namespace axionpro.api.Controllers.WorkflowStage
         /// <param name="dto">Workflow stage creation data.</param>
         /// <returns>Returns a response containing success status and message.</returns>
         [HttpPost("create")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateWorkflowStage([FromBody] CreateWorkflowStageRequestDTO dto)
         {
             try
@@ -78,6 +81,9 @@ namespace axionpro.api.Controllers.WorkflowStage
         /// <param name="dto">Filter criteria (optional).</param>
         /// <returns>Returns list of workflow stages.</returns>
         [HttpGet("get-all")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllWorkflowStages([FromQuery] GetWorkflowStageRequestDTO dto)
         {
             try
@@ -114,6 +120,9 @@ namespace axionpro.api.Controllers.WorkflowStage
         /// <param name="dto">DTO containing workflow stage ID.</param>
         /// <returns>Returns workflow stage details.</returns>
         [HttpGet("get")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetWorkflowStageById([FromQuery] GetWorkflowStageByIdRequestDTO dto)
         {
             try
@@ -150,6 +159,9 @@ namespace axionpro.api.Controllers.WorkflowStage
         /// <param name="dto">Workflow stage update details.</param>
         /// <returns>Returns a response indicating success or failure.</returns>
         [HttpPut("update")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateWorkflowStage([FromBody] UpdateWorkflowStageRequestDTO dto)
         {
             try
@@ -186,6 +198,9 @@ namespace axionpro.api.Controllers.WorkflowStage
         /// <param name="dto">Workflow stage ID to be deleted.</param>
         /// <returns>Returns success or failure message.</returns>
         [HttpDelete("delete")]
+        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeleteWorkflowStage([FromBody] DeleteWorkflowStageRequestDTO dto)
         {
             try
