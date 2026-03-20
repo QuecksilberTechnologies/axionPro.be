@@ -26,7 +26,7 @@ namespace axionpro.api.Controllers.Travel
 
 
         [HttpGet("getalltravelmodetype")]
-        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<GetAllTravelModeDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllTravelModeType([FromQuery] TravelModeRequestDTO travelModeRequestDTO)
@@ -43,7 +43,7 @@ namespace axionpro.api.Controllers.Travel
             return Ok(result);
         }
         [HttpPost("addtravelmode")]
-        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<GetAllTravelModeDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateTravelModeType([FromBody] CreateTravelModeDTO createTravelModeDTO)
@@ -68,7 +68,7 @@ namespace axionpro.api.Controllers.Travel
         }
 
         [HttpPost("updatetravelmodetype")]
-        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateTravelModeType([FromBody] UpdateTravelModeDTO updateTravelModeDTO)

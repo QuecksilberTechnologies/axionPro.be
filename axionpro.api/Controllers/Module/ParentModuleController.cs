@@ -32,7 +32,7 @@ namespace axionpro.api.Controllers.Module
         /// Creates a new main module.
         /// </summary>
         [HttpPost("add")]
-        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<GetParentModuleResponseDTO>), StatusCodes.Status200OK)]
         
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> AddModule([FromBody] CreateParentModuleRequestDTO? createModuleRequestDTO)
@@ -134,7 +134,7 @@ namespace axionpro.api.Controllers.Module
         /// Get operational (leaf node) modules.
         /// </summary>
         [HttpPost("get-non-leafe")]
-        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<GetModuleChildInversResponseDTO>), StatusCodes.Status200OK)]
        
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetOperationalModule([FromBody] GetModuleChildInversRequestDTO? getModuleDDLRequestDTO)

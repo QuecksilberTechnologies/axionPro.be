@@ -1,4 +1,5 @@
 ﻿using axionpro.application.DTOs.Tenant;
+using axionpro.application.DTOs.TenantIndustry;
 using axionpro.application.Features.TenantConfigurationCmd.Tenant.Queries;
 using axionpro.application.Features.TenantIndustryCmd.Queries;
 using axionpro.application.Interfaces.ILogger;
@@ -31,7 +32,7 @@ namespace axionpro.api.Controllers.TenantIndustry
         /// get all industry.
         /// </summary>
         [HttpGet("get-industries")]
-        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]       
+        [ProducesResponseType(typeof(ApiResponse<TenantIndustryResponseDTO>), StatusCodes.Status200OK)]       
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllTenantBySubscriptionIdAsync([FromQuery] int planId)
         {
@@ -52,7 +53,7 @@ namespace axionpro.api.Controllers.TenantIndustry
         /// get tenant subscription plan detail.
         /// </summary>
         [HttpGet("get-tenant-subscription-plan")]
-        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<TenantSubscriptionPlanResponseDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetTenantSubscriptionPlanInfoAsync([FromQuery] TenantSubscriptionPlanRequestDTO code)
         {

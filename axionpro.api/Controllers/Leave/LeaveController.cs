@@ -23,7 +23,7 @@ namespace axionpro.api.Controllers.Leave
         }
 
         [HttpPost("add")]
-        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<GetLeaveTypResponseDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateLeaveType([FromBody] CreateLeaveTypeRequestDTO createLeaveTypeDTO)
@@ -47,7 +47,7 @@ namespace axionpro.api.Controllers.Leave
             return Ok(result);
         }
         [HttpGet("get")]
-        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<GetLeaveTypResponseDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllLeaves([FromQuery] GetLeaveTypeRequestDTO leaveRequestDTO)
@@ -71,7 +71,7 @@ namespace axionpro.api.Controllers.Leave
             return Ok(result);
         }
         [HttpPost("update")]
-        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         // [Authorize]
@@ -87,7 +87,7 @@ namespace axionpro.api.Controllers.Leave
             return Ok(result);
         }
         [HttpGet("delete")]
-        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         // [Authorize]

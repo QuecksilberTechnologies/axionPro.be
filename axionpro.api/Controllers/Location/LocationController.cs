@@ -45,6 +45,7 @@ namespace axionpro.api.Controllers.Location
         /// Get all location.
         /// </summary>
         [HttpGet("country/option")]
+
         [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
  
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
@@ -65,7 +66,7 @@ namespace axionpro.api.Controllers.Location
         /// Get all Country.
         /// </summary>
         [HttpGet("State/option")]
-        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<GetStateOptionResponseDTO>), StatusCodes.Status200OK)]
  
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> getState([FromQuery] GetStateOptionRequestDTO requestDTO)
@@ -84,7 +85,7 @@ namespace axionpro.api.Controllers.Location
         /// Get all District.
         /// </summary>
         [HttpGet("District/option")]
-        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<GetDistrictOptionResponseDTO>), StatusCodes.Status200OK)]
          
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> getDistrict([FromQuery] GetDistrictOptionRequestDTO requestDTO)

@@ -1,6 +1,7 @@
 ﻿using axionpro.application.DTOs.BaseDTO;
 using axionpro.application.DTOs.Role;
 using axionpro.application.DTOs.RoleModulePermission;
+using axionpro.application.DTOS.RoleModulePermission;
 using axionpro.application.Features.RoleCmd.ModuleOperationMappingRepository.Commands;
 using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
@@ -23,7 +24,7 @@ namespace axionpro.api.Controllers.ModulePermission
         }
 
         [HttpPost("create")]
-        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<int>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         // [Authorize]
@@ -42,7 +43,7 @@ namespace axionpro.api.Controllers.ModulePermission
         /// Get all tenant enabled modules with operations
         /// </summary>
         [HttpPost("get-tenant-mapped-operations")]
-        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<GetModuleOperationRolePermissionsResponseDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetTenantEnabledOperations([FromBody] GetTenantModuleOperationRolePermissionsRequestDTO code)

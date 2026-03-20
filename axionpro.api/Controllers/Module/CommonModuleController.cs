@@ -32,7 +32,7 @@ namespace axionpro.api.Controllers.Module
         /// Creates a new Common module.
         /// </summary>
         [HttpPost("add")]
-        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<GetCommonModuleResponseDTO>), StatusCodes.Status200OK)]
        
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> AddModule([FromBody] CreateCommonModuleRequestDTO? requestDto)

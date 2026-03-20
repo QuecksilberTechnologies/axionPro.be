@@ -37,7 +37,7 @@ namespace axionpro.api.Controllers.Module
         /// Creates a Sub module.
         /// </summary>
         [HttpPost("add")]
-        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<GetModuleChildInversResponseDTO>), StatusCodes.Status200OK)]
         
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> AddModule([FromBody] CreateSubModuleRequestDTO? createModuleRequestDTO)

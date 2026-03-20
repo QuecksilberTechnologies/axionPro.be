@@ -48,8 +48,7 @@ namespace axionpro.api.Controllers.Module
         //}
 
         [HttpPost("update")]
-        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
-         
+        [ProducesResponseType(typeof(ApiResponse<ModuleOperationMappingByProductOwnerResponseDTO>), StatusCodes.Status200OK)]         
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> AddModuleOperation([FromBody] UpdateModuleOperationMappingByProductOwnerRequestDTO? dto)
         {

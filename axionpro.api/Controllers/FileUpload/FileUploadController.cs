@@ -30,7 +30,7 @@ namespace axionpro.api.Controllers.FileUpload
         /// Uploads an any image/doc/pdf and saves it to the server.
         /// </summary>
         [HttpPost("UploadAsset/upload")]
-        [ProducesResponseType(typeof(ApiResponse<>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UploadAsset([FromBody] UploadFileDTO dto)
