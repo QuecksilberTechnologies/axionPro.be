@@ -47,6 +47,7 @@ namespace axionpro.infrastructure
             services.AddScoped<IPasswordService, PasswordService>();
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<ICommonRequestService, CommonRequestService>();
+            services.AddScoped<IFileServiceAWS, AWSFileService>();
 
 
             // ✅ Add missing repository registration

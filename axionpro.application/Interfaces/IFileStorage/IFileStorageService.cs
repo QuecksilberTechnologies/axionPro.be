@@ -29,5 +29,15 @@ namespace axionpro.application.Interfaces.IFileStorage
         Task<(Stream Stream, string ContentType, string FileName)> GetFileStreamAsync(Guid fileId, ClaimsPrincipal user);
         Task<string> GetSignedUrlAsync(Guid fileId, TimeSpan ttl, ClaimsPrincipal user);
         Task DeleteAsync(Guid fileId);
+       
+       
+    }
+    public interface IFileServiceAWS
+    {
+        string GetEmployeeFolderPath(long tenantId, long insideTenant, string subFolder);
+
+        Task<string> UploadFileAsync(IFormFile file, string folderPath, string fileName);
+
+         Task<bool> DeleteFileAsync(string fileKey);
     }
 }

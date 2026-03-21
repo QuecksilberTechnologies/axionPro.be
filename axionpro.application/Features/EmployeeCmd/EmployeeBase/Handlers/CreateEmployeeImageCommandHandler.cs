@@ -1,33 +1,16 @@
 ﻿using AutoMapper;
-using axionpro.application.Common.Helpers;
-using axionpro.application.Common.Helpers.axionpro.application.Configuration;
-using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.EncryptionHelper;
-using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
-using axionpro.application.Constants;
-using axionpro.application.DTOs.Department;
-using axionpro.application.DTOs.Employee;
 using axionpro.application.DTOS.Employee.BaseEmployee;
-using axionpro.application.DTOS.Employee.Education;
-using axionpro.application.DTOS.Pagination;
-using axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 
-using axionpro.domain.Entity; using MediatR;
-using Microsoft.AspNetCore.Http;
+using axionpro.domain.Entity;
+using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
-using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
@@ -47,7 +30,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ILogger<CreateEmployeeImageCommandHandler> _logger;
-        private readonly IFileStorageService _fileStorageService;
+        private readonly IFileServiceAWS _fileStorageService;
         private readonly ICommonRequestService _commonRequestService;
         private readonly IPermissionService _permissionService;
         private readonly IConfiguration _configuration;
@@ -56,7 +39,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             IUnitOfWork unitOfWork,
             IMapper mapper,
             ILogger<CreateEmployeeImageCommandHandler> logger,
-            IFileStorageService fileStorageService,
+            IFileServiceAWS fileStorageService,
             ICommonRequestService commonRequestService,
             IPermissionService permissionService,
             IConfiguration configuration)
@@ -105,36 +88,28 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 string? fileName = null;
                 bool hasImageUploaded = false;
 
-                if (request.DTO.ImageFile != null &&  request.DTO.ImageFile.Length > 0 &&  request.DTO.IsActive)
+                if (request.DTO.ImageFile != null &&   request.DTO.ImageFile.Length > 0 &&     request.DTO.IsActive)
                 {
                     try
                     {
-                        string cleanName =
-                            EncryptionSanitizer.CleanEncodedInput(
-                                request.DTO.Prop.EmployeeId.ToString());
-
                         fileName =
-                            $"profile-{request.DTO.Prop.EmployeeId}-{DateTime.UtcNow:yyMMddHHmmss}.png";
+                            $"profile-{request.DTO.Prop.EmployeeId}-{DateTime.UtcNow:yyMMddHHmmss}";
 
+                        // ✅ S3 key path (NO directory creation)
                         string folderPath =
-                            _fileStorageService.GetEmployeeFolderPath(
-                                validation.TenantId,
-                                request.DTO.Prop.EmployeeId,
-                                "profile");
+                            $"tenants-{validation.TenantId}/employees/{request.DTO.Prop.EmployeeId}/profile";
 
-                        using var ms = new MemoryStream();
-                        await request.DTO.ImageFile.CopyToAsync(ms);
+                        // ✅ Upload to S3
+                        var fileKey =  await _fileStorageService.UploadFileAsync(
+                                request.DTO.ImageFile,
+                                folderPath,
+                                fileName);
 
-                        var savedFullPath =
-                            await _fileStorageService.SaveFileAsync(
-                                ms.ToArray(),
-                                fileName,
-                                folderPath);
-
-                        if (!string.IsNullOrWhiteSpace(savedFullPath))
+                        if (!string.IsNullOrWhiteSpace(fileKey))
                         {
-                            filePath =
-                                _fileStorageService.GetRelativePath(savedFullPath);
+                            // ✅ Direct S3 key save karo (NO relative path)
+                            filePath = fileKey;
+
                             hasImageUploaded = true;
                         }
                     }
