@@ -102,8 +102,20 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                         .GetInfo(request.DTO);
 
                 if (result == null || !result.Items.Any())
+                {
                     return ApiResponse<List<GetDependentResponseDTO>>
-                        .Fail("No dependent info found.");
+                      .SuccessPaginatedPercentage(
+                          Data: null,
+                          Message: "Dependent info not found.",
+                          PageNumber: 1,
+                          PageSize: 1,
+                          TotalRecords: 0,
+                          TotalPages: 0,
+                          CompletionPercentage: 
+                             0,
+                          HasUploadedAll: false
+                      );
+                }
 
                 // 🔐 STEP 5: Projection + Encryption + FilePath + Completion %
                 var responseDTO =

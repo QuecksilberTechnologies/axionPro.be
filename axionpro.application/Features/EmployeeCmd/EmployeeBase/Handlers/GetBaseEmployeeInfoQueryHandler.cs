@@ -93,7 +93,18 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 if (responseDTO == null || !responseDTO.Items.Any())
                 {
                     _logger.LogInformation("No Base Employee info found for EmployeeId: {EmpId}", request.DTO.Prop.EmployeeId);
-                    return ApiResponse<List<GetBaseEmployeeResponseDTO>>.Fail("No Base Employee info found.");
+                    return ApiResponse<List<GetBaseEmployeeResponseDTO>>.SuccessPaginatedPercentage(
+                    Data: null,
+                    Message: "Base Employee info not found.",
+                    PageNumber: 1,
+                    PageSize: 1,
+                    TotalRecords: 0,
+                    TotalPages:0,
+                    HasUploadedAll: null,
+                    CompletionPercentage: 0
+
+
+                );
                 }
 
               

@@ -88,9 +88,9 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         [HttpGet("get")]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    
         public async Task<IActionResult> GetBankinfo([FromQuery] GetDependentRequestDTO requestDto)
         {
             try
@@ -123,7 +123,7 @@ namespace axionpro.api.Controllers.Employee
       /// </summary>
       [HttpDelete("delete")]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status401BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Delete([FromQuery] DeleteRequestDTO dto)
         {
@@ -158,7 +158,7 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         [HttpPost("update")]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.StatusStatus401BadRequestBadRequest)]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Update([FromForm] UpdateDependentRequestDTO dto)
         {

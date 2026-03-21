@@ -89,7 +89,7 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
 
                 if (spRecords == null || !spRecords.Any())
                     return ApiResponse<List<GetEmployeeIdentityResponseDTO>>
-                        .Fail("No identity information found.");
+                   .Success(null, "Identity information not found.");
 
                 // 5️⃣ Projection + Encoding
                 var response = ProjectionHelper.ToGetIdentityResponseDTO(

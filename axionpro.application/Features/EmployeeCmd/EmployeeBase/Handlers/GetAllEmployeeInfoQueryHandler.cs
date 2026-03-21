@@ -89,7 +89,16 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 if (responseDTO == null || !responseDTO.Items.Any())
                 {
                     _logger.LogInformation("No Base Employee info found for EmployeeId: {EmpId}", request.DTO.Prop.UserEmployeeId);
-                    return ApiResponse<List<GetAllEmployeeInfoResponseDTO>>.Fail("No Base Employee info found.");
+                    return ApiResponse<List<GetAllEmployeeInfoResponseDTO>>.SuccessPaginatedPercentage(
+                           Data: null,
+                           Message: "Base Employee info not found.",
+                           PageNumber:1,
+                           PageSize: 1,
+                           TotalRecords: 0,
+                           TotalPages:1,
+                           CompletionPercentage: 0,
+                           HasUploadedAll: false
+       );
                 }
 
                 var resultList = ProjectionHelper.ToGetAllEmployeeInfoResponseDTOs(responseDTO, _idEncoderService, validation.Claims.TenantEncriptionKey, _config);
@@ -102,7 +111,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     TotalRecords: responseDTO.TotalCount,
                     TotalPages: responseDTO.TotalPages,
                     CompletionPercentage: responseDTO.CompletionPercentage,
-                    HasUploadedAll: responseDTO.HasUploadedAll
+                    HasUploadedAll: false
                 );
             }
             catch (Exception ex)

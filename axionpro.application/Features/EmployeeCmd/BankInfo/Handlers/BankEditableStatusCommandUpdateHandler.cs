@@ -110,6 +110,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 if (!updateResult)
                 {
                     _logger.LogWarning("❌ Failed to update editable status for EmployeeId: {EmployeeId}", request.DTO.Prop.EmployeeId);
+                    return ApiResponse<bool>.Fail("Unexpected error occurred.");
                 }
 
 

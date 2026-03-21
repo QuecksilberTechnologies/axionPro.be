@@ -96,7 +96,19 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                 if (Entity == null || !Entity.Items.Any())
                 {
                     await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<List<GetEducationResponseDTO>>.Fail("No education info found.");
+                    return new ApiResponse<List<GetEducationResponseDTO>>
+                    {
+                        IsSucceeded = true,
+                        Message = " record(s) retrieved successfully.",
+                        PageNumber = 1,
+                        PageSize = 1,
+                        TotalRecords = 0,
+                        TotalPages = 1,
+                        Data = null,
+                        CompletionPercentage = 0,
+                        HasAllDocUploaded = false,
+
+                    };
                 }
 
                 // 5️⃣ Projection + Encryption

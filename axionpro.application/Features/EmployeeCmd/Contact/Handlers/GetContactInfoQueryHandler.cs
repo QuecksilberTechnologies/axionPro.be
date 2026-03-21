@@ -92,8 +92,20 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
                         .GetInfo(request.DTO);
 
                 if (result == null || !result.Items.Any())
+                {
                     return ApiResponse<List<GetContactResponseDTO>>
-                        .Fail("No Contact info found.");
+                   .SuccessPaginatedPercentage(
+                       Data: null,
+                       Message: "Contact info retrieved successfully.",
+                       PageNumber: result?.PageNumber??1,
+                       PageSize: result?.PageSize ?? 1,
+                       TotalRecords: 0,
+                       TotalPages: 0,
+                       CompletionPercentage: 0,   // TODO: calculate if needed
+                       HasUploadedAll: null
+                   );
+                }
+                
 
                 // 🔐 STEP 7: Projection + Encryption
                 var responseDTO =
@@ -114,7 +126,7 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
                         TotalRecords: result.TotalCount,
                         TotalPages: result.TotalPages,
                         CompletionPercentage: result.CompletionPercentage,   // TODO: calculate if needed
-                        HasUploadedAll: null
+                        HasUploadedAll: false
                     );
             }
             catch (Exception ex)

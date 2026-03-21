@@ -52,7 +52,7 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         //  [HttpPost("get")]
         //    [ProducesResponseType(StatusCodes.Status200OK)]
-        //    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         //public async Task<IActionResult> GetAllexperinceInfo([FromBody] GetExperienceRequestDTO commandDto)
         //{
         //    try
