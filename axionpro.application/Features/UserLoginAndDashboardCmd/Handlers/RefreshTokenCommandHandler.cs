@@ -15,6 +15,7 @@ using axionpro.application.DTOS.Token.ems.application.DTOs.UserLogin;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
+using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
@@ -47,6 +48,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
         private readonly IEncryptionService _encryptionService;
         private readonly IIdEncoderService _idEncoderService;
         private readonly ICommonRequestService _commonRequestService;
+        private readonly IFileStorageService _fileStorageService;
 
         public RefreshTokenCommandHandler(
             IMapper mapper,
@@ -57,7 +59,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
             IConfiguration configuration,
             IEncryptionService encryptionService,
             IIdEncoderService idEncoderService,
-            ICommonRequestService commonRequestService)
+            ICommonRequestService commonRequestService, IFileStorageService fileStorageService)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
@@ -68,6 +70,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
             _encryptionService = encryptionService;
             _idEncoderService = idEncoderService;
             _commonRequestService = commonRequestService;
+            _fileStorageService = fileStorageService;
         }
 
         public async Task<ApiResponse<LoginResponseDTO>> Handle(
@@ -305,9 +308,14 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 // =====================================================
                 // STEP 10: Fresh profile image + employee response
                 // =====================================================
-                string? ProfileImagePath =
-                    $"{_configuration["FileSettings:BaseUrl"] ?? string.Empty}{await _unitOfWork.Employees.ProfileImage(empId) ?? null}";
+                                string? profileKey = await _unitOfWork.Employees.ProfileImage(empId);
 
+                string? ProfileImagePath = null;
+
+                if (!string.IsNullOrWhiteSpace(profileKey))
+                {
+                    ProfileImagePath = _fileStorageService.GetFileUrl(profileKey);
+                }
                 bool? isPasswordChange = null;
 
                 var user = await _unitOfWork.UserLoginRepository.AuthenticateUser(loginId);

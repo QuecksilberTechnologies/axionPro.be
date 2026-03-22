@@ -14,6 +14,7 @@ using axionpro.application.DTOS.Token;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
+using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces.ITokenService;
@@ -55,8 +56,9 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
         private readonly IEncryptionService _encryptionService;
         private readonly  IIdEncoderService _idEncoderService;
         private readonly ICommonRequestService _commonRequestService;
+        private readonly IFileStorageService _fileStorageService;
 
-        public LoginCommandHandler(IMapper mapper, IUnitOfWork unitOfWork, ITokenService tokenService, IRefreshTokenRepository refreshTokenRepository, ILogger<LoginCommandHandler> logger, IStoreProcedureRepository iCommonRepository, IPasswordService passwordService,
+        public LoginCommandHandler(IMapper mapper, IUnitOfWork unitOfWork, ITokenService tokenService, IRefreshTokenRepository refreshTokenRepository, ILogger<LoginCommandHandler> logger, IStoreProcedureRepository iCommonRepository, IPasswordService passwordService, IFileStorageService fileStorageService,
             IConfiguration configuration, IEncryptionService encryptionService, IIdEncoderService idEncoderService, ICommonRequestService commonRequestService)
         {
             _logger = logger;
@@ -70,7 +72,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
             _encryptionService = encryptionService; // 👈 same name use karo
             _idEncoderService = idEncoderService;
             _commonRequestService = commonRequestService;
-     
+       _fileStorageService = fileStorageService;
         }
         public async Task<ApiResponse<LoginResponseDTO>> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
@@ -337,8 +339,15 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 string encriptedTenantId = _idEncoderService.EncodeId_long(tempTenantId, finalKey);
                 // ✅ Decrypt same encrypted string             
           
-                string? ProfileImagePath = $"{_configuration["FileSettings:BaseUrl"] ?? string.Empty}{await _unitOfWork.Employees.ProfileImage(empId) ?? null}";
+               // string? ProfileImagePath = $"{_configuration["FileSettings:BaseUrl"] ?? string.Empty}{await _unitOfWork.Employees.ProfileImage(empId) ?? null}";
+                string? profileKey = await _unitOfWork.Employees.ProfileImage(empId);
 
+                string? ProfileImagePath = null;
+
+                if (!string.IsNullOrWhiteSpace(profileKey))
+                {
+                    ProfileImagePath = _fileStorageService.GetFileUrl(profileKey);
+                }
                 //string Decrut = (_encryptionService.Decrypt(tempEmployeeId.ToString(), tenantEncryptionKey.EncryptionKey));
 
                 GetEmployeeLoginInfoResponseDTO? employeeInfo = _mapper.Map<GetEmployeeLoginInfoResponseDTO>(empMinimalResponse);
