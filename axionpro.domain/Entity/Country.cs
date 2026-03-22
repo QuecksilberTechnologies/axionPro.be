@@ -11,6 +11,7 @@ public partial class Country
     public string CountryName { get; set; } = null!;
 
     public string? CountryCode { get; set; }
+    public required string STDCode { get; set; }
 
     public bool? IsActive { get; set; }
 

@@ -831,6 +831,7 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("Country", "axionpro");
 
                 entity.Property(e => e.CountryCode).HasMaxLength(10);
+                entity.Property(e => e.STDCode).HasMaxLength(10);
                 entity.Property(e => e.CountryName).HasMaxLength(100);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
             });

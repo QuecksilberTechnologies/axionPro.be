@@ -73,6 +73,7 @@ namespace axionpro.persistance.Repositories
                         Id = c.Id,
                         CountryName = c.CountryName ?? string.Empty,
                         CountryCode = c.CountryCode ?? string.Empty,
+                        STDCode = c.STDCode ,
                         IsActive = c.IsActive
                     })
                     .ToListAsync();
@@ -131,6 +132,7 @@ namespace axionpro.persistance.Repositories
                         Id = s.Id,
                         CountryId = s.CountryId,
                         CountryCode = s.Country != null ? (s.Country.CountryCode ?? string.Empty) : string.Empty,
+                        STDCode = s.Country != null ? s.Country.STDCode : string.Empty,
                         StateName = s.StateName ?? string.Empty,
                         IsActive = s.IsActive
                     })

@@ -12,18 +12,21 @@ namespace axionpro.application.Common.Helpers
 
         public static string Normalize(string input)
         {
-            input = input?.Trim();
+            if (string.IsNullOrWhiteSpace(input))
+                return "saving"; // default
 
-            if (string.IsNullOrEmpty(input))
-                return "Savings";
+            input = input.Trim();
 
             if (input.Equals("saving", StringComparison.OrdinalIgnoreCase))
-                return "Savings";
+                return "saving";
 
-            if (!ValidTypes.Contains(input))
-                throw new Exception("Invalid AccountType");
+            if (input.Equals("salary", StringComparison.OrdinalIgnoreCase))
+                return "salary";
 
-            return char.ToUpper(input[0]) + input.Substring(1).ToLower();
+            if (input.Equals("current", StringComparison.OrdinalIgnoreCase))
+                return "current";
+
+            throw new Exception("Invalid AccountType");
         }
     }
 }
