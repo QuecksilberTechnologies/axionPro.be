@@ -18,7 +18,6 @@ namespace axionpro.api.Controllers.FileUpload
         private readonly IMediator _mediator;
         private readonly ILoggerService _logger;
         private readonly IFileStorageService _fileStorageService;
-
         public FileUploadController(IMediator mediator, ILoggerService logger, IFileStorageService fileStorageService)
         {
             _mediator = mediator;
@@ -29,10 +28,7 @@ namespace axionpro.api.Controllers.FileUpload
         /// <summary>
         /// Uploads an any image/doc/pdf and saves it to the server.
         /// </summary>
-        [HttpPost("UploadAsset/upload")]
-        
-        
-        
+        [HttpPost("UploadAsset/upload")]     
         public async Task<IActionResult> UploadAsset([FromBody] UploadFileDTO dto)
         {
             try

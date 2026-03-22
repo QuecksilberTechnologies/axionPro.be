@@ -33,32 +33,15 @@ namespace axionpro.api.Controllers.Ticket
         /// </summary>
         /// <param name="dto">Ticket header data to be created.</param>
         /// <returns>Returns the created Ticket Header with a success message.</returns>
-        [HttpPost("create")]
-        
-        
-        
+        [HttpPost("create")] 
         public async Task<IActionResult> CreateHeader([FromBody] AddHeaderRequestDTO dto)
         {
-            try
-            {
+            
                 _logger.LogInformation("🎯 Received request to create Ticket Header: {Data}", JsonConvert.SerializeObject(dto));
 
                 var result = await _mediator.Send(new AddHeaderCommand(dto));
-
-                if (!result.IsSucceeded)
-                    return BadRequest(result);
-
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error occurred while creating Ticket Header.");
-                return StatusCode(500, new ApiResponse<string>
-                {
-                    IsSucceeded = false,
-                    Message = $"Internal Server Error: {ex.Message}"
-                });
-            }
+           
         }
 
         // ----------------------------------------------------------------------------------------------------
@@ -85,37 +68,18 @@ namespace axionpro.api.Controllers.Ticket
         /// GET /api/Ticket/Header/get-filter?TenantId=1&HeaderName=Network&IsActive=true
         /// </code>
         /// </remarks>
-        [HttpGet("get-filter")]
-        
-        
-        
+        [HttpGet("get-filter")]    
         public async Task<IActionResult> GetAllHeaderFilterAsync([FromQuery] GetHeaderRequestDTO dto)
         {
-            try
-            {
+          
                 _logger.LogInformation("📦 Fetching Ticket Headers with applied filters: {Filters}",
                     JsonConvert.SerializeObject(dto));
 
                 var result = await _mediator.Send(new GetHeaderFilterCommand(dto));
-
-                if (result == null || !result.IsSucceeded)
-                {
-                    _logger.LogWarning("⚠️ No Ticket Headers found for filters: {Filters}", JsonConvert.SerializeObject(dto));
-                    return NotFound(result);
-                }
-
                 _logger.LogInformation("✅ {Count} Ticket Headers fetched successfully.", result.Data?.Count ?? 0);
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error occurred while fetching Ticket Headers with filters.");
-                return StatusCode(500, new ApiResponse<string>
-                {
-                    IsSucceeded = false,
-                    Message = $"Internal Server Error: {ex.Message}"
-                });
-            }
+           
+           
         }
 
         // ----------------------------------------------------------------------------------------------------

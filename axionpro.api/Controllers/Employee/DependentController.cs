@@ -37,14 +37,10 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         /// <param name="DTO"></param>
         /// <param name="Dto">Employee-Dependent details</param>
-        [HttpPost("create")]
-        
-        
-        
+        [HttpPost("create")]      
         public async Task<IActionResult> CreateDependentInfo([FromForm] CreateDependentRequestDTO Dto)
         {
-            try
-            {
+           
                 // ✅ IMEI validation
                 if (Dto == null)
                 {
@@ -57,134 +53,66 @@ namespace axionpro.api.Controllers.Employee
 
                 var command = new CreateDependentCommand(Dto);
                 var result = await _mediator.Send(command);
-
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo("Failed to create employee record.");
-                    return BadRequest(result);
-                }
-
                 _logger.LogInfo("Employee-Dependent created successfully.");
                 return Ok(result);
-            }
-            catch (ValidationException vex)
-            {
-                _logger.LogError($"Validation Error: {vex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("Validation failed.", new List<string> { vex.Message });
-                return BadRequest(errorResponse);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Exception occurred in employee-Dependent: {ex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while creating employee Dependent.",
-                    new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
+           
+          
         }
 
 
         /// <summary>
         /// Get all employee-Dependent based on TenantId or filters.
         /// </summary>
-        [HttpGet("get")]
-        
-        
-        
-    
+        [HttpGet("get")]    
         public async Task<IActionResult> GetBankinfo([FromQuery] GetDependentRequestDTO requestDto)
         {
-            try
-            {
+          
                 _logger.LogInfo("Fetching all bank.");
 
                 var command = new GetDependentInfoQuery(requestDto);
                 var result = await _mediator.Send(command);
 
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo("No employee-Dependent found or request failed.");
-                    return BadRequest(result);
-                }
-
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error while fetching employees-Dependent: {ex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while fetching employee Dependent info.",
-                    new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
+           
         }
         
 
       /// <summary>
       /// Deletes employee education record by Id. 
       /// </summary>
-      [HttpDelete("delete")]
-        
-        
-        
+      [HttpDelete("delete")]               
         public async Task<IActionResult> Delete([FromQuery] DeleteRequestDTO dto)
         {
-            try
-            {
+            
                 _logger.LogInfo($"Deleting employee with Id: {dto.Id}");
 
                 var command = new DeleteContactQuery(dto);
                 var result = await _mediator.Send(command);
 
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo($"Failed to delete  with Id: {dto.Id}");
-                    return BadRequest(result);
-                }
+                
 
                 _logger.LogInfo("Dependent deleted successfully.");
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error deleting employee: {ex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while deleting employee.",
-                    new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
+           
+           
         }
 
 
         /// <summary>
         /// Updates employee details.
         /// </summary>
-        [HttpPost("update")]
-        
-        
-        
+        [HttpPost("update")]    
         public async Task<IActionResult> Update([FromForm] UpdateDependentRequestDTO dto)
         {
-            try
-            {
+            
                 _logger.LogInfo($"Updating employee-Dependent record. Id: {dto.Id}");
 
                 var command = new UpdateDependentCommand(dto);
                 var result = await _mediator.Send(command);
 
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo($"Failed to update employee-Dependent with Id: {dto.Id}");
-                    return BadRequest(result);
-                }
-
                 _logger.LogInfo("Employee-Dependent updated successfully.");
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error updating employee-Dependent: {ex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while updating employee-Dependent info.",
-                    new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
+            
         }
 
 

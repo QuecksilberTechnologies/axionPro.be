@@ -17,13 +17,10 @@ namespace axionpro.api.Controllers.Employee;
 /// </summary>
 [Route("api/Employee/[controller]")]
 [ApiController]
-
 public class InsuranceController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly ILoggerService _logger;  // Logger service ka declaration
-
-  
+    private readonly ILoggerService _logger;  // Logger service ka declaration  
     public InsuranceController(IMediator mediator, ILoggerService logger)
     {
         _mediator = mediator;
@@ -36,55 +33,33 @@ public class InsuranceController : ControllerBase
     /// </summary>
     
     [HttpPost("create")]
-
-    //  [Authorize]
-    
-    
-    
+    //  [Authorize]   
     public async Task<IActionResult> CreateEmployee([FromBody] CreateBaseEmployeeRequestDTO employeeCreateDto)
     {
         var command = new CreateBaseEmployeeInfoCommand(employeeCreateDto);
          _logger.LogInfo("Creating new employee-contact"); // Log the info message
 
-         var result = await _mediator.Send(command);
-        if (!result.IsSucceeded)
-        {
-            return BadRequest(result);
-        }
+         var result = await _mediator.Send(command);       
         return Ok(result);
     }
 
     /// <summary>
     /// Get all employees that belong to the specified tenant.
     /// </summary>
-    [HttpGet("get")]
-    
-    
-    
-    
+    [HttpGet("get")]  
     public async Task<IActionResult> Get([FromQuery] GetContactRequestDTO requestDto)
     {
-        try
-        {
-             
-            
+      
             var command = new GetContactInfoQuery(requestDto);
 
             // ✅ Send command instead of DTO
-            ApiResponse<List<GetContactResponseDTO>> result = await _mediator.Send(command);
-
-            if (result.IsSucceeded)
+            ApiResponse<List<GetContactResponseDTO>> result = await _mediator.Send(command);       
                 return Ok(result);
-            else
-                return BadRequest(result);
+            
         }
-        catch (Exception ex)
-        {
-            var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while fetching employee info.",
-                new List<string> { ex.Message });
-            return StatusCode(500, errorResponse);
-        }
+        
     }
+
 
     //[HttpPost("get-user-self-employement-info")]
     //[HttpPost("update")]
@@ -147,7 +122,7 @@ public class InsuranceController : ControllerBase
     //            new List<string> { ex.Message });
     //        return StatusCode(500, errorResponse);
     //    }
-    //}
+  
 
 
 
@@ -155,5 +130,4 @@ public class InsuranceController : ControllerBase
 
 
 
-}
 

@@ -23,45 +23,22 @@ namespace axionpro.api.Controllers.Insurance
         }
 
         // 🔹 CREATE INSURANCE POLICY
-        [HttpPost("create")]
-        
-        
-        
-    
+        [HttpPost("create")]  
         public async Task<IActionResult> Create(
             [FromBody] CreateInsurancePolicyRequestDTO dto)
         {
-            if (dto == null)
-                return BadRequest(ApiResponse<bool>.Fail("Invalid request."));
-
-            try
-            {
                 _logger.LogInfo("Create insurance policy started.");
 
                 var command = new CreateInsuranceCommand(dto);
                 var result = await _mediator.Send(command);
 
                 return Ok(result);
-            }
-            catch (ValidationException vex)
-            {
-                _logger.LogError($"Validation error: {vex.Message}");
-                return BadRequest(ApiResponse<bool>.Fail("Validation failed."));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Create insurance failed: {ex.Message}");
-                return StatusCode(
-                    StatusCodes.Status500InternalServerError,
-                    ApiResponse<bool>.Fail("Internal server error.")
-                );
-            }
+           
+            
         }
 
         // 🔹 GET INSURANCE LIST (GRID)
-        [HttpGet("get-ddl")]
-        
-        
+        [HttpGet("get-ddl")]     
         
         public async Task<IActionResult> GetList(
             [FromQuery] GetAllInsurancePolicyRequestDTO requestDto)
@@ -71,37 +48,23 @@ namespace axionpro.api.Controllers.Insurance
             var query = new GetAllInsuranceQuery(requestDto);
             var result = await _mediator.Send(query);
 
-            // ❌ No InternalServerError
-            // ❌ No try-catch drama
-            // ✅ ApiResponse decides success/fail
 
             return Ok(result);
         }
 
         // 🔹 GET INSURANCE LIST (GRID)
-        [HttpGet("get-all")]
-        
-        
-        
+        [HttpGet("get-all")]        
         public async Task<IActionResult> GetList(
             [FromQuery] GetInsurancePolicyRequestDTO requestDto)
           {
             _logger.LogInfo("Fetching insurance policy list.");
-
             var query = new GetInsuranceQuery(requestDto);
             var result = await _mediator.Send(query);
-
-            // ❌ No InternalServerError
-            // ❌ No try-catch drama
-            // ✅ ApiResponse decides success/fail
 
             return Ok(result);
         }
         // 🔹 DELETE INSURANCE POLICY
-        [HttpDelete("delete")]
-        
-        
-        
+        [HttpDelete("delete")]        
         public async Task<IActionResult> Delete(
             [FromQuery] DeleteInsurancePolicyRequestDTO requestDto)
         {
@@ -114,10 +77,7 @@ namespace axionpro.api.Controllers.Insurance
         }
 
         // 🔹 UPDATE INSURANCE POLICY
-        [HttpPut("update")]
-        
-        
-        
+        [HttpPut("update")]        
         public async Task<IActionResult> Update(
             [FromBody] UpdateInsurancePolicyRequestDTO requestDto)
         {
@@ -132,7 +92,6 @@ namespace axionpro.api.Controllers.Insurance
 
             return Ok(result);
         }
-
 
         //// 🔹 GET INSURANCE BY ID
         //[HttpGet("get-by-id")]

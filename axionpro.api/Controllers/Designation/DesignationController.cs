@@ -37,9 +37,6 @@ namespace axionpro.api.Controllers.Designation
         /// <response code="400">Invalid request parameters.</response>
         /// <response code="401">Unauthorized request or invalid tenant.</response>
         [HttpGet("get")]
-        
-        
-        
         public async Task<IActionResult> GetAllDesignationAsyc([FromQuery] GetDesignationRequestDTO designationRequestDTO)
         {
          //   _logger.LogInfo($"Received request to get designation from userId: {designationRequestDTO.Id}");
@@ -47,10 +44,6 @@ namespace axionpro.api.Controllers.Designation
             var command = new GetDesignationQuery(designationRequestDTO);
             var result = await _mediator.Send(command);
 
-            if (!result.IsSucceeded)
-            {
-                return Unauthorized(result);
-            }
             return Ok(result);
         }
         /// <summary>
@@ -72,19 +65,13 @@ namespace axionpro.api.Controllers.Designation
             var command = new GetDepartmentQuery(designationRequestDTO);
             var result = await _mediator.Send(command);
 
-            if (!result.IsSucceeded)
-            {
-                return BadRequest(result);
-            }
             return Ok(result);
         }
 
         /// <summary>
         /// Get all designation.
         /// </summary>
-        [HttpGet("option")]
-        
-        
+        [HttpGet("option")]      
         
         public async Task<IActionResult> getDesignation([FromQuery] GetDesignationOptionRequestDTO requestDTO)
         {
@@ -93,10 +80,6 @@ namespace axionpro.api.Controllers.Designation
             var command = new GetDesignationOptionQuery(requestDTO);
             var result = await _mediator.Send(command);
 
-            if (!result.IsSucceeded)
-            {
-                return BadRequest(result);
-            }
             return Ok(result);
         }
 
@@ -106,10 +89,8 @@ namespace axionpro.api.Controllers.Designation
         /// <param name="dTO">Designation details to be created.</param>
         /// <returns>Operation result wrapped in ApiResponse.</returns>
         /// <response code="200">Designation created successfully.</response>
-        /// <response code="400">Invalid request payload.</response>
-        [HttpPost("add")]
-        
-        
+        /// <response code="400">invalid request payload.</response>
+        [HttpPost("add")]       
         
         public async Task<IActionResult> CreateDesignation([FromBody] CreateDesignationRequestDTO dTO)
         {
@@ -123,12 +104,6 @@ namespace axionpro.api.Controllers.Designation
 
             var command = new CreateDesignationCommand(dTO);
             var result = await _mediator.Send(command);
-
-            if (!result.IsSucceeded)
-            {
-                return BadRequest(result);
-            }
-
             return Ok(result);
         }
 
@@ -139,10 +114,7 @@ namespace axionpro.api.Controllers.Designation
         /// <returns>Operation result wrapped in ApiResponse.</returns>
         /// <response code="200">Designation deleted successfully.</response>
         /// <response code="400">Invalid request payload.</response>
-        [HttpDelete("delete")]
-        
-        
-        
+        [HttpDelete("delete")]       
         public async Task<IActionResult> Delete([FromQuery] DeleteDesignationRequestDTO dTO)
         {
             if (dTO == null)
@@ -155,12 +127,6 @@ namespace axionpro.api.Controllers.Designation
 
             var command = new DeleteDesignationQuery(dTO);
             var result = await _mediator.Send(command);
-
-            if (!result.IsSucceeded)
-            {
-                return BadRequest(result);
-            }
-
             return Ok(result);
         }
 
@@ -171,19 +137,13 @@ namespace axionpro.api.Controllers.Designation
         /// <returns>Operation result wrapped in ApiResponse.</returns>
         /// <response code="200">Designation updated successfully.</response>
         /// <response code="400">Invalid update request.</response>
-        [HttpPut("update")]
-        
-        
-        
+        [HttpPut("update")]       
         public async Task<IActionResult> UpdateDesignation([FromBody] UpdateDesignationRequestDTO updateDesignationDTO)
         {
             _logger.LogInfo("Received request for update designation: " + updateDesignationDTO.ToString());
             var command = new UpdateDesignationCommand(updateDesignationDTO);
             var result = await _mediator.Send(command);
-            if (!result.IsSucceeded)
-            {
-                return Ok(result);
-            }
+           
             return Ok(result);
         }
     }

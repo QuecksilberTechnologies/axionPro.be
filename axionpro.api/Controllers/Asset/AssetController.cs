@@ -40,11 +40,7 @@ namespace axionpro.api.Controllers.Asset
         /// </summary>
         /// <param name="assetRequestDTO">Filter parameters like TenantId, TypeId, etc.</param>
         /// <returns>List of assets matching the criteria.</returns>
-        [HttpGet("get")]
-
-        
-        
-        
+        [HttpGet("get")] 
         public async Task<IActionResult> GetAllAssets([FromQuery] GetAssetRequestDTO assetRequestDTO)
         {
             var command = new GetAllAssetCommand(assetRequestDTO);
@@ -57,11 +53,7 @@ namespace axionpro.api.Controllers.Asset
         /// </summary>
         /// <param name="addAssetDTO">DTO containing asset details to create.</param>
         /// <returns>Returns the created asset with its Id and other details.</returns>
-        [HttpPost("add")]
-
-        
-        
-        
+        [HttpPost("add")]   
         public async Task<IActionResult> AddAsset([FromForm] AddAssetRequestDTO  addAssetDTO)
         {
             _logger.LogInfo("Request: Add asset - " + addAssetDTO);
@@ -75,11 +67,7 @@ namespace axionpro.api.Controllers.Asset
         /// </summary>
         /// <param name="updateAssetDTO">DTO containing updated asset details including Id.</param>
         /// <returns>Returns the updated asset information.</returns>
-        [HttpPut("update")]
-
-        
-        
-        
+        [HttpPut("update")]       
         public async Task<IActionResult> UpdateAsset([FromBody] UpdateAssetRequestDTO updateAssetDTO)
         {
             _logger.LogInfo("Request: Update asset - " + updateAssetDTO);
@@ -93,11 +81,7 @@ namespace axionpro.api.Controllers.Asset
         /// </summary>
         /// <param name = "deleteAssetDTO" > DTO containing the Id of the asset to delete.</param>
         /// <returns>Returns status of the delete operation.</returns>
-        [HttpDelete("delete")]
-
-        
-        
-        
+        [HttpDelete("delete")]        
         public async Task<IActionResult> DeleteAsset([FromQuery] DeleteAssetReqestDTO deleteAssetDTO)
         {
             _logger.LogInfo("Request: Delete asset - " + deleteAssetDTO);

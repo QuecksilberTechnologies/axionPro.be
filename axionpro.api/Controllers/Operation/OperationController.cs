@@ -32,10 +32,7 @@ namespace axionpro.api.Controllers.Operation
         /// <summary>
         /// Get all operations.
         /// </summary>
-        [HttpGet("get")]
-        
-        
-        
+        [HttpGet("get")]        
         public async Task<IActionResult> GetAllOperationAsyc([FromQuery] GetOperationRequestDTO operationRequestDTO)
         {
             _logger.LogInfo($"Received request to get operationRequestDTO from userId: {operationRequestDTO.EmployeeId}");
@@ -43,40 +40,23 @@ namespace axionpro.api.Controllers.Operation
             var command = new GetAllOperationCommand(operationRequestDTO);
             var result = await _mediator.Send(command);
 
-            if (!result.IsSucceeded)
-            {
-                return Unauthorized(result);
-            }
             return Ok(result);
         }
-
-
 
         /// <summary>
         /// Get insert operation.
         /// </summary>
         [HttpPost("create")]
         
-        
-        
         public async Task<IActionResult> CreateOperation([FromBody] CreateOperationRequestDTO createOperationDTO)
         {
-            if (createOperationDTO == null)
-            {
-                _logger.LogInfo("Received null request for creating operationRequestDTO .");  // ✅ अब सही है
-                return BadRequest(new { success = false, message = "Invalid request" });
-            }
-
+           
             _logger.LogInfo($"Received request to create a new operationRequestDTO: {createOperationDTO.OperationName}");
 
             var command = new CreateOperationCommand(createOperationDTO);
             var result = await _mediator.Send(command);
 
-            if (!result.IsSucceeded)
-            {
-                return BadRequest(result);
-            }
-
+          
             return Ok(result);
         }
 
@@ -84,46 +64,22 @@ namespace axionpro.api.Controllers.Operation
         /// Update Operation.
         /// </summary>
         [HttpPost("update")]
-        
-        
-        
+               
         public async Task<IActionResult> UpdateOperation([FromBody] UpdateOperationRequestDTO updateOperationDTO)
         {
             _logger.LogInfo("Received request for update a leave" + updateOperationDTO.ToString());
             var command = new UpdateOperationCommand(updateOperationDTO);
-            var result = await _mediator.Send(command);
-            if (!result.IsSucceeded)
-            {
-                return Ok(result);
-            }
+            var result = await _mediator.Send(command);            
             return Ok(result);
         }
          [Authorize]
         [HttpGet("has-access")]
-        
-        
-        
         public async Task<IActionResult> HasPageOperationAccess([FromQuery] GetCheckOperationPermissionRequestDTO? checkOperationPermissionRequest)
         {
-            if (checkOperationPermissionRequest == null)
-            {
-              //  _logger.LogWarning("❌ Received null request for checking operation permission.");
-               // return BadRequest(new ApiResponse<HasAccessOperationDTO>(false, "Invalid request", null));
-            }
-
-        //    _logger.LogInformation("📢 Checking operation permission for RoleId: {RoleId}, ModuleId: {ModuleId}, OperationId: {OperationId}",
-             //   checkOperationPermissionRequest.RoleId, checkOperationPermissionRequest.ProjectChildModuleDetailId, checkOperationPermissionRequest.OperationId);
+            
 
             var query = new GetPageOperationPermissionQuery(checkOperationPermissionRequest);
             var result = await _mediator.Send(query);
-
-            if (!result.IsSucceeded)
-            {
-            //    _logger.LogWarning("⛔ Permission denied for RoleId: {RoleId}, ModuleId: {ModuleId}, OperationId: {OperationId}",
-                   // checkOperationPermissionRequest.RoleId, checkOperationPermissionRequest.ProjectChildModuleDetailId, checkOperationPermissionRequest.OperationId);
-                return Unauthorized(result);
-            }
-
             return Ok(result);
         }
         

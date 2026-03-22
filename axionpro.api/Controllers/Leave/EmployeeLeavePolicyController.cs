@@ -17,102 +17,69 @@ namespace axionpro.api.Controllers.Leave
     {
         private readonly IMediator _mediator;
         private readonly ILogger<PolicyMappingLeaveTypeController> _logger;
-
         public EmployeeLeavePolicyController(IMediator mediator, ILogger<PolicyMappingLeaveTypeController> logger)
         {
             _mediator = mediator;
             _logger = logger;
         }
         // ✅ Map EmployeeLeavePolicyMapping 
-        [HttpPost("add")]
-        
-        
+        [HttpPost("add")]     
         
         public async Task<IActionResult> MapEmployeeyAsync([FromBody] AddLeaveBalanceToEmployeeRequestDTO requestDTO)
         {
             _logger.LogInformation("Received request to create EmployeeLeavePolicyMapping: {Request}", JsonConvert.SerializeObject(requestDTO));
             var command = new AddLeaveBalanceCommand(requestDTO);
             var result = await _mediator.Send(command);
-
-            if (!result.IsSucceeded)
-                return BadRequest(result);
-
             return Ok(result);
         }
         // ✅ Map EmployeeLeavePolicyMapping 
-        [HttpPost("LeaveBalance/update")]
-        
-        
-        
+        [HttpPost("LeaveBalance/update")]        
         public async Task<IActionResult> UpdateEmployeeyAsync([FromBody] UpdateLeaveBalanceToEmployeeRequestDTO requestDTO)
         {
             _logger.LogInformation("Received request to create EmployeeLeavePolicyMapping: {Request}", JsonConvert.SerializeObject(requestDTO));
             var command = new UpdateLeaveBalanceCommand(requestDTO);
             var result = await _mediator.Send(command);
 
-            if (!result.IsSucceeded)
-                return BadRequest(result);
-
             return Ok(result);
         }
 
         // ✅ Map EmployeeLeavePolicyMapping 
-        [HttpPost("map")]
-        
-        
-        
+        [HttpPost("map")]       
         public async Task<IActionResult> MapEmployeeyAsync([FromBody] CreateEmployeeLeavePolicyMappingRequestDTO requestDTO)
         {
             _logger.LogInformation("Received request to create EmployeeLeavePolicyMapping: {Request}", JsonConvert.SerializeObject(requestDTO));
             var command = new EmployeeLeavePolicyMapCommand(requestDTO);
             var result = await _mediator.Send(command);
-
-            if (!result.IsSucceeded)
-                return BadRequest(result);
-
             return Ok(result);
         }
 
         //  ✅ Get All Employee mapped EmployeeLeavePolicyMapping
-        [HttpGet("Mapped/Leave/Policy/get")]
-        
-        
-        
+        [HttpGet("Mapped/Leave/Policy/get")]        
         public async Task<IActionResult> GetAllLeavePoliciesAsync([FromQuery] GetLeaveTypeWithPolicyMappingRequestDTO getLeavePolicyRequestDTO)
         {
             _logger.LogInformation("Fetching all Employee Mapped...");
             var query = new GetAllLeavePolicyQuery(getLeavePolicyRequestDTO);
             var result = await _mediator.Send(query);
-
             return Ok(result);
         }
         //  ✅ Get All Employee mapped EmployeeLeavePolicyMapping
-        [HttpGet("EmployeeLeavePolicy/Mapped/get")]
-        
-        
-        
+        [HttpGet("EmployeeLeavePolicy/Mapped/get")]             
         public async Task<IActionResult> GetAllEmployeeLeavePoliciesAsync([FromQuery] GetEmployeeLeavePolicyMappingRequestDTO requestDTO)
         {
             _logger.LogInformation("Fetching all Employee Mapped...");
             var query = new GetAllEmployeeLeavePolicyQuery(requestDTO);
             var result = await _mediator.Send(query);
-
             return Ok(result);
         }
 
         //// ✅ Update EmployeeLeavePolicyMapping
-        [HttpPost("update")]
-        
-        
+        [HttpPost("update")]       
         
         public async Task<IActionResult> UpdateLeavePolicyAsync([FromBody] UpdateEmployeeLeavePolicyMappingRequestDTO requestDTO)
         {
             _logger.LogInformation("Received request to update LeavePolicy: {Request}", JsonConvert.SerializeObject(requestDTO));
             var command = new UpdateEmployeeLeavePolicyMapCommand(requestDTO);
-            var result = await _mediator.Send(command);
-
-            if (!result.IsSucceeded)
-                return BadRequest(result);
+            var result = await _mediator.Send(command);           
 
             return Ok(result);
         }

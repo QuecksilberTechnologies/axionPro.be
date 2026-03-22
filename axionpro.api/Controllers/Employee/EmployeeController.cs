@@ -44,14 +44,9 @@ namespace axionpro.api.Controllers.Employee
         /// <param name="employeeCreateDto">Employee details</param>
         [Authorize]
         [HttpPost("create")]
-
-
-
         public async Task<IActionResult> CreateEmployee([FromBody] CreateBaseEmployeeRequestDTO employeeCreateDto)
         {
-            try
-            {
-                // ✅ IMEI validation
+              // ✅ IMEI validation
                 if (employeeCreateDto == null)
                 {
                     _logger.LogInfo($"Invalid IMEI: {employeeCreateDto}");
@@ -64,30 +59,11 @@ namespace axionpro.api.Controllers.Employee
                 var command = new CreateBaseEmployeeInfoCommand(employeeCreateDto);
                 var result = await _mediator.Send(command);
 
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo("Failed to create employee record.");
-                    return Ok(result);
-                }
-
                 _logger.LogInfo("Employee created successfully.");
                 return Ok(result);
-            }
-            catch (ValidationException vex)
-            {
-                _logger.LogError($"Validation Error: {vex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("Validation failed.", new List<string> { vex.Message });
-                return BadRequest(errorResponse);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Exception occurred in CreateEmployee: {ex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while creating employee.",
-                    new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
+           
+           
         }
-
 
 
         [Authorize]
@@ -108,27 +84,17 @@ namespace axionpro.api.Controllers.Employee
         /// Get all employees based on TenantId or filters.
         /// </summary>
         [Authorize]
-        [HttpGet("Image/get")]
-
-
-        // 
+        [HttpGet("Image/get")]     
         public async Task<IActionResult> GetAllEmployeeImage([FromQuery] GetEmployeeImageRequestDTO requestDto)
         {
-            try
-            {
+            
                 _logger.LogInfo("Fetching all employees.");
 
                 var command = new GetEmployeeImageQuery(requestDto);
                 var result = await _mediator.Send(command);
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error while fetching employees: {ex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while fetching employee info.",
-                    new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
+           
+           
         }
 
         /// <summary>
@@ -136,7 +102,6 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         [Authorize]
         [HttpPost("update-edit-status")]
-
         public async Task<IActionResult> UpdateSectionStatusBulk([FromBody] UpdateEditStatusRequestDTO_ dto)
         {
             if (dto == null)
@@ -152,17 +117,12 @@ namespace axionpro.api.Controllers.Employee
         ///  update  verification permission status for an employee.
         /// </summary>
         [HttpPost("update-verification-status")]
-
-
-
         public async Task<IActionResult> UpdateVerificationStatus([FromBody] UpdateVerificationStatusRequestDTO_ dto)
         {
-            if (dto == null)
-                return BadRequest(ApiResponse<bool>.Fail("Invalid or empty request."));
+            
 
             var command = new UpdateVerificationStatusCommand(dto);
             var result = await _mediator.Send(command);
-
             return Ok(result);
         }
 
@@ -174,8 +134,6 @@ namespace axionpro.api.Controllers.Employee
         [HttpPost("update-bulk")]
         public async Task<IActionResult> UpdateSectionStatusBulk([FromBody] UpdateEmployeeSectionStatusRequestDTO dto)
         {
-            if (dto == null)
-                return BadRequest(ApiResponse<bool>.Fail("Invalid or empty request."));
 
             var command = new UpdateSectionBulkCommand(dto);
             var result = await _mediator.Send(command);
@@ -186,8 +144,7 @@ namespace axionpro.api.Controllers.Employee
         [HttpGet("get-all-percentage")]
         public async Task<IActionResult> GetAllEmployeePercentageAsync([FromQuery] string employeeId)
         {
-            try
-            {
+           
                 if (string.IsNullOrWhiteSpace(employeeId))
                 {
                     _logger.LogInfo("Invalid EmployeeId received.");
@@ -204,16 +161,8 @@ namespace axionpro.api.Controllers.Employee
                 _logger.LogInfo("Employee percentage fetched successfully.");
 
                 return Ok(response);   // ✔ Correct return
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Error getting employee completion percentage.");
-
-                return StatusCode(
-                    StatusCodes.Status500InternalServerError,
-                    ApiResponse<bool>.Fail("Internal Server Error")
-                );
-            }
+           
+           
         }
 
 
@@ -224,28 +173,16 @@ namespace axionpro.api.Controllers.Employee
         [HttpGet("get")]
         public async Task<IActionResult> GetEmployee([FromQuery] GetBaseEmployeeRequestDTO requestDto)
         {
-            try
-            {
+            
                 _logger.LogInfo("Fetching all employees.");
 
                 var command = new GetBaseEmployeeInfoQuery(requestDto);
                 var result = await _mediator.Send(command);
 
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo("No employees found or request failed.");
-                    return BadRequest(result);
-                }
 
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error while fetching employees: {ex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while fetching employee info.",
-                    new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
+          
+           
         }
         /// <summary>
         /// Get  summary based on TenantId or filters.
@@ -254,8 +191,7 @@ namespace axionpro.api.Controllers.Employee
         [HttpGet("get-summary")]
         public async Task<IActionResult> GetEmployeeSummary([FromQuery] GetEmployeeSummaryRequestDTO requestDto)
         {
-            try
-            {
+           
                 _logger.LogInfo("Fetching all employees.");
 
                 var command = new GetEmployeeSummaryQuery(requestDto);
@@ -268,78 +204,39 @@ namespace axionpro.api.Controllers.Employee
                 }
 
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error while fetching employees: {ex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while fetching employee summary .",
-                    new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
+           
+            
         }
         [Authorize]
         [HttpGet("get-profile-summary")]
-
-
-
         public async Task<IActionResult> GetEmployeeProfileSummary([FromQuery] GetEmployeeSummaryRequestDTO requestDto)
         {
-            try
-            {
+           
                 _logger.LogInfo("Fetching all employees.");
-
                 var command = new GetEmployeeProfileSummaryQuery(requestDto);
                 var result = await _mediator.Send(command);
 
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo("No employees summary found or request failed.");
-                    return BadRequest(result);
-                }
+               
 
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error while fetching employees: {ex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while fetching employee summary .",
-                    new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
+           
+           
         }
         /// <summary>
         /// Get all employees based on TenantId or filters.
         /// </summary>
         [Authorize]
         [HttpGet("get-all")]
-
-
-
-
         public async Task<IActionResult> GetAllEmployee([FromQuery] GetAllEmployeeInfoRequestDTO requestDto)
         {
-            try
-            {
+            
                 _logger.LogInfo("Fetching all employees.");
 
                 var command = new GetAllEmployeeInfoQuery(requestDto);
                 var result = await _mediator.Send(command);
-
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo("No employees found or request failed.");
-                    return NotFound(result);
-                }
-
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error while fetching employees: {ex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while fetching employee info.",
-                    new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
+           
+            
         }
 
         /// <summary>
@@ -347,77 +244,37 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         [Authorize]
         [HttpDelete("delete-all")]
-
-
-
         public async Task<IActionResult> Delete([FromQuery] DeleteBaseEmployeeRequestDTO dto)
         {
-            try
-            {
+            
                 _logger.LogInfo($"Deleting employee with Id: {dto.EmployeeId}");
-
                 var command = new DeleteEmployeeQuery(dto);
                 var result = await _mediator.Send(command);
 
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo($"Failed to delete employee with Id: {dto.EmployeeId}");
-                    return BadRequest(result);
-                }
-
                 _logger.LogInfo("Employee deleted successfully.");
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error deleting employee: {ex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while deleting employee.",
-                    new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
+            
         }
         /// <summary>
         /// Activate or deactivate employee and all related records by Employee Id.
         /// </summary>
         [Authorize]
         [HttpPut("update-status")]
-
-
-
         public async Task<IActionResult> UpdateEmployeeStatus(
             [FromQuery] ActivateAllEmployeeRequestDTO dto)
-        {
-            try
+       
             {
                 _logger.LogInfo(
                     $"Updating employee active status. EmployeeId: {dto.EmployeeId}, IsActive: {dto.IsActive}");
 
                 var command = new ActivateAllEmployeeQuery(dto);
                 var result = await _mediator.Send(command);
-
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo(
-                        $"Failed to update employee status. UserEmployeeId: {dto.UserEmployeeId}");
-                    return BadRequest(result);
-                }
-
-                _logger.LogInfo(
+            _logger.LogInfo(
                     $"Employee {(dto.IsActive ? "activated" : "deactivated")} successfully.");
 
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Error while updating employee active status.");
-
-                var errorResponse = ApiResponse<bool>.Fail(
-                    "An unexpected error occurred while updating employee status.",
-                    new List<string> { ex.Message }
-                );
-
-                return StatusCode(StatusCodes.Status500InternalServerError, errorResponse);
-            }
+          
+           
         }
 
         /// <summary>
@@ -425,44 +282,25 @@ namespace axionpro.api.Controllers.Employee
         // </summary>
         [Authorize]
         [HttpPost("update")]
-
-
-
-
         public async Task<IActionResult> Update([FromBody] UpdateEmployeeRequestDTO dto)
         {
-            try
-            {
+           
                 _logger.LogInfo($"Updating employee record. EmployeeId: {dto.EmployeeId}");
 
                 var command = new UpdateEmployeeCommand(dto);
                 var result = await _mediator.Send(command);
 
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo($"Failed to update employee with Id: {dto.EmployeeId}");
-                    return BadRequest(result);
-                }
-
                 _logger.LogInfo("Employee updated successfully.");
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error updating employee: {ex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while updating employee info.",
-                    new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
+            
+            
         }
         /// <summary>
         // Updates employee details.
         // </summary>
         [Authorize]
         [HttpPost("official/update")]
-
-
-
+        
         public async Task<IActionResult> OfficialUpdate([FromBody] UpdateEmployeeRequestOfficialDTO dto)
         {
             
@@ -470,15 +308,8 @@ namespace axionpro.api.Controllers.Employee
 
                 var command = new UpdateBaseEmployeeByAdminCommand(dto);
                 var result = await _mediator.Send(command);
-
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo($"Failed to update employee with Id: {dto.EmployeeId}");
-                    return BadRequest(result);
-                }
-
-                _logger.LogInfo("Employee updated successfully.");
-                return Ok(result);
+            
+            return Ok(result);
           
         }
     }

@@ -29,42 +29,15 @@ namespace axionpro.api.Controllers.Stats
         /// <summary>
         ///Dashboard statistics.
         // Returns employee summary statistics for dashboard widgets      
-        [HttpGet("Dashboard/Employees/Statistics")]
-        
-        
-        
+        [HttpGet("Dashboard/Employees/Statistics")]        
         public async Task<IActionResult> GetEmployeeDashboardSummaryAsync(
             [FromQuery] EmployeeCountRequestStatsSp dto)
         {
-            try
-            {
-                _logger.LogInfo(
-                    "Fetching employee dashboard summary. TenantId: {TenantId}");
-
                 var command = new GetEmployeeCountsQuery(dto);
                 var result = await _mediator.Send(command);
-
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo("Error while fetching employee dashboard summary");
-
-                    return Unauthorized(result);
-                }
-
-                _logger.LogInfo("Employee data updated successfully.");
-                return Ok(result);
-                       
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInfo("Error while fetching employee dashboard summary");
-
-                return StatusCode(500, new
-                {
-                    Success = false,
-                    Message = "An unexpected error occurred while retrieving employee dashboard summary."
-                });
-            }
+               _logger.LogInfo("Employee data updated successfully.");
+                return Ok(result);                       
+           
         }
 
 
@@ -72,10 +45,7 @@ namespace axionpro.api.Controllers.Stats
         /// <summary>
         ///Dashboard statistics.
         /// </summary>
-        [HttpGet("Manager/Statistics/Dashboard/get")]
-        
-        
-        
+        [HttpGet("Manager/Statistics/Dashboard/get")]        
         public async Task<IActionResult> dashboard([FromQuery] GetSummaryRequestDTO request)
         {
             EmployeeStats employee = new EmployeeStats()
@@ -84,29 +54,17 @@ namespace axionpro.api.Controllers.Stats
                 NewHiresThisMonth = 1,
                 OpenPositions = 10,
                 PendingApprovals = 3
-            };
-            
-            try
-            {
-                _logger.LogInfo("Fetching all EmployeeStat for tenant...");
+            };           
                
                 return Ok(employee);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error while fetching EmployeeStat : {ex.Message}");
-                return StatusCode(500, new { Success = false, Message = "An unexpected error occurred while retrieving EmployeeStat ." });
-            }
+            
         }
 
      
         /// <summary>
         /// Asset-related dashboard statistics.
         /// </summary>
-        [HttpGet("Manager/Statistic/Asset")]
-        
-        
-        
+        [HttpGet("Manager/Statistic/Asset")]    
         public async Task<IActionResult> Asset([FromQuery] GetSummaryRequestDTO request)
         {
             AssetStats assetStats = new AssetStats()
@@ -117,17 +75,9 @@ namespace axionpro.api.Controllers.Stats
                 UnderMaintenance = 9
             };
            
-            try
-            {
-                _logger.LogInfo("Fetching all asset categories for tenant...");
 
                 return Ok(assetStats);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error while fetching asset categories: {ex.Message}");
-                return StatusCode(500, new { Success = false, Message = "An unexpected error occurred while retrieving asset categories." });
-            }
+          
         }
 
 

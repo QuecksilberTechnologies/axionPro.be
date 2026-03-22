@@ -47,26 +47,11 @@ namespace axionpro.api.Controllers.Module
         //    return Ok(result);
         //}
 
-        [HttpPost("update")]
-                 
-        
+        [HttpPost("update")]                        
         public async Task<IActionResult> AddModuleOperation([FromBody] UpdateModuleOperationMappingByProductOwnerRequestDTO? dto)
         {
-            if (dto == null)
-            {
-                // _logger.LogWarning("Received null request for getting Assets.");
-                // return BadRequest(new ApiResponse<List<GetAllAssetDTO>>(false, "Invalid request", null));
-            }
-
-            // _logger.LogInformation("Received request to get Assets for userId: {LoginId}", AssetRequestDTO.Id);
-
             var query = new UpdateModuleOperationMappingByProductOwnerCommand(dto);  //  Fix: No parameter needed in GetAllAssetQuery
-            var result = await _mediator.Send(query);
-
-            if (!result.IsSucceeded)
-            {
-                return Unauthorized(result);
-            }
+            var result = await _mediator.Send(query);           
 
             return Ok(result);
         }

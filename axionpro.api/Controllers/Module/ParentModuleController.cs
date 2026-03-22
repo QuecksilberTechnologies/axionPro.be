@@ -31,25 +31,14 @@ namespace axionpro.api.Controllers.Module
         /// <summary>
         /// Creates a new main module.
         /// </summary>
-        [HttpPost("add")]
-        
-        
+        [HttpPost("add")]       
         
         public async Task<IActionResult> AddModule([FromBody] CreateParentModuleRequestDTO? createModuleRequestDTO)
         {
-            if (createModuleRequestDTO == null)
-            {
-                _logger.LogWarn("Received null request for AddModule.");
-                return BadRequest(new { IsSucceeded = false, Message = "Invalid request. Module data is required." });
-            }
+            
 
             var command = new CreateParentModuleRequestCommand(createModuleRequestDTO);
-            var result = await _mediator.Send(command);
-
-            if (!result.IsSucceeded)
-            {
-                return Unauthorized(result);
-            }
+            var result = await _mediator.Send(command);          
 
             return Ok(result);
         }
@@ -105,8 +94,7 @@ namespace axionpro.api.Controllers.Module
         /// <summary>
         /// Updates an existing sub-module.
         /// </summary>
-        [HttpPost("update-sub-module")]
-        
+        [HttpPost("update-sub-module")]       
         
         
         //public async Task<IActionResult> UpdateSubModule([FromBody] UpdateAssetRequestDTO updateAssetDTO)
@@ -133,26 +121,12 @@ namespace axionpro.api.Controllers.Module
         /// <summary>
         /// Get operational (leaf node) modules.
         /// </summary>
-        [HttpPost("get-non-leafe")]
-        
-       
-        
+        [HttpPost("get-non-leafe")]      
         public async Task<IActionResult> GetOperationalModule([FromBody] GetModuleChildInversRequestDTO? getModuleDDLRequestDTO)
         {
-            if (getModuleDDLRequestDTO == null)
-            {
-                _logger.LogWarn("Received null request for GetOperationalModule (leaf modules).");
-                return BadRequest(new { IsSucceeded = false, Message = "Invalid request. Filter data is required." });
-            }
-
+           
             var command = new GetModuleHeadersCommand(getModuleDDLRequestDTO);
             var result = await _mediator.Send(command);
-
-            if (!result.IsSucceeded)
-            {
-                return Unauthorized(result);
-            }
-
             return Ok(result);
         }
 

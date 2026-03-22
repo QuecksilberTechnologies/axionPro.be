@@ -23,11 +23,7 @@ namespace axionpro.api.Controllers.Category
             _mediator = mediator;
             _logger = logger;
         }
-
-
-        [HttpPost("get")]
-        
-        
+        [HttpPost("get")]   
         
         public async Task<IActionResult> GetAllMainCategories([FromBody] CategoryRequestDTO? categoryRequestDTO)
         {
@@ -56,10 +52,7 @@ namespace axionpro.api.Controllers.Category
         //}
 
 
-        [HttpPost("getallmainchildcategory")]
-        
-        
-        
+        [HttpPost("getallmainchildcategory")]    
         public async Task<IActionResult> GetAllMainChildCategories([FromBody] CategoryRequestDTO? categoryRequestDTO)
         {
             _logger.LogInfo("Received  request to get sub-categories from userId: {LoginId}" );

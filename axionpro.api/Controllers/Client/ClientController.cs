@@ -22,13 +22,8 @@ namespace axionpro.api.Controllers.Client
                 _mediator = mediator;
                 _logger = logger;
             }
-
-
         
-        [HttpGet("get")]
-        
-        
-        
+        [HttpGet("get")]  
         public async Task<IActionResult> GetAllClientType([FromQuery] GetOptionRequestDTO clientRequestType)
         {
             _logger.LogInfo($"📩 Received request to get client list for userId: {clientRequestType.UserEmployeeId}");
@@ -74,10 +69,7 @@ namespace axionpro.api.Controllers.Client
         //    }
         //    return Ok(result);
         //}
-        [HttpPost("add")]
-        
-        
-        
+        [HttpPost("add")]   
         public async Task<IActionResult> CreateClientType([FromBody] CreateClientTypeDTO createClientTypeDTO)
         {
             if (createClientTypeDTO == null)
@@ -91,27 +83,17 @@ namespace axionpro.api.Controllers.Client
             var command = new  CreateClientTypeCommand(createClientTypeDTO);
             var result = await _mediator.Send(command);
 
-            if (!result.IsSucceeded)
-            {
-                return BadRequest(result);
-            }
 
             return Ok(result);
         }
 
-        [HttpPost("update")]
-        
-        
-        
+        [HttpPost("update")]        
         public async Task<IActionResult> UpdateClientType([FromBody] UpdateClientTypeDTO updateClientTypeDTO)
         {
             _logger.LogInfo("Received request for update a leave" + updateClientTypeDTO.ToString());
             var command = new UpdateClientTypeCommand(updateClientTypeDTO);
             var result = await _mediator.Send(command);
-            if (!result.IsSucceeded)
-            {
-                return Ok(result);
-            }
+          
             return Ok(result);
         }
         //  [HttpPost("getalltendermaincategory")]

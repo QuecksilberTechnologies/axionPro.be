@@ -18,8 +18,6 @@ namespace axionpro.api.Controllers.MenuStructureView
     {
         private readonly IMediator _mediator;
         private readonly ILoggerService _logger;  // Logger service ka declaration
-
-
         public MenuStructureController(IMediator mediator, ILoggerService logger)
         {
             _mediator = mediator;
@@ -31,12 +29,9 @@ namespace axionpro.api.Controllers.MenuStructureView
         /// </summary>
         [HttpPost("get-menus-structure")]
         
-        
-        
         public async Task<IActionResult> GetAllMenuStructure([FromBody] GetEmployeeTypeRequestDTO requestDto)
         {
-            try
-            {
+            
                 // Dummy data list
                 var menuDisplay = new List<GetMenuDataStructureResponseDTO>
                  {
@@ -64,17 +59,7 @@ namespace axionpro.api.Controllers.MenuStructureView
 
 
                 return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = new ApiResponse<List<GetMenuDataStructureResponseDTO>>(
-                    null!,
-                    "Failed to fetch Menu display structure.",
-                    false
-                );
-                errorResponse.Errors.Add(ex.Message);
-                return StatusCode(500, errorResponse);
-            }
+           
         }
 
 

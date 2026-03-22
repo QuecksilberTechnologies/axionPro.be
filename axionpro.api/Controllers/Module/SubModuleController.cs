@@ -38,24 +38,11 @@ namespace axionpro.api.Controllers.Module
         /// </summary>
         [HttpPost("add")]
         
-        
-        
         public async Task<IActionResult> AddModule([FromBody] CreateSubModuleRequestDTO? createModuleRequestDTO)
         {
-            if (createModuleRequestDTO == null)
-            {
-                _logger.LogWarn("Received null request for AddModule.");
-                return BadRequest(new { IsSucceeded = false, Message = "Invalid request. Module data is required." });
-            }
-
+           
             var command = new CreateSubModuleRequestCommand(createModuleRequestDTO);
             var result = await _mediator.Send(command);
-
-            if (!result.IsSucceeded)
-            {
-                return Unauthorized(result);
-            }
-
             return Ok(result);
         }
 

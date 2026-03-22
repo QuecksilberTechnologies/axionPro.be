@@ -35,70 +35,39 @@ namespace axionpro.api.Controllers.Location
         {
             _mediator = mediator;
             _logger = logger;
-        }
-
-    
-         
+        }  
         
        
         /// <summary>
         /// Get all location.
         /// </summary>
-        [HttpGet("country/option")]
-
-        
- 
-        
+        [HttpGet("country/option")] 
         public async Task<IActionResult> getCountry([FromQuery] GetCountryOptionRequestDTO requestDTO)
         {
             _logger.LogInfo($"Received request to get Country : {requestDTO.UserEmployeeId}");
 
             var command = new GetCountryQuery(requestDTO);
             var result = await _mediator.Send(command);
-
-            if (!result.IsSucceeded)
-            {
-                return Unauthorized(result);
-            }
-            return Ok(result);
-        }
+            return Ok(result);        }
 
         /// Get all Country.
         /// </summary>
-        [HttpGet("State/option")]
-        
- 
-        
+        [HttpGet("State/option")]   
         public async Task<IActionResult> getState([FromQuery] GetStateOptionRequestDTO requestDTO)
         {
             _logger.LogInfo($"Received request to get State : {requestDTO.UserEmployeeId}");
-
             var command = new GetStateQuery(requestDTO);
-            var result = await _mediator.Send(command);
-
-            if (!result.IsSucceeded)
-            {
-                return Unauthorized(result);
-            }
+            var result = await _mediator.Send(command);         
             return Ok(result);
         }
         /// Get all District.
         /// </summary>
-        [HttpGet("District/option")]
-        
-         
-        
+        [HttpGet("District/option")]         
         public async Task<IActionResult> getDistrict([FromQuery] GetDistrictOptionRequestDTO requestDTO)
         {
             _logger.LogInfo($"Received request to get District : {requestDTO.UserEmployeeId}");
-
             var command = new GetDistrictQuery(requestDTO);
-            var result = await _mediator.Send(command);
-
-            if (!result.IsSucceeded)
-            {
-                return Unauthorized(result);
-            }
+            var result = await _mediator.Send(command);          
             return Ok(result);
         }
     }

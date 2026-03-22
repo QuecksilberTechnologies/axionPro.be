@@ -18,8 +18,6 @@ namespace axionpro.api.Controllers.HolidayCalandar
     {
         private readonly IMediator _mediator;
         private readonly ILoggerService _logger;  // Logger service ka declaration
-
-
         public HolidayCalandarController(IMediator mediator, ILoggerService logger)
         {
             _mediator = mediator;
@@ -29,34 +27,17 @@ namespace axionpro.api.Controllers.HolidayCalandar
         /// Get all employees that belong to the specified tenant.
         /// </summary>
 
-        [HttpGet("get")]
-        
-        
-        
+        [HttpGet("get")]      
         public async Task<IActionResult> GetAllEmployeeInfo([FromQuery] BasicRequestDTO basicRequestDTO)
-        {
-
-            try
-            {
-                // ✅ Wrap DTO in the command class
-                //  var command = new GetEmployeeInfoCommand(commandDto);
-
+        {            
                 var command = new GetHolidayCalandarQuery(basicRequestDTO);
 
                 // ✅ Send command instead of DTO
-                ApiResponse<List<OrganizationHolidayCalendarDTO>> result = await _mediator.Send(command);
-
-                if (result.IsSucceeded)
+                ApiResponse<List<OrganizationHolidayCalendarDTO>> result = await _mediator.Send(command);                
                     return Ok(result);
-                else
-                    return BadRequest(result);
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while updating employee info.",
-                    new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
+                
+           
+           
         }
 
 

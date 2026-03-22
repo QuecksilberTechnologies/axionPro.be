@@ -20,10 +20,6 @@ namespace axionpro.api.Controllers.Entity
             _logger = logger;
         }
         [HttpGet("get")]
-        
- 
-        
-
         public IActionResult GetStaticEntityNames([FromQuery] GetEntityNameRequestDTO dTO)
         {
             var entities = new List<GetEntityNameResponseDTO>

@@ -41,32 +41,17 @@ namespace axionpro.api.Controllers.ReportingType
         /// <param name="dto">reporting type creation data.</param>
         /// <returns>Returns a response containing success status and message.</returns>
         
-        [HttpPost("create")]
-        
-        
+        [HttpPost("create")]       
         
         public async Task<IActionResult> CreateReportingType([FromBody] CreateReportingTypeRequestDTO dto)
         {
-            try
-            {
+           
                 _logger.LogInformation("🎯 Received request to create ReportingType: {Data}", JsonConvert.SerializeObject(dto));
 
                 var result = await _mediator.Send(new CreateReportingTypeCommand(dto));
 
-                if (!result.IsSucceeded)
-                    return BadRequest(result);
-
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error occurred while creating ReportingType.");
-                return StatusCode(500, new ApiResponse<string>
-                {
-                    IsSucceeded = false,
-                    Message = $"Internal Server Error: {ex.Message}"
-                });
-            }
+           
         }
 
         #endregion
@@ -81,31 +66,13 @@ namespace axionpro.api.Controllers.ReportingType
         /// <param name="dto">Filter criteria (optional).</param>
         /// <returns>Returns list of reporting types.</returns>
         [HttpGet("get-all")]
-        
-        
-        
         public async Task<IActionResult> GetAllReportingTypes([FromQuery] GetReportingTypeRequestDTO dto)
         {
-            try
-            {
+           
                 _logger.LogInformation("📦 Fetching all reporting types...");
-
                 var result = await _mediator.Send(new GetAllReportingTypeQuery(dto));
-
-                if (!result.IsSucceeded)
-                    return NotFound(result);
-
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error occurred while fetching all reporting types.");
-                return StatusCode(500, new ApiResponse<string>
-                {
-                    IsSucceeded = false,
-                    Message = $"Internal Server Error: {ex.Message}"
-                });
-            }
+          
         }
 
         #endregion
@@ -119,32 +86,14 @@ namespace axionpro.api.Controllers.ReportingType
         /// </summary>
         /// <param name="dto">DTO containing reporting type ID.</param>
         /// <returns>Returns reporting type details.</returns>
-        [HttpGet("get")]
-        
-        
-        
+        [HttpGet("get")]   
         public async Task<IActionResult> GetReportingTypeById([FromQuery] GetReportingTypeByIdRequestDTO dto)
-        {
-            try
-            {
-                _logger.LogInformation("🔍 Fetching ReportingType details for Id = {Id}", dto.Id);
+        {         
 
-                var result = await _mediator.Send(new GetReportingTypeByIdQuery(dto));
-
-                if (!result.IsSucceeded)
-                    return NotFound(result);
+                var result = await _mediator.Send(new GetReportingTypeByIdQuery(dto));      
 
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error occurred while fetching ReportingType by Id = {Id}", dto.Id);
-                return StatusCode(500, new ApiResponse<string>
-                {
-                    IsSucceeded = false,
-                    Message = $"Internal Server Error: {ex.Message}"
-                });
-            }
+           
         }
 
         #endregion
@@ -158,32 +107,15 @@ namespace axionpro.api.Controllers.ReportingType
         /// </summary>
         /// <param name="dto">reporting type update details.</param>
         /// <returns>Returns a response indicating success or failure.</returns>
-        [HttpPut("update")]
-        
-        
-        
+        [HttpPut("update")]  
         public async Task<IActionResult> UpdateReportingType([FromBody] UpdateReportingTypeRequestDTO dto)
         {
-            try
-            {
+            
                 _logger.LogInformation("🛠️ Updating ReportingType: {Data}", JsonConvert.SerializeObject(dto));
 
                 var result = await _mediator.Send(new UpdateReportingTypeCommand(dto));
-
-                if (!result.IsSucceeded)
-                    return BadRequest(result);
-
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error occurred while updating ReportingType.");
-                return StatusCode(500, new ApiResponse<string>
-                {
-                    IsSucceeded = false,
-                    Message = $"Internal Server Error: {ex.Message}"
-                });
-            }
+              return Ok(result);
+          
         }
 
         #endregion
@@ -197,32 +129,14 @@ namespace axionpro.api.Controllers.ReportingType
         /// </summary>
         /// <param name="dto">reporting type ID to be deleted.</param>
         /// <returns>Returns success or failure message.</returns>
-        [HttpDelete("delete")]
-        
-        
-        
+        [HttpDelete("delete")]       
         public async Task<IActionResult> DeleteReportingType([FromBody] DeleteReportingTypeRequestDTO dto)
         {
-            try
-            {
-                _logger.LogInformation("🗑️ Request received to delete ReportingType with Id = {Id}", dto.Id);
-
+           
                 var result = await _mediator.Send(new DeleteReportingTypeCommand(dto));
-
-                if (!result.IsSucceeded)
-                    return NotFound(result);
-
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error occurred while deleting ReportingType Id = {Id}", dto.Id);
-                return StatusCode(500, new ApiResponse<string>
-                {
-                    IsSucceeded = false,
-                    Message = $"Internal Server Error: {ex.Message}"
-                });
-            }
+           
+            
         }
 
         #endregion

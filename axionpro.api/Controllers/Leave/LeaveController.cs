@@ -22,10 +22,7 @@ namespace axionpro.api.Controllers.Leave
             _logger = logger;
         }
 
-        [HttpPost("add")]
-        
-        
-        
+        [HttpPost("add")]     
         public async Task<IActionResult> CreateLeaveType([FromBody] CreateLeaveTypeRequestDTO createLeaveTypeDTO)
         {
             if (createLeaveTypeDTO == null)
@@ -39,35 +36,13 @@ namespace axionpro.api.Controllers.Leave
             var command = new CreateLeaveTypeCommand(createLeaveTypeDTO);
             var result = await _mediator.Send(command);
 
-            if (!result.IsSucceeded)
-            {
-                return BadRequest(result);
-            }
-
             return Ok(result);
         }
-        [HttpGet("get")]
-        
-        
-        
+        [HttpGet("get")]      
         public async Task<IActionResult> GetAllLeaves([FromQuery] GetLeaveTypeRequestDTO leaveRequestDTO)
         {
-            if (leaveRequestDTO == null)
-            {
-                _logger.LogWarning("Received null request for getting leaves.");
-                return BadRequest(new { success = false, message = "Invalid request" });
-            }
-
-            _logger.LogInformation("Fetching all leave types...");
-
             var query = new GetAllLeaveTypeQuery(leaveRequestDTO);
             var result = await _mediator.Send(query);
-
-            if (!result.IsSucceeded)
-            {
-                return BadRequest(result);
-            }
-
             return Ok(result);
         }
         [HttpPost("update")]
@@ -79,42 +54,17 @@ namespace axionpro.api.Controllers.Leave
         {
             _logger.LogInformation("Received request for update a leave" + updateLeaveTypeDTO.ToString());
             var command = new UpdateLeaveTypeCommand(updateLeaveTypeDTO);
-            var result = await _mediator.Send(command);
-            if (!result.IsSucceeded)
-            {
-                return Ok(result);
-            }
+            var result = await _mediator.Send(command);           
             return Ok(result);
         }
-        [HttpGet("delete")]
-        
-        
-        
+        [HttpGet("delete")]      
         // [Authorize]
         public async Task<IActionResult> DeleteLeave([FromQuery] DeleteLeaveRequestDTO request)
-        {
-            if (request == null)
-            {
-                _logger.LogWarning("DeleteLeave request is null.");
-                return BadRequest(new ApiResponse<bool>
-                {
-                    IsSucceeded = false,
-                    Message = "Invalid request data.",
-                    Data = false
-                });
-            }
+        {                       
 
             _logger.LogInformation("Received request to delete LeaveType Id: {Id} by UserId: {UserId}", request.Id, request.EmployeeId);
-
             var command = new DeleteLeaveTypeCommand(request);
             var result = await _mediator.Send(command);
-
-            if (!result.IsSucceeded)
-            {
-                _logger.LogWarning("Failed to delete LeaveType Id: {Id}", request.Id);
-                return BadRequest(result);
-            }
-
             _logger.LogInformation("Successfully deleted LeaveType Id: {Id}", request.Id);
             return Ok(result);
         }

@@ -24,45 +24,24 @@ namespace axionpro.api.Controllers.Insurance
         }
 
         // 🔹 CREATE INSURANCE And POLICY TYPE MAPPING
-        [HttpPost("map")]
-        
-        
+        [HttpPost("map")]     
         
         public async Task<IActionResult> Create(
             [FromBody] CreatePolicyTypeInsuranceMappingRequetDTO dto)
-        {
-            if (dto == null)
-                return BadRequest(ApiResponse<bool>.Fail("Invalid request."));
-
-            try
-            {
+        {         
+           
                 _logger.LogInfo("Create insurance policy started.");
 
                 var command = new CreatePolicyTypeInsuranceMappingCommand(dto);
                 var result = await _mediator.Send(command);
 
                 return Ok(result);
-            }
-            catch (ValidationException vex)
-            {
-                _logger.LogError($"Validation error: {vex.Message}");
-                return BadRequest(ApiResponse<bool>.Fail("Validation failed."));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Mapping of insurance and policy type  failed: {ex.Message}");
-                return StatusCode(
-                    StatusCodes.Status500InternalServerError,
-                    ApiResponse<bool>.Fail("Internal server error.")
-                );
-            }
+                     
         }
 
         // 🔹 GET INSURANCE LIST (GRID)
         [HttpGet("get-all")]
-        
-        
-        
+               
         public async Task<IActionResult> GetList( [FromQuery] GetPolicyTypeInsuranceMappingRequestDTO requestDto)
           {
             _logger.LogInfo("Fetching mapped insurance policy list.");
@@ -75,47 +54,31 @@ namespace axionpro.api.Controllers.Insurance
         // 🔹 GET INSURANCE LIST (GRID)
         [HttpGet("get-details")]
         
-        
-        
         public async Task<IActionResult> GetDetailList( [FromQuery] GetPolicyTypeInsuranceMapDetailsRequestDTO requestDto)
           {
             _logger.LogInfo("Fetching mapped insurance policy list.");
-
             var query = new GetPolicyInsuranceDetailRequestCommand(requestDto);
-            var result = await _mediator.Send(query);         
-
+            var result = await _mediator.Send(query);   
             return Ok(result);
         }
         // 🔹 DELETE POLICY INSURANCE MAPPING
-        [HttpDelete("delete")]
-        
-        
-        
+        [HttpDelete("delete")]        
         public async Task<IActionResult> Delete(
-            [FromQuery] DeletePolicyTypeInsuranceMappingRequestDTO requestDto)
-        {
+            [FromQuery] DeletePolicyTypeInsuranceMappingRequestDTO requestDto)        {
             _logger.LogInfo("Deleting insurance policy.");
-
             var command = new DeletePolicyTypeInsuranceQuery(requestDto);
             var result = await _mediator.Send(command);
-
             return Ok(result);
         }
 
         // 🔹 UPDATE POLICY INSURANCE MAPPING
-        [HttpPut("update")]
-        
-        
-        
+        [HttpPut("update")]    
         public async Task<IActionResult> Update(
             [FromBody] UpdatePolicyTypeInsuranceMappingRequestDTO requestDto)
         {
             _logger.LogInfo("Updating insurance policy.");
-
             var command = new UpdatePolicyTypeInsuranceMappingCommand(requestDto);
             var result = await _mediator.Send(command);
-            
-
             return Ok(result);
         }
 

@@ -24,97 +24,52 @@ namespace axionpro.api.Controllers.Leave
         }
         
         // ✅ Create LeavePolicy
-             [HttpPost("map")]
-             
-             
-             
+             [HttpPost("map")]         
         public async Task<IActionResult> CreateLeavePolicyAsync([FromBody] GetPolicyLeaveTypeMappingRequestDTO requestDTO)
         {
             _logger.LogInformation("Received request to create LeavePolicy: {Request}", JsonConvert.SerializeObject(requestDTO));
             var command = new CreatePolicyLeaveTypeMappingCommand(requestDTO);
             var result = await _mediator.Send(command);
-
-            if (!result.IsSucceeded)
-                return BadRequest(result);
-
             return Ok(result);
         }
 
        //  ✅ Get All LeavePolicies
-        [HttpGet("get")]
-        
-        
-        
+        [HttpGet("get")] 
         public async Task<IActionResult> GetAllLeavePoliciesAsync([FromQuery]  GetLeaveTypeWithPolicyMappingRequestDTO getLeavePolicyRequestDTO)
         {
             _logger.LogInformation("Fetching all LeavePolicies...");
             var query = new GetAllLeavePolicyQuery(getLeavePolicyRequestDTO);
             var result = await _mediator.Send(query);
-
             return Ok(result);
         }
 
         //  ✅ Get All LeavePolicies
-        [HttpGet("LeavePolicy/EmployeeType/get")]
-        
-        
-        
+        [HttpGet("LeavePolicy/EmployeeType/get")] 
         public async Task<IActionResult> GetAllLeavePoliciesByEmployeeIdAsync([FromQuery] GetPolicyLeaveTypeByEmpTypeIdRequestDTO dTO)
         {
             _logger.LogInformation("Fetching all LeavePolicies...");
             var query = new GetAllPolicyLeaveTypeByEmpTypeIdQuery(dTO);
             var result = await _mediator.Send(query);
-
             return Ok(result);
         }
 
         //// ✅ Update LeavePolicy
-        [HttpPost("update")]
-   
-        
-        
-        
+        [HttpPost("update")]       
         public async Task<IActionResult> UpdateLeavePolicyAsync([FromBody] UpdateEmployeeLeavePolicyMappingRequestDTO requestDTO)
         {
             _logger.LogInformation("Received request to update EmployeeLeavePolicyMap: {Request}", JsonConvert.SerializeObject(requestDTO));
             var command = new UpdateEmployeeLeavePolicyMapCommand(requestDTO);
             var result = await _mediator.Send(command);
-
-            if (!result.IsSucceeded)
-                return BadRequest(result);
-
             return Ok(result);
         }
-        [HttpPost("delete")]
-        
-        
-        
+        [HttpPost("delete")]        
         // [Authorize]
         public async Task<IActionResult> DeleteLeavePolicy([FromQuery] DeletePolicyLeaveTypeMappingRequestDTO request)
         {
-            if (request == null)
-            {
-                _logger.LogWarning("DeleteLeave request is null.");
-                return BadRequest(new ApiResponse<bool>
-                {
-                    IsSucceeded = false,
-                    Message = "Invalid request data.",
-                    Data = false
-                });
-            }
-
-         //   _logger.LogInformation("Received request to delete LeaveType Id: {Id} by UserId: {UserId}", request.Id, request.UserId);
-
+            
             var command = new DeleteLeavePolicyCommand(request);
             var result = await _mediator.Send(command);
-
-            if (!result.IsSucceeded)
-            {
-         //       _logger.LogWarning("Failed to delete LeaveType Id: {Id}", request.Id);
-                return BadRequest(result);
-            }
-
-         //   _logger.LogInformation("Successfully deleted LeaveType Id: {Id}", request.Id);
+             _logger.LogInformation("Successfully deleted LeaveType Id: {Id}", request.UserId);
             return Ok(result);
         }
 

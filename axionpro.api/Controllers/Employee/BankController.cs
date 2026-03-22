@@ -39,15 +39,10 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         /// <param name="DTO"></param>
         /// <param name="Dto">Employee-Bank details</param>
-        [HttpPost("create")]
-
-        
-        
-        
+        [HttpPost("create")]        
         public async Task<IActionResult> CreateBankInfo([FromForm] CreateBankRequestDTO Dto)
         {
-            try
-            {
+            
                 // ✅ IMEI validation
                 if (Dto == null)
                 {
@@ -55,34 +50,15 @@ namespace axionpro.api.Controllers.Employee
                     var invalidResponse = ApiResponse<bool>.Fail("Invalid IMEI number. It must be 15 digits numeric value.");
                     return BadRequest(invalidResponse);
                 }
-
                 _logger.LogInfo("Creating new Bank process started.");
 
                 var command = new CreateBankInfoCommand(Dto);
                 var result = await _mediator.Send(command);
 
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo("Failed to create employee record.");
-                    return Unauthorized(result);
-                }
-
                 _logger.LogInfo("Employee-Bankinfo created successfully.");
                 return Ok(result);
-            }
-            catch (ValidationException vex)
-            {
-                _logger.LogError($"Validation Error: {vex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("Validation failed.", new List<string> { vex.Message });
-                return BadRequest(errorResponse);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Exception occurred in CreateEmployee: {ex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while creating employee.",
-                    new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
+            
+           
         }
 
     
@@ -92,84 +68,44 @@ namespace axionpro.api.Controllers.Employee
         /// Get all employees based on TenantId or filters.
         /// </summary>
         [HttpGet("get")]
-
-        
         
         
         public async Task<IActionResult> GetBankinfo([FromQuery] GetBankReqestDTO requestDto)
         {
-            try
-            {
+          
                 _logger.LogInfo("Fetching all bank.");
 
                 var command = new GetBankInfoQuery(requestDto);
                 var result = await _mediator.Send(command);
 
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo("No employee-bank found or request failed.");
-                    return BadRequest(result);
-                }
 
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error while fetching employees-bank: {ex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while fetching employee bank info.",
-                    new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
-        }
+       }
+          
+     
         /// <summary>
         /// Deletes employee bank info record by Id.
         /// </summary>
         [HttpDelete("delete")]
-
-        
-        
-        
-        
-        public async Task<IActionResult> Delete([FromQuery] DeleteBankRequestDTO dto)
-        {
-            try
+                public async Task<IActionResult> Delete([FromQuery] DeleteBankRequestDTO dto)
+       
             {
                 _logger.LogInfo($"Deleting employee bank info with Id: {dto.Id}");
 
                 var command = new DeleteBankInfoQuery(dto);
                 var result = await _mediator.Send(command);
 
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo($"Failed to delete employee bank info with Id: {dto.Id}");
-                    return BadRequest(result);
-                }
-
                 _logger.LogInfo("Employee bank info deleted successfully.");
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error deleting employee: {ex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while deleting employee.",
-                    new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
+           
         }
 
         /// <summary>
         /// Updates employee details.
         /// </summary>
         [HttpPost("update")]
-
-        
-        
-        
-
         public async Task<IActionResult> Update([FromForm] UpdateBankReqestDTO dto)
         {
-            try
-            {
                 _logger.LogInfo($"Updating employee-bank record. By UserEmployeeId: {dto.UserEmployeeId}");
 
                 var command = new UpdateBankCommand(dto);
@@ -177,25 +113,13 @@ namespace axionpro.api.Controllers.Employee
 
                     _mediator.Send(command);
 
-                if (
-                    !result.IsSucceeded)
-                {
-                    _logger.LogInfo($"Failed to update employee with Id: {dto.Id}");
-                    return BadRequest(result);
-                }
 
                 _logger.LogInfo("Employee updated successfully.");
                 return Ok(result);
             }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error updating employee: {ex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while updating employee info.",
-                    new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
+           
         }
 
 
-    }
+    
 }

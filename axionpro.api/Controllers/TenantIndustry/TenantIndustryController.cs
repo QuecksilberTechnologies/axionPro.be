@@ -32,42 +32,23 @@ namespace axionpro.api.Controllers.TenantIndustry
         /// get all industry.
         /// </summary>
         [HttpGet("get-industries")]
-               
-        
         public async Task<IActionResult> GetAllTenantBySubscriptionIdAsync([FromQuery] int planId)
         {
             _logger.LogInfo($"Getting email templates for code: {planId}");
-
             var query = new GetAllTenantIndustryQuery(planId);
             var result = await _mediator.Send(query);
-            if (!result.IsSucceeded)
-            {
-                _logger.LogInfo($"No templates found for code: {planId}");
-                return NotFound(result); // NotFound better than Unauthorized here
-            }
-
             return Ok(result);
         }
 
         /// <summary>
         /// get tenant subscription plan detail.
         /// </summary>
-        [HttpGet("get-tenant-subscription-plan")]
-        
-        
+        [HttpGet("get-tenant-subscription-plan")]       
         public async Task<IActionResult> GetTenantSubscriptionPlanInfoAsync([FromQuery] TenantSubscriptionPlanRequestDTO code)
         {
             _logger.LogInfo($"Getting email templates for code: {code}");
-
             var query = new GetTenantSubscriptionQuery(code);
             var result = await _mediator.Send(query);
-
-            if (!result.IsSucceeded)
-            {
-                _logger.LogInfo($"No templates found for code: {code}");
-                return NotFound(result); // NotFound better than Unauthorized here
-            }
-
             return Ok(result);
         }
 

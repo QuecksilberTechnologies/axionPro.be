@@ -28,22 +28,13 @@ namespace axionpro.api.Controllers.Employee
         // <summary>
         // Create new employee experience record.
         // </summary>
-        [HttpPost("create")]
-        
-        
-        
+        [HttpPost("create")]       
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> CreateExperience([FromForm] CreateExperienceRequestDTO dto)
         {
             _logger.LogInfo("Received Experience Create Request for Employee: " + dto.EmployeeId);
-
             var command = new CreateExperienceInfoCommand(dto);
-
             var result = await _mediator.Send(command);
-
-            if (!result.IsSucceeded)
-                return BadRequest(result);
-
             return Ok(result);
         }
 

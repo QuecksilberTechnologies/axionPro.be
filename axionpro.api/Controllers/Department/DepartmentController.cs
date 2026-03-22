@@ -12,8 +12,7 @@ namespace axionpro.api.Controllers.Department
     [ApiController]
     [Route("api/[controller]")]
  
-    public class DepartmentController : ControllerBase
-    {
+    public class DepartmentController : ControllerBase    {
         private readonly IMediator _mediator;
         private readonly ILoggerService _logger;
 
@@ -43,9 +42,6 @@ namespace axionpro.api.Controllers.Department
             var query = new GetDepartmentQuery(departmentRequestDTO);
             var result = await _mediator.Send(query);
 
-            if (!result.IsSucceeded)
-                return BadRequest(result);
-
             return Ok(result);
         }
 
@@ -59,9 +55,6 @@ namespace axionpro.api.Controllers.Department
         /// <param name="createDto">Department details to create.</param>
         /// <returns>Success or failure response with created data.</returns>
         [HttpPost("add")]
-        
-        
-        
         public async Task<IActionResult> CreateDepartmentAsync([FromBody] CreateDepartmentRequestDTO createDto)
         {
             if (createDto == null)
@@ -71,12 +64,8 @@ namespace axionpro.api.Controllers.Department
             }
 
             _logger.LogInfo($"Creating new department: {createDto.DepartmentName}");
-
             var command = new  CreateDepartmentCommand(createDto);
-            var result = await _mediator.Send(command);
-
-            if (!result.IsSucceeded)
-                return BadRequest(result);
+            var result = await _mediator.Send(command);         
 
             return Ok(result);
         }
@@ -90,10 +79,7 @@ namespace axionpro.api.Controllers.Department
         /// </summary>
         /// <param name="updateDto">Updated department details.</param>
         /// <returns>Boolean status indicating success or failure.</returns>
-        [HttpPut("update")]
-        
-        
-        
+        [HttpPut("update")]        
         public async Task<IActionResult> UpdateDepartmentAsync([FromBody] UpdateDepartmentRequestDTO updateDto)
         {
             if (updateDto == null)
@@ -103,22 +89,15 @@ namespace axionpro.api.Controllers.Department
             }
 
             _logger.LogInfo($"Updating department Id: {updateDto.Id}");
-
             var command = new UpdateDepartmentCommad(updateDto);
             var result = await _mediator.Send(command);
-
-            if (!result.IsSucceeded)
-                return BadRequest(result);
 
             return Ok(result);
         }
         /// <summary>
         /// Get all department.
         /// </summary>
-        [HttpGet("option")]
-        
-        
-        
+        [HttpGet("option")]        
         public async Task<IActionResult> getDepartment([FromQuery] GetOptionRequestDTO requestDTO)
         {
             _logger.LogInfo($"Received request to get Department : {requestDTO.UserEmployeeId}");
@@ -126,10 +105,6 @@ namespace axionpro.api.Controllers.Department
             var command = new GetDepartmentOptionQuery(requestDTO);
             var result = await _mediator.Send(command);
 
-            if (!result.IsSucceeded)
-            {
-                return BadRequest(result);
-            }
             return Ok(result);
         }
         // -------------------------------------------------------
@@ -141,10 +116,7 @@ namespace axionpro.api.Controllers.Department
         /// </summary>
         /// <param name="deleteDto">Department delete request DTO.</param>
         /// <returns>Boolean status indicating success or failure.</returns>
-        [HttpDelete("delete")]
-        
-        
-        
+        [HttpDelete("delete")]        
         public async Task<IActionResult> DeleteDepartmentAsync([FromQuery] DeleteDepartmentRequestDTO deleteDto)
         {
             if (deleteDto == null)
@@ -154,13 +126,8 @@ namespace axionpro.api.Controllers.Department
             }
 
             _logger.LogInfo($"Deleting department Id: {deleteDto.Id}");
-
             var command = new DeleteDepartmentQuery(deleteDto);
             var result = await _mediator.Send(command);
-
-            if (!result.IsSucceeded)
-                return BadRequest(result);
-
             return Ok(result);
         }
     }

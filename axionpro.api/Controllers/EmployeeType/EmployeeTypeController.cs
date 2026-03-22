@@ -49,14 +49,10 @@ namespace axionpro.api.Controllers.EmployeeType
         /// Returns list of all Employee Types.
         /// </summary>
 
-        [HttpGet("get")]
-        
-        
-        
+        [HttpGet("get")]   
         public async Task<IActionResult> GetAllEmployeeType([FromQuery] application.DTOS.Employee.Type.GetEmployeeTypeRequestDTO requestDto)
         {
-            try
-            {
+            
                 _logger.LogInformation("Fetching all employee types.");
 
                 var employeeTypes = new List<GetEmployeeTypeResponseDTO>
@@ -69,37 +65,21 @@ namespace axionpro.api.Controllers.EmployeeType
 
                 var response = new ApiResponse<List<application.DTOs.EmployeeType.GetEmployeeTypeResponseDTO>>(employeeTypes, "Employee types fetched successfully.", true);
                 return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error fetching employee types: {ex.Message}");
-                var errorResponse = ApiResponse<List<application.DTOs.EmployeeType.GetEmployeeTypeResponseDTO>>.Fail("Failed to fetch employee types.", new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
+         
+           
         }
         [HttpGet("option")]
-        
-        
-        
-
         public async Task<IActionResult> GetAllEmployeeType([FromQuery] GetOptionRequestDTO requestDTO)
         {
        
-            if (requestDTO == null)
-            {
-                _logger.LogWarning("Received null request for getting leaves.");
-                return BadRequest(new { success = false, message = "Invalid request" });
-            }
+            
 
             _logger.LogInformation("Fetching all leave types...");
 
             var query = new GetEmployeeTypeOptionQuery(requestDTO);
             var result = await _mediator.Send(query);
 
-            if (!result.IsSucceeded)
-            {
-                return BadRequest(result);
-            }
+           
 
             return Ok(result);
         }

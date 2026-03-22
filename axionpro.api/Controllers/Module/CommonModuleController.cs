@@ -31,25 +31,14 @@ namespace axionpro.api.Controllers.Module
         /// <summary>
         /// Creates a new Common module.
         /// </summary>
-        [HttpPost("add")]
-        
-       
-        
+        [HttpPost("add")]       
         public async Task<IActionResult> AddModule([FromBody] CreateCommonModuleRequestDTO? requestDto)
         {
-            if (requestDto == null)
-            {
-                _logger.LogWarn("Received null request for AddModule.");
-                return BadRequest(new { IsSucceeded = false, Message = "Invalid request. Module data is required." });
-            }
+           
 
             var command = new CreateCommonModuleCommand(requestDto);
             var result = await _mediator.Send(command);
 
-            if (!result.IsSucceeded)
-            {
-                return Unauthorized(result);
-            }
 
             return Ok(result);
         }

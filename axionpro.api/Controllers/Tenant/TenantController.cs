@@ -34,8 +34,7 @@ namespace axionpro.api.Controllers.Tenant
         }
     
 
-        [HttpPost("create-tenant")]
-        
+        [HttpPost("create-tenant")]       
         
         
         // [Authorize]
@@ -44,10 +43,7 @@ namespace axionpro.api.Controllers.Tenant
             _logger.LogInfo("Received request for register a new Tenant" + tenantCreateRequestDTO.ToString());
             var command = new CreateTenantCommand(tenantCreateRequestDTO);
             var result = await _mediator.Send(command);
-            if (!result.IsSucceeded)
-            {
-                return Ok(result);
-            }
+           
             return Ok(result);
         }
         
@@ -63,11 +59,6 @@ namespace axionpro.api.Controllers.Tenant
             var query = new GetAllTenantBySubscriptionPlanIdQuery(code);
             var result = await _mediator.Send(query);
 
-            if (!result.IsSucceeded)
-            {
-                _logger.LogInfo($"No templates found for code: {code}");
-                return NotFound(result); // NotFound better than Unauthorized here
-            }
 
             return Ok(result);
         }
@@ -81,13 +72,7 @@ namespace axionpro.api.Controllers.Tenant
             _logger.LogInfo($"Fetching employee code pattern for tenant.");
 
             var query = new GetEmployeeCodePatternQuery(code);
-            var result = await _mediator.Send(query);
-
-            if (!result.IsSucceeded)
-            {
-                _logger.LogInfo("Employee code pattern not found or inactive.");
-                return NotFound(result);
-            }
+            var result = await _mediator.Send(query);           
 
             return Ok(result);
         }
@@ -96,31 +81,19 @@ namespace axionpro.api.Controllers.Tenant
         /// <summary>
         /// Get all tenant enabled modules
         /// </summary>
-        [HttpPost("get")]
-        
-        
-        
+        [HttpPost("get")]       
         public async Task<IActionResult> GetAllTenantEnabledModuleOperationsByTenantIdAsync([FromBody] TenantEnabledModuleRequestDTO code)
         {
             _logger.LogInfo($"Getting email templates for code: {code}");
 
             var query = new GetTenantEnabledModuleCommand(code);
             var result = await _mediator.Send(query);
-
-            if (!result.IsSucceeded)
-            {
-                _logger.LogInfo($"No templates found for code: {code}");
-                return NotFound(result); // NotFound better than Unauthorized here
-            }
-
             return Ok(result);
         }
 
        
 
-        [HttpPost("get-enabled-operations")]
-        
-        
+        [HttpPost("get-enabled-operations")]        
         
         public async Task<IActionResult> GetAllNodeLeafeWithOperationsAsync([FromBody] TenantEnabledModuleRequestDTO code)
         {
@@ -129,18 +102,10 @@ namespace axionpro.api.Controllers.Tenant
             var query = new GetAllTenantTrueEnabledModuleOperationByTenantIdCommand(code);
             var result = await _mediator.Send(query);
 
-            if (!result.IsSucceeded)
-            {
-                _logger.LogInfo($"No templates found for code: {code}");
-                return NotFound(result); // NotFound better than Unauthorized here
-            }
-
             return Ok(result);
         }
 
-        [HttpPost("update-modules-and-operations")]
-        
-        
+        [HttpPost("update-modules-and-operations")] 
         
         public async Task<IActionResult> TenantModuleOperationsUpdate([FromBody] TenantModuleOperationsUpdateRequestDTO code)
         {
@@ -148,42 +113,20 @@ namespace axionpro.api.Controllers.Tenant
 
             var query = new TenantEnabledModuleOperationsUpdateCommand(code);
             var result = await _mediator.Send(query);
-
-            if (!result.IsSucceeded)
-            {
-                _logger.LogInfo($"No templates found for code: {code}");
-                return NotFound(result); // NotFound better than Unauthorized here
-            }
-
             return Ok(result);
         }
 
-        [HttpPost("verify")]
-        
-        
-        
+        [HttpPost("verify")]        
         public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequestDTO request)
         {
-            try
-            {
+           
                 var command = new VerifyEmailCommand(request);
-                var result = await _mediator.Send(command);
-
-                if (result.IsSucceeded)
+                var result = await _mediator.Send(command);             
                     return Ok(result);
 
-                return BadRequest(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("An error occurred while verifying email.");
-                return StatusCode(500, new ApiResponse<VerifyEmailResponseDTO>
-                {
-                    IsSucceeded = false,
-                    Message = "Internal server error occurred while verifying email.",
-                    Data = null
-                });
-            }
+             
+           
+            
         }
 
 

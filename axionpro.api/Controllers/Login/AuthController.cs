@@ -31,9 +31,7 @@ namespace axionpro.api.Controllers.Login
         }
        
 
-        [HttpPost("login")]
-                
-        
+        [HttpPost("login")]       
         public async Task<IActionResult> Login([FromBody] LoginRequestDTO logindto)
         {
             _logger.LogInfo("Received login request for user: {LoginId}" + logindto.LoginId.ToString());
@@ -45,11 +43,7 @@ namespace axionpro.api.Controllers.Login
             }
            return Ok(result);
         }
-
-        [HttpPost("refresh-token")]
-        
-        
-        
+        [HttpPost("refresh-token")]    
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDTO request)
         {
             var command = new RefreshTokenCommand(request);
@@ -144,124 +138,36 @@ namespace axionpro.api.Controllers.Login
         
         public async Task<IActionResult> SetLoginPassword([FromBody] UpdatePasswordRequestDTO request)
         {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(request.LoginId) || string.IsNullOrWhiteSpace(request.OldPassword))
-                {
-                    return BadRequest(new ApiResponse<UpdatePasswordResponseDTO>
-                    {
-                        IsSucceeded = false,
-                        Message = "LoginId and Password are required.",
-                        Data = null
-                    });
-                }
-
+             
                 var command = new UpdateLoginPasswordCommand(request);
-                
-
-                var result = await _mediator.Send(command);
-
-                if (!result.IsSucceeded)
-                    return BadRequest(result);
-
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError( "Exception occurred while setting login password.");
-
-                return StatusCode(500, new ApiResponse<UpdatePasswordResponseDTO>
-                {
-                    IsSucceeded = false,
-                    Message = "Internal server error occurred.",
-                    Data = null
-                });
-            }
-
-
-
+               var result = await _mediator.Send(command);
+            return Ok(result);
+            
 
         }
-        [HttpPost("resend-credential")]
-        
-        
+        [HttpPost("resend-credential")]        
         public async Task<IActionResult> CreateNewLoginPasswordURL([FromBody] SetNewPasswordLinkRequestDTO request)
         {
-            try
-            {
-                if (request == null || string.IsNullOrWhiteSpace(request.UserLoginId))
-                {
-                    return BadRequest(new ApiResponse<GetNewPasswordLinkResponseDTO>
-                    {
-                        IsSucceeded = false,
-                        Message = "UserLoginId is required.",
-                        Data = null
-                    });
-                }
+            
 
                 var command = new GetNewLoginPasswordURLCommand(request);
 
                 var result = await _mediator.Send(command);
 
-                if (!result.IsSucceeded)
-                {
-                    return BadRequest(result);
-                }
-
+              
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                
-                _logger.LogError("Exception occurred while creating new password URL.");
-
-
-                return StatusCode(500, new ApiResponse<GetNewPasswordLinkResponseDTO>
-                {
-                    IsSucceeded = false,
-                    Message = "Internal server error occurred.",
-                    Data = null
-                });
-            }
+            
         }
-        [HttpPost("create-new-password")]
-        
-        
+        [HttpPost("create-new-password")]                
         public async Task<IActionResult> CreateLoginPassword([FromBody] NewLoginPasswordRequestDTO request)
         {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(request.NewPassword) || string.IsNullOrWhiteSpace(request.NewPassword))
-                {
-                    return BadRequest(new ApiResponse<UpdatePasswordResponseDTO>
-                    {
-                        IsSucceeded = false,
-                        Message = "Password not matched!",
-                        Data = null
-                    });
-                }
-
+           
                 var command = new NewLoginPasswordCommand(request);
 
-
-                var result = await _mediator.Send(command);
-
-                if (!result.IsSucceeded)
-                    return BadRequest(result);
+                var result = await _mediator.Send(command);              
 
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Exception occurred while setting login password.");
-
-                return StatusCode(500, new ApiResponse<UpdatePasswordResponseDTO>
-                {
-                    IsSucceeded = false,
-                    Message = "Internal server error occurred.",
-                    Data = null
-                });
-            }
+           
         }
 
         //[HttpGet("get-page-type")]        
@@ -285,45 +191,15 @@ namespace axionpro.api.Controllers.Login
         //}
 
 
-        [HttpPost("forgot-password")]
-        
+        [HttpPost("forgot-password")]       
         
         public async Task<IActionResult> EnterLoginId([FromBody] ForgotPasswordUserIdRequestDTO request)
         {
-            try
-            {
-                //if (string.IsNullOrWhiteSpace(request.LoginId) || string.IsNullOrWhiteSpace(request.p))
-                //{
-                //    return BadRequest(new ApiResponse<ForgotPasswordResponseDTO>
-                //    {
-                //        IsSucceeded = false,
-                //        Message = "LoginId and not found required.",
-                //        Data = null
-                //    });
-                //}
-
                 var command = new ForgotPasswordCommand(request);
-
-
-                var result = await _mediator.Send(command);
-
-                if (!result.IsSucceeded)
-                    return BadRequest(result);
-
+                var result = await _mediator.Send(command);         
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Exception occurred while setting login password.");
-
-                return StatusCode(500, new ApiResponse<UpdatePasswordResponseDTO>
-                {
-                    IsSucceeded = false,
-                    Message = "Internal server error occurred.",
-                    Data = null
-                });
-            }
-
+           
+          
         }
 
         //[HttpPost("set-login-new-password")]
@@ -360,39 +236,16 @@ namespace axionpro.api.Controllers.Login
         //}
 
 
-        [HttpPost("validate-forgot-password-otp")]
-        
-        
+        [HttpPost("validate-forgot-password-otp")]    
         public async Task<IActionResult> ValidateForgotPasswordOtp([FromBody] ValidateOtpRequestDTO request)
         {
-            try
-            {
+            
               
                 var command = new ValidateOtpCommand(request);
-
-
-                var result = await _mediator.Send(command);
-
-                if (!result.IsSucceeded)
-                    return BadRequest(result);
+                var result = await _mediator.Send(command);               
 
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Exception occurred while setting login password.");
-
-                return StatusCode(500, new ApiResponse<UpdatePasswordResponseDTO>
-                {
-                    IsSucceeded = false,
-                    Message = "Internal server error occurred.",
-                    Data = null
-                });
-            }
-
-
-
-
+           
         }
 
         //...

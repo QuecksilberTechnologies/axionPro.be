@@ -27,26 +27,17 @@ namespace axionpro.api.Controllers.Employee
             _mediator = mediator;
             _logger = logger;
         }
-
         /// <summary>
         /// Validates IMEI number. Must be 15 digits and numeric only.
         /// </summary>
-
-
         /// <summary>
         /// Creates a new Employee Contact record.
         /// </summary>
         /// <param name="DTO"></param>
         /// <param name="Dto">Employee-Contact details</param>
         [HttpPost("create")]
-        
-        
-        
-        
         public async Task<IActionResult> CreateContactInfo([FromBody] CreateContactRequestDTO Dto)
         {
-            try
-            {
                 // ✅ IMEI validation
                 if (Dto == null)
                 {
@@ -60,64 +51,27 @@ namespace axionpro.api.Controllers.Employee
                 var command = new CreateContactInfoCommand(Dto);
                 var result = await _mediator.Send(command);
 
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo("Failed to create employee record.");
-                    return BadRequest(result);
-                }
-
+          
                 _logger.LogInfo("Employee-contact created successfully.");
                 return Ok(result);
             }
-            catch (ValidationException vex)
-            {
-                _logger.LogError($"Validation Error: {vex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("Validation failed.", new List<string> { vex.Message });
-                return BadRequest(errorResponse);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Exception occurred in employee-contact: {ex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while creating employee contact.",
-                    new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
-        }
+            
+       
 
 
         /// <summary>
         /// Get all employee-contact based on TenantId or filters.
         /// </summary>
-        [HttpGet("get")]
-
-        
-        
-        
-        
-        public async Task<IActionResult> GetBankinfo([FromQuery] GetContactRequestDTO requestDto)
-        {
-            try
+        [HttpGet("get")]     
+                public async Task<IActionResult> GetBankinfo([FromQuery] GetContactRequestDTO requestDto)
+       
             {
                 _logger.LogInfo("Fetching all bank.");
 
                 var command = new GetContactInfoQuery(requestDto);
                 var result = await _mediator.Send(command);
-
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo("No employee-contact found or request failed.");
-                    return BadRequest(result);
-                }
-
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error while fetching employees-contact: {ex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while fetching employee contact info.",
-                    new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
+                        
         }
 
 
@@ -125,69 +79,38 @@ namespace axionpro.api.Controllers.Employee
         /// <summary>
         /// Updates employee details.
         /// </summary>
-        [HttpPost("update")]
-        
-        
-        
+        [HttpPost("update")]        
         public async Task<IActionResult> UpdateContact([FromBody] UpdateContactRequestDTO dto)
         {
-            try
-            {
                 _logger.LogInfo($"Updating employee-contact record. EmployeeId: {dto.Id}");
 
                 var command = new UpdateEmployeeContactCommand(dto);
                 var result = await _mediator.Send(command);
 
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo($"Failed to update employee-contact with Id: {dto.Id}");
-                    return BadRequest(result);
-                }
+                
 
                 _logger.LogInfo("Employee-contact updated successfully.");
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error updating employee-contact: {ex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while updating employee-contact info.",
-                    new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
+            
+           
         }
 
         /// <summary>
         /// Deletes employee record by Id.
         /// </summary>
-        [HttpDelete("delete")]
-        
-        
-        
+        [HttpDelete("delete")]   
         public async Task<IActionResult> Delete([FromQuery] DeleteRequestDTO dto)
         {
-            try
-            {
+            
                 _logger.LogInfo($"Deleting employee with Id: {dto.Id}");
 
                 var command = new DeleteContactQuery(dto);
                 var result = await _mediator.Send(command);
 
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo($"Failed to delete employee with Id: {dto.Id}");
-                    return BadRequest(result);
-                }
 
                 _logger.LogInfo("Employee deleted successfully.");
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error deleting employee: {ex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while deleting employee.",
-                    new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
+           
         }
     }
 }

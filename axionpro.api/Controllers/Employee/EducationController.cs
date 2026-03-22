@@ -17,7 +17,6 @@ namespace axionpro.api.Controllers.Employee
     {
         private readonly IMediator _mediator;
         private readonly ILoggerService _logger;
-
         public EducationController(IMediator mediator, ILoggerService logger)
         {
             _mediator = mediator;
@@ -27,56 +26,30 @@ namespace axionpro.api.Controllers.Employee
         /// <summary>
         /// Create new employee education record.
         /// </summary>
-        [HttpPost("create")]
-        
-        
-        
+        [HttpPost("create")]        
         public async Task<IActionResult> CreateEmployee([FromForm] CreateEducationRequestDTO dto)
 
-        {
-            try
             {
                 var command = new CreateEducationInfoCommand(dto);
                 _logger.LogInfo("📩 Creating new employee education info...");
 
                 var result = await _mediator.Send(command);
-
-                if (!result.IsSucceeded)
-                    return BadRequest(result);
-
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-               
-                return StatusCode(500, ApiResponse<string>.Fail("Internal server error.", new List<string> { ex.Message }));
-            }
+           
         }
 
         /// <summary>
         /// Get all education records (Paginated).
         /// </summary>
-        [HttpGet("get")]
-        
-        
-        
+        [HttpGet("get")] 
         public async Task<IActionResult> GetAllEmployeeInfo([FromQuery] GetEducationRequestDTO commandDto)
         {
-            try
-            {
+            
                 var command = new GetEducationInfoQuery(commandDto);
-                var result = await _mediator.Send(command);
-
-                if (result.IsSucceeded)
-                    return Ok(result);
-
-                return BadRequest(result);
-            }
-            catch (Exception ex)
-            {
-                 
-                return StatusCode(500, ApiResponse<string>.Fail("Internal server error.", new List<string> { ex.Message }));
-            }
+                var result = await _mediator.Send(command);  
+                    return Ok(result);             
+          
+            
         }
 
         
@@ -89,65 +62,37 @@ namespace axionpro.api.Controllers.Employee
         
         public async Task<IActionResult> Delete([FromQuery] DeleteEducationRequestDTO dto)
         {
-            try
-            {
                 _logger.LogInfo($"Deleting employee with Id: {dto.Id}");
 
                 var command = new DeleteEducationInfoQuery(dto);
                 var result = await _mediator.Send(command);
 
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo($"Failed to delete  with Id: {dto.Id}");
-                    return BadRequest(result);
-                }
 
                 _logger.LogInfo("Education deleted successfully.");
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error deleting employee: {ex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while deleting employee.",
-                    new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
+   
+          
         }
         /// <summary>
         /// Updates employee details.
         /// </summary>
-        [HttpPost("update-education")]
-
-        
-        
-        
+        [HttpPost("update-education")]     
         public async Task<IActionResult> UpdateEducation(UpdateEducationRequestDTO dto)
 
         {
-            try
-            {
+          
                 _logger.LogInfo($"Updating employee-education record. EmployeeId: {dto.Id}");
 
                 var command = new UpdateEducationInfoCommand(dto);
                 var result = await _mediator.Send(command);
 
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo($"Failed to update employee-education with Id: {dto.Id}");
-                    return BadRequest(result);
-                }
+              
 
                 _logger.LogInfo("Employee-education updated successfully.");
                 return Ok(result);
             }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error updating employee-education: {ex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while updating employee-education info.",
-                    new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
+            
         }    
     
-    }
+   
 }

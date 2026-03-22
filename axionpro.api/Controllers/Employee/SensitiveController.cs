@@ -30,55 +30,30 @@ namespace axionpro.api.Controllers.Employee
         /// Create new employee personal info record.
         /// </summary>
         
-         [HttpPost("Create")]
-         
-         
-         
+         [HttpPost("Create")]         
         public async Task<IActionResult> Createpersonalinfo([FromForm] CreateEmployeeIdentityRequestDTO dto)
         {
-            try
-            {
+         
                 var command = new CreateIdentityInfoCommand(dto);
                 _logger.LogInfo("Creating new employee personal info info...");
 
                 var result = await _mediator.Send(command);
-
-                if (!result.IsSucceeded)
-                    return BadRequest(result);
-
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-
-                return StatusCode(500, ApiResponse<string>.Fail("Internal server error.", new List<string> { ex.Message }));
-            }
+                return Ok(result);          
+           
         }
 
         /// <summary>
         /// Get all personal info records (Paginated).
         /// </summary>
-        [HttpGet("get")]
-        
-        
-        
+        [HttpGet("get")]        
         public async Task<IActionResult> GetSensitiveData([FromQuery] GetIdentityRequestDTO commandDto)
         {
-            try
-            {
                 var command = new GetIdentityInfoQuery(commandDto);
                 var result = await _mediator.Send(command);
-
-                if (result.IsSucceeded)
-                    return Ok(result);
-
-                return BadRequest(result);
-            }
-            catch (Exception ex)
-            {
-
-                return StatusCode(500, ApiResponse<string>.Fail("Internal server error.", new List<string> { ex.Message }));
-            }
+                               
+                    return Ok(result);             
+           
+           
         }
         /// <summary>
         /// Updates employee details.

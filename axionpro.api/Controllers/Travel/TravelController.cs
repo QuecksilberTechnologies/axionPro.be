@@ -25,61 +25,30 @@ namespace axionpro.api.Controllers.Travel
         }
 
 
-        [HttpGet("getalltravelmodetype")]
-        
-        
-        
+        [HttpGet("getalltravelmodetype")]       
         public async Task<IActionResult> GetAllTravelModeType([FromQuery] TravelModeRequestDTO travelModeRequestDTO)
         {
             _logger.LogInfo($"Received request to get clientRequestType from userId: {travelModeRequestDTO.Id}");
 
             var command = new GetAllTravelModeTypeQuery(travelModeRequestDTO);
             var result = await _mediator.Send(command);
-
-            if (!result.IsSucceeded)
-            {
-                return Unauthorized(result);
-            }
             return Ok(result);
         }
-        [HttpPost("addtravelmode")]
-        
-        
-        
+        [HttpPost("addtravelmode")] 
         public async Task<IActionResult> CreateTravelModeType([FromBody] CreateTravelModeDTO createTravelModeDTO)
-        {
-            if (createTravelModeDTO == null)
-            {
-                _logger.LogInfo("Received null request for creating leave type.");  // ✅ अब सही है
-                return BadRequest(new { success = false, message = "Invalid request" });
-            }
+        {   
 
             _logger.LogInfo($"Received request to create a new leave type: {createTravelModeDTO.TravelModeName}");
-
             var command = new CreateTravelModeTypeCommand(createTravelModeDTO);
             var result = await _mediator.Send(command);
+            return Ok(result);        }
 
-            if (!result.IsSucceeded)
-            {
-                return BadRequest(result);
-            }
-
-            return Ok(result);
-        }
-
-        [HttpPost("updatetravelmodetype")]
-        
-        
-        
+        [HttpPost("updatetravelmodetype")]        
         public async Task<IActionResult> UpdateTravelModeType([FromBody] UpdateTravelModeDTO updateTravelModeDTO)
         {
             _logger.LogInfo("Received request for update a leave" + updateTravelModeDTO.ToString());
             var command = new UpdateTravelModeTypeCommand(updateTravelModeDTO);
-            var result = await _mediator.Send(command);
-            if (!result.IsSucceeded)
-            {
-                return Ok(result);
-            }
+            var result = await _mediator.Send(command);            
             return Ok(result);
         }
         //  [HttpPost("getalltendermaincategory")]

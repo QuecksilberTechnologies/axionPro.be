@@ -26,21 +26,12 @@ namespace axionpro.api.Controllers.Subscription
         [HttpPost("get-all-subscription-plan")]
         public async Task<IActionResult> GetAllSubscriptionPlan([FromBody] SubscriptionPlanRequestDTO? subscriptionPlanRequestDTO)
         {
-            if (subscriptionPlanRequestDTO == null)
-            {
-                // _logger.LogWarning("Received null request for getting Assets.");
-                // return BadRequest(new ApiResponse<List<GetAllAssetDTO>>(false, "Invalid request", null));
-            }
-
+            
             // _logger.LogInformation("Received request to get Assets for userId: {LoginId}", AssetRequestDTO.Id);
 
             var query = new GetSubscriptionPlanCommand(subscriptionPlanRequestDTO);  //  Fix: No parameter needed in GetAllAssetQuery
             var result = await _mediator.Send(query);
 
-            if (!result.IsSucceeded)
-            {
-                return Unauthorized(result);
-            }
 
             return Ok(result);
         }
@@ -49,21 +40,9 @@ namespace axionpro.api.Controllers.Subscription
         [HttpPost("get-tenant-subscription-plan-info")]
         public async Task<IActionResult> GetTenantSubscriptionPlanInfo([FromBody] TenantSubscriptionPlanRequestDTO subscriptionPlanRequestDTO)
         {
-            if (subscriptionPlanRequestDTO == null)
-            {
-                // _logger.LogWarning("Received null request for getting Assets.");
-                // return BadRequest(new ApiResponse<List<GetAllAssetDTO>>(false, "Invalid request", null));
-            }
-
-            // _logger.LogInformation("Received request to get Assets for userId: {LoginId}", AssetRequestDTO.Id);
-
+           
             var query = new GetValidateTenantIdCommand(subscriptionPlanRequestDTO);  //  Fix: No parameter needed in GetAllAssetQuery
             var result = await _mediator.Send(query);
-
-            if (!result.IsSucceeded)
-            {
-                return Unauthorized(result);
-            }
 
             return Ok(result);
         }
@@ -71,21 +50,10 @@ namespace axionpro.api.Controllers.Subscription
         [HttpPost("get-all-tenant-accessible-modules")]
         public async Task<IActionResult> GetAllPlanModulePapping([FromBody] PlanModuleMappingRequestDTO? planModuleMappingRequest)
         {
-            if (planModuleMappingRequest == null)
-            {
-                // _logger.LogWarning("Received null request for getting Assets.");
-                // return BadRequest(new ApiResponse<List<GetAllAssetDTO>>(false, "Invalid request", null));
-            }
-
             // _logger.LogInformation("Received request to get Assets for userId: {LoginId}", AssetRequestDTO.Id);
 
             var query = new GetPlanModuleMappingCommand(planModuleMappingRequest);  //  Fix: No parameter needed in GetAllAssetQuery
             var result = await _mediator.Send(query);
-
-            if (!result.IsSucceeded)
-            {
-                return Unauthorized(result);
-            }
 
             return Ok(result);
         }
