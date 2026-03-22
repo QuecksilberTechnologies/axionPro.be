@@ -30,9 +30,9 @@ namespace axionpro.api.Controllers.MenuStructureView
         /// Get all employees that belong to the specified tenant.
         /// </summary>
         [HttpPost("get-menus-structure")]
-        [ProducesResponseType(typeof(ApiResponse<GetMenuDataStructureResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> GetAllMenuStructure([FromBody] GetEmployeeTypeRequestDTO requestDto)
         {
             try

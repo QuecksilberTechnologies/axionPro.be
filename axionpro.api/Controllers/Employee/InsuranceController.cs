@@ -38,9 +38,9 @@ public class InsuranceController : ControllerBase
     [HttpPost("create")]
 
     //  [Authorize]
-    [ProducesResponseType(typeof(ApiResponse<GetBaseEmployeeResponseDTO>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+    
+    
+    
     public async Task<IActionResult> CreateEmployee([FromBody] CreateBaseEmployeeRequestDTO employeeCreateDto)
     {
         var command = new CreateBaseEmployeeInfoCommand(employeeCreateDto);
@@ -58,10 +58,10 @@ public class InsuranceController : ControllerBase
     /// Get all employees that belong to the specified tenant.
     /// </summary>
     [HttpGet("get")]
-    [ProducesResponseType(typeof(ApiResponse<GetContactResponseDTO>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    
+    
+    
+    
     public async Task<IActionResult> Get([FromQuery] GetContactRequestDTO requestDto)
     {
         try
@@ -88,10 +88,10 @@ public class InsuranceController : ControllerBase
 
     //[HttpPost("get-user-self-employement-info")]
     //[HttpPost("update")]
-    //[ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-    //[ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status401Unauthorized)]
-    //[ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
-    //[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    //
+    //
+    //
+    //
     //public async Task<IActionResult> UpdateEmployeeField([FromBody] GenricUpdateRequestDTO commandDto)
     //{
     //    try

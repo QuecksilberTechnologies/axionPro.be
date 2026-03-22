@@ -35,9 +35,9 @@ namespace axionpro.api.Controllers.Tenant
     
 
         [HttpPost("create-tenant")]
-        [ProducesResponseType(typeof(ApiResponse<TenantCreateResponseDTO>), StatusCodes.Status200OK)]
         
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
         // [Authorize]
         public async Task<IActionResult> TenantCreation([FromBody] application.DTOs.Registration.TenantCreateRequestDTO tenantCreateRequestDTO)
         {
@@ -53,9 +53,9 @@ namespace axionpro.api.Controllers.Tenant
         
 
         [HttpGet("get-all-tenant-by-subscription-plan-Id")]
-         [ProducesResponseType(typeof(ApiResponse<TenantResponseDTO>), StatusCodes.Status200OK)]
+         
         
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
         public async Task<IActionResult> GetAllTenantBySubscriptionIdAsync([FromQuery] application.DTOs.Tenant.TenantRequestDTO code)
         {
             _logger.LogInfo($"Getting email templates for code: {code}");
@@ -72,9 +72,9 @@ namespace axionpro.api.Controllers.Tenant
             return Ok(result);
         }
         [HttpGet("get-employee-code-pattern")]
-        [ProducesResponseType(typeof(ApiResponse<GetEmployeeCodePatternResponseDTO>), StatusCodes.Status200OK)]
+        
          
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
         public async Task<IActionResult> GetEmployeeCodePatternAsync(
         [FromQuery] EmployeeCodePatternRequestDTO code)
         {
@@ -97,9 +97,9 @@ namespace axionpro.api.Controllers.Tenant
         /// Get all tenant enabled modules
         /// </summary>
         [HttpPost("get")]
-        [ProducesResponseType(typeof(ApiResponse<GetModuleHierarchyResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> GetAllTenantEnabledModuleOperationsByTenantIdAsync([FromBody] TenantEnabledModuleRequestDTO code)
         {
             _logger.LogInfo($"Getting email templates for code: {code}");
@@ -119,9 +119,9 @@ namespace axionpro.api.Controllers.Tenant
        
 
         [HttpPost("get-enabled-operations")]
-        [ProducesResponseType(typeof(ApiResponse<TenantEnabledModuleOperationsResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> GetAllNodeLeafeWithOperationsAsync([FromBody] TenantEnabledModuleRequestDTO code)
         {
             _logger.LogInfo($"Getting email templates for code: {code}");
@@ -139,9 +139,9 @@ namespace axionpro.api.Controllers.Tenant
         }
 
         [HttpPost("update-modules-and-operations")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> TenantModuleOperationsUpdate([FromBody] TenantModuleOperationsUpdateRequestDTO code)
         {
             _logger.LogInfo($"Getting email templates for code: {code}");
@@ -159,9 +159,9 @@ namespace axionpro.api.Controllers.Tenant
         }
 
         [HttpPost("verify")]
-        [ProducesResponseType(typeof(ApiResponse<VerifyEmailResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequestDTO request)
         {
             try

@@ -25,9 +25,9 @@ namespace axionpro.api.Controllers.Registration
 
 
         [HttpPost("candidate")]
-        [ProducesResponseType(typeof(ApiResponse<CandidateResponseDTO>), StatusCodes.Status200OK)]
         
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
         // [Authorize]
         public async Task<IActionResult> Login([FromBody] CandidateRequestDTO candidateRegistrationDTO)
         {
@@ -43,9 +43,9 @@ namespace axionpro.api.Controllers.Registration
 
        
         [HttpPost("AccessDetails")]
-        [ProducesResponseType(typeof(ApiResponse<AccessDetailResponseDTO>), StatusCodes.Status200OK)]
+        
       
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
         // [Authorize] // Ensures the user is authenticated via token
         public async Task<IActionResult> UserAccessDetailsAsync([FromBody] AccessDetailRequestDTO accessDetailsDTO)
     {

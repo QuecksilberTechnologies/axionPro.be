@@ -41,9 +41,9 @@ namespace axionpro.api.Controllers.Employee
         /// <param name="Dto">Employee-Bank details</param>
         [HttpPost("create")]
 
-        [ProducesResponseType(typeof(ApiResponse<GetBankResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> CreateBankInfo([FromForm] CreateBankRequestDTO Dto)
         {
             try
@@ -93,9 +93,9 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         [HttpGet("get")]
 
-        [ProducesResponseType(typeof(ApiResponse<GetBankResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> GetBankinfo([FromQuery] GetBankReqestDTO requestDto)
         {
             try
@@ -126,10 +126,10 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         [HttpDelete("delete")]
 
-        [ProducesResponseType(typeof(ApiResponse<GetBankResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        
+        
+        
+        
         public async Task<IActionResult> Delete([FromQuery] DeleteBankRequestDTO dto)
         {
             try
@@ -162,9 +162,9 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         [HttpPost("update")]
 
-        [ProducesResponseType(typeof(ApiResponse<GetBankResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
 
         public async Task<IActionResult> Update([FromForm] UpdateBankReqestDTO dto)
         {

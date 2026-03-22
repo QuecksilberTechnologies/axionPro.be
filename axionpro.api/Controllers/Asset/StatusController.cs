@@ -37,9 +37,9 @@ namespace axionpro.api.Controllers.Asset
         /// <returns>Returns a list of asset statuses.</returns>
         [HttpGet("get")]
 
-        [ProducesResponseType(typeof(ApiResponse<GetStatusResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> GetByIdAssetStatus([FromQuery] GetStatusRequestDTO request)
         {
             try
@@ -62,9 +62,9 @@ namespace axionpro.api.Controllers.Asset
         /// <param name="request">Request DTO containing asset status details.</param>
         /// <returns>Returns success message after insertion.</returns>
         [HttpPost("add")]
-        [ProducesResponseType(typeof(ApiResponse<GetStatusResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> AddAssetStatus([FromBody] CreateStatusRequestDTO request)
         {
             try
@@ -88,9 +88,9 @@ namespace axionpro.api.Controllers.Asset
         /// <param name="request">Request DTO with updated data.</param>
         /// <returns>Returns success message after update.</returns>
         [HttpPut("update")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> UpdateAssetStatus( [FromBody] UpdateStatusRequestDTO request)
         {
             try
@@ -118,9 +118,9 @@ namespace axionpro.api.Controllers.Asset
         /// <param name="request">Request DTO containing ID of status to delete.</param>
         /// <returns>Returns success message after deletion.</returns>
         [HttpDelete("delete")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> DeleteAssetStatus([FromQuery] DeleteStatusReqestDTO request)
         {
             try

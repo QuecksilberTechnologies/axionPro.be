@@ -26,9 +26,9 @@ namespace axionpro.api.Controllers.Category
 
 
         [HttpPost("get")]
-        [ProducesResponseType(typeof(ApiResponse<CategoryResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> GetAllMainCategories([FromBody] CategoryRequestDTO? categoryRequestDTO)
         {
             _logger.LogInfo("Received  request to get categories from userId: {LoginId}" );
@@ -57,9 +57,9 @@ namespace axionpro.api.Controllers.Category
 
 
         [HttpPost("getallmainchildcategory")]
-        [ProducesResponseType(typeof(ApiResponse<CategoryResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> GetAllMainChildCategories([FromBody] CategoryRequestDTO? categoryRequestDTO)
         {
             _logger.LogInfo("Received  request to get sub-categories from userId: {LoginId}" );

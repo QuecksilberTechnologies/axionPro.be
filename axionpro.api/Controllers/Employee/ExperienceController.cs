@@ -29,9 +29,9 @@ namespace axionpro.api.Controllers.Employee
         // Create new employee experience record.
         // </summary>
         [HttpPost("create")]
-        [ProducesResponseType(typeof(ApiResponse<GetBaseEmployeeResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> CreateExperience([FromForm] CreateExperienceRequestDTO dto)
         {
@@ -51,8 +51,8 @@ namespace axionpro.api.Controllers.Employee
         /// Get all experience records (Paginated).
         /// </summary>
         //  [HttpPost("get")]
-        //    [ProducesResponseType(StatusCodes.Status200OK)]
-        //    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        //    
+        //    
         //public async Task<IActionResult> GetAllexperinceInfo([FromBody] GetExperienceRequestDTO commandDto)
         //{
         //    try
@@ -75,8 +75,8 @@ namespace axionpro.api.Controllers.Employee
         /// Updates employee details.
         /// </summary>
         //[HttpPost("update")]
-        //[ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        //[ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        //
+        //
         //public async Task<IActionResult> Update([FromBody] GenricUpdateRequestDTO dto)
         //{
         //    try

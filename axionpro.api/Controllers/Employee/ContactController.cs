@@ -39,10 +39,10 @@ namespace axionpro.api.Controllers.Employee
         /// <param name="DTO"></param>
         /// <param name="Dto">Employee-Contact details</param>
         [HttpPost("create")]
-        [ProducesResponseType(typeof(ApiResponse<GetContactResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        
+        
+        
+        
         public async Task<IActionResult> CreateContactInfo([FromBody] CreateContactRequestDTO Dto)
         {
             try
@@ -90,10 +90,10 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         [HttpGet("get")]
 
-        [ProducesResponseType(typeof(ApiResponse<GetContactResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        
+        
+        
+        
         public async Task<IActionResult> GetBankinfo([FromQuery] GetContactRequestDTO requestDto)
         {
             try
@@ -126,9 +126,9 @@ namespace axionpro.api.Controllers.Employee
         /// Updates employee details.
         /// </summary>
         [HttpPost("update")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> UpdateContact([FromBody] UpdateContactRequestDTO dto)
         {
             try
@@ -160,9 +160,9 @@ namespace axionpro.api.Controllers.Employee
         /// Deletes employee record by Id.
         /// </summary>
         [HttpDelete("delete")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> Delete([FromQuery] DeleteRequestDTO dto)
         {
             try

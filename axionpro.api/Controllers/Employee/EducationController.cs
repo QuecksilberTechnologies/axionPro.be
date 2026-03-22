@@ -28,9 +28,9 @@ namespace axionpro.api.Controllers.Employee
         /// Create new employee education record.
         /// </summary>
         [HttpPost("create")]
-        [ProducesResponseType(typeof(ApiResponse<GetEducationResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> CreateEmployee([FromForm] CreateEducationRequestDTO dto)
 
         {
@@ -57,9 +57,9 @@ namespace axionpro.api.Controllers.Employee
         /// Get all education records (Paginated).
         /// </summary>
         [HttpGet("get")]
-        [ProducesResponseType(typeof(ApiResponse<GetEducationResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> GetAllEmployeeInfo([FromQuery] GetEducationRequestDTO commandDto)
         {
             try
@@ -84,9 +84,9 @@ namespace axionpro.api.Controllers.Employee
        /// Deletes employee education record by Id.
        /// </summary>
        [HttpDelete("delete")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> Delete([FromQuery] DeleteEducationRequestDTO dto)
         {
             try
@@ -118,9 +118,9 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         [HttpPost("update-education")]
 
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> UpdateEducation(UpdateEducationRequestDTO dto)
 
         {

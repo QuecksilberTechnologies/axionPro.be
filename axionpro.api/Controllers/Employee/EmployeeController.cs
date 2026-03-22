@@ -1,4 +1,4 @@
-﻿ 
+﻿
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
@@ -10,9 +10,10 @@ using axionpro.application.Features.EmployeeCmd.UpdateVerification.Handler;
 using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
 using FluentValidation;
-using MediatR; 
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
- 
+
 
 namespace axionpro.api.Controllers.Employee
 {
@@ -41,10 +42,11 @@ namespace axionpro.api.Controllers.Employee
         /// Creates a new employee record.
         /// </summary>
         /// <param name="employeeCreateDto">Employee details</param>
+        [Authorize]
         [HttpPost("create")]
-        [ProducesResponseType(typeof(ApiResponse<GetBaseEmployeeResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+
+
+
         public async Task<IActionResult> CreateEmployee([FromBody] CreateBaseEmployeeRequestDTO employeeCreateDto)
         {
             try
@@ -88,47 +90,28 @@ namespace axionpro.api.Controllers.Employee
 
 
 
-
+        [Authorize]
         [HttpPost("profile/pic/update")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
-        // [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> UpdateProfieImage([FromForm] UpdateEmployeeImageRequestDTO requestDto)
         {
-            try
-            {
+            
                 _logger.LogInfo("Update image.");
 
                 var command = new UpdateProfileImageCommand(requestDto);
-                var result = await _mediator.Send(command);
-
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo("No employees found or request failed.");
-                    return BadRequest(result);
-                }
-
+                var result = await _mediator.Send(command);                 
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error while fetching employees: {ex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while fetching employee info.",
-                    new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
+           
+            
         }
 
         /// <summary>
         /// Get all employees based on TenantId or filters.
         /// </summary>
-
+        [Authorize]
         [HttpGet("Image/get")]
-        [ProducesResponseType(typeof(ApiResponse<GetEmployeeImageReponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
-        // [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+
+
+        // 
         public async Task<IActionResult> GetAllEmployeeImage([FromQuery] GetEmployeeImageRequestDTO requestDto)
         {
             try
@@ -137,13 +120,6 @@ namespace axionpro.api.Controllers.Employee
 
                 var command = new GetEmployeeImageQuery(requestDto);
                 var result = await _mediator.Send(command);
-
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo("No employees found or request failed.");
-                    return BadRequest(result);
-                }
-
                 return Ok(result);
             }
             catch (Exception ex)
@@ -158,11 +134,10 @@ namespace axionpro.api.Controllers.Employee
         /// <summary>
         ///  update  edit permission status for an employee.
         /// </summary>
+        [Authorize]
         [HttpPost("update-edit-status")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> UpdateSectionStatusBulk( [FromBody] UpdateEditStatusRequestDTO_ dto)
+
+        public async Task<IActionResult> UpdateSectionStatusBulk([FromBody] UpdateEditStatusRequestDTO_ dto)
         {
             if (dto == null)
                 return BadRequest(ApiResponse<bool>.Fail("Invalid or empty request."));
@@ -177,9 +152,9 @@ namespace axionpro.api.Controllers.Employee
         ///  update  verification permission status for an employee.
         /// </summary>
         [HttpPost("update-verification-status")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+
+
+
         public async Task<IActionResult> UpdateVerificationStatus([FromBody] UpdateVerificationStatusRequestDTO_ dto)
         {
             if (dto == null)
@@ -195,11 +170,9 @@ namespace axionpro.api.Controllers.Employee
         /// <summary>
         /// Bulk update section verification + edit permission status for an employee.
         /// </summary>
+        [Authorize]
         [HttpPost("update-bulk")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> UpdateSectionStatusBulk( [FromBody] UpdateEmployeeSectionStatusRequestDTO dto)
+        public async Task<IActionResult> UpdateSectionStatusBulk([FromBody] UpdateEmployeeSectionStatusRequestDTO dto)
         {
             if (dto == null)
                 return BadRequest(ApiResponse<bool>.Fail("Invalid or empty request."));
@@ -209,12 +182,8 @@ namespace axionpro.api.Controllers.Employee
 
             return Ok(result);
         }
-
+        [Authorize]
         [HttpGet("get-all-percentage")]
-        [ProducesResponseType(typeof(ApiResponse<CompletionSectionDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(typeof(ApiResponse<List<CompletionSectionDTO>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllEmployeePercentageAsync([FromQuery] string employeeId)
         {
             try
@@ -230,23 +199,15 @@ namespace axionpro.api.Controllers.Employee
                 var query = new GetEmployeeProfileStatusQuery(employeeId);
                 var result = await _mediator.Send(query);
 
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo("Failed to fetch completion data.");
-                    return BadRequest(result);
-                }
-
-                // ✔ Correct response mapping
                 var response = ApiResponse<List<CompletionSectionDTO>>
                     .Response(result.Sections, "Fetched successfully");
-
                 _logger.LogInfo("Employee percentage fetched successfully.");
 
                 return Ok(response);   // ✔ Correct return
             }
             catch (Exception ex)
             {
-                _logger.LogError( "Error getting employee completion percentage.");
+                _logger.LogError("Error getting employee completion percentage.");
 
                 return StatusCode(
                     StatusCodes.Status500InternalServerError,
@@ -256,46 +217,11 @@ namespace axionpro.api.Controllers.Employee
         }
 
 
-  
-
-        //[HttpPost("Image/add")]
-        //[ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        //[ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status401Unauthorized)]
-        //[ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
-        //[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        //public async Task<IActionResult> AddEmployeeImage([FromForm] CreateEmployeeImageRequestDTO requestDto)
-        //{
-        //    try
-        //    {
-        //        _logger.LogInfo("add new image.");
-
-        //        var command = new CreateEmployeeImageCommand(requestDto);
-        //        var result = await _mediator.Send(command);
-
-        //        if (!result.IsSucceeded)
-        //        {
-        //            _logger.LogInfo("No employees found or request failed.");
-        //            return BadRequest(result);
-        //        }
-
-        //        return Ok(result);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError($"Error while fetching employees: {ex.Message}");
-        //        var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while fetching employee info.",
-        //            new List<string> { ex.Message });
-        //        return StatusCode(500, errorResponse);
-        //    }
-        //}
-
         /// <summary>
         /// Get all employees based on TenantId or filters.
         /// </summary>
+        [Authorize]
         [HttpGet("get")]
-        [ProducesResponseType(typeof(ApiResponse<GetBaseEmployeeResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetEmployee([FromQuery] GetBaseEmployeeRequestDTO requestDto)
         {
             try
@@ -324,10 +250,8 @@ namespace axionpro.api.Controllers.Employee
         /// <summary>
         /// Get  summary based on TenantId or filters.
         /// </summary>
+        [Authorize]
         [HttpGet("get-summary")]
-        [ProducesResponseType(typeof(ApiResponse<SummaryEmployeeInfo>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetEmployeeSummary([FromQuery] GetEmployeeSummaryRequestDTO requestDto)
         {
             try
@@ -353,11 +277,11 @@ namespace axionpro.api.Controllers.Employee
                 return StatusCode(500, errorResponse);
             }
         }
+        [Authorize]
         [HttpGet("get-profile-summary")]
 
-        [ProducesResponseType(typeof(ApiResponse<EmployeeProfileSummaryInfo>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+
+
         public async Task<IActionResult> GetEmployeeProfileSummary([FromQuery] GetEmployeeSummaryRequestDTO requestDto)
         {
             try
@@ -386,11 +310,12 @@ namespace axionpro.api.Controllers.Employee
         /// <summary>
         /// Get all employees based on TenantId or filters.
         /// </summary>
+        [Authorize]
         [HttpGet("get-all")]
 
-        [ProducesResponseType(typeof(ApiResponse<GetAllEmployeeInfoResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+
+
+
         public async Task<IActionResult> GetAllEmployee([FromQuery] GetAllEmployeeInfoRequestDTO requestDto)
         {
             try
@@ -420,10 +345,11 @@ namespace axionpro.api.Controllers.Employee
         /// <summary>
         /// Deletes employee record by Id.
         /// </summary>
+        [Authorize]
         [HttpDelete("delete-all")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+
+
+
         public async Task<IActionResult> Delete([FromQuery] DeleteBaseEmployeeRequestDTO dto)
         {
             try
@@ -453,10 +379,11 @@ namespace axionpro.api.Controllers.Employee
         /// <summary>
         /// Activate or deactivate employee and all related records by Employee Id.
         /// </summary>
+        [Authorize]
         [HttpPut("update-status")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+
+
+
         public async Task<IActionResult> UpdateEmployeeStatus(
             [FromQuery] ActivateAllEmployeeRequestDTO dto)
         {
@@ -482,7 +409,7 @@ namespace axionpro.api.Controllers.Employee
             }
             catch (Exception ex)
             {
-                _logger.LogError( "Error while updating employee active status.");
+                _logger.LogError("Error while updating employee active status.");
 
                 var errorResponse = ApiResponse<bool>.Fail(
                     "An unexpected error occurred while updating employee status.",
@@ -496,10 +423,11 @@ namespace axionpro.api.Controllers.Employee
         /// <summary>
         // Updates employee details.
         // </summary>
+        [Authorize]
         [HttpPost("update")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+
+
+
 
         public async Task<IActionResult> Update([FromBody] UpdateEmployeeRequestDTO dto)
         {
@@ -530,14 +458,14 @@ namespace axionpro.api.Controllers.Employee
         /// <summary>
         // Updates employee details.
         // </summary>
+        [Authorize]
         [HttpPost("official/update")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+
+
+
         public async Task<IActionResult> OfficialUpdate([FromBody] UpdateEmployeeRequestOfficialDTO dto)
         {
-            try
-            {
+            
                 _logger.LogInfo($"Updating employee record. EmployeeId: {dto.EmployeeId}");
 
                 var command = new UpdateBaseEmployeeByAdminCommand(dto);
@@ -551,14 +479,7 @@ namespace axionpro.api.Controllers.Employee
 
                 _logger.LogInfo("Employee updated successfully.");
                 return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error updating employee: {ex.Message}");
-                var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while updating employee info.",
-                    new List<string> { ex.Message });
-                return StatusCode(500, errorResponse);
-            }
+          
         }
     }
 }

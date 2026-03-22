@@ -22,9 +22,9 @@ public class ClientInfoController : ControllerBase
         return ip;
     }
     [HttpGet("detect-device")]
-    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+    
+    
+    
     public IActionResult GetDeviceInfo()
     {
         var userAgent = Request.Headers["User-Agent"].ToString();

@@ -40,9 +40,9 @@ namespace axionpro.api.Controllers.Ticket
         /// <param name="dto">Ticket type data to be created.</param>
         /// <returns>Returns the created Ticket Type list with success message.</returns>
         [HttpPost("create")]
-        [ProducesResponseType(typeof(ApiResponse<GetTicketTypeResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> CreateTicketType([FromBody] AddTicketTypeRequestDTO dto)
         {
             try
@@ -76,9 +76,9 @@ namespace axionpro.api.Controllers.Ticket
         /// </summary>
         /// <returns>Returns a list of all Ticket Types.</returns>
         [HttpGet("get-all")]
-        [ProducesResponseType(typeof(ApiResponse<GetTicketTypeResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> GetAllTicketTypes([FromQuery] GetTicketTypeRequestDTO dto)
         {
             try
@@ -113,9 +113,9 @@ namespace axionpro.api.Controllers.Ticket
         /// <param name="dto">Unique identifier of the Ticket Type.</param>
         /// <returns>Returns Ticket Type details.</returns>
         [HttpGet("get")]
-        [ProducesResponseType(typeof(ApiResponse<GetTicketTypeResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> GetTicketTypeById([FromQuery] GetTicketTypeByIdRequestDTO dto)
         {
             try
@@ -150,9 +150,9 @@ namespace axionpro.api.Controllers.Ticket
         /// <param name="dto">Ticket type update data.</param>
         /// <returns>Returns success message after update.</returns>
         [HttpPut("update")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> UpdateTicketType([FromBody] UpdateTicketTypeRequestDTO dto)
         {
             try
@@ -187,9 +187,9 @@ namespace axionpro.api.Controllers.Ticket
         /// <param name="dto">Ticket Type ID to be deleted.</param>
         /// <returns>Returns confirmation message.</returns>
         [HttpDelete("delete")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> DeleteTicketType([FromBody]DeleteTicketTypeRequestDTO dto)
         {
             try
@@ -225,9 +225,9 @@ namespace axionpro.api.Controllers.Ticket
         /// <param name="dto">Module ID to filter Ticket Types.</param>
         /// <returns>Returns a list of Ticket Types linked to the provided Module ID.</returns>
         [HttpGet("get-by-header")]
-        [ProducesResponseType(typeof(ApiResponse<GetTicketTypeResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> GetTicketTypesByHeaderId( [FromQuery] GetTicketTypeByHeaderIdRequestDTO dto)
         {
             try
@@ -259,9 +259,9 @@ namespace axionpro.api.Controllers.Ticket
         /// <param name="dto">Role ID to filter Ticket Types.</param>
         /// <returns>Returns a list of Ticket Types linked to the provided Role ID.</returns>
         [HttpGet("get-by-role-id")]
-        [ProducesResponseType(typeof(ApiResponse<GetTicketTypeRoleResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> GetTicketTypesByRoleId([FromQuery] GetTicketTypeByRoleIdRequestDTO dto)
         {
             try

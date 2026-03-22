@@ -38,9 +38,9 @@ namespace axionpro.api.Controllers.Employee
         /// <param name="DTO"></param>
         /// <param name="Dto">Employee-Dependent details</param>
         [HttpPost("create")]
-        [ProducesResponseType(typeof(ApiResponse<GetBankResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> CreateDependentInfo([FromForm] CreateDependentRequestDTO Dto)
         {
             try
@@ -87,9 +87,9 @@ namespace axionpro.api.Controllers.Employee
         /// Get all employee-Dependent based on TenantId or filters.
         /// </summary>
         [HttpGet("get")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
     
         public async Task<IActionResult> GetBankinfo([FromQuery] GetDependentRequestDTO requestDto)
         {
@@ -122,9 +122,9 @@ namespace axionpro.api.Controllers.Employee
       /// Deletes employee education record by Id. 
       /// </summary>
       [HttpDelete("delete")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> Delete([FromQuery] DeleteRequestDTO dto)
         {
             try
@@ -157,9 +157,9 @@ namespace axionpro.api.Controllers.Employee
         /// Updates employee details.
         /// </summary>
         [HttpPost("update")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> Update([FromForm] UpdateDependentRequestDTO dto)
         {
             try

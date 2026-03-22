@@ -24,45 +24,41 @@ namespace axionpro.api.Middlewares
             {
                 await _next(context);
             }
+
+            // ✅ 401 - Unauthorized (Token fail)
             catch (UnauthorizedAccessException ex)
             {
-                _logger.LogWarning(ex, ex.Message);
-
-                await HandleExceptionAsync(
-                    context,
-                    (int)HttpStatusCode.Unauthorized,
-                    ex.Message,
-                    null);
+                await HandleExceptionAsync(context, 401, ex.Message);
             }
+
+            // ✅ 400 - Validation error
             catch (ValidationErrorException ex)
             {
-                _logger.LogWarning(ex, ex.Message);
-
-                await HandleExceptionAsync(
-                    context,
-                    (int)HttpStatusCode.BadRequest,
-                    ex.Message,
-                    ex.Errors);
+                await HandleExceptionAsync(context, 400, ex.Message, ex.Errors);
             }
-            catch (ApiException ex)
+
+            // ✅ Custom ApiException (dynamic status)
+            //catch (ApiException ex)
+            //{
+            //    await HandleExceptionAsync(context, ex.StatusCode, ex.Message);
+            //}
+
+            // ✅ 404 - Not Found (optional)
+            catch (KeyNotFoundException ex)
             {
-                _logger.LogWarning(ex, ex.Message);
-
-                await HandleExceptionAsync(
-                    context,
-                    (int)HttpStatusCode.BadRequest,
-                    ex.Message,
-                    null);
+                await HandleExceptionAsync(context, 404, ex.Message);
             }
+
+            // ✅ 500 - Internal Server Error
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
 
                 await HandleExceptionAsync(
                     context,
-                    (int)HttpStatusCode.InternalServerError,
-                    "An unexpected server error occurred.",
-                    new List<string> { ex.Message });
+                    500,
+                    "Internal Server Error"
+                );
             }
         }
 
@@ -70,12 +66,12 @@ namespace axionpro.api.Middlewares
             HttpContext context,
             int statusCode,
             string message,
-            List<string>? errors)
+            List<string>? errors = null)
         {
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = statusCode;
 
-            var responseModel = new ApiResponse<string>
+            var response = new ApiResponse<object>
             {
                 IsSucceeded = false,
                 Message = message,
@@ -83,7 +79,7 @@ namespace axionpro.api.Middlewares
                 Errors = errors ?? new List<string>()
             };
 
-            var result = JsonSerializer.Serialize(responseModel);
+            var result = JsonSerializer.Serialize(response);
             await context.Response.WriteAsync(result);
         }
     }

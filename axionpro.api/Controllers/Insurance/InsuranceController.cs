@@ -24,9 +24,9 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 CREATE INSURANCE POLICY
         [HttpPost("create")]
-        [ProducesResponseType(typeof(ApiResponse<GetInsurancePolicyResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
     
         public async Task<IActionResult> Create(
             [FromBody] CreateInsurancePolicyRequestDTO dto)
@@ -60,9 +60,9 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 GET INSURANCE LIST (GRID)
         [HttpGet("get-ddl")]
-        [ProducesResponseType(typeof(ApiResponse<GetAlllnsurancePolicyResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> GetList(
             [FromQuery] GetAllInsurancePolicyRequestDTO requestDto)
         {
@@ -80,9 +80,9 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 GET INSURANCE LIST (GRID)
         [HttpGet("get-all")]
-        [ProducesResponseType(typeof(ApiResponse<GetInsurancePolicyResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> GetList(
             [FromQuery] GetInsurancePolicyRequestDTO requestDto)
           {
@@ -99,9 +99,9 @@ namespace axionpro.api.Controllers.Insurance
         }
         // 🔹 DELETE INSURANCE POLICY
         [HttpDelete("delete")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> Delete(
             [FromQuery] DeleteInsurancePolicyRequestDTO requestDto)
         {
@@ -115,9 +115,9 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 UPDATE INSURANCE POLICY
         [HttpPut("update")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> Update(
             [FromBody] UpdateInsurancePolicyRequestDTO requestDto)
         {
@@ -136,7 +136,7 @@ namespace axionpro.api.Controllers.Insurance
 
         //// 🔹 GET INSURANCE BY ID
         //[HttpGet("get-by-id")]
-        //[ProducesResponseType(typeof(ApiResponse<GetInsurancePolicyResponseDTO>), StatusCodes.Status200OK)]
+        //
         //public async Task<IActionResult> GetById([FromQuery] int insurancePolicyId)
         //{
         //    if (insurancePolicyId <= 0)
@@ -161,7 +161,7 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 DELETE (SOFT DELETE)
         //[HttpDelete("delete")]
-        //[ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+        //
         //public async Task<IActionResult> Delete([FromQuery] int insurancePolicyId)
         //{
         //    if (insurancePolicyId <= 0)

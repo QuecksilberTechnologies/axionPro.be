@@ -33,9 +33,9 @@ namespace axionpro.api.Controllers.SandwichRule
         #region CRUD-GET-DAY-COMBINATION BY-TENANT-ADMIN
 
         [HttpPost("/Sandwich/DayCombination/add")]
-        [ProducesResponseType(typeof(ApiResponse<GetDayCombinationResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> GetAllDayCombinationByTenantUser([FromBody] CreateDayCombinationRequestDTO dTO)
         {
             if (dTO == null)
@@ -60,9 +60,9 @@ namespace axionpro.api.Controllers.SandwichRule
         #region Update--DAY-COMBINATION BY-TENANT-ADMIN
 
         [HttpPost("/Sandwich/DayCombination/update")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> UpdateDayCombinationByTenantUser([FromBody] UpdateDayCombinationRequestDTO dto)
         {
             if (dto == null)
@@ -87,9 +87,9 @@ namespace axionpro.api.Controllers.SandwichRule
         #region Update-DAY-COMBINATION BY-TENANT-ADMIN
 
         [HttpPost("/Sandwich/DayCombination/delete")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> DeleteDayCombinationByTenantUser([FromBody] DeleteDayCombinationRequestDTO dto)
         {
             if (dto == null)
@@ -113,9 +113,9 @@ namespace axionpro.api.Controllers.SandwichRule
         #endregion
 
         [HttpPost("/Sandwich/DayCombination/get")]
-        [ProducesResponseType(typeof(ApiResponse<GetDayCombinationResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> GetAllDayCombinationByTenantUser([FromBody] GetDayCombinationRequestDTO dTO)
         {
             if (dTO == null)
@@ -141,9 +141,9 @@ namespace axionpro.api.Controllers.SandwichRule
 
         // 🔹 GET ALL
         [HttpGet("/Sandwich/get")]
-        [ProducesResponseType(typeof(ApiResponse<GetLeaveSandwitchRuleResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> GetAllSandwichRule([FromQuery] GetLeaveSandwitchRuleRequestDTO dto)
         {
             if (dto == null)
@@ -168,9 +168,9 @@ namespace axionpro.api.Controllers.SandwichRule
 
         // 🔹 CREATE
         [HttpPost("/Sandwich/add")]
-        [ProducesResponseType(typeof(ApiResponse<GetLeaveSandwitchRuleResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> CreateSandwichRule([FromBody] CreateLeaveSandwichRuleRequestDTO dto)
         {
             if (dto == null)
@@ -195,9 +195,9 @@ namespace axionpro.api.Controllers.SandwichRule
 
         // 🔹 UPDATE
         [HttpPost("/Sandwich/update")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> UpdateSandwichRule([FromBody] UpdateLeaveSandwitchRuleRequestDTO dto)
         {
             if (dto == null || dto.Id <= 0)
@@ -222,9 +222,9 @@ namespace axionpro.api.Controllers.SandwichRule
 
         // 🔹 DELETE (Soft Delete)
         [HttpDelete("/Sandwich/delete")]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> DeleteSandwichRule([FromQuery] DeleteLeaveSandwitchRuleRequestDTO dto)
         {
             if (dto == null || dto.Id <= 0)

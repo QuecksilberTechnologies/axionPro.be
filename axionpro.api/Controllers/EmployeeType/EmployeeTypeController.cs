@@ -50,9 +50,9 @@ namespace axionpro.api.Controllers.EmployeeType
         /// </summary>
 
         [HttpGet("get")]
-        [ProducesResponseType(typeof(ApiResponse<GetEmployeeTypeResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> GetAllEmployeeType([FromQuery] application.DTOS.Employee.Type.GetEmployeeTypeRequestDTO requestDto)
         {
             try
@@ -78,9 +78,9 @@ namespace axionpro.api.Controllers.EmployeeType
             }
         }
         [HttpGet("option")]
-        [ProducesResponseType(typeof(ApiResponse<GetEmployeeTypeResponseOptionDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
 
         public async Task<IActionResult> GetAllEmployeeType([FromQuery] GetOptionRequestDTO requestDTO)
         {

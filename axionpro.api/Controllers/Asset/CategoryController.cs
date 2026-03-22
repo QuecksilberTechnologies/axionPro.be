@@ -34,9 +34,9 @@ namespace axionpro.api.Controllers.Asset
         /// </summary>
         [HttpGet("get")]
 
-        [ProducesResponseType(typeof(ApiResponse<GetCategoryResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> GetAllAssetCategory([FromQuery] GetCategoryReqestDTO request)
         {
             try
@@ -59,9 +59,9 @@ namespace axionpro.api.Controllers.Asset
         /// </summary>
         [HttpPost("add")]
 
-        [ProducesResponseType(typeof(ApiResponse<GetCategoryResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> AddAssetCategory([FromBody] AddCategoryReqestDTO request)
         {
             try
@@ -83,9 +83,9 @@ namespace axionpro.api.Controllers.Asset
         /// </summary>
         [HttpPut("update")]
 
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> UpdateAssetCategory([FromBody] UpdateCategoryReqestDTO request)
         {
             try
@@ -107,9 +107,9 @@ namespace axionpro.api.Controllers.Asset
         /// </summary>
         [HttpDelete("delete")]
 
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> DeleteAssetCategory([FromQuery] DeleteCategoryReqestDTO request)
         {
             try

@@ -30,9 +30,9 @@ namespace axionpro.api.Controllers.Stats
         ///Dashboard statistics.
         // Returns employee summary statistics for dashboard widgets      
         [HttpGet("Dashboard/Employees/Statistics")]
-        [ProducesResponseType(typeof(ApiResponse<EmployeeCountResponseStatsSp>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> GetEmployeeDashboardSummaryAsync(
             [FromQuery] EmployeeCountRequestStatsSp dto)
         {
@@ -73,9 +73,9 @@ namespace axionpro.api.Controllers.Stats
         ///Dashboard statistics.
         /// </summary>
         [HttpGet("Manager/Statistics/Dashboard/get")]
-        [ProducesResponseType(typeof(ApiResponse<EmployeeStats>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> dashboard([FromQuery] GetSummaryRequestDTO request)
         {
             EmployeeStats employee = new EmployeeStats()
@@ -104,9 +104,9 @@ namespace axionpro.api.Controllers.Stats
         /// Asset-related dashboard statistics.
         /// </summary>
         [HttpGet("Manager/Statistic/Asset")]
-        [ProducesResponseType(typeof(ApiResponse<AssetStats>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> Asset([FromQuery] GetSummaryRequestDTO request)
         {
             AssetStats assetStats = new AssetStats()

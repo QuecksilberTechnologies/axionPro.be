@@ -32,8 +32,8 @@ namespace axionpro.api.Controllers.Login
        
 
         [HttpPost("login")]
-        [ProducesResponseType(typeof(ApiResponse<LoginResponseDTO>), StatusCodes.Status200OK)]        
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+                
+        
         public async Task<IActionResult> Login([FromBody] LoginRequestDTO logindto)
         {
             _logger.LogInfo("Received login request for user: {LoginId}" + logindto.LoginId.ToString());
@@ -47,9 +47,9 @@ namespace axionpro.api.Controllers.Login
         }
 
         [HttpPost("refresh-token")]
-        [ProducesResponseType(typeof(ApiResponse<LoginResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
+        
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDTO request)
         {
             var command = new RefreshTokenCommand(request);
@@ -140,8 +140,8 @@ namespace axionpro.api.Controllers.Login
         // ...
 
         [HttpPost("update-login-password")]
-        [ProducesResponseType(typeof(ApiResponse<LoginResponseDTO>), StatusCodes.Status200OK)]        
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+                
+        
         public async Task<IActionResult> SetLoginPassword([FromBody] UpdatePasswordRequestDTO request)
         {
             try
@@ -183,8 +183,8 @@ namespace axionpro.api.Controllers.Login
 
         }
         [HttpPost("resend-credential")]
-        [ProducesResponseType(typeof(ApiResponse<LoginResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
         public async Task<IActionResult> CreateNewLoginPasswordURL([FromBody] SetNewPasswordLinkRequestDTO request)
         {
             try
@@ -225,8 +225,8 @@ namespace axionpro.api.Controllers.Login
             }
         }
         [HttpPost("create-new-password")]
-        [ProducesResponseType(typeof(ApiResponse<LoginResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
         public async Task<IActionResult> CreateLoginPassword([FromBody] NewLoginPasswordRequestDTO request)
         {
             try
@@ -286,8 +286,8 @@ namespace axionpro.api.Controllers.Login
 
 
         [HttpPost("forgot-password")]
-        [ProducesResponseType(typeof(ApiResponse<LoginResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
         public async Task<IActionResult> EnterLoginId([FromBody] ForgotPasswordUserIdRequestDTO request)
         {
             try
@@ -361,8 +361,8 @@ namespace axionpro.api.Controllers.Login
 
 
         [HttpPost("validate-forgot-password-otp")]
-        [ProducesResponseType(typeof(ApiResponse<LoginResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status500InternalServerError)]
+        
+        
         public async Task<IActionResult> ValidateForgotPasswordOtp([FromBody] ValidateOtpRequestDTO request)
         {
             try
