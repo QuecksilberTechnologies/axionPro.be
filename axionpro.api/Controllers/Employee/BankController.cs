@@ -64,7 +64,7 @@ namespace axionpro.api.Controllers.Employee
                 if (!result.IsSucceeded)
                 {
                     _logger.LogInfo("Failed to create employee record.");
-                    return BadRequest(result);
+                    return Unauthorized(result);
                 }
 
                 _logger.LogInfo("Employee-Bankinfo created successfully.");

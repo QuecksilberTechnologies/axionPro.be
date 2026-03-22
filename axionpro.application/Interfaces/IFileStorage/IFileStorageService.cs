@@ -5,39 +5,40 @@ using System.Security.Claims;
 
 namespace axionpro.application.Interfaces.IFileStorage
 {
+    //public interface IFileStorageService
+    //{
+    //    Task<string> SaveFileAsync(byte[] fileData, string fileName, string folderPath);
+    //    Task<byte[]> GetFileAsync(string filePath);
+
+    //    string GetTenantFolderPath(long? tenantId, string subFolder);
+    //    string  GetEmployeeFolderPath(long tenantId, long insideTenant, string subFolder);
+    //    string GenerateFilePath(long? tenantId, string subFolder, string fileName);
+    //    string GenerateFullFilePath(string? fullFolderPath, string? fileName);
+    //    string GetPublicUrl(string relativePath);
+    //    string GetRelativePath(string fullPath);
+
+    //    // ✅ Add these
+    //    string GetDefaultImagePath();
+    //    string GetDefaultImageUrl();
+
+    //}
+    // Application/Interfaces/IFileService.cs
+    //public interface IFileService
+    //{
+    //    Task<FileRecord> UploadAsync(IFormFile file, string tenantEncoded, string employeeEncoded, string category, bool isSensitive);
+    //    Task<(Stream Stream, string ContentType, string FileName)> GetFileStreamAsync(Guid fileId, ClaimsPrincipal user);
+    //    Task<string> GetSignedUrlAsync(Guid fileId, TimeSpan ttl, ClaimsPrincipal user);
+    //    Task DeleteAsync(Guid fileId);
+       
+       
+    //}
     public interface IFileStorageService
     {
-        Task<string> SaveFileAsync(byte[] fileData, string fileName, string folderPath);
-        Task<byte[]> GetFileAsync(string filePath);
 
-        string GetTenantFolderPath(long? tenantId, string subFolder);
-        string  GetEmployeeFolderPath(long tenantId, long insideTenant, string subFolder);
-        string GenerateFilePath(long? tenantId, string subFolder, string fileName);
-        string GenerateFullFilePath(string? fullFolderPath, string? fileName);
-        string GetPublicUrl(string relativePath);
-        string GetRelativePath(string fullPath);
-
-        // ✅ Add these
-        string GetDefaultImagePath();
-        string GetDefaultImageUrl();
-
-    }
-    // Application/Interfaces/IFileService.cs
-    public interface IFileService
-    {
-        Task<FileRecord> UploadAsync(IFormFile file, string tenantEncoded, string employeeEncoded, string category, bool isSensitive);
-        Task<(Stream Stream, string ContentType, string FileName)> GetFileStreamAsync(Guid fileId, ClaimsPrincipal user);
-        Task<string> GetSignedUrlAsync(Guid fileId, TimeSpan ttl, ClaimsPrincipal user);
-        Task DeleteAsync(Guid fileId);
-       
-       
-    }
-    public interface IFileServiceAWS
-    {
-        string GetEmployeeFolderPath(long tenantId, long insideTenant, string subFolder);
-
+        //    string GetDefaultImagePath();
+        //    string GetDefaultImageUrl();
         Task<string> UploadFileAsync(IFormFile file, string folderPath, string fileName);
-
-         Task<bool> DeleteFileAsync(string fileKey);
+        string GetFileUrl(string key, int expiryMinutes = 30);
+        Task<bool> DeleteFileAsync(string fileKey);
     }
 }

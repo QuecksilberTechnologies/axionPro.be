@@ -48,17 +48,12 @@ namespace axionpro.api.Controllers.Stats
                 {
                     _logger.LogInfo("Error while fetching employee dashboard summary");
 
-                    return BadRequest(result);
+                    return Unauthorized(result);
                 }
 
                 _logger.LogInfo("Employee data updated successfully.");
                 return Ok(result);
-
-              
-
-              
-
-                 
+                       
             }
             catch (Exception ex)
             {

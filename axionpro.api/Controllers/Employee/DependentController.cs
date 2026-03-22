@@ -119,11 +119,11 @@ namespace axionpro.api.Controllers.Employee
         
 
       /// <summary>
-      /// Deletes employee education record by Id.
+      /// Deletes employee education record by Id. 
       /// </summary>
       [HttpDelete("delete")]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status401BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Delete([FromQuery] DeleteRequestDTO dto)
         {
@@ -158,7 +158,7 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         [HttpPost("update")]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.StatusStatus401BadRequestBadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Update([FromForm] UpdateDependentRequestDTO dto)
         {

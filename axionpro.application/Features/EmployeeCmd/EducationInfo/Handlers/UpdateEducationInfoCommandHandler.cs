@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using axionpro.application.Constants;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.Interfaces;
@@ -130,75 +131,55 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                 existing.EndDate = request.DTO.EndDate ?? existing.EndDate;
 
                 // ------------------------ FILE HANDLING (OPTIONAL) ------------------------
-                if (request.DTO.EducationDocument is { Length: > 0 })
+                // =================================================
+                // FILE HANDLING (S3 - NO DELETE, AUDIT SAFE)
+                // =================================================
+                if (request.DTO.EducationDocument != null &&
+                    request.DTO.EducationDocument.Length > 0)
                 {
                     try
                     {
-                        if (!string.IsNullOrWhiteSpace(existing.FilePath))
-                        {
-                            string oldPath = existing.FilePath; // This may be URL or relative path
+                        // 🔹 OLD FILE KO TOUCH NAHI KARNA (IMPORTANT)
+                        // S3 me rehne do (audit/history)
 
-                            bool fileDeleted = false;
+                        // 🔹 CLEAN DEGREE NAME
+                        string degreeName = request.DTO.Degree?
+                            .Trim()
+                            .ToLower()
+                            .Replace(" ", "_") ?? "doc";
 
-                            // Case 1: Physical local/server file path
-                            string physicalFullPath = _fileStorageService.GetRelativePath(oldPath);
+                        // 🔹 FILE NAME
+                        string newFileName =
+                            $"{ConstantValues.EducationFolder}-{existing.EmployeeId}-{degreeName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
 
-                            if (!string.IsNullOrWhiteSpace(physicalFullPath) && File.Exists(physicalFullPath))
-                            {
-                                File.Delete(physicalFullPath);
-                                fileDeleted = true;
-                                _logger.LogInformation("📌 Local/Server education document deleted: {File}", physicalFullPath);
-                            }
+                        // 🔹 FOLDER PATH (STANDARD RULE)
+                        string folderPath =
+                            $"{ConstantValues.TenantFolder}-{request.DTO.Prop.TenantId}/" +
+                            $"{ConstantValues.EmployeeFolder}/{existing.EmployeeId}/" +
+                            $"{ConstantValues.EducationFolder}";
 
-                            // Case 2: Remote CDN/HTTP/Cloud File
-                            if (!fileDeleted && Uri.TryCreate(oldPath, UriKind.Absolute, out Uri? uri)
-                                && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp))
-                            {
-                                using var client = new HttpClient();
-                                var response = await client.DeleteAsync(uri);
+                        // 🔹 UPLOAD
+                        var fileKey = await _fileStorageService.UploadFileAsync(
+                            request.DTO.EducationDocument,
+                            folderPath,
+                            newFileName);
 
-                                if (response.IsSuccessStatusCode)
-                                {
-                                    fileDeleted = true;
-                                    _logger.LogInformation("🌍 Remote education document deleted: {File}", uri);
-                                }
-                                else
-                                {
-                                    _logger.LogWarning("⚠️ Remote file delete attempt failed for: {File}", uri);
-                                }
-                            }
-
-                            if (!fileDeleted)
-                                _logger.LogWarning("⚠️ Delete attempted but file not found: {File}", oldPath);
-                        }
-
-                        // Now upload new file
-                        using var ms = new MemoryStream();
-                        await request.DTO.EducationDocument.CopyToAsync(ms);
-
-                        string newFileName = $"EDU-{existing.EmployeeId}-{DateTime.UtcNow:yyMMddHHmmss}.pdf";
-
-                        string folderPath = _fileStorageService.GetEmployeeFolderPath(
-                            request.DTO.Prop.TenantId,
-                            existing.EmployeeId,
-                            "education"
-                        );
-
-                        string savedPath = await _fileStorageService.SaveFileAsync(ms.ToArray(), newFileName, folderPath);
-
-                        existing.FilePath = _fileStorageService.GetRelativePath(savedPath);
+                        // 🔹 UPDATE DB (ONLY NEW FILE)
+                        existing.FilePath = fileKey;
                         existing.FileName = newFileName;
                         existing.HasEducationDocUploded = true;
+
+                        _logger.LogInformation("Education document uploaded. Old file preserved.");
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "❌ Error replacing education document for employee {Emp}", existing.EmployeeId);
-                        return ApiResponse<bool>.Fail("File upload failed, please try again.");
+                        _logger.LogError(ex,
+                            "Error uploading education document for employee {Emp}",
+                            existing.EmployeeId);
+
+                        return ApiResponse<bool>.Fail("File upload failed.");
                     }
-
                 }
-
-
                 // ------------------------ SAVE CHANGES ------------------------
                 existing.UpdatedById = request.DTO.Prop.UserEmployeeId;
                 existing.UpdatedDateTime = DateTime.UtcNow;
@@ -215,4 +196,6 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
             }
         }
     }
+
+
 }

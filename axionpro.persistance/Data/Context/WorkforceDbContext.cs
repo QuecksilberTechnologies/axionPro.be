@@ -3225,6 +3225,7 @@ namespace axionpro.persistance.Data.Context
             });
             modelBuilder.Entity<RoleModuleOperationResponseDTO>().HasNoKey();
             modelBuilder.Entity<GetEmployeeCodePatternResponseDTO>().HasNoKey();
+            modelBuilder.Entity<EmployeeCountResponseStatsSp>().HasNoKey();
             modelBuilder.Entity<UpdateLoginCredentialResultDTO>().HasNoKey();
 
         }

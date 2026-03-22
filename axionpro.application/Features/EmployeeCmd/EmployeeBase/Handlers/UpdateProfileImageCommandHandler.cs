@@ -1,4 +1,5 @@
-﻿using axionpro.application.DTOS.Employee.BaseEmployee;
+﻿using axionpro.application.Constants;
+using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -28,7 +29,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         private readonly ILogger<UpdateIdentityInfoCommandHandler> _logger;
         private readonly ITokenService _tokenService;
         private readonly IPermissionService _permissionService;
-        private readonly IFileServiceAWS _fileStorageService;
+        private readonly IFileStorageService _fileStorageService;
         private readonly IConfiguration _config;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IEncryptionService _encryptionService;
@@ -45,7 +46,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             IConfiguration config,
             IHttpContextAccessor httpContextAccessor,
             IEncryptionService encryptionService,
-            IFileServiceAWS fileStorageService,
+            IFileStorageService fileStorageService,
             IIdEncoderService idEncoderService,
             ICommonRequestService commonRequestService)
         {
@@ -80,8 +81,8 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     return ApiResponse<bool>.Fail("Employee image record not found.");
 
                 // 3️⃣ S3 folder path (KEY PREFIX)
-                string folderPath =
-                    $"tenant-{validation.TenantId}/employees/{employeeImageInfo.EmployeeId}/profile";
+                string folderPath = $"{ConstantValues.TenantFolder}-{validation.TenantId}/{ConstantValues.EmployeeFolder}/{employeeImageInfo.EmployeeId}/{ConstantValues.ProfileFolder}";
+
 
                 // ==================================================================
                 // 4️⃣ If IsActive = FALSE → DELETE FROM S3 + RESET DB
@@ -140,7 +141,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     }
 
                     // 🔹 Generate new filename
-                    string newFileName = $"profile-{employeeImageInfo.EmployeeId}-{DateTime.UtcNow:yyMMddHHmmss}";
+                    string newFileName = $"{ConstantValues.ProfileFolder}-{employeeImageInfo.EmployeeId}-{DateTime.UtcNow:yyMMddHHmmss}";
 
                     // 🔹 Upload to S3
                     var fileKey = await _fileStorageService.UploadFileAsync( request.DTO.ProfileImage,folderPath,newFileName);

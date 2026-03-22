@@ -100,8 +100,8 @@ namespace axionpro.application.Features.RoleCmd.Handlers
 
                     return new ApiResponse<List<GetRoleOptionResponseDTO>>
                     {
-                        IsSucceeded = false,
-                        Message = response.Message,
+                        IsSucceeded = true,
+                        Message = "Data Not Found",
                         Data = new List<GetRoleOptionResponseDTO>()
                     };
                 }

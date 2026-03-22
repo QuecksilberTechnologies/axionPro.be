@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
+using axionpro.application.Constants;
 using axionpro.application.DTOS.AssetDTO.asset;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces;
@@ -117,6 +118,7 @@ public class AddAssetCommandHandler
             // ===============================
             string? assetImagePath = null;
 
+        
             if (request.DTO.AssetImageFile != null &&
                 request.DTO.AssetImageFile.Length > 0)
             {
@@ -124,24 +126,28 @@ public class AddAssetCommandHandler
                 {
                     string cleanName =
                         EncryptionSanitizer.CleanEncodedInput(
-                            request.DTO.AssetName ?? "asset");
+                            request.DTO.AssetName ?? "asset")
+                        .ToLower()
+                        .Replace(" ", "_");
 
-                    using var ms = new MemoryStream();
-                    await request.DTO.AssetImageFile.CopyToAsync(ms);
-
+                    // 🔹 FILE NAME
                     string fileName =
-                        $"ASSET-{cleanName}-{DateTime.UtcNow:yyMMddHHmmss}.png";
+                        $"asset-{cleanName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
 
-                    string folder =
-                        _fileStorageService.GetTenantFolderPath(
-                            validation.TenantId, "assets");
+                    // 🔹 FOLDER PATH (STANDARD RULE)
+                    string folderPath =
+                        $"{ConstantValues.TenantFolder}-{validation.TenantId}/{ConstantValues.AssetsFolder}";
 
-                    string fullPath =
-                        await _fileStorageService.SaveFileAsync(
-                            ms.ToArray(), fileName, folder);
+                    // 🔹 UPLOAD TO S3
+                    var fileKey = await _fileStorageService.UploadFileAsync(
+                        request.DTO.AssetImageFile,
+                        folderPath,
+                        fileName);
 
-                    assetImagePath =
-                        _fileStorageService.GetRelativePath(fullPath);
+                    if (!string.IsNullOrWhiteSpace(fileKey))
+                    {
+                        assetImagePath = fileKey;
+                    }
                 }
                 catch (Exception ex)
                 {

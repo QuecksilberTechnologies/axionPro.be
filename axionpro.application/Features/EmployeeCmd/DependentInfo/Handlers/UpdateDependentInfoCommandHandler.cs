@@ -1,27 +1,16 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Enums;
-using axionpro.application.Common.Helpers;
-using axionpro.application.Common.Helpers.Converters;
-using axionpro.application.Common.Helpers.RequestHelper;
-using axionpro.application.DTOs.Employee;
-using axionpro.application.DTOs.Employee.AccessControlReadOnlyType;
-using axionpro.application.DTOs.Employee.AccessResponse;
+using axionpro.application.Constants;
 using axionpro.application.DTOS.Employee.Dependent;
-using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-
-using axionpro.domain.Entity; using MediatR;
-using Microsoft.AspNetCore.Http;
+using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Reflection;
 
 namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
 {
@@ -136,56 +125,55 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                 // =====================================================
                 // 📂 DEPENDENT PROOF FILE UPLOAD (AUDIT SAFE)
                 // =====================================================
-                if (request.DTO.ProofFile is { Length: > 0 })
+                // =====================================================
+                // 📂 DEPENDENT PROOF FILE UPLOAD (S3 - NO DELETE)
+                // =====================================================
+                if (request.DTO.ProofFile != null &&
+                    request.DTO.ProofFile.Length > 0)
                 {
                     try
                     {
-                        // 🔹 Build file name
-                        string safeRelation =
+                        // 🔹 RELATION NAME SAFE
+                        string relationName =
                             Enum.IsDefined(typeof(RelationDependant), dependent.Relation)
-                                ? ((RelationDependant)dependent.Relation).ToString()
+                                ? ((RelationDependant)dependent.Relation).ToString().ToLower()
                                 : "dependent";
 
+                        relationName = relationName.Replace(" ", "_");
+
+                        // 🔹 FILE NAME
                         string fileName =
-                            $"DependentProof-{dependent.EmployeeId}_{safeRelation}_{DateTime.UtcNow:yyMMddHHmmss}.pdf";
+                            $"proof-{dependent.EmployeeId}-{relationName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
 
-                        // 🔹 Get employee dependent folder
+                        // 🔹 FOLDER PATH (STANDARD RULE)
                         string folderPath =
-                            _fileStorageService.GetEmployeeFolderPath(
-                                validation.TenantId,
-                                dependent.EmployeeId,
-                                "dependent");
+                            $"{ConstantValues.TenantFolder}-{validation.TenantId}/" +
+                            $"{ConstantValues.EmployeeFolder}/{dependent.EmployeeId}/dependent";
 
-                        // 🔹 Read file
-                        using var ms = new MemoryStream();
-                        await request.DTO.ProofFile.CopyToAsync(ms);
+                        // 🔹 UPLOAD (DIRECT S3)
+                        var fileKey = await _fileStorageService.UploadFileAsync(
+                            request.DTO.ProofFile,
+                            folderPath,
+                            fileName);
 
-                        // 🔹 Save file
-                        string savedFullPath =
-                            await _fileStorageService.SaveFileAsync(
-                                ms.ToArray(),
-                                fileName,
-                                folderPath);
-
-                        // 🔹 Update entity (NO DELETE of OLD FILE)
-                        dependent.FilePath = _fileStorageService.GetRelativePath(savedFullPath);
+                        // 🔹 UPDATE ENTITY (OLD FILE PRESERVED)
+                        dependent.FilePath = fileKey;
                         dependent.FileName = fileName;
                         dependent.FileType = 2; // pdf
                         dependent.HasProofUploaded = true;
+
+                        _logger.LogInformation("Dependent proof uploaded. Old file preserved.");
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(
-                            ex,
-                            "❌ Error uploading dependent proof | DependentId: {Id}",
+                        _logger.LogError(ex,
+                            "Error uploading dependent proof | DependentId: {Id}",
                             dependent.Id);
 
                         await _unitOfWork.RollbackTransactionAsync();
-                        return ApiResponse<bool>.Fail(
-                            "Failed to upload dependent proof file. Please try again.");
+                        return ApiResponse<bool>.Fail("File upload failed.");
                     }
                 }
-
 
                 // Date of Birth
                 if (request.DTO.DateOfBirth.HasValue)

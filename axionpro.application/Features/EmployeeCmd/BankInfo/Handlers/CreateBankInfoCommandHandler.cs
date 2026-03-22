@@ -1,14 +1,10 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers;
-using axionpro.application.Common.Helpers.axionpro.application.Configuration;
-using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.Employee.Bank;
-using axionpro.application.DTOS.Employee.BaseEmployee;
-using axionpro.application.DTOS.Employee.Experience;
 using axionpro.application.DTOS.Pagination;
 
 using axionpro.application.Interfaces;
@@ -19,18 +15,12 @@ using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 
-using axionpro.domain.Entity; using MediatR;
+using axionpro.domain.Entity;
+using MediatR;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims; using axionpro.domain.Entity; using MediatR;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 {
@@ -147,20 +137,23 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                             var fileBytes = ms.ToArray();
 
                             // 🔹 File naming convention (same pattern as asset)
-                            string fileName = $"Cheque-{request.DTO.Prop.EmployeeId + "_" + docFileName}-{DateTime.UtcNow:yyMMddHHmmss}.png";
-                          
-                           string fullFolderPath = _fileStorageService.GetEmployeeFolderPath(request.DTO.Prop.TenantId, request.DTO.Prop.EmployeeId, "bank");              
+                            string fileName = $"Cheque-{request.DTO.Prop.EmployeeId + "_" + docFileName}-{DateTime.UtcNow:yyMMddHHmmss}";
+
+                            string folderPath = $"{ConstantValues.TenantFolder}-{validation.TenantId}/{ConstantValues.EmployeeFolder}/{request.DTO.Prop.EmployeeId}/{ConstantValues.BankFolder}";
+
+
+                                   
 
                             // 🔹 Store actual name for reference in DB
                             docName = fileName;
+                        // 🔹 Upload to S3
+                        var fileKey = await _fileStorageService.UploadFileAsync(request.DTO.CancelledChequeFile, folderPath, docName);
 
-                            // 🔹 Save file physically
-                            savedFullPath = await _fileStorageService.SaveFileAsync(fileBytes, fileName, fullFolderPath);
-
+                         
                         // 🔹 If saved successfully, set relative path
-                        if (!string.IsNullOrEmpty(savedFullPath))
+                        if (!string.IsNullOrEmpty(fileKey))
                             {
-                                docPath = _fileStorageService.GetRelativePath(savedFullPath);
+                                
                             
                                  HasChequeDocUploaded = true;
                             }
@@ -170,8 +163,10 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 
 
                 var bankEntity = _mapper.Map<EmployeeBankDetail>(request.DTO); // use mapper for create mapping
+                bankEntity.EmployeeId = request.DTO.Prop.EmployeeId;
                 bankEntity.AddedById = request.DTO.Prop.UserEmployeeId;
                 bankEntity.AddedDateTime = DateTime.UtcNow;
+                bankEntity.AccountType=   AccountTypeHelper.Normalize(request.DTO.AccountType);
                 bankEntity.IsActive = true;
                 bankEntity.IsEditAllowed = true;
                 bankEntity.IsInfoVerified = false;

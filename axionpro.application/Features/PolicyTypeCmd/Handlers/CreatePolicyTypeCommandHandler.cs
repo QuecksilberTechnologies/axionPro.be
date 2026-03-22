@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.RequestHelper;
+using axionpro.application.Constants;
 using axionpro.application.DTOs.PolicyType;
 using axionpro.application.DTOS.CompanyPolicyDocument;
 using axionpro.application.DTOS.Employee.Dependent;
@@ -115,42 +116,47 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                 }
 
                 // 🔹 STEP 4: FILE UPLOAD (CLIENT PATTERN – OPTIONAL)
-                if (request.DTO.FormFile != null && request.DTO.FormFile.Length > 0)
+                // 🔹 STEP 4: FILE UPLOAD (S3 CLEAN)
+                if (request.DTO.FormFile != null &&
+                    request.DTO.FormFile.Length > 0)
                 {
-                    string safePolicyName =
-                        EncryptionSanitizer.CleanEncodedInput(
-                            request.DTO.PolicyName.Trim().Replace(" ", "").ToLower());
-
-                    using (var ms = new MemoryStream())
+                    try
                     {
-                        await request.DTO.FormFile.CopyToAsync(ms, cancellationToken);
-                        var fileBytes = ms.ToArray();
+                        string safePolicyName =
+                            EncryptionSanitizer.CleanEncodedInput(
+                                request.DTO.PolicyName ?? "policy")
+                            .ToLower()
+                            .Replace(" ", "_");
 
-                        string fileName =
-                            $"Company-Policy-{validation.TenantId}_{safePolicyName}-{DateTime.UtcNow:yyMMddHHmmss}.pdf";
+                        // 🔹 FILE NAME
+                        docName =
+                            $"company-policy-{safePolicyName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
 
-                      //  var folderPath = _fileStorageService.GetGenericFolderPath(  request.DTO.Prop.TenantId, "CompanyPolicies", "Insurance");
+                        // 🔹 FOLDER PATH (STANDARD)
+                        string folderPath =
+                            $"{ConstantValues.TenantFolder}-{validation.TenantId}/{ConstantValues.PoliciesFolder}";
 
+                        // 🔹 UPLOAD
+                        var fileKey = await _fileStorageService.UploadFileAsync(
+                            request.DTO.FormFile,
+                            folderPath,
+                            docName);
 
-                        string fullFolderPath =
-                            _fileStorageService.GetTenantFolderPath( validation.TenantId, "policies");
-
-                        docName = fileName;
-
-                        var savedFullPath =
-                            await _fileStorageService.SaveFileAsync(
-                                fileBytes,
-                                fileName,
-                                fullFolderPath);
-
-                        if (!string.IsNullOrEmpty(savedFullPath))
+                        if (!string.IsNullOrWhiteSpace(fileKey))
                         {
-                            docPath = _fileStorageService.GetRelativePath(savedFullPath);
+                            docPath = fileKey;
                             hasPolicyDocUploaded = true;
                         }
                     }
-                }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Policy document upload failed");
 
+                        await _unitOfWork.RollbackTransactionAsync();
+                        return ApiResponse<GetPolicyTypeResponseDTO>
+                            .Fail("File upload failed.");
+                    }
+                }
                 // 🔹 STEP 5: INSERT COMPANY POLICY DOCUMENT (ONLY IF FILE UPLOADED)
                 if (hasPolicyDocUploaded)
                 {

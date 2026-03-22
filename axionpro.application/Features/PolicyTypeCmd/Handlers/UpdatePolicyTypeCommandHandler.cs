@@ -1,4 +1,5 @@
 ﻿using axionpro.application.Common.Helpers.EncryptionHelper;
+using axionpro.application.Constants;
 using axionpro.application.DTOs.PolicyType;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
@@ -135,35 +136,49 @@ public class UpdatePolicyTypeCommandHandler
             // --------------------------------------------------
             // 7️⃣ OPTIONAL FILE UPLOAD (same as CREATE)
             // --------------------------------------------------
-            if (request.DTO.FormFile != null && request.DTO.FormFile.Length > 0)
+            // --------------------------------------------------
+            // 7️⃣ OPTIONAL FILE UPLOAD (S3 CLEAN)
+            // --------------------------------------------------
+            if (request.DTO.FormFile != null &&
+                request.DTO.FormFile.Length > 0)
             {
-                string safePolicyName =  EncryptionSanitizer.CleanEncodedInput((policyType.PolicyName ?? "policy") .Replace(" ", "") .ToLower());
-
-                using var ms = new MemoryStream();
-                await request.DTO.FormFile.CopyToAsync(ms, cancellationToken);
-
-                string fileName =
-                    $"Company-Policy-{validation.TenantId}_{safePolicyName}-{DateTime.UtcNow:yyMMddHHmmss}.pdf";
-
-                string folderPath =
-                    _fileStorageService.GetTenantFolderPath(
-                        validation.TenantId,
-                        "policies");
-
-                var savedPath =
-                    await _fileStorageService.SaveFileAsync(
-                        ms.ToArray(),
-                        fileName,
-                        folderPath);
-
-                if (!string.IsNullOrWhiteSpace(savedPath))
+                try
                 {
-                    docName = fileName;
-                    docPath = _fileStorageService.GetRelativePath(savedPath);
-                    hasFileUploaded = true;
+                    string safePolicyName =
+                        EncryptionSanitizer.CleanEncodedInput(
+                            (policyType.PolicyName ?? "policy"))
+                        .ToLower()
+                        .Replace(" ", "_");
+
+                    // 🔹 FILE NAME
+                    string fileName =
+                        $"company-policy-{safePolicyName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
+
+                    // 🔹 FOLDER PATH (STANDARD)
+                    string folderPath = $"{ConstantValues.TenantFolder}-{validation.TenantId}/{ConstantValues.PoliciesFolder}";
+
+
+                    // 🔹 UPLOAD TO S3
+                    var fileKey = await _fileStorageService.UploadFileAsync(
+                        request.DTO.FormFile,
+                        folderPath,
+                        fileName);
+
+                    if (!string.IsNullOrWhiteSpace(fileKey))
+                    {
+                        docName = fileName;
+                        docPath = fileKey;   // ✅ IMPORTANT
+                        hasFileUploaded = true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Policy update file upload failed");
+
+                    await _unitOfWork.RollbackTransactionAsync();
+                    return ApiResponse<bool>.Fail("File upload failed.");
                 }
             }
-
             // --------------------------------------------------
             // 8️⃣ DOCUMENT UPSERT (CREATE PATTERN FOLLOWED)
             // --------------------------------------------------

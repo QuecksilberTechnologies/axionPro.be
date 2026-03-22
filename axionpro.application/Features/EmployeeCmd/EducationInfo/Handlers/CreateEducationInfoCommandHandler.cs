@@ -1,11 +1,8 @@
 ﻿using AutoMapper;
-using axionpro.application.Common.Helpers;
-using axionpro.application.Common.Helpers.axionpro.application.Configuration;
-using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.RequestHelper;
-using axionpro.application.DTOS.Employee.Dependent;
+using axionpro.application.Constants;
 using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
@@ -14,15 +11,12 @@ using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-using axionpro.domain.Common;
 
-using axionpro.domain.Entity; using MediatR;
+using axionpro.domain.Entity;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Drawing.Printing;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 {
@@ -119,50 +113,52 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 
 
                 // 🔹 STEP 4: File Upload
+                // =================================================
+                // FILE HANDLING (S3 CLEAN)
+                // =================================================
                 string? docPath = null;
-                string? FileName = null;
+                string? fileName = null;
                 bool HasEducationUploaded = false;
-                // 🔹 Tenant info from decoded values
-                long tenantId = validation.TenantId;
 
-                string docFileName = EncryptionSanitizer.CleanEncodedInput(request.DTO.Degree.Trim().ToLower());
-                
-                if (docFileName != null)
+                if (request.DTO.EducationDocument != null &&
+                    request.DTO.EducationDocument.Length > 0)
                 {
-                    // 🔹 File upload check
-                    if (request.DTO.EducationDocument != null && request.DTO.EducationDocument.Length > 0)
+                    try
                     {
-                        using (var ms = new MemoryStream())
+                        // 🔹 CLEAN DEGREE NAME
+                        string degreeName = request.DTO.Degree?.Trim().ToLower().Replace(" ", "_") ?? "doc";
+
+                        // 🔹 FILE NAME
+                        fileName =
+                            $"{ConstantValues.EducationFolder}-{request.DTO.Prop.EmployeeId}-{degreeName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
+
+                        // 🔹 FOLDER PATH (YOUR STANDARD RULE)
+                        string folderPath =
+                            $"{ConstantValues.TenantFolder}-{request.DTO.Prop.TenantId}/" +
+                            $"{ConstantValues.EmployeeFolder}/{request.DTO.Prop.EmployeeId}/" +
+                            $"{ConstantValues.EducationFolder}";
+
+                        // 🔹 UPLOAD
+                        var fileKey = await _fileStorageService.UploadFileAsync(
+                            request.DTO.EducationDocument,
+                            folderPath,
+                            fileName);
+
+                        if (!string.IsNullOrWhiteSpace(fileKey))
                         {
-                            await request.DTO.EducationDocument.CopyToAsync(ms);
-                            var fileBytes = ms.ToArray();
-
-                            // 🔹 File naming convention (same pattern as asset)
-                            string fileName = $"EDU-{request.DTO.Prop.EmployeeId + "_"+docFileName}-{DateTime.UtcNow:yyMMddHHmmss}.pdf";
-
-                            string fullFolderPath = _fileStorageService.GetEmployeeFolderPath(tenantId, request.DTO.Prop.EmployeeId, "education");
-                            
-                            // 🔹 Store actual name for reference in DB
-                            FileName = fileName;
-
-                            // 🔹 Save file physically
-                            savedFullPath = await _fileStorageService.SaveFileAsync(fileBytes, fileName, fullFolderPath);
-
-                            // 🔹 If saved successfully, set relative path
-                            if (!string.IsNullOrEmpty(savedFullPath))
-                            {
-                                docPath = _fileStorageService.GetRelativePath(savedFullPath);
-
-                                HasEducationUploaded = true;
-                                    }
-
-                          
+                            docPath = fileKey;
+                            HasEducationUploaded = true;
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error uploading education document");
 
+                        return ApiResponse<List<GetEducationResponseDTO>>
+                            .Fail("File upload failed.");
+                    }
                 }
-                            
-              
+
                 // 🔹 STEP 5: Map DTO to Entity
                 var educationEntity = _mapper.Map<EmployeeEducation>(request.DTO);                  
                 educationEntity.EmployeeId = request.DTO.Prop.EmployeeId;                
@@ -177,7 +173,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                 {
                     educationEntity.FileType = 2;//pdf
                     educationEntity.FilePath = docPath;
-                    educationEntity.FileName = FileName;
+                    educationEntity.FileName = fileName;
                    
                 }
                 educationEntity.HasEducationDocUploded = HasEducationUploaded;
@@ -229,5 +225,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                 return ApiResponse<List<GetEducationResponseDTO>>.Fail("Internal server error while creating education info.");
             }
         }
+    
+    
     }
 }

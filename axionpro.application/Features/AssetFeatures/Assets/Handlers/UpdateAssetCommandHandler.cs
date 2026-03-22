@@ -1,19 +1,22 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers.EncryptionHelper;
+using axionpro.application.Constants;
 using axionpro.application.DTOS.AssetDTO.asset;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
+using axionpro.domain.Entity; 
+using axionpro.domain.Entity; 
+using MediatR;
+using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Threading;
 using System.Threading.Tasks; 
-using axionpro.domain.Entity; using MediatR;
 
 
 namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
@@ -62,8 +65,8 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
         }
 
         public async Task<ApiResponse<GetAssetResponseDTO>> Handle(
-            UpdateAssetCommand request,
-            CancellationToken cancellationToken)
+     UpdateAssetCommand request,
+     CancellationToken cancellationToken)
         {
             await _unitOfWork.BeginTransactionAsync();
 
@@ -82,13 +85,14 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
                 // ===========================
                 // 2️⃣ FETCH EXISTING ASSET
                 // ===========================
-                var existingAsset =   await _unitOfWork.AssetRepository.GetSingleRecordAsync(request.DTO.Id,true);
+                var existingAsset = await _unitOfWork.AssetRepository
+                    .GetSingleRecordAsync(request.DTO.Id, true);
 
                 if (existingAsset == null)
                     return ApiResponse<GetAssetResponseDTO>.Fail("Asset not found.");
 
                 // ===========================
-                // 3️⃣ MAP UPDATED DATA
+                // 3️⃣ UPDATE FIELDS
                 // ===========================
                 existingAsset.AssetName = request.DTO.AssetName ?? existingAsset.AssetName;
                 existingAsset.AssetTypeId = request.DTO.AssetTypeId ?? existingAsset.AssetTypeId;
@@ -107,8 +111,6 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
                 existingAsset.IsAssigned = request.DTO.IsAssigned ?? existingAsset.IsAssigned;
                 existingAsset.IsActive = request.DTO.IsActive ?? existingAsset.IsActive;
 
-              
-
                 // ===========================
                 // 4️⃣ QR UPDATE
                 // ===========================
@@ -116,24 +118,23 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
                 {
                     existingAsset.Id,
                     existingAsset.AssetName,
-                    existingAsset.AssetTypeId,                   
+                    existingAsset.AssetTypeId,
                     existingAsset.Company,
                     existingAsset.ModelNo,
                     existingAsset.SerialNumber,
                     existingAsset.Barcode,
-                    existingAsset.AssetStatusId,  
+                    existingAsset.AssetStatusId,
                     existingAsset.AssetStatus?.StatusName,
-                    existingAsset.IsAssigned,                   
+                    existingAsset.IsAssigned,
                     existingAsset.PurchaseDate,
                     existingAsset.WarrantyExpiryDate,
-                    existingAsset.IsRepairable,  
-
+                    existingAsset.IsRepairable,
                 });
+
+                // ===========================
+                // 5️⃣ IMAGE UPDATE (S3 - NO DELETE)
+                // ===========================
                 string? assetImagePath = null;
-                // ===========================
-                // 5️⃣ IMAGE UPDATE (OPTIONAL)
-                // ===========================
-              
 
                 if (request.DTO.AssetImageFile != null &&
                     request.DTO.AssetImageFile.Length > 0)
@@ -141,55 +142,44 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
                     try
                     {
                         string cleanName =
-                       EncryptionSanitizer.CleanEncodedInput(
-                           request.DTO.AssetName ?? "asset");
-
-                        using var ms = new MemoryStream();
-                        await request.DTO.AssetImageFile.CopyToAsync(ms);
+                            EncryptionSanitizer.CleanEncodedInput(
+                                request.DTO.AssetName ?? "asset")
+                            .ToLower()
+                            .Replace(" ", "_");
 
                         string fileName =
-                            $"ASSET-{cleanName}-{DateTime.UtcNow:yyMMddHHmmss}.png";
+                            $"asset-{cleanName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
 
-                        string folder =
-                            _fileStorageService.GetTenantFolderPath(
-                                validation.TenantId, "assets");
+                        string folderPath =
+                            $"{ConstantValues.TenantFolder}-{validation.TenantId}/{ConstantValues.AssetsFolder}";
 
-                        string fullPath =
-                            await _fileStorageService.SaveFileAsync(
-                                ms.ToArray(), fileName, folder);
+                        var fileKey = await _fileStorageService.UploadFileAsync(
+                            request.DTO.AssetImageFile,
+                            folderPath,
+                            fileName);
 
-                        assetImagePath = _fileStorageService.GetRelativePath(fullPath);
+                        assetImagePath = fileKey;
                     }
-                    catch (Exception imgEx)
+                    catch (Exception ex)
                     {
-                        _logger.LogError(imgEx, "⚠️ Asset image update failed.");
+                        _logger.LogError(ex, "Asset image upload failed");
                     }
                 }
 
                 // ===========================
-                // 6️⃣ UPDATE IN DATABASE
+                // 6️⃣ UPDATE DATABASE
                 // ===========================
-                var updatedAsset = await _unitOfWork.AssetRepository.UpdateAsync(existingAsset, assetImagePath);
-
-                // ===========================
-                // 7️⃣ GET UPDATED OBJECT (JOIN PROJECTION)
-                // ===========================
-               
-                 
+                var updatedAsset = await _unitOfWork.AssetRepository
+                    .UpdateAsync(existingAsset, assetImagePath);
 
                 if (updatedAsset == null)
                 {
                     await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<GetAssetResponseDTO>.Fail("Failed to fetch updated asset.");
+                    return ApiResponse<GetAssetResponseDTO>.Fail("Asset update failed.");
                 }
 
-                // Base URL apply
-                string baseUrl = _config["FileSettings:BaseUrl"] ?? string.Empty;
-                if (!string.IsNullOrWhiteSpace(updatedAsset.AssetImagePath))
-                    updatedAsset.AssetImagePath = $"{baseUrl}{updatedAsset.AssetImagePath}";
-
                 // ===========================
-                // 8️⃣ COMMIT
+                // 7️⃣ COMMIT
                 // ===========================
                 await _unitOfWork.CommitTransactionAsync();
 
@@ -199,8 +189,10 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackTransactionAsync();
-                _logger.LogError(ex, "❌ UpdateAsset failed");
-                return ApiResponse<GetAssetResponseDTO>.Fail("Unexpected error while updating asset.");
+                _logger.LogError(ex, "UpdateAsset failed");
+
+                return ApiResponse<GetAssetResponseDTO>
+                    .Fail("Unexpected error while updating asset.");
             }
         }
     }

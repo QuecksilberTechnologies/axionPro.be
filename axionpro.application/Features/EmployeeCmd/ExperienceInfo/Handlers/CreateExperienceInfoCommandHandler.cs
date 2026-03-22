@@ -509,15 +509,15 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
             await req.File.CopyToAsync(ms);
             var bytes = ms.ToArray();
 
-            var folderPath = _fileStorageService.GetEmployeeFolderPath(req.TenantId, req.EmployeeId, req.SubFolderName);
-            var fullPath = await _fileStorageService.SaveFileAsync(bytes, fileName, folderPath);
+            //var folderPath = _fileStorageService.GetEmployeeFolderPath(req.TenantId, req.EmployeeId, req.SubFolderName);
+            //var fullPath = await _fileStorageService.SaveFileAsync(bytes, fileName, folderPath);
 
-            if (string.IsNullOrEmpty(fullPath))
-                return result;
+            //if (string.IsNullOrEmpty(fullPath))
+            //    return result;
 
-            result.IsUploaded = true;
-            result.FileName = fileName;
-            result.FilePath = _fileStorageService.GetRelativePath(fullPath);
+            //result.IsUploaded = true;
+            //result.FileName = fileName;
+            //result.FilePath = _fileStorageService.GetRelativePath(fullPath);
 
             return result;
         }

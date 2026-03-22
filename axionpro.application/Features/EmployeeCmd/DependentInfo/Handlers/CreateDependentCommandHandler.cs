@@ -1,33 +1,19 @@
 ﻿using AutoMapper;
-using axionpro.application.Common.Helpers;
-using axionpro.application.Common.Helpers.axionpro.application.Configuration;
-using axionpro.application.Common.Helpers.Converters;
-using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.RequestHelper;
-using axionpro.application.DTOS.Employee.Bank;
-using axionpro.application.DTOS.Employee.Contact;
+using axionpro.application.Constants;
 using axionpro.application.DTOS.Employee.Dependent;
-using axionpro.application.DTOS.Pagination;
-using axionpro.application.Features.EmployeeCmd.Contact.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 
-using axionpro.domain.Entity; using MediatR;
-using Microsoft.AspNetCore.Http;
+using axionpro.domain.Entity;
+using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
 {
@@ -117,33 +103,45 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                 string? docPath = null;
                 string? docName = null;
                 bool hasProofUploaded = false;
+                
 
                 if (request.DTO.ProofFile != null &&
                     request.DTO.ProofFile.Length > 0)
                 {
-                  
-
-                    using var ms = new MemoryStream();
-                    await request.DTO.ProofFile.CopyToAsync(ms, cancellationToken);
-
-                    string fileName =
-                        $"proof-{request.DTO.Prop.EmployeeId}_{request.DTO.Relation}-{DateTime.UtcNow:yyMMddHHmmss}.pdf";
-
-                    string folderPath =
-                        _fileStorageService.GetEmployeeFolderPath(
-                            request.DTO.Prop.TenantId,
-                            request.DTO.Prop.EmployeeId,
-                            "dependent");
-
-                    var savedPath =
-                        await _fileStorageService.SaveFileAsync(
-                            ms.ToArray(), fileName, folderPath);
-
-                    if (!string.IsNullOrEmpty(savedPath))
+                    try
                     {
-                        docPath = _fileStorageService.GetRelativePath(savedPath);
-                        docName = fileName;
-                        hasProofUploaded = true;
+                        // 🔹 CLEAN RELATION NAME
+                        string relation =
+                            request.DTO.Relation.ToString()?.Trim().ToLower().Replace(" ", "_") ?? "doc";
+
+                        // 🔹 FILE NAME
+                        string fileName =
+                            $"proof-{request.DTO.Prop.EmployeeId}-{relation}-{DateTime.UtcNow:yyyyMMddHHmmss}";
+
+                        // 🔹 FOLDER PATH (STANDARD RULE)
+                        string folderPath =
+                            $"{ConstantValues.TenantFolder}-{request.DTO.Prop.TenantId}/" +
+                            $"{ConstantValues.EmployeeFolder}/{request.DTO.Prop.EmployeeId}/dependent";
+
+                        // 🔹 UPLOAD (DIRECT S3)
+                        var fileKey = await _fileStorageService.UploadFileAsync(
+                            request.DTO.ProofFile,
+                            folderPath,
+                            fileName);
+
+                        if (!string.IsNullOrWhiteSpace(fileKey))
+                        {
+                            docPath = fileKey;
+                            docName = fileName;
+                            hasProofUploaded = true;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error uploading dependent proof");
+
+                        return ApiResponse<List<GetDependentResponseDTO>>
+                            .Fail("File upload failed.");
                     }
                 }
 

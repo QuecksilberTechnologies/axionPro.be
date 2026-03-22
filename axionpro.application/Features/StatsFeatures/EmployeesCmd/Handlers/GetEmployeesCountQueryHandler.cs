@@ -88,8 +88,11 @@ namespace axionpro.application.Features.StatsFeatures.EmployeesCmd.Handlers
                         validation.TenantId);
 
                 if (spRecords == null)
+                { 
+
                     return ApiResponse<EmployeeCountResponseStatsSp>
-                        .Fail("No identity information found.");
+                        .Success(null,"No identity information found.");
+                }
                 
                 return ApiResponse<EmployeeCountResponseStatsSp>
                     .Success(spRecords, "Identity information retrieved successfully.");

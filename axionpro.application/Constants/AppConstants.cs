@@ -43,8 +43,20 @@ namespace axionpro.application.Constants
         // ==============================
 
         public const string DefaultFromEmail = "hr@quecksilber.in";
-
         public const string DefaultFromName = "AxionPro HRMS";
+
+        public const string TenantFolder = "tenants";
+        public const string EmployeeFolder = "employees";
+        public const string ProfileFolder = "profile";
+        public const string GapDocFolder = "gap-doc";
+        public const string AssetsFolder = "profile";
+        public const string IdentityFolder = "identity";
+        public const string BankFolder = "bank";
+        public const string PoliciesFolder = "policies";
+        public const string TenantPoliciesFolder = "tenant-policies";
+        public const string DependentFolder = "dependent";
+        public const string EducationFolder = "education";
+        
 
         public static readonly string invalidCredential = "Invalid credentials";
         public static readonly int ParmanentEmployeeType = 1;

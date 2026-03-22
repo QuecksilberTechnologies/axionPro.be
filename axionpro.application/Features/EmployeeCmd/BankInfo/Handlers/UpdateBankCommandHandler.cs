@@ -2,6 +2,7 @@
 using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.RequestHelper;
+using axionpro.application.Constants;
 using axionpro.application.DTOs.Employee;
 using axionpro.application.DTOs.Employee.AccessControlReadOnlyType;
 using axionpro.application.DTOs.Employee.AccessResponse;
@@ -81,9 +82,9 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 
             try
             {
-                // -------------------------------------------------
+                // =================================================
                 // 1️⃣ COMMON VALIDATION
-                // -------------------------------------------------
+                // =================================================
                 var validation = await _commonRequestService
                     .ValidateRequestAsync(request.DTO.UserEmployeeId);
 
@@ -93,24 +94,14 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
                 request.DTO.Prop.EmployeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
-                request.DTO.EmployeeId,
-                validation.Claims.TenantEncriptionKey,
-                _idEncoderService
-            );
+                    request.DTO.EmployeeId,
+                    validation.Claims.TenantEncriptionKey,
+                    _idEncoderService
+                );
 
-                // -------------------------------------------------
-                // 2️⃣ PERMISSION CHECK
-                // -------------------------------------------------
-                var permissions = await _permissionService
-                    .GetPermissionsAsync(validation.RoleId);
-
-                if (!permissions.Contains("UpdateBankInfo")){
-                   // return ApiResponse<bool>.Fail("You do not have permission to update bank info.");
-                   }
-
-                // -------------------------------------------------
-                // 3️⃣ FETCH EXISTING BANK RECORD
-                // -------------------------------------------------
+                // =================================================
+                // 2️⃣ FETCH EXISTING RECORD
+                // =================================================
                 var bank = await _unitOfWork.EmployeeBankRepository
                     .GetSingleRecordAsync(request.DTO.Id, true);
 
@@ -119,9 +110,9 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 
                 var dto = request.DTO;
 
-                // -------------------------------------------------
-                // 4️⃣ PARTIAL FIELD UPDATES
-                // -------------------------------------------------
+                // =================================================
+                // 3️⃣ UPDATE FIELDS
+                // =================================================
                 if (!string.IsNullOrWhiteSpace(dto.BankName))
                     bank.BankName = dto.BankName.Trim();
 
@@ -140,149 +131,98 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 if (!string.IsNullOrWhiteSpace(dto.UPIId))
                     bank.UPIId = dto.UPIId.Trim();
 
-                // -------------------------------------------------
-                // 5️⃣ PRIMARY ACCOUNT BUSINESS RULE
-                // -------------------------------------------------
-               if (dto.IsPrimaryAccount)
-                 {
-                    // 🔴 Cancelled cheque mandatory
+                // =================================================
+                // 4️⃣ PRIMARY ACCOUNT RULE
+                // =================================================
+                if (dto.IsPrimaryAccount)
+                {
                     if (dto.CancelledChequeFile == null && !bank.HasChequeDocUploaded)
-                        return ApiResponse<bool>.Fail("Cancelled cheque is mandatory for primary bank account.");
+                        return ApiResponse<bool>.Fail("Cancelled cheque is mandatory.");
 
-                    //// 🔹 Reset all existing primaries
-                     bool resetDone = await _unitOfWork.EmployeeBankRepository
-                         .ResetPrimaryAccountAsync(request.DTO.Prop.EmployeeId, request.DTO.Prop.UserEmployeeId);
+                    bool resetDone = await _unitOfWork.EmployeeBankRepository
+                        .ResetPrimaryAccountAsync(
+                            request.DTO.Prop.EmployeeId,
+                            request.DTO.Prop.UserEmployeeId);
 
                     if (!resetDone)
-                       return ApiResponse<bool>.Fail("Failed to reset existing primary bank accounts.");
+                        return ApiResponse<bool>.Fail("Failed to reset primary accounts.");
 
                     bank.IsPrimaryAccount = true;
-                 }
-                else { 
-                     bank.IsPrimaryAccount = false;
+                }
+                else
+                {
+                    bank.IsPrimaryAccount = false;
                 }
 
-                // -------------------------------------------------
-                // 6️⃣ FILE HANDLING (OPTIONAL)
-                // -------------------------------------------------
-
-                // ------------------------ FILE HANDLING (OPTIONAL) ------------------------
-                // ------------------------ FILE HANDLING (AUDIT SAFE) ------------------------
-                if (request.DTO.CancelledChequeFile is { Length: > 0 })
+             
+                // =================================================
+                // FILE HANDLING (S3 - NO DELETE, AUDIT SAFE)
+                // =================================================
+                if (request.DTO.CancelledChequeFile != null &&
+                    request.DTO.CancelledChequeFile.Length > 0)
                 {
                     try
                     {
-                        // 🔹 STEP 1: Handle OLD FILE (NO DELETE — ONLY RENAME)
-                        if (!string.IsNullOrWhiteSpace(bank.FilePath))
-                        {
-                            string oldRelativePath = bank.FilePath;
+                       
+                        // 🔹 BUILD FOLDER PATH
+                        string folderPath =  $"{ConstantValues.TenantFolder}-{request.DTO.Prop.TenantId}/{ConstantValues.EmployeeFolder}/{request.DTO.Prop.EmployeeId}/{ConstantValues.BankFolder}";
 
-                            // Convert relative → physical
-                            string oldPhysicalPath =
-                                _fileStorageService.GetRelativePath(oldRelativePath);
 
-                            if (!string.IsNullOrWhiteSpace(oldPhysicalPath) &&
-                                File.Exists(oldPhysicalPath))
-                            {
-                                string directory = Path.GetDirectoryName(oldPhysicalPath)!;
-                                string extension = Path.GetExtension(oldPhysicalPath);
-                                string fileNameWithoutExt =
-                                    Path.GetFileNameWithoutExtension(oldPhysicalPath);
-
-                                string deletedFileName =
-                                    $"{fileNameWithoutExt}_deleted_{DateTime.UtcNow:yyyyMMddHHmmss}{extension}";
-
-                                string deletedPhysicalPath =
-                                    Path.Combine(directory, deletedFileName);
-
-                                  File.Move(oldPhysicalPath, deletedPhysicalPath);
-
-                                _logger.LogInformation(
-                                    "🗂️ Old bank file marked as deleted (renamed): {File}",
-                                    deletedPhysicalPath);
-                            }
-                            else
-                            {
-                                _logger.LogWarning(
-                                    "⚠️ Old bank file not found on disk: {File}",
-                                    oldRelativePath);
-                            }
-                        }
-
-                        // 🔹 STEP 2: Upload NEW FILE
-                        using var ms = new MemoryStream();
-                        await request.DTO.CancelledChequeFile.CopyToAsync(ms);
-
+                        // 🔹 NEW FILE NAME (UNIQUE)
                         string newFileName =
-                            $"Cheque-{bank.EmployeeId}-{DateTime.UtcNow:yyMMddHHmmss}.pdf";
+                            $"{ConstantValues.BankFolder}-{request.DTO.Prop.EmployeeId}-{DateTime.UtcNow:yyyyMMddHHmmss}";
 
-                        string folderPath =
-                            _fileStorageService.GetEmployeeFolderPath(
-                                request.DTO.Prop.TenantId,
-                                request.DTO.Prop.EmployeeId,
-                                "bank");
+                        // 🔹 UPLOAD NEW FILE
+                        var fileKey = await _fileStorageService.UploadFileAsync(
+                            request.DTO.CancelledChequeFile,
+                            folderPath,
+                            newFileName);
 
-                        string savedFullPath =
-                            await _fileStorageService.SaveFileAsync(
-                                ms.ToArray(),
-                                newFileName,
-                                folderPath);
-
-                        // 🔹 STEP 3: Update DB Fields
-                        bank.FilePath = _fileStorageService.GetRelativePath(savedFullPath);
+                        // 🔹 UPDATE DB (ONLY NEW FILE)
+                        bank.FilePath = fileKey;
                         bank.FileName = newFileName;
                         bank.HasChequeDocUploaded = true;
                         bank.UpdatedDateTime = DateTime.UtcNow;
                         bank.UpdatedById = request.DTO.Prop.UserEmployeeId;
 
+                        _logger.LogInformation("New cheque uploaded. Old file preserved.");
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(
-                            ex,
-                            "❌ Error replacing bank document for employee {Emp}",
-                            request.DTO.Prop.EmployeeId);
+                        _logger.LogError(ex, "Error uploading cheque file");
 
-                        return ApiResponse<bool>.Fail(
-                            "File upload failed, please try again.");
+                        return ApiResponse<bool>.Fail("File upload failed.");
                     }
                 }
-
-
-
-
                 var responseData = _mapper.Map<UpdateBankReqestDTO>(bank);
-                   responseData.Prop.UserEmployeeId = request.DTO.Prop.UserEmployeeId;
-                   responseData.Prop.EmployeeId = request.DTO.Prop.EmployeeId;
-                
+                responseData.Prop.UserEmployeeId = request.DTO.Prop.UserEmployeeId;
+                responseData.Prop.EmployeeId = request.DTO.Prop.EmployeeId;
+
                 //responseData.UpdatedDateTime = DateTime.UtcNow;
 
                 // -------------------------------------------------
                 // 7️⃣ SAVE CHANGES
                 // -------------------------------------------------
-                bool isSucess =   await _unitOfWork.EmployeeBankRepository.UpdateAsync(responseData);
-                if (!isSucess)
-                    return ApiResponse<bool>.Fail("Failed to update bank information.");
+                bool isSuccess = await _unitOfWork.EmployeeBankRepository.UpdateAsync(responseData);
+                
+
+                if (!isSuccess)
+                    return ApiResponse<bool>.Fail("Failed to update bank info.");
+
                 await _unitOfWork.CommitAsync();
                 await _unitOfWork.CommitTransactionAsync();
 
-                return ApiResponse<bool>.Success(true, "Bank information updated successfully.");
+                return ApiResponse<bool>.Success(true, "Bank updated successfully.");
             }
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackTransactionAsync();
 
-                _logger.LogError(ex,
-                    "❌ Error updating bank info. BankId: {Id}",
-                    request.DTO.Id);
+                _logger.LogError(ex, "Error updating bank info");
 
-                return ApiResponse<bool>.Fail(
-                    "Unexpected error occurred while updating bank info.",
-                    new List<string> { ex.Message }
-                );
+                return ApiResponse<bool>.Fail("Unexpected error.", new List<string> { ex.Message });
             }
         }
-
     }
 
 }

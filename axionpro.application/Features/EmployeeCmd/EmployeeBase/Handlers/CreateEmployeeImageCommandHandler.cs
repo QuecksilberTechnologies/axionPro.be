@@ -30,7 +30,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ILogger<CreateEmployeeImageCommandHandler> _logger;
-        private readonly IFileServiceAWS _fileStorageService;
+        private readonly IFileStorageService _fileStorageService;
         private readonly ICommonRequestService _commonRequestService;
         private readonly IPermissionService _permissionService;
         private readonly IConfiguration _configuration;
@@ -39,7 +39,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             IUnitOfWork unitOfWork,
             IMapper mapper,
             ILogger<CreateEmployeeImageCommandHandler> logger,
-            IFileServiceAWS fileStorageService,
+            IFileStorageService fileStorageService,
             ICommonRequestService commonRequestService,
             IPermissionService permissionService,
             IConfiguration configuration)
@@ -97,7 +97,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 
                         // ✅ S3 key path (NO directory creation)
                         string folderPath =
-                            $"tenants-{validation.TenantId}/employees/{request.DTO.Prop.EmployeeId}/profile";
+                            $"tenants/tenant-{validation.TenantId}/employees/{request.DTO.Prop.EmployeeId}/profile";
 
                         // ✅ Upload to S3
                         var fileKey =  await _fileStorageService.UploadFileAsync(

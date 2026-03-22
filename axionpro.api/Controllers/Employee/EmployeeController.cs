@@ -403,7 +403,7 @@ namespace axionpro.api.Controllers.Employee
                 if (!result.IsSucceeded)
                 {
                     _logger.LogInfo("No employees found or request failed.");
-                    return BadRequest(result);
+                    return NotFound(result);
                 }
 
                 return Ok(result);

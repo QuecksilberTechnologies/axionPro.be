@@ -36,35 +36,7 @@ namespace axionpro.persistance.Repositories
             _mapper = mapper;   
         }
 
-
-        //  public async Task<GetEmployeeCodePatternResponseDTO?> GetTenantEmployeeCodePatternAsync(
-        //EmployeeCodePatternRequestDTO request)
-        //  {
-        //      try
-        //      {
-        //          //await using var context = await _contextFactory.CreateDbContextAsync();
-
-        //          var result = await _context
-        //              .Set<GetEmployeeCodePatternResponseDTO>()
-        //              .FromSqlRaw(
-        //                  "EXEC [AxionPro].[GetEmployeeCodePatternByTenant] @TenantId = {0}",
-        //                  request.TenantId
-        //              )
-        //              .AsNoTracking()
-        //              .FirstOrDefaultAsync();
-
-        //          return result;
-        //      }
-        //      catch (Exception ex)
-        //      {
-        //          _logger.LogError(
-        //              ex,
-        //              "❌ Error fetching employee code pattern for TenantId: {TenantId}",
-        //              request.TenantId
-        //          );
-        //          throw;
-        //      }
-        //  }
+ 
         public async Task<GetEmployeeCodePatternResponseDTO?> GetTenantEmployeeCodePatternAsync(
       EmployeeCodePatternRequestDTO request)
         {
@@ -428,45 +400,7 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        //public async Task<EmployeeCountResponseStatsSp?> GetEmployeeCountsAsync(long tenantId)
-        //{
-        //    try
-        //    {
-        //      //  await using var context = await _contextFactory.CreateDbContextAsync();
-
-        //        _logger.LogInformation(
-        //            "Fetching employee count statistics. TenantId: {TenantId}",
-        //            tenantId);
-
-        //        var sql = @"EXEC AxionPro.AllEmployeeCountData @TenantId";
-        //        var tenantParam = new NpgsqlParameter("@TenantId", tenantId);
-
-        //        var result = _context.EmployeeCountResponseStatsSps
-        //            .FromSqlRaw(sql, tenantParam)
-        //            .AsNoTracking()
-        //            .AsEnumerable()     // 🔑 MOST IMPORTANT LINE
-        //            .FirstOrDefault();
-
-        //        return result;
-        //    }
-        //    catch (NpgsqlException ex)
-        //    {
-        //        _logger.LogError(
-        //            ex,
-        //            "SQL error while fetching employee count statistics. TenantId: {TenantId}",
-        //            tenantId);
-        //        throw;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(
-        //            ex,
-        //            "Unexpected error while fetching employee count statistics. TenantId: {TenantId}",
-        //            tenantId);
-        //        throw;
-        //    }
-        //}
-
+       
         public async Task<EmployeeCountResponseStatsSp?> GetEmployeeCountsAsync(long tenantId)
         {
             try
@@ -498,51 +432,7 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-
-        //public async Task<List<GetEmployeeIdentitySp>> GetIdentityRecordAsync(  long employeeId,   int countryId,        bool isActive)
-        //{
-        //    try
-        //    {
-        //      //  await using var context = await _contextFactory.CreateDbContextAsync();
-
-        //        _logger.LogInformation(
-        //            "Fetching Employee Identity records. EmployeeId: {EmployeeId}, CountryId: {CountryId}",
-        //            employeeId, countryId);
-
-        //        var sql = @"EXEC AxionPro.GetEmployeeIdentityByCountryRule 
-        //            @EmployeeId,
-        //            @CountryId,
-        //            @IsActive";
-
-        //        var parameters = new[]
-        //        {
-        //    new NpgsqlParameter("@EmployeeId", employeeId),
-        //    new NpgsqlParameter("@CountryId", countryId),
-        //    new NpgsqlParameter("@IsActive", isActive)
-        //        };
-
-        //        var result = await _context.GetEmployeeIdentitySps
-        //            .FromSqlRaw(sql, parameters)
-        //            .AsNoTracking()
-        //            .ToListAsync();
-
-        //        return result;
-        //    }
-        //    catch (NpgsqlException ex)
-        //    {
-        //        _logger.LogError(ex,
-        //            "SQL error while fetching identity records. EmployeeId: {EmployeeId}",
-        //            employeeId);
-        //        throw;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex,
-        //            "Unexpected error while fetching identity records. EmployeeId: {EmployeeId}",
-        //            employeeId);
-        //        throw;
-        //    }
-        //}
+  
         public async Task<List<GetEmployeeIdentitySp>> GetIdentityRecordAsync(
     long employeeId,
     int countryId,
@@ -583,36 +473,7 @@ namespace axionpro.persistance.Repositories
                 throw;
             }
         }
-        //public async Task<long> ValidateActiveUserCrendentialOnlyAsync(string loginId)
-        //{
-        //    try
-        //    {
-        //     //   await using var context = await _contextFactory.CreateDbContextAsync();
-        //        _logger.LogInformation("Validating user login for LoginId: {LoginId}", loginId);
-
-        //        var loginParam = new NpgsqlParameter("@LoginId", loginId ?? (object)DBNull.Value);
-        //        var resultParam = new NpgsqlParameter("@Result", SqlDbType.BigInt)
-        //        {
-        //            Direction = ParameterDirection.Output
-        //        };
-
-        //        string sqlQuery = "EXEC AxionPro.ValidateActiveUserCrendentialOnly @LoginId, @Result OUTPUT";
-
-        //        await _context.Database.ExecuteSqlRawAsync(sqlQuery, loginParam, resultParam);
-
-        //        return (long)resultParam.Value;  // Output Parameter से Result Return करें
-        //    }
-        //    catch (NpgsqlException ex)
-        //    {
-        //        _logger.LogError(ex, "SQL Exception occurred while validating user login for LoginId: {LoginId}", loginId);
-        //        return -1;  // Error Case
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "An error occurred while validating user login for LoginId: {LoginId}");
-        //        return -1;  // Error Case
-        //    }
-        //}
+         
 
         public async Task<long> ValidateActiveUserCrendentialOnlyAsync(string loginId)
         {

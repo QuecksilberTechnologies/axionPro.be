@@ -1,4 +1,5 @@
 ﻿using axionpro.application.Common.Helpers.RequestHelper;
+using axionpro.application.Constants;
 using axionpro.application.DTOS.Employee.Sensitive;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
@@ -71,34 +72,50 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
                     string? documentName = null;
 
                     // ✅ Generic file upload (PAN / Passport / Aadhaar ALL SAME)
+                    // =================================================
+                    // 🔐 IDENTITY FILE UPLOAD (S3 - SECURE)
+                    // =================================================
                     if (identity.IdentityDocumentFile != null &&
                         identity.IdentityDocumentFile.Length > 0)
                     {
-                        using var ms = new MemoryStream();
-                        await identity.IdentityDocumentFile.CopyToAsync(ms, cancellationToken);
+                        try
+                        {
+                            // 🔹 MASKED VALUE (SECURITY)
+                            string maskedValue =
+                                identity.IdentityValue.Length > 4
+                                    ? identity.IdentityValue[^4..]
+                                    : "XXXX";
 
+                            // 🔹 SAFE DOCUMENT CODE
+                            string docCode =
+                                identity.DocumnetCode?.Trim().ToLower().Replace(" ", "_") ?? "id";
 
+                            // 🔹 FILE NAME (SECURE + TRACEABLE)
+                            documentName =
+                                $"id-{docCode}-{employeeId}-{maskedValue}-{DateTime.UtcNow:yyyyMMddHHmmss}";
 
-                        var safeValue = identity.IdentityValue.Length > 4
-                            ? identity.IdentityValue[^4..]
-                            : "XXXX";
+                            // 🔹 FOLDER PATH (STANDARD STRUCTURE)
+                            string folderPath =
+                                $"{ConstantValues.TenantFolder}-{validation.TenantId}/" +
+                                $"{ConstantValues.EmployeeFolder}/{employeeId}/identity";
 
-                        documentName =
-                            $"ID-{identity.DocumnetCode.Trim()}-{employeeId}-{safeValue}.pdf";
+                            // 🔹 UPLOAD TO S3
+                            var fileKey = await _fileStorageService.UploadFileAsync(
+                                identity.IdentityDocumentFile,
+                                folderPath,
+                                documentName);
 
-                        var folder = _fileStorageService.GetEmployeeFolderPath(
-                            validation.TenantId,
-                            employeeId,
-                            "identity"
-                        );
-
-                        var fullPath = await _fileStorageService
-                            .SaveFileAsync(ms.ToArray(), documentName, folder);
-
-                        documentPath = _fileStorageService.GetRelativePath(fullPath);
-
+                            if (!string.IsNullOrWhiteSpace(fileKey))
+                            {
+                                documentPath = fileKey;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            await _unitOfWork.RollbackTransactionAsync();
+                            return ApiResponse<bool>.Fail("Identity file upload failed.");
+                        }
                     }
-
                     entities.Add(new EmployeeIdentity
                     {
                         EmployeeId = employeeId,

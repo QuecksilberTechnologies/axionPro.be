@@ -4,6 +4,7 @@ using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
+using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
 using MediatR;
@@ -32,14 +33,15 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         private readonly ICommonRequestService _commonRequestService;
         private readonly IConfiguration _config;
         private readonly IIdEncoderService _idEncoderService;
-
+        private readonly IFileStorageService _fileStorageService;
         public GetEmployeeImageQueryHandler(
             IUnitOfWork unitOfWork,
             ILogger<GetEmployeeImageQueryHandler> logger,
             IPermissionService permissionService,
             ICommonRequestService commonRequestService,
             IConfiguration config,
-            IIdEncoderService idEncoderService)
+            IIdEncoderService idEncoderService,
+            IFileStorageService fileStorageService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
@@ -47,45 +49,31 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             _commonRequestService = commonRequestService;
             _config = config;
             _idEncoderService = idEncoderService;
+            _fileStorageService = fileStorageService;
         }
 
         public async Task<ApiResponse<GetEmployeeImageReponseDTO>> Handle(
-            GetEmployeeImageQuery request,
-            CancellationToken cancellationToken)
+     GetEmployeeImageQuery request,
+     CancellationToken cancellationToken)
         {
             try
             {
-                // ===============================
-                // 1️⃣ COMMON VALIDATION
-                // ===============================
+                // 1️⃣ Validation
                 var validation = await _commonRequestService.ValidateRequestAsync();
                 if (!validation.Success)
-                    return ApiResponse<GetEmployeeImageReponseDTO>
-                        .Fail(validation.ErrorMessage);
+                    return ApiResponse<GetEmployeeImageReponseDTO>.Fail(validation.ErrorMessage);
 
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;             
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
-               
+
                 request.DTO.Prop.EmployeeId =
                     RequestCommonHelper.DecodeOnlyEmployeeId(
                         request.DTO.EmployeeId,
                         validation.Claims.TenantEncriptionKey,
                         _idEncoderService);
-                // ===============================
-                // 2️⃣ PERMISSION (OPTIONAL)
-                // ===============================
-                var permissions =
-                    await _permissionService.GetPermissionsAsync(validation.RoleId);
 
-                // if (!permissions.Contains("ViewEmployeeImage"))
-                //     return ApiResponse<GetEmployeeImageReponseDTO>
-                //         .Fail("Permission denied.");
-
-                // ===============================
-                // 3️⃣ FETCH SINGLE IMAGE
-                // ===============================
-                var image =
-                    await _unitOfWork.Employees.GetImage(request.DTO);
+                // 2️⃣ Fetch image
+                var image = await _unitOfWork.Employees.GetImage(request.DTO);
 
                 if (image == null)
                 {
@@ -97,18 +85,14 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                         .Fail("Employee image not found.");
                 }
 
-                // ===============================
-                // 4️⃣ BUILD FULL IMAGE URL (OPTIONAL)
-                // ===============================
-                string baseUrl =
-                    _config["FileSettings:BaseUrl"] ?? string.Empty;
-
+                // 3️⃣ 🔥 Convert S3 key → Signed URL
                 if (!string.IsNullOrWhiteSpace(image.FilePath))
-                    image.FilePath = $"{baseUrl}{image.FilePath}";
+                {
+                    image.FilePath =  _fileStorageService.GetFileUrl(image.FilePath);
+                }
+
                 image.EmployeeId = request.DTO.EmployeeId;
-                // ===============================
-                // 5️⃣ SUCCESS
-                // ===============================
+
                 return ApiResponse<GetEmployeeImageReponseDTO>
                     .Success(image, "Employee image fetched successfully.");
             }
@@ -116,8 +100,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             {
                 _logger.LogError(
                     ex,
-                    "❌ Error while fetching employee image | EmpId={EmpId}",
-                    request.DTO?.Prop?.EmployeeId);
+                    "Error while fetching employee image");
 
                 return ApiResponse<GetEmployeeImageReponseDTO>
                     .Fail("Unexpected error while fetching employee image.");

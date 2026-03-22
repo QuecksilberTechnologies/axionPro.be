@@ -1,6 +1,7 @@
 ﻿using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Pagination;
 using Microsoft.EntityFrameworkCore;
+using System.Numerics;
 
 namespace axionpro.application.DTOS.StoreProcedures.DashboardSummeries
 {
@@ -47,10 +48,10 @@ namespace axionpro.application.DTOS.StoreProcedures.DashboardSummeries
     [Keyless]
     public class EmployeeCountResponseStatsSp
     {
-          
-        public int TotalCount { get; set; }
-        public int ActiveCount { get; set; }
-        public int InActiveCount { get; set; }
+
+        public long TotalCount { get; set; }
+        public long ActiveCount { get; set; }
+        public long InActiveCount { get; set; }
         public int OnLeaveCount { get; set; }
     }
 
