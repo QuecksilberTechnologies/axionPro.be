@@ -18,7 +18,9 @@ using axionpro.application.DTOS.StoreProcedures;
 using axionpro.application.Features.TenantConfigurationCmd.Configuration.EmployeeCodeCmd.Handlers;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
-
+using axionpro.application.Interfaces.IFileStorage;
+using axionpro.domain.Entity; 
+using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Win32.SafeHandles;
 using System;
@@ -26,8 +28,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
-
+using System.Threading.Tasks; 
 namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 {
     public static class ProjectionHelper
@@ -231,8 +232,11 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         public static List<GetAllEmployeeInfoResponseDTO> ToGetAllEmployeeInfoResponseDTOs(
      PagedResponseDTO<GetAllEmployeeInfoResponseDTO> entities,
       IIdEncoderService encoderService,
-      string tenantKey, IConfiguration configuration)
+      string tenantKey, IConfiguration configuration,IFileStorageService _fileStorageService)
         {
+           
+
+
             string baseUrl = configuration["FileSettings:BaseUrl"] ?? string.Empty;
             string defaultImg = configuration["FileSettings:DefaultImage"] ?? string.Empty;
             if (entities == null || !entities.Items.Any())
@@ -248,7 +252,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 
                 // 📁 Final Image URL build
                 if (!string.IsNullOrEmpty(item.EmployeeImagePath))
-                    item.EmployeeImagePath = $"{baseUrl}{item.EmployeeImagePath}";
+                    item.EmployeeImagePath = _fileStorageService.GetFileUrl(item.EmployeeImagePath);
 
                 item.EmployementCode ??= string.Empty;
                 item.FirstName ??= string.Empty;

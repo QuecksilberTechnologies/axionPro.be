@@ -122,6 +122,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 {
                     image.FilePath =
                         _fileStorageService.GetFileUrl(image.FilePath);
+                    _logger.LogInformation("Image-Path : {image.FilePath} ", image.FilePath);
                 }
 
                 image.EmployeeId = request.DTO.EmployeeId;
