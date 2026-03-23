@@ -3,12 +3,12 @@ using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOs.Tenant;
 using axionpro.application.DTOs.Verify;
 using axionpro.application.DTOS.Tenant;
-using axionpro.application.Features.RegistrationCmd.Commands;
+ 
 using axionpro.application.Features.RegistrationCmd.Handlers;
 using axionpro.application.Features.TenantConfigurationCmd.Configuration.EmployeeCodeCmd.Handlers;
 using axionpro.application.Features.TenantConfigurationCmd.Tenant.Commands;
 using axionpro.application.Features.TenantConfigurationCmd.Tenant.Queries;
-using axionpro.application.Features.VerifyEmailCmd.Commands;
+using axionpro.application.Features.VerifyEmailCmd.Handlers;
 using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
 using MediatR;

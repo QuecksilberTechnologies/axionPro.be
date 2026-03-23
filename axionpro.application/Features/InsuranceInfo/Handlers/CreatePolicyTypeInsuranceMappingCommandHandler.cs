@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers.RequestHelper;
+using axionpro.application.DTOs.Module;
 using axionpro.application.DTOs.PolicyType;
 using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.DTOS.InsurancePoliciesMapping;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -13,6 +15,7 @@ using axionpro.application.Wrappers;
 using axionpro.domain.Entity; using MediatR;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace axionpro.application.Features.InsuranceInfo.Handlers
 {
@@ -53,20 +56,44 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
         }
 
         public async Task<ApiResponse<GetPolicyTypeInsuranceMappingResponseDTO>> Handle(
-            CreatePolicyTypeInsuranceMappingCommand request,
-            CancellationToken cancellationToken)
+     CreatePolicyTypeInsuranceMappingCommand request,
+     CancellationToken cancellationToken)
         {
+            // 🔹 Transaction start (standardized)
+            await _unitOfWork.BeginTransactionAsync();
+
             try
             {
-                // 1️⃣ Common validation
-                var validation = await _commonRequestService.ValidateRequestAsync();
-                if (!validation.Success)
-                {
-                    return ApiResponse<GetPolicyTypeInsuranceMappingResponseDTO>
-                        .Fail(validation.ErrorMessage);
-                }
+                _logger.LogInformation("🔹 CreatePolicyTypeInsuranceMapping started");
 
-                // 2️⃣ DTO → Entity
+                // ===============================
+                // 1️⃣ VALIDATION (AUTH)
+                // ===============================
+                var validation = await _commonRequestService.ValidateRequestAsync();
+
+                if (!validation.Success)
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+
+                // ===============================
+                // 2️⃣ PERMISSION CHECK
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.PolicyTypeInsuranceMapping,
+                //    Operations.Add);
+
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("Access denied.");
+
+                // ===============================
+                // 3️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request data.");
+
+                // ===============================
+                // 4️⃣ DTO → ENTITY
+                // ===============================
                 var entity = _mapper.Map<PolicyTypeInsuranceMapping>(request.DTO);
 
                 entity.TenantId = validation.TenantId;
@@ -77,33 +104,38 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                 entity.SoftDeleteById = null;
                 entity.SoftDeleteDateTime = null;
 
-                // 3️⃣ Save
+                // ===============================
+                // 5️⃣ SAVE
+                // ===============================
                 var responseDto = await _repository.AddAsync(entity);
 
                 if (responseDto == null)
-                {
-                    _logger.LogWarning(
-                        "PolicyTypeInsuranceMapping creation failed. PolicyTypeId: {PolicyTypeId}, InsurancePolicyId: {InsurancePolicyId}",
-                        entity.PolicyTypeId,
-                        entity.InsurancePolicyId);
+                    throw new ApiException(
+                        "Failed to create policy type insurance mapping.", 500);
 
-                    return ApiResponse<GetPolicyTypeInsuranceMappingResponseDTO>
-                        .Fail("Failed to create policy type insurance mapping.");
-                }
+                // ===============================
+                // 6️⃣ COMMIT
+                // ===============================
+                await _unitOfWork.CommitTransactionAsync();
 
-                await _unitOfWork.CommitAsync();
+                _logger.LogInformation("✅ PolicyTypeInsuranceMapping created successfully");
 
-                // 4️⃣ Success
+                // ===============================
+                // 7️⃣ SUCCESS
+                // ===============================
                 return ApiResponse<GetPolicyTypeInsuranceMappingResponseDTO>
-                    .Success(responseDto, "Policy type insurance mapping created successfully.");
+                    .Success(responseDto,
+                        "Policy type insurance mapping created successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,
-                    "Error occurred while creating PolicyTypeInsuranceMapping");
+                // 🔁 Rollback (IMPORTANT)
+                await _unitOfWork.RollbackTransactionAsync();
 
-                return ApiResponse<GetPolicyTypeInsuranceMappingResponseDTO>
-                    .Fail("An unexpected error occurred while creating mapping.");
+                _logger.LogError(ex,
+                    "❌ CreatePolicyTypeInsuranceMapping failed");
+
+                throw; // ✅ CRITICAL
             }
         }
     }

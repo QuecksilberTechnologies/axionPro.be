@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using axionpro.application.DTOS.Role;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -60,61 +61,71 @@ namespace axionpro.application.Features.RoleCmd.Handlers
             _commonRequestService = commonRequestService;
         }
 
-        public async Task<ApiResponse<List<GetRoleOptionResponseDTO>>> Handle(GetRoleOptionQuery request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<List<GetRoleOptionResponseDTO>>> Handle(
+     GetRoleOptionQuery request,
+     CancellationToken cancellationToken)
         {
             try
             {
-                // 1️⃣ COMMON VALIDATION (Mandatory)
-                var validation = await _commonRequestService.ValidateRequestAsync(request.OptionDTO.UserEmployeeId);
+                _logger.LogInformation("🔹 GetRoleOption started");
+
+                // ===============================
+                // 1️⃣ VALIDATION (AUTH)
+                // ===============================
+                var validation = await _commonRequestService
+                    .ValidateRequestAsync(request.OptionDTO.UserEmployeeId);
 
                 if (!validation.Success)
-                    return ApiResponse<List<GetRoleOptionResponseDTO>>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+                // ===============================
+                // 2️⃣ PERMISSION CHECK (RBAC)
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Role,
+                //    Operations.Delete);
 
-                // Assign decoded values coming from CommonRequestService
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("Access denied.");
+
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.OptionDTO == null)
+                    throw new ValidationErrorException("Invalid request data.");
+
+                request.OptionDTO.Prop ??= new();
+
                 request.OptionDTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.OptionDTO.Prop.TenantId = validation.TenantId;
- 
 
-                if (request.OptionDTO.Prop.UserEmployeeId <= 0)
-                    return ApiResponse<List<GetRoleOptionResponseDTO>>.Fail("Unauthorized: Tenant not found.");
+                // ===============================
+                // 3️⃣ FETCH DATA
+                // ===============================
+                var response = await _unitOfWork.RoleRepository
+                    .GetOptionAsync(request.OptionDTO);
 
-                var response = await _unitOfWork.RoleRepository.GetOptionAsync(request.OptionDTO);
+                var data = response?.Data ?? new List<GetRoleOptionResponseDTO>();
 
-                if (response.Data == null || !response.Data.Any())
-                {
-                    _logger.LogWarning("No departments found for tenant ID: {TenantId}", request.OptionDTO.Prop.UserEmployeeId);
+                _logger.LogInformation(
+                    "✅ Retrieved {Count} role options for TenantId {TenantId}",
+                    data.Count,
+                    validation.TenantId);
 
-                    return new ApiResponse<List<GetRoleOptionResponseDTO>>
-                    {
-                        IsSucceeded = true,
-                        Message = "Data Not Found",
-                        Data = new List<GetRoleOptionResponseDTO>()
-                    };
-                }
-
-                _logger.LogInformation("Successfully retrieved {Count} departments for tenant {TenantId}.",
-                    response.Data.Count, request.OptionDTO.Prop.UserEmployeeId);
-
-                return ApiResponse<List<GetRoleOptionResponseDTO>>.Success( response.Data, "✅ Role options fetched successfully.");
-                //return new ApiResponse<List<GetRoleOptionResponseDTO>>
-                //{
-                //    IsSucceeded = true,
-                //    Message = response.Message,
-                //    Data = response.Data
-                //};
+                // ===============================
+                // 4️⃣ SUCCESS (EMPTY ALLOWED ✅)
+                // ===============================
+                return ApiResponse<List<GetRoleOptionResponseDTO>>
+                    .Success(data, "Role options fetched successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while fetching department options for request: {@Request}", request.OptionDTO);
+                _logger.LogError(ex, "❌ GetRoleOption failed");
 
-                return new ApiResponse<List<GetRoleOptionResponseDTO>>
-                {
-                    IsSucceeded = false,
-                    Message = "Failed to fetch department options due to an internal error.",
-                    Data = new List<GetRoleOptionResponseDTO>()
-                };
+                throw; // ✅ CRITICAL
             }
         }
+
     }
 
 }

@@ -1,20 +1,11 @@
-﻿using axionpro.application.Common.Helpers.RequestHelper;
-using axionpro.application.DTOS.Common;
-using axionpro.application.DTOS.Employee.Bank;
+﻿using axionpro.application.DTOS.Employee.Bank;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
-using Microsoft.Extensions.Configuration;
+using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 {
@@ -50,85 +41,87 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
         }
 
         public async Task<ApiResponse<bool>> Handle(
-            DeleteBankInfoQuery request,
-            CancellationToken cancellationToken)
+   DeleteBankInfoQuery request,
+   CancellationToken cancellationToken)
         {
             try
             {
-                await _unitOfWork.BeginTransactionAsync();
+                _logger.LogInformation("DeleteBankInfo started");
 
-                // 🔐 STEP 1: COMMON VALIDATION
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
                 var validation =
                     await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
-                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                long loggedInEmployeeId = validation.UserEmployeeId;
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request.");
 
-                // 🔎 STEP 2: Validate Bank Record Id
                 if (request.DTO.Id <= 0)
-                    return ApiResponse<bool>.Fail("Invalid bank record id.");
+                    throw new ValidationErrorException("Invalid bank record id.");
 
-                // 🔑 STEP 3: Permission check
-                var permissions =
-                    await _permissionService.GetPermissionsAsync(validation.RoleId);
+                // ===============================
+                // 3️⃣ PERMISSION CHECK (CORRECT)
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.Delete);
 
-                if (!permissions.Contains("DeleteBankInfo"))
-                {
-                    // optional strict block
-                    // return ApiResponse<bool>.Fail("You do not have permission to delete bank info.");
-                }
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("No permission to delete bank info.");
 
-                // 📦 STEP 4: Fetch existing bank record
+                // ===============================
+                // 4️⃣ FETCH RECORD
+                // ===============================
                 var existing =
                     await _unitOfWork.EmployeeBankRepository
                         .GetSingleRecordAsync(request.DTO.Id, true);
 
                 if (existing == null)
-                    return ApiResponse<bool>.Fail("Bank record not found.");
+                    throw new ApiException("Bank record not found.", 404);
 
-                // 🔒 STEP 5: Ownership check Nahi karna hai permisssion to chck hai na
-
-                 
-
-                // 🗑️ STEP 6: Soft Delete
+                // ===============================
+                // 5️⃣ SOFT DELETE
+                // ===============================
                 existing.IsSoftDeleted = true;
                 existing.IsActive = false;
                 existing.DeletedDateTime = DateTime.UtcNow;
-                existing.SoftDeletedById = loggedInEmployeeId;
+                existing.SoftDeletedById = validation.UserEmployeeId;
+
                 existing.HasChequeDocUploaded = false;
                 existing.FilePath = null;
                 existing.FileName = null;
                 existing.FileType = 0;
-                existing.UpdatedById = loggedInEmployeeId;
+
+                existing.UpdatedById = validation.UserEmployeeId;
                 existing.UpdatedDateTime = DateTime.UtcNow;
 
-                bool deleted =
+                var deleted =
                     await _unitOfWork.EmployeeBankRepository
                         .DeleteAsync(existing);
 
                 if (!deleted)
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<bool>.Fail("Failed to delete bank record.");
-                }
+                    throw new ApiException("Failed to delete bank record.", 500);
 
-                await _unitOfWork.CommitTransactionAsync();
+                _logger.LogInformation("DeleteBankInfo success | Id: {Id}", request.DTO.Id);
+
                 return ApiResponse<bool>.Success(true, "Bank record deleted successfully.");
             }
             catch (Exception ex)
             {
-                await _unitOfWork.RollbackTransactionAsync();
-
                 _logger.LogError(
                     ex,
                     "Error deleting bank record | BankId: {Id}",
                     request.DTO?.Id);
 
-                return ApiResponse<bool>.Fail(
-                    "Error deleting bank record.",
-                    new List<string> { ex.Message });
+                throw; // 🚨 MUST (middleware handle karega)
             }
         }
     }

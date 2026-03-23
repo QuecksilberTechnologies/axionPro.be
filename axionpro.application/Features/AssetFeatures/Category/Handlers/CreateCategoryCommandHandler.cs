@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using axionpro.application.DTOS.AssetDTO.category;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IPermission;
@@ -47,99 +48,118 @@ namespace axionpro.application.Features.AssetFeatures.Category.Handlers
         }
 
         public async Task<ApiResponse<List<GetCategoryResponseDTO>>> Handle(
-            AddCategoryCommand request,
-            CancellationToken cancellationToken)
+    AddCategoryCommand request,
+    CancellationToken cancellationToken)
         {
             try
             {
                 _logger.LogInformation("Creating Asset Category");
 
                 // ===============================
-                // 1️⃣ COMMON VALIDATION
+                // 1️⃣ COMMON VALIDATION (AUTH + CONTEXT)
                 // ===============================
-                var validation =
-                    await _commonRequestService.ValidateRequestAsync();
+                var validation = await _commonRequestService.ValidateRequestAsync();
 
+                // ❌ Old: return Fail
+                // ✅ New: throw (middleware handle karega)
                 if (!validation.Success)
-                    return ApiResponse<List<GetCategoryResponseDTO>>
-                        .Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException(
+                        "Invalid request.",
+                        new List<string> { "Request DTO is required." }
+                    );
+
+                if (request.DTO.Prop == null)
+                    request.DTO.Prop = new();
+
+                // Assign Tenant
+                request.DTO.Prop.TenantId = validation.TenantId;
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
 
                 if (validation.TenantId <= 0)
                 {
-                    _logger.LogWarning("Invalid TenantId provided in AddAsync: {TenantId}", (request.DTO.Prop.TenantId));
-                }
-                 request.DTO.Prop.TenantId = validation.TenantId;
-                
+                    _logger.LogWarning(
+                        "Invalid TenantId provided in AddAsync: {TenantId}",
+                        validation.TenantId);
 
+                    throw new ValidationErrorException(
+                        "Invalid tenant.",
+                        new List<string> { "TenantId must be valid." }
+                    );
+                }
+
+                // ===============================
+                // 3️⃣ INPUT VALIDATION
+                // ===============================
                 if (string.IsNullOrWhiteSpace(request.DTO.CategoryName))
                 {
-                    _logger.LogWarning("CategoryName is missing in AddAsync request for TenantId: {TenantId}", request.DTO.Prop.TenantId);
-                    throw new ArgumentException("CategoryName cannot be null or empty.", nameof(request.DTO.CategoryName));
+                    _logger.LogWarning(
+                        "CategoryName is missing for TenantId: {TenantId}",
+                        request.DTO.Prop.TenantId);
+
+                    throw new ValidationErrorException(
+                        "Category name is required.",
+                        new List<string> { "CategoryName cannot be empty." }
+                    );
                 }
-               
- 
 
                 // ===============================
-                // 2️⃣ PERMISSION CHECK (OPTIONAL)
+                // 4️⃣ PERMISSION CHECK (RBAC)
                 // ===============================
-                var permissions =
-                    await _permissionService.GetPermissionsAsync(validation.RoleId);
+                //var hasPermission = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    "AssetCategory",   // 🔹 Module
+                //    "Add"             // 🔹 Operation
+                //);
 
-                // if (!permissions.Contains("AddAssetCategory"))
-                // {
-                //     return ApiResponse<List<GetCategoryResponseDTO>>
-                //         .Fail("You do not have permission to add asset category.");
-                // }
+                //if (!hasPermission)
+                //    throw new UnauthorizedAccessException(
+                //        "You do not have permission to create asset category.");
 
                 // ===============================
-                // 3️⃣ CALL REPOSITORY
+                // 5️⃣ CALL REPOSITORY (NO TRANSACTION NEEDED)
                 // ===============================
-                var categories =
-                    await _unitOfWork.AssetCategoryRepository
-                        .AddAsync(request.DTO);
-                 
+                var categories = await _unitOfWork.AssetCategoryRepository
+                    .AddAsync(request.DTO);
 
+                // ===============================
+                // 6️⃣ HANDLE NO DATA RETURN (EDGE CASE)
+                // ===============================
                 if (categories == null || categories.Count == 0)
                 {
                     _logger.LogWarning(
                         "Asset Category created but no data returned for TenantId: {TenantId}",
                         request.DTO.Prop.TenantId);
 
-                    return new ApiResponse<List<GetCategoryResponseDTO>>
-                    {
-                        IsSucceeded = true,
-                        Message = "Asset category created, but no categories found.",
-                        Data = new List<GetCategoryResponseDTO>()
-                    };
+                    return ApiResponse<List<GetCategoryResponseDTO>>
+                        .Success(new List<GetCategoryResponseDTO>(),
+                            "Asset category created, but no data returned.");
                 }
 
+                // ===============================
+                // 7️⃣ SUCCESS RESPONSE
+                // ===============================
                 _logger.LogInformation(
                     "Asset Category created successfully for TenantId: {TenantId}",
                     request.DTO.Prop.TenantId);
 
-                // ===============================
-                // 4️⃣ RETURN RESPONSE
-                // ===============================
-                return new ApiResponse<List<GetCategoryResponseDTO>>
-                {
-                    IsSucceeded = true,
-                    Message = "Asset category created successfully.",
-                    Data = categories
-                };
+                return ApiResponse<List<GetCategoryResponseDTO>>
+                    .Success(categories, "Asset category created successfully.");
             }
             catch (Exception ex)
             {
+                // ❗ IMPORTANT: middleware handle karega
                 _logger.LogError(
                     ex,
                     "Error occurred while creating Asset Category for TenantId: {TenantId}",
                     request?.DTO?.Prop?.TenantId);
 
-                return new ApiResponse<List<GetCategoryResponseDTO>>
-                {
-                    IsSucceeded = false,
-                    Message = "An unexpected error occurred while creating asset category.",
-                    Data = null
-                };
+                throw;
             }
         }
     }

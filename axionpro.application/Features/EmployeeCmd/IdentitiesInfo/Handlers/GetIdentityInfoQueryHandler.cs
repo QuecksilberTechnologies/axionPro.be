@@ -2,6 +2,7 @@
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.Sensitive;
 using axionpro.application.DTOS.StoreProcedures;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -52,62 +53,92 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
         }
 
         public async Task<ApiResponse<List<GetEmployeeIdentityResponseDTO>>> Handle(
-            GetIdentityInfoQuery request,
-            CancellationToken cancellationToken)
+   GetIdentityInfoQuery request,
+   CancellationToken cancellationToken)
         {
             try
             {
-                // 1️⃣ Validate Request
-                var validation = await _commonRequestService
-                    .ValidateRequestAsync(request.DTO.UserEmployeeId);
+                _logger.LogInformation("GetIdentityInfo started");
+
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
+                var validation =
+                    await _commonRequestService
+                        .ValidateRequestAsync(request.DTO?.UserEmployeeId);
 
                 if (!validation.Success)
-                    return ApiResponse<List<GetEmployeeIdentityResponseDTO>>
-                        .Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // 2️⃣ Decode EmployeeId
-                var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
-                    request.DTO.EmployeeId,
-                    validation.Claims.TenantEncriptionKey,
-                    _idEncoderService);
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request.");
 
-                // 3️⃣ Permission check (optional strict)
-                var permissions = await _permissionService
-                    .GetPermissionsAsync(validation.RoleId);
+                // ===============================
+                // 3️⃣ DECODE EMPLOYEE ID
+                // ===============================
+                var employeeId =
+                    RequestCommonHelper.DecodeOnlyEmployeeId(
+                        request.DTO.EmployeeId,
+                        validation.Claims.TenantEncriptionKey,
+                        _idEncoderService);
 
-                if (!permissions.Contains("PersonalInfo"))
-                {
-                    // optional block
-                }
+                if (employeeId <= 0)
+                    throw new ValidationErrorException("Invalid EmployeeId.");
 
-                // 4️⃣ Fetch SP data
-                var spRecords = await _unitOfWork.StoreProcedureRepository
-                    .GetIdentityRecordAsync(
-                        employeeId,
-                        request.DTO.CountryNationalityId,
-                        request.DTO.IsActive);
+                // ===============================
+                // 4️⃣ PERMISSION (YOUR PATTERN ✅)
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.View);
 
-                if (spRecords == null || !spRecords.Any())
-                    return ApiResponse<List<GetEmployeeIdentityResponseDTO>>
-                   .Success(null, "Identity information not found.");
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("No permission to view identity info.");
 
-                // 5️⃣ Projection + Encoding
-                var response = ProjectionHelper.ToGetIdentityResponseDTO(
-                    spRecords,
-                    _idEncoderService,
-                    validation.Claims.TenantEncriptionKey);
+                // ===============================
+                // 5️⃣ FETCH DATA
+                // ===============================
+                var spRecords =
+                    await _unitOfWork.StoreProcedureRepository
+                        .GetIdentityRecordAsync(
+                            employeeId,
+                            request.DTO.CountryNationalityId,
+                            request.DTO.IsActive);
 
+                // ===============================
+                // 6️⃣ SAFE EMPTY HANDLING
+                // ===============================
+                var items = spRecords ?? new List<GetEmployeeIdentitySp>(); // 🔁 replace with actual type
+
+                var response = items.Any()
+                    ? ProjectionHelper.ToGetIdentityResponseDTO(
+                        items,
+                        _idEncoderService,
+                        validation.Claims.TenantEncriptionKey)
+                    : new List<GetEmployeeIdentityResponseDTO>();
+
+                _logger.LogInformation("GetIdentityInfo success");
+
+                // ===============================
+                // 7️⃣ SUCCESS
+                // ===============================
                 return ApiResponse<List<GetEmployeeIdentityResponseDTO>>
-                    .Success(response, "Identity information retrieved successfully.");
+                    .Success(
+                        response,
+                        response.Any()
+                            ? "Identity information retrieved successfully."
+                            : "Identity information not found."
+                    );
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching identity info");
 
-                return ApiResponse<List<GetEmployeeIdentityResponseDTO>>
-                    .Fail(
-                        "An unexpected error occurred.",
-                        new List<string> { ex.Message });
+                throw; // 🚨 MUST
             }
         }
     }

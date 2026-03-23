@@ -4,9 +4,10 @@ using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Constants;
+using axionpro.application.DTOs.Module;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Pagination;
-
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -20,6 +21,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
@@ -74,146 +76,167 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
         }
 
 
-        public async Task<ApiResponse<List<GetBankResponseDTO>>> Handle(CreateBankInfoCommand request, CancellationToken cancellationToken)
-        {         
-
+        public async Task<ApiResponse<List<GetBankResponseDTO>>> Handle(
+      CreateBankInfoCommand request,
+      CancellationToken cancellationToken)
+        {
+            string? uploadedFileKey = null;
 
             try
             {
-                await _unitOfWork.BeginTransactionAsync();
-                string? savedFullPath = null;  // 📂 File full path track karne ke liye
-
-                // 1️ COMMON VALIDATION (Mandatory)
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
                 var validation = await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
-                    return ApiResponse<List<GetBankResponseDTO>>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // Assign decoded values coming from CommonRequestService
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request data.");
+
+                request.DTO.Prop ??= new();
+
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
-                request.DTO.Prop.EmployeeId= RequestCommonHelper.DecodeOnlyEmployeeId(
-                  request.DTO.EmployeeId,                 
-                  validation.Claims.TenantEncriptionKey, _idEncoderService
-              );
 
-         
-                // ✅ Create  using repository
-                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
-                if (!permissions.Contains("AddBankInfo"))
-                {
-                    //await _unitOfWork.RollbackTransactionAsync();
-                    //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
-                }
-                // 🧩 STEP 4: Call Repository to get data          
+                request.DTO.Prop.EmployeeId =
+                    RequestCommonHelper.DecodeOnlyEmployeeId(
+                        request.DTO.EmployeeId,
+                        validation.Claims.TenantEncriptionKey,
+                        _idEncoderService);
 
-                // 🔹 STEP 4: File Upload
-                string? docPath = null;
-                string? docName = null;
- 
-                bool HasChequeDocUploaded = false;
+                if (request.DTO.Prop.EmployeeId <= 0)
+                    throw new ValidationErrorException("Invalid EmployeeId.");
+
+                // ===============================
+                // 3️⃣ PERMISSION CHECK (CORRECT)
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.Add);
+
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("You do not have permission.");
+
+                // ===============================
+                // 4️⃣ BUSINESS VALIDATION
+                // ===============================
                 if (string.IsNullOrWhiteSpace(request.DTO.BankName))
-                {
-                     return ApiResponse<List<GetBankResponseDTO>>.Fail("Bank name cannot be null.");
-                }
+                    throw new ValidationErrorException("Bank name cannot be empty.");
 
-                // ✅ check — sirf letters (A–Z, a–z) aur space allowed
                 if (!Regex.IsMatch(request.DTO.BankName, @"^[a-zA-Z\s]+$"))
-                {
-                    return ApiResponse<List<GetBankResponseDTO>>.Fail("Bank name cannot be null or sepcial character.");
+                    throw new ValidationErrorException("Invalid bank name format.");
 
+                // ===============================
+                // 5️⃣ START TRANSACTION
+                // ===============================
+                await _unitOfWork.BeginTransactionAsync();
+
+                // ===============================
+                // 6️⃣ FILE UPLOAD
+                // ===============================
+                string? docName = null;
+                bool hasFile = false;
+
+                if (request.DTO.CancelledChequeFile != null &&
+                    request.DTO.CancelledChequeFile.Length > 0)
+                {
+                    string cleanName = EncryptionSanitizer
+                        .CleanEncodedInput(request.DTO.BankName)
+                        .Replace(" ", "")
+                        .ToLower();
+
+                    docName = $"Cheque-{cleanName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
+
+                    string folderPath =
+                        $"{ConstantValues.TenantFolder}-{validation.TenantId}/" +
+                        $"{ConstantValues.EmployeeFolder}/{request.DTO.Prop.EmployeeId}/" +
+                        $"{ConstantValues.BankFolder}";
+
+                    uploadedFileKey = await _fileStorageService.UploadFileAsync(
+                        request.DTO.CancelledChequeFile,
+                        folderPath,
+                        docName);
+
+                    if (!string.IsNullOrEmpty(uploadedFileKey))
+                        hasFile = true;
                 }
 
+                // ===============================
+                // 7️⃣ MAP ENTITY
+                // ===============================
+                var bankEntity = _mapper.Map<EmployeeBankDetail>(request.DTO);
 
-                string? docFileName = null;
-             
-                    // 🔹 File upload check
-                    if (request.DTO.CancelledChequeFile != null && request.DTO.CancelledChequeFile.Length > 0)
-                    {
-                    docFileName = EncryptionSanitizer.CleanEncodedInput(request.DTO.BankName.Trim().Replace(" ", "").ToLower());
-                      using (var ms = new MemoryStream())
-                        {
-                            await request.DTO.CancelledChequeFile.CopyToAsync(ms);
-                            var fileBytes = ms.ToArray();
-
-                            // 🔹 File naming convention (same pattern as asset)
-                            string fileName = $"Cheque-{request.DTO.Prop.EmployeeId + "_" + docFileName}-{DateTime.UtcNow:yyMMddHHmmss}";
-
-                            string folderPath = $"{ConstantValues.TenantFolder}-{validation.TenantId}/{ConstantValues.EmployeeFolder}/{request.DTO.Prop.EmployeeId}/{ConstantValues.BankFolder}";
-
-
-                                   
-
-                            // 🔹 Store actual name for reference in DB
-                            docName = fileName;
-                        // 🔹 Upload to S3
-                        var fileKey = await _fileStorageService.UploadFileAsync(request.DTO.CancelledChequeFile, folderPath, docName);
-
-                         
-                        // 🔹 If saved successfully, set relative path
-                        if (!string.IsNullOrEmpty(fileKey))
-                            {
-                                
-                            
-                                 HasChequeDocUploaded = true;
-                            }
-                        }
-                    }
-
-                
-
-                var bankEntity = _mapper.Map<EmployeeBankDetail>(request.DTO); // use mapper for create mapping
                 bankEntity.EmployeeId = request.DTO.Prop.EmployeeId;
                 bankEntity.AddedById = request.DTO.Prop.UserEmployeeId;
                 bankEntity.AddedDateTime = DateTime.UtcNow;
-                bankEntity.AccountType=   AccountTypeHelper.Normalize(request.DTO.AccountType);
+                bankEntity.AccountType = AccountTypeHelper.Normalize(request.DTO.AccountType);
                 bankEntity.IsActive = true;
                 bankEntity.IsEditAllowed = true;
                 bankEntity.IsInfoVerified = false;
                 bankEntity.IsPrimaryAccount = request.DTO.IsPrimaryAccount;
-                bankEntity.EmployeeId = request.DTO.Prop.EmployeeId;
-                bankEntity.FileType = 0;
+                bankEntity.FileType = hasFile ? 1 : 0;
+                bankEntity.FilePath = uploadedFileKey;
+                bankEntity.FileName = docName;
+                bankEntity.HasChequeDocUploaded = hasFile;
 
-                if (HasChequeDocUploaded)
-                {
-                    bankEntity.FileType = 1;//image
-                    bankEntity.FilePath = docPath;
-                    bankEntity.FileName= docName;
-                    
-                }
-               bankEntity.HasChequeDocUploaded=HasChequeDocUploaded;
+                // ===============================
+                // 8️⃣ SAVE
+                // ===============================
+                var responseDTO =
+                    await _unitOfWork.EmployeeBankRepository.CreateAsync(bankEntity);
 
+                if (responseDTO == null)
+                    throw new ApiException("Failed to add bank info.", 500);
 
-                    PagedResponseDTO<GetBankResponseDTO> responseDTO = await _unitOfWork.EmployeeBankRepository.CreateAsync(bankEntity);
-                 
-                // 4. Pre-map projection + encrypt Ids (fast)
-                // If pagedResult.Items are entities:
-                var encryptedList = ProjectionHelper.ToGetBankResponseDTOs(responseDTO, _idEncoderService, validation.Claims.TenantEncriptionKey, _config);
-               
+                // ===============================
+                // 9️⃣ RESPONSE BUILD
+                // ===============================
+                var encryptedList = ProjectionHelper.ToGetBankResponseDTOs(
+                    responseDTO,
+                    _idEncoderService,
+                    validation.Claims.TenantEncriptionKey,
+                    _config);
 
-                // 5. commit
+                // ===============================
+                // 🔟 COMMIT
+                // ===============================
                 await _unitOfWork.CommitTransactionAsync();
 
-                // 6. Return API response with pagination metadata preserved
-                return new ApiResponse<List<GetBankResponseDTO>>
-                {
-                    IsSucceeded = true,
-                    Message = $"{responseDTO.TotalCount} record(s) retrieved successfully.",
-                    PageNumber = responseDTO.PageNumber,
-                    PageSize = responseDTO.PageSize,
-                    TotalRecords = responseDTO.TotalCount,
-                    TotalPages = responseDTO.TotalPages,
-                    Data = encryptedList
-                };
+                return ApiResponse<List<GetBankResponseDTO>>.Success(
+                    encryptedList,
+                    "Bank info added successfully.");
             }
             catch (Exception ex)
             {
+                // ===============================
+                // 🔁 ROLLBACK
+                // ===============================
                 await _unitOfWork.RollbackTransactionAsync();
-                _logger.LogError(ex, "Error occurred while adding bank info for EmployeeId: {EmployeeId}", request.DTO?.EmployeeId);
-                return ApiResponse<List<GetBankResponseDTO>>.Fail("Failed to add bank info.", new List<string> { ex.Message });
+
+                _logger.LogError(ex, "Error adding bank info");
+
+                // 🧹 FILE CLEANUP
+                if (!string.IsNullOrEmpty(uploadedFileKey))
+                {
+                    try
+                    {
+                        await _fileStorageService.DeleteFileAsync(uploadedFileKey);
+                    }
+                    catch (Exception cleanupEx)
+                    {
+                        _logger.LogError(cleanupEx, "File cleanup failed");
+                    }
+                }
+
+                throw; // 🚨 MUST
             }
         }
-
 
     }
 }

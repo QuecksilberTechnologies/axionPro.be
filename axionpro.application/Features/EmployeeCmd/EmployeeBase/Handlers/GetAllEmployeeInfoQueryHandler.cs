@@ -4,7 +4,7 @@ using AutoMapper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Pagination;
-
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -61,63 +61,92 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             _idEncoderService = idEncoderService;
             _commonRequestService = commonRequestService;
         }
-
-        public async Task<ApiResponse<List<GetAllEmployeeInfoResponseDTO>>> Handle(GetAllEmployeeInfoQuery request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<List<GetAllEmployeeInfoResponseDTO>>> Handle(
+    GetAllEmployeeInfoQuery request,
+    CancellationToken cancellationToken)
         {
             try
             {
-                // 1️ COMMON VALIDATION (Mandatory)
-                var validation = await _commonRequestService.ValidateRequestAsync(request.DTO.UserEmployeeId);
+                _logger.LogInformation("GetAllEmployeeInfo started");
+
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
+                var validation =
+                    await _commonRequestService.ValidateRequestAsync(
+                        request.DTO?.UserEmployeeId);
 
                 if (!validation.Success)
-                    return ApiResponse<List<GetAllEmployeeInfoResponseDTO>>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // Assign decoded values coming from CommonRequestService
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request.");
+
+                request.DTO.Prop ??= new();
+
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
+                // ===============================
+                // 3️⃣ PERMISSION (YOUR PATTERN ✅)
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.View);
 
-                // ✅ Create  using repository
-                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
-                if (!permissions.Contains("AddBankInfo"))
-                {
-                    //await _unitOfWork.RollbackTransactionAsync();
-                    //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
-                }
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("No permission to view employee info.");
 
-                PagedResponseDTO<GetAllEmployeeInfoResponseDTO> responseDTO = await _unitOfWork.Employees.GetAllInfo(request.DTO);
-                if (responseDTO == null || !responseDTO.Items.Any())
-                {
-                    _logger.LogInformation("No Base Employee info found for EmployeeId: {EmpId}", request.DTO.Prop.UserEmployeeId);
-                    return ApiResponse<List<GetAllEmployeeInfoResponseDTO>>.SuccessPaginatedPercentage(
-                           Data: null,
-                           Message: "Base Employee info not found.",
-                           PageNumber:1,
-                           PageSize: 1,
-                           TotalRecords: 0,
-                           TotalPages:1,
-                           CompletionPercentage: 0,
-                           HasUploadedAll: false
-       );
-                }
+                // ===============================
+                // 4️⃣ FETCH DATA
+                // ===============================
+                var responseDTO =
+                    await _unitOfWork.Employees.GetAllInfo(request.DTO);
 
-                var resultList = ProjectionHelper.ToGetAllEmployeeInfoResponseDTOs(responseDTO, _idEncoderService, validation.Claims.TenantEncriptionKey, _config);
+                // ===============================
+                // 5️⃣ OPTIMIZED EMPTY HANDLING
+                // ===============================
+                var items = responseDTO?.Items ?? new List<GetAllEmployeeInfoResponseDTO>();
 
-                return ApiResponse<List<GetAllEmployeeInfoResponseDTO>>.SuccessPaginatedPercentage(
-                    Data: resultList,
-                    Message: "Base Employee info retrieved successfully.",
-                    PageNumber: responseDTO.PageNumber,
-                    PageSize: responseDTO.PageSize,
-                    TotalRecords: responseDTO.TotalCount,
-                    TotalPages: responseDTO.TotalPages,
-                    CompletionPercentage: responseDTO.CompletionPercentage,
-                    HasUploadedAll: false
-                );
+                var resultList = items.Any()
+                    ? ProjectionHelper.ToGetAllEmployeeInfoResponseDTOs(
+                        responseDTO,
+                        _idEncoderService,
+                        validation.Claims.TenantEncriptionKey,
+                        _config)
+                    : new List<GetAllEmployeeInfoResponseDTO>();
+
+                _logger.LogInformation("GetAllEmployeeInfo success");
+
+                // ===============================
+                // 6️⃣ SINGLE RESPONSE
+                // ===============================
+                return ApiResponse<List<GetAllEmployeeInfoResponseDTO>>
+                    .SuccessPaginatedPercentage(
+                        Data: resultList,
+                        Message: items.Any()
+                            ? "Employee info retrieved successfully."
+                            : "No employee info found.",
+                        PageNumber: responseDTO?.PageNumber ?? 1,
+                        PageSize: responseDTO?.PageSize ?? 0,
+                        TotalRecords: responseDTO?.TotalCount ?? 0,
+                        TotalPages: responseDTO?.TotalPages ?? 0,
+                        CompletionPercentage: responseDTO?.CompletionPercentage ?? 0,
+                        HasUploadedAll: responseDTO?.HasUploadedAll ?? false
+                    );
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while fetching Base Employee info for EmployeeId: {EmployeeId}", request.DTO?.UserEmployeeId);
-                return ApiResponse<List<GetAllEmployeeInfoResponseDTO>>.Fail("An unexpected error occurred.", new List<string> { ex.Message });
+                _logger.LogError(
+                    ex,
+                    "Error fetching employee info | EmployeeId: {EmployeeId}",
+                    request.DTO?.UserEmployeeId);
+
+                throw; // 🚨 MUST
             }
         }
 

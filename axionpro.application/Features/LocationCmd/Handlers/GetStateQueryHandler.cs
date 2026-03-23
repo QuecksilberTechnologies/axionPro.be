@@ -1,15 +1,10 @@
 ﻿using AutoMapper;
 using axionpro.application.DTOS.Location;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
-
-using axionpro.domain.Entity; using MediatR;
+using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Features.LocationCmd.Handlers
 {
@@ -35,81 +30,56 @@ namespace axionpro.application.Features.LocationCmd.Handlers
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
-        public async Task<ApiResponse<List<GetStateOptionResponseDTO>>> Handle(GetStateQuery request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<List<GetStateOptionResponseDTO>>> Handle(
+    GetStateQuery request,
+    CancellationToken cancellationToken)
         {
             try
             {
-                if (request.DTO == null)
-                {
-                    _logger.LogWarning("Request DTO is null.");
-                    return new ApiResponse<List<GetStateOptionResponseDTO>>
-                    {
-                        IsSucceeded = false,
-                        Message = "Invalid request data.",
-                        Data = new List<GetStateOptionResponseDTO>()
-                    };
-                }
+                _logger.LogInformation("🔹 GetState started (Open API)");
 
-                // ✅ Step 2: Validate TodaysDate
+                // ===============================
+                // 1️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request data.");
+
+                // ===============================
+                // 2️⃣ INPUT VALIDATION
+                // ===============================
                 if (!request.DTO.TodaysDate.HasValue)
-                {
-                    _logger.LogWarning("Today's date not provided in request.");
-                    return new ApiResponse<List<GetStateOptionResponseDTO>>
-                    {
-                        IsSucceeded = false,
-                        Message = "Today's date is required.",
-                        Data = new List<GetStateOptionResponseDTO>()
-                    };
-                }
+                    throw new ValidationErrorException("Today's date is required.");
 
-                // ✅ Step 3: Validate IsActive flag
-                //if (request.DTO.IsActive != true)
-                //{
-                //    _logger.LogWarning("Inactive request received.");
-                //    return new ApiResponse<List<GetStateOptionResponseDTO>>
-                //    {
-                //        IsSucceeded = false,
-                //        Message = "Inactive request. Cannot fetch districts.",
-                //        Data = new List<GetStateOptionResponseDTO>()
-                //    };
-                //}
-
-                // ✅ Step 4: Validate StateId
                 if (request.DTO.CountryId <= 0)
-                {
-                    _logger.LogWarning("CountryId is missing or invalid.");
-                    return new ApiResponse<List<GetStateOptionResponseDTO>>
-                    {
-                        IsSucceeded = false,
-                        Message = "StateId is required to fetch districts.",
-                        Data = new List<GetStateOptionResponseDTO>()
-                    };
-                }
+                    throw new ValidationErrorException("CountryId is required to fetch states.");
 
-                var getState = await _unitOfWork.LocationRepository.GetStateOptionAsync(request.DTO);
+                // ===============================
+                // 3️⃣ FETCH DATA
+                // ===============================
+                var result = await _unitOfWork
+                    .LocationRepository
+                    .GetStateOptionAsync(request.DTO);
 
-              
+                var data = result?.Data ?? new List<GetStateOptionResponseDTO>();
 
-                _logger.LogInformation("Successfully retrieved {Count} Operations.", getState.Data.Count);
-                return new ApiResponse<List<GetStateOptionResponseDTO>>
-                {
-                    IsSucceeded = true,
-                    Message = "Country fetched successfully.",
-                    Data = getState.Data
-                };
+                _logger.LogInformation(
+                    "✅ Retrieved {Count} states for CountryId {CountryId}",
+                    data.Count,
+                    request.DTO.CountryId);
+
+                // ===============================
+                // 4️⃣ SUCCESS (EMPTY ALLOWED ✅)
+                // ===============================
+                return ApiResponse<List<GetStateOptionResponseDTO>>
+                    .Success(data, "States fetched successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while fetching Operations.");
-                return new ApiResponse<List<GetStateOptionResponseDTO>>
-                {
-                    IsSucceeded = false,
-                    Message = "Country not fetched .",
-                    Data = null
-                };
+                _logger.LogError(ex, "❌ Error in GetState");
+
+                throw; // ✅ CRITICAL
             }
         }
-
 
 
     }

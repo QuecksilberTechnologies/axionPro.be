@@ -1,14 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Exceptions
 {
     public class ApiException : Exception
     {
-        public ApiException(string message) : base(message)
-        { }
+        public int StatusCode { get; set; }  // ✅ ye missing hai
+
+        public ApiException(string message, int statusCode = 400)
+            : base(message)
+        {
+            StatusCode = statusCode;
+        }
     }
 }

@@ -38,10 +38,10 @@ namespace axionpro.api.Middlewares
             }
 
             // ✅ Custom ApiException (dynamic status)
-            //catch (ApiException ex)
-            //{
-            //    await HandleExceptionAsync(context, ex.StatusCode, ex.Message);
-            //}
+            catch (ApiException ex)
+            {
+                await HandleExceptionAsync(context, ex.StatusCode, ex.Message);
+            }
 
             // ✅ 404 - Not Found (optional)
             catch (KeyNotFoundException ex)

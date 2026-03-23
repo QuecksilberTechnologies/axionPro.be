@@ -1,6 +1,7 @@
 ﻿using axionpro.application.Common.Enums;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.BaseEmployee;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -52,70 +53,83 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         }
 
         public async Task<ApiResponse<bool>> Handle(
-            UpdateSectionBulkCommand request,
-            CancellationToken ct)
+    UpdateSectionBulkCommand request,
+    CancellationToken ct)
         {
             try
             {
-                // =====================================================
-                // STEP 1: Validate User / Tenant / Token
-                // =====================================================
-                var validation = await _commonRequestService
-                    .ValidateRequestAsync();
+                _logger.LogInformation("UpdateSectionBulk started");
+
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
+                var validation =
+                    await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
-                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // =====================================================
-                // STEP 2: Decode EmployeeId (Tenant safe)
-                // =====================================================
-                long employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
-                    request.DTO.EmployeeId,
-                    validation.Claims.TenantEncriptionKey,
-                    _idEncoderService);
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request.");
+
+                // ===============================
+                // 3️⃣ DECODE EMPLOYEE ID
+                // ===============================
+                var employeeId =
+                    RequestCommonHelper.DecodeOnlyEmployeeId(
+                        request.DTO.EmployeeId,
+                        validation.Claims.TenantEncriptionKey,
+                        _idEncoderService);
 
                 if (employeeId <= 0)
-                    return ApiResponse<bool>.Fail("Invalid employee.");
+                    throw new ValidationErrorException("Invalid employee.");
 
-                // =====================================================
-                // STEP 3: Validate Sections
-                // =====================================================
+                // ===============================
+                // 4️⃣ VALIDATE SECTIONS
+                // ===============================
                 if (request.DTO.Sections == null || !request.DTO.Sections.Any())
-                    return ApiResponse<bool>.Fail("No section selected.");
+                    throw new ValidationErrorException("No section selected.");
 
-                // =====================================================
-                // STEP 4: (Optional) Permission check
-                // =====================================================
-                // var permissions = await _permissionService
-                //     .GetPermissionsAsync(validation.RoleId);
+                // ===============================
+                // 5️⃣ PERMISSION (YOUR PATTERN ✅)
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.Update);
 
-                // =====================================================
-                // STEP 5: LOOP SECTIONS (LOGICAL LOOP ONLY)
-                // 🔥 No data loading here
-                // 🔥 Each loop = single optimized SQL in repo
-                // =====================================================
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("No permission to update sections.");
+
+                // ===============================
+                // 6️⃣ LOOP (OPTIMIZED)
+                // ===============================
                 foreach (var section in request.DTO.Sections)
                 {
                     if (!Enum.IsDefined(typeof(TabInfoType), section.TabInfoType))
                     {
                         _logger.LogWarning(
-                            "Invalid TabInfoType received | Value={Value} | EmpId={EmpId}",
+                            "Invalid TabInfoType | Value={Value} | EmpId={EmpId}",
                             section.TabInfoType,
                             employeeId
                         );
                         continue;
                     }
 
-                    bool updated = await _unitOfWork.Employees
-                        .UpdateSectionVerifyStatusAsync(
-                            (int)section.TabInfoType,
-                            employeeId,
-                            validation.TenantId,
-                            section.IsVerified ?? false,
-                            section.IsEditAllowed ?? false,
-                            validation.UserEmployeeId,
-                            ct
-                        );
+                    var updated =
+                        await _unitOfWork.Employees
+                            .UpdateSectionVerifyStatusAsync(
+                                (int)section.TabInfoType,
+                                employeeId,
+                                validation.TenantId,
+                                section.IsVerified ?? false,
+                                section.IsEditAllowed ?? false,
+                                validation.UserEmployeeId,
+                                ct
+                            );
 
                     if (!updated)
                     {
@@ -127,19 +141,24 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     }
                 }
 
+                _logger.LogInformation("UpdateSectionBulk success");
 
+                // ===============================
+                // 7️⃣ SUCCESS
+                // ===============================
                 return ApiResponse<bool>.Success(
                     true,
                     "Section status updated successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "UpdateSectionBulkCommand failed");
-                return ApiResponse<bool>.Fail("Unexpected error occurred.");
+                _logger.LogError(ex, "UpdateSectionBulk failed");
+
+                throw; // 🚨 MUST
             }
         }
-    
-    
+
+
     }
 
 }

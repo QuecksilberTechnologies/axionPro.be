@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using axionpro.application.DTOS.AssetDTO.category;
-using axionpro.application.DTOS.Employee.BaseEmployee;
-using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEmail;
@@ -9,14 +8,10 @@ using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Features.AssetFeatures.Category.Handlers
 {
@@ -75,70 +70,98 @@ namespace axionpro.application.Features.AssetFeatures.Category.Handlers
         /// <summary>
         /// Handles the GetAllCategoryCommand request to retrieve all categories.
         /// </summary>
-        public async Task<ApiResponse<List<GetCategoryResponseDTO>>> Handle(GetAllCategoryCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<List<GetCategoryResponseDTO>>> Handle(
+     GetAllCategoryCommand request,
+     CancellationToken cancellationToken)
         {
             try
             {
-                _logger.LogInformation("Fetching all Asset Categories ");
+                _logger.LogInformation("Fetching all Asset Categories");
 
-                // 1️ COMMON VALIDATION (Mandatory)
+                // ===============================
+                // 1️⃣ COMMON VALIDATION (AUTH + CONTEXT)
+                // ===============================
                 var validation = await _commonRequestService.ValidateRequestAsync();
 
+                // ❌ Old: return Fail
+                // ✅ New: throw (middleware handle karega)
                 if (!validation.Success)
-                    return ApiResponse<List<GetCategoryResponseDTO>>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // Assign decoded values coming from CommonRequestService
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException(
+                        "Invalid request.",
+                        new List<string> { "Request DTO is required." }
+                    );
+
+                if (request.DTO.Prop == null)
+                    request.DTO.Prop = new();
+
+                // Assign decoded values
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
+                // ===============================
+                // 3️⃣ PERMISSION CHECK (RBAC)
+                // ===============================
+                //var hasPermission = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    "AssetCategory",   // 🔹 Module
+                //    "View"             // 🔹 Operation
+                //);
 
-                // ✅ Create  using repository
-                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
-                if (!permissions.Contains("AddBankInfo"))
-                {
-                    //await _unitOfWork.RollbackTransactionAsync();
-                    //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
-                }
+                //if (!hasPermission)
+                //    throw new UnauthorizedAccessException(
+                //        "You do not have permission to view asset categories.");
 
+                // ===============================
+                // 4️⃣ FETCH DATA
+                // ===============================
+                var categoryEntities = await _unitOfWork.AssetCategoryRepository
+                    .GetAllAsync(request.DTO);
 
-
-                // ✅ Fetch data from repository
-                var categoryEntities = await _unitOfWork.AssetCategoryRepository.GetAllAsync(request.DTO);
-
+                // ===============================
+                // 5️⃣ HANDLE EMPTY DATA (IMPORTANT)
+                // ===============================
                 if (categoryEntities == null || categoryEntities.Count == 0)
                 {
-                    _logger.LogWarning("No Asset Categories found for TenantId: {TenantId}", request.DTO.Prop.TenantId);
-                    return new ApiResponse<List<GetCategoryResponseDTO>>
-                    {
-                        IsSucceeded = false,
-                        Message = "No Asset Categories found.",
-                        Data = new List<GetCategoryResponseDTO>()
-                    };
+                    _logger.LogWarning(
+                        "No Asset Categories found for TenantId: {TenantId}",
+                        request.DTO.Prop.TenantId);
+
+                    // ✅ Empty list = success (best practice)
+                    return ApiResponse<List<GetCategoryResponseDTO>>
+                        .Success(new List<GetCategoryResponseDTO>(), "No Asset Categories found.");
                 }
 
-                // ✅ Map entities → DTOs
+                // ===============================
+                // 6️⃣ MAP ENTITY → DTO
+                // ===============================
                 var responseDTOs = _mapper.Map<List<GetCategoryResponseDTO>>(categoryEntities);
 
-                _logger.LogInformation("Successfully retrieved {Count} Asset Categories for TenantId: {TenantId}",
-                    responseDTOs.Count, request.DTO.Prop.TenantId);
+                _logger.LogInformation(
+                    "Successfully retrieved {Count} Asset Categories for TenantId: {TenantId}",
+                    responseDTOs.Count,
+                    request.DTO.Prop.TenantId);
 
-                // ✅ Return formatted API response
-                return new ApiResponse<List<GetCategoryResponseDTO>>
-                {
-                    IsSucceeded = true,
-                    Message = "Asset Categories fetched successfully.",
-                    Data = responseDTOs
-                };
+                // ===============================
+                // 7️⃣ SUCCESS RESPONSE
+                // ===============================
+                return ApiResponse<List<GetCategoryResponseDTO>>
+                    .Success(responseDTOs, "Asset Categories fetched successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while fetching Asset Categories for TenantId: {TenantId}", request.DTO.Prop.TenantId);
-                return new ApiResponse<List<GetCategoryResponseDTO>>
-                {
-                    IsSucceeded = false,
-                    Message = "An unexpected error occurred while fetching asset categories.",
-                    Data = null
-                };
+                // ❗ IMPORTANT: middleware handle karega
+                _logger.LogError(
+                    ex,
+                    "Error occurred while fetching Asset Categories for TenantId: {TenantId}",
+                    request?.DTO?.Prop?.TenantId);
+
+                throw;
             }
         }
     }

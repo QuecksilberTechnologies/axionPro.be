@@ -1,29 +1,16 @@
 ﻿using AutoMapper;
-using axionpro.application.Common.Helpers;
-using axionpro.application.Common.Helpers.axionpro.application.Configuration;
-using axionpro.application.Common.Helpers.Converters;
-using axionpro.application.Common.Helpers.EncryptionHelper;
-using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
-using axionpro.application.DTOs.Department;
 using axionpro.application.DTOs.Designation;
-using axionpro.application.DTOs.Role;
-using axionpro.application.DTOS.Employee.BaseEmployee;
-using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Features.DesignationCmd.Handlers
 {
@@ -80,95 +67,108 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
             _idEncoderService = idEncoderService;   
             _commonRequestService = commonRequestService;
         }
-        public async Task<ApiResponse<List<GetDesignationResponseDTO>>> Handle(CreateDesignationCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<List<GetDesignationResponseDTO>>> Handle(
+   CreateDesignationCommand request,
+   CancellationToken cancellationToken)
         {
             try
             {
-                //  COMMON VALIDATION (Mandatory)
-                var validation = await _commonRequestService.ValidateRequestAsync(request.DTO.UserEmployeeId);
+                _logger.LogInformation("Creating Designation");
+
+                // ===============================
+                // 1️⃣ COMMON VALIDATION (AUTH + CONTEXT)
+                // ===============================
+                var validation = await _commonRequestService
+                    .ValidateRequestAsync(request.DTO.UserEmployeeId);
 
                 if (!validation.Success)
-                    return ApiResponse<List<GetDesignationResponseDTO>>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // Assign decoded values coming from CommonRequestService
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException(
+                        "Invalid request.",
+                        new List<string> { "Request DTO is required." }
+                    );
+
+                if (request.DTO.Prop == null)
+                    request.DTO.Prop = new();
+
+                // Assign values
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
+                // ===============================
+                // 3️⃣ PERMISSION CHECK (RBAC FIXED)
+                // ===============================
+                //var hasPermission = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    "Designation",   // 🔹 Module
+                //    "Add"            // 🔹 Operation
+                //);
 
-                // ✅ Create  using repository
-                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
+                //if (!hasPermission)
+                //    throw new UnauthorizedAccessException(
+                //        "You do not have permission to create designation.");
 
-                
-                if (!permissions.Contains("AddBankInfo"))
-                {
-                   // await _unitOfWork.RollbackTransactionAsync();
-                    //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
-                }
-
-                // ✅ Trim and validate DesignationName
+                // ===============================
+                // 4️⃣ BUSINESS VALIDATION
+                // ===============================
                 string? designationName = request.DTO.DesignationName?.Trim();
+
                 if (string.IsNullOrWhiteSpace(designationName))
-                {
-                    return new ApiResponse<List<GetDesignationResponseDTO>>
-                    {
-                        IsSucceeded = false,
-                        Message = "Designation name should not be empty or whitespace.",
-                        Data = null
-                    };
-                }
+                    throw new ValidationErrorException(
+                        "Designation name is required.",
+                        new List<string> { "DesignationName cannot be empty." }
+                    );
+
                 request.DTO.DesignationName = designationName;
 
-                // ✅ Check duplicate
-                bool isDuplicate = await  _unitOfWork.DesignationRepository .CheckDuplicateValueAsync(request.DTO.Prop.UserEmployeeId, designationName);
+                // ===============================
+                // 5️⃣ DUPLICATE CHECK (IMPORTANT)
+                // ===============================
+                bool isDuplicate = await _unitOfWork.DesignationRepository
+                    .CheckDuplicateValueAsync(validation.UserEmployeeId, designationName);
 
                 if (isDuplicate)
-                {
-                    return new ApiResponse<List<GetDesignationResponseDTO>>
-                    {
-                        IsSucceeded = false,
-                        Message = "This designation name already exists.",
-                        Data = null
-                    };
-                }
+                    throw new ApiException("This designation name already exists.", 409);
 
-                // ✅ Create designation using repository
-                var responseDTO = await _unitOfWork.DesignationRepository.CreateAsync(request.DTO);
+                // ===============================
+                // 6️⃣ CREATE DESIGNATION
+                // ===============================
+                var responseDTO = await _unitOfWork.DesignationRepository
+                    .CreateAsync(request.DTO);
 
                 if (responseDTO == null || responseDTO.Items == null || !responseDTO.Items.Any())
-                {
-                    return new ApiResponse<List<GetDesignationResponseDTO>>
-                    {
-                        IsSucceeded = false,
-                        Message = "No designation was created.",
-                        Data = new List<GetDesignationResponseDTO>() // empty list instead of null
-                    };
-                }
+                    throw new ApiException("No designation was created.", 500);
 
-                // var encryptedList = ProjectionHelper.ToGetDesignationResponseDTOs(responseDTO.Items, _encryptionService, tenantKey);
-
-                // 5️⃣ Commit transaction
+                // ===============================
+                // 7️⃣ COMMIT TRANSACTION (REQUIRED)
+                // ===============================
                 await _unitOfWork.CommitTransactionAsync();
 
-                // 6️⃣ Return API response
+                // ===============================
+                // 8️⃣ SUCCESS RESPONSE
+                // ===============================
                 return new ApiResponse<List<GetDesignationResponseDTO>>
                 {
                     IsSucceeded = true,
-                    Message = $"{responseDTO.TotalCount} record(s) retrieved successfully.",
+                    Message = $"{responseDTO.TotalCount} record(s) created successfully.",
                     PageNumber = responseDTO.PageNumber,
                     PageSize = responseDTO.PageSize,
                     TotalRecords = responseDTO.TotalCount,
                     TotalPages = responseDTO.TotalPages,
-                    Data = responseDTO.Items,
+                    Data = responseDTO.Items
                 };
             }
             catch (Exception ex)
             {
-                return new ApiResponse<List<GetDesignationResponseDTO>>
-                {
-                    IsSucceeded = false,
-                    Message = $"An error occurred: {ex.Message}",
-                    Data = null
-                };
+                _logger.LogError(ex, "Error occurred while creating designation.");
+
+                // ❗ IMPORTANT: middleware handle karega
+                throw;
             }
         }
     }

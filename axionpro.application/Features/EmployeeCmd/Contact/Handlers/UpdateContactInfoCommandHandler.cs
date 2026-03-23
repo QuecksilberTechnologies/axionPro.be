@@ -1,6 +1,8 @@
 ﻿using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.RequestHelper;
+using axionpro.application.DTOs.Module;
 using axionpro.application.DTOS.Employee.Contact;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -8,6 +10,7 @@ using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity; using MediatR;
 using Microsoft.Extensions.Logging;
+using System.Reflection;
 using System.Text.RegularExpressions;
 
 
@@ -39,153 +42,167 @@ public class UpdateContactInfoCommandHandler
     }
 
     public async Task<ApiResponse<bool>> Handle(
-        UpdateEmployeeContactCommand request,
-        CancellationToken cancellationToken)
+    UpdateEmployeeContactCommand request,
+    CancellationToken cancellationToken)
     {
         try
         {
-            await _unitOfWork.BeginTransactionAsync();
+            _logger.LogInformation("UpdateContact started");
 
-            // 🔐 STEP 1: Common validation (same as Create/Get)
+            // ===============================
+            // 1️⃣ VALIDATION
+            // ===============================
             var validation =
                 await _commonRequestService.ValidateRequestAsync(
-                    request.DTO.UserEmployeeId);
+                    request.DTO?.UserEmployeeId);
 
             if (!validation.Success)
-                return ApiResponse<bool>.Fail(validation.ErrorMessage);
+                throw new UnauthorizedAccessException(validation.ErrorMessage);
+
+            // ===============================
+            // 2️⃣ NULL SAFETY
+            // ===============================
+            if (request?.DTO == null)
+                throw new ValidationErrorException("Invalid request.");
+
+            if (request.DTO.Id <= 0)
+                throw new ValidationErrorException("Invalid contact id.");
 
             long loggedInEmployeeId = validation.UserEmployeeId;
 
-            // 🔎 STEP 2: Validate Row Id
-            if (request.DTO.Id <= 0)
-                return ApiResponse<bool>.Fail("Invalid contact id.");
+            // ===============================
+            // 3️⃣ PERMISSION CHECK
+            // ===============================
+            //var hasAccess = await _permissionService.HasAccessAsync(
+            //    validation.RoleId,
+            //    Modules.Employee,
+            //    Operations.Update);
 
-            // 🔑 STEP 3: Permission check
-            var permissions =
-                await _permissionService.GetPermissionsAsync(validation.RoleId);
+            //if (!hasAccess)
+            //    throw new UnauthorizedAccessException("No permission to update contact.");
 
-            if (!permissions.Contains("UpdateContactInfo"))
-            {
-                // optional hard stop
-                // return ApiResponse<bool>.Fail("Permission denied.");
-            }
-
-            // 📦 STEP 4: Fetch existing contact
+            // ===============================
+            // 4️⃣ FETCH EXISTING
+            // ===============================
             var existing =
                 await _unitOfWork.EmployeeContactRepository
                     .GetSingleRecordAsync(request.DTO.Id, true);
 
             if (existing == null)
-                return ApiResponse<bool>.Fail("Contact record not found.");
+                throw new ApiException("Contact record not found.", 404);
 
-            // 🔒 STEP 5: Ownership check
+            // ===============================
+            // 5️⃣ OWNERSHIP CHECK
+            // ===============================
             if (existing.EmployeeId != loggedInEmployeeId)
-                return ApiResponse<bool>.Fail("Unauthorized access.");
+                throw new UnauthorizedAccessException("Unauthorized access.");
 
-            // =====================================================
-            // 🔄 APPLY PARTIAL UPDATES (DTO SAFE)
-            // =====================================================
+            // ===============================
+            // 6️⃣ START TRANSACTION
+            // ===============================
+            await _unitOfWork.BeginTransactionAsync();
 
-            // Contact Name
-            if (!string.IsNullOrWhiteSpace(request.DTO.ContactName))
-                existing.ContactName = request.DTO.ContactName.Trim();
+            var dto = request.DTO;
 
-            // Contact Type
-            if (request.DTO.ContactType.HasValue && request.DTO.ContactType > 0)
-                existing.ContactType = request.DTO.ContactType.Value;
+            // ===============================
+            // 7️⃣ APPLY UPDATES
+            // ===============================
 
-            // Relation
-            if (request.DTO.Relation.HasValue && request.DTO.Relation > 0)
-                existing.Relation = request.DTO.Relation.Value;
+            if (!string.IsNullOrWhiteSpace(dto.ContactName))
+                existing.ContactName = dto.ContactName.Trim();
 
-            // Contact Number
-            if (!string.IsNullOrWhiteSpace(request.DTO.ContactNumber))
+            if (dto.ContactType.HasValue && dto.ContactType > 0)
+                existing.ContactType = dto.ContactType.Value;
+
+            if (dto.Relation.HasValue && dto.Relation > 0)
+                existing.Relation = dto.Relation.Value;
+
+            if (!string.IsNullOrWhiteSpace(dto.ContactNumber))
             {
-                var clean = request.DTO.ContactNumber.Trim();
+                var clean = dto.ContactNumber.Trim();
                 if (!Regex.IsMatch(clean, @"^[0-9]{10}$"))
-                    return ApiResponse<bool>.Fail("Invalid contact number.");
+                    throw new ValidationErrorException("Invalid contact number.");
 
                 existing.ContactNumber = clean;
             }
 
-            // Alternate Number
-            if (!string.IsNullOrWhiteSpace(request.DTO.AlternateNumber))
+            if (!string.IsNullOrWhiteSpace(dto.AlternateNumber))
             {
-                var clean = request.DTO.AlternateNumber.Trim();
+                var clean = dto.AlternateNumber.Trim();
                 if (!Regex.IsMatch(clean, @"^[0-9]{10}$"))
-                    return ApiResponse<bool>.Fail("Invalid alternate number.");
+                    throw new ValidationErrorException("Invalid alternate number.");
 
                 existing.AlternateNumber = clean;
             }
 
-            // Email
-            if (!string.IsNullOrWhiteSpace(request.DTO.Email))
+            if (!string.IsNullOrWhiteSpace(dto.Email))
             {
-                if (!Regex.IsMatch(request.DTO.Email.Trim(),
-                    @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
-                    return ApiResponse<bool>.Fail("Invalid email format.");
+                var email = dto.Email.Trim();
+                if (!Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+                    throw new ValidationErrorException("Invalid email format.");
 
-                existing.Email = request.DTO.Email.Trim();
+                existing.Email = email;
             }
 
-            // 🔥 SINGLE PRIMARY RULE
-            if (request.DTO.IsPrimary.HasValue)
-            {
-                existing.IsPrimary = request.DTO.IsPrimary.Value;
-            }
+            if (dto.IsPrimary.HasValue)
+                existing.IsPrimary = dto.IsPrimary.Value;
 
-            // Address IDs
-            if (request.DTO.CountryId.HasValue)
-                existing.CountryId = request.DTO.CountryId.Value;
+            if (dto.CountryId.HasValue)
+                existing.CountryId = dto.CountryId.Value;
 
-            if (request.DTO.StateId.HasValue)
-                existing.StateId = request.DTO.StateId.Value;
+            if (dto.StateId.HasValue)
+                existing.StateId = dto.StateId.Value;
 
-            if (request.DTO.DistrictId.HasValue)
-                existing.DistrictId = request.DTO.DistrictId.Value;
+            if (dto.DistrictId.HasValue)
+                existing.DistrictId = dto.DistrictId.Value;
 
-            // Address text
-            if (request.DTO.HouseNo != null)
-                existing.HouseNo = request.DTO.HouseNo.Trim();
+            if (dto.HouseNo != null)
+                existing.HouseNo = dto.HouseNo.Trim();
 
-            if (request.DTO.Street != null)
-                existing.Street = request.DTO.Street.Trim();
+            if (dto.Street != null)
+                existing.Street = dto.Street.Trim();
 
-            if (request.DTO.LandMark != null)
-                existing.LandMark = request.DTO.LandMark.Trim();
+            if (dto.LandMark != null)
+                existing.LandMark = dto.LandMark.Trim();
 
-            if (request.DTO.Address != null)
-                existing.Address = request.DTO.Address.Trim();
+            if (dto.Address != null)
+                existing.Address = dto.Address.Trim();
 
-            if (request.DTO.Description != null)
-                existing.Description = request.DTO.Description.Trim();
+            if (dto.Description != null)
+                existing.Description = dto.Description.Trim();
 
+            // ===============================
             // 🧾 AUDIT
+            // ===============================
             existing.UpdatedById = loggedInEmployeeId;
             existing.UpdatedDateTime = DateTime.UtcNow;
 
-            // 💾 SAVE
-            bool updated =
+            // ===============================
+            // 8️⃣ SAVE
+            // ===============================
+            var updated =
                 await _unitOfWork.EmployeeContactRepository
                     .UpdateContactAsync(existing);
 
             if (!updated)
-            {
-                await _unitOfWork.RollbackTransactionAsync();
-                return ApiResponse<bool>.Fail("Failed to update contact.");
-            }
+                throw new ApiException("Failed to update contact.", 500);
 
+            // ===============================
+            // 9️⃣ COMMIT
+            // ===============================
             await _unitOfWork.CommitTransactionAsync();
+
+            _logger.LogInformation("UpdateContact success");
+
             return ApiResponse<bool>.Success(true, "Contact updated successfully.");
         }
         catch (Exception ex)
         {
             await _unitOfWork.RollbackTransactionAsync();
+
             _logger.LogError(ex, "Error updating contact");
 
-            return ApiResponse<bool>.Fail(
-                "Unexpected error occurred.",
-                new List<string> { ex.Message });
+            throw; // 🚨 MUST
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using axionpro.application.DTOS.Employee.Education;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IPermission;
@@ -38,83 +39,92 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
         }
 
         public async Task<ApiResponse<bool>> Handle(
-            DeleteEducationInfoQuery request,
-            CancellationToken cancellationToken)
+      DeleteEducationInfoQuery request,
+      CancellationToken cancellationToken)
         {
             try
             {
-                await _unitOfWork.BeginTransactionAsync();
+                _logger.LogInformation("DeleteEducation started");
 
-                // 🔐 STEP 1: COMMON VALIDATION
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
                 var validation =
                     await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
-                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request.");
+
+                if (request.DTO.Id <= 0)
+                    throw new ValidationErrorException("Invalid education record id.");
 
                 long loggedInEmployeeId = validation.UserEmployeeId;
 
-                // 🔎 STEP 2: Validate Education Id
-                if (request.DTO.Id <= 0)
-                    return ApiResponse<bool>.Fail("Invalid education record id.");
+                // ===============================
+                // 3️⃣ PERMISSION (YOUR FIXED PATTERN ✅)
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.Delete);
 
-                // 🔑 STEP 3: Permission check
-                var permissions =
-                    await _permissionService.GetPermissionsAsync(validation.RoleId);
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("No permission to delete education.");
 
-                if (!permissions.Contains("DeleteEducationInfo"))
-                {
-                    // optional strict block
-                    // return ApiResponse<bool>.Fail("You do not have permission to delete education info.");
-                }
-
-                // 📦 STEP 4: Fetch existing record
+                // ===============================
+                // 4️⃣ FETCH RECORD
+                // ===============================
                 var existing =
                     await _unitOfWork.EmployeeEducationRepository
                         .GetSingleRecordAsync(request.DTO.Id, true);
 
                 if (existing == null)
-                    return ApiResponse<bool>.Fail("Education record not found.");
+                    throw new ApiException("Education record not found.", 404);
 
-                // 🔒 STEP 5: Ownership check
+                // ===============================
+                // 5️⃣ OWNERSHIP CHECK
+                // ===============================
                 if (existing.EmployeeId != loggedInEmployeeId)
-                    return ApiResponse<bool>.Fail("Unauthorized access.");
+                    throw new UnauthorizedAccessException("Unauthorized access.");
 
-                // 🗑️ STEP 6: SOFT DELETE
+                // ===============================
+                // 6️⃣ SOFT DELETE
+                // ===============================
                 existing.IsSoftDeleted = true;
                 existing.IsActive = false;
                 existing.DeletedDateTime = DateTime.UtcNow;
-                existing.SoftDeletedById = loggedInEmployeeId;                   
+                existing.SoftDeletedById = loggedInEmployeeId;
+
                 existing.FilePath = null;
                 existing.FileName = null;
                 existing.HasEducationDocUploded = false;
                 existing.IsEditAllowed = false;
 
-                bool deleted =
+                var deleted =
                     await _unitOfWork.EmployeeEducationRepository
                         .DeleteAsync(existing);
 
                 if (!deleted)
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<bool>.Fail("Failed to delete education record.");
-                }
+                    throw new ApiException("Failed to delete education record.", 500);
 
-                await _unitOfWork.CommitTransactionAsync();
+                _logger.LogInformation("DeleteEducation success | Id: {Id}", request.DTO.Id);
+
                 return ApiResponse<bool>.Success(true, "Education record deleted successfully.");
             }
             catch (Exception ex)
             {
-                await _unitOfWork.RollbackTransactionAsync();
-
                 _logger.LogError(
                     ex,
-                    "Error deleting education record | EducationId: {Id}",
+                    "Error deleting education | Id: {Id}",
                     request.DTO?.Id);
 
-                return ApiResponse<bool>.Fail(
-                    "Error deleting education record.",
-                    new List<string> { ex.Message });
+                throw; // 🚨 MUST
             }
         }
     }

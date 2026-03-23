@@ -2,21 +2,16 @@
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.AssetDTO.asset;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; 
-using axionpro.domain.Entity; 
-using MediatR;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System;
-using System.Threading;
-using System.Threading.Tasks; 
 
 
 namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
@@ -65,35 +60,63 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
         }
 
         public async Task<ApiResponse<GetAssetResponseDTO>> Handle(
-     UpdateAssetCommand request,
-     CancellationToken cancellationToken)
+       UpdateAssetCommand request,
+       CancellationToken cancellationToken)
         {
+            // 🔹 Track uploaded file (VERY IMPORTANT for rollback cleanup)
+            string? uploadedFileKey = null;
+
             await _unitOfWork.BeginTransactionAsync();
 
             try
             {
-                // ===========================
+                // ===============================
                 // 1️⃣ COMMON VALIDATION
-                // ===========================
+                // ===============================
                 var validation = await _commonRequestService.ValidateRequestAsync();
+
                 if (!validation.Success)
-                    return ApiResponse<GetAssetResponseDTO>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null || request.DTO.Id <= 0)
+                    throw new ValidationErrorException(
+                        "Invalid request.",
+                        new List<string> { "Asset Id is required." }
+                    );
+
+                if (request.DTO.Prop == null)
+                    request.DTO.Prop = new();
 
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
-                // ===========================
-                // 2️⃣ FETCH EXISTING ASSET
-                // ===========================
+                // ===============================
+                // 3️⃣ PERMISSION CHECK (RBAC)
+                // ===============================
+                //var hasPermission = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    "Asset",
+                //    "Update"
+                //);
+
+                //if (!hasPermission)
+                //    throw new UnauthorizedAccessException("No permission to update asset.");
+
+                // ===============================
+                // 4️⃣ FETCH EXISTING ASSET
+                // ===============================
                 var existingAsset = await _unitOfWork.AssetRepository
                     .GetSingleRecordAsync(request.DTO.Id, true);
 
                 if (existingAsset == null)
-                    return ApiResponse<GetAssetResponseDTO>.Fail("Asset not found.");
+                    throw new KeyNotFoundException("Asset not found.");
 
-                // ===========================
-                // 3️⃣ UPDATE FIELDS
-                // ===========================
+                // ===============================
+                // 5️⃣ UPDATE FIELDS (SAFE MERGE)
+                // ===============================
                 existingAsset.AssetName = request.DTO.AssetName ?? existingAsset.AssetName;
                 existingAsset.AssetTypeId = request.DTO.AssetTypeId ?? existingAsset.AssetTypeId;
                 existingAsset.Company = request.DTO.Company ?? existingAsset.Company;
@@ -111,9 +134,9 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
                 existingAsset.IsAssigned = request.DTO.IsAssigned ?? existingAsset.IsAssigned;
                 existingAsset.IsActive = request.DTO.IsActive ?? existingAsset.IsActive;
 
-                // ===========================
-                // 4️⃣ QR UPDATE
-                // ===========================
+                // ===============================
+                // 6️⃣ QR UPDATE
+                // ===============================
                 existingAsset.Qrcode = JsonConvert.SerializeObject(new
                 {
                     existingAsset.Id,
@@ -131,9 +154,9 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
                     existingAsset.IsRepairable,
                 });
 
-                // ===========================
-                // 5️⃣ IMAGE UPDATE (S3 - NO DELETE)
-                // ===========================
+                // ===============================
+                // 7️⃣ IMAGE UPLOAD (CRITICAL SAFE BLOCK)
+                // ===============================
                 string? assetImagePath = null;
 
                 if (request.DTO.AssetImageFile != null &&
@@ -153,34 +176,32 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
                         string folderPath =
                             $"{ConstantValues.TenantFolder}-{validation.TenantId}/{ConstantValues.AssetsFolder}";
 
-                        var fileKey = await _fileStorageService.UploadFileAsync(
+                        uploadedFileKey = await _fileStorageService.UploadFileAsync(
                             request.DTO.AssetImageFile,
                             folderPath,
                             fileName);
 
-                        assetImagePath = fileKey;
+                        assetImagePath = uploadedFileKey;
                     }
                     catch (Exception ex)
                     {
+                        // ❗ Image failure should NOT break update
                         _logger.LogError(ex, "Asset image upload failed");
                     }
                 }
 
-                // ===========================
-                // 6️⃣ UPDATE DATABASE
-                // ===========================
+                // ===============================
+                // 8️⃣ UPDATE DATABASE
+                // ===============================
                 var updatedAsset = await _unitOfWork.AssetRepository
                     .UpdateAsync(existingAsset, assetImagePath);
 
                 if (updatedAsset == null)
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<GetAssetResponseDTO>.Fail("Asset update failed.");
-                }
+                    throw new ApiException("Asset update failed.", 500);
 
-                // ===========================
-                // 7️⃣ COMMIT
-                // ===========================
+                // ===============================
+                // 9️⃣ COMMIT TRANSACTION
+                // ===============================
                 await _unitOfWork.CommitTransactionAsync();
 
                 return ApiResponse<GetAssetResponseDTO>
@@ -188,11 +209,31 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
             }
             catch (Exception ex)
             {
+                // ===============================
+                // 🔁 ROLLBACK DB
+                // ===============================
                 await _unitOfWork.RollbackTransactionAsync();
+
+                // ===============================
+                // 🧨 CRITICAL: DELETE UPLOADED IMAGE
+                // ===============================
+                if (!string.IsNullOrEmpty(uploadedFileKey))
+                {
+                    try
+                    {
+                        await _fileStorageService.DeleteFileAsync(uploadedFileKey);
+                        _logger.LogWarning("Rollback: Uploaded image deleted from storage.");
+                    }
+                    catch (Exception deleteEx)
+                    {
+                        _logger.LogError(deleteEx, "Failed to delete uploaded image after rollback.");
+                    }
+                }
+
                 _logger.LogError(ex, "UpdateAsset failed");
 
-                return ApiResponse<GetAssetResponseDTO>
-                    .Fail("Unexpected error while updating asset.");
+                // ❗ IMPORTANT: Middleware handle karega
+                throw;
             }
         }
     }

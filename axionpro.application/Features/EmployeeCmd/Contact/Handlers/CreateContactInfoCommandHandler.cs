@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.RequestHelper;
+using axionpro.application.DTOs.Module;
 using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Pagination;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -13,6 +15,7 @@ using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Reflection;
 
 namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
 {
@@ -55,22 +58,30 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
         }
 
         public async Task<ApiResponse<List<GetContactResponseDTO>>> Handle(
-            CreateContactInfoCommand request,
-            CancellationToken cancellationToken)
+    CreateContactInfoCommand request,
+    CancellationToken cancellationToken)
         {
             try
             {
-                await _unitOfWork.BeginTransactionAsync();
+                _logger.LogInformation("CreateContact started");
 
-                // 🔐 STEP 1: Common Validation (SAME AS BANK)
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
                 var validation = await _commonRequestService
                     .ValidateRequestAsync();
 
                 if (!validation.Success)
-                    return ApiResponse<List<GetContactResponseDTO>>
-                        .Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // 🔓 STEP 2: Assign decoded values
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request.");
+
+                request.DTO.Prop ??= new();
+
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
@@ -78,38 +89,54 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
                     RequestCommonHelper.DecodeOnlyEmployeeId(
                         request.DTO.EmployeeId,
                         validation.Claims.TenantEncriptionKey,
-                        _idEncoderService
-                    );
+                        _idEncoderService);
 
-                // 🔑 STEP 3: Permission check
-                var permissions =
-                    await _permissionService.GetPermissionsAsync(validation.RoleId);
+                if (request.DTO.Prop.EmployeeId <= 0)
+                    throw new ValidationErrorException("Invalid EmployeeId.");
 
-                if (!permissions.Contains("AddContactInfo"))
-                {
-                    // optional hard-stop
-                    // return ApiResponse<List<GetContactResponseDTO>>
-                    //     .Fail("You do not have permission to add contact info.");
-                }
+                // ===============================
+                // 3️⃣ PERMISSION CHECK
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.Add);
 
-                // 🧱 STEP 4: Map Entity
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("No permission to add contact info.");
+
+                // ===============================
+                // 4️⃣ START TRANSACTION
+                // ===============================
+                await _unitOfWork.BeginTransactionAsync();
+
+                // ===============================
+                // 5️⃣ MAP ENTITY
+                // ===============================
                 var entity = _mapper.Map<EmployeeContact>(request.DTO);
 
                 entity.EmployeeId = request.DTO.Prop.EmployeeId;
                 entity.AddedById = request.DTO.Prop.UserEmployeeId;
                 entity.AddedDateTime = DateTime.UtcNow;
                 entity.IsActive = true;
-                entity.IsSoftDeleted = false;              
+                entity.IsSoftDeleted = false;
                 entity.IsEditAllowed = true;
                 entity.IsInfoVerified = false;
                 entity.IsPrimary = request.DTO.IsPrimary;
 
-                // 💾 STEP 5: Save
-                PagedResponseDTO<GetContactResponseDTO> responseDTO =
+                // ===============================
+                // 6️⃣ SAVE
+                // ===============================
+                var responseDTO =
                     await _unitOfWork.EmployeeContactRepository
                         .CreateAsync(entity);
 
-                // 🔐 STEP 6: Projection + Encrypt IDs
+                if (responseDTO == null)
+                    throw new ApiException("Failed to add contact info.", 500);
+
+                // ===============================
+                // 7️⃣ PROJECTION
+                // ===============================
                 var encryptedList =
                     ProjectionHelper.ToGetContactResponseDTOs(
                         responseDTO,
@@ -117,19 +144,20 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
                         validation.Claims.TenantEncriptionKey
                     );
 
+                // ===============================
+                // 8️⃣ COMMIT
+                // ===============================
                 await _unitOfWork.CommitTransactionAsync();
 
-                // 📦 STEP 7: API Response
-                return new ApiResponse<List<GetContactResponseDTO>>
-                {
-                    IsSucceeded = true,
-                    Message = $"{responseDTO.TotalCount} record(s) retrieved successfully.",
-                    PageNumber = responseDTO.PageNumber,
-                    PageSize = responseDTO.PageSize,
-                    TotalRecords = responseDTO.TotalCount,
-                    TotalPages = responseDTO.TotalPages,
-                    Data = encryptedList
-                };
+                _logger.LogInformation("CreateContact success");
+
+                // ===============================
+                // 9️⃣ SUCCESS RESPONSE
+                // ===============================
+                return ApiResponse<List<GetContactResponseDTO>>.Success(
+                    encryptedList,
+                    "Contact info created successfully."
+                );
             }
             catch (Exception ex)
             {
@@ -137,15 +165,14 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
 
                 _logger.LogError(
                     ex,
-                    "Error occurred while adding contact info for EmployeeId: {EmployeeId}",
-                    request.DTO?.EmployeeId
-                );
+                    "Error adding contact info | EmployeeId: {EmployeeId}",
+                    request.DTO?.EmployeeId);
 
-                return ApiResponse<List<GetContactResponseDTO>>
-                    .Fail("Failed to add contact info.",
-                          new List<string> { ex.Message });
+                throw; // 🚨 MUST
             }
         }
+
+
     }
 
 

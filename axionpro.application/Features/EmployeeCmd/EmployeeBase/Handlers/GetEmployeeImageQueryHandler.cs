@@ -1,6 +1,6 @@
 ﻿using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.BaseEmployee;
-
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -58,10 +58,24 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         {
             try
             {
-                // 1️⃣ Validation
-                var validation = await _commonRequestService.ValidateRequestAsync();
+                _logger.LogInformation("GetEmployeeImage started");
+
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
+                var validation =
+                    await _commonRequestService.ValidateRequestAsync();
+
                 if (!validation.Success)
-                    return ApiResponse<GetEmployeeImageReponseDTO>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request.");
+
+                request.DTO.Prop ??= new();
 
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
@@ -72,8 +86,25 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                         validation.Claims.TenantEncriptionKey,
                         _idEncoderService);
 
-                // 2️⃣ Fetch image
-                var image = await _unitOfWork.Employees.GetImage(request.DTO);
+                if (request.DTO.Prop.EmployeeId <= 0)
+                    throw new ValidationErrorException("Invalid EmployeeId.");
+
+                // ===============================
+                // 3️⃣ PERMISSION (YOUR PATTERN ✅)
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.View);
+
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("No permission to view employee image.");
+
+                // ===============================
+                // 4️⃣ FETCH IMAGE
+                // ===============================
+                var image =
+                    await _unitOfWork.Employees.GetImage(request.DTO);
 
                 if (image == null)
                 {
@@ -81,17 +112,21 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                         "No primary image found | EmployeeId={EmpId}",
                         request.DTO.Prop.EmployeeId);
 
-                    return ApiResponse<GetEmployeeImageReponseDTO>
-                        .Fail("Employee image not found.");
+                    throw new ApiException("Employee image not found.", 404);
                 }
 
-                // 3️⃣ 🔥 Convert S3 key → Signed URL
+                // ===============================
+                // 5️⃣ S3 → SIGNED URL
+                // ===============================
                 if (!string.IsNullOrWhiteSpace(image.FilePath))
                 {
-                    image.FilePath =  _fileStorageService.GetFileUrl(image.FilePath);
+                    image.FilePath =
+                        _fileStorageService.GetFileUrl(image.FilePath);
                 }
 
                 image.EmployeeId = request.DTO.EmployeeId;
+
+                _logger.LogInformation("GetEmployeeImage success");
 
                 return ApiResponse<GetEmployeeImageReponseDTO>
                     .Success(image, "Employee image fetched successfully.");
@@ -100,10 +135,10 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             {
                 _logger.LogError(
                     ex,
-                    "Error while fetching employee image");
+                    "Error fetching employee image | EmployeeId: {EmployeeId}",
+                    request.DTO?.EmployeeId);
 
-                return ApiResponse<GetEmployeeImageReponseDTO>
-                    .Fail("Unexpected error while fetching employee image.");
+                throw; // 🚨 MUST
             }
         }
     }

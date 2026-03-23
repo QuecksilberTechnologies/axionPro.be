@@ -1,11 +1,4 @@
 ﻿using AutoMapper;
-using axionpro.application.Common.Helpers;
-using axionpro.application.Common.Helpers.axionpro.application.Configuration;
-using axionpro.application.Common.Helpers.Converters;
-using axionpro.application.Common.Helpers.EncryptionHelper;
-using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
-
-using axionpro.application.DTOs.Department;
 using axionpro.application.DTOs.Role;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
@@ -13,15 +6,10 @@ using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Features.RoleCmd.Handlers
 {
@@ -90,18 +78,20 @@ namespace axionpro.application.Features.RoleCmd.Handlers
 
 
                 // ✅ Create  using repository
-                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
+                // ===============================
+                // 2️⃣ PERMISSION CHECK (RBAC)
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Role,
+                //    Operations.Delete);
+
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("Access denied.");
 
 
-                if (!permissions.Contains("AddBankInfo"))
-                {
-                    // await _unitOfWork.RollbackTransactionAsync();
-                    //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
-                }
 
-
-
-                var responseDTO = await _unitOfWork.RoleRepository.GetAsync(request.DTO );
+                var responseDTO = await _unitOfWork.RoleRepository.GetAsync(request.DTO);
 
                 if (responseDTO.Items == null || !responseDTO.Items.Any())
                 {
@@ -118,7 +108,7 @@ namespace axionpro.application.Features.RoleCmd.Handlers
                     };
                 }
 
-              //  var encryptedList = ProjectionHelper.ToGetRoleResponseDTOs(responseDTO.Items, _encryptionService, tenantKey);
+                //  var encryptedList = ProjectionHelper.ToGetRoleResponseDTOs(responseDTO.Items, _encryptionService, tenantKey);
 
 
                 // 🧩 STEP 7: Success response
@@ -143,5 +133,6 @@ namespace axionpro.application.Features.RoleCmd.Handlers
                 return ApiResponse<List<GetRoleResponseDTO>>.Fail("Error occurred while retrieving roles.");
             }
         }
+
     }
 }

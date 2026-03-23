@@ -1,20 +1,13 @@
 ﻿using AutoMapper;
-using axionpro.application.Common.Helpers;
-using axionpro.application.Common.Helpers.axionpro.application.Configuration;
-using axionpro.application.Common.Helpers.Converters;
-using axionpro.application.Common.Helpers.EncryptionHelper;
-using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
-using axionpro.application.DTOs.Designation;
 using axionpro.application.DTOs.Role;
-using axionpro.application.DTOS.Common;
-using axionpro.application.DTOS.Role;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -69,88 +62,85 @@ namespace axionpro.application.Features.RoleCmd.Handlers
         }
 
 
-        public async Task<ApiResponse<List<GetRoleResponseDTO>>> Handle(CreateRoleCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<List<GetRoleResponseDTO>>> Handle(
+        CreateRoleCommand request,
+        CancellationToken cancellationToken)
         {
             try
             {
-                // 1️⃣ COMMON VALIDATION (Mandatory)
-                var validation = await _commonRequestService.ValidateRequestAsync(request.DTO.UserEmployeeId);
+                _logger.LogInformation("🔹 CreateRole started");
+
+                // ===============================
+                // 1️⃣ VALIDATION (AUTH)
+                // ===============================
+                var validation = await _commonRequestService
+                    .ValidateRequestAsync(request.DTO.UserEmployeeId);
 
                 if (!validation.Success)
-                    return ApiResponse<List<GetRoleResponseDTO>>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // Assign decoded values coming from CommonRequestService
+                // ===============================
+                // 2️⃣ PERMISSION CHECK (RBAC)
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Role,
+                //    Operations.Add);
+
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("Access denied.");
+
+                // ===============================
+                // 3️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request data.");
+
+                request.DTO.Prop ??= new();
+
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;   
-               
+                request.DTO.Prop.TenantId = validation.TenantId;
 
-                // ✅ Create  using repository
-                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
-                if (!permissions.Contains("AddBankInfo"))
-                {
-                    //await _unitOfWork.RollbackTransactionAsync();
-                    //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
-                }
-
-                
-
-                // ✅ Validate Role Name
+                // ===============================
+                // 4️⃣ VALIDATE ROLE NAME
+                // ===============================
                 string? roleName = request.DTO.RoleName?.Trim();
+
                 if (string.IsNullOrWhiteSpace(roleName))
-                {
-                    return new ApiResponse<List<GetRoleResponseDTO>>
-                    {
-                        IsSucceeded = false,
-                        Message = "Role name should not be empty or whitespace.",
-                        Data = null
-                    };
-                }
+                    throw new ValidationErrorException("Role name cannot be empty.");
 
-                // 🧩 STEP 5: Repository call
-                var responseDTO = await _unitOfWork.RoleRepository.CreateAsync(request.DTO);
+                // ===============================
+                // 5️⃣ CREATE ROLE
+                // ===============================
+                var result = await _unitOfWork.RoleRepository.CreateAsync(request.DTO);
 
+                if (result == null || result.Items == null)
+                    throw new ApiException("Role creation failed.", 500);
 
-                // 🧩 STEP 6: Validate response
-                if (responseDTO == null || responseDTO.Items == null || !responseDTO.Items.Any())
-                {
-                    _logger.LogWarning("Role creation failed or no role returned. TenantId: {TenantId}", request.DTO.Prop.UserEmployeeId);
+                var data = result.Items ?? new List<GetRoleResponseDTO>();
 
-                    return new ApiResponse<List<GetRoleResponseDTO>>
-                    {
-                        IsSucceeded = false,
-                        Message = "No role was created. Please check input details or try again.",
-                        Data = null
-                    };
-                }
-             //   var encryptedList = ProjectionHelper.ToGetRoleResponseDTOs(responseDTO.Items, _encryptionService, tenantKey);
+                _logger.LogInformation("✅ Created {Count} role(s)", data.Count);
 
-
-                // 🧩 STEP 7: Commit Transaction
-                await _unitOfWork.CommitTransactionAsync();
-
-                // ✅ Return success response
-                return new ApiResponse<List<GetRoleResponseDTO>>
-                {
-                    IsSucceeded = true,
-                    Message = $"{responseDTO.PageSize} record(s) retrieved successfully.",
-                    PageNumber = responseDTO.PageNumber,
-                    PageSize = responseDTO.PageSize,
-                    TotalRecords = responseDTO.TotalCount,
-                    TotalPages = responseDTO.TotalPages,
-                    Data = responseDTO.Items
-                };
+                // ===============================
+                // 6️⃣ SUCCESS (EMPTY ALLOWED ✅)
+                // ===============================
+                return ApiResponse<List<GetRoleResponseDTO>>
+                    .SuccessPaginated(
+                        data: data,
+                        pageNumber: result.PageNumber,
+                        pageSize: result.PageSize,
+                        totalRecords: result.TotalCount,
+                        totalPages: result.TotalPages,
+                        message: "Role(s) created successfully."
+                    );
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while creating role(s) for TenantId");
+                _logger.LogError(ex, "❌ CreateRole failed");
 
-                return new ApiResponse<List<GetRoleResponseDTO>>
-                {
-                    IsSucceeded = false,
-                    Message = "Failed to create role(s) due to an internal error.",
-                    Data = null
-                };
+                throw; // ✅ CRITICAL
             }
         }
+
     }
 }

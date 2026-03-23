@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.BaseEmployee;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -63,50 +64,73 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         }
 
         public async Task<ApiResponse<bool>> Handle(
-       UpdateEmployeeCommand request,
-       CancellationToken cancellationToken)
+      UpdateEmployeeCommand request,
+      CancellationToken cancellationToken)
         {
-            await _unitOfWork.BeginTransactionAsync();
-
             try
             {
-                /* =======================
-                   1. COMMON VALIDATION
-                   ======================= */
+                _logger.LogInformation("UpdateEmployee started");
+
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
                 var validation =
                     await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
-                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request.");
+
+                request.DTO.Prop ??= new();
 
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
-                request.DTO.Prop.EmployeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
-                    request.DTO.EmployeeId,
-                    validation.Claims.TenantEncriptionKey,
-                    _idEncoderService
-                );
 
-                /* =======================
-                   2. FETCH EXISTING EMPLOYEE
-                   ======================= */
-                var employee = await _unitOfWork.Employees.GetByIdAsync(
-                    request.DTO.Prop.EmployeeId,
-                    request.DTO.Prop.TenantId,
-                    true);
+                request.DTO.Prop.EmployeeId =
+                    RequestCommonHelper.DecodeOnlyEmployeeId(
+                        request.DTO.EmployeeId,
+                        validation.Claims.TenantEncriptionKey,
+                        _idEncoderService);
+
+                if (request.DTO.Prop.EmployeeId <= 0)
+                    throw new ValidationErrorException("Invalid EmployeeId.");
+
+                // ===============================
+                // 3️⃣ PERMISSION (SELF UPDATE)
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.Update);
+
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("No permission to update employee.");
+
+                // ===============================
+                // 4️⃣ FETCH EXISTING
+                // ===============================
+                var employee =
+                    await _unitOfWork.Employees.GetByIdAsync(
+                        request.DTO.Prop.EmployeeId,
+                        request.DTO.Prop.TenantId,
+                        true);
 
                 if (employee == null)
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<bool>.Fail("Employee not found.");
-                }
+                    throw new ApiException("Employee not found.", 404);
 
-                /* =======================
-                   3. APPLY PATCH UPDATE
-                   (DTO value → overwrite,
-                    DTO null → keep existing)
-                   ======================= */
+                // ===============================
+                // 5️⃣ START TRANSACTION
+                // ===============================
+                await _unitOfWork.BeginTransactionAsync();
 
+                // ===============================
+                // 6️⃣ PATCH UPDATE
+                // ===============================
                 if (!string.IsNullOrWhiteSpace(request.DTO.FirstName))
                     employee.FirstName = request.DTO.FirstName.Trim();
 
@@ -143,28 +167,37 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 if (request.DTO.IsMarried.HasValue)
                     employee.IsMarried = request.DTO.IsMarried.Value;
 
-                /* =======================
-                   4. AUDIT
-                   ======================= */
-                employee.UpdatedById = request.DTO.Prop.UserEmployeeId;
+                // ===============================
+                // 7️⃣ AUDIT
+                // ===============================
+                employee.UpdatedById = validation.UserEmployeeId;
                 employee.UpdatedDateTime = DateTime.UtcNow;
 
-                /* =======================
-                   5. SAVE
-                   ======================= */
-                await _unitOfWork.Employees.UpdateEmployeeAsync(    employee,    request.DTO.Prop.TenantId);
+                // ===============================
+                // 8️⃣ SAVE
+                // ===============================
+                await _unitOfWork.Employees.UpdateEmployeeAsync(
+                    employee,
+                    request.DTO.Prop.TenantId);
 
+                // ===============================
+                // 9️⃣ COMMIT
+                // ===============================
                 await _unitOfWork.CommitTransactionAsync();
 
-                return ApiResponse<bool>.Success(true, "Employee updated successfully.");
+                _logger.LogInformation("UpdateEmployee success");
+
+                return ApiResponse<bool>.Success(
+                    true,
+                    "Employee updated successfully.");
             }
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackTransactionAsync();
+
                 _logger.LogError(ex, "Error updating employee");
-                return ApiResponse<bool>.Fail(
-                    "Unexpected error.",
-                    new List<string> { ex.Message });
+
+                throw; // 🚨 MUST
             }
         }
 

@@ -1,31 +1,10 @@
-﻿using AutoMapper;
-using axionpro.application.Common.Helpers;
-using axionpro.application.Common.Helpers.axionpro.application.Configuration;
-using axionpro.application.Common.Helpers.Converters;
-using axionpro.application.Common.Helpers.EncryptionHelper;
-using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
-using axionpro.application.Common.Helpers.RequestHelper;
-using axionpro.application.DTOs.Designation;
-using axionpro.application.DTOS.Common;
-using axionpro.application.DTOS.Employee.Bank;
-using axionpro.application.DTOS.Employee.BaseEmployee;
-using axionpro.application.DTOS.InsurancePolicy;
-using axionpro.application.DTOS.Pagination;
-
+﻿using axionpro.application.DTOS.InsurancePolicy;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IEncryptionService;
-using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Configuration;
+using MediatR;
 using Microsoft.Extensions.Logging;
-using System.Drawing.Printing;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace axionpro.application.Features.InsuranceInfo.Handlers
 {
@@ -61,75 +40,85 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
         }
 
         public async Task<ApiResponse<List<GetInsurancePolicyResponseDTO>>> Handle(
-            GetInsuranceQuery request,
-            CancellationToken cancellationToken)
+    GetInsuranceQuery request,
+    CancellationToken cancellationToken)
         {
             try
             {
-                // 1️⃣ Common validation (Tenant / User)
+                _logger.LogInformation("🔹 GetInsurance started");
+
+                // ===============================
+                // 1️⃣ VALIDATION (AUTH)
+                // ===============================
                 var validation =
                     await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
-                {
-                    return ApiResponse<List<GetInsurancePolicyResponseDTO>>
-                        .Fail(validation.ErrorMessage);
-                }
-                // Assign decoded values coming from CommonRequestService
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+
+                // ===============================
+                // 2️⃣ PERMISSION CHECK
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.InsurancePolicy,
+                //    Operations.View);
+
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("Access denied.");
+
+                // ===============================
+                // 3️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request data.");
+
+                request.DTO.Prop ??= new();
+
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;  
+                request.DTO.Prop.TenantId = validation.TenantId;
 
-
-
-                // 2️⃣ Paging defaults
-                var pageNumber = request.DTO.PageNumber > 0
-                    ? request.DTO.PageNumber
-                    : 1;
-
-                var pageSize = request.DTO.PageSize > 0
-                    ? request.DTO.PageSize
-                    : 10;
-
-                var sortOrder = string.IsNullOrWhiteSpace(request.DTO.SortOrder)
+                // ===============================
+                // 4️⃣ PAGING DEFAULTS
+                // ===============================
+                request.DTO.PageNumber = request.DTO.PageNumber > 0 ? request.DTO.PageNumber : 1;
+                request.DTO.PageSize = request.DTO.PageSize > 0 ? request.DTO.PageSize : 10;
+                request.DTO.SortOrder = string.IsNullOrWhiteSpace(request.DTO.SortOrder)
                     ? "desc"
                     : request.DTO.SortOrder.ToLower();
 
-                // 3️⃣ Call Repository (🔥 EXACT MATCH)
+                // ===============================
+                // 5️⃣ FETCH DATA
+                // ===============================
                 var result =
-                    await _unitOfWork.InsuranceRepository.GetListAsync(
-                        request.DTO
-                      
+                    await _unitOfWork.InsuranceRepository.GetListAsync(request.DTO);
+
+                var data = result?.Items ?? new List<GetInsurancePolicyResponseDTO>();
+
+                _logger.LogInformation(
+                    "✅ Retrieved {Count} insurance policies",
+                    data.Count);
+
+                // ===============================
+                // 6️⃣ SUCCESS (EMPTY ALLOWED ✅)
+                // ===============================
+                return ApiResponse<List<GetInsurancePolicyResponseDTO>>
+                    .SuccessPaginatedPercentage(
+                        Data: data,
+                        Message: "Insurance info retrieved successfully.",
+                        PageNumber: result?.PageNumber ?? 1,
+                        PageSize: result?.PageSize ?? 10,
+                        TotalRecords: result?.TotalCount ?? 0,
+                        TotalPages: result?.TotalPages ?? 0
                     );
-
-                // 4️⃣ No data check
-                if (result == null || !result.Items.Any())
-                {
-                    _logger.LogInformation(
-                        "No insurance policies found. TenantId: {TenantId}",
-                        validation.TenantId);
-
-                    return ApiResponse<List<GetInsurancePolicyResponseDTO>>
-                        .Fail("No insurance policies found.");
-                }
-                    
-                // 5️⃣ Success response
-                return ApiResponse<List<GetInsurancePolicyResponseDTO>>.SuccessPaginatedPercentage(
-                  Data: result.Items,
-                  Message: "Insurance info retrieved successfully.",
-                  PageNumber: result.PageNumber,
-                  PageSize: result.PageSize,
-                  TotalRecords: result.TotalCount,
-                  TotalPages: result.TotalPages);
             }
             catch (Exception ex)
             {
                 _logger.LogError(
                     ex,
-                    "Error while fetching insurance policies. UserEmployeeId: {UserEmployeeId}",
-                    request.DTO?.UserEmployeeId);
+                    "❌ Error in GetInsurance");
 
-                return ApiResponse<List<GetInsurancePolicyResponseDTO>>
-                    .Fail("An unexpected error occurred while fetching insurance policies.");
+                throw; // ✅ CRITICAL
             }
         }
     }

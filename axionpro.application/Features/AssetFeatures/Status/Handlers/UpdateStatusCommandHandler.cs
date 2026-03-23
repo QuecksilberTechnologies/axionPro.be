@@ -1,17 +1,11 @@
-﻿using AutoMapper;
-using axionpro.application.DTOS.AssetDTO.status;
+﻿using axionpro.application.DTOS.AssetDTO.status;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
-
-using axionpro.domain.Entity; using MediatR;
+using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Features.AssetFeatures.Status.Handlers
 {
@@ -44,65 +38,85 @@ namespace axionpro.application.Features.AssetFeatures.Status.Handlers
             _permissionService = permissionService;
         }
 
-        public async Task<ApiResponse<bool>> Handle(UpdateStatusCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<bool>> Handle(
+      UpdateStatusCommand request,
+      CancellationToken cancellationToken)
         {
             try
             {
-                // ===============================
-                // 1️⃣ COMMON VALIDATION
-                // ===============================
+                _logger.LogInformation("Updating Asset Status");
 
+                // ===============================
+                // 1️⃣ COMMON VALIDATION (AUTH + CONTEXT)
+                // ===============================
                 var validation = await _commonRequestService.ValidateRequestAsync();
-                if (!validation.Success)
-                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
 
+                // ❌ Old: return Fail
+                // ✅ New: throw
+                if (!validation.Success)
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+
+                // ===============================
+                // 2️⃣ NULL SAFETY + INPUT VALIDATION
+                // ===============================
+                if (request?.DTO == null || request.DTO.Id <= 0)
+                    throw new ValidationErrorException(
+                        "Invalid Status Id.",
+                        new List<string> { "Status Id must be greater than 0." }
+                    );
+
+                if (request.DTO.Prop == null)
+                    request.DTO.Prop = new();
+
+                // Assign values
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
                 // ===============================
-                // 2️⃣ BASIC INPUT CHECK
+                // 3️⃣ PERMISSION CHECK (RBAC)
                 // ===============================
-                if (request.DTO == null || request.DTO.Id <= 0)
-                    return ApiResponse<bool>.Fail("Invalid Status Id.");
+                //var hasPermission = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    "AssetStatus",   // 🔹 Module
+                //    "Update"         // 🔹 Operation
+                //);
+
+                //if (!hasPermission)
+                //    throw new UnauthorizedAccessException(
+                //        "You do not have permission to update asset status.");
 
                 // ===============================
-                // 3️⃣ PERMISSION (OPTIONAL)
+                // 4️⃣ UPDATE RECORD
                 // ===============================
-                var permissions =
-                    await _permissionService.GetPermissionsAsync(validation.RoleId);
+                var isUpdated = await _unitOfWork.AssetStatusRepository
+                    .UpdateAsync(request.DTO);
 
-                // if (!permissions.Contains("DeleteAssetCategory"))
-                //     return ApiResponse<bool>.Fail("Permission denied.");
+                if (!isUpdated)
+                    throw new ApiException(
+                        "Asset Status not found or update failed.",
+                        404
+                    );
 
-                var isUpdated = await _unitOfWork.AssetStatusRepository.UpdateAsync(request.DTO);
-               
-                 if(!isUpdated)
-                {
-                    return new ApiResponse<bool>
-                    {
-                        IsSucceeded = false,
-                        Message = "Asset Status not found or update failed.",
-                        Data = false
-                    };
-                }
-                    return new ApiResponse<bool>
-                {
-                    IsSucceeded = true,
-                    Message = "Asset Status updated successfully.",
-                    Data = true
-                    };
+                // ===============================
+                // 5️⃣ SUCCESS LOG
+                // ===============================
+                _logger.LogInformation(
+                    "Asset Status updated successfully. Id: {Id}, TenantId: {TenantId}",
+                    request.DTO.Id,
+                    request.DTO.Prop.TenantId);
+
+                return ApiResponse<bool>
+                    .Success(true, "Asset Status updated successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while Updateing asset status.");
-                return new ApiResponse<bool>
-                {
-                    IsSucceeded = false,
-                    Message = "Something went wrong while Updateing asset status.",
-                    Data = false
-                };
+                // ❗ IMPORTANT: middleware handle karega
+                _logger.LogError(ex, "An error occurred while updating asset status.");
+
+                throw;
             }
         }
+
     }
 
 }

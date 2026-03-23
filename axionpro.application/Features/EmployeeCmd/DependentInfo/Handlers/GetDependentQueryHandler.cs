@@ -59,8 +59,8 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
         }
 
         public async Task<ApiResponse<List<GetDependentResponseDTO>>> Handle(
-            GetDependentInfoQuery request,
-            CancellationToken cancellationToken)
+           GetDependentInfoQuery request,
+           CancellationToken cancellationToken)
         {
             try
             {
@@ -85,16 +85,14 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                         _idEncoderService);
 
                 // 🔑 STEP 3: Permission check
-                var permissions =
-                    await _permissionService.GetPermissionsAsync(
-                        validation.RoleId);
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.Add);
 
-                if (!permissions.Contains("ViewDependentInfo"))
-                {
-                    // optional strict check
-                    // return ApiResponse<List<GetDependentResponseDTO>>
-                    //     .Fail("You do not have permission to view dependent info.");
-                }
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("No permission to add dependent.");
+
 
                 // 📦 STEP 4: Repository call
                 var result =
@@ -111,7 +109,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                           PageSize: 1,
                           TotalRecords: 0,
                           TotalPages: 0,
-                          CompletionPercentage: 
+                          CompletionPercentage:
                              0,
                           HasUploadedAll: false
                       );

@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers.EncryptionHelper;
+using axionpro.application.DTOs.Module;
 using axionpro.application.DTOS.Employee.BaseEmployee;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IFileStorage;
@@ -11,6 +13,7 @@ using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Reflection;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
@@ -54,74 +57,95 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         }
 
         public async Task<ApiResponse<GetEmployeeImageReponseDTO>> Handle(
-            CreateEmployeeImageCommand request,
-            CancellationToken cancellationToken)
+      CreateEmployeeImageCommand request,
+      CancellationToken cancellationToken)
         {
-            await _unitOfWork.BeginTransactionAsync();
+            string? uploadedFileKey = null;
 
             try
             {
-                // =========================================
-                // 1️⃣ COMMON VALIDATION
-                // =========================================
-                var validation = await _commonRequestService.ValidateRequestAsync();
+                _logger.LogInformation("CreateEmployeeImage started");
+
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
+                var validation =
+                    await _commonRequestService.ValidateRequestAsync();
+
                 if (!validation.Success)
-                    return ApiResponse<GetEmployeeImageReponseDTO>
-                        .Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request.");
+
+                request.DTO.Prop ??= new();
 
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
-                // =========================================
-                // 2️⃣ PERMISSION CHECK (OPTIONAL)
-                // =========================================
-                var permissions =
-                    await _permissionService.GetPermissionsAsync(validation.RoleId);
+                if (request.DTO.Prop.EmployeeId <= 0)
+                    throw new ValidationErrorException("Invalid EmployeeId.");
 
-                // if (!permissions.Contains("AddEmployeeImage"))
-                //     return ApiResponse<GetEmployeeImageReponseDTO>.Fail("Permission denied.");
+                // ===============================
+                // 3️⃣ PERMISSION (YOUR PATTERN ✅)
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.Add);
 
-                // =========================================
-                // 3️⃣ FILE UPLOAD (SAFE)
-                // =========================================
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("No permission to add employee image.");
+
+                // ===============================
+                // 4️⃣ START TRANSACTION
+                // ===============================
+                await _unitOfWork.BeginTransactionAsync();
+
+                // ===============================
+                // 5️⃣ FILE UPLOAD
+                // ===============================
                 string? filePath = null;
                 string? fileName = null;
                 bool hasImageUploaded = false;
 
-                if (request.DTO.ImageFile != null &&   request.DTO.ImageFile.Length > 0 &&     request.DTO.IsActive)
+                if (request.DTO.ImageFile != null &&
+                    request.DTO.ImageFile.Length > 0 &&
+                    request.DTO.IsActive)
                 {
                     try
                     {
                         fileName =
                             $"profile-{request.DTO.Prop.EmployeeId}-{DateTime.UtcNow:yyMMddHHmmss}";
 
-                        // ✅ S3 key path (NO directory creation)
                         string folderPath =
                             $"tenants/tenant-{validation.TenantId}/employees/{request.DTO.Prop.EmployeeId}/profile";
 
-                        // ✅ Upload to S3
-                        var fileKey =  await _fileStorageService.UploadFileAsync(
+                        uploadedFileKey =
+                            await _fileStorageService.UploadFileAsync(
                                 request.DTO.ImageFile,
                                 folderPath,
                                 fileName);
 
-                        if (!string.IsNullOrWhiteSpace(fileKey))
+                        if (!string.IsNullOrWhiteSpace(uploadedFileKey))
                         {
-                            // ✅ Direct S3 key save karo (NO relative path)
-                            filePath = fileKey;
-
+                            filePath = uploadedFileKey;
                             hasImageUploaded = true;
                         }
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "Employee image upload failed");
+                        throw new ApiException("Image upload failed.", 500);
                     }
                 }
 
-                // =========================================
-                // 4️⃣ MAP → ENTITY
-                // =========================================
+                // ===============================
+                // 6️⃣ MAP ENTITY
+                // ===============================
                 var entity = _mapper.Map<EmployeeImage>(request.DTO);
 
                 entity.EmployeeId = request.DTO.Prop.EmployeeId;
@@ -134,32 +158,30 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 entity.FileType = hasImageUploaded ? 1 : 0;
                 entity.IsPrimary = true;
 
-                // =========================================
-                // 5️⃣ SAVE (REPO RETURNS DTO)
-                // =========================================
+                // ===============================
+                // 7️⃣ SAVE
+                // ===============================
                 var savedImage =
                     await _unitOfWork.Employees.AddImageAsync(entity);
 
                 if (savedImage == null)
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<GetEmployeeImageReponseDTO>
-                        .Fail("Employee image creation failed.");
-                }
+                    throw new ApiException("Employee image creation failed.", 500);
 
-                // =========================================
-                // 6️⃣ BUILD FULL IMAGE URL
-                // =========================================
+                // ===============================
+                // 8️⃣ BUILD FULL URL
+                // ===============================
                 string baseUrl =
                     _configuration["FileSettings:BaseUrl"] ?? string.Empty;
 
                 if (!string.IsNullOrWhiteSpace(savedImage.FilePath))
                     savedImage.FilePath = $"{baseUrl}{savedImage.FilePath}";
 
-                // =========================================
-                // 7️⃣ COMMIT
-                // =========================================
+                // ===============================
+                // 9️⃣ COMMIT
+                // ===============================
                 await _unitOfWork.CommitTransactionAsync();
+
+                _logger.LogInformation("CreateEmployeeImage success");
 
                 return ApiResponse<GetEmployeeImageReponseDTO>
                     .Success(savedImage, "Employee image added successfully.");
@@ -167,10 +189,23 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackTransactionAsync();
-                _logger.LogError(ex, "❌ CreateEmployeeImage failed");
 
-                return ApiResponse<GetEmployeeImageReponseDTO>
-                    .Fail("Unexpected error occurred while adding employee image.");
+                _logger.LogError(ex, "CreateEmployeeImage failed");
+
+                // 🧹 FILE CLEANUP (CRITICAL 🚨)
+                if (!string.IsNullOrEmpty(uploadedFileKey))
+                {
+                    try
+                    {
+                        await _fileStorageService.DeleteFileAsync(uploadedFileKey);
+                    }
+                    catch (Exception cleanupEx)
+                    {
+                        _logger.LogError(cleanupEx, "Failed to cleanup uploaded image");
+                    }
+                }
+
+                throw; // 🚨 MUST
             }
         }
     }

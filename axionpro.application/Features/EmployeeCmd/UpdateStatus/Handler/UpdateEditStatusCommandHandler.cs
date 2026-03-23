@@ -2,6 +2,7 @@
 using axionpro.application.Common.Enums;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Common;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -64,20 +65,34 @@ namespace axionpro.application.Features.EmployeeCmd.UpdateStatus.Handler
             _idEncoderService = idEncoderService;
             _commonRequestService = commonRequestService;
         }
-
         public async Task<ApiResponse<bool>> Handle(
-       UpdateEditableStatusCommand request,
-       CancellationToken ct)
+    UpdateEditableStatusCommand request,
+    CancellationToken ct)
         {
             try
             {
-                var validation = await _commonRequestService.ValidateRequestAsync();
+                _logger.LogInformation("UpdateEditableStatus started");
+
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
+                var validation =
+                    await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
-                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request.");
+
+                request.DTO.Prop ??= new();
 
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
+
                 request.DTO.Prop.EmployeeId =
                     RequestCommonHelper.DecodeOnlyEmployeeId(
                         request.DTO.EmployeeId,
@@ -85,43 +100,70 @@ namespace axionpro.application.Features.EmployeeCmd.UpdateStatus.Handler
                         _idEncoderService);
 
                 if (request.DTO.Prop.EmployeeId <= 0)
-                    return ApiResponse<bool>.Fail("Invalid employee.");
+                    throw new ValidationErrorException("Invalid employee.");
 
+                // ===============================
+                // 3️⃣ ENUM VALIDATION
+                // ===============================
                 if (!Enum.IsDefined(typeof(TabInfoType), request.DTO.TabInfoType))
-                    return ApiResponse<bool>.Fail("Invalid section type.");
+                    throw new ValidationErrorException("Invalid section type.");
 
-                var employee = await _unitOfWork.Employees.GetByIdAsync(
-                    request.DTO.Prop.EmployeeId,
-                    request.DTO.Prop.TenantId,
-                    true);
+                // ===============================
+                // 4️⃣ PERMISSION (CRITICAL 🚨)
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.Update);
+
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("No permission to update editable status.");
+
+                // ===============================
+                // 5️⃣ FETCH EMPLOYEE
+                // ===============================
+                var employee =
+                    await _unitOfWork.Employees.GetByIdAsync(
+                        request.DTO.Prop.EmployeeId,
+                        request.DTO.Prop.TenantId,
+                        true);
 
                 if (employee == null)
-                    return ApiResponse<bool>.Fail("Employee not found.");
+                    throw new ApiException("Employee not found.", 404);
 
-                bool updated = await _unitOfWork.Employees
-                    .UpdateEditableStatusByEntityAsync(
-                        request.DTO.TabInfoType,
-                        request.DTO.Prop.EmployeeId,
-                        request.DTO.Prop.UserEmployeeId,
-                        request.DTO.IsEditable,
-                        ct);
+                // ===============================
+                // 6️⃣ UPDATE STATUS
+                // ===============================
+                var updated =
+                    await _unitOfWork.Employees
+                        .UpdateEditableStatusByEntityAsync(
+                            request.DTO.TabInfoType,
+                            request.DTO.Prop.EmployeeId,
+                            validation.UserEmployeeId,
+                            request.DTO.IsEditable,
+                            ct);
 
                 if (!updated)
                 {
                     _logger.LogWarning(
-                        "Editable status update failed | EmpId={EmpId} | Tab={Tab}",
+                        "Editable update failed | EmpId={EmpId} | Tab={Tab}",
                         request.DTO.Prop.EmployeeId,
                         request.DTO.TabInfoType);
 
-                    return ApiResponse<bool>.Fail("Editable update failed.");
+                    throw new ApiException("Editable update failed.", 500);
                 }
 
-                return ApiResponse<bool>.Success(true, "Editable update completed.");
+                _logger.LogInformation("UpdateEditableStatus success");
+
+                return ApiResponse<bool>.Success(
+                    true,
+                    "Editable update completed.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Editable update error");
-                return ApiResponse<bool>.Fail("Unexpected error occurred.");
+
+                throw; // 🚨 MUST
             }
         }
 

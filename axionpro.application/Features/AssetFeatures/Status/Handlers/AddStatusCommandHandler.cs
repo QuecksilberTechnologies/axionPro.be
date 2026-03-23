@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using axionpro.application.DTOS.AssetDTO.status;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IPermission;
@@ -45,53 +46,69 @@ namespace axionpro.application.Features.AssetFeatures.Status.Handlers
         }
 
         public async Task<ApiResponse<GetStatusResponseDTO>> Handle(
-            AddStatusCommand request,
-            CancellationToken cancellationToken)
+    AddStatusCommand request,
+    CancellationToken cancellationToken)
         {
             try
             {
                 _logger.LogInformation("Creating Asset Status");
 
                 // ===============================
-                // 1️⃣ COMMON VALIDATION
+                // 1️⃣ COMMON VALIDATION (AUTH + CONTEXT)
                 // ===============================
-                var validation =
-                    await _commonRequestService.ValidateRequestAsync();
+                var validation = await _commonRequestService.ValidateRequestAsync();
 
+                // ❌ Old: return Fail
+                // ✅ New: throw
                 if (!validation.Success)
-                    return ApiResponse<GetStatusResponseDTO>
-                        .Fail(validation.ErrorMessage);
-
-                if (request?.DTO == null)
-                    return ApiResponse<GetStatusResponseDTO>
-                        .Fail("Invalid request data.");
-
-                // 🔹 Inject TenantId from token/session
-                request.DTO.Prop.TenantId = validation.TenantId;
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
                 // ===============================
-                // 2️⃣ BUSINESS VALIDATION
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException(
+                        "Invalid request data.",
+                        new List<string> { "Request DTO is required." }
+                    );
+
+                if (request.DTO.Prop == null)
+                    request.DTO.Prop = new();
+
+                // Inject values
+                request.DTO.Prop.TenantId = validation.TenantId;
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+
+                // ===============================
+                // 3️⃣ BUSINESS VALIDATION
                 // ===============================
                 if (string.IsNullOrWhiteSpace(request.DTO.StatusName))
-                    return ApiResponse<GetStatusResponseDTO>
-                        .Fail("StatusName is required.");
+                    throw new ValidationErrorException(
+                        "StatusName is required.",
+                        new List<string> { "StatusName cannot be empty." }
+                    );
 
                 if (string.IsNullOrWhiteSpace(request.DTO.ColorKey))
-                    return ApiResponse<GetStatusResponseDTO>
-                        .Fail("ColorKey is required.");
+                    throw new ValidationErrorException(
+                        "ColorKey is required.",
+                        new List<string> { "ColorKey cannot be empty." }
+                    );
 
                 // ===============================
-                // 3️⃣ PERMISSION CHECK (OPTIONAL)
+                // 4️⃣ PERMISSION CHECK (RBAC)
                 // ===============================
-                var permissions =
-                    await _permissionService.GetPermissionsAsync(validation.RoleId);
+                //var hasPermission = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    "AssetStatus",   // 🔹 Module
+                //    "Add"            // 🔹 Operation
+                //);
 
-                // if (!permissions.Contains("AddAssetStatus"))
-                //     return ApiResponse<GetStatusResponseDTO>
-                //         .Fail("You do not have permission to add asset status.");
+                //if (!hasPermission)
+                //    throw new UnauthorizedAccessException(
+                //        "You do not have permission to create asset status.");
 
                 // ===============================
-                // 4️⃣ MAP DTO → ENTITY
+                // 5️⃣ MAP DTO → ENTITY
                 // ===============================
                 var entity = _mapper.Map<AssetStatus>(request.DTO);
 
@@ -102,37 +119,35 @@ namespace axionpro.application.Features.AssetFeatures.Status.Handlers
                 entity.AddedDateTime = DateTime.UtcNow;
 
                 // ===============================
-                // 5️⃣ SAVE
+                // 6️⃣ SAVE (NO EXPLICIT TRANSACTION NEEDED)
                 // ===============================
                 await _unitOfWork.AssetStatusRepository.AddAsync(entity);
-                await _unitOfWork.CommitAsync();
+                await _unitOfWork.CommitAsync(); // ✔ required (save changes)
 
                 _logger.LogInformation(
-                    "✅ Asset Status created successfully. Id: {Id}, TenantId: {TenantId}",
-                    entity.Id, validation.TenantId
+                    "Asset Status created successfully. Id: {Id}, TenantId: {TenantId}",
+                    entity.Id,
+                    validation.TenantId
                 );
 
                 // ===============================
-                // 6️⃣ MAP ENTITY → RESPONSE DTO
+                // 7️⃣ MAP ENTITY → RESPONSE DTO
                 // ===============================
-                var response =
-                    _mapper.Map<GetStatusResponseDTO>(entity);
+                var response = _mapper.Map<GetStatusResponseDTO>(entity);
 
-                return ApiResponse<GetStatusResponseDTO>.Success(
-                    response,
-                    "Asset Status created successfully."
-                );
+                return ApiResponse<GetStatusResponseDTO>
+                    .Success(response, "Asset Status created successfully.");
             }
             catch (Exception ex)
             {
+                // ❗ IMPORTANT: middleware handle karega
                 _logger.LogError(
                     ex,
-                    "❌ Error while creating Asset Status. TenantId: {TenantId}",
+                    "Error while creating Asset Status. TenantId: {TenantId}",
                     request?.DTO?.Prop?.TenantId
                 );
 
-                return ApiResponse<GetStatusResponseDTO>
-                    .Fail("Something went wrong while adding asset status.");
+                throw;
             }
         }
     }

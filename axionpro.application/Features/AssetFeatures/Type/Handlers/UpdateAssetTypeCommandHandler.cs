@@ -1,13 +1,11 @@
-﻿using axionpro.domain.Entity; using MediatR;
-using Microsoft.Extensions.Logging;
-using axionpro.application.DTOS.AssetDTO.type;
+﻿using axionpro.application.DTOS.AssetDTO.type;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
-using System;
-using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.AssetFeatures.Type.Handlers
 {
@@ -46,54 +44,73 @@ namespace axionpro.application.Features.AssetFeatures.Type.Handlers
         }
 
         public async Task<ApiResponse<bool>> Handle(
-            UpdateAssetTypeCommand request,
-            CancellationToken cancellationToken)
+     UpdateAssetTypeCommand request,
+     CancellationToken cancellationToken)
         {
             try
             {
                 _logger.LogInformation("Updating Asset Type");
 
                 // ===============================
-                // 1️⃣ COMMON VALIDATION
+                // 1️⃣ COMMON VALIDATION (AUTH + CONTEXT)
                 // ===============================
-                var validation =
-                    await _commonRequestService.ValidateRequestAsync();
+                var validation = await _commonRequestService.ValidateRequestAsync();
 
+                // ❌ Old: return Fail
+                // ✅ New: throw
                 if (!validation.Success)
-                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
+                // ===============================
+                // 2️⃣ NULL SAFETY + INPUT VALIDATION
+                // ===============================
+                if (request?.DTO == null || request.DTO.Id <= 0)
+                    throw new ValidationErrorException(
+                        "Invalid Asset Type Id.",
+                        new List<string> { "Type Id must be greater than 0." }
+                    );
+
+                if (string.IsNullOrWhiteSpace(request.DTO.TypeName))
+                    throw new ValidationErrorException(
+                        "Type Name is required.",
+                        new List<string> { "TypeName cannot be empty." }
+                    );
+
+                if (request.DTO.Prop == null)
+                    request.DTO.Prop = new();
+
+                // Inject values
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
                 // ===============================
-                // 2️⃣ INPUT VALIDATION
+                // 3️⃣ PERMISSION CHECK (RBAC)
                 // ===============================
-                if (request.DTO == null || request.DTO.Id <= 0)
-                    return ApiResponse<bool>.Fail("Invalid Asset Type Id.");
+                //var hasPermission = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    "AssetType",   // 🔹 Module
+                //    "Update"       // 🔹 Operation
+                //);
 
-                if (string.IsNullOrWhiteSpace(request.DTO.TypeName))
-                    return ApiResponse<bool>.Fail("Type Name is required.");
-
-                // ===============================
-                // 3️⃣ PERMISSION (OPTIONAL)
-                // ===============================
-                var permissions =
-                    await _permissionService.GetPermissionsAsync(validation.RoleId);
-
-                // if (!permissions.Contains("UpdateAssetType"))
-                //     return ApiResponse<bool>.Fail("Permission denied.");
+                //if (!hasPermission)
+                //    throw new UnauthorizedAccessException(
+                //        "You do not have permission to update asset type.");
 
                 // ===============================
-                // 4️⃣ UPDATE (REPO DECIDES RESULT)
+                // 4️⃣ UPDATE (REPOSITORY)
                 // ===============================
-                bool updated =
-                    await _unitOfWork.AssetTypeRepository
-                        .UpdateAsync(request.DTO);
+                bool updated = await _unitOfWork.AssetTypeRepository
+                    .UpdateAsync(request.DTO);
 
                 if (!updated)
-                    return ApiResponse<bool>
-                        .Fail("Asset Type not found or update failed.");
+                    throw new ApiException(
+                        "Asset Type not found or update failed.",
+                        404
+                    );
 
+                // ===============================
+                // 5️⃣ SUCCESS LOG
+                // ===============================
                 _logger.LogInformation(
                     "Asset Type updated successfully | TypeId={Id} | TenantId={TenantId}",
                     request.DTO.Id,
@@ -104,14 +121,15 @@ namespace axionpro.application.Features.AssetFeatures.Type.Handlers
             }
             catch (Exception ex)
             {
+                // ❗ IMPORTANT: middleware handle karega
                 _logger.LogError(
                     ex,
                     "Update Asset Type failed | TypeId={Id}",
                     request?.DTO?.Id);
 
-                return ApiResponse<bool>
-                    .Fail("Unexpected error while updating asset type.");
+                throw;
             }
         }
+
     }
 }

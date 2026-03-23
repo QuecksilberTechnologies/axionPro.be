@@ -1,21 +1,17 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Common;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 {
@@ -66,31 +62,70 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
             _idEncoderService = idEncoderService;
             _commonRequestService = commonRequestService;
         }
-
-
-        public async Task<ApiResponse<bool>> Handle(UpdateEditableStatusCommand request, CancellationToken ct)
+        public async Task<ApiResponse<bool>> Handle(
+    UpdateEditableStatusCommand request,
+    CancellationToken ct)
         {
             try
             {
-                //    ===================================================== */
-                var validation =
-                    await _commonRequestService.ValidateRequestAsync(
-                        request.DTO.UserEmployeeId);
+                _logger.LogInformation("Updating editable status");
+
+                // ===============================
+                // 1️⃣ COMMON VALIDATION (AUTH + CONTEXT)
+                // ===============================
+                var validation = await _commonRequestService
+                    .ValidateRequestAsync(request.DTO.UserEmployeeId);
 
                 if (!validation.Success)
-                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException(
+                        "Invalid request.",
+                        new List<string> { "Request DTO is required." }
+                    );
+
+                if (request.DTO.Prop == null)
+                    request.DTO.Prop = new();
+
+                // Assign values
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
+
+                // ===============================
+                // 3️⃣ DECODE EMPLOYEE ID (IMPORTANT)
+                // ===============================
                 request.DTO.Prop.EmployeeId =
                     RequestCommonHelper.DecodeOnlyEmployeeId(
                         request.DTO.EmployeeId,
                         validation.Claims.TenantEncriptionKey,
                         _idEncoderService);
 
-                /* =====================================================
-                   2️⃣ FETCH EXISTING EMPLOYEE
-                   ===================================================== */
+                if (request.DTO.Prop.EmployeeId <= 0)
+                    throw new ValidationErrorException(
+                        "Invalid Employee Id.",
+                        new List<string> { "EmployeeId is invalid after decoding." }
+                    );
+
+                // ===============================
+                // 4️⃣ PERMISSION CHECK (RBAC)
+                // ===============================
+                //var hasPermission = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    "EmployeeBank",   // 🔹 Module (adjust if needed)
+                //    "Update"          // 🔹 Operation
+                //);
+
+                //if (!hasPermission)
+                //    throw new UnauthorizedAccessException(
+                //        "You do not have permission to update editable status.");
+
+                // ===============================
+                // 5️⃣ FETCH EMPLOYEE
+                // ===============================
                 var employee = await _unitOfWork.Employees.GetByIdAsync(
                     request.DTO.Prop.EmployeeId,
                     request.DTO.Prop.TenantId,
@@ -98,30 +133,50 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 
                 if (employee == null)
                 {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<bool>.Fail("Employee not found.");
+                    _logger.LogWarning(
+                        "Employee not found. EmployeeId: {EmployeeId}",
+                        request.DTO.Prop.EmployeeId);
+
+                    throw new ApiException("Employee not found.", 404);
                 }
 
-                // 🧩 STEP 4: UPDATE EDITABLE STATUS
-                bool updateResult = await _unitOfWork.EmployeeBankRepository.UpdateEditStatus(
-                    request.DTO.Prop.EmployeeId,
-                    request.DTO.Prop.UserEmployeeId,
-                    request.DTO.IsEditable);
+                // ===============================
+                // 6️⃣ UPDATE EDITABLE STATUS
+                // ===============================
+                bool updateResult = await _unitOfWork.EmployeeBankRepository
+                    .UpdateEditStatus(
+                        request.DTO.Prop.EmployeeId,
+                        request.DTO.Prop.UserEmployeeId,
+                        request.DTO.IsEditable);
+
                 if (!updateResult)
                 {
-                    _logger.LogWarning("❌ Failed to update editable status for EmployeeId: {EmployeeId}", request.DTO.Prop.EmployeeId);
-                    return ApiResponse<bool>.Fail("Unexpected error occurred.");
+                    _logger.LogWarning(
+                        "Failed to update editable status for EmployeeId: {EmployeeId}",
+                        request.DTO.Prop.EmployeeId);
+
+                    throw new ApiException("Unexpected error occurred.", 500);
                 }
 
+                // ===============================
+                // 7️⃣ SUCCESS RESPONSE
+                // ===============================
+                _logger.LogInformation(
+                    "Editable status updated successfully for EmployeeId: {EmployeeId}",
+                    request.DTO.Prop.EmployeeId);
 
-                return ApiResponse<bool>.Success(true, "editable update completed.");
+                return ApiResponse<bool>
+                    .Success(true, "Editable update completed.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "editable update error");
-                return ApiResponse<bool>.Fail("Unexpected error occurred.");
+                _logger.LogError(ex, "Editable update error");
+
+                // ❗ IMPORTANT: middleware handle karega
+                throw;
             }
         }
+
 
     }
 }

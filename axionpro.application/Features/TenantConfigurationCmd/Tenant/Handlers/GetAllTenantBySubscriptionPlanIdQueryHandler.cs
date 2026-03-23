@@ -2,7 +2,7 @@
 using axionpro.application.DTOs.Operation;
 using axionpro.application.DTOs.Registration;
 using axionpro.application.DTOs.Tenant;
-using axionpro.application.Features.RegistrationCmd.Commands;
+ 
 using axionpro.application.Features.TenantConfigurationCmd.Tenant.Queries;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IRepositories;

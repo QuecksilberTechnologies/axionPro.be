@@ -1,10 +1,11 @@
-﻿using axionpro.domain.Entity; using MediatR;
-using Microsoft.Extensions.Logging;
-using axionpro.application.DTOS.AssetDTO.category;
+﻿using axionpro.application.DTOS.AssetDTO.category;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
+using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.AssetFeatures.Category.Handlers
 {
@@ -44,49 +45,67 @@ namespace axionpro.application.Features.AssetFeatures.Category.Handlers
         }
 
         public async Task<ApiResponse<bool>> Handle(
-            DeleteCategoryCommand request,
-            CancellationToken cancellationToken)
+      DeleteCategoryCommand request,
+      CancellationToken cancellationToken)
         {
             try
             {
                 _logger.LogInformation("Deleting Asset Category");
 
                 // ===============================
-                // 1️⃣ COMMON VALIDATION
+                // 1️⃣ COMMON VALIDATION (AUTH + CONTEXT)
                 // ===============================
                 var validation = await _commonRequestService.ValidateRequestAsync();
-                if (!validation.Success)
-                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
 
+                // ❌ Old: return Fail
+                // ✅ New: throw (middleware handle karega)
+                if (!validation.Success)
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+
+                // ===============================
+                // 2️⃣ NULL SAFETY + INPUT VALIDATION
+                // ===============================
+                if (request?.DTO == null || request.DTO.Id <= 0)
+                    throw new ValidationErrorException(
+                        "Invalid Category Id.",
+                        new List<string> { "Category Id must be greater than 0." }
+                    );
+
+                if (request.DTO.Prop == null)
+                    request.DTO.Prop = new();
+
+                // Inject values
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
                 // ===============================
-                // 2️⃣ BASIC INPUT CHECK
+                // 3️⃣ PERMISSION CHECK (RBAC)
                 // ===============================
-                if (request.DTO == null || request.DTO.Id <= 0)
-                    return ApiResponse<bool>.Fail("Invalid Category Id.");
+                //var hasPermission = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    "AssetCategory",   // 🔹 Module
+                //    "Delete"           // 🔹 Operation
+                //);
+
+                //if (!hasPermission)
+                //    throw new UnauthorizedAccessException(
+                //        "You do not have permission to delete asset category.");
 
                 // ===============================
-                // 3️⃣ PERMISSION (OPTIONAL)
+                // 4️⃣ DELETE (REPOSITORY)
                 // ===============================
-                var permissions =
-                    await _permissionService.GetPermissionsAsync(validation.RoleId);
-
-                // if (!permissions.Contains("DeleteAssetCategory"))
-                //     return ApiResponse<bool>.Fail("Permission denied.");
-
-                // ===============================
-                // 4️⃣ DELETE (REPO DECIDES RESULT)
-                // ===============================
-                bool deleted =
-                    await _unitOfWork.AssetCategoryRepository
-                        .DeleteAsync(request.DTO);
+                bool deleted = await _unitOfWork.AssetCategoryRepository
+                    .DeleteAsync(request.DTO);
 
                 if (!deleted)
-                    return ApiResponse<bool>.Fail(
-                        "Delete failed. Record may not exist or already deleted.");
+                    throw new ApiException(
+                        "Delete failed. Record may not exist or already deleted.",
+                        404
+                    );
 
+                // ===============================
+                // 5️⃣ SUCCESS LOG
+                // ===============================
                 _logger.LogInformation(
                     "Asset Category deleted successfully | CategoryId={Id} | TenantId={TenantId}",
                     request.DTO.Id,
@@ -97,11 +116,13 @@ namespace axionpro.application.Features.AssetFeatures.Category.Handlers
             }
             catch (Exception ex)
             {
+                // ❗ IMPORTANT: middleware handle karega
                 _logger.LogError(ex, "Delete Asset Category failed");
 
-                return ApiResponse<bool>
-                    .Fail("Unexpected error while deleting asset category.");
+                throw;
             }
         }
     }
+
+
 }

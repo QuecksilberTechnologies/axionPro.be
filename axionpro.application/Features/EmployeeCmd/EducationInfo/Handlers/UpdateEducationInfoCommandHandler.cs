@@ -2,6 +2,7 @@
 using axionpro.application.Constants;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.Education;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -62,139 +63,169 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
         }
 
 
-        public async Task<ApiResponse<bool>> Handle(UpdateEducationInfoCommand request, CancellationToken cancellationToken)
-        
-        
-        
+        public async Task<ApiResponse<bool>> Handle(
+       UpdateEducationInfoCommand request,
+       CancellationToken cancellationToken)
         {
+            string? uploadedFileKey = null;
+
             try
             {
+                _logger.LogInformation("UpdateEducation started");
 
-                if (request.DTO.Prop == null)
-                {
-                    request.DTO.Prop = new ExtraPropRequestDTO();
-                }
-
-                await _unitOfWork.BeginTransactionAsync();
-
-                // 🔐 STEP 1: COMMON VALIDATION (SAME AS CONTACT)
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
                 var validation =
                     await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
-                    return ApiResponse<bool>
-                        .Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // 🔓 STEP 2: Assign decoded values
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request.");
+
+                request.DTO.Prop ??= new ExtraPropRequestDTO();
+
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
- 
 
-                // 🔑 STEP 3: Permission check
-                var permissions =
-                    await _permissionService.GetPermissionsAsync(validation.RoleId);
+                // ===============================
+                // 3️⃣ PERMISSION (YOUR FIXED PATTERN ✅)
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.Update);
 
-                if (!permissions.Contains("AddDependentInfo"))
-                {
-                    // optional hard-stop
-                    // return ApiResponse<List<GetDependentResponseDTO>>
-                    //     .Fail("You do not have permission to add dependent info.");
-                }
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("No permission to update education.");
 
-
- 
-
-                // ------------------------ FETCH EXISTING RECORD ------------------------
-                var existing = await _unitOfWork.EmployeeEducationRepository.GetSingleRecordAsync(request.DTO.Id, true);
+                // ===============================
+                // 4️⃣ FETCH EXISTING
+                // ===============================
+                var existing =
+                    await _unitOfWork.EmployeeEducationRepository
+                        .GetSingleRecordAsync(request.DTO.Id, true);
 
                 if (existing == null)
-                    return ApiResponse<bool>.UpdatedFail("Education record not found.");
+                    throw new ApiException("Education record not found.", 404);
 
+                // ===============================
+                // 5️⃣ START TRANSACTION
+                // ===============================
+                await _unitOfWork.BeginTransactionAsync();
 
+                var dto = request.DTO;
 
+                // ===============================
+                // 6️⃣ APPLY UPDATES
+                // ===============================
+                if (!string.IsNullOrWhiteSpace(dto.Degree))
+                    existing.Degree = dto.Degree.Trim();
 
-                // ------------------------ APPLY FIELD UPDATES (NULL SAFE) ------------------------
-                existing.Degree = string.IsNullOrWhiteSpace(request.DTO.Degree) ? existing.Degree : request.DTO.Degree.Trim();
-                existing.InstituteName = string.IsNullOrWhiteSpace(request.DTO.InstituteName) ? existing.InstituteName : request.DTO.InstituteName.Trim();
-                existing.Remark = request.DTO.Remark?.Trim();
-                existing.ScoreValue = request.DTO.ScoreValue?.Trim();
-             //   1 = GPA, 2 = Percentage, 3 = CGPA, etc.
-                if (!string.IsNullOrWhiteSpace(request.DTO.ScoreType) && int.TryParse(request.DTO.ScoreType.Trim(), out int parsedScoreType))
-                {
+                if (!string.IsNullOrWhiteSpace(dto.InstituteName))
+                    existing.InstituteName = dto.InstituteName.Trim();
+
+                if (!string.IsNullOrWhiteSpace(dto.ScoreValue))
+                    existing.ScoreValue = dto.ScoreValue.Trim();
+
+                if (!string.IsNullOrWhiteSpace(dto.ScoreType) &&
+                    int.TryParse(dto.ScoreType.Trim(), out int parsedScoreType))
                     existing.ScoreType = parsedScoreType;
-                }
-                existing.GradeDivision = request.DTO.GradeDivision?.Trim();
-                existing.EducationGap = request.DTO.IsEducationGapBeforeDegree;
-                existing.GapYears = request.DTO.GapYears;
-                existing.ReasonOfEducationGap = request.DTO.ReasonOfEducationGap?.Trim();
-                existing.StartDate = request.DTO.StartDate ?? existing.StartDate;
-                existing.EndDate = request.DTO.EndDate ?? existing.EndDate;
 
-                // ------------------------ FILE HANDLING (OPTIONAL) ------------------------
-                // =================================================
-                // FILE HANDLING (S3 - NO DELETE, AUDIT SAFE)
-                // =================================================
-                if (request.DTO.EducationDocument != null &&
-                    request.DTO.EducationDocument.Length > 0)
+                if (!string.IsNullOrWhiteSpace(dto.GradeDivision))
+                    existing.GradeDivision = dto.GradeDivision.Trim();
+
+                existing.EducationGap = dto.IsEducationGapBeforeDegree;
+                existing.GapYears = dto.GapYears;
+                existing.ReasonOfEducationGap = dto.ReasonOfEducationGap?.Trim();
+
+                existing.StartDate = dto.StartDate ?? existing.StartDate;
+                existing.EndDate = dto.EndDate ?? existing.EndDate;
+
+                // ===============================
+                // 7️⃣ FILE UPLOAD
+                // ===============================
+                if (dto.EducationDocument != null &&
+                    dto.EducationDocument.Length > 0)
                 {
                     try
                     {
-                        // 🔹 OLD FILE KO TOUCH NAHI KARNA (IMPORTANT)
-                        // S3 me rehne do (audit/history)
+                        string degreeName =
+                            dto.Degree?.Trim().ToLower().Replace(" ", "_") ?? "doc";
 
-                        // 🔹 CLEAN DEGREE NAME
-                        string degreeName = request.DTO.Degree?
-                            .Trim()
-                            .ToLower()
-                            .Replace(" ", "_") ?? "doc";
-
-                        // 🔹 FILE NAME
                         string newFileName =
                             $"{ConstantValues.EducationFolder}-{existing.EmployeeId}-{degreeName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
 
-                        // 🔹 FOLDER PATH (STANDARD RULE)
                         string folderPath =
-                            $"{ConstantValues.TenantFolder}-{request.DTO.Prop.TenantId}/" +
+                            $"{ConstantValues.TenantFolder}-{validation.TenantId}/" +
                             $"{ConstantValues.EmployeeFolder}/{existing.EmployeeId}/" +
                             $"{ConstantValues.EducationFolder}";
 
-                        // 🔹 UPLOAD
-                        var fileKey = await _fileStorageService.UploadFileAsync(
-                            request.DTO.EducationDocument,
+                        uploadedFileKey = await _fileStorageService.UploadFileAsync(
+                            dto.EducationDocument,
                             folderPath,
                             newFileName);
 
-                        // 🔹 UPDATE DB (ONLY NEW FILE)
-                        existing.FilePath = fileKey;
+                        existing.FilePath = uploadedFileKey;
                         existing.FileName = newFileName;
                         existing.HasEducationDocUploded = true;
-
-                        _logger.LogInformation("Education document uploaded. Old file preserved.");
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex,
-                            "Error uploading education document for employee {Emp}",
-                            existing.EmployeeId);
-
-                        return ApiResponse<bool>.Fail("File upload failed.");
+                        _logger.LogError(ex, "Education file upload failed");
+                        throw new ApiException("File upload failed.", 500);
                     }
                 }
-                // ------------------------ SAVE CHANGES ------------------------
-                existing.UpdatedById = request.DTO.Prop.UserEmployeeId;
+
+                // ===============================
+                // 🧾 AUDIT
+                // ===============================
+                existing.UpdatedById = validation.UserEmployeeId;
                 existing.UpdatedDateTime = DateTime.UtcNow;
 
-                await _unitOfWork.EmployeeEducationRepository.UpdateEmployeeFieldAsync(existing);
+                // ===============================
+                // 8️⃣ SAVE
+                // ===============================
+                await _unitOfWork.EmployeeEducationRepository
+                    .UpdateEmployeeFieldAsync(existing);
 
+                // ===============================
+                // 9️⃣ COMMIT
+                // ===============================
+                await _unitOfWork.CommitTransactionAsync();
 
-                return ApiResponse<bool>.UpdatedSuccess("Education record updated successfully.");
+                _logger.LogInformation("UpdateEducation success");
+
+                return ApiResponse<bool>.Success(true, "Education updated successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error updating education");
-                return ApiResponse<bool>.Fail("Something went wrong while updating education.");
+                await _unitOfWork.RollbackTransactionAsync();
+
+                _logger.LogError(ex, "Error updating education");
+
+                // 🧹 FILE CLEANUP
+                if (!string.IsNullOrEmpty(uploadedFileKey))
+                {
+                    try
+                    {
+                        await _fileStorageService.DeleteFileAsync(uploadedFileKey);
+                    }
+                    catch (Exception cleanupEx)
+                    {
+                        _logger.LogError(cleanupEx, "File cleanup failed");
+                    }
+                }
+
+                throw; // 🚨 MUST
             }
         }
+
     }
 
 

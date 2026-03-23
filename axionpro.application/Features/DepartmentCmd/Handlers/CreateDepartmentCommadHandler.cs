@@ -8,6 +8,7 @@ using axionpro.application.DTOs.Department;
 using axionpro.application.DTOs.Designation;
 using axionpro.application.DTOS.Common;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.ITokenService;
@@ -67,6 +68,13 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
         {
             try
             {
+
+                _logger.LogInformation("Creating Asset Status");
+
+                // ===============================
+                // 1️⃣ COMMON VALIDATION (AUTH + CONTEXT)
+                // ===============================
+              
                 // 🧩 STEP 1: Validate JWT Token
                 var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
                     .ToString()?.Replace("Bearer ", "");
@@ -175,5 +183,7 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                 return ApiResponse<List<GetDepartmentResponseDTO>>.Fail("Failed to create department(s) due to an internal error.");
             }
         }
+    
+    
     }
 }

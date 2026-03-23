@@ -2,6 +2,7 @@
 using axionpro.application.Common.Enums;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.Employee.Dependent;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -55,85 +56,99 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
         }
 
         public async Task<ApiResponse<bool>> Handle(
-            UpdateDependentCommand request,
-            CancellationToken cancellationToken)
+    UpdateDependentCommand request,
+    CancellationToken cancellationToken)
         {
+            string? uploadedFileKey = null;
+
             try
             {
-                await _unitOfWork.BeginTransactionAsync();
+                _logger.LogInformation("UpdateDependent started");
 
-                // 🔐 STEP 1: COMMON VALIDATION
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
                 var validation =
                     await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
-                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request.");
+
+                if (request.DTO.Id <= 0)
+                    throw new ValidationErrorException("Invalid dependent id.");
 
                 long loggedInEmployeeId = validation.UserEmployeeId;
 
-                // 🔎 STEP 2: Validate Dependent Id
-                if (request.DTO.Id <= 0)
-                    return ApiResponse<bool>.Fail("Invalid dependent id.");
+                // ===============================
+                // 3️⃣ PERMISSION (YOUR FIXED PATTERN ✅)
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.Update);
 
-                // 🔑 STEP 3: Permission Check
-                var permissions =
-                    await _permissionService.GetPermissionsAsync(validation.RoleId);
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("No permission to update dependent.");
 
-                if (!permissions.Contains("UpdateDependentInfo"))
-                {
-                    // optional strict block
-                    // return ApiResponse<bool>.Fail("Permission denied.");
-                }
-
-                // 📦 STEP 4: Fetch existing dependent
+                // ===============================
+                // 4️⃣ FETCH EXISTING
+                // ===============================
                 var dependent =
                     await _unitOfWork.EmployeeDependentRepository
                         .GetSingleRecordAsync(request.DTO.Id, true);
 
                 if (dependent == null)
-                    return ApiResponse<bool>.Fail("Dependent record not found.");
+                    throw new ApiException("Dependent record not found.", 404);
 
-                // =====================================================
-                // 📂 DEPENDENT PROOF CHECK (CLEAN & SAFE)
-                // =====================================================
-              
-               
-                // =====================================================
-                // 🔄 PARTIAL UPDATE (NULL SAFE)
-                // =====================================================
+                // ===============================
+                // 5️⃣ START TRANSACTION
+                // ===============================
+                await _unitOfWork.BeginTransactionAsync();
 
-                // Dependent Name (string)
-                if (request.DTO.DependentName != null)
+                var dto = request.DTO;
+
+                // ===============================
+                // 6️⃣ PARTIAL UPDATE
+                // ===============================
+                if (!string.IsNullOrWhiteSpace(dto.DependentName))
+                    dependent.DependentName = dto.DependentName.Trim();
+
+                if (dto.Relation.HasValue)
                 {
-                    dependent.DependentName =
-                        string.IsNullOrWhiteSpace(request.DTO.DependentName)
-                            ? dependent.DependentName
-                            : request.DTO.DependentName.Trim();
+                    if (!Enum.IsDefined(typeof(RelationDependant), dto.Relation.Value))
+                        throw new ValidationErrorException("Invalid dependent relation.");
+
+                    dependent.Relation = dto.Relation.Value;
                 }
 
-                // Relation (INT enum validation)
-                if (request.DTO.Relation.HasValue)
-                {
-                    int relationValue = request.DTO.Relation.Value;
+                if (dto.DateOfBirth.HasValue)
+                    dependent.DateOfBirth = dto.DateOfBirth.Value;
 
-                    if (!Enum.IsDefined(typeof(RelationDependant), relationValue))
-                        return ApiResponse<bool>.Fail("Invalid dependent relation value.");
+                if (dto.IsCoveredInPolicy.HasValue)
+                    dependent.IsCoveredInPolicy = dto.IsCoveredInPolicy.Value;
 
-                    dependent.Relation = relationValue;
-                }
+                if (dto.IsMarried.HasValue)
+                    dependent.IsMarried = dto.IsMarried.Value;
 
-                // =====================================================
-                // 📂 DEPENDENT PROOF FILE UPLOAD (AUDIT SAFE)
-                // =====================================================
-                // =====================================================
-                // 📂 DEPENDENT PROOF FILE UPLOAD (S3 - NO DELETE)
-                // =====================================================
-                if (request.DTO.ProofFile != null &&
-                    request.DTO.ProofFile.Length > 0)
+                if (!string.IsNullOrWhiteSpace(dto.Remark))
+                    dependent.Remark = dto.Remark.Trim();
+
+                if (!string.IsNullOrWhiteSpace(dto.Description))
+                    dependent.Description = dto.Description.Trim();
+
+                // ===============================
+                // 7️⃣ FILE UPLOAD (SAFE)
+                // ===============================
+                if (dto.ProofFile != null && dto.ProofFile.Length > 0)
                 {
                     try
                     {
-                        // 🔹 RELATION NAME SAFE
                         string relationName =
                             Enum.IsDefined(typeof(RelationDependant), dependent.Relation)
                                 ? ((RelationDependant)dependent.Relation).ToString().ToLower()
@@ -141,101 +156,76 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
 
                         relationName = relationName.Replace(" ", "_");
 
-                        // 🔹 FILE NAME
                         string fileName =
                             $"proof-{dependent.EmployeeId}-{relationName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
 
-                        // 🔹 FOLDER PATH (STANDARD RULE)
                         string folderPath =
                             $"{ConstantValues.TenantFolder}-{validation.TenantId}/" +
                             $"{ConstantValues.EmployeeFolder}/{dependent.EmployeeId}/dependent";
 
-                        // 🔹 UPLOAD (DIRECT S3)
-                        var fileKey = await _fileStorageService.UploadFileAsync(
-                            request.DTO.ProofFile,
+                        uploadedFileKey = await _fileStorageService.UploadFileAsync(
+                            dto.ProofFile,
                             folderPath,
                             fileName);
 
-                        // 🔹 UPDATE ENTITY (OLD FILE PRESERVED)
-                        dependent.FilePath = fileKey;
+                        dependent.FilePath = uploadedFileKey;
                         dependent.FileName = fileName;
-                        dependent.FileType = 2; // pdf
+                        dependent.FileType = 2;
                         dependent.HasProofUploaded = true;
-
-                        _logger.LogInformation("Dependent proof uploaded. Old file preserved.");
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex,
-                            "Error uploading dependent proof | DependentId: {Id}",
-                            dependent.Id);
-
-                        await _unitOfWork.RollbackTransactionAsync();
-                        return ApiResponse<bool>.Fail("File upload failed.");
+                        _logger.LogError(ex, "Dependent file upload failed");
+                        throw new ApiException("File upload failed.", 500);
                     }
                 }
 
-                // Date of Birth
-                if (request.DTO.DateOfBirth.HasValue)
-                    dependent.DateOfBirth = request.DTO.DateOfBirth.Value;
-
-                // Is Covered
-                if (request.DTO.IsCoveredInPolicy.HasValue)
-                    dependent.IsCoveredInPolicy = request.DTO.IsCoveredInPolicy.Value;
-
-                // Is Married
-                if (request.DTO.IsMarried.HasValue)
-                    dependent.IsMarried = request.DTO.IsMarried.Value;
-
-                // Remark
-                if (request.DTO.Remark != null)
-                {
-                    dependent.Remark =
-                        string.IsNullOrWhiteSpace(request.DTO.Remark)
-                            ? dependent.Remark
-                            : request.DTO.Remark.Trim();
-                }
-
-                // Description
-                if (request.DTO.Description != null)
-                {
-                    dependent.Description =
-                        string.IsNullOrWhiteSpace(request.DTO.Description)
-                            ? dependent.Description
-                            : request.DTO.Description.Trim();
-                }
-
+                // ===============================
                 // 🧾 AUDIT
+                // ===============================
                 dependent.UpdatedById = loggedInEmployeeId;
                 dependent.UpdatedDateTime = DateTime.UtcNow;
-               
 
-
-                // 💾 SAVE
-                bool updated =
+                // ===============================
+                // 8️⃣ SAVE
+                // ===============================
+                var updated =
                     await _unitOfWork.EmployeeDependentRepository
                         .UpdateAsync(dependent);
 
                 if (!updated)
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<bool>.Fail("Failed to update dependent info.");
-                }
+                    throw new ApiException("Failed to update dependent.", 500);
 
+                // ===============================
+                // 9️⃣ COMMIT
+                // ===============================
                 await _unitOfWork.CommitTransactionAsync();
+
+                _logger.LogInformation("UpdateDependent success");
+
                 return ApiResponse<bool>.Success(true, "Dependent updated successfully.");
             }
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackTransactionAsync();
 
-                _logger.LogError(ex, "❌ Error updating dependent info");
+                _logger.LogError(ex, "Error updating dependent");
 
-                return ApiResponse<bool>.Fail(
-                    "Unexpected error occurred.",
-                    new List<string> { ex.Message });
+                // 🧹 FILE CLEANUP (CRITICAL)
+                if (!string.IsNullOrEmpty(uploadedFileKey))
+                {
+                    try
+                    {
+                        await _fileStorageService.DeleteFileAsync(uploadedFileKey);
+                    }
+                    catch (Exception cleanupEx)
+                    {
+                        _logger.LogError(cleanupEx, "File cleanup failed");
+                    }
+                }
+
+                throw; // 🚨 MUST
             }
-
         }
     }
 

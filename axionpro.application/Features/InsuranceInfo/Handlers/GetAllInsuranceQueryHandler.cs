@@ -1,31 +1,11 @@
-﻿using AutoMapper;
-using axionpro.application.Common.Helpers;
-using axionpro.application.Common.Helpers.axionpro.application.Configuration;
-using axionpro.application.Common.Helpers.Converters;
-using axionpro.application.Common.Helpers.EncryptionHelper;
-using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
-using axionpro.application.Common.Helpers.RequestHelper;
-using axionpro.application.DTOs.Designation;
-using axionpro.application.DTOS.Common;
-using axionpro.application.DTOS.Employee.Bank;
-using axionpro.application.DTOS.Employee.BaseEmployee;
-using axionpro.application.DTOS.InsurancePolicy;
-using axionpro.application.DTOS.Pagination;
-
+﻿using axionpro.application.DTOS.InsurancePolicy;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Configuration;
+using MediatR;
 using Microsoft.Extensions.Logging;
-using System.Drawing.Printing;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace axionpro.application.Features.InsuranceInfo.Handlers
 {
@@ -59,57 +39,63 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
             _logger = logger;
             _commonRequestService = commonRequestService;
         }
-
         public async Task<ApiResponse<List<GetAlllnsurancePolicyResponseDTO>>> Handle(
-            GetAllInsuranceQuery request,
-            CancellationToken cancellationToken)
+    GetAllInsuranceQuery request,
+    CancellationToken cancellationToken)
         {
             try
             {
-                // --------------------------------------------------
-                // 1️⃣ Common validation (Tenant / User context)
-                // --------------------------------------------------
+                _logger.LogInformation("🔹 GetAllInsurance started");
+
+                // ===============================
+                // 1️⃣ VALIDATION (AUTH)
+                // ===============================
                 var validation = await _commonRequestService.ValidateRequestAsync();
+
                 if (!validation.Success)
-                {
-                    return ApiResponse<List<GetAlllnsurancePolicyResponseDTO>>
-                        .Fail(validation.ErrorMessage);
-                }
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // --------------------------------------------------
-                // 2️⃣ Repository call (DDL only)
-                // --------------------------------------------------
-                var result =
-                    await _unitOfWork.InsuranceRepository.GetAllListAsync(
-                        request.DTO.PolicyId,
-                        request.DTO.IsActive
-                    );
+                // ===============================
+                // 2️⃣ PERMISSION CHECK
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.InsurancePolicy,
+                //    Operations.View);
 
-                // --------------------------------------------------
-                // 3️⃣ No data found → UI wants error
-                // --------------------------------------------------
-                if (result == null || !result.Data.Any())
-                {
-                    return ApiResponse<List<GetAlllnsurancePolicyResponseDTO>>
-                        .Fail("No insurance policies found.");
-                }
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("Access denied.");
 
-                // --------------------------------------------------
-                // 4️⃣ Success
-                // --------------------------------------------------
+                // ===============================
+                // 3️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request data.");
+
+                // ===============================
+                // 4️⃣ FETCH DATA
+                // ===============================
+                var result = await _unitOfWork.InsuranceRepository
+                    .GetAllListAsync(request.DTO.PolicyId, request.DTO.IsActive);
+
+                var data = result?.Data ?? new List<GetAlllnsurancePolicyResponseDTO>();
+
+                _logger.LogInformation("✅ Retrieved {Count} insurance policies", data.Count);
+
+                // ===============================
+                // 5️⃣ SUCCESS (EMPTY ALLOWED ✅)
+                // ===============================
                 return ApiResponse<List<GetAlllnsurancePolicyResponseDTO>>
-                    .Success(result.Data, "Insurance policies fetched successfully.");
+                    .Success(data, "Insurance policies fetched successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(
-                    ex,
-                    "Error while fetching InsurancePolicy DDL");
+                _logger.LogError(ex, "❌ Error in GetAllInsurance");
 
-                return ApiResponse<List<GetAlllnsurancePolicyResponseDTO>>
-                    .Fail("An unexpected error occurred while fetching insurance policies.");
+                throw; // ✅ CRITICAL
             }
         }
+
     }
 
 

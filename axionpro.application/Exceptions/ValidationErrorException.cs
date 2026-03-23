@@ -9,18 +9,16 @@ namespace axionpro.application.Exceptions
 {
     public class ValidationErrorException : Exception
     {
-        public ValidationErrorException() : base("One or more validations occured")
+        public List<string> Errors { get; }
+
+        public ValidationErrorException(string message) : base(message)
         {
-            Errors = new List<string>();
+            Errors = new List<string> { message };
         }
 
-        public List<string> Errors { get; set; }
-        public ValidationErrorException(List<ValidationFailure> failures) : this()
+        public ValidationErrorException(string message, List<string> errors) : base(message)
         {
-            foreach (var failure in failures)
-            {
-                Errors.Add(failure.ErrorMessage);
-            }
+            Errors = errors;
         }
     }
 }

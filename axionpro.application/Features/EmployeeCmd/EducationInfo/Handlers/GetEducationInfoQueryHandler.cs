@@ -3,6 +3,7 @@ using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.DTOS.Pagination;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -64,81 +65,103 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
         }
 
 
-        public async Task<ApiResponse<List<GetEducationResponseDTO>>> Handle(GetEducationInfoQuery request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<List<GetEducationResponseDTO>>> Handle(
+    GetEducationInfoQuery request,
+    CancellationToken cancellationToken)
         {
-            await _unitOfWork.BeginTransactionAsync();
-
             try
             {
-                // 1️ COMMON VALIDATION (Mandatory)
-                var validation = await _commonRequestService.ValidateRequestAsync();
+                _logger.LogInformation("GetEducationInfo started");
+
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
+                var validation =
+                    await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
-                    return ApiResponse<List<GetEducationResponseDTO>>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // Assign decoded values coming from CommonRequestService
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request.");
+
+                request.DTO.Prop ??= new();
+
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
-                request.DTO.Prop.EmployeeId = RequestCommonHelper.DecodeOnlyEmployeeId( request.DTO.EmployeeId, validation.Claims.TenantEncriptionKey,  _idEncoderService  );
-                // ✅ Create  using repository
-                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
-                if (!permissions.Contains("AddBankInfo"))
-                {
-                    //await _unitOfWork.RollbackTransactionAsync();
-                    //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
-                }
+                request.DTO.Prop.EmployeeId =
+                    RequestCommonHelper.DecodeOnlyEmployeeId(
+                        request.DTO.EmployeeId,
+                        validation.Claims.TenantEncriptionKey,
+                        _idEncoderService);
 
-               
-               
-                // 4️⃣ Fetch Data from Repository
-                PagedResponseDTO<GetEducationResponseDTO> Entity = await _unitOfWork.EmployeeEducationRepository.GetInfo(request.DTO);
-                if (Entity == null || !Entity.Items.Any())
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return new ApiResponse<List<GetEducationResponseDTO>>
-                    {
-                        IsSucceeded = true,
-                        Message = " record(s) retrieved successfully.",
-                        PageNumber = 1,
-                        PageSize = 1,
-                        TotalRecords = 0,
-                        TotalPages = 1,
-                        Data = null,
-                        CompletionPercentage = 0,
-                        HasAllDocUploaded = false,
+                if (request.DTO.Prop.EmployeeId <= 0)
+                    throw new ValidationErrorException("Invalid EmployeeId.");
 
-                    };
-                }
+                // ===============================
+                // 3️⃣ PERMISSION (YOUR FIXED PATTERN ✅)
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.View);
 
-                // 5️⃣ Projection + Encryption
-             //   var encryptedResult = ProjectionHelper.ToGetEducationResponseDTOs(Entity.Items, _encryptionService, tenantKey, request.DTO.EmployeeId);
-                var encryptedResult = ProjectionHelper.ToGetEducationResponseDTOs(Entity, _idEncoderService, validation.Claims.TenantEncriptionKey ,  _configuration);
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("No permission to view education.");
 
-                // 6️⃣ Commit Transaction
-                await _unitOfWork.CommitTransactionAsync();
+                // ===============================
+                // 4️⃣ FETCH DATA
+                // ===============================
+                var entity =
+                    await _unitOfWork.EmployeeEducationRepository
+                        .GetInfo(request.DTO);
 
-                // 7️⃣ Final API Response
-                return new ApiResponse<List<GetEducationResponseDTO>>
-                {
-                    IsSucceeded = true,
-                    Message = $"{Entity.TotalCount} record(s) retrieved successfully.",
-                    PageNumber = Entity.PageNumber,
-                    PageSize = Entity.PageSize,
-                    TotalRecords = Entity.TotalCount,
-                    TotalPages = Entity.TotalPages,
-                    Data = encryptedResult,
-                    CompletionPercentage = Entity.CompletionPercentage,
-                    HasAllDocUploaded = Entity.HasUploadedAll,
-                    
-                };
+                // ===============================
+                // 5️⃣ OPTIMIZED EMPTY HANDLING
+                // ===============================
+                var items = entity?.Items ?? new List<GetEducationResponseDTO>();
+
+                var responseDTO = items.Any()
+                    ? ProjectionHelper.ToGetEducationResponseDTOs(
+                        entity,
+                        _idEncoderService,
+                        validation.Claims.TenantEncriptionKey,
+                        _configuration)
+                    : new List<GetEducationResponseDTO>();
+
+                _logger.LogInformation("GetEducationInfo success");
+
+                // ===============================
+                // 6️⃣ SINGLE RESPONSE
+                // ===============================
+                return ApiResponse<List<GetEducationResponseDTO>>
+                    .SuccessPaginatedPercentage(
+                        Data: responseDTO,
+                        Message: items.Any()
+                            ? "Education info retrieved successfully."
+                            : "No education info found.",
+                        PageNumber: entity?.PageNumber ?? 1,
+                        PageSize: entity?.PageSize ?? 0,
+                        TotalRecords: entity?.TotalCount ?? 0,
+                        TotalPages: entity?.TotalPages ?? 0,
+                        CompletionPercentage: entity?.CompletionPercentage ?? 0,
+                        HasUploadedAll: entity?.HasUploadedAll ?? false
+                    );
             }
             catch (Exception ex)
             {
-                await _unitOfWork.RollbackTransactionAsync();
-                _logger.LogError(ex, "Error while fetching Education info for EmployeeId: {EmployeeId}", request.DTO?.UserEmployeeId);
-                return ApiResponse<List<GetEducationResponseDTO>>.Fail("Failed to fetch education info.", new List<string> { ex.Message });
+                _logger.LogError(
+                    ex,
+                    "Error fetching education | EmployeeId: {EmployeeId}",
+                    request.DTO?.UserEmployeeId);
+
+                throw; // 🚨 MUST
             }
         }
+
     }
 }

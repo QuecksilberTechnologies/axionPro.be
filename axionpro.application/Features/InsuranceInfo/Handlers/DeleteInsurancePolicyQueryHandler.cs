@@ -1,13 +1,16 @@
 ﻿using axionpro.application.DTOS.InsurancePolicy;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
+using axionpro.domain.Entity; 
+using axionpro.domain.Entity; 
+using MediatR;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
-
+using System.Threading.Tasks; 
 namespace axionpro.application.Features.InsuranceInfo.Handlers
 {
 
@@ -39,40 +42,73 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
         }
 
         public async Task<ApiResponse<bool>> Handle(
-            DeleteInsurancePolicyQuery request,
-            CancellationToken cancellationToken)
+       DeleteInsurancePolicyQuery request,
+       CancellationToken cancellationToken)
         {
             try
             {
-                // 1️⃣ Common validation
-                var validation = await _commonRequestService.ValidateRequestAsync();
-                if (!validation.Success)
-                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
+                _logger.LogInformation("🔹 DeleteInsurancePolicy started");
 
-                // 2️⃣ Get existing policy (active only)
+                // ===============================
+                // 1️⃣ VALIDATION (AUTH)
+                // ===============================
+                var validation = await _commonRequestService.ValidateRequestAsync();
+
+                if (!validation.Success)
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+
+                // ===============================
+                // 2️⃣ PERMISSION CHECK
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.InsurancePolicy,
+                //    Operations.Delete);
+
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("Access denied.");
+
+                // ===============================
+                // 3️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null || request.DTO.Id <= 0)
+                    throw new ValidationErrorException("Invalid request data.");
+
+                // ===============================
+                // 4️⃣ FETCH ENTITY
+                // ===============================
                 var policy = await _unitOfWork.InsuranceRepository
                     .GetByIdAsync(request.DTO.Id, validation.TenantId, true);
 
                 if (policy == null)
-                    return ApiResponse<bool>.Fail("Insurance policy not found.");
+                    throw new ApiException("Insurance policy not found.", 404);
 
-                // 3️⃣ Soft delete
+                // ===============================
+                // 5️⃣ SOFT DELETE
+                // ===============================
                 policy.IsSoftDeleted = true;
                 policy.SoftDeletedById = validation.UserEmployeeId;
                 policy.DeletedDateTime = DateTime.UtcNow;
-                policy.IsActive =false;
+                policy.IsActive = false;
 
-                bool deleted = await _unitOfWork.InsuranceRepository.UpdateAsync(policy);
+                var updated = await _unitOfWork.InsuranceRepository.UpdateAsync(policy);
 
-                if (!deleted)
-                    return ApiResponse<bool>.Fail("Failed to delete insurance policy.");
+                if (!updated)
+                    throw new ApiException("Failed to delete insurance policy.", 500);
 
-                return ApiResponse<bool>.Success(true, "Insurance policy deleted successfully.");
+                _logger.LogInformation("✅ Insurance policy deleted successfully");
+
+                // ===============================
+                // 6️⃣ SUCCESS
+                // ===============================
+                return ApiResponse<bool>
+                    .Success(true, "Insurance policy deleted successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "DeleteInsurancePolicy failed");
-                return ApiResponse<bool>.Fail("Failed to delete insurance policy.");
+                _logger.LogError(ex, "❌ DeleteInsurancePolicy failed");
+
+                throw; // ✅ CRITICAL
             }
         }
     }

@@ -1,27 +1,24 @@
 ﻿using AutoMapper;
 using axionpro.application.DTOs.Category;
- 
-using axionpro.application.DTOs.UserLogin;
-using axionpro.application.Features.CategoryCmd.Command;
-using axionpro.application.Features.UserLoginAndDashboardCmd.Commands;
-using axionpro.application.Features.UserLoginAndDashboardCmd.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
-
-using axionpro.domain.Entity; using MediatR;
+using MediatR;
 using Microsoft.Extensions.Logging;
-using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Features.CategoryCmd.Handlers
 {
+    public class GetMainCategoryCommand : IRequest<ApiResponse<List<CategoryResponseDTO>>>
+    {
+        public CategoryRequestDTO CategoryRequestDTO { get; set; }
 
 
-    public class GetMainCategoryCommandHandler : IRequestHandler<GetMainCategoryCommand, ApiResponse<List<CategoryResponseDTO>>>
+        public GetMainCategoryCommand(CategoryRequestDTO categoryRequestDTO)
+        {
+            CategoryRequestDTO = categoryRequestDTO;
+        }
+
+    }
+        public class GetMainCategoryCommandHandler : IRequestHandler<GetMainCategoryCommand, ApiResponse<List<CategoryResponseDTO>>>
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
@@ -38,8 +35,8 @@ namespace axionpro.application.Features.CategoryCmd.Handlers
         {
             try
             {
-              int Id =  Convert.ToInt32(request.CategoryRequestDTO.CategoryId);
-             
+                int Id = Convert.ToInt32(request.CategoryRequestDTO.CategoryId);
+
                 // Validate the request
                 if (request == null || request.CategoryRequestDTO == null || Id == 0)
                 {
@@ -65,10 +62,10 @@ namespace axionpro.application.Features.CategoryCmd.Handlers
                 //}
 
                 // Fetch all main categories (where ParentCategoryId is NULL)
-                  var categories = await _unitOfWork.CategoryRepository.GetAllMainCategoriesAsync();
+                var categories = await _unitOfWork.CategoryRepository.GetAllMainCategoriesAsync();
 
                 // Map the domain model to the response DTO
-                  var categoryResponseDTOs = _mapper.Map<List<CategoryResponseDTO>>(categories);
+                var categoryResponseDTOs = _mapper.Map<List<CategoryResponseDTO>>(categories);
 
                 // Return a success response
                 return new ApiResponse<List<CategoryResponseDTO>>
@@ -92,6 +89,8 @@ namespace axionpro.application.Features.CategoryCmd.Handlers
                 };
             }
         }
+
+
     }
 
 

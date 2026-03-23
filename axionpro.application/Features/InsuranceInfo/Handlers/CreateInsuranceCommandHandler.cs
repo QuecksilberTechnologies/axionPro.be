@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using axionpro.application.Constants;
+using axionpro.application.DTOs.Module;
 using axionpro.application.DTOS.InsurancePolicy;
 using axionpro.application.DTOS.Token;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEmail;
@@ -13,6 +15,7 @@ using axionpro.application.Wrappers;
 using axionpro.domain.Entity; using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Reflection;
 
 namespace axionpro.application.Features.InsuranceInfo.Handlers
 {
@@ -47,20 +50,44 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
         }
 
         public async Task<ApiResponse<GetInsurancePolicyResponseDTO>> Handle(
-        CreateInsuranceCommand request,
-        CancellationToken cancellationToken)
+    CreateInsuranceCommand request,
+    CancellationToken cancellationToken)
         {
+            // 🔹 Transaction start (standard pattern)
+            await _unitOfWork.BeginTransactionAsync();
+
             try
             {
-                // 1️⃣ Common validation
-                var validation = await _commonRequestService.ValidateRequestAsync();
-                if (!validation.Success)
-                {
-                    return ApiResponse<GetInsurancePolicyResponseDTO>
-                        .Fail(validation.ErrorMessage);
-                }
+                _logger.LogInformation("🔹 CreateInsurance started");
 
-                // 2️⃣ Map DTO → Entity
+                // ===============================
+                // 1️⃣ VALIDATION (AUTH)
+                // ===============================
+                var validation = await _commonRequestService.ValidateRequestAsync();
+
+                if (!validation.Success)
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+
+                // ===============================
+                // 2️⃣ PERMISSION CHECK
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.InsurancePolicy,
+                //    Operations.Add);
+
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("Access denied.");
+
+                // ===============================
+                // 3️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request data.");
+
+                // ===============================
+                // 4️⃣ DTO → ENTITY
+                // ===============================
                 var policy = _mapper.Map<InsurancePolicy>(request.DTO);
 
                 policy.TenantId = validation.TenantId;
@@ -69,37 +96,38 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                 policy.IsActive = true;
                 policy.IsSoftDeleted = false;
 
-                // 3️⃣ SAVE + JOINED RESULT (IMPORTANT)
+                // ===============================
+                // 5️⃣ SAVE DATA
+                // ===============================
                 var responseDto =
                     await _unitOfWork.InsuranceRepository.AddAsync(policy);
 
-                // 🔥 RETURN CHECK
                 if (responseDto == null)
-                {
-                    _logger.LogWarning(
-                        "InsurancePolicy creation failed. PolicyName: {PolicyName}",
-                        policy.InsurancePolicyName);
+                    throw new ApiException("Failed to create insurance policy.", 500);
 
-                    return ApiResponse<GetInsurancePolicyResponseDTO>
-                        .Fail("Failed to create insurance policy.");
-                }
+                // ===============================
+                // 6️⃣ COMMIT
+                // ===============================
+                await _unitOfWork.CommitTransactionAsync();
 
-                // ❌ NO CommitTransactionAsync() here
-                // Repository already did SaveChanges()
+                _logger.LogInformation("✅ Insurance policy created successfully");
 
-                // 4️⃣ SUCCESS
+                // ===============================
+                // 7️⃣ SUCCESS
+                // ===============================
                 return ApiResponse<GetInsurancePolicyResponseDTO>
                     .Success(responseDto, "Insurance policy created successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "CreateInsurance failed");
+                // 🔁 Rollback (only because transaction started)
+                await _unitOfWork.RollbackTransactionAsync();
 
-                return ApiResponse<GetInsurancePolicyResponseDTO>
-                    .Fail("Failed to create insurance policy.");
+                _logger.LogError(ex, "❌ CreateInsurance failed");
+
+                throw; // ✅ CRITICAL
             }
         }
-
     }
 
 

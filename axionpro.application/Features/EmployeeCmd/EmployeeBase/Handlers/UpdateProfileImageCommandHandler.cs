@@ -1,5 +1,6 @@
 ﻿using axionpro.application.Constants;
 using axionpro.application.DTOS.Employee.BaseEmployee;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -63,118 +64,160 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             _commonRequestService = commonRequestService;
         }
 
-        public async Task<ApiResponse<bool>> Handle(UpdateProfileImageCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<bool>> Handle(
+       UpdateProfileImageCommand request,
+       CancellationToken cancellationToken)
         {
+            string? uploadedFileKey = null;
+
             try
             {
-                // 1️⃣ Common validation
-                var validation = await _commonRequestService.ValidateRequestAsync();
+                _logger.LogInformation("UpdateProfileImage started");
+
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
+                var validation =
+                    await _commonRequestService.ValidateRequestAsync();
+
                 if (!validation.Success)
-                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request.");
+
+                request.DTO.Prop ??= new();
 
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
-                // 2️⃣ Get existing image info
-                var employeeImageInfo = await _employeeRepository.IsImageExist(request.DTO.Id, true);
+                // ===============================
+                // 2️⃣ PERMISSION
+                //// ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.Update);
+
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("No permission to update profile image.");
+
+                // ===============================
+                // 3️⃣ FETCH EXISTING
+                // ===============================
+                var employeeImageInfo =
+                    await _employeeRepository.IsImageExist(request.DTO.Id, true);
+
                 if (employeeImageInfo == null)
-                    return ApiResponse<bool>.Fail("Employee image record not found.");
+                    throw new ApiException("Employee image record not found.", 404);
 
-                // 3️⃣ S3 folder path (KEY PREFIX)
-                string folderPath = $"{ConstantValues.TenantFolder}-{validation.TenantId}/{ConstantValues.EmployeeFolder}/{employeeImageInfo.EmployeeId}/{ConstantValues.ProfileFolder}";
+                // ===============================
+                // 4️⃣ START TRANSACTION
+                // ===============================
+                await _unitOfWork.BeginTransactionAsync();
 
+                string folderPath =
+                    $"{ConstantValues.TenantFolder}-{validation.TenantId}/" +
+                    $"{ConstantValues.EmployeeFolder}/{employeeImageInfo.EmployeeId}/" +
+                    $"{ConstantValues.ProfileFolder}";
 
-                // ==================================================================
-                // 4️⃣ If IsActive = FALSE → DELETE FROM S3 + RESET DB
-                // ==================================================================
+                // ======================================================
+                // 🔴 CASE 1: DEACTIVATE (DELETE IMAGE)
+                // ======================================================
                 if (!request.DTO.IsActive)
                 {
                     if (employeeImageInfo.HasImageUploaded &&
                         !string.IsNullOrWhiteSpace(employeeImageInfo.FilePath))
                     {
-                        try
-                        {
-                            await _fileStorageService.DeleteFileAsync(employeeImageInfo.FilePath);
-
-                            _logger.LogInformation("Profile image deleted from S3: {Key}", employeeImageInfo.FilePath);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Error deleting file from S3.");
-                        }
+                        await _fileStorageService.DeleteFileAsync(employeeImageInfo.FilePath);
                     }
 
-                    // Reset DB
                     employeeImageInfo.HasImageUploaded = false;
                     employeeImageInfo.FileName = null;
                     employeeImageInfo.FilePath = null;
                     employeeImageInfo.UpdateById = validation.UserEmployeeId;
                     employeeImageInfo.UpdatedDateTime = DateTime.UtcNow;
 
-                    bool resetStatus = await _unitOfWork.Employees.UpdateProfileImage(employeeImageInfo);
+                    var status =
+                        await _unitOfWork.Employees.UpdateProfileImage(employeeImageInfo);
 
-                    if (!resetStatus)
-                        return ApiResponse<bool>.Fail("Failed to deactivate profile image.");
+                    if (!status)
+                        throw new ApiException("Failed to deactivate profile image.", 500);
 
                     await _unitOfWork.CommitTransactionAsync();
-                    return ApiResponse<bool>.Success(true, "Profile image disabled & deleted.");
+
+                    return ApiResponse<bool>.Success(true, "Profile image disabled.");
                 }
 
-                // ==================================================================
-                // 5️⃣ If IsActive = TRUE → REPLACE IMAGE
-                // ==================================================================
-                if (request.DTO.ProfileImage != null && request.DTO.ProfileImage.Length > 0)
+                // ======================================================
+                // 🟢 CASE 2: UPDATE / REPLACE IMAGE
+                // ======================================================
+                if (request.DTO.ProfileImage != null &&
+                    request.DTO.ProfileImage.Length > 0)
                 {
-                    // 🔹 Delete old file (if exists)
-                    if (employeeImageInfo.HasImageUploaded && !string.IsNullOrWhiteSpace(employeeImageInfo.FilePath))
+                    // Delete old
+                    if (employeeImageInfo.HasImageUploaded &&
+                        !string.IsNullOrWhiteSpace(employeeImageInfo.FilePath))
                     {
-                        try
-                        {
-                            await _fileStorageService.DeleteFileAsync(employeeImageInfo.FilePath);
-
-                            _logger.LogInformation("Old profile image deleted from S3: {Key}", employeeImageInfo.FilePath);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Error deleting old image from S3.");
-                        }
+                        await _fileStorageService.DeleteFileAsync(employeeImageInfo.FilePath);
                     }
 
-                    // 🔹 Generate new filename
-                    string newFileName = $"{ConstantValues.ProfileFolder}-{employeeImageInfo.EmployeeId}-{DateTime.UtcNow:yyMMddHHmmss}";
+                    string newFileName =
+                        $"{ConstantValues.ProfileFolder}-{employeeImageInfo.EmployeeId}-{DateTime.UtcNow:yyMMddHHmmss}";
 
-                    // 🔹 Upload to S3
-                    var fileKey = await _fileStorageService.UploadFileAsync( request.DTO.ProfileImage,folderPath,newFileName);
+                    uploadedFileKey =
+                        await _fileStorageService.UploadFileAsync(
+                            request.DTO.ProfileImage,
+                            folderPath,
+                            newFileName);
 
-                    // 🔹 Update DB
                     employeeImageInfo.FileName = newFileName;
-                    employeeImageInfo.FilePath = fileKey; // ✅ IMPORTANT
+                    employeeImageInfo.FilePath = uploadedFileKey;
                     employeeImageInfo.HasImageUploaded = true;
                     employeeImageInfo.UpdateById = validation.UserEmployeeId;
                     employeeImageInfo.UpdatedDateTime = DateTime.UtcNow;
                 }
 
-                // ==================================================================
-                // 6️⃣ SAVE
-                // ==================================================================
-                bool updateStatus = await _unitOfWork.Employees.UpdateProfileImage(employeeImageInfo);
+                // ===============================
+                // 5️⃣ SAVE
+                // ===============================
+                var updateStatus =
+                    await _unitOfWork.Employees.UpdateProfileImage(employeeImageInfo);
 
                 if (!updateStatus)
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<bool>.Fail("Failed to update profile image.");
-                }
+                    throw new ApiException("Failed to update profile image.", 500);
 
+                // ===============================
+                // 6️⃣ COMMIT
+                // ===============================
                 await _unitOfWork.CommitTransactionAsync();
+
+                _logger.LogInformation("UpdateProfileImage success");
+
                 return ApiResponse<bool>.Success(true, "Profile image updated successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unhandled error in Profile Image Update");
-                return ApiResponse<bool>.Fail("Unexpected error occurred.", new() { ex.Message });
+                await _unitOfWork.RollbackTransactionAsync();
+
+                _logger.LogError(ex, "UpdateProfileImage failed");
+
+                // 🧹 FILE CLEANUP (CRITICAL 🚨)
+                if (!string.IsNullOrEmpty(uploadedFileKey))
+                {
+                    try
+                    {
+                        await _fileStorageService.DeleteFileAsync(uploadedFileKey);
+                    }
+                    catch (Exception cleanupEx)
+                    {
+                        _logger.LogError(cleanupEx, "Failed to cleanup uploaded file");
+                    }
+                }
+
+                throw; // 🚨 MUST
             }
         }
-
     }
 
 

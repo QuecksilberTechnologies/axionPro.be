@@ -81,16 +81,10 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
 
 
                 // ✅ Create  using repository
-                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
+                //var hasPermission = await _permissionService.HasAccessAsync(  validation.RoleId,"ModuleName",  "OperationName"  );
 
-
-                if (!permissions.Contains("AddBankInfo"))
-                {
-                    // await _unitOfWork.RollbackTransactionAsync();
-                    //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
-                }
-
-
+                //if (!hasPermission)
+                //    throw new UnauthorizedAccessException("You do not have permission.");
 
                 _logger.LogInformation("🗑️ Attempting to delete RoleId: {RoleId} for TenantId: {TenantId}", request.DTO.Prop.TenantId, request.DTO.Prop.UserEmployeeId);
 
@@ -125,5 +119,7 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                 };
             }
         }
+
+
     }
 }

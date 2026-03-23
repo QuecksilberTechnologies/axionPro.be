@@ -1,35 +1,25 @@
 ﻿using AutoMapper;
-using axionpro.application.DTOs.Transport;
 using axionpro.application.DTOs.Verify;
-using axionpro.application.Features.TransportCmd.Commands;
 using axionpro.application.Interfaces;
-using axionpro.application.Wrappers;
-
-using axionpro.domain.Entity; using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
-using axionpro.application.Features.VerifyEmailCmd.Commands;
-using Microsoft.Extensions.Configuration;
-using FluentValidation;
-using System.Collections;
-using System.Xml.Linq;
 using axionpro.application.Interfaces.ITokenService;
-using axionpro.application.Constants;
-using axionpro.application.DTOs.Employee;
-using axionpro.application.DTOs.UserLogin;
-using axionpro.application.DTOs.UserRole;
-using axionpro.application.Features.UserLoginAndDashboardCmd.Commands;
-using axionpro.application.Features.UserLoginAndDashboardCmd.Handlers;
+using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
+using MediatR;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
-using axionpro.application.DTOs.Registration;
 
 namespace axionpro.application.Features.VerifyEmailCmd.Handlers
 {
+    public class VerifyEmailCommand : IRequest<ApiResponse<VerifyEmailResponseDTO>>
+    {
+        public VerifyEmailRequestDTO verifyEmailRequestDTO { get; set; }
+
+        public VerifyEmailCommand(VerifyEmailRequestDTO verifyEmailRequestDTO)
+        {
+            this.verifyEmailRequestDTO = verifyEmailRequestDTO;
+        }
+
+    }
     public class VerifyEmailCommandHandler : IRequestHandler<VerifyEmailCommand, ApiResponse<VerifyEmailResponseDTO>>
     {
         private readonly IMapper _mapper;
@@ -104,12 +94,12 @@ namespace axionpro.application.Features.VerifyEmailCmd.Handlers
                 }
 
                 // Set empId in response DTO
-               
+
 
                 Tenant tenant = new Tenant();
-                 
-                tenant.Id   = employeeRecord.TenantId??0    ;
-                                
+
+                tenant.Id = employeeRecord.TenantId ?? 0;
+
 
                 var tenantResult = await _unitOfWork.TenantRepository.UpdateTenantAsync(tenant);
 

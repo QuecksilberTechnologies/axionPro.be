@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.DTOS.AssetDTO.asset;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -74,49 +75,75 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
         }
 
         public async Task<ApiResponse<List<GetAssetResponseDTO>>> Handle(
-            GetAllAssetCommand request,
-            CancellationToken cancellationToken)
+         GetAllAssetCommand request,
+         CancellationToken cancellationToken)
         {
+
             try
             {
                 _logger.LogInformation("Fetching all Assets");
 
-                // 1️⃣ COMMON VALIDATION
+                // ===============================
+                // 1️⃣ COMMON VALIDATION (AUTH + CONTEXT)
+                // ===============================
                 var validation = await _commonRequestService.ValidateRequestAsync();
 
+                // ❌ Old: return Fail
+                // ✅ New: throw (middleware handle karega)
                 if (!validation.Success)
-                {
-                    return ApiResponse<List<GetAssetResponseDTO>>.Fail(validation.ErrorMessage);
-                }
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // 2️⃣ ASSIGN COMMON VALUES
+                // ===============================
+                // 2️⃣ NULL SAFETY (VERY IMPORTANT)
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException(
+                        "Invalid request.",
+                        new List<string> { "Request DTO is required." }
+                    );
+
+                if (request.DTO.Prop == null)
+                    request.DTO.Prop = new();
+
+                // Assign decoded values
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
-                // 3️⃣ PERMISSION CHECK (optional)
-                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
+                // ===============================
+                // 3️⃣ PERMISSION CHECK (RBAC)
+                // ===============================
+                //var hasPermission = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    "Asset",      // 🔹 Module Name (DB match)
+                //    "View"        // 🔹 Operation
+                //);
 
-                // if (!permissions.Contains("ViewAsset"))
-                // {
-                //     return ApiResponse<List<GetAssetResponseDTO>>.Fail("You do not have permission to view assets.");
-                // }
+                //if (!hasPermission)
+                //    throw new UnauthorizedAccessException("You do not have permission to view assets.");
 
+                // ===============================
                 // 4️⃣ FETCH DATA
-                var assets = await _unitOfWork.AssetRepository.GetAssetsByFilterAsync(request.DTO);
+                // ===============================
+                var assets = await _unitOfWork.AssetRepository
+                    .GetAssetsByFilterAsync(request.DTO);
 
-                // ✅ Empty record bhi success maana jayega
+                // ===============================
+                // 5️⃣ HANDLE EMPTY DATA (IMPORTANT)
+                // ===============================
                 if (assets == null || assets.Count == 0)
                 {
                     _logger.LogInformation(
                         "No assets found for TenantId: {TenantId}",
                         request.DTO.Prop.TenantId);
 
-                    return ApiResponse<List<GetAssetResponseDTO>>.Success(
-                        new List<GetAssetResponseDTO>(),
-                        "No assets found.");
+                    // ✅ Empty list = success (best practice)
+                    return ApiResponse<List<GetAssetResponseDTO>>
+                        .Success(new List<GetAssetResponseDTO>(), "No assets found.");
                 }
 
-                // 5️⃣ PROJECTION / ENCRYPTION
+                // ===============================
+                // 6️⃣ PROJECTION / ENCRYPTION
+                // ===============================
                 var encryptedList = ProjectionHelper.ToGetAssetResponseDTOs(
                     assets,
                     _idEncoderService,
@@ -128,21 +155,22 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
                     encryptedList.Count,
                     request.DTO.Prop.TenantId);
 
-                // 6️⃣ SUCCESS RESPONSE
-                return ApiResponse<List<GetAssetResponseDTO>>.Success(
-                    encryptedList,
-                    "Assets fetched successfully.");
+                // ===============================
+                // 7️⃣ SUCCESS RESPONSE
+                // ===============================
+                return ApiResponse<List<GetAssetResponseDTO>>
+                    .Success(encryptedList, "Assets fetched successfully.");
             }
             catch (Exception ex)
             {
+                // ❗ IMPORTANT: DO NOT return Fail
+                // ❗ Middleware handle karega
                 _logger.LogError(
                     ex,
                     "Error occurred while fetching assets for TenantId: {TenantId}",
                     request?.DTO?.Prop?.TenantId);
 
-                return ApiResponse<List<GetAssetResponseDTO>>.Fail(
-                    "An unexpected error occurred while fetching assets.",
-                    new List<string> { ex.Message });
+                throw;
             }
         }
     }

@@ -1,13 +1,8 @@
 ﻿using AutoMapper;
-using axionpro.application.Common.Helpers;
-using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Constants;
-using axionpro.application.DTOs.Employee;
-using axionpro.application.DTOs.Employee.AccessControlReadOnlyType;
-using axionpro.application.DTOs.Employee.AccessResponse;
 using axionpro.application.DTOS.Employee.Bank;
-using axionpro.application.DTOS.Employee.BaseEmployee;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -16,12 +11,10 @@ using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-
-using axionpro.domain.Entity; using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Reflection;
 
 namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 {
@@ -76,43 +69,70 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 
         }
 
-        public async Task<ApiResponse<bool>> Handle(UpdateBankCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<bool>> Handle(
+      UpdateBankCommand request,
+      CancellationToken cancellationToken)
         {
-            await _unitOfWork.BeginTransactionAsync();
+            string? uploadedFileKey = null;
 
             try
             {
-                // =================================================
-                // 1️⃣ COMMON VALIDATION
-                // =================================================
+                _logger.LogInformation("UpdateBank started");
+
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
                 var validation = await _commonRequestService
-                    .ValidateRequestAsync(request.DTO.UserEmployeeId);
+                    .ValidateRequestAsync(request.DTO?.UserEmployeeId);
 
                 if (!validation.Success)
-                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request.");
+
+                request.DTO.Prop ??= new();
 
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
-                request.DTO.Prop.EmployeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
-                    request.DTO.EmployeeId,
-                    validation.Claims.TenantEncriptionKey,
-                    _idEncoderService
-                );
 
-                // =================================================
-                // 2️⃣ FETCH EXISTING RECORD
-                // =================================================
+                request.DTO.Prop.EmployeeId =
+                    RequestCommonHelper.DecodeOnlyEmployeeId(
+                        request.DTO.EmployeeId,
+                        validation.Claims.TenantEncriptionKey,
+                        _idEncoderService);
+
+                if (request.DTO.Prop.EmployeeId <= 0)
+                    throw new ValidationErrorException("Invalid EmployeeId.");
+
+                // ===============================
+                // 3️⃣ PERMISSION CHECK
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.Update);
+
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("No permission to update bank info.");
+
+                // ===============================
+                // 4️⃣ FETCH EXISTING
+                // ===============================
                 var bank = await _unitOfWork.EmployeeBankRepository
                     .GetSingleRecordAsync(request.DTO.Id, true);
 
                 if (bank == null)
-                    return ApiResponse<bool>.Fail("Employee bank record not found.");
+                    throw new ApiException("Bank record not found.", 404);
 
                 var dto = request.DTO;
 
-                // =================================================
-                // 3️⃣ UPDATE FIELDS
-                // =================================================
+                // ===============================
+                // 5️⃣ UPDATE FIELDS
+                // ===============================
                 if (!string.IsNullOrWhiteSpace(dto.BankName))
                     bank.BankName = dto.BankName.Trim();
 
@@ -131,21 +151,22 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 if (!string.IsNullOrWhiteSpace(dto.UPIId))
                     bank.UPIId = dto.UPIId.Trim();
 
-                // =================================================
-                // 4️⃣ PRIMARY ACCOUNT RULE
-                // =================================================
+                // ===============================
+                // 6️⃣ PRIMARY ACCOUNT RULE
+                // ===============================
                 if (dto.IsPrimaryAccount)
                 {
                     if (dto.CancelledChequeFile == null && !bank.HasChequeDocUploaded)
-                        return ApiResponse<bool>.Fail("Cancelled cheque is mandatory.");
+                        throw new ValidationErrorException("Cancelled cheque is mandatory.");
 
-                    bool resetDone = await _unitOfWork.EmployeeBankRepository
-                        .ResetPrimaryAccountAsync(
-                            request.DTO.Prop.EmployeeId,
-                            request.DTO.Prop.UserEmployeeId);
+                    var resetDone =
+                        await _unitOfWork.EmployeeBankRepository
+                            .ResetPrimaryAccountAsync(
+                                request.DTO.Prop.EmployeeId,
+                                request.DTO.Prop.UserEmployeeId);
 
                     if (!resetDone)
-                        return ApiResponse<bool>.Fail("Failed to reset primary accounts.");
+                        throw new ApiException("Failed to reset primary accounts.", 500);
 
                     bank.IsPrimaryAccount = true;
                 }
@@ -154,63 +175,61 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                     bank.IsPrimaryAccount = false;
                 }
 
-             
-                // =================================================
-                // FILE HANDLING (S3 - NO DELETE, AUDIT SAFE)
-                // =================================================
-                if (request.DTO.CancelledChequeFile != null &&
-                    request.DTO.CancelledChequeFile.Length > 0)
+                // ===============================
+                // 7️⃣ START TRANSACTION
+                // ===============================
+                await _unitOfWork.BeginTransactionAsync();
+
+                // ===============================
+                // 8️⃣ FILE UPLOAD
+                // ===============================
+                if (dto.CancelledChequeFile != null &&
+                    dto.CancelledChequeFile.Length > 0)
                 {
                     try
                     {
-                       
-                        // 🔹 BUILD FOLDER PATH
-                        string folderPath =  $"{ConstantValues.TenantFolder}-{request.DTO.Prop.TenantId}/{ConstantValues.EmployeeFolder}/{request.DTO.Prop.EmployeeId}/{ConstantValues.BankFolder}";
+                        string folderPath =
+                            $"{ConstantValues.TenantFolder}-{request.DTO.Prop.TenantId}/" +
+                            $"{ConstantValues.EmployeeFolder}/{request.DTO.Prop.EmployeeId}/" +
+                            $"{ConstantValues.BankFolder}";
 
-
-                        // 🔹 NEW FILE NAME (UNIQUE)
                         string newFileName =
                             $"{ConstantValues.BankFolder}-{request.DTO.Prop.EmployeeId}-{DateTime.UtcNow:yyyyMMddHHmmss}";
 
-                        // 🔹 UPLOAD NEW FILE
-                        var fileKey = await _fileStorageService.UploadFileAsync(
-                            request.DTO.CancelledChequeFile,
+                        uploadedFileKey = await _fileStorageService.UploadFileAsync(
+                            dto.CancelledChequeFile,
                             folderPath,
                             newFileName);
 
-                        // 🔹 UPDATE DB (ONLY NEW FILE)
-                        bank.FilePath = fileKey;
+                        bank.FilePath = uploadedFileKey;
                         bank.FileName = newFileName;
                         bank.HasChequeDocUploaded = true;
-                        bank.UpdatedDateTime = DateTime.UtcNow;
-                        bank.UpdatedById = request.DTO.Prop.UserEmployeeId;
-
-                        _logger.LogInformation("New cheque uploaded. Old file preserved.");
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Error uploading cheque file");
-
-                        return ApiResponse<bool>.Fail("File upload failed.");
+                        _logger.LogError(ex, "Cheque upload failed");
+                        throw new ApiException("File upload failed.", 500);
                     }
                 }
+
+                bank.UpdatedDateTime = DateTime.UtcNow;
+                bank.UpdatedById = request.DTO.Prop.UserEmployeeId;
+
                 var responseData = _mapper.Map<UpdateBankReqestDTO>(bank);
                 responseData.Prop.UserEmployeeId = request.DTO.Prop.UserEmployeeId;
                 responseData.Prop.EmployeeId = request.DTO.Prop.EmployeeId;
-
-                //responseData.UpdatedDateTime = DateTime.UtcNow;
-
-                // -------------------------------------------------
-                // 7️⃣ SAVE CHANGES
-                // -------------------------------------------------
-                bool isSuccess = await _unitOfWork.EmployeeBankRepository.UpdateAsync(responseData);
-                
+                bool isSuccess =
+                    await _unitOfWork.EmployeeBankRepository.UpdateAsync(responseData);
 
                 if (!isSuccess)
-                    return ApiResponse<bool>.Fail("Failed to update bank info.");
+                    throw new ApiException("Failed to update bank info.", 500);
 
-                await _unitOfWork.CommitAsync();
+                // ===============================
+                // 🔟 COMMIT
+                // ===============================
                 await _unitOfWork.CommitTransactionAsync();
+
+                _logger.LogInformation("UpdateBank success");
 
                 return ApiResponse<bool>.Success(true, "Bank updated successfully.");
             }
@@ -220,7 +239,20 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 
                 _logger.LogError(ex, "Error updating bank info");
 
-                return ApiResponse<bool>.Fail("Unexpected error.", new List<string> { ex.Message });
+                // 🧹 FILE CLEANUP
+                if (!string.IsNullOrEmpty(uploadedFileKey))
+                {
+                    try
+                    {
+                        await _fileStorageService.DeleteFileAsync(uploadedFileKey);
+                    }
+                    catch (Exception cleanupEx)
+                    {
+                        _logger.LogError(cleanupEx, "File cleanup failed");
+                    }
+                }
+
+                throw; // 🚨 MUST
             }
         }
     }

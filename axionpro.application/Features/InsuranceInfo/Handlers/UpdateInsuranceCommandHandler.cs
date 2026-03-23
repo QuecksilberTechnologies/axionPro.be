@@ -1,15 +1,18 @@
 ﻿using axionpro.application.DTOS.InsurancePolicy;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
+using axionpro.domain.Entity; 
+using axionpro.domain.Entity; 
+using MediatR;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
-
+using System.Threading.Tasks; 
 namespace axionpro.application.Features.InsuranceInfo.Handlers
 {
     public class UpdateInsurancePolicyCommand
@@ -39,43 +42,60 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
             _commonRequestService = commonRequestService;
         }
 
-        public async Task<ApiResponse<bool>> Handle(  UpdateInsurancePolicyCommand request,   CancellationToken cancellationToken)
+        public async Task<ApiResponse<bool>> Handle(
+           UpdateInsurancePolicyCommand request,
+           CancellationToken cancellationToken)
         {
             try
             {
-                // 1️⃣ Validate tenant/user
+                _logger.LogInformation("🔹 UpdateInsurancePolicy started");
+
+                // ===============================
+                // 1️⃣ VALIDATION (AUTH)
+                // ===============================
                 var validation = await _commonRequestService.ValidateRequestAsync();
+
                 if (!validation.Success)
-                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // ⚠️ TEMP as you said (ignore IsActive filter)
-                bool IsActive = true;
+                // ===============================
+                // 2️⃣ PERMISSION CHECK
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.InsurancePolicy,
+                //    Operations.Update);
 
-                // 2️⃣ Get existing policy
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("Access denied.");
+
+                // ===============================
+                // 3️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null || request.DTO.Id <= 0)
+                    throw new ValidationErrorException("Invalid request data.");
+
+                // ===============================
+                // 4️⃣ FETCH ENTITY
+                // ===============================
                 var policy = await _unitOfWork.InsuranceRepository
                     .GetByIdAsync(
                         request.DTO.Id,
                         validation.TenantId,
-                        IsActive
-                    );
+                        true);
 
                 if (policy == null)
-                    return ApiResponse<bool>.Fail("Insurance policy not found.");
+                    throw new ApiException("Insurance policy not found.", 404);
 
                 // ===============================
-                // 3️⃣ NULL-SAFE FIELD UPDATES
+                // 5️⃣ UPDATE FIELDS (SAFE)
                 // ===============================
 
-                // 🔹 Classification
                 if (request.DTO.PolicyTypeId.HasValue)
-                {
                     policy.PolicyTypeId = request.DTO.PolicyTypeId.Value;
-                }
-
 
                 policy.CountryId = request.DTO.CountryId ?? policy.CountryId;
 
-                // 🔹 Basic Info
                 if (!string.IsNullOrWhiteSpace(request.DTO.InsurancePolicyName))
                     policy.InsurancePolicyName = request.DTO.InsurancePolicyName;
 
@@ -85,11 +105,9 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                 if (!string.IsNullOrWhiteSpace(request.DTO.ProviderName))
                     policy.ProviderName = request.DTO.ProviderName;
 
-                // 🔹 Dates
                 policy.StartDate = request.DTO.StartDate ?? policy.StartDate;
                 policy.EndDate = request.DTO.EndDate ?? policy.EndDate;
 
-                // 🔹 Agent
                 if (!string.IsNullOrWhiteSpace(request.DTO.AgentName))
                     policy.AgentName = request.DTO.AgentName;
 
@@ -99,7 +117,6 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                 if (!string.IsNullOrWhiteSpace(request.DTO.AgentOfficeNumber))
                     policy.AgentOfficeNumber = request.DTO.AgentOfficeNumber;
 
-                // 🔹 Coverage Rules (NON-NULLABLE → always update)
                 if (request.DTO.EmployeeAllowed.HasValue)
                     policy.EmployeeAllowed = request.DTO.EmployeeAllowed.Value;
 
@@ -115,35 +132,40 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                 if (request.DTO.InLawsAllowed.HasValue)
                     policy.InLawsAllowed = request.DTO.InLawsAllowed.Value;
 
-
-                // 🔹 Status
                 policy.IsActive = request.DTO.IsActive;
 
-                // 🔹 Additional
                 if (!string.IsNullOrWhiteSpace(request.DTO.Remark))
                     policy.Remark = request.DTO.Remark;
 
                 if (!string.IsNullOrWhiteSpace(request.DTO.Description))
                     policy.Description = request.DTO.Description;
 
-                // 🔹 Audit
                 policy.UpdatedById = validation.UserEmployeeId;
                 policy.UpdatedDateTime = DateTime.UtcNow;
 
-                // 4️⃣ Save
-                bool updated = await _unitOfWork.InsuranceRepository.UpdateAsync(policy);
-                if (!updated)
-                    return ApiResponse<bool>.Fail("Failed to update insurance policy.");
+                // ===============================
+                // 6️⃣ SAVE
+                // ===============================
+                var updated = await _unitOfWork.InsuranceRepository.UpdateAsync(policy);
 
-                return ApiResponse<bool>.Success(true, "Insurance policy updated successfully.");
+                if (!updated)
+                    throw new ApiException("Failed to update insurance policy.", 500);
+
+                _logger.LogInformation("✅ Insurance policy updated successfully");
+
+                // ===============================
+                // 7️⃣ SUCCESS
+                // ===============================
+                return ApiResponse<bool>
+                    .Success(true, "Insurance policy updated successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "UpdateInsurancePolicy failed");
-                return ApiResponse<bool>.Fail("Failed to update insurance policy.");
+                _logger.LogError(ex, "❌ UpdateInsurancePolicy failed");
+
+                throw; // ✅ CRITICAL
             }
         }
-
     }
 
 }

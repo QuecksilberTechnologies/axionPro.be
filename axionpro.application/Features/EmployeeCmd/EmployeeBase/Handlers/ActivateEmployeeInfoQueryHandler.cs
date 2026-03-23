@@ -1,5 +1,6 @@
 ﻿using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.BaseEmployee;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -44,19 +45,30 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         }
 
         public async Task<ApiResponse<bool>> Handle(
-            ActivateAllEmployeeQuery request,
-            CancellationToken cancellationToken)
+    ActivateAllEmployeeQuery request,
+    CancellationToken cancellationToken)
         {
             try
             {
-                // 🔹 1. COMMON VALIDATION (Mandatory)
+                _logger.LogInformation("ActivateAllEmployee started");
+
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
                 var validation = await _commonRequestService
-                    .ValidateRequestAsync(request.DTO.UserEmployeeId);
+                    .ValidateRequestAsync(request.DTO?.UserEmployeeId);
 
                 if (!validation.Success)
-                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // 🔹 2. Assign decoded values
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request.");
+
+                request.DTO.Prop ??= new();
+
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
@@ -64,20 +76,25 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     RequestCommonHelper.DecodeOnlyEmployeeId(
                         request.DTO.EmployeeId,
                         validation.Claims.TenantEncriptionKey,
-                        _idEncoderService
-                    );
+                        _idEncoderService);
 
-                // 🔹 3. Permission Check (optional but clean)
-                var permissions = await _permissionService
-                    .GetPermissionsAsync(validation.RoleId);
+                if (request.DTO.Prop.EmployeeId <= 0)
+                    throw new ValidationErrorException("Invalid EmployeeId.");
 
-                if (!permissions.Contains("ActivateEmployee"))
-                {
-                  //  return ApiResponse<bool>.Fail("You do not have permission to update employee status.");
+                // ===============================
+                // 3️⃣ PERMISSION (YOUR FIXED PATTERN ✅)
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.Update);
 
-                }
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("No permission to update employee status.");
 
-                // 🔹 4. Fetch Employee
+                // ===============================
+                // 4️⃣ FETCH EMPLOYEE
+                // ===============================
                 var employee = await _unitOfWork.Employees
                     .GetByIdAsync(
                         request.DTO.Prop.EmployeeId,
@@ -85,18 +102,24 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                         true);
 
                 if (employee == null)
-                    return ApiResponse<bool>.Fail("Employee not found for current tenant.");
+                    throw new ApiException("Employee not found.", 404);
 
-                // 🔹 5. Activate / Deactivate
+                // ===============================
+                // 5️⃣ ACTIVATE / DEACTIVATE
+                // ===============================
                 var isSuccess = await _unitOfWork.Employees
                     .ActivateAllEmployeeAsync(employee, request.DTO.IsActive);
 
                 if (!isSuccess)
-                    return ApiResponse<bool>.Fail("Failed to update employee status.");
+                    throw new ApiException("Failed to update employee status.", 500);
 
-                // 🔹 6. Success Response
+                _logger.LogInformation("ActivateAllEmployee success | Id: {Id}", request.DTO.Prop.EmployeeId);
+
+                // ===============================
+                // 6️⃣ SUCCESS RESPONSE
+                // ===============================
                 return ApiResponse<bool>.Success(
-                    isSuccess,
+                    true,
                     request.DTO.IsActive
                         ? "Employee activated successfully."
                         : "Employee deactivated successfully."
@@ -104,12 +127,12 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while activating/deactivating employee.");
+                _logger.LogError(
+                    ex,
+                    "Error updating employee status | Id: {Id}",
+                    request.DTO?.EmployeeId);
 
-                return ApiResponse<bool>.Fail(
-                    "Something went wrong while updating employee status.",
-                    new List<string> { ex.Message }
-                );
+                throw; // 🚨 MUST
             }
         }
     }

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.BaseEmployee;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -49,62 +50,101 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             _idEncoderService = idEncoderService;
             _permissionService = permissionService;
         }
-        public async Task<ApiResponse<bool>> Handle(DeleteEmployeeQuery request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<bool>> Handle(
+    DeleteEmployeeQuery request,
+    CancellationToken cancellationToken)
         {
             try
             {
-                // 1️ COMMON VALIDATION (Mandatory)
-                var validation = await _commonRequestService.ValidateRequestAsync();
+                _logger.LogInformation("DeleteEmployee started");
+
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
+                var validation =
+                    await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
-                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // Assign decoded values coming from CommonRequestService
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request.");
+
+                request.DTO.Prop ??= new();
+
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
-                request.DTO.Prop.EmployeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
+                request.DTO.Prop.EmployeeId =
+                    RequestCommonHelper.DecodeOnlyEmployeeId(
                         request.DTO.EmployeeId,
-                       validation.Claims.TenantEncriptionKey,
-                          _idEncoderService
-                         );
+                        validation.Claims.TenantEncriptionKey,
+                        _idEncoderService);
 
-                // ✅ Create  using repository
-                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
-                if (!permissions.Contains("AddBankInfo"))
-                {
-                    //await _unitOfWork.RollbackTransactionAsync();
-                    //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
-                }
+                if (request.DTO.Prop.EmployeeId <= 0)
+                    throw new ValidationErrorException("Invalid EmployeeId.");
 
-                var employee = await _unitOfWork.Employees.GetByIdAsync(request.DTO.Prop.EmployeeId,request.DTO.Prop.TenantId, true);
-                  if(employee == null)
-                  {
-                      return ApiResponse<bool>.Fail("Employee not found for current user.");
-                   }
-                
-                bool Issuccess =    await _unitOfWork.Employees.DeleteAllAsync(employee);
-                if (!Issuccess)
-                    return ApiResponse<bool>.Fail("Employee not found for current user.");
+                // ===============================
+                // 3️⃣ PERMISSION (YOUR PATTERN ✅)
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.Delete);
 
-                return new ApiResponse<bool>
-                {
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("No permission to delete employee.");
 
-                    IsSucceeded = true,
-                    Message = $"successfully deleted" ,
-                    Data = Issuccess
+                // ===============================
+                // 4️⃣ FETCH EMPLOYEE
+                // ===============================
+                var employee =
+                    await _unitOfWork.Employees.GetByIdAsync(
+                        request.DTO.Prop.EmployeeId,
+                        request.DTO.Prop.TenantId,
+                        true);
 
+                if (employee == null)
+                    throw new ApiException("Employee not found.", 404);
 
-                };            
+                // ===============================
+                // 5️⃣ START TRANSACTION (IMPORTANT)
+                // ===============================
+                await _unitOfWork.BeginTransactionAsync();
 
+                // ===============================
+                // 6️⃣ DELETE (SOFT / CASCADE)
+                // ===============================
+                var isSuccess =
+                    await _unitOfWork.Employees.DeleteAllAsync(employee);
+
+                if (!isSuccess)
+                    throw new ApiException("Failed to delete employee.", 500);
+
+                // ===============================
+                // 7️⃣ COMMIT
+                // ===============================
+                await _unitOfWork.CommitTransactionAsync();
+
+                _logger.LogInformation("DeleteEmployee success | Id: {Id}", request.DTO.Prop.EmployeeId);
+
+                return ApiResponse<bool>.Success(true, "Employee deleted successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while fetching self employee info.");
-                return ApiResponse<bool>.Fail("Something went wrong.", new List<string> { ex.Message });
+                await _unitOfWork.RollbackTransactionAsync();
+
+                _logger.LogError(
+                    ex,
+                    "Error deleting employee | Id: {Id}",
+                    request.DTO?.EmployeeId);
+
+                throw; // 🚨 MUST
             }
         }
-
 
     }
 

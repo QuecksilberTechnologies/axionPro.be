@@ -1,9 +1,10 @@
 ﻿using AutoMapper;
-using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Constants;
+using axionpro.application.DTOs.Module;
 using axionpro.application.DTOS.Employee.Education;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -17,6 +18,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Reflection;
 
 namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 {
@@ -72,23 +74,33 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
             _commonRequestService = commonRequestService;
         }
 
-        public async Task<ApiResponse<List<GetEducationResponseDTO>>> Handle(CreateEducationInfoCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<List<GetEducationResponseDTO>>> Handle(
+      CreateEducationInfoCommand request,
+      CancellationToken cancellationToken)
         {
-            string? savedFullPath = null;  // 📂 File full path track karne ke liye
+            string? uploadedFileKey = null;
 
             try
             {
-                await _unitOfWork.BeginTransactionAsync();
+                _logger.LogInformation("CreateEducation started");
 
-                // 🔐 STEP 1: COMMON VALIDATION (SAME AS CONTACT)
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
                 var validation =
                     await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
-                    return ApiResponse<List<GetEducationResponseDTO>>
-                        .Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // 🔓 STEP 2: Assign decoded values
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request.");
+
+                request.DTO.Prop ??= new();
+
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
@@ -96,136 +108,138 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                     RequestCommonHelper.DecodeOnlyEmployeeId(
                         request.DTO.EmployeeId,
                         validation.Claims.TenantEncriptionKey,
-                        _idEncoderService
-                    );
+                        _idEncoderService);
 
-                // 🔑 STEP 3: Permission check
-                var permissions =
-                    await _permissionService.GetPermissionsAsync(validation.RoleId);
+                if (request.DTO.Prop.EmployeeId <= 0)
+                    throw new ValidationErrorException("Invalid EmployeeId.");
 
-                if (!permissions.Contains("AddDependentInfo"))
-                {
-                    // optional hard-stop
-                    // return ApiResponse<List<GetDependentResponseDTO>>
-                    //     .Fail("You do not have permission to add dependent info.");
-                }
+                // ===============================
+                // 3️⃣ PERMISSION (YOUR FIXED PATTERN ✅)
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.Add);
 
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("No permission to add education.");
 
+                // ===============================
+                // 4️⃣ START TRANSACTION
+                // ===============================
+                await _unitOfWork.BeginTransactionAsync();
 
-                // 🔹 STEP 4: File Upload
-                // =================================================
-                // FILE HANDLING (S3 CLEAN)
-                // =================================================
+                // ===============================
+                // 5️⃣ FILE UPLOAD
+                // ===============================
                 string? docPath = null;
                 string? fileName = null;
-                bool HasEducationUploaded = false;
+                bool hasEducationUploaded = false;
 
                 if (request.DTO.EducationDocument != null &&
                     request.DTO.EducationDocument.Length > 0)
                 {
                     try
                     {
-                        // 🔹 CLEAN DEGREE NAME
-                        string degreeName = request.DTO.Degree?.Trim().ToLower().Replace(" ", "_") ?? "doc";
+                        string degreeName =
+                            request.DTO.Degree?.Trim().ToLower().Replace(" ", "_") ?? "doc";
 
-                        // 🔹 FILE NAME
                         fileName =
                             $"{ConstantValues.EducationFolder}-{request.DTO.Prop.EmployeeId}-{degreeName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
 
-                        // 🔹 FOLDER PATH (YOUR STANDARD RULE)
                         string folderPath =
                             $"{ConstantValues.TenantFolder}-{request.DTO.Prop.TenantId}/" +
                             $"{ConstantValues.EmployeeFolder}/{request.DTO.Prop.EmployeeId}/" +
                             $"{ConstantValues.EducationFolder}";
 
-                        // 🔹 UPLOAD
-                        var fileKey = await _fileStorageService.UploadFileAsync(
+                        uploadedFileKey = await _fileStorageService.UploadFileAsync(
                             request.DTO.EducationDocument,
                             folderPath,
                             fileName);
 
-                        if (!string.IsNullOrWhiteSpace(fileKey))
+                        if (!string.IsNullOrWhiteSpace(uploadedFileKey))
                         {
-                            docPath = fileKey;
-                            HasEducationUploaded = true;
+                            docPath = uploadedFileKey;
+                            hasEducationUploaded = true;
                         }
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Error uploading education document");
-
-                        return ApiResponse<List<GetEducationResponseDTO>>
-                            .Fail("File upload failed.");
+                        _logger.LogError(ex, "Education file upload failed");
+                        throw new ApiException("File upload failed.", 500);
                     }
                 }
 
-                // 🔹 STEP 5: Map DTO to Entity
-                var educationEntity = _mapper.Map<EmployeeEducation>(request.DTO);                  
-                educationEntity.EmployeeId = request.DTO.Prop.EmployeeId;                
+                // ===============================
+                // 6️⃣ MAP ENTITY
+                // ===============================
+                var educationEntity = _mapper.Map<EmployeeEducation>(request.DTO);
+
+                educationEntity.EmployeeId = request.DTO.Prop.EmployeeId;
                 educationEntity.AddedById = request.DTO.Prop.UserEmployeeId;
                 educationEntity.AddedDateTime = DateTime.UtcNow;
+
                 educationEntity.IsActive = true;
                 educationEntity.IsInfoVerified = false;
-                educationEntity.IsEditAllowed = true;               
-                educationEntity.FileType = 0;
-              
-                if (HasEducationUploaded)
-                {
-                    educationEntity.FileType = 2;//pdf
-                    educationEntity.FilePath = docPath;
-                    educationEntity.FileName = fileName;
-                   
-                }
-                educationEntity.HasEducationDocUploded = HasEducationUploaded;
+                educationEntity.IsEditAllowed = true;
 
+                educationEntity.FileType = hasEducationUploaded ? 2 : 0;
+                educationEntity.FilePath = docPath;
+                educationEntity.FileName = fileName;
+                educationEntity.HasEducationDocUploded = hasEducationUploaded;
 
-                // 🔹 STEP 6: Database Insert + File Validation
-                var responseDTO = await _unitOfWork.EmployeeEducationRepository.CreateAsync(educationEntity);
+                // ===============================
+                // 7️⃣ SAVE
+                // ===============================
+                var responseDTO =
+                    await _unitOfWork.EmployeeEducationRepository
+                        .CreateAsync(educationEntity);
 
-                 
+                if (responseDTO == null)
+                    throw new ApiException("Failed to create education record.", 500);
 
-                // 🔹 STEP 7: Commit Transaction
+                // ===============================
+                // 8️⃣ PROJECTION
+                // ===============================
+                var encryptedList =
+                    ProjectionHelper.ToGetEducationResponseDTOs(
+                        responseDTO,
+                        _idEncoderService,
+                        validation.Claims.TenantEncriptionKey,
+                        _configuration);
+
+                // ===============================
+                // 9️⃣ COMMIT
+                // ===============================
                 await _unitOfWork.CommitTransactionAsync();
-               
-                       
-                // 🔹 STEP 8: Projection + Encryption
-                var encryptedList = ProjectionHelper.ToGetEducationResponseDTOs(responseDTO, _idEncoderService,
-                        validation.Claims.TenantEncriptionKey, _configuration);
 
-                return new ApiResponse<List<GetEducationResponseDTO>>
-                {
-                    IsSucceeded = true,
-                    Message = $"{responseDTO.TotalCount} record(s) retrieved successfully.",
-                    PageNumber = responseDTO.PageNumber,
-                    PageSize = responseDTO.PageSize,
-                    TotalRecords = responseDTO.TotalCount,
-                    TotalPages = responseDTO.TotalPages,
-                    Data = encryptedList
-                };
+                _logger.LogInformation("CreateEducation success");
+
+                return ApiResponse<List<GetEducationResponseDTO>>
+                    .Success(encryptedList, "Education info created successfully.");
             }
             catch (Exception ex)
             {
-                // ❌ Exception aane par rollback aur file cleanup
                 await _unitOfWork.RollbackTransactionAsync();
 
-                if (!string.IsNullOrEmpty(savedFullPath) && File.Exists(savedFullPath))
+                _logger.LogError(ex, "Error creating education");
+
+                // 🧹 FILE CLEANUP (S3)
+                if (!string.IsNullOrEmpty(uploadedFileKey))
                 {
                     try
                     {
-                        File.Delete(savedFullPath);
-                        _logger.LogWarning("🗑️ File deleted due to exception rollback: {Path}", savedFullPath);
+                        await _fileStorageService.DeleteFileAsync(uploadedFileKey);
                     }
-                    catch (Exception delEx)
+                    catch (Exception cleanupEx)
                     {
-                        _logger.LogError(delEx, "❌ Failed to delete file during rollback.");
+                        _logger.LogError(cleanupEx, "File cleanup failed");
                     }
                 }
 
-                _logger.LogError(ex, "❌ Error while creating education info");
-                return ApiResponse<List<GetEducationResponseDTO>>.Fail("Internal server error while creating education info.");
+                throw; // 🚨 MUST
             }
         }
-    
-    
+
     }
 }

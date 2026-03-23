@@ -1,8 +1,11 @@
 ﻿using axionpro.application.DTOs.PolicyType;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
+using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.PolicyTypeCmd.Handlers
 {
@@ -30,71 +33,75 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
     {
         private readonly IPolicyTypeRepository _policyTypeRepository;
         private readonly ICommonRequestService _commonRequestService;
-
+        private readonly ILogger<CreatePolicyTypeCommandHandler> _logger;
+        IPermissionService permissionService;
         public GetAllPolicyTypeCommandHandler(
             IPolicyTypeRepository policyTypeRepository,
-            ICommonRequestService commonRequestService)
+            ICommonRequestService commonRequestService, ILogger<CreatePolicyTypeCommandHandler> logger, IPermissionService permissionService)
         {
             _policyTypeRepository = policyTypeRepository;
             _commonRequestService = commonRequestService;
+            _logger = logger;            
+            this.permissionService = permissionService;
         }
 
         public async Task<ApiResponse<List<GetAllPolicyTypeResponseDTO>>> Handle(
-            GetAllPolicyTypeCommand request,
-            CancellationToken cancellationToken)
+    GetAllPolicyTypeCommand request,
+    CancellationToken cancellationToken)
         {
             try
             {
-                // --------------------------------------------------
-                // 1️⃣ Basic validation
-                // --------------------------------------------------
-                if (request.DTO == null)
-                {
-                    return ApiResponse<List<GetAllPolicyTypeResponseDTO>>
-                        .Fail("Invalid request.");
-                }
+                _logger.LogInformation("🔹 GetAllPolicyType started");
 
-                // --------------------------------------------------
-                // 2️⃣ Common validation (Tenant / User context)
-                // --------------------------------------------------
+                // ===============================
+                // 1️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request.");
+
+                // ===============================
+                // 2️⃣ AUTH VALIDATION
+                // ===============================
                 var validation = await _commonRequestService.ValidateRequestAsync();
-                if (!validation.Success)
-                {
-                    return ApiResponse<List<GetAllPolicyTypeResponseDTO>>
-                        .Fail(validation.ErrorMessage);
-                }
 
-                // --------------------------------------------------
-                // 3️⃣ Fetch PolicyTypes (Repository handles filtering)
-                // --------------------------------------------------
-                var policyTypes =
+                if (!validation.Success)
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+
+                // ===============================
+                // 3️⃣ PERMISSION CHECK
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.PolicyType,
+                //    Operations.View);
+
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("Access denied.");
+
+                // ===============================
+                // 4️⃣ FETCH DATA
+                // ===============================
+                var result =
                     await _policyTypeRepository.GetAllPolicyTypesAsync(
                         validation.TenantId,
                         request.DTO.IsActive
                     );
 
-                // --------------------------------------------------
-                // 4️⃣ No data → UI wants error
-                // --------------------------------------------------
-                if (policyTypes.Data == null || !policyTypes.Data.Any())
-                {
-                    return ApiResponse<List<GetAllPolicyTypeResponseDTO>>
-                        .Fail("No policy types found.");
-                }
+                var data = result?.Data ?? new List<GetAllPolicyTypeResponseDTO>();
 
-                // --------------------------------------------------
-                // 5️⃣ Success
-                // --------------------------------------------------
+                _logger.LogInformation("✅ Retrieved {Count} policy types", data.Count);
+
+                // ===============================
+                // 5️⃣ SUCCESS (EMPTY ALLOWED ✅)
+                // ===============================
                 return ApiResponse<List<GetAllPolicyTypeResponseDTO>>
-                    .Success(
-                        policyTypes.Data,
-                        "All policies fetched successfully.");
+                    .Success(data, "All policies fetched successfully.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // ❗ Safe failure (no exception leak)
-                return ApiResponse<List<GetAllPolicyTypeResponseDTO>>
-                    .Fail("Something went wrong while fetching policy types.");
+                _logger.LogError(ex, "❌ Error in GetAllPolicyType");
+
+                throw; // ✅ CRITICAL
             }
         }
     }

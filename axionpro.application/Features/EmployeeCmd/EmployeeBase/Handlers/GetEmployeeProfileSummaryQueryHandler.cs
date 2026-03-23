@@ -1,6 +1,7 @@
 ﻿using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.BaseEmployee;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -52,48 +53,54 @@ namespace axionpro.application.Features.EmployeeCmd.Handlers
         }
 
         public async Task<ApiResponse<EmployeeProfileSummaryInfo>> Handle(
-            GetEmployeeProfileSummaryQuery request,
-            CancellationToken cancellationToken)
+      GetEmployeeProfileSummaryQuery request,
+      CancellationToken cancellationToken)
         {
             try
             {
-                // =====================================================
-                // 🔐 STEP 1: COMMON VALIDATION
-                // =====================================================
-                var validation = await _commonRequestService.ValidateRequestAsync();
+                _logger.LogInformation("GetEmployeeProfileSummary started");
+
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
+                var validation =
+                    await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
-                    return ApiResponse<EmployeeProfileSummaryInfo>
-                        .Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // =====================================================
-                // 🔓 STEP 2: DECODE EMPLOYEE ID
-                // =====================================================
-                long employeeId =
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request.");
+
+                // ===============================
+                // 3️⃣ DECODE EMPLOYEE ID
+                // ===============================
+                var employeeId =
                     RequestCommonHelper.DecodeOnlyEmployeeId(
                         request.DTO.EmployeeId,
                         validation.Claims.TenantEncriptionKey,
                         _idEncoderService);
 
                 if (employeeId <= 0)
-                    return ApiResponse<EmployeeProfileSummaryInfo>
-                        .Fail("Invalid EmployeeId.");
+                    throw new ValidationErrorException("Invalid EmployeeId.");
 
-                // =====================================================
-                // 🔑 STEP 3: PERMISSION CHECK (SOFT)
-                // =====================================================
-                var permissions =
-                    await _permissionService.GetPermissionsAsync(validation.RoleId);
+                // ===============================
+                // 4️⃣ PERMISSION (YOUR PATTERN ✅)
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.View);
 
-                if (!permissions.Contains("ViewEmployeeSummary"))
-                {
-                    // optional strict stop
-                    // return ApiResponse<EmployeeProfileSummaryInfo>.Fail("Permission denied.");
-                }
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("No permission to view employee summary.");
 
-                // =====================================================
-                // 📦 STEP 4: FETCH SUMMARY
-                // =====================================================
+                // ===============================
+                // 5️⃣ FETCH SUMMARY
+                // ===============================
                 var summary =
                     await _unitOfWork.Employees.EmployeeProfileSummaryAsync(
                         employeeId,
@@ -105,22 +112,23 @@ namespace axionpro.application.Features.EmployeeCmd.Handlers
                         "No Employee Profile Summary found | EmployeeId: {EmployeeId}",
                         employeeId);
 
-                    return ApiResponse<EmployeeProfileSummaryInfo>
-                        .Fail("No employee profile summary found.");
+                    throw new ApiException("Employee profile summary not found.", 404);
                 }
 
-                // =====================================================
-                // 🔁 STEP 5: ENCODE & CLEAN RESPONSE
-                // =====================================================
+                // ===============================
+                // 6️⃣ PROJECTION
+                // ===============================
                 var response =
                     ProjectionHelper.ToGetProfileSummaryResponseDTO(
                         summary,
                         _idEncoderService,
                         validation.Claims.TenantEncriptionKey);
 
-                // =====================================================
-                // ✅ STEP 6: SUCCESS
-                // =====================================================
+                _logger.LogInformation("GetEmployeeProfileSummary success");
+
+                // ===============================
+                // 7️⃣ SUCCESS
+                // ===============================
                 return ApiResponse<EmployeeProfileSummaryInfo>
                     .Success(
                         response,
@@ -130,13 +138,10 @@ namespace axionpro.application.Features.EmployeeCmd.Handlers
             {
                 _logger.LogError(
                     ex,
-                    "❌ Error while fetching Employee Profile Summary | EmployeeId: {EmployeeId}",
+                    "Error fetching employee profile summary | EmployeeId: {EmployeeId}",
                     request.DTO?.EmployeeId);
 
-                return ApiResponse<EmployeeProfileSummaryInfo>
-                    .Fail(
-                        "An unexpected error occurred.",
-                        new List<string> { ex.Message });
+                throw; // 🚨 MUST
             }
         }
     }

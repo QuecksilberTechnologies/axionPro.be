@@ -3,7 +3,7 @@ using axionpro.application.DTOs.Tenant;
 using axionpro.application.DTOs.Verify;
  
 using axionpro.application.Features.UserLoginAndDashboardCmd.Commands;
-using axionpro.application.Features.VerifyEmailCmd.Commands;
+ 
 using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
 using MediatR;

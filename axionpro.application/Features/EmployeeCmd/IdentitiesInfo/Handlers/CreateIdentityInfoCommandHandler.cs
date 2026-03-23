@@ -1,14 +1,20 @@
 ﻿using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Constants;
+using axionpro.application.DTOs.Module;
 using axionpro.application.DTOS.Employee.Sensitive;
+using axionpro.application.Exceptions;
+using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IFileStorage;
+using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
 
 using axionpro.domain.Entity;
 using MediatR;
+using Microsoft.Extensions.Logging;
+using System.Reflection;
 
 namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
 {
@@ -28,94 +34,121 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
         private readonly ICommonRequestService _commonRequestService;
         private readonly IIdEncoderService _idEncoderService;
         private readonly IFileStorageService _fileStorageService;
-
+        private readonly ILogger<CreateIdentityInfoCommand> _logger;
         public CreateEmployeeIdentityCommandHandler(
             IUnitOfWork unitOfWork,
             ICommonRequestService commonRequestService,
             IIdEncoderService idEncoderService,
-            IFileStorageService fileStorageService)
+            IFileStorageService fileStorageService, ILogger<CreateIdentityInfoCommand> logger)
         {
             _unitOfWork = unitOfWork;
             _commonRequestService = commonRequestService;
             _idEncoderService = idEncoderService;
             _fileStorageService = fileStorageService;
+            _logger = logger;   
         }
 
         public async Task<ApiResponse<bool>> Handle(
-            CreateIdentityInfoCommand request,
-            CancellationToken cancellationToken)
+    CreateIdentityInfoCommand request,
+    CancellationToken cancellationToken)
         {
-            if (request.DTO.Identities == null || !request.DTO.Identities.Any())
-                return ApiResponse<bool>.Fail("No identity data received.");
+            var uploadedFiles = new List<string>();
 
-            // ✅ Validate ONCE
-            var first = request.DTO.Identities.First();
-            var validation = await _commonRequestService
-                .ValidateRequestAsync(first.UserEmployeeId);
-
-            if (!validation.Success)
-                return ApiResponse<bool>.Fail(validation.ErrorMessage);
-
-            await _unitOfWork.BeginTransactionAsync();
-            var entities = new List<EmployeeIdentity>();
             try
             {
+                _logger.LogInformation("CreateEmployeeIdentity started");
+
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
+                if (request?.DTO?.Identities == null || !request.DTO.Identities.Any())
+                    throw new ValidationErrorException("No identity data received.");
+
+                var first = request.DTO.Identities.First();
+
+                var validation =
+                    await _commonRequestService.ValidateRequestAsync(first.UserEmployeeId);
+
+                if (!validation.Success)
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+
+                // ===============================
+                // 2️⃣ PERMISSION (CRITICAL 🚨)
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.Add);
+
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("No permission to add identity.");
+
+                // ===============================
+                // 3️⃣ START TRANSACTION
+                // ===============================
+                await _unitOfWork.BeginTransactionAsync();
+
+                var entities = new List<EmployeeIdentity>();
+
                 foreach (var identity in request.DTO.Identities)
                 {
-                    var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
-                        identity.EmployeeId,
-                        validation.Claims.TenantEncriptionKey,
-                        _idEncoderService
-                    );
+                    var employeeId =
+                        RequestCommonHelper.DecodeOnlyEmployeeId(
+                            identity.EmployeeId,
+                            validation.Claims.TenantEncriptionKey,
+                            _idEncoderService);
+
+                    if (employeeId <= 0)
+                        throw new ValidationErrorException("Invalid EmployeeId.");
 
                     string? documentPath = null;
                     string? documentName = null;
 
-                    // ✅ Generic file upload (PAN / Passport / Aadhaar ALL SAME)
-                    // =================================================
-                    // 🔐 IDENTITY FILE UPLOAD (S3 - SECURE)
-                    // =================================================
+                    // ===============================
+                    // 4️⃣ FILE UPLOAD
+                    // ===============================
                     if (identity.IdentityDocumentFile != null &&
                         identity.IdentityDocumentFile.Length > 0)
                     {
                         try
                         {
-                            // 🔹 MASKED VALUE (SECURITY)
                             string maskedValue =
-                                identity.IdentityValue.Length > 4
+                                identity.IdentityValue?.Length > 4
                                     ? identity.IdentityValue[^4..]
                                     : "XXXX";
 
-                            // 🔹 SAFE DOCUMENT CODE
                             string docCode =
                                 identity.DocumnetCode?.Trim().ToLower().Replace(" ", "_") ?? "id";
 
-                            // 🔹 FILE NAME (SECURE + TRACEABLE)
                             documentName =
                                 $"id-{docCode}-{employeeId}-{maskedValue}-{DateTime.UtcNow:yyyyMMddHHmmss}";
 
-                            // 🔹 FOLDER PATH (STANDARD STRUCTURE)
                             string folderPath =
                                 $"{ConstantValues.TenantFolder}-{validation.TenantId}/" +
                                 $"{ConstantValues.EmployeeFolder}/{employeeId}/identity";
 
-                            // 🔹 UPLOAD TO S3
-                            var fileKey = await _fileStorageService.UploadFileAsync(
-                                identity.IdentityDocumentFile,
-                                folderPath,
-                                documentName);
+                            var fileKey =
+                                await _fileStorageService.UploadFileAsync(
+                                    identity.IdentityDocumentFile,
+                                    folderPath,
+                                    documentName);
 
                             if (!string.IsNullOrWhiteSpace(fileKey))
                             {
                                 documentPath = fileKey;
+                                uploadedFiles.Add(fileKey); // 🔥 TRACK FILE
                             }
                         }
                         catch (Exception ex)
                         {
-                            await _unitOfWork.RollbackTransactionAsync();
-                            return ApiResponse<bool>.Fail("Identity file upload failed.");
+                            _logger.LogError(ex, "Identity file upload failed");
+                            throw new ApiException("Identity file upload failed.", 500);
                         }
                     }
+
+                    // ===============================
+                    // 5️⃣ BUILD ENTITY
+                    // ===============================
                     entities.Add(new EmployeeIdentity
                     {
                         EmployeeId = employeeId,
@@ -135,28 +168,52 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
                         AddedById = validation.UserEmployeeId,
                         AddedDateTime = DateTime.UtcNow
                     });
-                  
-
-              
                 }
-                bool isSuccess = await _unitOfWork.EmployeeIdentityRepository.CreateAsync(entities);
+
+                // ===============================
+                // 6️⃣ SAVE
+                // ===============================
+                var isSuccess =
+                    await _unitOfWork.EmployeeIdentityRepository.CreateAsync(entities);
+
                 if (!isSuccess)
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<bool>.Fail("Internal Error");
+                    throw new ApiException("Identity save failed.", 500);
 
-                }
-
-
+                // ===============================
+                // 7️⃣ COMMIT
+                // ===============================
                 await _unitOfWork.CommitTransactionAsync();
-                return ApiResponse<bool>.Success(true, "Identity details saved successfully.");
+
+                _logger.LogInformation("CreateEmployeeIdentity success");
+
+                return ApiResponse<bool>.Success(
+                    true,
+                    "Identity details saved successfully.");
             }
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackTransactionAsync();
-                return ApiResponse<bool>.Fail(ex.Message);
+
+                _logger.LogError(ex, "CreateEmployeeIdentity failed");
+
+                // 🔥 FILE CLEANUP (CRITICAL)
+                foreach (var file in uploadedFiles)
+                {
+                    try
+                    {
+                        await _fileStorageService.DeleteFileAsync(file);
+                    }
+                    catch (Exception cleanupEx)
+                    {
+                        _logger.LogError(cleanupEx, "Failed to cleanup identity file");
+                    }
+                }
+
+                throw; // 🚨 MUST
             }
         }
+
+
     }
 
 

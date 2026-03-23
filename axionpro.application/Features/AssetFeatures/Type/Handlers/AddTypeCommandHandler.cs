@@ -1,18 +1,12 @@
 ﻿using AutoMapper;
-using axionpro.application.Constants;
-using axionpro.application.DTOS.AssetDTO.status;
 using axionpro.application.DTOS.AssetDTO.type;
-using axionpro.application.Features.AssetFeatures.Status.Handlers;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
+using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Features.AssetFeatures.Type.Handlers
 {
@@ -46,74 +40,99 @@ namespace axionpro.application.Features.AssetFeatures.Type.Handlers
             _commonRequestService = commonRequestService;
             _permissionService = permissionService;
         }
-        public async Task<ApiResponse<List<GetTypeResponseDTO>>> Handle(AddTypeCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<List<GetTypeResponseDTO>>> Handle(
+      AddTypeCommand request,
+      CancellationToken cancellationToken)
         {
             try
             {
-                _logger.LogInformation("Adding Asset Type: {TypeName}", request.DTO.TypeName);
+                _logger.LogInformation("Adding Asset Type: {TypeName}", request?.DTO?.TypeName);
 
                 // ===============================
-                // 1️⃣ COMMON VALIDATION
+                // 1️⃣ COMMON VALIDATION (AUTH + CONTEXT)
                 // ===============================
-                var validation =
-                    await _commonRequestService.ValidateRequestAsync();
+                var validation = await _commonRequestService.ValidateRequestAsync();
 
+                // ❌ Old: return Fail
+                // ✅ New: throw
                 if (!validation.Success)
-                    return ApiResponse<List<GetTypeResponseDTO>>
-                        .Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
                 if (request?.DTO == null)
-                    return ApiResponse<List<GetTypeResponseDTO>>.Fail("Invalid request data.");
+                    throw new ValidationErrorException(
+                        "Invalid request data.",
+                        new List<string> { "Request DTO is required." }
+                    );
 
-                // 🔹 Inject TenantId from token/session
+                if (request.DTO.Prop == null)
+                    request.DTO.Prop = new();
+
+                // Inject values
                 request.DTO.Prop.TenantId = validation.TenantId;
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
 
                 // ===============================
-                // 2️⃣ BUSINESS VALIDATION
+                // 3️⃣ BUSINESS VALIDATION
                 // ===============================
                 if (string.IsNullOrWhiteSpace(request.DTO.TypeName))
-                    return ApiResponse<List<GetTypeResponseDTO>>
-                         .Fail("Type Name is required.");
-
-               
-
-                // ===============================
-                // 3️⃣ PERMISSION CHECK (OPTIONAL)
-                // ===============================
-                var permissions =
-                    await _permissionService.GetPermissionsAsync(validation.RoleId);
-
-                // if (!permissions.Contains("AddAssetStatus"))
-                //     return ApiResponse<GetStatusResponseDTO>
-                //         .Fail("You do not have permission to add asset status.");
+                    throw new ValidationErrorException(
+                        "Type Name is required.",
+                        new List<string> { "TypeName cannot be empty." }
+                    );
 
                 // ===============================
-                // 4️⃣ MAP DTO → ENTITY
+                // 4️⃣ PERMISSION CHECK (RBAC)
                 // ===============================
+                //var hasPermission = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    "AssetType",   // 🔹 Module
+                //    "Add"          // 🔹 Operation
+                //);
 
-                // Step 2️⃣: Add asset type via repository
-                var addedList = await _unitOfWork.AssetTypeRepository.AddAsync(request.DTO);
+                //if (!hasPermission)
+                //    throw new UnauthorizedAccessException(
+                //        "You do not have permission to add asset type.");
+
+                // ===============================
+                // 5️⃣ SAVE (NO TRANSACTION NEEDED)
+                // ===============================
+                var addedList = await _unitOfWork.AssetTypeRepository
+                    .AddAsync(request.DTO);
 
                 if (addedList == null || addedList.Count == 0)
                 {
-                    _logger.LogWarning("Asset type insertion failed for TypeName: {TypeName}", request.DTO.TypeName);
-                    return ApiResponse<List<GetTypeResponseDTO>>.Fail("Failed to add asset type.");
+                    _logger.LogWarning(
+                        "Asset type insertion failed for TypeName: {TypeName}",
+                        request.DTO.TypeName);
+
+                    throw new ApiException("Failed to add asset type.", 500);
                 }
 
-                // Step 3️⃣: Logging success
-                _logger.LogInformation("Successfully added asset type: {TypeName}", request.DTO.TypeName);
+                // ===============================
+                // 6️⃣ SUCCESS LOG
+                // ===============================
+                _logger.LogInformation(
+                    "Successfully added asset type: {TypeName}",
+                    request.DTO.TypeName);
 
-                // Step 4️⃣: Return success response
-                return ApiResponse<List<GetTypeResponseDTO>>.Success(
-                    addedList,
-                    "Asset Type added successfully."
-                );
+                // ===============================
+                // 7️⃣ SUCCESS RESPONSE
+                // ===============================
+                return ApiResponse<List<GetTypeResponseDTO>>
+                    .Success(addedList, "Asset Type added successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An unexpected error occurred while adding asset type: {TypeName}", request.DTO?.TypeName);
-                return ApiResponse<List<GetTypeResponseDTO>>.Fail("An unexpected error occurred while adding asset type.");
+                // ❗ IMPORTANT: middleware handle karega
+                _logger.LogError(
+                    ex,
+                    "An unexpected error occurred while adding asset type: {TypeName}",
+                    request?.DTO?.TypeName);
+
+                throw;
             }
         }
     }

@@ -2,7 +2,9 @@
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Constants;
+using axionpro.application.DTOs.Module;
 using axionpro.application.DTOS.Employee.Dependent;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -14,6 +16,7 @@ using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Reflection;
 
 namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
 {
@@ -61,22 +64,32 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
         }
 
         public async Task<ApiResponse<List<GetDependentResponseDTO>>> Handle(
-            CreateDependentCommand request,
-            CancellationToken cancellationToken)
+      CreateDependentCommand request,
+      CancellationToken cancellationToken)
         {
+            string? uploadedFileKey = null;
+
             try
             {
-                await _unitOfWork.BeginTransactionAsync();
+                _logger.LogInformation("CreateDependent started");
 
-                // 🔐 STEP 1: COMMON VALIDATION (SAME AS CONTACT)
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
                 var validation =
                     await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
-                    return ApiResponse<List<GetDependentResponseDTO>>
-                        .Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // 🔓 STEP 2: Assign decoded values
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request.");
+
+                request.DTO.Prop ??= new();
+
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
@@ -84,68 +97,71 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                     RequestCommonHelper.DecodeOnlyEmployeeId(
                         request.DTO.EmployeeId,
                         validation.Claims.TenantEncriptionKey,
-                        _idEncoderService
-                    );
+                        _idEncoderService);
 
-                // 🔑 STEP 3: Permission check
-                var permissions =
-                    await _permissionService.GetPermissionsAsync(validation.RoleId);
+                if (request.DTO.Prop.EmployeeId <= 0)
+                    throw new ValidationErrorException("Invalid EmployeeId.");
 
-                if (!permissions.Contains("AddDependentInfo"))
-                {
-                    // optional hard-stop
-                    // return ApiResponse<List<GetDependentResponseDTO>>
-                    //     .Fail("You do not have permission to add dependent info.");
-                }
+                // ===============================
+                // 3️⃣ PERMISSION CHECK
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.Add);
 
-           
-                // 📎 STEP 5: File Upload (if any)
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("No permission to add dependent.");
+
+                // ===============================
+                // 4️⃣ START TRANSACTION
+                // ===============================
+                await _unitOfWork.BeginTransactionAsync();
+
+                // ===============================
+                // 5️⃣ FILE UPLOAD
+                // ===============================
                 string? docPath = null;
                 string? docName = null;
                 bool hasProofUploaded = false;
-                
 
                 if (request.DTO.ProofFile != null &&
                     request.DTO.ProofFile.Length > 0)
                 {
                     try
                     {
-                        // 🔹 CLEAN RELATION NAME
                         string relation =
                             request.DTO.Relation.ToString()?.Trim().ToLower().Replace(" ", "_") ?? "doc";
 
-                        // 🔹 FILE NAME
                         string fileName =
                             $"proof-{request.DTO.Prop.EmployeeId}-{relation}-{DateTime.UtcNow:yyyyMMddHHmmss}";
 
-                        // 🔹 FOLDER PATH (STANDARD RULE)
                         string folderPath =
                             $"{ConstantValues.TenantFolder}-{request.DTO.Prop.TenantId}/" +
                             $"{ConstantValues.EmployeeFolder}/{request.DTO.Prop.EmployeeId}/dependent";
 
-                        // 🔹 UPLOAD (DIRECT S3)
-                        var fileKey = await _fileStorageService.UploadFileAsync(
+                        uploadedFileKey = await _fileStorageService.UploadFileAsync(
                             request.DTO.ProofFile,
                             folderPath,
                             fileName);
 
-                        if (!string.IsNullOrWhiteSpace(fileKey))
+                        if (!string.IsNullOrWhiteSpace(uploadedFileKey))
                         {
-                            docPath = fileKey;
+                            docPath = uploadedFileKey;
                             docName = fileName;
                             hasProofUploaded = true;
                         }
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Error uploading dependent proof");
-
-                        return ApiResponse<List<GetDependentResponseDTO>>
-                            .Fail("File upload failed.");
+                        _logger.LogError(ex, "Dependent proof upload failed");
+                        throw new ApiException("File upload failed.", 500);
                     }
                 }
 
-                // 🧱 STEP 6: Map Entity
+                // ===============================
+                // 6️⃣ MAP ENTITY
+                // ===============================
                 var entity = _mapper.Map<EmployeeDependent>(request.DTO);
 
                 entity.EmployeeId = request.DTO.Prop.EmployeeId;
@@ -155,50 +171,63 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                 entity.IsActive = true;
                 entity.IsEditAllowed = true;
                 entity.IsInfoVerified = false;
+
                 entity.FileType = hasProofUploaded ? 2 : 0;
                 entity.FilePath = docPath;
                 entity.FileName = docName;
                 entity.HasProofUploaded = hasProofUploaded;
 
-                // 💾 STEP 7: Save
+                // ===============================
+                // 7️⃣ SAVE
+                // ===============================
                 var responseDTO =
                     await _unitOfWork.EmployeeDependentRepository
                         .CreateAsync(entity);
 
-                // 🔐 STEP 8: Encrypt IDs
+                if (responseDTO == null)
+                    throw new ApiException("Failed to create dependent.", 500);
+
+                // ===============================
+                // 8️⃣ PROJECTION
+                // ===============================
                 var encryptedList =
                     ProjectionHelper.ToGetDependentResponseDTOs(
                         responseDTO.Items,
                         _idEncoderService,
-                        validation.Claims.TenantEncriptionKey, _configuration
+                        validation.Claims.TenantEncriptionKey,
+                        _configuration
                     );
 
+                // ===============================
+                // 9️⃣ COMMIT
+                // ===============================
                 await _unitOfWork.CommitTransactionAsync();
 
-                // 📦 STEP 9: Response
-                return new ApiResponse<List<GetDependentResponseDTO>>
-                {
-                    IsSucceeded = true,
-                    Message = $"{responseDTO.TotalCount} record(s) retrieved successfully.",
-                    PageNumber = responseDTO.PageNumber,
-                    PageSize = responseDTO.PageSize,
-                    TotalRecords = responseDTO.TotalCount,
-                    TotalPages = responseDTO.TotalPages,
-                    Data = encryptedList
-                };
+                _logger.LogInformation("CreateDependent success");
+
+                return ApiResponse<List<GetDependentResponseDTO>>
+                    .Success(encryptedList, "Dependent created successfully.");
             }
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackTransactionAsync();
 
-                _logger.LogError(
-                    ex,
-                    "Error while adding dependent info for EmployeeId: {EmployeeId}",
-                    request.DTO?.EmployeeId);
+                _logger.LogError(ex, "Error creating dependent");
 
-                return ApiResponse<List<GetDependentResponseDTO>>
-                    .Fail("Failed to add dependent info.",
-                          new List<string> { ex.Message });
+                // 🧹 FILE CLEANUP (CRITICAL 🚨)
+                if (!string.IsNullOrEmpty(uploadedFileKey))
+                {
+                    try
+                    {
+                        await _fileStorageService.DeleteFileAsync(uploadedFileKey);
+                    }
+                    catch (Exception cleanupEx)
+                    {
+                        _logger.LogError(cleanupEx, "File cleanup failed");
+                    }
+                }
+
+                throw; // 🚨 MUST
             }
         }
     }

@@ -1,16 +1,19 @@
 ﻿using AutoMapper;
 using axionpro.application.DTOS.AssetDTO.type;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
+using axionpro.domain.Entity; 
+using axionpro.domain.Entity; 
+using MediatR;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
-
+using System.Threading.Tasks; 
 namespace axionpro.application.Features.AssetFeatures.Type.Handlers
 {
     public class GetAllTypeCommand
@@ -51,65 +54,76 @@ namespace axionpro.application.Features.AssetFeatures.Type.Handlers
         }
 
         public async Task<ApiResponse<List<GetTypeResponseDTO>>> Handle(
-            GetAllTypeCommand request,
-            CancellationToken cancellationToken)
+       GetAllTypeCommand request,
+       CancellationToken cancellationToken)
         {
             try
             {
                 _logger.LogInformation("Fetching all Asset Types");
 
                 // ===============================
-                // 1️⃣ COMMON VALIDATION (MANDATORY)
+                // 1️⃣ COMMON VALIDATION (AUTH + CONTEXT)
                 // ===============================
-                var validation =
-                    await _commonRequestService.ValidateRequestAsync();
+                var validation = await _commonRequestService.ValidateRequestAsync();
 
+                // ❌ Old: return Fail
+                // ✅ New: throw
                 if (!validation.Success)
-                    return ApiResponse<List<GetTypeResponseDTO>>
-                        .Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // Assign decoded values
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException(
+                        "Invalid request.",
+                        new List<string> { "Request DTO is required." }
+                    );
+
+                if (request.DTO.Prop == null)
+                    request.DTO.Prop = new();
+
+                // Assign values
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
                 // ===============================
-                // 2️⃣ PERMISSION CHECK (OPTIONAL)
+                // 3️⃣ PERMISSION CHECK (RBAC)
                 // ===============================
-                var permissions =
-                    await _permissionService.GetPermissionsAsync(validation.RoleId);
+                //var hasPermission = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    "AssetType",   // 🔹 Module
+                //    "View"         // 🔹 Operation
+                //);
 
-                // if (!permissions.Contains("ViewAssetType"))
-                // {
-                //     return ApiResponse<List<GetTypeResponseDTO>>
-                //         .Fail("You do not have permission to view asset types.");
-                // }
+                //if (!hasPermission)
+                //    throw new UnauthorizedAccessException(
+                //        "You do not have permission to view asset types.");
 
                 // ===============================
-                // 3️⃣ FETCH FROM REPOSITORY
+                // 4️⃣ FETCH DATA
                 // ===============================
-                var typeEntities =
-                    await _unitOfWork.AssetTypeRepository
-                        .GetAllAsync(request.DTO);
+                var typeEntities = await _unitOfWork.AssetTypeRepository
+                    .GetAllAsync(request.DTO);
 
+                // ===============================
+                // 5️⃣ HANDLE EMPTY DATA (IMPORTANT)
+                // ===============================
                 if (typeEntities == null || typeEntities.Count == 0)
                 {
                     _logger.LogWarning(
                         "No Asset Types found for TenantId: {TenantId}",
                         request.DTO.Prop.TenantId);
 
-                    return new ApiResponse<List<GetTypeResponseDTO>>
-                    {
-                        IsSucceeded = false,
-                        Message = "No Asset Types found.",
-                        Data = new List<GetTypeResponseDTO>()
-                    };
+                    // ✅ Empty list = success
+                    return ApiResponse<List<GetTypeResponseDTO>>
+                        .Success(new List<GetTypeResponseDTO>(), "No Asset Types found.");
                 }
 
                 // ===============================
-                // 4️⃣ MAP ENTITY → DTO
+                // 6️⃣ MAP ENTITY → DTO
                 // ===============================
-                var responseDTOs =
-                    _mapper.Map<List<GetTypeResponseDTO>>(typeEntities);
+                var responseDTOs = _mapper.Map<List<GetTypeResponseDTO>>(typeEntities);
 
                 _logger.LogInformation(
                     "Successfully retrieved {Count} Asset Types for TenantId: {TenantId}",
@@ -117,28 +131,20 @@ namespace axionpro.application.Features.AssetFeatures.Type.Handlers
                     request.DTO.Prop.TenantId);
 
                 // ===============================
-                // 5️⃣ RETURN RESPONSE
+                // 7️⃣ SUCCESS RESPONSE
                 // ===============================
-                return new ApiResponse<List<GetTypeResponseDTO>>
-                {
-                    IsSucceeded = true,
-                    Message = "Asset Types fetched successfully.",
-                    Data = responseDTOs
-                };
+                return ApiResponse<List<GetTypeResponseDTO>>
+                    .Success(responseDTOs, "Asset Types fetched successfully.");
             }
             catch (Exception ex)
             {
+                // ❗ IMPORTANT: middleware handle karega
                 _logger.LogError(
                     ex,
                     "Error occurred while fetching Asset Types for TenantId: {TenantId}",
-                    request.DTO?.Prop?.TenantId);
+                    request?.DTO?.Prop?.TenantId);
 
-                return new ApiResponse<List<GetTypeResponseDTO>>
-                {
-                    IsSucceeded = false,
-                    Message = "An unexpected error occurred while fetching asset types.",
-                    Data = null
-                };
+                throw;
             }
         }
     }

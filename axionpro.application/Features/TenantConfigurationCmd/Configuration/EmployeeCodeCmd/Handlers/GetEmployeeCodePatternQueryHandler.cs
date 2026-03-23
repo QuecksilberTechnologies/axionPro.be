@@ -1,28 +1,11 @@
-﻿using AutoMapper;
-using axionpro.application.Common.Helpers;
-using axionpro.application.Common.Helpers.axionpro.application.Configuration;
-using axionpro.application.Common.Helpers.Converters;
-using axionpro.application.Common.Helpers.EncryptionHelper;
-using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
-using axionpro.application.DTOs.Designation;
-using axionpro.application.DTOs.Role;
-using axionpro.application.DTOS.Employee.BaseEmployee;
-using axionpro.application.DTOS.Pagination;
-using axionpro.application.DTOS.Tenant;
+﻿using axionpro.application.DTOS.Tenant;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Configuration;
+using MediatR;
 using Microsoft.Extensions.Logging;
-using System.Drawing.Printing;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace axionpro.application.Features.TenantConfigurationCmd.Configuration.EmployeeCodeCmd.Handlers
 {
@@ -57,53 +40,77 @@ namespace axionpro.application.Features.TenantConfigurationCmd.Configuration.Emp
         }
 
         public async Task<ApiResponse<GetEmployeeCodePatternResponseDTO>> Handle(
-            GetEmployeeCodePatternQuery request,
-            CancellationToken cancellationToken)
+     GetEmployeeCodePatternQuery request,
+     CancellationToken cancellationToken)
         {
             try
             {
-                // ----------------------------------------------------------
-                // 1️⃣ VALIDATE COMMON REQUEST (TenantId, Role, UserId)
-                // ----------------------------------------------------------
+                _logger.LogInformation("🔹 GetEmployeeCodePattern started");
+
+                // ===============================
+                // 1️⃣ VALIDATION (AUTH)
+                // ===============================
                 var validation = await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
-                    return ApiResponse<GetEmployeeCodePatternResponseDTO>
-                        .Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // ----------------------------------------------------------
-                // 2️⃣ Assign TenantId coming from validation
-                // ----------------------------------------------------------
+                // ===============================
+                // 2️⃣ PERMISSION CHECK (RBAC)
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.View);
+
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("Access denied.");
+
+                // ===============================
+                // 3️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request data.");
+
                 request.DTO.TenantId = validation.TenantId;
 
-                // ----------------------------------------------------------
-                // 3️⃣ CALL REPOSITORY
-                // ----------------------------------------------------------
+                // ===============================
+                // 4️⃣ FETCH DATA
+                // ===============================
                 var pattern = await _unitOfWork
-                    .TenantEmployeeCodePatternRepository.GetTenantEmployeeCodePatternAsync(request.DTO.TenantId, request.DTO.IsActive);
+                    .TenantEmployeeCodePatternRepository
+                    .GetTenantEmployeeCodePatternAsync(
+                        request.DTO.TenantId,
+                        request.DTO.IsActive);
 
                 if (pattern == null)
                 {
+                    _logger.LogInformation(
+                        "⚠️ No employee code pattern found for TenantId {TenantId}",
+                        validation.TenantId);
+
                     return ApiResponse<GetEmployeeCodePatternResponseDTO>
-                        .Fail("No active employee code pattern found for this tenant.");
+                        .Success(null, "No pattern found.");
                 }
 
-                // ----------------------------------------------------------
-                // 4️⃣ SUCCESS RESPONSE
-                // ----------------------------------------------------------
+                _logger.LogInformation("✅ Employee code pattern retrieved");
+
+                // ===============================
+                // 5️⃣ SUCCESS
+                // ===============================
                 return ApiResponse<GetEmployeeCodePatternResponseDTO>
                     .Success(pattern, "Pattern fetched successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,
-                    "❌ Error fetching Employee Code Pattern for TenantId: {TenantId}",
-                    request.DTO?.TenantId);
+                _logger.LogError(
+                    ex,
+                    "❌ GetEmployeeCodePattern failed");
 
-                return ApiResponse<GetEmployeeCodePatternResponseDTO>
-                    .Fail("An unexpected error occurred.");
+                throw; // ✅ CRITICAL
             }
         }
+
     }
 }
 

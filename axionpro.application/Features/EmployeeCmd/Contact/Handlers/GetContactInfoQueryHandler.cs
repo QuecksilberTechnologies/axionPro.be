@@ -1,11 +1,13 @@
 ﻿using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.Contact;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -45,102 +47,99 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
             _commonRequestService = commonRequestService;
         }
 
+       
         public async Task<ApiResponse<List<GetContactResponseDTO>>> Handle(
-            GetContactInfoQuery request,
-            CancellationToken cancellationToken)
+        GetContactInfoQuery request,
+        CancellationToken cancellationToken)
         {
             try
             {
-                await _unitOfWork.BeginTransactionAsync();
+                _logger.LogInformation("GetContactInfo started");
 
-                // 🔐 STEP 1: COMMON VALIDATION (SAME AS CREATE CONTACT)
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
                 var validation =
                     await _commonRequestService.ValidateRequestAsync(
-                        request.DTO.UserEmployeeId);
+                        request.DTO?.UserEmployeeId);
 
                 if (!validation.Success)
-                    return ApiResponse<List<GetContactResponseDTO>>
-                        .Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // 🔓 STEP 2: Assign decoded common props
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request.");
+
+                request.DTO.Prop ??= new();
+
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
-                // 🔓 STEP 3: Decode EmployeeId (target employee)
-                request.DTO.Prop.EmployeeId =  RequestCommonHelper.DecodeOnlyEmployeeId(
+                request.DTO.Prop.EmployeeId =
+                    RequestCommonHelper.DecodeOnlyEmployeeId(
                         request.DTO.EmployeeId,
                         validation.Claims.TenantEncriptionKey,
                         _idEncoderService);
 
-               
+                if (request.DTO.Prop.EmployeeId <= 0)
+                    throw new ValidationErrorException("Invalid EmployeeId.");
 
-                // 🔑 STEP 5: Permission check
-                var permissions =
-                    await _permissionService.GetPermissionsAsync(
-                        validation.RoleId);
+                // ===============================
+                // 3️⃣ PERMISSION CHECK
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.View);
 
-                if (!permissions.Contains("ViewContactInfo"))
-                {
-                    // optional hard-stop
-                    // return ApiResponse<List<GetContactResponseDTO>>
-                    //     .Fail("You do not have permission to view contact info.");
-                }
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("No permission to view contact info.");
 
-                // 📦 STEP 6: Repository call
+                // ===============================
+                // 4️⃣ FETCH DATA
+                // ===============================
                 var result =
                     await _unitOfWork.EmployeeContactRepository
                         .GetInfo(request.DTO);
 
-                if (result == null || !result.Items.Any())
-                {
-                    return ApiResponse<List<GetContactResponseDTO>>
-                   .SuccessPaginatedPercentage(
-                       Data: null,
-                       Message: "Contact info retrieved successfully.",
-                       PageNumber: result?.PageNumber??1,
-                       PageSize: result?.PageSize ?? 1,
-                       TotalRecords: 0,
-                       TotalPages: 0,
-                       CompletionPercentage: 0,   // TODO: calculate if needed
-                       HasUploadedAll: null
-                   );
-                }
-                
+                // ===============================
+                // 5️⃣ OPTIMIZED EMPTY HANDLING
+                // ===============================
+                var items = result?.Items ?? new List<GetContactResponseDTO>();
 
-                // 🔐 STEP 7: Projection + Encryption
-                var responseDTO =
-                    ProjectionHelper.ToGetContactResponseDTOs(
-                        result,
-                        _idEncoderService,
-                        validation.Claims.TenantEncriptionKey);
+                var responseDTO = items.Any()
+                    ? items // already DTO hai → projection ki zarurat nahi
+                    : new List<GetContactResponseDTO>();
 
-                await _unitOfWork.CommitTransactionAsync();
+                _logger.LogInformation("GetContactInfo success");
 
-                // 📤 STEP 8: Response
+                // ===============================
+                // 6️⃣ SINGLE RESPONSE
+                // ===============================
                 return ApiResponse<List<GetContactResponseDTO>>
                     .SuccessPaginatedPercentage(
                         Data: responseDTO,
-                        Message: "Contact info retrieved successfully.",
-                        PageNumber: result.PageNumber,
-                        PageSize: result.PageSize,
-                        TotalRecords: result.TotalCount,
-                        TotalPages: result.TotalPages,
-                        CompletionPercentage: result.CompletionPercentage,   // TODO: calculate if needed
-                        HasUploadedAll: false
+                        Message: items.Any()
+                            ? "Contact info retrieved successfully."
+                            : "No contact info found.",
+                        PageNumber: result?.PageNumber ?? 1,
+                        PageSize: result?.PageSize ?? 0,
+                        TotalRecords: result?.TotalCount ?? 0,
+                        TotalPages: result?.TotalPages ?? 0,
+                        CompletionPercentage: result?.CompletionPercentage ?? 0,
+                        HasUploadedAll: result?.HasUploadedAll ?? false
                     );
             }
             catch (Exception ex)
             {
-                await _unitOfWork.RollbackTransactionAsync();
-
                 _logger.LogError(
                     ex,
-                    "Error occurred while fetching Contact info for EmployeeId: {EmployeeId}",
+                    "Error fetching contact info | EmployeeId: {EmployeeId}",
                     request.DTO?.EmployeeId);
 
-                return ApiResponse<List<GetContactResponseDTO>>
-                    .Fail("Failed to fetch Contact info.",
-                          new List<string> { ex.Message });
+                throw; // 🚨 MUST
             }
         }
     }

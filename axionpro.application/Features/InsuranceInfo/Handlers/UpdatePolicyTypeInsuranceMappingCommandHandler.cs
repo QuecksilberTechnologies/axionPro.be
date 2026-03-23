@@ -1,14 +1,10 @@
 ﻿using axionpro.application.DTOS.InsurancePoliciesMapping;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
+using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Features.InsuranceInfo.Handlers
 {
@@ -43,25 +39,52 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
         }
 
         public async Task<ApiResponse<bool>> Handle(
-            UpdatePolicyTypeInsuranceMappingCommand request,
-            CancellationToken cancellationToken)
+     UpdatePolicyTypeInsuranceMappingCommand request,
+     CancellationToken cancellationToken)
         {
             try
             {
-                // 1️⃣ Validate Tenant/User
-                var validation = await _commonRequestService.ValidateRequestAsync();
-                if (!validation.Success)
-                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
+                _logger.LogInformation("🔹 UpdatePolicyTypeInsuranceMapping started");
 
-                // 2️⃣ Fetch existing mapping
-                var mapping =
-                    await _unitOfWork.PolicyTypeInsuranceMappingRepository
-                        .GetByIdAsync(request.DTO.Id, true);
+                // ===============================
+                // 1️⃣ VALIDATION (AUTH)
+                // ===============================
+                var validation = await _commonRequestService.ValidateRequestAsync();
+
+                if (!validation.Success)
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+
+                // ===============================
+                // 2️⃣ PERMISSION CHECK
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.PolicyTypeInsuranceMapping,
+                //    Operations.Update);
+
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("Access denied.");
+
+                // ===============================
+                // 3️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null || request.DTO.Id <= 0)
+                    throw new ValidationErrorException("Invalid request data.");
+
+                // ===============================
+                // 4️⃣ FETCH ENTITY
+                // ===============================
+                var mapping = await _unitOfWork
+                    .PolicyTypeInsuranceMappingRepository
+                    .GetByIdAsync(request.DTO.Id, true);
 
                 if (mapping == null)
-                    return ApiResponse<bool>.Fail("Policy type insurance mapping not found.");
+                    throw new ApiException(
+                        "Policy type insurance mapping not found.", 404);
 
-                // 3️⃣ Update allowed fields only
+                // ===============================
+                // 5️⃣ UPDATE FIELDS
+                // ===============================
                 if (request.DTO.PolicyTypeId.HasValue)
                     mapping.PolicyTypeId = request.DTO.PolicyTypeId.Value;
 
@@ -71,19 +94,28 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                 if (request.DTO.IsActive.HasValue)
                     mapping.IsActive = request.DTO.IsActive.Value;
 
-                // 4️⃣ Audit
+                // ===============================
+                // 6️⃣ AUDIT
+                // ===============================
                 mapping.UpdatedById = validation.UserEmployeeId;
                 mapping.UpdatedDateTime = DateTime.UtcNow;
 
-                // 5️⃣ Save
-                var updated =
-                    await _unitOfWork.PolicyTypeInsuranceMappingRepository.UpdateAsync(mapping);
+                // ===============================
+                // 7️⃣ SAVE
+                // ===============================
+                var updated = await _unitOfWork
+                    .PolicyTypeInsuranceMappingRepository
+                    .UpdateAsync(mapping);
 
                 if (!updated)
-                    return ApiResponse<bool>.Fail("Failed to update policy type insurance mapping.");
+                    throw new ApiException(
+                        "Failed to update policy type insurance mapping.", 500);
 
-                await _unitOfWork.CommitAsync();
+                _logger.LogInformation("✅ PolicyTypeInsuranceMapping updated successfully");
 
+                // ===============================
+                // 8️⃣ SUCCESS
+                // ===============================
                 return ApiResponse<bool>.Success(
                     true,
                     "Policy type insurance mapping updated successfully.");
@@ -92,11 +124,9 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
             {
                 _logger.LogError(
                     ex,
-                    "Error while updating PolicyTypeInsuranceMapping. Id: {Id}",
-                    request.DTO.Id);
+                    "❌ UpdatePolicyTypeInsuranceMapping failed");
 
-                return ApiResponse<bool>.Fail(
-                    "An unexpected error occurred while updating mapping.");
+                throw; // ✅ CRITICAL
             }
         }
     }

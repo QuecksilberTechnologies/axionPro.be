@@ -1,11 +1,13 @@
 ﻿using axionpro.application.DTOs.PolicyType;
 using axionpro.application.DTOS.CompanyPolicyDocument;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
+using MediatR;
 using Microsoft.Extensions.Configuration;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.PolicyTypeCmd.Handlers
 {
@@ -33,115 +35,105 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
         private readonly ICompanyPolicyDocumentRepository _companyPolicyDocumentRepository;
         private readonly ICommonRequestService _commonRequestService;
         private readonly IConfiguration _config;
+        private readonly ILogger<CreatePolicyTypeCommandHandler> _logger;
+        IPermissionService permissionService;
 
         public GetPolicyTypeCommandHandler(
             IPolicyTypeRepository policyTypeRepository,
             ICompanyPolicyDocumentRepository companyPolicyDocumentRepository,
             ICommonRequestService commonRequestService,
-            IConfiguration config)
+            IConfiguration config, ILogger<CreatePolicyTypeCommandHandler> logger, IPermissionService permissionService)
         {
             _policyTypeRepository = policyTypeRepository;
             _companyPolicyDocumentRepository = companyPolicyDocumentRepository;
             _commonRequestService = commonRequestService;
             _config = config;
+            _logger = logger;
+            this.permissionService = permissionService;
         }
 
         public async Task<ApiResponse<List<GetPolicyTypeResponseDTO>>> Handle(
-            GetPolicyTypeCommand request,
-            CancellationToken cancellationToken)
+    GetPolicyTypeCommand request,
+    CancellationToken cancellationToken)
         {
             try
             {
-                // --------------------------------------------------
-                // 1️⃣ Basic validation
-                // --------------------------------------------------
-                if (request.DTO == null)
-                {
-                    return ApiResponse<List<GetPolicyTypeResponseDTO>>
-                        .Fail("Invalid request data.");
-                }
+                _logger.LogInformation("🔹 GetPolicyType started");
 
-                // --------------------------------------------------
-                // 2️⃣ Common validation (Tenant / User context)
-                // --------------------------------------------------
+                // ===============================
+                // 1️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request data.");
+
+                // ===============================
+                // 2️⃣ AUTH VALIDATION
+                // ===============================
                 var validation = await _commonRequestService.ValidateRequestAsync();
+
                 if (!validation.Success)
-                {
-                    return ApiResponse<List<GetPolicyTypeResponseDTO>>
-                        .Fail(validation.ErrorMessage);
-                }
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // --------------------------------------------------
-                // 3️⃣ Paging + Sorting defaults (CLIENT PATTERN)
-                // --------------------------------------------------
-                var pageNumber = request.DTO.PageNumber > 0
-                    ? request.DTO.PageNumber
-                    : 1;
+                // ===============================
+                // 3️⃣ PERMISSION CHECK
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.PolicyType,
+                //    Operations.View);
 
-                var pageSize = request.DTO.PageSize > 0
-                    ? request.DTO.PageSize
-                    : 10;
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("Access denied.");
 
+                // ===============================
+                // 4️⃣ PAGING DEFAULTS
+                // ===============================
+                var pageNumber = request.DTO.PageNumber > 0 ? request.DTO.PageNumber : 1;
+                var pageSize = request.DTO.PageSize > 0 ? request.DTO.PageSize : 10;
                 var sortOrder = string.IsNullOrWhiteSpace(request.DTO.SortOrder)
                     ? "desc"
                     : request.DTO.SortOrder.ToLower();
 
-                // --------------------------------------------------
-                // 4️⃣ Prepare filter for repository
-                // (Filtering DB side hoti hai)
-                // --------------------------------------------------
-               
-                // --------------------------------------------------
-                // 5️⃣ Fetch PolicyTypes
-                // --------------------------------------------------
-                var policyTypes =  await _policyTypeRepository.GetPolicyTypesAsync(validation.TenantId , request.DTO.IsActive);
+                // ===============================
+                // 5️⃣ FETCH DATA
+                // ===============================
+                var policyTypes = await _policyTypeRepository
+                    .GetPolicyTypesAsync(validation.TenantId, request.DTO.IsActive);
 
-                if (policyTypes == null || !policyTypes.Any())
-                {
-                    return ApiResponse<List<GetPolicyTypeResponseDTO>>
-                        .Fail("No Policy Types found.");
-                }
+                var policyTypeList = policyTypes?.ToList() ?? new List<GetPolicyTypeResponseDTO>();
 
-                var policyTypeList = policyTypes.ToList();
-
-                // --------------------------------------------------
-                // 6️⃣ Sorting (Application layer)
-                // --------------------------------------------------
+                // ===============================
+                // 6️⃣ SORTING
+                // ===============================
                 policyTypeList = sortOrder == "asc"
                     ? policyTypeList.OrderBy(x => x.PolicyName).ToList()
                     : policyTypeList.OrderByDescending(x => x.PolicyName).ToList();
 
-                // --------------------------------------------------
-                // 7️⃣ Paging (Application layer)
-                // --------------------------------------------------
+                // ===============================
+                // 7️⃣ PAGING
+                // ===============================
                 var totalRecords = policyTypeList.Count;
 
-                policyTypeList = policyTypeList
+                var pagedList = policyTypeList
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .ToList();
 
-                // --------------------------------------------------
-                // 8️⃣ Attach CompanyPolicyDocument (ONLY if asked)
-                // --------------------------------------------------
-                if (request.DTO.HasDocumnet == true)
+                // ===============================
+                // 8️⃣ DOCUMENT ATTACH (OPTIONAL)
+                // ===============================
+                if (request.DTO.HasDocumnet == true && pagedList.Any())
                 {
-                    var policyTypeIds = policyTypeList
-                        .Select(x => x.Id)
-                        .ToList();
+                    var policyTypeIds = pagedList.Select(x => x.Id).ToList();
 
-                    var documents =
-                        await _companyPolicyDocumentRepository
-                            .GetByPolicyTypeIdsAsync(
-                                policyTypeIds,
-                                validation.TenantId);
+                    var documents = await _companyPolicyDocumentRepository
+                        .GetByPolicyTypeIdsAsync(policyTypeIds, validation.TenantId);
 
                     string baseUrl = _config["FileSettings:BaseUrl"] ?? string.Empty;
 
-                    foreach (var policy in policyTypeList)
+                    foreach (var policy in pagedList)
                     {
-                        var doc = documents
-                            .FirstOrDefault(d => d.PolicyTypeId == policy.Id);
+                        var doc = documents.FirstOrDefault(d => d.PolicyTypeId == policy.Id);
 
                         if (doc != null)
                         {
@@ -152,8 +144,6 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                                 DocumentTitle = doc.DocumentTitle,
                                 FileName = doc.FileName,
                                 IsActive = doc.IsActive,
-
-                                // 🔥 Absolute URL build
                                 URL = !string.IsNullOrWhiteSpace(doc.FilePath)
                                     ? $"{baseUrl.TrimEnd('/')}/{doc.FilePath.TrimStart('/')}"
                                     : null
@@ -161,27 +151,29 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                         }
                     }
                 }
+
                 var totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
 
-                    
+                _logger.LogInformation("✅ Retrieved {Count} policy types", pagedList.Count);
 
+                // ===============================
+                // 9️⃣ SUCCESS (EMPTY ALLOWED ✅)
+                // ===============================
                 return ApiResponse<List<GetPolicyTypeResponseDTO>>
-                        .SuccessPaginated(
-                          data:  policyTypeList,
-                      pageNumber:   pageNumber,
-                      pageSize:  pageSize,
-                      totalRecords:  totalRecords,
-                      totalPages:  totalPages,
-                     message : "Policy Types fetched successfully."
-                        );
-
-
-
+                    .SuccessPaginated(
+                        data: pagedList,
+                        pageNumber: pageNumber,
+                        pageSize: pageSize,
+                        totalRecords: totalRecords,
+                        totalPages: totalPages,
+                        message: "Policy Types fetched successfully."
+                    );
             }
             catch (Exception ex)
             {
-                return ApiResponse<List<GetPolicyTypeResponseDTO>>
-                    .Fail($"An error occurred: {ex.Message}");
+                _logger.LogError(ex, "❌ Error in GetPolicyType");
+
+                throw; // ✅ CRITICAL
             }
         }
     }

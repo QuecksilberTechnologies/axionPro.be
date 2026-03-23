@@ -2,6 +2,7 @@
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.Bank;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -60,58 +61,82 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
             _commonRequestService = commonRequestService;
         }
 
-        public async Task<ApiResponse<List<GetBankResponseDTO>>> Handle(GetBankInfoQuery request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<List<GetBankResponseDTO>>> Handle(
+      GetBankInfoQuery request,
+      CancellationToken cancellationToken)
         {
             try
             {
-                await _unitOfWork.BeginTransactionAsync();
-                string? savedFullPath = null;  // 📂 File full path track karne ke liye
+                _logger.LogInformation("GetBankInfo started");
 
-                // 1️ COMMON VALIDATION (Mandatory)
-                var validation = await _commonRequestService.ValidateRequestAsync(request.DTO.UserEmployeeId);
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
+                var validation = await _commonRequestService
+                    .ValidateRequestAsync(request.DTO?.UserEmployeeId);
 
                 if (!validation.Success)
-                    return ApiResponse<List<GetBankResponseDTO>>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // Assign decoded values coming from CommonRequestService
-                  request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                  request.DTO.Prop.TenantId = validation.TenantId;
-                  request.DTO.Prop.EmployeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
-                  request.DTO.EmployeeId,
-                  validation.Claims.TenantEncriptionKey,
-                  _idEncoderService
-              );
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request.");
 
+                request.DTO.Prop ??= new();
 
-                // ✅ Create  using repository
-                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
-                if (!permissions.Contains("AddBankInfo"))
-                {
-                    //await _unitOfWork.RollbackTransactionAsync();
-                    //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
-                }
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
 
+                request.DTO.Prop.EmployeeId =
+                    RequestCommonHelper.DecodeOnlyEmployeeId(
+                        request.DTO.EmployeeId,
+                        validation.Claims.TenantEncriptionKey,
+                        _idEncoderService);
 
-                // 🧩 STEP 4: Call Repository to get data GetBankReqestDTO dto, int id, long EmployeeId
-                
-                var bankEntities = await _unitOfWork.EmployeeBankRepository.GetInfoAsync(request.DTO);
+                if (request.DTO.Prop.EmployeeId <= 0)
+                    throw new ValidationErrorException("Invalid EmployeeId.");
 
-                // ✅ Empty record  
+                // ===============================
+                // 3️⃣ PERMISSION CHECK
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.View);
+
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("No permission to view bank info.");
+
+                // ===============================
+                // 4️⃣ FETCH DATA
+                // ===============================
+                var bankEntities =
+                    await _unitOfWork.EmployeeBankRepository
+                        .GetInfoAsync(request.DTO);
+
+                // ===============================
+                // 5️⃣ EMPTY LIST = SUCCESS
+                // ===============================
                 if (bankEntities == null || bankEntities.Items == null || !bankEntities.Items.Any())
                 {
-                    return ApiResponse<List<GetBankResponseDTO>>.SuccessPaginatedPercentage(
-                        Data: new List<GetBankResponseDTO>(),
-                        Message: "No bank info found.",
-                        PageNumber: bankEntities?.PageNumber ?? 1,
-                        PageSize: bankEntities?.PageSize ?? 0,
-                        TotalRecords: bankEntities?.TotalCount ?? 0,
-                        TotalPages: bankEntities?.TotalPages ?? 0,
-                        HasUploadedAll: bankEntities?.HasUploadedAll ?? false,
-                        CompletionPercentage: bankEntities?.CompletionPercentage ?? 0
-                    );
+                    return ApiResponse<List<GetBankResponseDTO>>
+                        .SuccessPaginatedPercentage(
+                            Data: new List<GetBankResponseDTO>(),
+                            Message: "No bank info found.",
+                            PageNumber: bankEntities?.PageNumber ?? 1,
+                            PageSize: bankEntities?.PageSize ?? 0,
+                            TotalRecords: bankEntities?.TotalCount ?? 0,
+                            TotalPages: bankEntities?.TotalPages ?? 0,
+                            HasUploadedAll: bankEntities?.HasUploadedAll ?? false,
+                            CompletionPercentage: bankEntities?.CompletionPercentage ?? 0
+                        );
                 }
 
-                // 5️⃣ Projection (fastest approach)
+                // ===============================
+                // 6️⃣ PROJECTION
+                // ===============================
                 var result = ProjectionHelper.ToGetBankResponseDTOs(
                     bankEntities,
                     _idEncoderService,
@@ -119,25 +144,33 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                     _config
                 );
 
-                // ✅ Success response with pagination + completion info
-                return ApiResponse<List<GetBankResponseDTO>>.SuccessPaginatedPercentage(
-                    Data: result,
-                    Message: "Bank info retrieved successfully.",
-                    PageNumber: bankEntities.PageNumber,
-                    PageSize: bankEntities.PageSize,
-                    TotalRecords: bankEntities.TotalCount,
-                    TotalPages: bankEntities.TotalPages,
-                    HasUploadedAll: bankEntities.HasUploadedAll,
-                    CompletionPercentage: bankEntities.CompletionPercentage
-                );
+                // ===============================
+                // 7️⃣ SUCCESS RESPONSE
+                // ===============================
+                _logger.LogInformation("GetBankInfo success");
+
+                return ApiResponse<List<GetBankResponseDTO>>
+                    .SuccessPaginatedPercentage(
+                        Data: result,
+                        Message: "Bank info retrieved successfully.",
+                        PageNumber: bankEntities.PageNumber,
+                        PageSize: bankEntities.PageSize,
+                        TotalRecords: bankEntities.TotalCount,
+                        TotalPages: bankEntities.TotalPages,
+                        HasUploadedAll: bankEntities.HasUploadedAll,
+                        CompletionPercentage: bankEntities.CompletionPercentage
+                    );
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while fetching bank info for EmployeeId: {EmployeeId}", request.DTO?.EmployeeId);
-                return ApiResponse<List<GetBankResponseDTO>>.Fail("Failed to fetch bank info.", new List<string> { ex.Message });
+                _logger.LogError(
+                    ex,
+                    "Error fetching bank info | EmployeeId: {EmployeeId}",
+                    request.DTO?.EmployeeId);
+
+                throw; // 🚨 MUST
             }
         }
-
     }
 
 

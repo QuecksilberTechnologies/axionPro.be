@@ -1,14 +1,17 @@
-﻿using axionpro.domain.Entity; using MediatR;
-using Microsoft.Extensions.Logging;
-using axionpro.application.DTOS.AssetDTO.asset;
+﻿using axionpro.application.DTOS.AssetDTO.asset;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
+using axionpro.domain.Entity; 
+using axionpro.domain.Entity; 
+using MediatR;
+using MediatR;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
-
+using System.Threading.Tasks; 
 namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
 {
     public class DeleteAssetCommand : IRequest<ApiResponse<bool>>
@@ -45,55 +48,73 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
         }
 
         public async Task<ApiResponse<bool>> Handle(
-            DeleteAssetCommand request,
-            CancellationToken cancellationToken)
+     DeleteAssetCommand request,
+     CancellationToken cancellationToken)
         {
             try
             {
                 _logger.LogInformation("Deleting Asset");
 
                 // ===============================
-                // 1️⃣ COMMON VALIDATION
+                // 1️⃣ COMMON VALIDATION (AUTH + CONTEXT)
                 // ===============================
                 var validation = await _commonRequestService.ValidateRequestAsync();
+
+                // ❌ Old: return Fail
+                // ✅ New: throw (middleware handle karega)
                 if (!validation.Success)
-                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
                 // ===============================
-                // 2️⃣ BASIC INPUT VALIDATION
+                // 2️⃣ INPUT VALIDATION
                 // ===============================
                 if (request?.DTO == null || request.DTO.Id <= 0)
-                    return ApiResponse<bool>.Fail("Invalid Asset Id.");
+                    throw new ValidationErrorException(
+                        "Invalid Asset Id.",
+                        new List<string> { "Asset Id must be greater than 0." }
+                    );
+
+                // Null safety (VERY IMPORTANT)
+                if (request.DTO.Prop == null)
+                    request.DTO.Prop = new();
 
                 // Inject decoded values
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
                 // ===============================
-                // 3️⃣ PERMISSION (OPTIONAL)
+                // 3️⃣ PERMISSION CHECK (ROLE + MODULE + OPERATION)
                 // ===============================
-                var permissions =
-                    await _permissionService.GetPermissionsAsync(validation.RoleId);
+                //var hasPermission = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    "Asset",      // 🔹 Module Name (DB se match hona chahiye)
+                //    "Delete"      // 🔹 Operation Name
+                //);
 
-                // if (!permissions.Contains("DeleteAsset"))
-                //     return ApiResponse<bool>.Fail("Permission denied.");
+                //if (!hasPermission)
+                //    throw new UnauthorizedAccessException("You do not have permission to delete asset.");
 
-                var existingAsset = await _unitOfWork.AssetRepository.GetSingleRecordAsync(request.DTO.Id, null);
+                // ===============================
+                // 4️⃣ CHECK EXISTING ASSET
+                // ===============================
+                var existingAsset = await _unitOfWork.AssetRepository
+                    .GetSingleRecordAsync(request.DTO.Id, null);
 
                 if (existingAsset == null)
-                    return ApiResponse<bool>.Fail("Asset not found.");
+                    throw new KeyNotFoundException("Asset not found.");
 
                 // ===============================
-                // 4️⃣ DELETE (REPO DECIDES)
+                // 5️⃣ DELETE OPERATION
                 // ===============================
-                bool deleted =
-                    await _unitOfWork.AssetRepository
-                        .DeleteAssetAsync(request.DTO);
+                bool deleted = await _unitOfWork.AssetRepository
+                    .DeleteAssetAsync(request.DTO);
 
                 if (!deleted)
-                    return ApiResponse<bool>.Fail(
-                        "Asset not found or already deleted.");
+                    throw new ApiException("Asset not found or already deleted.", 404);
 
+                // ===============================
+                // 6️⃣ SUCCESS LOG
+                // ===============================
                 _logger.LogInformation(
                     "Asset deleted successfully | AssetId={AssetId} | TenantId={TenantId}",
                     request.DTO.Id,
@@ -104,14 +125,16 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
             }
             catch (Exception ex)
             {
+                // ❗ IMPORTANT: DO NOT return Fail
+                // ❗ Middleware handle karega
                 _logger.LogError(
                     ex,
                     "Error occurred while deleting Asset | AssetId={AssetId}",
                     request?.DTO?.Id);
 
-                return ApiResponse<bool>
-                    .Fail("Unexpected error while deleting asset.");
+                throw;
             }
         }
     }
+
 }

@@ -1,27 +1,16 @@
 ﻿using AutoMapper;
-using axionpro.application.Common.Helpers;
-using axionpro.application.Common.Helpers.axionpro.application.Configuration;
-using axionpro.application.Common.Helpers.Converters;
-using axionpro.application.Common.Helpers.EncryptionHelper;
-
-using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
-using axionpro.application.DTOs.Department;
 using axionpro.application.DTOs.Role;
-
-using axionpro.application.Features.DepartmentCmd.Handlers;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Features.RoleCmd.Handlers
 {
@@ -70,74 +59,72 @@ namespace axionpro.application.Features.RoleCmd.Handlers
             _commonRequestService = commonRequestService;
         }
 
-        public async Task<ApiResponse<bool>> Handle(DeleteRoleQuery request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<bool>> Handle(
+      DeleteRoleQuery request,
+      CancellationToken cancellationToken)
         {
             try
             {
-                //  COMMON VALIDATION (Mandatory)
-                var validation = await _commonRequestService.ValidateRequestAsync(request.DTO.UserEmployeeId);
+                _logger.LogInformation("🔹 DeleteRole started");
+
+                // ===============================
+                // 1️⃣ VALIDATION (AUTH)
+                // ===============================
+                var validation = await _commonRequestService
+                    .ValidateRequestAsync(request.DTO.UserEmployeeId);
 
                 if (!validation.Success)
-                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // Assign decoded values coming from CommonRequestService
+                // ===============================
+                // 2️⃣ PERMISSION CHECK (RBAC)
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Role,
+                //    Operations.Delete);
+
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("Access denied.");
+
+                // ===============================
+                // 3️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null || request.DTO.Id <= 0)
+                    throw new ValidationErrorException("Invalid RoleId.");
+
+                request.DTO.Prop ??= new();
+
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
+                _logger.LogInformation(
+                    "🗑️ Deleting RoleId: {RoleId}, TenantId: {TenantId}",
+                    request.DTO.Id,
+                    validation.TenantId);
 
-                // ✅ Create  using repository
-                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
+                // ===============================
+                // 4️⃣ DELETE
+                // ===============================
+                var deleted = await _unitOfWork.RoleRepository
+                    .DeleteAsync(request.DTO, validation.UserEmployeeId, request.DTO.Id);
 
+                if (!deleted)
+                    throw new ApiException("Role not found or already deleted.", 404);
 
-                if (!permissions.Contains("AddBankInfo"))
-                {
-                    // await _unitOfWork.RollbackTransactionAsync();
-                    //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
-                }
+                _logger.LogInformation("✅ Role deleted successfully");
 
-
-
-                // 🧩 STEP 5: Validate RoleId
-                if (request.DTO.Id <=0 )
-                {
-                    _logger.LogWarning("⚠️ Invalid RoleId for delete operation: {RoleId}", request.DTO.Id);
-                    return ApiResponse<bool>.Fail("Invalid RoleId. It must be greater than zero.");
-                }
-               
-                _logger.LogInformation("🗑️ Attempting to delete RoleId: {RoleId} for TenantId: {TenantId}", request.DTO.Id,  request.DTO.Prop.TenantId);
-
-                // 🧩 STEP 6: Repository call
-
-                bool isDeleted = await _unitOfWork.RoleRepository.DeleteAsync(request.DTO, request.DTO.Prop.UserEmployeeId, request.DTO.Id);
-
-                if (!isDeleted)
-                {
-                    _logger.LogWarning("❌ Delete failed or role not found. RoleId: {RoleId}", request.DTO.Id);
-                    return ApiResponse<bool>.Fail("Delete failed. Role not found or already deleted.");
-                }
-
-                // 🧩 STEP 7: Commit transaction
-                await _unitOfWork.CommitTransactionAsync();
-
-                _logger.LogInformation("✅ Role deleted successfully. RoleId: {RoleId}, TenantId: {TenantId}", request.DTO.Id, request.DTO.Prop.TenantId);
-
-                return new ApiResponse<bool>
-                {
-                    IsSucceeded = true,
-                    Message = "Role deleted successfully.",
-                    Data = true
-                };
+                // ===============================
+                // 5️⃣ SUCCESS
+                // ===============================
+                return ApiResponse<bool>
+                    .Success(true, "Role deleted successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error occurred while deleting RoleId: {RoleId}", request?.DTO?.Id);
+                _logger.LogError(ex, "❌ DeleteRole failed");
 
-                return new ApiResponse<bool>
-                {
-                    IsSucceeded = false,
-                    Message = "Failed to delete role due to an internal error.",
-                    Data = false
-                };
+                throw; // ✅ CRITICAL
             }
         }
     }

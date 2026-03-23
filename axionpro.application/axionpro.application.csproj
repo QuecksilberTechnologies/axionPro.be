@@ -19,15 +19,33 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Features\AssetFeatures\Category\Commands\**" />
+    <Compile Remove="Features\AssetFeatures\Category\Queries\**" />
+    <Compile Remove="Features\AssetFeatures\Status\Commands\**" />
+    <Compile Remove="Features\Cmd - Copy\**" />
+    <Compile Remove="Features\DesignationCmd\Commands\**" />
     <Compile Remove="Features\EmployeeCmd\BaseInfo\**" />
     <Compile Remove="Features\EmployeeCmd\BasicInfo - Copy %283%29 - Copy %282%29\**" />
     <Compile Remove="Features\EmployeeCmd\Commands\**" />
+    <Compile Remove="Features\EmployeeCmd\DependentInfo\Command\**" />
+    <EmbeddedResource Remove="Features\AssetFeatures\Category\Commands\**" />
+    <EmbeddedResource Remove="Features\AssetFeatures\Category\Queries\**" />
+    <EmbeddedResource Remove="Features\AssetFeatures\Status\Commands\**" />
+    <EmbeddedResource Remove="Features\Cmd - Copy\**" />
+    <EmbeddedResource Remove="Features\DesignationCmd\Commands\**" />
     <EmbeddedResource Remove="Features\EmployeeCmd\BaseInfo\**" />
     <EmbeddedResource Remove="Features\EmployeeCmd\BasicInfo - Copy %283%29 - Copy %282%29\**" />
     <EmbeddedResource Remove="Features\EmployeeCmd\Commands\**" />
+    <EmbeddedResource Remove="Features\EmployeeCmd\DependentInfo\Command\**" />
+    <None Remove="Features\AssetFeatures\Category\Commands\**" />
+    <None Remove="Features\AssetFeatures\Category\Queries\**" />
+    <None Remove="Features\AssetFeatures\Status\Commands\**" />
+    <None Remove="Features\Cmd - Copy\**" />
+    <None Remove="Features\DesignationCmd\Commands\**" />
     <None Remove="Features\EmployeeCmd\BaseInfo\**" />
     <None Remove="Features\EmployeeCmd\BasicInfo - Copy %283%29 - Copy %282%29\**" />
     <None Remove="Features\EmployeeCmd\Commands\**" />
+    <None Remove="Features\EmployeeCmd\DependentInfo\Command\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -53,15 +71,7 @@
     <Folder Include="DTOS\NewFolder\" />
     <Folder Include="Enums\" />
     <Folder Include="Features\AssetFeatures\Assets\Queries\" />
-    <Folder Include="Features\AssetFeatures\Category\Commands\" />
-    <Folder Include="Features\AssetFeatures\Category\Queries\" />
-    <Folder Include="Features\AssetFeatures\Status\Commands\" />
     <Folder Include="Features\AssetFeatures\Type\Commands\" />
-    <Folder Include="Features\Cmd - Copy\Commands\" />
-    <Folder Include="Features\Cmd - Copy\Handlers\" />
-    <Folder Include="Features\Cmd - Copy\Queries\" />
-    <Folder Include="Features\DesignationCmd\Commands\" />
-    <Folder Include="Features\EmployeeCmd\DependentInfo\Command\" />
     <Folder Include="Features\EmployeeCmd\DependentInfo\Queries\" />
     <Folder Include="Features\EmployeeCmd\EducationInfo\Queries\" />
     <Folder Include="Features\EmployeeCmd\EmployeeBase\Command\" />
@@ -95,6 +105,7 @@
     <Folder Include="Features\SubscriptionCmd\Queries\" />
     <Folder Include="Features\TenantIndustryCmd\Commands\" />
     <Folder Include="Features\UserLoginAndDashboardCmd\Queries\" />
+    <Folder Include="Features\VerifyEmailCmd\Commands\" />
     <Folder Include="Features\VerifyEmailCmd\Queries\" />
     <Folder Include="Features\WorkstationCmd\Commands\" />
     <Folder Include="Features\WorkstationCmd\Queries\" />

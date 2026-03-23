@@ -1,10 +1,12 @@
-﻿using axionpro.domain.Entity; using MediatR;
-using Microsoft.Extensions.Logging;
-using axionpro.application.DTOS.AssetDTO.category;
+﻿using axionpro.application.DTOS.AssetDTO.category;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
+using axionpro.domain.Entity; 
+using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.AssetFeatures.Category.Handlers
 {
@@ -43,64 +45,87 @@ namespace axionpro.application.Features.AssetFeatures.Category.Handlers
         }
 
         public async Task<ApiResponse<bool>> Handle(
-            UpdateCategoryCommand request,
-            CancellationToken cancellationToken)
+      UpdateCategoryCommand request,
+      CancellationToken cancellationToken)
         {
             try
             {
                 _logger.LogInformation("Updating Asset Category");
 
                 // ===============================
-                // 1️⃣ COMMON VALIDATION
+                // 1️⃣ COMMON VALIDATION (AUTH + CONTEXT)
                 // ===============================
                 var validation = await _commonRequestService.ValidateRequestAsync();
-                if (!validation.Success)
-                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
 
+                // ❌ Old: return Fail
+                // ✅ New: throw (middleware handle karega)
+                if (!validation.Success)
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+
+                // ===============================
+                // 2️⃣ NULL SAFETY + INPUT VALIDATION
+                // ===============================
+                if (request?.DTO == null || request.DTO.Id <= 0)
+                    throw new ValidationErrorException(
+                        "Invalid Category Id.",
+                        new List<string> { "Category Id must be greater than 0." }
+                    );
+
+                if (string.IsNullOrWhiteSpace(request.DTO.CategoryName))
+                    throw new ValidationErrorException(
+                        "Category name cannot be empty.",
+                        new List<string> { "CategoryName is required." }
+                    );
+
+                if (request.DTO.Prop == null)
+                    request.DTO.Prop = new();
+
+                // Assign values
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
                 // ===============================
-                // 2️⃣ INPUT VALIDATION
+                // 3️⃣ PERMISSION CHECK (RBAC)
                 // ===============================
-                if (request.DTO == null || request.DTO.Id <= 0)
-                    return ApiResponse<bool>.Fail("Invalid Category Id.");
+                //var hasPermission = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    "AssetCategory",   // 🔹 Module
+                //    "Update"           // 🔹 Operation
+                //);
 
-                if (string.IsNullOrWhiteSpace(request.DTO.CategoryName))
-                    return ApiResponse<bool>.Fail("Category name cannot be empty.");
+                //if (!hasPermission)
+                //    throw new UnauthorizedAccessException(
+                //        "You do not have permission to update asset category.");
 
                 // ===============================
-                // 3️⃣ PERMISSION (OPTIONAL)
+                // 4️⃣ UPDATE RECORD
                 // ===============================
-                var permissions =
-                    await _permissionService.GetPermissionsAsync(validation.RoleId);
-
-                // if (!permissions.Contains("UpdateAssetCategory"))
-                //     return ApiResponse<bool>.Fail("Permission denied.");
-
-          
-                // ===============================
-                // 5️⃣ UPDATE RECORD
-                // ===============================
-                bool updated =
-                    await _unitOfWork.AssetCategoryRepository.UpdateAsync(request.DTO);
+                bool updated = await _unitOfWork.AssetCategoryRepository
+                    .UpdateAsync(request.DTO);
 
                 if (!updated)
-                    return ApiResponse<bool>.Fail("Category not found or update failed.");
+                    throw new ApiException(
+                        "Category not found or update failed.",
+                        404
+                    );
 
+                // ===============================
+                // 5️⃣ SUCCESS LOG
+                // ===============================
                 _logger.LogInformation(
                     "Asset Category updated successfully. CategoryId: {Id}, TenantId: {TenantId}",
                     request.DTO.Id,
                     request.DTO.Prop.TenantId);
 
-                return ApiResponse<bool>.Success(true, "Asset Category updated successfully.");
+                return ApiResponse<bool>
+                    .Success(true, "Asset Category updated successfully.");
             }
             catch (Exception ex)
             {
+                // ❗ IMPORTANT: middleware handle karega
                 _logger.LogError(ex, "Update Asset Category failed");
 
-                return ApiResponse<bool>.Fail(
-                    "Unexpected error while updating asset category.");
+                throw;
             }
         }
     }

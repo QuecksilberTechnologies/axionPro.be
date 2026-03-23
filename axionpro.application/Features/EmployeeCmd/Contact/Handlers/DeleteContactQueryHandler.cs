@@ -1,26 +1,11 @@
-﻿using AutoMapper;
-using axionpro.application.Common.Helpers;
-using axionpro.application.Common.Helpers.axionpro.application.Configuration;
-using axionpro.application.Common.Helpers.Converters;
-using axionpro.application.Common.Helpers.EncryptionHelper;
-using axionpro.application.DTOS.Common;
-using axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers;
+﻿using axionpro.application.DTOS.Common;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
+using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims; using axionpro.domain.Entity; using MediatR;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 
 
@@ -57,79 +42,85 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
         }
 
         public async Task<ApiResponse<bool>> Handle(
-            DeleteContactQuery request,
-            CancellationToken cancellationToken)
+  DeleteContactQuery request,
+  CancellationToken cancellationToken)
         {
             try
             {
-                await _unitOfWork.BeginTransactionAsync();
+                _logger.LogInformation("DeleteContact started");
 
-                // 🔐 STEP 1: COMMON VALIDATION
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
                 var validation =
                     await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
-                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                long loggedInEmployeeId = validation.UserEmployeeId;
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request.");
 
-                // 🔎 STEP 2: Validate Contact Id
                 if (request.DTO.Id <= 0)
-                    return ApiResponse<bool>.Fail("Invalid contact id.");
+                    throw new ValidationErrorException("Invalid contact id.");
 
-                // 🔑 STEP 3: Permission check
-                var permissions =
-                    await _permissionService.GetPermissionsAsync(validation.RoleId);
+                // ===============================
+                // 3️⃣ PERMISSION CHECK
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.Delete);
 
-                if (!permissions.Contains("DeleteContactInfo"))
-                {
-                    // optional strict block
-                    // return ApiResponse<bool>.Fail("You do not have permission to delete contact.");
-                }
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("No permission to delete contact.");
 
-                // 📦 STEP 4: Fetch existing record
+                // ===============================
+                // 4️⃣ FETCH RECORD
+                // ===============================
                 var existing =
                     await _unitOfWork.EmployeeContactRepository
                         .GetSingleRecordAsync(request.DTO.Id, true);
 
                 if (existing == null)
-                    return ApiResponse<bool>.Fail("Contact record not found.");
+                    throw new ApiException("Contact record not found.", 404);
 
-                // 🔒 STEP 5: Ownership check
-                if (existing.EmployeeId != loggedInEmployeeId)
-                    return ApiResponse<bool>.Fail("Unauthorized access.");
+                // ===============================
+                // 5️⃣ OWNERSHIP CHECK (GOOD 👍)
+                // ===============================
+                if (existing.EmployeeId != validation.UserEmployeeId)
+                    throw new UnauthorizedAccessException("Unauthorized access.");
 
-                // 🗑️ STEP 6: Soft Delete
+                // ===============================
+                // 6️⃣ SOFT DELETE
+                // ===============================
                 existing.IsSoftDeleted = true;
                 existing.IsActive = false;
                 existing.DeletedDateTime = DateTime.UtcNow;
-                existing.SoftDeletedById = loggedInEmployeeId;
+                existing.SoftDeletedById = validation.UserEmployeeId;
 
-                bool deleted =
+                var deleted =
                     await _unitOfWork.EmployeeContactRepository
                         .DeleteAsync(existing);
 
                 if (!deleted)
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<bool>.Fail("Failed to delete contact.");
-                }
+                    throw new ApiException("Failed to delete contact.", 500);
 
-                await _unitOfWork.CommitTransactionAsync();
+                _logger.LogInformation("DeleteContact success | Id: {Id}", request.DTO.Id);
+
                 return ApiResponse<bool>.Success(true, "Contact deleted successfully.");
             }
             catch (Exception ex)
             {
-                await _unitOfWork.RollbackTransactionAsync();
-
                 _logger.LogError(
                     ex,
                     "Error deleting contact | ContactId: {Id}",
                     request.DTO?.Id);
 
-                return ApiResponse<bool>.Fail(
-                    "Error deleting contact.",
-                    new List<string> { ex.Message });
+                throw; // 🚨 MUST
             }
         }
     }

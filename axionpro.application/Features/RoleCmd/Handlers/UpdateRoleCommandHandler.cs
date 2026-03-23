@@ -1,21 +1,13 @@
 ﻿using AutoMapper;
-using axionpro.application.Common.Helpers;
-using axionpro.application.Common.Helpers.axionpro.application.Configuration;
-using axionpro.application.Common.Helpers.Converters;
-using axionpro.application.Common.Helpers.EncryptionHelper;
-using axionpro.application.DTOs.Designation;
 using axionpro.application.DTOs.Role;
-using axionpro.application.DTOS.Common;
-
-using axionpro.application.Features.DepartmentCmd.Handlers;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-
-using axionpro.domain.Entity; using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -70,59 +62,78 @@ namespace axionpro.application.Features.RoleCmd.Handlers
             _commonRequestService = commonRequestService;
         }
 
-        public async Task<ApiResponse<bool>> Handle(UpdateRoleCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<bool>> Handle(
+      UpdateRoleCommand request,
+      CancellationToken cancellationToken)
         {
             try
             {
+                _logger.LogInformation("🔹 UpdateRole started");
 
-                //  COMMON VALIDATION (Mandatory)
-                var validation = await _commonRequestService.ValidateRequestAsync(request.DTO.UserEmployeeId);
+                // ===============================
+                // 1️⃣ VALIDATION (AUTH)
+                // ===============================
+                var validation = await _commonRequestService
+                    .ValidateRequestAsync(request.DTO.UserEmployeeId);
 
                 if (!validation.Success)
-                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // Assign decoded values coming from CommonRequestService
+                // ===============================
+                // 2️⃣ PERMISSION CHECK (🔥 YOUR RULE)
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Role,
+                //    Operations.Update);
+
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("Access denied.");
+
+                // ===============================
+                // 3️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null || request.DTO.Id <= 0)
+                    throw new ValidationErrorException("Invalid Role Id.");
+
+                request.DTO.Prop ??= new();
+
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
-
-                // ✅ Create  using repository
-                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
-
-
-                if (!permissions.Contains("AddBankInfo"))
-                {
-                    // await _unitOfWork.RollbackTransactionAsync();
-                    //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
-                }
-
-                // ---------------- FIELD VALIDATION ----------------
-                if (request.DTO.Id <= 0)
-                    return ApiResponse<bool>.Fail("Invalid Role Id.");
-
+                // ===============================
+                // 4️⃣ FIELD VALIDATION
+                // ===============================
                 if (string.IsNullOrWhiteSpace(request.DTO.RoleName))
-                    return ApiResponse<bool>.Fail("Role name cannot be empty.");
+                    throw new ValidationErrorException("Role name cannot be empty.");
 
                 request.DTO.RoleName = request.DTO.RoleName.Trim();
 
-                // ---------------- UPDATE OPERATION ----------------
-                bool isUpdated = await _unitOfWork.RoleRepository.UpdateAsync(request.DTO);
+                // ===============================
+                // 5️⃣ UPDATE
+                // ===============================
+                var updated = await _unitOfWork.RoleRepository.UpdateAsync(request.DTO);
 
-                if (!isUpdated)
-                    return ApiResponse<bool>.Fail("No changes detected or role not found.");
+                if (!updated)
+                    throw new ApiException("Role not found or no changes detected.", 404);
 
                 _logger.LogInformation(
-                    "Role updated successfully. RoleId {RoleId}, UpdatedBy {EmpId}",
-                    request.DTO.Id, request.DTO.Prop.UserEmployeeId);
+                    "✅ Role updated successfully. RoleId {RoleId}, UpdatedBy {EmpId}",
+                    request.DTO.Id,
+                    validation.UserEmployeeId);
 
-                return ApiResponse<bool>.Success(true, "Role updated successfully.");
+                // ===============================
+                // 6️⃣ SUCCESS
+                // ===============================
+                return ApiResponse<bool>
+                    .Success(true, "Role updated successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating role. RoleId {RoleId}", request.DTO.Id);
-                return ApiResponse<bool>.Fail("Failed to update role due to an internal error.");
+                _logger.LogError(ex, "❌ UpdateRole failed");
+
+                throw; // ✅ CRITICAL
             }
         }
-
     }
 }

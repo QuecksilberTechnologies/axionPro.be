@@ -1,28 +1,12 @@
-﻿using AutoMapper;
-using axionpro.application.Common.Helpers.axionpro.application.Configuration;
-using axionpro.application.Common.Helpers.Converters;
-using axionpro.application.Common.Helpers.EncryptionHelper;
-using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
-using axionpro.application.Common.Helpers.RequestHelper;
-using axionpro.application.DTOS.Common;
-using axionpro.application.DTOS.Employee.BaseEmployee;
-using axionpro.application.DTOS.StoreProcedures;
-using axionpro.application.DTOS.StoreProcedures.DashboardSummeries;
+﻿using axionpro.application.DTOS.StoreProcedures.DashboardSummeries;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
+using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Features.StatsFeatures.EmployeesCmd.Handlers
 {
@@ -60,51 +44,67 @@ namespace axionpro.application.Features.StatsFeatures.EmployeesCmd.Handlers
         }
 
         public async Task<ApiResponse<EmployeeCountResponseStatsSp>> Handle(
-            GetEmployeeCountsQuery request,
-            CancellationToken cancellationToken)
+    GetEmployeeCountsQuery request,
+    CancellationToken cancellationToken)
         {
             try
             {
-                // 1️⃣ Validate Request
+                _logger.LogInformation("🔹 GetEmployeeCounts started");
+
+                // ===============================
+                // 1️⃣ VALIDATION (AUTH)
+                // ===============================
                 var validation = await _commonRequestService
                     .ValidateRequestAsync(request.DTO.UserEmployeeId);
 
                 if (!validation.Success)
-                    return ApiResponse<EmployeeCountResponseStatsSp>
-                        .Fail(validation.ErrorMessage);              
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // 3️⃣ Permission check (optional strict)
-                var permissions = await _permissionService
-                    .GetPermissionsAsync(validation.RoleId);
+                // ===============================
+                // 2️⃣ PERMISSION CHECK (RBAC)
+                // ===============================
+                //var hasAccess = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.Employee,
+                //    Operations.View);
 
-                if (!permissions.Contains("PersonalInfo"))
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("Access denied.");
+
+                // ===============================
+                // 3️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request data.");
+
+                // ===============================
+                // 4️⃣ FETCH SP DATA
+                // ===============================
+                var result = await _unitOfWork
+                    .StoreProcedureRepository
+                    .GetEmployeeCountsAsync(validation.TenantId);
+
+                if (result == null)
                 {
-                    // optional block
-                }
-
-                // 4️⃣ Fetch SP data
-                var spRecords = await _unitOfWork.StoreProcedureRepository
-                    .GetEmployeeCountsAsync(
-                        validation.TenantId);
-
-                if (spRecords == null)
-                { 
+                    _logger.LogInformation("⚠️ No employee stats found for TenantId {TenantId}", validation.TenantId);
 
                     return ApiResponse<EmployeeCountResponseStatsSp>
-                        .Success(null,"No identity information found.");
+                        .Success(null, "No data found.");
                 }
-                
+
+                _logger.LogInformation("✅ Employee stats retrieved successfully");
+
+                // ===============================
+                // 5️⃣ SUCCESS
+                // ===============================
                 return ApiResponse<EmployeeCountResponseStatsSp>
-                    .Success(spRecords, "Identity information retrieved successfully.");
+                    .Success(result, "Employee statistics retrieved successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching identity info");
+                _logger.LogError(ex, "❌ GetEmployeeCounts failed");
 
-                return ApiResponse<EmployeeCountResponseStatsSp>
-                    .Fail(
-                        "An unexpected error occurred.",
-                        new List<string> { ex.Message });
+                throw; // ✅ CRITICAL
             }
         }
     }
