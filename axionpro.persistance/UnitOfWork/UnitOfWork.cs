@@ -54,7 +54,9 @@ public class UnitOfWork : IUnitOfWork
     private IEmployeeContactRepository? _employeeContactRepository;
     private IEmployeeBankRepository? _employeeBankRepository;
     private IEmployeeEducationRepository? _employeeEducationRepository;
-    private IEmployeeExpereinceRepository? _employeeExpereinceRepository;
+    private IEmployeeExperienceRepository? _employeeExpereinceRepository;
+    private IEmployeeExperienceDetailRepository? _employeeExperienceDetailRepository;
+    private IEmployeeExperienceDocumentRepository? _employeeExpereinceDocumentRepository;
     private IEmployeeIdentityRepository? _employeeIdentityRepository;
     private IEmployeeInsuranceRepository? _employeeInsuranceRepository;
     private IEmployeeDependentRepository? _employeeDependentRepository;
@@ -155,15 +157,29 @@ public class UnitOfWork : IUnitOfWork
             _loggerFactory.CreateLogger<EmployeeEducationRepository>(),
             _passwordService,
             _encriptionService);
-
-    public IEmployeeExpereinceRepository EmployeeExpereinceRepository =>
+    public IEmployeeExperienceRepository EmployeeExperienceRepository =>      
         _employeeExpereinceRepository ??= new EmployeeExpereinceRepository(
             _context,
             _mapper,
             _loggerFactory.CreateLogger<EmployeeExpereinceRepository>(),
             _passwordService,
             _encriptionService);
+    public IEmployeeExperienceDetailRepository EmployeeExperienceDetailRepository =>
+        _employeeExperienceDetailRepository ??= new EmployeeExperienceDetailRepository(
+            _context,
+            _mapper,
+            _loggerFactory.CreateLogger<EmployeeExperienceDetailRepository>(),
+            _passwordService,
+            _encriptionService);
+    public IEmployeeExperienceDocumentRepository EmployeeExperienceDocumentRepository =>
+        _employeeExpereinceDocumentRepository ??= new EmployeeExperienceDocumentRepository(
+            _context,
+            _mapper,
+            _loggerFactory.CreateLogger<EmployeeExperienceDocumentRepository>(),
+            _passwordService,
+            _encriptionService);
 
+    
     public IEmployeeIdentityRepository EmployeeIdentityRepository =>
         _employeeIdentityRepository ??= new EmployeeIdentityRepository(
             _context,
@@ -351,6 +367,7 @@ public class UnitOfWork : IUnitOfWork
         _sandwitchRuleRepository ??= new SandwitchRuleRepository(_mapper, _context, _loggerFactory.CreateLogger<SandwitchRuleRepository>());
 
     public IEmployeeDependentRepository EmployeeDependentRepository => throw new NotImplementedException();
+
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {

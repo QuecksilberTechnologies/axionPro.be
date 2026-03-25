@@ -392,11 +392,20 @@ namespace axionpro.persistance.Repositories
                 // =========================================================
                 // 8️⃣ Per-record Completion (CORRECT LOGIC)
                 // =========================================================
+                //foreach (var item in records)
+                //{
+                //    item.CompletionPercentage = hasAtLeastOnePrimary? CompletionCalculatorHelper.BankPropCalculate(item): CompletionCalculatorHelper.BankPropCalculate_NoPrimary(item);
+                //}
                 foreach (var item in records)
                 {
-                    item.CompletionPercentage = hasAtLeastOnePrimary
-                        ? CompletionCalculatorHelper.BankPropCalculate(item)
-                        : CompletionCalculatorHelper.BankPropCalculate_NoPrimary(item);
+                    if (hasAtLeastOnePrimary)
+                    {
+                        item.CompletionPercentage = CompletionCalculatorHelper.BankPropCalculate(item);
+                    }
+                    else
+                    {
+                        item.CompletionPercentage = CompletionCalculatorHelper.BankPropCalculate_NoPrimary(item);
+                    }
                 }
 
                 // =========================================================

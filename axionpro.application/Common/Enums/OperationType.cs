@@ -84,6 +84,19 @@ namespace axionpro.application.Common.Enums
 
         Other = 99
     }
- 
 
+    public enum ExperienceDocumentType
+    {
+        Payslip = 1,
+        ExperienceLetter = 2,
+        JoiningLetter = 3,
+        OfferLetter = 4,
+        BankStatement = 5,
+        TaxDocument = 6,
+        GapCertificate = 7,
+        Visa = 8,
+        WorkPermit = 9,
+        ImmigrationStamp = 10,
+        ForeignContract = 11
+    }
 }

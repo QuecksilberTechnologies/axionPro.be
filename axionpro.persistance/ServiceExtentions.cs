@@ -1,5 +1,4 @@
 ﻿using axionpro.application.Interfaces;
-using axionpro.application.Interfaces.ICacheService;
 using axionpro.application.Interfaces.IContext;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces.ITokenService;
@@ -10,7 +9,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Serilog;
 
 namespace axionpro.persistance
 {
@@ -89,6 +87,9 @@ namespace axionpro.persistance
             services.AddScoped<IEmployeeTypeRepository, EmployeeTypeRepository>();
             services.AddScoped<IEmployeeTypeBasicMenuRepository, EmployeeTypeBasicMenuRepository>();
             services.AddScoped<IUserRolesPermissionOnModuleRepository, UserRolesPermissionOnModuleRepository>();
+            services.AddScoped<IEmployeeExperienceRepository, EmployeeExpereinceRepository>();
+            services.AddScoped<IEmployeeExperienceDetailRepository, EmployeeExperienceDetailRepository>();
+            services.AddScoped<IEmployeeExperienceDocumentRepository, EmployeeExperienceDocumentRepository>();
             services.AddScoped<ICandidateRegistrationRepository, CandidateRegistrationRepository>();
             services.AddScoped<IClientRepository, ClientRepository>();
             services.AddScoped<ITravelRepository, TravelRepository>();
@@ -127,7 +128,7 @@ namespace axionpro.persistance
             services.AddScoped<IEmployeeBankRepository, EmployeeBankRepository>();
             services.AddScoped<IEmployeeContactRepository, EmployeeContactRepository>();
             services.AddScoped<IEmployeeIdentityRepository, EmployeeIdentityRepository>();
-            services.AddScoped<IEmployeeExpereinceRepository, EmployeeExpereinceRepository>();
+           
             services.AddScoped<IEmployeeEducationRepository, EmployeeEducationRepository>();
             services.AddScoped<IBaseEmployeeRepository, BaseEmployeeRepository>();
             services.AddScoped<IEmployeeDependentRepository, EmployeeDependentRepository>();

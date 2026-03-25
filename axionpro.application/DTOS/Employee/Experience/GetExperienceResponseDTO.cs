@@ -8,92 +8,91 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOS.Employee.Experience
 {
- 
-
-
-    public class GetExperienceResponseDTO
+    public class GetEmployeeExperienceResponseDTO
     {
-        public string ExperienceId { get; set; }           // encrypted
-        public string EmployeeId { get; set; }             // encrypted
-        public string Ctc { get; set; }
-        public string Comment { get; set; }
+        public string Id { get; set; }
+        public long EmployeeId { get; set; }
+
+        // 🔹 Basic Info
+        public decimal? Ctc { get; set; }
+        public string? Comment { get; set; }
+
+        public bool HasEPFAccount { get; set; }
         public bool IsFresher { get; set; }
-        public bool IsGap { get; set; }
+
+        // 🔹 Status
         public bool IsActive { get; set; }
-        public DateTime? AddedDateTime { get; set; }
 
-        public List<GetExperienceDetailDTO> Details { get; set; } = new();
+        // 🔹 Child Data
+        public List<GetEmployeeExperienceDetailDTO>? ExperienceDetails { get; set; }
     }
-    public class GetExperienceDetailDTO
+
+    public class GetEmployeeExperienceDetailDTO
     {
-        public string? DetailId { get; set; }
-        public string? ExperienceId { get; set; }
-        public string? EmployeeId { get; set; }
+        public string Id { get; set; }
 
-        // GAP
-        public bool IsAnyGap { get; set; }
-        public string? ReasonOfGap { get; set; }
-        public string? GapYearFrom { get; set; }
-        public string? GapYearTo { get; set; }
-        public string? GapCertificateDocName { get; set; }
-        public string? GapCertificateDocPath { get; set; }
-
-        // EXPERIENCE
+        // 🔹 Job Info
         public string? CompanyName { get; set; }
-        public int? Experience { get; set; }
-        public bool? IsWFH { get; set; }
-        public string? WorkingCountryId { get; set; }
-        public string? WorkingStateId { get; set; }
-        public string? WorkingDistrictId { get; set; }
-
-        public string? EmployeeIdOfCompany { get; set; }
-
-        public string? ColleagueName { get; set; }
-        public string? ColleagueDesignation { get; set; }
-        public string? ColleagueContactNumber { get; set; }
-        public string? ReportingManagerName { get; set; }
-        public string? ReportingManagerNumber { get; set; }
-        public string? VerificationEmail { get; set; }
-        public string? ReasonForLeaving { get; set; }
-        public string? Remark { get; set; }
         public string? Designation { get; set; }
+        public string? EmployeeIdOfCompany { get; set; }
 
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
 
-        // DOCS
-        public string? TaxationDocName { get; set; }
-        public string? TaxationDocFilePath { get; set; }
-        public string? ExperienceLetterDocName { get; set; }
-        public string? ExperienceLetterDocPath { get; set; }
-        public string? JoiningLetterDocName { get; set; }
-        public string? JoiningLetterDocPath { get; set; }
-        public string? BankStatementDocName { get; set; }
-        public string? BankStatementDocPath { get; set; }
+        public int? Experience { get; set; }
+        public bool IsWFH { get; set; }
 
-        public DateTime? AddedDateTime { get; set; }
+        // 🔹 Location
+        public int? WorkingCountryId { get; set; }
+        public int? WorkingStateId { get; set; }
+        public int? WorkingDistrictId { get; set; }
 
-        // PAYSLIPS
-        public List<GetExperiencePayslipDTO> Payslips { get; set; } = new();
+        public bool IsForeignExperience { get; set; }
+
+        // 🔹 Exit
+        public string? ReasonForLeaving { get; set; }
+        public string? Remark { get; set; }
+
+        // 🔹 Reporting
+        public string? ColleagueName { get; set; }
+        public string? ColleagueDesignation { get; set; }
+        public string? ColleagueContactNumber { get; set; }
+
+        public string? ReportingManagerName { get; set; }
+        public string? ReportingManagerNumber { get; set; }
+
+        public string? VerificationEmail { get; set; }
+
+        // 🔹 Gap
+        public bool IsAnyGap { get; set; }
+        public string? ReasonOfGap { get; set; }
+
+        public DateTime? GapYearFrom { get; set; }
+        public DateTime? GapYearTo { get; set; }
+
+        // 🔹 Verification
+        public bool? IsExperienceVerified { get; set; }
+        public bool? IsExperienceVerifiedByMail { get; set; }
+        public bool? IsExperienceVerifiedByCall { get; set; }
+
+        public bool? IsInfoVerified { get; set; }
+        public bool? IsEditAllowed { get; set; }
+
+        // 🔹 Documents
+        public List<GetEmployeeExperienceDocumentDTO>? Documents { get; set; }
     }
-
-    public class GetExperiencePayslipDTO
+    public class GetEmployeeExperienceDocumentDTO
     {
-        public string? PayslipId { get; set; }
-        public string? EmployeeId { get; set; }
+        public string Id { get; set; }
 
-        public int Month { get; set; }
-        public int Year { get; set; }
+        public int DocumentType { get; set; }
+        public string? DocumentTypeName { get; set; } // 🔥 UI ke liye
 
-        public string? PayslipDocName { get; set; }
-        public string? PayslipDocPath { get; set; }
+        public string? FileName { get; set; }
+        public string? FilePath { get; set; }
+        public string? Url { get; set; } // 🔥 Ready URL
 
-        public bool IsActive { get; set; }
-        public bool HasUploadedPayslip { get; set; }
-
-        public DateTime? AddedDateTime { get; set; }
+        public string? Remark { get; set; }
     }
-
-
 
 }

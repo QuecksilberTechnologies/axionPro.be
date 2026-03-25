@@ -27,7 +27,7 @@ namespace axionpro.application.Common.Helpers.PercentageHelper
                 emp.DepartmentId > 0 ? 1 : 0,
                 IsFilled(emp.OfficialEmail),
                 emp.IsActive ? 1 : 0,
-                emp.IsEditAllowed == true ? 1 : 0,
+                emp.IsEditAllowed == false ? 1 : 0,
                 emp.IsInfoVerified == true ? 1 : 0,
                 hasPrimaryImage ? 1 : 0,
                 IsFilled(emp.BloodGroup),
@@ -55,14 +55,11 @@ namespace axionpro.application.Common.Helpers.PercentageHelper
                 IsFilled(record.IFSCCode),
                 IsFilled(record.BranchName),
                 IsFilled(record.AccountType),
-                IsFilled(record.UPIId),             
+                record.IsEditAllowed  == false ? 1 : 0,
+                record.IsInfoVerified == true ? 1 : 0,
+                 // 🔥 Business Rule
+                 record.IsPrimaryAccount == false ?  0 : 1
 
-                // 🔥 Business Rule
-                record.IsPrimaryAccount == false
-                    ?  0
-                    : 1
-
-                    
             };
 
             return CalculatePercentage(checks);
@@ -80,12 +77,11 @@ namespace axionpro.application.Common.Helpers.PercentageHelper
                 IsFilled(record.IFSCCode),
                 IsFilled(record.BranchName),
                 IsFilled(record.AccountType),
-                IsFilled(record.UPIId),
+               record.IsEditAllowed  == false ? 1 : 0,
+                record.IsInfoVerified == true ? 1 : 0,
 
                 // 🔥 Business Rule
-                record.IsPrimaryAccount == true
-                    ? (record.HasChequeDocUploaded ? 1 : 0)
-                    : 1
+                record.IsPrimaryAccount == true ? (record.HasChequeDocUploaded ? 1 : 0)  : 1
 
 
             };
@@ -173,16 +169,15 @@ namespace axionpro.application.Common.Helpers.PercentageHelper
                 IsFilled(contact.ContactName),
                 IsFilled(contact.ContactNumber),
                   // 🔥 Business Rule
-                contact.IsPrimary == false
-                    ?  0
-                    : 1,
+                contact.IsPrimary == false?  0  : 1,
                 contact.ContactType > 0 ? 1 : 0,
 
                 // 🔹 Address Info
                 contact.CountryId > 0 ? 1 : 0,
                 contact.StateId > 0 ? 1 : 0,
                 contact.DistrictId > 0 ? 1 : 0,
-
+                 contact.IsEditAllowed  == false ? 1 : 0,
+                contact.IsInfoVerified == true ? 1 : 0,
                 // 🔹 Optional but recommended
                 IsFilled(contact.Address),
  
@@ -219,12 +214,14 @@ namespace axionpro.application.Common.Helpers.PercentageHelper
 
                 // 🔹 Optional but recommended
                 IsFilled(contact.Address),
+                contact.IsEditAllowed  == false ? 1 : 0,
+                contact.IsInfoVerified == true ? 1 : 0,
 
                 // 🔥 Business Rule:
                 // Primary contact must have alternate OR email
-                contact.IsPrimary == true
-                    ? (IsFilled(contact.AlternateNumber) == 1 || IsFilled(contact.Email) == 1 ? 1 : 0)
-                    : 1
+                //contact.IsPrimary == true  ? (IsFilled(contact.AlternateNumber) == 1 || IsFilled(contact.Email) == 1 ? 1 : 0)
+                //    : 1
+                contact.IsPrimary == true  ?1: 0
             };
 
             return CalculatePercentage(checks);

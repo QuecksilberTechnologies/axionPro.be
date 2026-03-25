@@ -1,10 +1,8 @@
 ﻿using AutoMapper;
-using axionpro.application.Common.Helpers.axionpro.application.Configuration;
-using axionpro.application.Common.Helpers.Converters;
-using axionpro.application.Common.Helpers.EncryptionHelper;
-using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.Experience;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
@@ -20,7 +18,7 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
 {
-    public class CreateExperienceInfoCommand : IRequest<ApiResponse<List<GetExperienceResponseDTO>>>
+    public class CreateExperienceInfoCommand : IRequest<ApiResponse<List<GetEmployeeExperienceResponseDTO>>>
     {
         public CreateExperienceRequestDTO DTO { get; set; }
 
@@ -31,7 +29,7 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
     }
 
     public class CreateExperienceInfoCommandHandler
-     : IRequestHandler<CreateExperienceInfoCommand, ApiResponse<List<GetExperienceResponseDTO>>>
+     : IRequestHandler<CreateExperienceInfoCommand, ApiResponse<List<GetEmployeeExperienceResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -43,7 +41,7 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
         private readonly IEncryptionService _encryptionService;
         private readonly IIdEncoderService _idEncoderService;
         private readonly IFileStorageService _fileStorageService;
-
+        private readonly ICommonRequestService _commonRequestService;
         public CreateExperienceInfoCommandHandler(
             IUnitOfWork unitOfWork,
             IMapper mapper,
@@ -54,7 +52,8 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
             IConfiguration config,
             IEncryptionService encryptionService,
             IIdEncoderService idEncoderService,
-            IFileStorageService fileStorageService
+            IFileStorageService fileStorageService, ICommonRequestService commonRequestService
+
         )
         {
             _unitOfWork = unitOfWork;
@@ -67,463 +66,165 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
             _encryptionService = encryptionService;
             _idEncoderService = idEncoderService;
             _fileStorageService = fileStorageService;
+            _commonRequestService = commonRequestService;
+
         }
-        public async Task<ApiResponse<List<GetExperienceResponseDTO>>> Handle(
-            CreateExperienceInfoCommand request,
-            CancellationToken cancellationToken)
+
+
+        public async Task<ApiResponse<List<GetEmployeeExperienceResponseDTO>>> Handle(
+CreateExperienceInfoCommand request,
+CancellationToken cancellationToken)
         {
-            await _unitOfWork.BeginTransactionAsync();
+            List<string> uploadedFiles = new();
 
             try
             {
-                //--------------------------------------------------------
-                // 1️⃣ TOKEN + CLAIMS VALIDATION
-                //--------------------------------------------------------
-                // 🧩 STEP 1: Validate JWT Token
-                // 🧩 STEP 1: Token Validation
-                var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
-                    .ToString()?.Replace("Bearer ", "");
+                _logger.LogInformation("🚀 CreateExperience started");
 
-                if (string.IsNullOrEmpty(bearerToken))
-                    return ApiResponse<List<GetExperienceResponseDTO>>.Fail("Unauthorized: Token not found.");
+                // ===============================
+                // 1️⃣ COMMON VALIDATION
+                // ===============================
+                var validation = await _commonRequestService.ValidateRequestAsync();
 
-                var secretKey = TokenKeyHelper.GetJwtSecret(_config);
-                var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
+                if (!validation.Success)
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                if (tokenClaims == null || tokenClaims.IsExpired)
-                    return ApiResponse<List<GetExperienceResponseDTO>>.Fail("Invalid or expired token.");
+                // ===============================
+                // 2️⃣ NULL CHECK
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request");
 
-                long loggedInEmpId = await _unitOfWork.StoreProcedureRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
-                if (loggedInEmpId < 1)
-                    return ApiResponse<List<GetExperienceResponseDTO>>.Fail("Unauthorized or inactive user.");
+                if (request.DTO.Prop == null)
+                    request.DTO.Prop = new();
 
-                string tenantKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
-                if (string.IsNullOrEmpty(tenantKey) || string.IsNullOrEmpty(request.DTO.UserEmployeeId))
-                    return ApiResponse<List<GetExperienceResponseDTO>>.Fail("User invalid.");
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
 
-                string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
-                //UserEmployeeId
-                string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
-                request.DTO._UserEmployeeId = _idEncoderService.DecodeId_long(UserEmpId, finalKey);
-                //Token TenantId
-                string tokenTenant = EncryptionSanitizer.CleanEncodedInput(tokenClaims.TenantId);
-                long decryptedTenantId = _idEncoderService.DecodeId_long(tokenTenant, finalKey);
-                //Id              
-                // Actual EmployeeId
-                string actualEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.EmployeeId);
-                request.DTO._EmployeeId = _idEncoderService.DecodeId_long(UserEmpId, finalKey);
+                // ===============================
+                // 3️⃣ RBAC CHECK
+                // ===============================
+                //var hasAccess = await _commonRequestService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.EmployeeExperience,
+                //    Operations.Add);
 
-                // 🧩 STEP 4: Validate all employee references
-                if (decryptedTenantId <= 0)
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("Access denied.");
+
+                // ===============================
+                // 4️⃣ BUSINESS VALIDATION
+                // ===============================
+                if (request.DTO.IsFresher && request.DTO.ExperienceDetails?.Any() == true)
+                    throw new ValidationErrorException("Fresher cannot have experience details.");
+
+                if (!request.DTO.IsFresher && (request.DTO.ExperienceDetails == null || !request.DTO.ExperienceDetails.Any()))
+                    throw new ValidationErrorException("Experience details required.");
+
+                // ===============================
+                // 5️⃣ START TRANSACTION
+                // ===============================
+                await _unitOfWork.BeginTransactionAsync();
+
+                // ===============================
+                // 6️⃣ SAVE PARENT
+                // ===============================
+                var exp = new EmployeeExperience
                 {
-                    _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
-                    return ApiResponse<List<GetExperienceResponseDTO>>.Fail("Tenant or employee information missing.");
-                }
-
-
-                if (decryptedTenantId <= 0 || request.DTO._UserEmployeeId <= 0)
-                {
-                    _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
-                    return ApiResponse<List<GetExperienceResponseDTO>>.Fail("Tenant or employee information missing.");
-                }
-
-                if (!(request.DTO._UserEmployeeId == loggedInEmpId))
-                {
-                    _logger.LogWarning(
-                        "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
-                         request.DTO._UserEmployeeId, loggedInEmpId
-                    );
-
-                    return ApiResponse<List<GetExperienceResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
-                }
-
-                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
-                if (!permissions.Contains("AddBankInfo"))
-                {
-                    //  await _unitOfWork.RollbackTransactionAsync();
-                    //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
-                }
-                // 🧩 STEP 4: Call Repository to get data     
-
-
-                //--------------------------------------------------------
-                // 2️⃣ INSERT PARENT — EmployeeExperience
-                //--------------------------------------------------------
-                var experience = new EmployeeExperience
-                {
-                    EmployeeId = request.DTO._EmployeeId,
-                    Ctc = request.DTO._CTC,
+                    EmployeeId = validation.UserEmployeeId,
+                    Ctc = request.DTO.Ctc,
                     Comment = request.DTO.Comment,
-                    AddedById = request.DTO._UserEmployeeId,
+                    HasEPFAccount = request.DTO.HasEPFAccount,
+                    IsFresher = request.DTO.IsFresher,
+
+                    AddedById = validation.UserEmployeeId,
                     AddedDateTime = DateTime.UtcNow,
                     IsActive = true,
-                    IsEditAllowed = true,
-                    IsFresher = request.DTO.IsFresher,
-                    HasEPFAccount = request.DTO.HasEPFAccount
+                    IsSoftDeleted = false
                 };
 
-                var parentResult =
-                    await _unitOfWork.EmployeeExpereinceRepository.AddExperienceAsync(experience);
+                    await _unitOfWork.EmployeeExperienceRepository.AddAsync(exp);
 
-                long experienceId = parentResult.Items.First().Id;
-               
-
-                //--------------------------------------------------------
-                // 3️⃣ BUILD CHILD LISTS
-                //--------------------------------------------------------
-                var detailList = new List<EmployeeExperienceDetail>();
-                var payslipList = new List<EmployeeExperiencePayslipUpload>();
-
-              
-
-
-                // *****************************************************************
-                // ⭐ SCENARIO-WISE CHILD BUILDING ⭐
-                // *****************************************************************
-
-                // =============================
-                // CASE 1: Fresher + No Gap
-                // =============================
-                if (request.DTO.IsFresher && !request.DTO.IsGap)
+                // ===============================
+                // 7️⃣ SAVE DETAILS + DOCUMENTS
+                // ===============================
+                if (!request.DTO.IsFresher)
                 {
-                    // NO DETAILS, NO PAYSLIP
-                }
-
-                // =============================
-                // CASE 2: Fresher + Gap
-                // =============================
-                else if (request.DTO.IsFresher && request.DTO.IsGap)
-                {
-                    foreach (var d in request.DTO.ExperienceDetails)
+                    foreach (var detailDto in request.DTO.ExperienceDetails!)
                     {
-                        detailList.Add(await BuildGapDetail(d, request, decryptedTenantId, experienceId));
-                    }
-                }
+                        var detail = _mapper.Map<EmployeeExperienceDetail>(detailDto);
 
-                // =============================
-                // CASE 3: Experience + (Gap or No-Gap)
-                // =============================
+                        detail.EmployeeExperienceId = exp.Id;
+                        
+                        detail.AddedById = validation.UserEmployeeId;
+                        detail.AddedDateTime = DateTime.UtcNow;
+                        detail.IsActive = true;
+                        detail.IsSoftDeleted = false;
 
+                        await _unitOfWork.EmployeeExperienceDetailRepository.AddAsync(detail);
 
-                else if (!request.DTO.IsFresher)
-                {
-                    
-
-                    foreach (var d in request.DTO.ExperienceDetails)
-                    {
-                        d.IsAnyGap= request.DTO.IsGap;
-                        // GAP detail
-                        if (d.IsAnyGap)
+                        // 🔥 DOCUMENTS
+                        if (detailDto.Documents != null && detailDto.Documents.Any())
                         {
-                              detailList.Add(
-                                await BuildGapDetail(d, request, decryptedTenantId, experienceId)
-                            );
-                            continue;
-                        }
-
-                        // EXPERIENCE detail
-                        var det = await BuildExperienceDetail(d, request, decryptedTenantId, experienceId);
-
-                        detailList.Add(det);
-
-                        //--------------------------------------------------------
-                        // Payslips linked WITH ExperienceDetailID (NOT parent)
-                        //--------------------------------------------------------
-                        foreach (var slip in d.Payslips)
-                        {
-                            // upload
-                            var up = await UploadDocAsync(new UploadDocRequestDTO
+                            foreach (var docDto in detailDto.Documents)
                             {
-                                TenantId = decryptedTenantId,
-                                EmployeeId = request.DTO._EmployeeId,
-                                File = slip.PayslipDocument,
-                                SubFolderName = "payslip-docs",
-                                FilePrefix = $"{slip.Month}-{slip.Year}",
-                                FileType = 2
-                            });
+                                var doc = new EmployeeExperienceDocument
+                                {
+                                    EmployeeExperienceDetailId = detail.Id,
+                                    DocumentType = docDto.DocumentType,
+                                    FileName = docDto.FileName,
+                                    FilePath = docDto.FilePath,
+                                    AddedById = validation.UserEmployeeId,
+                                    AddedDateTime = DateTime.UtcNow,
+                                    IsActive = true,
+                                    IsSoftDeleted = false
+                                };
 
-                            payslipList.Add(new EmployeeExperiencePayslipUpload
-                            {
-                                EmployeeId = request.DTO._EmployeeId,
-                                 
-                                ExperienceDetailId = det.Id,        // **IMPORTANT: detail ref**
-                                Month = SafeParser.TryParseInt(slip.Month),
-                                Year = SafeParser.TryParseInt(slip.Year),
-                                PayslipDocName = up.FileName,
-                                PayslipDocPath = up.FilePath,
-                                AddedById = request.DTO._UserEmployeeId,
-                                AddedDateTime = DateTime.UtcNow,
-                                IsActive = true,
-                                HasUploadedPayslip = true
-                            });
+                                // 🔹 Track file (for rollback)
+                                if (!string.IsNullOrWhiteSpace(doc.FilePath))
+                                    uploadedFiles.Add(doc.FilePath);
+
+                                await _unitOfWork.EmployeeExperienceDocumentRepository.AddAsync(doc);
+                            }
                         }
                     }
                 }
 
-                //--------------------------------------------------------
-                // 4️⃣ BULK INSERTS
-                //--------------------------------------------------------
-
-                if (detailList.Any())
-                    await _unitOfWork.EmployeeExpereinceRepository.AddDetailAsync(detailList);
-
-                if (payslipList.Any())
-                    await _unitOfWork.EmployeeExpereinceRepository.AddPayslipAsync(payslipList);
-
-
-
+                // ===============================
+                // 8️⃣ COMMIT
+                // ===============================
                 await _unitOfWork.CommitTransactionAsync();
 
+                _logger.LogInformation("✅ Experience created successfully");
 
-                //--------------------------------------------------------
-                // 5️⃣ FINAL RESPONSE
-                //--------------------------------------------------------
-                var all = await _unitOfWork.EmployeeExpereinceRepository
-                    .GetAllAsync(request.DTO._EmployeeId);
-
-                //var encryptedList = ProjectionHelper.ToGetExperienceResponseDTOs(
-                //    all.Items,
-                //    _encryptionService,
-                //    tenantKey,
-                //    request.DTO.EmployeeId);
-
-                //return ApiResponse<List<GetExperienceResponseDTO>>
-                //    .Success(encryptedList, "Experience saved successfully");
-                return ApiResponse<List<GetExperienceResponseDTO>>
-                 .Fail("Error", new List<string> { });
+                return ApiResponse<List<GetEmployeeExperienceResponseDTO>>
+                    .Success(new List<GetEmployeeExperienceResponseDTO>(), "Experience saved successfully.");
             }
             catch (Exception ex)
             {
-              //  await _unitOfWork.RollbackTransactionAsync();
-                _logger.LogError(ex, "Error while saving experience");
+                _logger.LogError(ex, "❌ CreateExperience failed");
 
-                return ApiResponse<List<GetExperienceResponseDTO>>
-                    .Fail("Error", new List<string> { ex.Message });
+                // ===============================
+                // 🔥 ROLLBACK
+                // ===============================
+                await _unitOfWork.RollbackTransactionAsync();
+
+                // 🔥 FILE CLEANUP
+                foreach (var file in uploadedFiles)
+                {
+                    try
+                    {
+                        await _fileStorageService.DeleteFileAsync(file);
+                    }
+                    catch { }
+                }
+
+                throw;
             }
-        }
-
-        // =====================================================================
-        // BUILD GAP DETAIL
-        ////ExperienceDetails[0].ReasonOfGap:"Money problem"
-        //ExperienceDetails[0].GapYearFrom: 2021-09-26
-        //ExperienceDetails[0].GapYearTo: 2025-09-26
-       // ExperienceDetails[0].IsInfoLatestYear:true
-        // =====================================================================
-        private async Task<EmployeeExperienceDetail> BuildGapDetail(
-            EmployeeExperienceDetailDTO d,
-            CreateExperienceInfoCommand request,
-            long tenantId,
-            long experienceId)
-        {
-            var detail = new EmployeeExperienceDetail
-            {
-                EmployeeExperienceId = experienceId,
-                EmployeeId = request.DTO._EmployeeId,
-                IsAnyGap = true,
-                IsInfoLatestYear = d.IsInfoLatestYear ? d.IsInfoLatestYear : false,
-                ReasonOfGap = d.ReasonOfGap,
-                GapYearFrom = d.GapYearFrom,
-                GapYearTo = d.GapYearTo,
-                AddedById = request.DTO._UserEmployeeId,
-                AddedDateTime = DateTime.UtcNow,
-                IsActive = true
-            };
-
-            var gapDoc = await UploadDocAsync(new UploadDocRequestDTO
-            {
-                TenantId = tenantId,
-                EmployeeId = request.DTO._EmployeeId,
-                File = d.GapCertificateDocument,
-                SubFolderName = "gap-docs",
-                FilePrefix = "gap",
-                FileType = 2
-            });
-
-            if (gapDoc.IsUploaded)
-            {
-                detail.GapCertificateDocName = gapDoc.FileName;
-                detail.GapCertificateDocPath = gapDoc.FilePath;
-                detail.HasUploadedGapCertificate = true;
-            }
-
-            return detail;
-        }
-        // =====================================================================
-        // BUILD EXPERIENCE DETAIL
-        // =====================================================================
-        private async Task<EmployeeExperienceDetail> BuildExperienceDetail(
-      EmployeeExperienceDetailDTO d,
-      CreateExperienceInfoCommand request,
-      long tenantId,
-      long experienceId)
-        {
-            bool isForeign = d.IsForeignExperience;
-
-            var detail = new EmployeeExperienceDetail
-            {
-                EmployeeExperienceId = experienceId,
-                EmployeeId = request.DTO._EmployeeId,
-                CompanyName = d.CompanyName,
-                Experience = SafeParser.TryParseInt(d.Experience),
-                IsAnyGap = false,
-                IsWFH = d.IsWFH,
-                WorkingCountryId = SafeParser.TryParseInt(d.WorkingCountryId),
-                WorkingStateId = SafeParser.TryParseInt(d.WorkingStateId),
-                WorkingDistrictId = SafeParser.TryParseInt(d.WorkingDistrictId),
-                HasForeignContractUploaded = false,
-                HasImmigrationStampUploaded = false,
-                HasWorkPermitUploaded = false,
-                HasTaxationDoc = false,
-                HasUploadedExperienceLetter = false,
-                HasUploadedJoiningLetter = false,
-                HasBankStatementUploaded = false,          
-                HasVisaUploaded = false,
-                EmployeeIdOfCompany = d.EmployeeIdOfCompany,
-                ColleagueName = d.ColleagueName,
-                ColleagueDesignation = d.ColleagueDesignation,
-                ColleagueContactNumber = d.ColleagueContactNumber,
-                ReportingManagerName = d.ReportingManagerName,
-                ReportingManagerNumber = d.ReportingManagerNumber,
-                VerificationEmail = d.VerificationEmail,
-                IsInfoLatestYear = d.IsInfoLatestYear?d.IsInfoLatestYear:false ,
-                ReasonForLeaving = d.ReasonForLeaving,
-                Remark = d.Remark,
-                Designation = d.Designation,
-                StartDate = d.StartDate,
-                EndDate = d.EndDate,
-                AddedById = request.DTO._UserEmployeeId,
-                AddedDateTime = DateTime.UtcNow,
-                IsActive = true,
-
-                IsForeignExperience = isForeign,
-                VisaType = isForeign ? d.VisaType : null,
-                WorkPermitNumber = isForeign ? d.WorkPermitNumber : null
-            };
-
-
-            // --------------------------------------------------------------------------------
-            // STANDARD DOCUMENT UPLOADS (NO REPEAT)
-            // --------------------------------------------------------------------------------
-
-            var tax = await UploadFile(d._EmployeeId, tenantId, "tax", d.TaxationDocument);
-            detail.TaxationDocFileName = tax.FileName;
-            detail.TaxationDocFilePath = tax.FilePath;
-            detail.HasTaxationDoc = tax.IsUploaded;
-
-
-            var exp = await UploadFile(d._EmployeeId, tenantId, "exp-docs", d.ExperienceLetterDocument);
-            detail.ExperienceLetterDocName = tax.FileName;
-            detail.ExperienceLetterDocPath = tax.FilePath;
-            detail.HasUploadedExperienceLetter = tax.IsUploaded;
-
-            var join = await UploadFile(d._EmployeeId, tenantId, "join", d.JoiningLetterDocument);
-            detail.JoiningLetterDocName = tax.FileName;
-            detail.JoiningLetterDocPath = tax.FilePath;
-            detail.HasUploadedJoiningLetter = tax.IsUploaded;
-
-            // --------------------------------------------------------------------------------
-            // FOREIGN DOCUMENTS ONLY
-            // --------------------------------------------------------------------------------
-            if (isForeign)
-            {
-                var visa = await UploadFile(d._EmployeeId, tenantId, "visa", d.VisaDocument);
-                detail.VisaDocName = visa.FileName;
-                detail.VisaDocPath = visa.FilePath;
-                detail.HasVisaUploaded = visa.IsUploaded;
-
-                var permit = await UploadFile(d._EmployeeId, tenantId, "work-permit", d.WorkPermitDocument);
-                detail.WorkPermitDocName = permit.FileName;
-                detail.WorkPermitDocPath = permit.FilePath;
-                detail.HasWorkPermitUploaded = permit.IsUploaded;
-
-
-                var immigration = await UploadFile(d._EmployeeId, tenantId, "immigration-stamp", d.ImmigrationStampDocument);
-                detail.ImmigrationStampDocName = immigration.FileName;
-                detail.ImmigrationStampDocPath = immigration.FilePath;
-                detail.HasImmigrationStampUploaded = immigration.IsUploaded;
-
-
-                var contract = await UploadFile(d._EmployeeId, tenantId, "foreign-contract", d.ForeignContractDocument);
-                detail.ForeignContractDocName = contract.FileName;
-                detail.ForeignContractDocPath = contract.FilePath;
-                detail.HasForeignContractUploaded = contract.IsUploaded;
-
-            }
-            else
-            {
-                // CLEAR FOREIGN FIELDS
-                detail.VisaDocName = null;
-                detail.VisaDocPath = null;
-                detail.WorkPermitDocName = null;
-                detail.WorkPermitDocPath = null;
-                detail.ImmigrationStampDocName = null;
-                detail.ImmigrationStampDocPath = null;
-                detail.ForeignContractDocName = null;
-                detail.ForeignContractDocPath = null;
- 
-          }
-
-            return detail;
-        }
-
-
-
-        // =====================================================================
-        // UPLOAD + MAP DOCS
-        // =====================================================================
-        private async Task<UploadDocResponseDTO> UploadFile( long employeeId, long tenantId, string prefix,  IFormFile file)
-        {
-            var result = await UploadDocAsync(new UploadDocRequestDTO
-            {
-                EmployeeId = employeeId,
-                FilePrefix = prefix,
-                File = file,
-                TenantId = tenantId
-            });
-
-            return new UploadDocResponseDTO
-            {
-                FileName = result.FileName,
-                FilePath = result.FilePath,
-                IsUploaded = result.IsUploaded
-            };
-        }
-
-
-
-        // =====================================================================
-        // GENERIC UPLOAD HELPER
-        // =====================================================================
-        private async Task<UploadDocResponseDTO> UploadDocAsync(UploadDocRequestDTO req)
-        {
-            var result = new UploadDocResponseDTO();
-
-            if (req.File == null || req.File.Length == 0)
-                return result;
-
-            string ext = req.FileType == 1 ? ".pdf" : ".png";
-
-            string fileName = $"{req.FilePrefix}-{req.EmployeeId}-{DateTime.UtcNow:yyyyMMddHHmmssfff}{ext}";
-
-            using var ms = new MemoryStream();
-            await req.File.CopyToAsync(ms);
-            var bytes = ms.ToArray();
-
-            //var folderPath = _fileStorageService.GetEmployeeFolderPath(req.TenantId, req.EmployeeId, req.SubFolderName);
-            //var fullPath = await _fileStorageService.SaveFileAsync(bytes, fileName, folderPath);
-
-            //if (string.IsNullOrEmpty(fullPath))
-            //    return result;
-
-            //result.IsUploaded = true;
-            //result.FileName = fileName;
-            //result.FilePath = _fileStorageService.GetRelativePath(fullPath);
-
-            return result;
         }
     }
 
 
 
 
-}
+    }

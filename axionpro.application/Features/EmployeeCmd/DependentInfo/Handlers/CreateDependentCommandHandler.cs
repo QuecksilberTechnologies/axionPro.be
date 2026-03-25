@@ -131,14 +131,14 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                     try
                     {
                         string relation =
-                            request.DTO.Relation.ToString()?.Trim().ToLower().Replace(" ", "_") ?? "doc";
+                            request.DTO.Relation.ToString() ?? "doc";
 
                         string fileName =
                             $"proof-{request.DTO.Prop.EmployeeId}-{relation}-{DateTime.UtcNow:yyyyMMddHHmmss}";
 
                         string folderPath =
                             $"{ConstantValues.TenantFolder}-{request.DTO.Prop.TenantId}/" +
-                            $"{ConstantValues.EmployeeFolder}/{request.DTO.Prop.EmployeeId}/dependent";
+                            $"{ConstantValues.EmployeeFolder}/{request.DTO.Prop.EmployeeId}/{ConstantValues.DependentFolder}";
 
                         uploadedFileKey = await _fileStorageService.UploadFileAsync(
                             request.DTO.ProofFile,

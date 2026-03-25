@@ -1,24 +1,4 @@
-﻿using AutoMapper;
-using axionpro.application.Common.Helpers;
-using axionpro.application.Common.Helpers.Converters;
-using axionpro.application.DTOs.Employee;
-using axionpro.application.DTOs.Employee.AccessControlReadOnlyType;
-using axionpro.application.DTOs.Employee.AccessResponse;
-using axionpro.application.DTOS.Employee.Experience;
-using axionpro.application.Interfaces;
-using axionpro.application.Interfaces.IEncryptionService;
-using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Interfaces.ITokenService;
-using axionpro.application.Wrappers;
-
-using axionpro.domain.Entity; using MediatR;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using System.Reflection;
-
-namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
+﻿namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
 {
     //public class UpdateExperienceInfoCommand : IRequest<ApiResponse<bool>>
     //{

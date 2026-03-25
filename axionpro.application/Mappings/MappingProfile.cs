@@ -604,7 +604,7 @@ namespace axionpro.application.Mappings
 
             #region 🔹 Experience Mappings
             CreateMap<EmployeeExperience, EmployeeExperienceEditableFieldsDTO>().ReverseMap();
-            CreateMap<EmployeeExperience, GetExperienceResponseDTO>().ReverseMap();
+           // CreateMap<EmployeeExperience, GetExperienceResponseDTO>().ReverseMap();
             #endregion
 
             #region 🔹 Login / Info Mappings

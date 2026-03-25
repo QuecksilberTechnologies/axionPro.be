@@ -86,8 +86,7 @@ namespace axionpro.application.Constants
         public static readonly int RoleTypeEmployee = 2;
         public static readonly int RoleTypeManager = 3;
 
-
-
+         
 
         public static readonly int SetPassword = 1;
         public static readonly int Auth = 2;

@@ -50,7 +50,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
             public bool? IsEditAllowed { get; set; } 
             public bool? IsMarried { get; set; } 
             public bool? IsInfoVerified { get; set; }
-        public double CompletionPercentage { get; set; }
+            public double CompletionPercentage { get; set; }
 
     }
     

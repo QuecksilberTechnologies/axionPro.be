@@ -27,6 +27,7 @@ namespace axionpro.application.DTOS.Employee.Bank
         public int? FileType { get; set; }
         public IFormFile? CancelledChequeFile { get; set; }      
         public bool? IsEditAllowed { get; set; }
+        
         public bool IsActive { get; set; }
         public double CompletionPercentage { get; set; }
       

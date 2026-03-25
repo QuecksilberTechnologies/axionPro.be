@@ -1,19 +1,16 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers.EncryptionHelper;
-using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.AssetDTO.asset;
-using axionpro.application.DTOS.Pagination;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
 
-using axionpro.domain.Entity; using MediatR;
-using Microsoft.AspNetCore.Http;
+using axionpro.domain.Entity;
+using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;

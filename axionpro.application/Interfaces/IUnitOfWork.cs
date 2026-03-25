@@ -43,9 +43,13 @@ namespace axionpro.application.Interfaces
         IEmployeeContactRepository EmployeeContactRepository { get; }
         IEmployeeBankRepository EmployeeBankRepository { get; }
         IEmployeeEducationRepository EmployeeEducationRepository { get; }
-        IEmployeeExpereinceRepository EmployeeExpereinceRepository { get; }
+
+        IEmployeeExperienceRepository EmployeeExperienceRepository { get; }
+        IEmployeeExperienceDetailRepository EmployeeExperienceDetailRepository { get; }
+        IEmployeeExperienceDocumentRepository EmployeeExperienceDocumentRepository { get; }
         IEmployeeIdentityRepository EmployeeIdentityRepository { get; }
-        IEmployeeInsuranceRepository EmployeeInsuranceRepository { get; }
+       
+        IEmployeeInsuranceRepository EmployeeInsuranceRepository { get; } 
         IEmployeeDependentRepository EmployeeDependentRepository { get; }
         ITravelRepository TravelRepository { get; }
         IClientRepository ClientsRepository { get; }

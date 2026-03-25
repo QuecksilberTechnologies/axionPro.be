@@ -1,8 +1,5 @@
 ﻿
 using AutoMapper;
-using axionpro.application.DTOs.Employee.AccessResponse;
-using axionpro.application.DTOS.Employee.BaseEmployee;
-using axionpro.application.DTOS.Employee.Experience;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IHashed;
@@ -15,12 +12,12 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.persistance.Repositories
 {
-    public class EmployeeExpereinceRepository : IEmployeeExpereinceRepository
+    public class EmployeeExpereinceRepository : IEmployeeExperienceRepository
     {
         private readonly WorkforceDbContext _context;
         private readonly IMapper _mapper;
         private readonly ILogger<EmployeeExpereinceRepository> _logger;
-       
+
         private readonly IPasswordService _passwordService;
         private readonly IEncryptionService _encryptionService;
         public EmployeeExpereinceRepository(WorkforceDbContext context, IMapper mapper, ILogger<EmployeeExpereinceRepository> logger,
@@ -29,64 +26,79 @@ namespace axionpro.persistance.Repositories
             this._context = context;
             this._mapper = mapper;
             this._logger = logger;
-            
+
             _passwordService = passwordService;
             _encryptionService = encryptionService;
 
         }
-
-        // 1️⃣ Insert Parent Experience
-        // ----------------------------------------------------
-        public async Task<PagedResponseDTO<EmployeeExperience>> AddExperienceAsync(EmployeeExperience entity)
+        // ===============================
+        // 🔹 CREATE
+        // ===============================
+        public async Task AddAsync(EmployeeExperience entity)
         {
             await _context.EmployeeExperiences.AddAsync(entity);
             await _context.SaveChangesAsync();
-
-            return new PagedResponseDTO<EmployeeExperience>
-            {
-                Items = new List<EmployeeExperience> { entity },
-               
-            };
         }
 
-        // ----------------------------------------------------
-        // 2️⃣ Bulk Insert ExperienceDetail
-        // ----------------------------------------------------
-        public async Task<PagedResponseDTO<EmployeeExperienceDetail>> AddDetailAsync(List<EmployeeExperienceDetail> entities)
+        // ===============================
+        // 🔹 UPDATE
+        // ===============================
+        public async Task<bool> UpdateAsync(EmployeeExperience entity)
         {
-            await _context.EmployeeExperienceDetails.AddRangeAsync(entities);
-            await _context.SaveChangesAsync();
-
-            return new PagedResponseDTO<EmployeeExperienceDetail>
-            {
-                Items = entities,
-               
-            };
+            _context.EmployeeExperiences.Update(entity);
+            return await _context.SaveChangesAsync() > 0;
         }
 
-        // ----------------------------------------------------
-        // 3️⃣ Bulk Insert Payslip
-        // ----------------------------------------------------
-        public async Task<PagedResponseDTO<EmployeeExperiencePayslipUpload>> AddPayslipAsync(List<EmployeeExperiencePayslipUpload> entities)
+        // ===============================
+        // 🔹 DELETE (SOFT)
+        // ===============================
+        public async Task<bool> SoftDeleteAsync(EmployeeExperience entity)
         {
-            await _context.EmployeeExperiencePayslipUploads.AddRangeAsync(entities);
-            await _context.SaveChangesAsync();
+            entity.IsSoftDeleted = true;
+            entity.IsActive = false;
 
-            return new PagedResponseDTO<EmployeeExperiencePayslipUpload>
-            {
-                Items = entities,
-                 
-            };
+            _context.EmployeeExperiences.Update(entity);
+            return await _context.SaveChangesAsync() > 0;
         }
-        public Task<PagedResponseDTO<EmployeeExperience>> GetAllAsync(long employeeId)
+
+        // ===============================
+        // 🔹 GET BY ID
+        // ===============================
+        public async Task<EmployeeExperience?> GetByIdAsync(long id, long tenantId)
         {
-            throw new NotImplementedException();
+            return await _context.EmployeeExperiences
+                .Include(x => x.EmployeeExperienceDetails)
+                    .ThenInclude(d => d.EmployeeExperienceDocuments)
+                .FirstOrDefaultAsync(x =>
+                    x.Id == id &&
+                    x.EmployeeId == tenantId &&
+                    !x.IsSoftDeleted);
+        }
+
+        // ===============================
+        // 🔹 GET LIST (PAGINATED)
+        // ===============================
+        public async Task<(List<EmployeeExperience> Items, int TotalCount)>
+            GetListAsync(long employeeId, int pageNumber, int pageSize)
+        {
+            var query = _context.EmployeeExperiences
+                .Where(x => x.EmployeeId == employeeId && !x.IsSoftDeleted);
+
+            var total = await query.CountAsync();
+
+            var data = await query
+                .OrderByDescending(x => x.Id)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Include(x => x.EmployeeExperienceDetails)
+                    .ThenInclude(d => d.EmployeeExperienceDocuments)
+                .ToListAsync();
+
+            return (data, total);
         }
     }
 
 }
-
-
 
 
  
