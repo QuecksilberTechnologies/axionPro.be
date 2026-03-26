@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.Experience;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -26,58 +27,36 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
         }
 
     }
-    public class UpdateExperienceInfoCommandHandler : IRequestHandler<UpdateExperienceInfoCommand, ApiResponse<bool>>
+    public class UpdateExperienceInfoCommandHandler
+       : IRequestHandler<UpdateExperienceInfoCommand, ApiResponse<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ILogger<CreateExperienceInfoCommand> _logger;
-        private readonly ITokenService _tokenService;
-        private readonly IPermissionService _permissionService;
-        private readonly IConfiguration _config;
-        private readonly IEncryptionService _encryptionService;
+        private readonly ILogger<UpdateExperienceInfoCommand> _logger;
         private readonly IIdEncoderService _idEncoderService;
-        private readonly IFileStorageService _fileStorageService;
         private readonly ICommonRequestService _commonRequestService;
 
         public UpdateExperienceInfoCommandHandler(
             IUnitOfWork unitOfWork,
-            IMapper mapper,
-            IHttpContextAccessor httpContextAccessor,
-            ILogger<CreateExperienceInfoCommand> logger,
-            ITokenService tokenService,
-            IPermissionService permissionService,
-            IConfiguration config,
-            IEncryptionService encryptionService,
+            ILogger<UpdateExperienceInfoCommand> logger,
             IIdEncoderService idEncoderService,
-            IFileStorageService fileStorageService, ICommonRequestService commonRequestService
-
-        )
+            ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
-            _httpContextAccessor = httpContextAccessor;
             _logger = logger;
-            _tokenService = tokenService;
-            _permissionService = permissionService;
-            _config = config;
-            _encryptionService = encryptionService;
             _idEncoderService = idEncoderService;
-            _fileStorageService = fileStorageService;
             _commonRequestService = commonRequestService;
-
         }
 
         public async Task<ApiResponse<bool>> Handle(
-          UpdateExperienceInfoCommand request,
-          CancellationToken cancellationToken)
+            UpdateExperienceInfoCommand request,
+            CancellationToken cancellationToken)
         {
             try
             {
-                _logger.LogInformation("🚀 UpdateExperience (Parent Only) started");
+                _logger.LogInformation("🚀 UpdateExperience started");
 
                 // ===============================
-                // 1️⃣ COMMON VALIDATION
+                // 1️⃣ VALIDATION
                 // ===============================
                 var validation = await _commonRequestService.ValidateRequestAsync();
 
@@ -87,22 +66,17 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request");
 
-                
-
-                if (request.DTO.Prop == null)
-                    request.DTO.Prop = new();
-
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
- 
+                if (request.DTO.Id > 0)
+                    throw new ValidationErrorException("ExperienceId is required");                
 
                 // ===============================
-                // 3️⃣ FETCH EXISTING (ONLY PARENT)
+                // 3️⃣ FETCH EXISTING (SINGLE)
                 // ===============================
-                var existing = await _unitOfWork.EmployeeExperienceRepository.GetByEmployeeIdWithDetailsAsync(request.DTO.Prop.UserEmployeeId);
+                var existing = await _unitOfWork.EmployeeExperienceRepository
+                    .GetByIdAsync(request.DTO.Id, validation.TenantId);
 
                 if (existing == null)
-                    throw new ApiException("Experience record not found.", 404);
+                    throw new ApiException("Experience not found", 404);
 
                 // ===============================
                 // 4️⃣ START TRANSACTION
@@ -110,42 +84,84 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                 await _unitOfWork.BeginTransactionAsync();
 
                 // ===============================
-                // 5️⃣ UPDATE PARENT ONLY
-                // ===============================
-                // ===============================
-                // 5️⃣ SAFE UPDATE (PARTIAL UPDATE)
+                // 5️⃣ UPDATE (SAFE PARTIAL)
                 // ===============================
 
-                // 🔹 CTC
+                if (!string.IsNullOrWhiteSpace(request.DTO.CompanyName))
+                    existing.CompanyName = request.DTO.CompanyName;
+
+                if (!string.IsNullOrWhiteSpace(request.DTO.Designation))
+                    existing.Designation = request.DTO.Designation;
+
+                if (!string.IsNullOrWhiteSpace(request.DTO.EmployeeIdOfCompany))
+                    existing.EmployeeIdOfCompany = request.DTO.EmployeeIdOfCompany;
+
                 if (request.DTO.Ctc.HasValue)
-                    existing.Ctc = request.DTO.Ctc.Value;
+                    existing.Ctc = request.DTO.Ctc;
 
-                // 🔹 Comment
-                if (!string.IsNullOrWhiteSpace(request.DTO.Comment))
-                    existing.Comment = request.DTO.Comment;
+                if (request.DTO.StartDate.HasValue)
+                    existing.StartDate = request.DTO.StartDate;
 
-                // 🔹 HasEPFAccount (bool)
-                if (request.DTO.HasEPFAccount != existing.HasEPFAccount)
-                    existing.HasEPFAccount = request.DTO.HasEPFAccount;
+                if (request.DTO.EndDate.HasValue)
+                    existing.EndDate = request.DTO.EndDate;
 
-                // 🔹 IsFresher (bool)
-                if (request.DTO.IsFresher != existing.IsFresher)
-                    existing.IsFresher = request.DTO.IsFresher;
+                if (request.DTO.Experience.HasValue)
+                    existing.Experience = request.DTO.Experience;
 
-                // 🔹 Audit Fields
+                if (request.DTO.IsWFH)
+                    existing.IsWFH = request.DTO.IsWFH;
+
+                if (request.DTO.WorkingCountryId.HasValue)
+                    existing.WorkingCountryId = request.DTO.WorkingCountryId;
+
+                if (request.DTO.WorkingStateId.HasValue)
+                    existing.WorkingStateId = request.DTO.WorkingStateId;
+
+                if (request.DTO.WorkingDistrictId.HasValue)
+                    existing.WorkingDistrictId = request.DTO.WorkingDistrictId;
+
+                if (request.DTO.IsForeignExperience)
+                    existing.IsForeignExperience = request.DTO.IsForeignExperience;
+
+                if (!string.IsNullOrWhiteSpace(request.DTO.ReasonForLeaving))
+                    existing.ReasonForLeaving = request.DTO.ReasonForLeaving;
+
+                if (!string.IsNullOrWhiteSpace(request.DTO.Remark))
+                    existing.Remark = request.DTO.Remark;
+
+                if (!string.IsNullOrWhiteSpace(request.DTO.ColleagueName))
+                    existing.ColleagueName = request.DTO.ColleagueName;
+
+                if (!string.IsNullOrWhiteSpace(request.DTO.ColleagueDesignation))
+                    existing.ColleagueDesignation = request.DTO.ColleagueDesignation;
+
+                if (!string.IsNullOrWhiteSpace(request.DTO.ColleagueContactNumber))
+                    existing.ColleagueContactNumber = request.DTO.ColleagueContactNumber;
+
+                if (!string.IsNullOrWhiteSpace(request.DTO.ReportingManagerName))
+                    existing.ReportingManagerName = request.DTO.ReportingManagerName;
+
+                if (!string.IsNullOrWhiteSpace(request.DTO.ReportingManagerNumber))
+                    existing.ReportingManagerNumber = request.DTO.ReportingManagerNumber;
+
+                if (!string.IsNullOrWhiteSpace(request.DTO.VerificationEmail))
+                    existing.VerificationEmail = request.DTO.VerificationEmail;
+
+                if (request.DTO.IsAnyGap)
+                    existing.IsAnyGap = request.DTO.IsAnyGap;
+
+                if (!string.IsNullOrWhiteSpace(request.DTO.ReasonOfGap))
+                    existing.ReasonOfGap = request.DTO.ReasonOfGap;
+
+                if (request.DTO.GapYearFrom.HasValue)
+                    existing.GapYearFrom = request.DTO.GapYearFrom;
+
+                if (request.DTO.GapYearTo.HasValue)
+                    existing.GapYearTo = request.DTO.GapYearTo;
+
+                // 🔹 Audit
                 existing.UpdatedById = validation.UserEmployeeId;
                 existing.UpdatedDateTime = DateTime.UtcNow;
-
-                /*
-                    🔥 CURRENT STEP BEHAVIOR
-
-                    ✔ Only parent updated
-                    ✔ No child touched
-                    ✔ No delete
-                    ✔ No insert
-
-                    👉 Safe step for testing
-                */
 
                 // ===============================
                 // 6️⃣ SAVE
@@ -157,18 +173,18 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                 // ===============================
                 await _unitOfWork.CommitTransactionAsync();
 
-                _logger.LogInformation("✅ Parent Experience updated successfully");
+                _logger.LogInformation("✅ Experience updated successfully");
 
                 return ApiResponse<bool>.Success(true, "Experience updated successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ UpdateExperience (Parent) failed");
+                _logger.LogError(ex, "❌ UpdateExperience failed");
 
                 await _unitOfWork.RollbackTransactionAsync();
-
                 throw;
             }
         }
     }
+
 }

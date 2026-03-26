@@ -33,7 +33,7 @@ namespace axionpro.persistance.Repositories
         // ===============================
         // 🔹 ADD SINGLE
         // ===============================
-        public async Task AddAsync(EmployeeExperienceDetail entity)
+        public async Task AddAsync(EmployeeExperience entity)
         {
             await _context.EmployeeExperienceDetails.AddAsync(entity);
         }
@@ -41,7 +41,7 @@ namespace axionpro.persistance.Repositories
         // ===============================
         // 🔹 ADD RANGE
         // ===============================
-        public async Task AddRangeAsync(List<EmployeeExperienceDetail> entities)
+        public async Task AddRangeAsync(List<EmployeeExperience> entities)
         {
             await _context.EmployeeExperienceDetails.AddRangeAsync(entities);
         }
@@ -49,17 +49,17 @@ namespace axionpro.persistance.Repositories
         // ===============================
         // 🔹 GET BY EXPERIENCE ID
         // ===============================
-        public async Task<List<EmployeeExperienceDetail>> GetByExperienceIdAsync(long experienceId)
+        public async Task<List<EmployeeExperience>> GetByExperienceIdAsync(long experienceId)
         {
             return await _context.EmployeeExperienceDetails
-                .Where(x => x.EmployeeExperienceId == experienceId && !x.IsSoftDeleted)
+                .Where(x => x.EmployeeId == experienceId && !x.IsSoftDeleted)
                 .ToListAsync();
         }
 
         // ===============================
         // 🔹 UPDATE
         // ===============================
-        public Task<bool> UpdateAsync(EmployeeExperienceDetail entity)
+        public Task<bool> UpdateAsync(EmployeeExperience entity)
         {
             _context.EmployeeExperienceDetails.Update(entity);
             return Task.FromResult(true); // SaveChanges UoW karega
@@ -68,7 +68,7 @@ namespace axionpro.persistance.Repositories
         // ===============================
         // 🔹 SOFT DELETE
         // ===============================
-        public Task<bool> SoftDeleteAsync(EmployeeExperienceDetail entity)
+        public Task<bool> SoftDeleteAsync(EmployeeExperience entity)
         {
             entity.IsSoftDeleted = true;
             entity.IsActive = false;
@@ -78,7 +78,7 @@ namespace axionpro.persistance.Repositories
             return Task.FromResult(true);
         }
 
-        public Task<EmployeeExperienceDetail?> GetByIdAsync(long id)
+        public Task<EmployeeExperience?> GetByIdAsync(long id)
         {
             throw new NotImplementedException();
         }

@@ -50,7 +50,7 @@ namespace axionpro.persistance.Repositories
         public async Task<List<EmployeeExperienceDocument>> GetByDetailIdAsync(long detailId)
         {
             return await _context.EmployeeExperienceDocuments
-                .Where(x => x.EmployeeExperienceDetailId == detailId && !x.IsSoftDeleted)
+                .Where(x => x.EmployeeExperience.Id == detailId && !x.IsSoftDeleted)
                 .ToListAsync();
         }
 

@@ -1,10 +1,12 @@
-﻿using axionpro.domain.Entity;
+﻿using axionpro.application.DTOS.Employee.Experience;
+using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
 namespace axionpro.application.Interfaces.IRepositories;
 
 public interface IEmployeeExperienceRepository
 {
     // 🔹 CREATE
-    Task AddAsync(EmployeeExperience entity);
+    Task  AddAsync(EmployeeExperience entity);
 
     // 🔹 UPDATE
     Task<bool> UpdateAsync(EmployeeExperience entity);
@@ -16,6 +18,6 @@ public interface IEmployeeExperienceRepository
     Task<EmployeeExperience?> GetByIdAsync(long id, long tenantId);
 
     // 🔹 GET LIST (WITH DETAILS)
-    Task<EmployeeExperience?> GetByEmployeeIdWithDetailsAsync(long employeeId);
+    Task<List<EmployeeExperience>> GetByEmployeeIdWithDocumentsAsync(long employeeId);
 }
 

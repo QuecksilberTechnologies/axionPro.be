@@ -7,39 +7,22 @@ using System.ComponentModel.DataAnnotations;
 
 namespace axionpro.application.DTOS.Employee.Experience
 {
+   
     // =====================================================================
-    //  CREATE EXPERIENCE REQUEST DTO
+    //  EXPERIENCE   DTO
     // =====================================================================
     public class UpdateExperienceRequestDTO
     {
-        // 🔥 REQUIRED
+        // 🔥 IMPORTANT
         [Required]
-        public string UserEmployeeId { get; set; } = string.Empty;     
+        public string UserEmployeeId { get; set; } = string.Empty;
 
         [Required]
         public string EmployeeId { get; set; } = string.Empty;
-     
 
         // 🔹 Parent Fields
         public decimal? Ctc { get; set; }
-        public string? Comment { get; set; }
-
-        public bool HasEPFAccount { get; set; }
-        public bool IsFresher { get; set; }
-
-        // 🔹 Common Props
-        public ExtraPropRequestDTO? Prop { get; set; } = new();
-
-        // 🔹 Child
-        public List<UpdateExperienceDetailDTO>? ExperienceDetails { get; set; }
-    }
-    // =====================================================================
-    //  EXPERIENCE DETAILS DTO
-    // =====================================================================
-    public class UpdateExperienceDetailDTO
-    {
-        // 🔥 IMPORTANT
-        public string? Id { get; set; } // null = NEW, value = UPDATE
+        public long Id { get; set; } // null = NEW, value = UPDATE
 
         // 🔹 Job Info
         public string? CompanyName { get; set; }
@@ -79,6 +62,8 @@ namespace axionpro.application.DTOS.Employee.Experience
 
         public DateTime? GapYearFrom { get; set; }
         public DateTime? GapYearTo { get; set; }
+        public ExtraPropRequestDTO? Prop { get; set; } = new();
+
 
         // 🔹 Documents
         public List<UpdateExperienceDocumentDTO>? Documents { get; set; }
@@ -90,7 +75,7 @@ namespace axionpro.application.DTOS.Employee.Experience
     public class UpdateExperienceDocumentDTO
     {
         // 🔥 IMPORTANT
-        public string? Id { get; set; } // null = NEW, value = UPDATE
+        public long? Id { get; set; } // null = NEW, value = UPDATE
 
         public int DocumentType { get; set; }
 

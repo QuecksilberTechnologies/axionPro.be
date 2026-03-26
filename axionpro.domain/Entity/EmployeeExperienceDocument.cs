@@ -5,43 +5,31 @@ namespace axionpro.domain.Entity;
 
 public partial class EmployeeExperienceDocument
 {
-   
-        // ---------------------------------------------------------
-        // 🔹 Primary Key
-        // ---------------------------------------------------------
-        public long Id { get; set; }
+    // 🔹 Primary Key
+    public long Id { get; set; }
 
-        // ---------------------------------------------------------
-        // 🔹 Foreign Key
-        // ---------------------------------------------------------
-        public long EmployeeExperienceDetailId { get; set; }
+    // 🔹 Correct FK
+    public long EmployeeExperienceId { get; set; }
 
-        // ---------------------------------------------------------
-        // 🔹 Document Info
-        // ---------------------------------------------------------
-        public int DocumentType { get; set; }   // 🔥 ENUM use karenge
-        public string? FileName { get; set; }
-        public string? FilePath { get; set; }
+    // 🔹 Navigation
+    public virtual EmployeeExperience EmployeeExperience { get; set; } = null!;
 
-        public bool IsUploaded { get; set; } = true;
+    // 🔹 Document Info
+    public int DocumentType { get; set; }
+    public string? FileName { get; set; }
+    public string? FilePath { get; set; }
 
-        public string? Remark { get; set; }
+    public bool IsUploaded { get; set; } = true;
 
-        // ---------------------------------------------------------
-        // 🔹 Audit Fields
-        // ---------------------------------------------------------
-        public bool IsActive { get; set; } = true;
-        public bool IsSoftDeleted { get; set; } = false;
+    public string? Remark { get; set; }
 
-        public long AddedById { get; set; }
-        public DateTime AddedDateTime { get; set; }
+    // 🔹 Audit
+    public bool IsActive { get; set; } = true;
+    public bool IsSoftDeleted { get; set; } = false;
 
-        public long? UpdatedById { get; set; }
-        public DateTime? UpdatedDateTime { get; set; }
+    public long AddedById { get; set; }
+    public DateTime AddedDateTime { get; set; }
 
-        // ---------------------------------------------------------
-        // 🔹 Navigation
-        // ---------------------------------------------------------
-        public virtual EmployeeExperienceDetail EmployeeExperienceDetail { get; set; } = null!;
-    
+    public long? UpdatedById { get; set; }
+    public DateTime? UpdatedDateTime { get; set; }
 }

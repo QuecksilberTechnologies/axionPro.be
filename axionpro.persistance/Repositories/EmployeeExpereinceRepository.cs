@@ -1,9 +1,11 @@
 ﻿
 using AutoMapper;
+using axionpro.application.DTOS.Employee.Experience;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
+using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 
 using axionpro.persistance.Data.Context;
@@ -34,10 +36,10 @@ namespace axionpro.persistance.Repositories
         // ===============================
         // 🔹 CREATE
         // ===============================
-        public async Task AddAsync(EmployeeExperience entity)
+        public async Task  AddAsync(EmployeeExperience entity)
         {
-            await _context.EmployeeExperiences.AddAsync(entity);
-            await _context.SaveChangesAsync();
+            await _context.EmployeeExperiences.AddAsync(entity);          
+           
         }
 
         // ===============================
@@ -64,28 +66,28 @@ namespace axionpro.persistance.Repositories
         // ===============================
         // 🔹 GET BY ID
         // ===============================
-        public async Task<EmployeeExperience?> GetByIdAsync(long id, long tenantId)
+        public async Task<EmployeeExperience?> GetByIdAsync(long id, long employeeId)
         {
             return await _context.EmployeeExperiences
-                .Include(x => x.EmployeeExperienceDetails)
-                    .ThenInclude(d => d.EmployeeExperienceDocuments)
+                .Include(x => x.EmployeeExperienceDocuments) // ✅ direct include
                 .FirstOrDefaultAsync(x =>
                     x.Id == id &&
-                    x.EmployeeId == tenantId &&
+                    x.EmployeeId == employeeId &&
                     !x.IsSoftDeleted);
         }
 
         // ===============================
         // 🔹 GET LIST (PAGINATED)
         // ===============================
-        public async Task<EmployeeExperience?> GetByEmployeeIdWithDetailsAsync(long employeeId)
+        public async Task<List<EmployeeExperience>> GetByEmployeeIdWithDocumentsAsync(long employeeId)
         {
             return await _context.EmployeeExperiences
-                .Include(e => e.EmployeeExperienceDetails)
-                    .ThenInclude(d => d.EmployeeExperienceDocuments)
-                .FirstOrDefaultAsync(x =>
+                .Include(x => x.EmployeeExperienceDocuments) // ✅ direct include
+                .Where(x =>
                     x.EmployeeId == employeeId &&
-                    !x.IsSoftDeleted);
+                    x.IsActive &&
+                    !x.IsSoftDeleted)
+                .ToListAsync();
         }
     }
 

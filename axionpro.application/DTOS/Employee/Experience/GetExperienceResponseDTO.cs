@@ -8,28 +8,18 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOS.Employee.Experience
 {
+    
+
     public class GetEmployeeExperienceResponseDTO
     {
+
+      
         public long Id { get; set; }
         public string? EmployeeId { get; set; }
 
         // 🔹 Basic Info
         public decimal? Ctc { get; set; }
-        public string? Comment { get; set; }
 
-        public bool HasEPFAccount { get; set; }
-        public bool IsFresher { get; set; }
-
-        // 🔹 Status
-        public bool IsActive { get; set; }
-
-        // 🔹 Child Data
-        public List<GetEmployeeExperienceDetailDTO>? ExperienceDetails { get; set; }
-    }
-
-    public class GetEmployeeExperienceDetailDTO
-    {
-        public string Id { get; set; }
 
         // 🔹 Job Info
         public string? CompanyName { get; set; }

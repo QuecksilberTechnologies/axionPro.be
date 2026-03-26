@@ -108,7 +108,7 @@ namespace axionpro.persistance.Data.Context
 
         public virtual DbSet<EmployeeExperience> EmployeeExperiences { get; set; }
         
-        public virtual DbSet<EmployeeExperienceDetail> EmployeeExperienceDetails { get; set; }
+        public virtual DbSet<EmployeeExperience> EmployeeExperienceDetails { get; set; }
 
         public virtual DbSet<EmployeeExperienceDocument> EmployeeExperienceDocuments { get; set; }
 
@@ -1236,91 +1236,44 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
             });
 
+
             modelBuilder.Entity<EmployeeExperience>(entity =>
-            {
-                entity.HasKey(e => e.Id)
-                      .HasName("PK__Employee__3214EC071B15DEB3");
-
-                entity.ToTable("EmployeeExperience", "axionpro");
-
-                entity.Property(e => e.Id)
-                      .ValueGeneratedOnAdd();
-
-                // ✅ NO IsRequired(false) here
-
-                entity.HasOne(e => e.Employee)
-                    .WithMany(e => e.EmployeeExperiences) // ✅ correct
-                    .HasForeignKey(e => e.EmployeeId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                entity.Property(e => e.Ctc)
-                      .HasColumnType("decimal(18,2)")
-                      .HasColumnName("CTC");
-
-                entity.Property(e => e.Comment)
-                      .HasMaxLength(500);
-
-                entity.Property(e => e.HasEPFAccount)
-                      .HasDefaultValue(false);
-
-                entity.Property(e => e.IsFresher)
-                      .HasDefaultValue(false);
-
-                entity.Property(e => e.IsInfoVerified)
-                      .HasDefaultValue(false);
-
-                entity.Property(e => e.InfoVerifiedAt)
-                      .HasColumnType("datetime");
-
-                entity.Property(e => e.AddedDateTime)
-                      .HasColumnType("datetime");
-
-                entity.Property(e => e.UpdatedDateTime)
-                      .HasColumnType("datetime");
-
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
-
-                entity.HasIndex(e => e.EmployeeId)
-                      .HasDatabaseName("IX_EmployeeExperience_EmployeeId");
-            });
-            modelBuilder.Entity<EmployeeExperienceDetail>(entity =>
             {
                 entity.HasKey(e => e.Id);
 
-                entity.ToTable("EmployeeExperienceDetail", "axionpro");
+                entity.ToTable("EmployeeExperience", "axionpro");
 
-                // 🔹 Basic fields
+                entity.Property(e => e.Ctc)
+                    .HasColumnType("decimal(18,2)")
+                    .HasColumnName("CTC");
+
                 entity.Property(e => e.CompanyName).HasMaxLength(100);
                 entity.Property(e => e.Designation).HasMaxLength(100);
                 entity.Property(e => e.EmployeeIdOfCompany).HasMaxLength(100);
 
-                // 🔹 Reporting
                 entity.Property(e => e.ColleagueName).HasMaxLength(100);
                 entity.Property(e => e.ColleagueDesignation).HasMaxLength(100);
-                entity.Property(e => e.ColleagueContactNumber).HasMaxLength(15);
+                entity.Property(e => e.ColleagueContactNumber).HasMaxLength(20);
 
                 entity.Property(e => e.ReportingManagerName).HasMaxLength(100);
-                entity.Property(e => e.ReportingManagerNumber).HasMaxLength(15);
+                entity.Property(e => e.ReportingManagerNumber).HasMaxLength(20);
 
                 entity.Property(e => e.VerificationEmail).HasMaxLength(100);
 
-                // 🔹 Exit & Gap
                 entity.Property(e => e.ReasonForLeaving).HasMaxLength(200);
                 entity.Property(e => e.Remark).HasMaxLength(200);
                 entity.Property(e => e.ReasonOfGap).HasMaxLength(500);
 
-                // 🔹 Defaults
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.IsWFH).HasDefaultValue(false);
                 entity.Property(e => e.IsAnyGap).HasDefaultValue(false);
+                entity.Property(e => e.IsForeignExperience).HasDefaultValue(false);
 
-                // 🔹 Relationships
-                entity.HasOne(d => d.EmployeeExperience)
-                    .WithMany(p => p.EmployeeExperienceDetails)
-                    .HasForeignKey(d => d.EmployeeExperienceId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                
+                // 🔥 FINAL CORRECT FK (Bidirectional, No Shadow)
+                entity.HasOne(e => e.Employee)
+                    .WithMany(e => e.EmployeeExperiences)
+                    .HasForeignKey(e => e.EmployeeId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<EmployeeExperienceDocument>(entity =>
@@ -1329,26 +1282,23 @@ namespace axionpro.persistance.Data.Context
 
                 entity.ToTable("EmployeeExperienceDocument", "axionpro");
 
-                // 🔹 File
+                // 🔹 Columns
                 entity.Property(e => e.FileName).HasMaxLength(200);
                 entity.Property(e => e.FilePath).HasMaxLength(500);
 
-                // 🔹 Required
                 entity.Property(e => e.DocumentType).IsRequired();
 
                 // 🔹 Defaults
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.IsUploaded).HasDefaultValue(true);
 
-                // 🔹 Relationship
-                entity.HasOne(d => d.EmployeeExperienceDetail)
+                // 🔥 FK → EmployeeExperience (NO SHADOW)
+                entity.HasOne(d => d.EmployeeExperience)
                     .WithMany(p => p.EmployeeExperienceDocuments)
-                    .HasForeignKey(d => d.EmployeeExperienceDetailId)
+                    .HasForeignKey(d => d.EmployeeExperienceId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
-          
-            
-            
+
             modelBuilder.Entity<IdentityCategory>(entity =>
             {
                 entity.HasKey(e => e.Id).HasName("PK__Identity__3214EC07393AF557");

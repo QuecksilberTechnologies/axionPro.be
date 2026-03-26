@@ -8,19 +8,19 @@ namespace axionpro.application.Interfaces.IRepositories
     public interface IEmployeeExperienceDetailRepository
     {
         // 🔹 CREATE
-        Task AddAsync(EmployeeExperienceDetail entity);
-        Task AddRangeAsync(List<EmployeeExperienceDetail> entities);
+        Task AddAsync(EmployeeExperience entity);
+        Task AddRangeAsync(List<EmployeeExperience> entities);
 
         // 🔹 UPDATE
-        Task<bool> UpdateAsync(EmployeeExperienceDetail entity);
+        Task<bool> UpdateAsync(EmployeeExperience entity);
 
         // 🔹 DELETE (Soft Delete)
-        Task<bool> SoftDeleteAsync(EmployeeExperienceDetail entity);
+        Task<bool> SoftDeleteAsync(EmployeeExperience entity);
 
         // 🔹 GET (By Parent)
-        Task<List<EmployeeExperienceDetail>> GetByExperienceIdAsync(long experienceId);
+        Task<List<EmployeeExperience>> GetByExperienceIdAsync(long experienceId);
 
         // 🔹 GET SINGLE (optional but useful)
-        Task<EmployeeExperienceDetail?> GetByIdAsync(long id);
+        Task<EmployeeExperience?> GetByIdAsync(long id);
     }
 }

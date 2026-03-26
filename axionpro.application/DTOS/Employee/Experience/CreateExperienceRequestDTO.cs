@@ -9,29 +9,11 @@ namespace axionpro.application.DTOS.Employee.Experience
     // =====================================================================
     //  CREATE EXPERIENCE REQUEST DTO
     // =====================================================================
+    
     public class CreateExperienceRequestDTO
     {
-        // 🔹 Required (from CommonRequestService)
-        public string EmployeeId { get; set; }
-
-        // 🔹 Basic Info (Parent Table)
+        public required string EmployeeId { get; set; }
         public decimal? Ctc { get; set; }
-        public string? Comment { get; set; }
-
-        public bool HasEPFAccount { get; set; } = false;
-        public bool IsFresher { get; set; } = false;
-
-        // 🔹 Common Props
-        public ExtraPropRequestDTO? Prop { get; set; } = new();
-
-        // 🔹 Child (Multiple Jobs)
-        public List<CreateExperienceDetailDTO>? ExperienceDetails { get; set; }
-    }
-    // =====================================================================
-    //  EXPERIENCE DETAILS DTO
-    // =====================================================================
-    public class CreateExperienceDetailDTO
-    {
         // 🔹 Job Info
         public string? CompanyName { get; set; }
         public string? Designation { get; set; }
@@ -70,6 +52,7 @@ namespace axionpro.application.DTOS.Employee.Experience
 
         public DateTime? GapYearFrom { get; set; }
         public DateTime? GapYearTo { get; set; }
+        public ExtraPropRequestDTO? Prop { get; set; } = new();
 
         // 🔹 Documents (🔥 Important)
         public List<CreateExperienceDocumentDTO>? Documents { get; set; }
