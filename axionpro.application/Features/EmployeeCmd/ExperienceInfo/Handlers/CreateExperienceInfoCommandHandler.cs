@@ -69,11 +69,9 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
             _commonRequestService = commonRequestService;
 
         }
-
-
         public async Task<ApiResponse<List<GetEmployeeExperienceResponseDTO>>> Handle(
-CreateExperienceInfoCommand request,
-CancellationToken cancellationToken)
+    CreateExperienceInfoCommand request,
+    CancellationToken cancellationToken)
         {
             List<string> uploadedFiles = new();
 
@@ -89,9 +87,6 @@ CancellationToken cancellationToken)
                 if (!validation.Success)
                     throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // ===============================
-                // 2️⃣ NULL CHECK
-                // ===============================
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request");
 
@@ -102,18 +97,7 @@ CancellationToken cancellationToken)
                 request.DTO.Prop.TenantId = validation.TenantId;
 
                 // ===============================
-                // 3️⃣ RBAC CHECK
-                // ===============================
-                //var hasAccess = await _commonRequestService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.EmployeeExperience,
-                //    Operations.Add);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("Access denied.");
-
-                // ===============================
-                // 4️⃣ BUSINESS VALIDATION
+                // 2️⃣ BUSINESS VALIDATION
                 // ===============================
                 if (request.DTO.IsFresher && request.DTO.ExperienceDetails?.Any() == true)
                     throw new ValidationErrorException("Fresher cannot have experience details.");
@@ -122,12 +106,12 @@ CancellationToken cancellationToken)
                     throw new ValidationErrorException("Experience details required.");
 
                 // ===============================
-                // 5️⃣ START TRANSACTION
+                // 3️⃣ START TRANSACTION
                 // ===============================
                 await _unitOfWork.BeginTransactionAsync();
 
                 // ===============================
-                // 6️⃣ SAVE PARENT
+                // 4️⃣ CREATE PARENT
                 // ===============================
                 var exp = new EmployeeExperience
                 {
@@ -143,10 +127,10 @@ CancellationToken cancellationToken)
                     IsSoftDeleted = false
                 };
 
-                    await _unitOfWork.EmployeeExperienceRepository.AddAsync(exp);
+                await _unitOfWork.EmployeeExperienceRepository.AddAsync(exp);
 
                 // ===============================
-                // 7️⃣ SAVE DETAILS + DOCUMENTS
+                // 5️⃣ CREATE DETAILS + DOCS (IN MEMORY)
                 // ===============================
                 if (!request.DTO.IsFresher)
                 {
@@ -154,44 +138,45 @@ CancellationToken cancellationToken)
                     {
                         var detail = _mapper.Map<EmployeeExperienceDetail>(detailDto);
 
-                        detail.EmployeeExperienceId = exp.Id;
-                        
+                        detail.EmployeeExperience = exp; // 🔥 IMPORTANT (no need of exp.Id yet)
+
                         detail.AddedById = validation.UserEmployeeId;
                         detail.AddedDateTime = DateTime.UtcNow;
                         detail.IsActive = true;
                         detail.IsSoftDeleted = false;
 
-                        await _unitOfWork.EmployeeExperienceDetailRepository.AddAsync(detail);
-
-                        // 🔥 DOCUMENTS
+                        // 🔹 Documents
                         if (detailDto.Documents != null && detailDto.Documents.Any())
                         {
+                            detail.EmployeeExperienceDocuments = new List<EmployeeExperienceDocument>();
+
                             foreach (var docDto in detailDto.Documents)
                             {
-                                var doc = new EmployeeExperienceDocument
-                                {
-                                    EmployeeExperienceDetailId = detail.Id,
-                                    DocumentType = docDto.DocumentType,
-                                    FileName = docDto.FileName,
-                                    FilePath = docDto.FilePath,
-                                    AddedById = validation.UserEmployeeId,
-                                    AddedDateTime = DateTime.UtcNow,
-                                    IsActive = true,
-                                    IsSoftDeleted = false
-                                };
+                                var doc = _mapper.Map<EmployeeExperienceDocument>(docDto);
 
-                                // 🔹 Track file (for rollback)
+                                doc.AddedById = validation.UserEmployeeId;
+                                doc.AddedDateTime = DateTime.UtcNow;
+                                doc.IsActive = true;
+                                doc.IsSoftDeleted = false;
+
                                 if (!string.IsNullOrWhiteSpace(doc.FilePath))
                                     uploadedFiles.Add(doc.FilePath);
 
-                                await _unitOfWork.EmployeeExperienceDocumentRepository.AddAsync(doc);
+                                detail.EmployeeExperienceDocuments.Add(doc);
                             }
                         }
+
+                        exp.EmployeeExperienceDetails.Add(detail);
                     }
                 }
 
                 // ===============================
-                // 8️⃣ COMMIT
+                // 6️⃣ SAVE ALL (🔥 SINGLE SAVE)
+                // ===============================
+                await _unitOfWork.SaveChangesAsync();
+
+                // ===============================
+                // 7️⃣ COMMIT
                 // ===============================
                 await _unitOfWork.CommitTransactionAsync();
 
@@ -204,9 +189,6 @@ CancellationToken cancellationToken)
             {
                 _logger.LogError(ex, "❌ CreateExperience failed");
 
-                // ===============================
-                // 🔥 ROLLBACK
-                // ===============================
                 await _unitOfWork.RollbackTransactionAsync();
 
                 // 🔥 FILE CLEANUP
@@ -222,6 +204,8 @@ CancellationToken cancellationToken)
                 throw;
             }
         }
+
+
     }
 
 

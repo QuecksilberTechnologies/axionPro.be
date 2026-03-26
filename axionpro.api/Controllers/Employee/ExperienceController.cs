@@ -41,58 +41,32 @@ namespace axionpro.api.Controllers.Employee
         /// <summary>
         /// Get all experience records (Paginated).
         /// </summary>
-        //  [HttpPost("get")]
+          [HttpGet("get")]
         //    
         //    
-        //public async Task<IActionResult> GetAllexperinceInfo([FromBody] GetExperienceRequestDTO commandDto)
-        //{
-        //    try
-        //    {
-        //        var command = new GetExperienceInfoQuery(commandDto);
-        //        var result = await _mediator.Send(command);
-
-        //        if (result.IsSucceeded)
-        //            return Ok(result);
-
-        //        return BadRequest(result);
-        //    }
-        //    catch (Exception ex)
-        //    {
-
-        //        return StatusCode(500, ApiResponse<string>.Fail("Internal server error.", new List<string> { ex.Message }));
-        //    }
-        //}
+        public async Task<IActionResult> GetAllexperinceInfo([FromBody] GetExperienceRequestDTO commandDto)
+        {
+             
+                var command = new GetExperienceInfoQuery(commandDto);
+                var result = await _mediator.Send(command);
+                
+                    return Ok(result);                 
+            
+            
+        }
         /// <summary>
         /// Updates employee details.
         /// </summary>
-        //[HttpPost("update")]
-        //
-        //
-        //public async Task<IActionResult> Update([FromBody] GenricUpdateRequestDTO dto)
-        //{
-        //    try
-        //    {
-        //        _logger.LogInfo($"Updating employee-experience record. EmployeeId: {dto.EmployeeId}");
-
-        //        var command = new UpdateExperienceInfoCommand(dto);
-        //        var result = await _mediator.Send(command);
-
-        //        if (!result.IsSucceeded)
-        //        {
-        //            _logger.LogInfo($"Failed to update employee-experience with Id: {dto.EmployeeId}");
-        //            return BadRequest(result);
-        //        }
-
-        //        _logger.LogInfo("Employee-experience updated successfully.");
-        //        return Ok(result);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError($"Error updating employee-experience: {ex.Message}");
-        //        var errorResponse = ApiResponse<bool>.Fail("An unexpected error occurred while updating employee-experience info.",
-        //            new List<string> { ex.Message });
-        //        return StatusCode(500, errorResponse);
-        //    }
-        // }
+        [HttpPost("update")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Update([FromForm] UpdateExperienceRequestDTO dto)
+        {
+              _logger.LogInfo($"Updating employee-experience record. EmployeeId: {dto.EmployeeId}");
+                var command = new UpdateExperienceInfoCommand(dto);
+                var result = await _mediator.Send(command);
+                _logger.LogInfo("Employee-experience updated successfully.");
+                return Ok(result);
+            
+        }
     }
 }

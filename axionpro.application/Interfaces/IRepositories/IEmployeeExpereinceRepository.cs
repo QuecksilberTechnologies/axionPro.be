@@ -16,7 +16,6 @@ public interface IEmployeeExperienceRepository
     Task<EmployeeExperience?> GetByIdAsync(long id, long tenantId);
 
     // 🔹 GET LIST (WITH DETAILS)
-    Task<(List<EmployeeExperience> Items, int TotalCount)>
-        GetListAsync(long employeeId, int pageNumber, int pageSize);
+    Task<EmployeeExperience?> GetByEmployeeIdWithDetailsAsync(long employeeId);
 }
 

@@ -567,12 +567,12 @@ namespace axionpro.application.Mappings
             #endregion
 
             #region 🔹 Personal Detail Mappings
-       //     CreateMap<EmployeePersonalDetail, CreateIdentityRequestDTO>()
-       //.ForMember(dest => dest.UserEmployeeId, opt => opt.Ignore())
-       //.ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
-       //.ForMember(dest => dest.AadhaarDocFile, opt => opt.Ignore())
-       //.ForMember(dest => dest.PanDocFile, opt => opt.Ignore())
-       //.ForMember(dest => dest.PassportDocFile, opt => opt.Ignore());
+            //     CreateMap<EmployeePersonalDetail, CreateIdentityRequestDTO>()
+            //.ForMember(dest => dest.UserEmployeeId, opt => opt.Ignore())
+            //.ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
+            //.ForMember(dest => dest.AadhaarDocFile, opt => opt.Ignore())
+            //.ForMember(dest => dest.PanDocFile, opt => opt.Ignore())
+            //.ForMember(dest => dest.PassportDocFile, opt => opt.Ignore());
 
             //CreateMap<CreateIdentityRequestDTO, IdentityCategory>()
             //    .ForMember(dest => dest.Id, opt => opt.Ignore())  // Primary key
@@ -603,8 +603,35 @@ namespace axionpro.application.Mappings
             #endregion
 
             #region 🔹 Experience Mappings
-            CreateMap<EmployeeExperience, EmployeeExperienceEditableFieldsDTO>().ReverseMap();
-           // CreateMap<EmployeeExperience, GetExperienceResponseDTO>().ReverseMap();
+
+            CreateMap<CreateExperienceDetailDTO, EmployeeExperienceDetail>()
+       .ForMember(dest => dest.Id, opt => opt.Ignore())
+       .ForMember(dest => dest.EmployeeExperienceId, opt => opt.Ignore()) // set manually
+       .ForMember(dest => dest.AddedById, opt => opt.Ignore())
+       .ForMember(dest => dest.AddedDateTime, opt => opt.Ignore())
+       .ForMember(dest => dest.UpdatedById, opt => opt.Ignore())
+       .ForMember(dest => dest.UpdatedDateTime, opt => opt.Ignore())
+       .ForMember(dest => dest.EmployeeExperience, opt => opt.Ignore())
+       .ForMember(dest => dest.EmployeeExperienceDocuments, opt => opt.Ignore());
+
+
+            CreateMap<CreateExperienceDocumentDTO, EmployeeExperienceDocument>()
+    .ForMember(dest => dest.Id, opt => opt.Ignore())
+    .ForMember(dest => dest.EmployeeExperienceDetailId, opt => opt.Ignore())
+    .ForMember(dest => dest.AddedById, opt => opt.Ignore())
+    .ForMember(dest => dest.AddedDateTime, opt => opt.Ignore())
+    .ForMember(dest => dest.UpdatedById, opt => opt.Ignore())
+    .ForMember(dest => dest.UpdatedDateTime, opt => opt.Ignore())
+    .ForMember(dest => dest.EmployeeExperienceDetail, opt => opt.Ignore());
+
+            CreateMap<CreateExperienceRequestDTO, EmployeeExperience>()
+    .ForMember(dest => dest.Id, opt => opt.Ignore())
+    .ForMember(dest => dest.EmployeeExperienceDetails, opt => opt.Ignore()) // handle manually
+    .ForMember(dest => dest.AddedById, opt => opt.Ignore())
+    .ForMember(dest => dest.AddedDateTime, opt => opt.Ignore())
+    .ForMember(dest => dest.UpdatedById, opt => opt.Ignore())
+    .ForMember(dest => dest.UpdatedDateTime, opt => opt.Ignore())
+    .ForMember(dest => dest.Employee, opt => opt.Ignore());
             #endregion
 
             #region 🔹 Login / Info Mappings

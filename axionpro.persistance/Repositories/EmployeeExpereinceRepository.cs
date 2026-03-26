@@ -78,23 +78,14 @@ namespace axionpro.persistance.Repositories
         // ===============================
         // 🔹 GET LIST (PAGINATED)
         // ===============================
-        public async Task<(List<EmployeeExperience> Items, int TotalCount)>
-            GetListAsync(long employeeId, int pageNumber, int pageSize)
+        public async Task<EmployeeExperience?> GetByEmployeeIdWithDetailsAsync(long employeeId)
         {
-            var query = _context.EmployeeExperiences
-                .Where(x => x.EmployeeId == employeeId && !x.IsSoftDeleted);
-
-            var total = await query.CountAsync();
-
-            var data = await query
-                .OrderByDescending(x => x.Id)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .Include(x => x.EmployeeExperienceDetails)
+            return await _context.EmployeeExperiences
+                .Include(e => e.EmployeeExperienceDetails)
                     .ThenInclude(d => d.EmployeeExperienceDocuments)
-                .ToListAsync();
-
-            return (data, total);
+                .FirstOrDefaultAsync(x =>
+                    x.EmployeeId == employeeId &&
+                    !x.IsSoftDeleted);
         }
     }
 

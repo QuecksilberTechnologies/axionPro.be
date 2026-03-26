@@ -1,35 +1,45 @@
-﻿using axionpro.application.Common.Helpers;
+﻿using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Pagination;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+using System.ComponentModel.DataAnnotations;
 
 namespace axionpro.application.DTOS.Employee.Experience
 {
-    public class GetEmployeeExperienceResponseDTO
+    // =====================================================================
+    //  CREATE EXPERIENCE REQUEST DTO
+    // =====================================================================
+    public class UpdateExperienceRequestDTO
     {
-        public long Id { get; set; }
-        public string? EmployeeId { get; set; }
+        // 🔥 REQUIRED
+        [Required]
+        public string UserEmployeeId { get; set; } = string.Empty;     
 
-        // 🔹 Basic Info
+        [Required]
+        public string EmployeeId { get; set; } = string.Empty;
+     
+
+        // 🔹 Parent Fields
         public decimal? Ctc { get; set; }
         public string? Comment { get; set; }
 
         public bool HasEPFAccount { get; set; }
         public bool IsFresher { get; set; }
 
-        // 🔹 Status
-        public bool IsActive { get; set; }
+        // 🔹 Common Props
+        public ExtraPropRequestDTO? Prop { get; set; } = new();
 
-        // 🔹 Child Data
-        public List<GetEmployeeExperienceDetailDTO>? ExperienceDetails { get; set; }
+        // 🔹 Child
+        public List<UpdateExperienceDetailDTO>? ExperienceDetails { get; set; }
     }
-
-    public class GetEmployeeExperienceDetailDTO
+    // =====================================================================
+    //  EXPERIENCE DETAILS DTO
+    // =====================================================================
+    public class UpdateExperienceDetailDTO
     {
-        public string Id { get; set; }
+        // 🔥 IMPORTANT
+        public string? Id { get; set; } // null = NEW, value = UPDATE
 
         // 🔹 Job Info
         public string? CompanyName { get; set; }
@@ -70,27 +80,22 @@ namespace axionpro.application.DTOS.Employee.Experience
         public DateTime? GapYearFrom { get; set; }
         public DateTime? GapYearTo { get; set; }
 
-        // 🔹 Verification
-        public bool? IsExperienceVerified { get; set; }
-        public bool? IsExperienceVerifiedByMail { get; set; }
-        public bool? IsExperienceVerifiedByCall { get; set; }
-
-        public bool? IsInfoVerified { get; set; }
-        public bool? IsEditAllowed { get; set; }
-
         // 🔹 Documents
-        public List<GetEmployeeExperienceDocumentDTO>? Documents { get; set; }
+        public List<UpdateExperienceDocumentDTO>? Documents { get; set; }
     }
-    public class GetEmployeeExperienceDocumentDTO
+
+    // =====================================================================
+    //  PAYSLIP UPLOAD DTO
+    // =====================================================================
+    public class UpdateExperienceDocumentDTO
     {
-        public string Id { get; set; }
+        // 🔥 IMPORTANT
+        public string? Id { get; set; } // null = NEW, value = UPDATE
 
         public int DocumentType { get; set; }
-        public string? DocumentTypeName { get; set; } // 🔥 UI ke liye
 
         public string? FileName { get; set; }
         public string? FilePath { get; set; }
-        public string? Url { get; set; } // 🔥 Ready URL
 
         public string? Remark { get; set; }
     }

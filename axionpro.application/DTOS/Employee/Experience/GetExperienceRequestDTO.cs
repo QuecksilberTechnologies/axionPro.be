@@ -10,15 +10,11 @@ using System.Text;
 using System.Threading.Tasks; 
 namespace axionpro.application.DTOS.Employee.Experience
 {
-    public class GetExperienceRequestDTO: BaseRequest
+    public class GetExperienceRequestDTO
     {
         // 🔹 Required (encoded)
-        public string EmployeeId { get; set; } = string.Empty;
-
-        // 🔹 Optional Filters
-        public string? ExperienceId { get; set; }  // 🔥 specific record
-        public bool? IsActive { get; set; }
-        public bool? IsFresher { get; set; }       
+        public required string EmployeeId { get; set; } = string.Empty;
+        public  string? UserEmployeeId { get; set; }
 
         // 🔹 Common Props (Tenant/User context)
         public ExtraPropRequestDTO? Prop { get; set; } = new();

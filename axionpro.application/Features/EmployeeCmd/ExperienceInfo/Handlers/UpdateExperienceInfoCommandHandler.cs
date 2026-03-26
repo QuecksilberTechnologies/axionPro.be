@@ -1,156 +1,174 @@
-﻿namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
+﻿using AutoMapper;
+using axionpro.application.DTOS.Employee.Experience;
+using axionpro.application.Exceptions;
+using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IEncryptionService;
+using axionpro.application.Interfaces.IFileStorage;
+using axionpro.application.Interfaces.IPermission;
+using axionpro.application.Interfaces.ITokenService;
+using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
+using MediatR;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+
+namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
 {
-    //public class UpdateExperienceInfoCommand : IRequest<ApiResponse<bool>>
-    //{
-    //    public GenricUpdateRequestDTO DTO { get; set; }
+    public class UpdateExperienceInfoCommand : IRequest<ApiResponse<bool>>
+    {
+        public UpdateExperienceRequestDTO DTO { get; set; }
 
-    //    public UpdateExperienceInfoCommand(GenricUpdateRequestDTO dto)
-    //    {
-    //        DTO = dto;
-    //    }
+        public UpdateExperienceInfoCommand(UpdateExperienceRequestDTO dto)
+        {
+            DTO = dto;
+        }
 
-    //}
-    //public class UpdateExperienceInfoCommandHandler : IRequestHandler<UpdateExperienceInfoCommand, ApiResponse<bool>>
-    //{
-    //    private readonly IBaseEmployeeRepository _employeeRepository;
-    //    private readonly IUnitOfWork _unitOfWork;
-    //    private readonly ILogger<UpdateExperienceInfoCommandHandler> _logger;
-    //    private readonly IMapper _mapper;
-    //    private readonly ITokenService _tokenService;
-    //    private readonly IPermissionService _permissionService;
-    //    private readonly IConfiguration _config;
-    //    private readonly IHttpContextAccessor _httpContextAccessor;
-    //    private readonly IEncryptionService _encryptionService;
+    }
+    public class UpdateExperienceInfoCommandHandler : IRequestHandler<UpdateExperienceInfoCommand, ApiResponse<bool>>
+    {
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ILogger<CreateExperienceInfoCommand> _logger;
+        private readonly ITokenService _tokenService;
+        private readonly IPermissionService _permissionService;
+        private readonly IConfiguration _config;
+        private readonly IEncryptionService _encryptionService;
+        private readonly IIdEncoderService _idEncoderService;
+        private readonly IFileStorageService _fileStorageService;
+        private readonly ICommonRequestService _commonRequestService;
 
-    //    public UpdateExperienceInfoCommandHandler(
-    //        IBaseEmployeeRepository employeeRepository,
-    //        IUnitOfWork unitOfWork,
-    //        ILogger<UpdateExperienceInfoCommandHandler> logger,
-    //        IMapper mapper,
-    //        ITokenService tokenService,
-    //        IPermissionService permissionService,
-    //        IConfiguration configuration,
-    //        IHttpContextAccessor httpContextAccessor,
-    //        IEncryptionService encryptionService)
-    //    {
-    //        _employeeRepository = employeeRepository;
-    //        _unitOfWork = unitOfWork;
-    //        _logger = logger;
-    //        _mapper = mapper;
-    //        _tokenService = tokenService;
-    //        _permissionService = permissionService;
-    //        _config = configuration;
-    //        _httpContextAccessor = httpContextAccessor;
-    //        _encryptionService = encryptionService;
-    //    }
+        public UpdateExperienceInfoCommandHandler(
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            IHttpContextAccessor httpContextAccessor,
+            ILogger<CreateExperienceInfoCommand> logger,
+            ITokenService tokenService,
+            IPermissionService permissionService,
+            IConfiguration config,
+            IEncryptionService encryptionService,
+            IIdEncoderService idEncoderService,
+            IFileStorageService fileStorageService, ICommonRequestService commonRequestService
 
-    //    public async Task<ApiResponse<bool>> Handle(UpdateExperienceInfoCommand request, CancellationToken cancellationToken)
-    //    {
-    //        try
-    //        {
-    //            // 🧱 Step 1: Validate JWT Token
-    //            var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString()?.Replace("Bearer ", "");
-    //            if (string.IsNullOrEmpty(bearerToken))
-    //                return ApiResponse<bool>.Fail("Unauthorized: Token not found.");
+        )
+        {
+            _unitOfWork = unitOfWork;
+            _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
+            _logger = logger;
+            _tokenService = tokenService;
+            _permissionService = permissionService;
+            _config = config;
+            _encryptionService = encryptionService;
+            _idEncoderService = idEncoderService;
+            _fileStorageService = fileStorageService;
+            _commonRequestService = commonRequestService;
 
-    //            var secretKey = _config["Jwt:Key"];
-    //            var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
+        }
 
-    //            if (tokenClaims == null || tokenClaims.IsExpired)
-    //                return ApiResponse<bool>.Fail("Invalid or expired token.");
+        public async Task<ApiResponse<bool>> Handle(
+          UpdateExperienceInfoCommand request,
+          CancellationToken cancellationToken)
+        {
+            try
+            {
+                _logger.LogInformation("🚀 UpdateExperience (Parent Only) started");
 
-    //            // 🧱 Step 2: Validate Logged-in User
-    //            long empId = await _unitOfWork.CommonRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
-    //            if (empId < 1)
-    //            {
-    //                _logger.LogWarning("User validation failed for LoginId: {LoginId}", tokenClaims.UserId);
-    //                await _unitOfWork.RollbackTransactionAsync();
-    //                return ApiResponse<bool>.Fail("User is not authorized to perform this action.");
-    //            }
+                // ===============================
+                // 1️⃣ COMMON VALIDATION
+                // ===============================
+                var validation = await _commonRequestService.ValidateRequestAsync();
 
-    //            // 🧱 Step 3: Permission Check
-    //            var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
-    //            if (!permissions.Contains("EditExperienceInfo"))
-    //            {
-    //                await _unitOfWork.RollbackTransactionAsync();
-    //                return ApiResponse<bool>.Fail("You do not have permission to edit experience info.");
-    //            }
+                if (!validation.Success)
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-    //            var tenantKey = tokenClaims.TenantEncriptionKey;
-    //            var dto = request.DTO;
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request");
 
-    //            // 🧱 Step 4: Validation
-    //            if (string.IsNullOrWhiteSpace(dto.FieldName))
-    //                return ApiResponse<bool>.Fail("Field name cannot be empty.");
+                
 
-    //            if (!string.IsNullOrEmpty(dto.UserEmployeeId))
-    //                dto._EmployeeId = EncryptionHelper1.DecryptId(_encryptionService, dto.UserEmployeeId, tenantKey);
+                if (request.DTO.Prop == null)
+                    request.DTO.Prop = new();
 
-    //            // 🧱 Step 5: Fetch Employee Experience record
-    //            var experienceEntity = await _employeeRepository.UpdateEmployeeFieldAsync(
-    //                dto._EmployeeId, dto.EntityName, dto.FieldName, dto.FieldValue, dto._EmployeeId);
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
+ 
 
-    //            if (experienceEntity == null)
-    //                return ApiResponse<bool>.Fail("Employee experience record not found.");
+                // ===============================
+                // 3️⃣ FETCH EXISTING (ONLY PARENT)
+                // ===============================
+                var existing = await _unitOfWork.EmployeeExperienceRepository.GetByEmployeeIdWithDetailsAsync(request.DTO.Prop.UserEmployeeId);
 
-    //            // 🧱 Step 6: Map DTO → Entity
-    //            var experience = _mapper.Map<EmployeeExperience>(experienceEntity);
+                if (existing == null)
+                    throw new ApiException("Experience record not found.", 404);
 
-    //            // 🧱 Step 7: Convert to Access Control DTO
-    //            var accessDto = EmployeeExperienceInfoMapperHelper.ConvertToAccessResponseDTO(experience);
+                // ===============================
+                // 4️⃣ START TRANSACTION
+                // ===============================
+                await _unitOfWork.BeginTransactionAsync();
 
-    //            // 🧱 Step 8: Locate Field in Access DTO
-    //            var accessProp = typeof(GetExperienceAccessResponseDTO)
-    //                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-    //                .FirstOrDefault(p => string.Equals(p.Name, dto.FieldName, StringComparison.OrdinalIgnoreCase));
+                // ===============================
+                // 5️⃣ UPDATE PARENT ONLY
+                // ===============================
+                // ===============================
+                // 5️⃣ SAFE UPDATE (PARTIAL UPDATE)
+                // ===============================
 
-    //            if (accessProp == null)
-    //                return ApiResponse<bool>.Fail($"Field '{dto.FieldName}' does not exist.");
+                // 🔹 CTC
+                if (request.DTO.Ctc.HasValue)
+                    existing.Ctc = request.DTO.Ctc.Value;
 
-    //            var fieldWithAccess = accessProp.GetValue(accessDto);
-    //            var isReadOnlyProp = fieldWithAccess?.GetType().GetProperty("IsReadOnly");
-    //            bool isReadOnly = (bool?)isReadOnlyProp?.GetValue(fieldWithAccess) ?? false;
+                // 🔹 Comment
+                if (!string.IsNullOrWhiteSpace(request.DTO.Comment))
+                    existing.Comment = request.DTO.Comment;
 
-    //            if (isReadOnly)
-    //                return ApiResponse<bool>.Fail($"Field '{dto.FieldName}' is read-only and cannot be modified.");
+                // 🔹 HasEPFAccount (bool)
+                if (request.DTO.HasEPFAccount != existing.HasEPFAccount)
+                    existing.HasEPFAccount = request.DTO.HasEPFAccount;
 
-    //            // 🧱 Step 9: Locate actual entity property
-    //            var entityProp = typeof(EmployeeExperience)
-    //                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-    //                .FirstOrDefault(p => string.Equals(p.Name, dto.FieldName, StringComparison.OrdinalIgnoreCase));
+                // 🔹 IsFresher (bool)
+                if (request.DTO.IsFresher != existing.IsFresher)
+                    existing.IsFresher = request.DTO.IsFresher;
 
-    //            if (entityProp == null || !entityProp.CanWrite)
-    //                return ApiResponse<bool>.Fail($"Field '{dto.FieldName}' is invalid or not writable.");
+                // 🔹 Audit Fields
+                existing.UpdatedById = validation.UserEmployeeId;
+                existing.UpdatedDateTime = DateTime.UtcNow;
 
-    //            // 🧱 Step 10: Safe type conversion
-    //            if (!TryConvertObjectToValue.TryConvertValue(dto.FieldValue, entityProp.PropertyType, out object? convertedValue))
-    //            {
-    //                _logger.LogWarning("Conversion failed for field '{FieldName}' with value '{FieldValue}'", dto.FieldName, dto.FieldValue);
-    //                return ApiResponse<bool>.Fail($"Value conversion failed for field '{dto.FieldName}'.");
-    //            }
+                /*
+                    🔥 CURRENT STEP BEHAVIOR
 
-    //            // 🧱 Step 11: Apply value & audit
-    //            entityProp.SetValue(experience, convertedValue);
-    //            experience.UpdatedById = dto._EmployeeId;
-    //            experience.UpdatedDateTime = DateTime.UtcNow;
+                    ✔ Only parent updated
+                    ✔ No child touched
+                    ✔ No delete
+                    ✔ No insert
 
-    //            // 🧱 Step 12: Save to DB
-    //            var updateStatus = await _unitOfWork.Employees.UpdateEmployeeFieldAsync(
-    //                experience.Id, dto.EntityName, dto.FieldName, convertedValue, dto._EmployeeId);
+                    👉 Safe step for testing
+                */
 
-    //            if (!updateStatus)
-    //            {
-    //                await _unitOfWork.RollbackTransactionAsync();
-    //                return ApiResponse<bool>.Fail("Failed to update employee experience record.");
-    //            }
+                // ===============================
+                // 6️⃣ SAVE
+                // ===============================
+                await _unitOfWork.SaveChangesAsync();
 
-    //            return ApiResponse<bool>.Success(true, $"Field '{dto.FieldName}' updated successfully.");
-    //        }
-    //        catch (Exception ex)
-    //        {
-    //            _logger.LogError(ex, "Unexpected error occurred while updating experience info.");
-    //            return ApiResponse<bool>.Fail("An unexpected error occurred.", new List<string> { ex.Message });
-    //        }
-    //    }
-    //}
+                // ===============================
+                // 7️⃣ COMMIT
+                // ===============================
+                await _unitOfWork.CommitTransactionAsync();
+
+                _logger.LogInformation("✅ Parent Experience updated successfully");
+
+                return ApiResponse<bool>.Success(true, "Experience updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ UpdateExperience (Parent) failed");
+
+                await _unitOfWork.RollbackTransactionAsync();
+
+                throw;
+            }
+        }
+    }
 }
