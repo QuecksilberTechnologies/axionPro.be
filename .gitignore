@@ -381,3 +381,4 @@ axionpro.api/Secrets/*.json
 
 /.gitignore
 
+/axionpro.api/appsettings.Development.json
