@@ -45,7 +45,7 @@ namespace axionpro.application.Interfaces
         IEmployeeEducationRepository EmployeeEducationRepository { get; }
 
         IEmployeeExperienceRepository EmployeeExperienceRepository { get; }
-        IEmployeeExperienceDetailRepository EmployeeExperienceDetailRepository { get; }
+ 
         IEmployeeExperienceDocumentRepository EmployeeExperienceDocumentRepository { get; }
         IEmployeeIdentityRepository EmployeeIdentityRepository { get; }
        

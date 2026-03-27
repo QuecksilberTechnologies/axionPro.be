@@ -164,13 +164,7 @@ public class UnitOfWork : IUnitOfWork
             _loggerFactory.CreateLogger<EmployeeExpereinceRepository>(),
             _passwordService,
             _encriptionService);
-    public IEmployeeExperienceDetailRepository EmployeeExperienceDetailRepository =>
-        _employeeExperienceDetailRepository ??= new EmployeeExperienceDetailRepository(
-            _context,
-            _mapper,
-            _loggerFactory.CreateLogger<EmployeeExperienceDetailRepository>(),
-            _passwordService,
-            _encriptionService);
+    
     public IEmployeeExperienceDocumentRepository EmployeeExperienceDocumentRepository =>
         _employeeExpereinceDocumentRepository ??= new EmployeeExperienceDocumentRepository(
             _context,

@@ -162,19 +162,20 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                 // ===============================
                 // 5️⃣ SAVE (SINGLE)
                 // ===============================
-             
+
 
                 // ADD
                 await _unitOfWork.EmployeeExperienceRepository.AddAsync(exp);
 
-                // SAVE (single point 🔥)
                 await _unitOfWork.SaveChangesAsync();
 
-                // GET ID
                 var id = exp.Id;
 
-                // COMMIT
+                // 🔥 MUST
+                await _unitOfWork.CommitTransactionAsync();
  
+                // COMMIT
+
                 _logger.LogInformation("✅ Experience created successfully");
 
                 return ApiResponse<long>.Success(id, "Experience saved successfully.");
