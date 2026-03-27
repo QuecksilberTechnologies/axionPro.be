@@ -5,6 +5,7 @@ using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.DTOS.Pagination;
 
 using axionpro.application.Interfaces.IEncryptionService;
+using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
@@ -22,13 +23,14 @@ namespace axionpro.persistance.Repositories
        
         private readonly IPasswordService _passwordService;
         private readonly IEncryptionService _encryptionService;
+        IFileStorageService _fileStorageService;
         public EmployeeBankRepository(WorkforceDbContext context, IMapper mapper, ILogger<EmployeeBankRepository> logger, 
-            IPasswordService passwordService, IEncryptionService encryptionService)
+            IPasswordService passwordService, IEncryptionService encryptionService, IFileStorageService fileStorageService)
         {
             this._context = context;
             this._mapper = mapper;
             this._logger = logger;
-            
+            _fileStorageService = fileStorageService;
             _passwordService = passwordService;
             _encryptionService = encryptionService;
 
@@ -298,6 +300,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
+                
                 // =========================================================
                 // 1️⃣ Pagination & Sorting
                 // =========================================================
@@ -379,10 +382,9 @@ namespace axionpro.persistance.Repositories
                         IsInfoVerified = x.IsInfoVerified,
                         IsEditAllowed = x.IsEditAllowed,
                         HasChequeDocUploaded = x.HasChequeDocUploaded,
-                        FilePath = x.FilePath,
-                        UPIId = x.UPIId
-                    })
-                    .ToListAsync();
+                        // 🔥 Correct FilePath handling
+                        FilePath = !string.IsNullOrEmpty(x.FilePath)? _fileStorageService.GetFileUrl(x.FilePath) : null,
+                        UPIId = x.UPIId   }).ToListAsync();
 
                 // =========================================================
                 // 7️⃣ Detect PRIMARY existence (LIST LEVEL)
@@ -598,62 +600,9 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async  Task<CompletionSectionDTO> GetBankCompletionPercentageAsync(long employeeId)
-        {
-            try
-            {
-                var record = await _context.EmployeeBankDetails
-                    .AsNoTracking()
-                    .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted !=true)
-                    .OrderByDescending(x => x.IsPrimaryAccount)
-                    .Select(x => new
-                    {
-                        x.BankName,
-                        x.AccountNumber,
-                        x.IFSCCode,
-                        x.BranchName,
-                        x.AccountType,
-                        x.IsPrimaryAccount,
-                        x.HasChequeDocUploaded,
-                        x.IsInfoVerified,
-                        x.IsEditAllowed
-                    })
-                    .FirstOrDefaultAsync();
-
-                if (record == null)
-                {
-                    return new CompletionSectionDTO
-                    {
-                        SectionName = "Bank",
-                        CompletionPercent = 0,                       
-                        IsInfoVerified = false,
-                        IsEditAllowed = true
-                    };
-                }
-
-              //  double completion = CalculateBankPercentage(record);
-
-                return new CompletionSectionDTO
-                {
-                    SectionName = "Bank",
-                  //  CompletionPercent = completion,                   
-                    IsInfoVerified = record.IsInfoVerified,
-                    IsEditAllowed = record.IsEditAllowed
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error calculating bank completion");
-                return new CompletionSectionDTO
-                {
-                    SectionName = "Bank",
-                    CompletionPercent = 0,
-                   
-                    IsInfoVerified = false,
-                    IsEditAllowed = true
-                };
-            }
-        }
+        
+         
+         
 
 
        

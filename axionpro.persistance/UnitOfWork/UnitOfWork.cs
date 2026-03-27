@@ -156,7 +156,7 @@ public class UnitOfWork : IUnitOfWork
             _mapper,
             _loggerFactory.CreateLogger<EmployeeEducationRepository>(),
             _passwordService,
-            _encriptionService);
+            _encriptionService, _fileStorageService);
     public IEmployeeExperienceRepository EmployeeExperienceRepository =>      
         _employeeExpereinceRepository ??= new EmployeeExpereinceRepository(
             _context,
@@ -217,7 +217,7 @@ public class UnitOfWork : IUnitOfWork
             _mapper,
             _loggerFactory.CreateLogger<EmployeeBankRepository>(),
             _passwordService,
-            _encriptionService);
+            _encriptionService, _fileStorageService);
 
     public IEmployeeLeaveRepository EmployeeLeaveRepository =>
         _employeeLeaveRepository ??= new EmployeeLeaveRepository(

@@ -25,17 +25,18 @@ namespace axionpro.persistance.Repositories
        
         private readonly IPasswordService _passwordService;
         private readonly IEncryptionService _encryptionService;
+        IFileStorageService _fileStorageService;
         public EmployeeEducationRepository(WorkforceDbContext context, IMapper mapper, ILogger<EmployeeEducationRepository> logger,
-            IPasswordService passwordService, IEncryptionService encryptionService)
+            IPasswordService passwordService, IEncryptionService encryptionService, IFileStorageService fileStorageService)
         {
-           // <WorkforceDbContext> contextFactory,
+            // <WorkforceDbContext> contextFactory,
             this._context = context;
             this._mapper = mapper;
             this._logger = logger;
-           // 
+            // 
             _passwordService = passwordService;
             _encryptionService = encryptionService;
-
+            _fileStorageService = fileStorageService;
         }
 
         public async Task<PagedResponseDTO<GetEducationResponseDTO>> CreateAsync(EmployeeEducation entity)
@@ -179,7 +180,8 @@ namespace axionpro.persistance.Repositories
                         ReasonOfEducationGap = edu.ReasonOfEducationGap,
                         StartDate = edu.StartDate,
                         EndDate = edu.EndDate,
-                        FilePath = edu.FilePath,
+                        // 🔥 FIXED
+                        FilePath = !string.IsNullOrEmpty(edu.FilePath) ? _fileStorageService.GetFileUrl(edu.FilePath)  : null,
                         FileType = edu.FileType?.ToString(),
                         FileName = edu.FileName,
                         IsActive = edu.IsActive,
