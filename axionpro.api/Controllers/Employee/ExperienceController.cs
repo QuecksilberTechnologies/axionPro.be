@@ -41,10 +41,10 @@ namespace axionpro.api.Controllers.Employee
         /// <summary>
         /// Get all experience records (Paginated).
         /// </summary>
-          [HttpGet("get")]
+        [HttpGet("get")]
         //    
         //    
-        public async Task<IActionResult> GetAllexperinceInfo([FromBody] GetExperienceRequestDTO commandDto)
+        public async Task<IActionResult> GetAllexperinceInfo([FromQuery] GetExperienceRequestDTO commandDto)
         {
              
                 var command = new GetExperienceInfoQuery(commandDto);

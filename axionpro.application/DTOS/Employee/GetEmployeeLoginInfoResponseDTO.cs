@@ -1,13 +1,4 @@
-﻿using axionpro.application.DTOs.ProjectModule;
-using axionpro.application.DTOs.Role;
-using axionpro.application.DTOs.UserRole;
-
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+﻿using axionpro.application.DTOs.UserRole;
 
 namespace axionpro.application.DTOs.Employee
 {

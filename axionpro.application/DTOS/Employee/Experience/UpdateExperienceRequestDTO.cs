@@ -19,10 +19,11 @@ namespace axionpro.application.DTOS.Employee.Experience
 
         [Required]
         public string EmployeeId { get; set; } = string.Empty;
+        public long Id { get; set; } // null = NEW, value = UPDATE
+
 
         // 🔹 Parent Fields
         public decimal? Ctc { get; set; }
-        public long Id { get; set; } // null = NEW, value = UPDATE
 
         // 🔹 Job Info
         public string? CompanyName { get; set; }

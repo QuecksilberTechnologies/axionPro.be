@@ -15,7 +15,7 @@ public interface IEmployeeExperienceRepository
     Task<bool> SoftDeleteAsync(EmployeeExperience entity);
 
     // 🔹 GET BY ID
-    Task<EmployeeExperience?> GetByIdAsync(long id, long tenantId);
+    Task<EmployeeExperience?> GetByIdAsync(long id, long employeeid);
 
     // 🔹 GET LIST (WITH DETAILS)
     Task<List<EmployeeExperience>> GetByEmployeeIdWithDocumentsAsync(long employeeId);

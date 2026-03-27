@@ -12,7 +12,6 @@ namespace axionpro.application.DTOS.Employee.Education
     {
 
         public int Id { get; set; }
-
         public string EmployeeId { get; set; } = string.Empty ;
         public string? Degree { get; set; }
 

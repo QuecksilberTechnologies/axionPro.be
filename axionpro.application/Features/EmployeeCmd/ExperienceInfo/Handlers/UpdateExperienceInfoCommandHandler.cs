@@ -58,6 +58,7 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                 // ===============================
                 // 1️⃣ VALIDATION
                 // ===============================
+
                 var validation = await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
@@ -66,14 +67,17 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request");
 
-                if (request.DTO.Id > 0)
-                    throw new ValidationErrorException("ExperienceId is required");                
+                if (request.DTO.Id < 0)
+                    throw new ValidationErrorException("ExperienceId is required");
+                request.DTO.Prop.EmployeeId =
+                RequestCommonHelper.DecodeOnlyEmployeeId(request.DTO.EmployeeId, validation.Claims.TenantEncriptionKey, _idEncoderService);
+
 
                 // ===============================
                 // 3️⃣ FETCH EXISTING (SINGLE)
                 // ===============================
                 var existing = await _unitOfWork.EmployeeExperienceRepository
-                    .GetByIdAsync(request.DTO.Id, validation.TenantId);
+                    .GetByIdAsync(request.DTO.Id, request.DTO.Prop.EmployeeId);
 
                 if (existing == null)
                     throw new ApiException("Experience not found", 404);
