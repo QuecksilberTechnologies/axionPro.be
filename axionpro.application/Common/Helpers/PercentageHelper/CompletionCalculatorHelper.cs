@@ -3,6 +3,7 @@ using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.DTOS.Employee.Education;
+using axionpro.application.DTOS.Employee.Experience;
 using axionpro.domain.Entity;
 using Newtonsoft.Json.Linq;
 
@@ -35,6 +36,73 @@ namespace axionpro.application.Common.Helpers.PercentageHelper
                 IsFilled(emp.EmergencyContactNumber),
                 IsFilled(emp.EmergencyContactPerson)
             };
+
+            return CalculatePercentage(checks);
+        }
+        // =========================================================
+        // Experience Prop Calculate  
+        // =========================================================
+        public static double ExperiencePropCalculate(GetEmployeeExperienceResponseDTO exp)
+        {
+            if (exp == null)
+                return 0;
+
+            int[] checks =
+            {
+        // 🔹 Basic
+        exp.Ctc.HasValue ? 1 : 0,
+
+        // 🔹 Job Info
+        IsFilled(exp.CompanyName),
+        IsFilled(exp.Designation),
+        IsFilled(exp.EmployeeIdOfCompany),
+
+        exp.StartDate != null ? 1 : 0,
+        exp.EndDate != null ? 1 : 0,
+
+        exp.Experience.HasValue ? 1 : 0,
+
+        // 🔹 Location
+        exp.WorkingCountryId.HasValue && exp.WorkingCountryId > 0 ? 1 : 0,
+        exp.WorkingStateId.HasValue && exp.WorkingStateId > 0 ? 1 : 0,
+        exp.WorkingDistrictId.HasValue && exp.WorkingDistrictId > 0 ? 1 : 0,
+
+        // 🔹 Flags
+        exp.IsWFH ? 1 : 0,
+        exp.IsForeignExperience ? 1 : 0,
+
+        // 🔹 Exit
+        IsFilled(exp.ReasonForLeaving),
+        IsFilled(exp.Remark),
+
+        // 🔹 Reporting
+        IsFilled(exp.ColleagueName),
+        IsFilled(exp.ColleagueDesignation),
+        IsFilled(exp.ColleagueContactNumber),
+
+        IsFilled(exp.ReportingManagerName),
+        IsFilled(exp.ReportingManagerNumber),
+
+        IsFilled(exp.VerificationEmail),
+
+        // 🔹 Gap
+        exp.IsAnyGap ? 1 : 0,
+        exp.IsAnyGap && IsFilled(exp.ReasonOfGap) == 1 ? 1 : 0,
+
+        //exp.GapYearFrom != null ? 1 : 0,
+        //exp.GapYearTo != null ? 1 : 0,
+
+        // 🔹 Verification
+        exp.IsExperienceVerified == true ? 1 : 0,
+        exp.IsExperienceVerifiedByMail == true ? 1 : 0,
+        exp.IsExperienceVerifiedByCall == true ? 1 : 0,
+
+        exp.IsInfoVerified == true ? 1 : 0,
+        exp.IsEditAllowed == false ? 1 : 0,
+
+        // 🔹 Documents (🔥 important)       
+        (exp.Documents != null && exp.Documents.Any()) ? 1 : 0
+     };
 
             return CalculatePercentage(checks);
         }

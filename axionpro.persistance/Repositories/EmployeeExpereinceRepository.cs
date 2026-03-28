@@ -1,8 +1,10 @@
 ﻿
 using AutoMapper;
+using axionpro.application.Common.Helpers.PercentageHelper;
 using axionpro.application.DTOS.Employee.Experience;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces.IEncryptionService;
+using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
@@ -22,8 +24,9 @@ namespace axionpro.persistance.Repositories
 
         private readonly IPasswordService _passwordService;
         private readonly IEncryptionService _encryptionService;
+        private readonly IFileStorageService _fileStorageService;
         public EmployeeExpereinceRepository(WorkforceDbContext context, IMapper mapper, ILogger<EmployeeExpereinceRepository> logger,
-            IPasswordService passwordService, IEncryptionService encryptionService)
+            IPasswordService passwordService, IEncryptionService encryptionService,IFileStorageService fileStorageService)
         {
             this._context = context;
             this._mapper = mapper;
@@ -31,6 +34,7 @@ namespace axionpro.persistance.Repositories
 
             _passwordService = passwordService;
             _encryptionService = encryptionService;
+            _fileStorageService = fileStorageService;
 
         }
         // ===============================
@@ -78,17 +82,170 @@ namespace axionpro.persistance.Repositories
         // ===============================
         // 🔹 GET LIST (PAGINATED)
         // ===============================
-        
-        public async Task<List<EmployeeExperience>> GetByEmployeeIdWithDocumentsAsync(long employeeId)
+
+        public async Task<PagedResponseDTO<GetEmployeeExperienceResponseDTO>> GetByEmployeeIdWithDocumentsAsync(GetExperienceRequestDTO dto)
         {
-            return await _context.EmployeeExperiences
-                .Include(x => x.EmployeeExperienceDocuments) // ✅ direct include
-                .Where(x =>
-                    x.EmployeeId == employeeId &&
-                    x.IsActive &&
-                    !x.IsSoftDeleted)
-                .ToListAsync();
+            try
+            {
+                // -----------------
+                // Pagination defaults
+                // -----------------
+                int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
+                int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
+
+                string sortBy = dto.SortBy?.ToLower() ?? "id";
+                bool isDescending = (dto.SortOrder?.ToLower() ?? "desc") == "desc";
+
+                // -----------------
+                // Base Query
+                // -----------------
+                var baseQuery = _context.EmployeeExperiences
+                    .AsNoTracking()
+                    .Include(x => x.EmployeeExperienceDocuments)
+                    .Where(x =>
+                        x.EmployeeId == dto.Prop.EmployeeId &&
+                        (dto.Prop.IsActive == null || x.IsActive == dto.Prop.IsActive) &&
+                        (x.IsSoftDeleted != true)
+                    );
+
+                // -----------------
+                // Sorting
+                // -----------------
+                baseQuery = sortBy switch
+                {
+                    "companyname" => isDescending ? baseQuery.OrderByDescending(x => x.CompanyName) : baseQuery.OrderBy(x => x.CompanyName),
+                    "designation" => isDescending ? baseQuery.OrderByDescending(x => x.Designation) : baseQuery.OrderBy(x => x.Designation),
+                    "startdate" => isDescending ? baseQuery.OrderByDescending(x => x.StartDate) : baseQuery.OrderBy(x => x.StartDate),
+                    "enddate" => isDescending ? baseQuery.OrderByDescending(x => x.EndDate) : baseQuery.OrderBy(x => x.EndDate),
+                    _ => isDescending ? baseQuery.OrderByDescending(x => x.Id) : baseQuery.OrderBy(x => x.Id)
+                };
+
+                // -----------------
+                // Count
+                // -----------------
+                var totalRecords = await baseQuery.CountAsync();
+
+                // -----------------
+                // Fetch
+                // -----------------
+                var expList = await baseQuery
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                // -----------------
+                // Mapping
+                // -----------------
+
+                // -----------------
+                // Mapping + Completion
+                // -----------------
+                List<GetEmployeeExperienceResponseDTO> finalList = new();
+                double totalPercentage = 0;
+
+                foreach (var exp in expList)
+                {
+                    var dtoItem = new GetEmployeeExperienceResponseDTO
+                    {
+                        Id = exp.Id,
+                       // EmployeeId = exp.EmployeeId.ToString(),
+
+                        CompanyName = exp.CompanyName,
+                        Designation = exp.Designation,
+                        EmployeeIdOfCompany = exp.EmployeeIdOfCompany,
+                        Ctc = exp.Ctc,
+
+                        StartDate = exp.StartDate,
+                        EndDate = exp.EndDate,
+                        Experience = exp.Experience,
+
+                        IsWFH = exp.IsWFH,
+
+                        WorkingCountryId = exp.WorkingCountryId,
+                        WorkingStateId = exp.WorkingStateId,
+                        WorkingDistrictId = exp.WorkingDistrictId,
+
+                        IsForeignExperience = exp.IsForeignExperience,
+
+                        ReasonForLeaving = exp.ReasonForLeaving,
+                        Remark = exp.Remark,
+
+                        ColleagueName = exp.ColleagueName,
+                        ColleagueDesignation = exp.ColleagueDesignation,
+                        ColleagueContactNumber = exp.ColleagueContactNumber,
+
+                        ReportingManagerName = exp.ReportingManagerName,
+                        ReportingManagerNumber = exp.ReportingManagerNumber,
+
+                        VerificationEmail = exp.VerificationEmail,
+
+                        IsAnyGap = exp.IsAnyGap,
+                        ReasonOfGap = exp.ReasonOfGap,
+                        GapYearFrom = exp.GapYearFrom,
+                        GapYearTo = exp.GapYearTo,
+
+                        IsEditAllowed = exp.IsEditAllowed,
+                        IsInfoVerified = exp.IsInfoVerified,
+
+                        Documents = exp.EmployeeExperienceDocuments.Select(d => new GetEmployeeExperienceDocumentDTO
+                        {
+                            Id = d.Id,
+                            DocumentType = d.DocumentType,
+                            FileName = d.FileName,
+                            FilePath = !string.IsNullOrEmpty(d.FilePath)
+                                ? _fileStorageService.GetFileUrl(d.FilePath)
+                                : null,
+                            Remark = d.Remark
+                        }).ToList()
+                    };
+
+                    // 🔥 PER RECORD COMPLETION
+                    dtoItem.CompletionPercentage = CompletionCalculatorHelper.ExperiencePropCalculate(dtoItem);
+
+                    totalPercentage += dtoItem.CompletionPercentage;
+
+                    finalList.Add(dtoItem);
+                }
+
+                // -----------------
+                // Section Completion
+                // -----------------
+                double averagePercentage = finalList.Count > 0
+                    ? Math.Round(totalPercentage / finalList.Count, 0)
+                    : 0;
+
+                // -----------------
+                // Has Uploaded All Docs
+                // -----------------
+                bool hasUploadedAll = finalList.All(x =>
+                    x.Documents != null && x.Documents.Any());
+
+                // -----------------
+                // Final Response
+                // -----------------
+                return new PagedResponseDTO<GetEmployeeExperienceResponseDTO>
+                {
+                    Items = finalList,
+                    TotalCount = totalRecords,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
+
+                    // 🔥 BANK STYLE ADDITIONS
+                    CompletionPercentage = averagePercentage,
+                    HasUploadedAll = hasUploadedAll
+                };
+
+            
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching experience info for EmployeeId: {EmployeeId}", dto.Prop.EmployeeId);
+                throw;
+            }
         }
+
+       
     }
 
 }

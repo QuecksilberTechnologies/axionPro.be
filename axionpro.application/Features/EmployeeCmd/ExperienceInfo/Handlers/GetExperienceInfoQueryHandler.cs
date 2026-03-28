@@ -1,36 +1,29 @@
-﻿using AutoMapper;
-using axionpro.application.Common.Helpers.RequestHelper;
+﻿using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.Experience;
+using axionpro.application.DTOS.Pagination;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
-using axionpro.application.Interfaces.IFileStorage;
-using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-
-using axionpro.domain.Entity;
 using MediatR;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
+namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers;
 
-namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers;   
-
-public class GetExperienceInfoQuery : IRequest<ApiResponse<List<GetEmployeeExperienceResponseDTO>>>
+public class GetExperienceInfoQuery
+    : IRequest<ApiResponse<PagedResponseDTO<GetEmployeeExperienceResponseDTO>>>
 {
     public GetExperienceRequestDTO DTO { get; set; }
 
-    public GetExperienceInfoQuery(GetExperienceRequestDTO dTO)
+    public GetExperienceInfoQuery(GetExperienceRequestDTO dto)
     {
-        DTO = dTO;
+        DTO = dto;
     }
 }
 
 public class GetExperienceInfoQueryHandler
-   : IRequestHandler<GetExperienceInfoQuery, ApiResponse<List<GetEmployeeExperienceResponseDTO>>>
+    : IRequestHandler<GetExperienceInfoQuery, ApiResponse<PagedResponseDTO<GetEmployeeExperienceResponseDTO>>>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<GetExperienceInfoQuery> _logger;
@@ -49,7 +42,7 @@ public class GetExperienceInfoQueryHandler
         _commonRequestService = commonRequestService;
     }
 
-    public async Task<ApiResponse<List<GetEmployeeExperienceResponseDTO>>> Handle(
+    public async Task<ApiResponse<PagedResponseDTO<GetEmployeeExperienceResponseDTO>>> Handle(
         GetExperienceInfoQuery request,
         CancellationToken cancellationToken)
     {
@@ -71,14 +64,13 @@ public class GetExperienceInfoQueryHandler
             if (string.IsNullOrWhiteSpace(request.DTO.EmployeeId))
                 throw new ValidationErrorException("EmployeeId is required");
 
-            if (request.DTO.Prop == null)
-                request.DTO.Prop = new();
+            request.DTO.Prop ??= new();
 
             request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
             request.DTO.Prop.TenantId = validation.TenantId;
 
             // ===============================
-            // 2️⃣ DECODE (UNCHANGED)
+            // 2️⃣ DECODE
             // ===============================
             request.DTO.Prop.EmployeeId =
                 RequestCommonHelper.DecodeOnlyEmployeeId(
@@ -90,79 +82,30 @@ public class GetExperienceInfoQueryHandler
                 throw new ValidationErrorException("Invalid EmployeeId.");
 
             // ===============================
-            // 3️⃣ FETCH LIST 🔥
+            // 3️⃣ FETCH (REPO CALL)
             // ===============================
-            var entities = await _unitOfWork.EmployeeExperienceRepository
-                .GetByEmployeeIdWithDocumentsAsync(request.DTO.Prop.EmployeeId);
+            var pagedResult = await _unitOfWork.EmployeeExperienceRepository
+                .GetByEmployeeIdWithDocumentsAsync(request.DTO);
 
-            if (entities == null || !entities.Any())
+            // ===============================
+            // 4️⃣ ENCODE EMPLOYEE ID + VALIDATION
+            // ===============================
+            if (pagedResult?.Items != null && pagedResult.Items.Any())
             {
-                return ApiResponse<List<GetEmployeeExperienceResponseDTO>>
-                    .Success(new List<GetEmployeeExperienceResponseDTO>(), "No experience found.");
+                foreach (var item in pagedResult.Items)
+                {
+                    // 🔥 Encode EmployeeId
+                    item.EmployeeId = _idEncoderService.EncodeId_long(
+                        request.DTO.Prop.EmployeeId,
+                        validation.Claims.TenantEncriptionKey);
+                }
             }
 
             // ===============================
-            // 4️⃣ MAP LIST 🔥
+            // 4️⃣ RETURN
             // ===============================
-            var response = entities.Select(entity => new GetEmployeeExperienceResponseDTO
-            {
-                Id = entity.Id,
-
-                EmployeeId = _idEncoderService.EncodeId_long(
-                    entity.EmployeeId,
-                    validation.Claims.TenantEncriptionKey),
-
-                Ctc = entity.Ctc,
-                CompanyName = entity.CompanyName,
-                Designation = entity.Designation,
-                EmployeeIdOfCompany = entity.EmployeeIdOfCompany,
-
-                StartDate = entity.StartDate,
-                EndDate = entity.EndDate,
-                Experience = entity.Experience,
-                IsWFH = entity.IsWFH,
-
-                WorkingCountryId = entity.WorkingCountryId,
-                WorkingStateId = entity.WorkingStateId,
-                WorkingDistrictId = entity.WorkingDistrictId,
-                IsForeignExperience = entity.IsForeignExperience,
-
-                ReasonForLeaving = entity.ReasonForLeaving,
-                Remark = entity.Remark,
-
-                ColleagueName = entity.ColleagueName,
-                ColleagueDesignation = entity.ColleagueDesignation,
-                ColleagueContactNumber = entity.ColleagueContactNumber,
-
-                ReportingManagerName = entity.ReportingManagerName,
-                ReportingManagerNumber = entity.ReportingManagerNumber,
-                VerificationEmail = entity.VerificationEmail,
-
-                IsAnyGap = entity.IsAnyGap,
-                ReasonOfGap = entity.ReasonOfGap,
-                GapYearFrom = entity.GapYearFrom,
-                GapYearTo = entity.GapYearTo,
-
-                IsExperienceVerified = entity.IsExperienceVerified,
-                IsExperienceVerifiedByMail = entity.IsExperienceVerifiedByMail,
-                IsExperienceVerifiedByCall = entity.IsExperienceVerifiedByCall,
-
-                Documents = entity.EmployeeExperienceDocuments?
-                    .Select(doc => new GetEmployeeExperienceDocumentDTO
-                    {
-                        DocumentType = doc.DocumentType,
-                        FileName = doc.FileName,
-                        FilePath = doc.FilePath,
-                        Remark = doc.Remark
-                    }).ToList()
-
-            }).ToList();
-
-            // ===============================
-            // 5️⃣ RETURN
-            // ===============================
-            return ApiResponse<List<GetEmployeeExperienceResponseDTO>>
-                .Success(response, "Experience list fetched successfully.");
+            return ApiResponse<PagedResponseDTO<GetEmployeeExperienceResponseDTO>>
+                .Success(pagedResult, "Experience list fetched successfully.");
         }
         catch (Exception ex)
         {
@@ -171,6 +114,7 @@ public class GetExperienceInfoQueryHandler
         }
     }
 }
+ 
 
 
 

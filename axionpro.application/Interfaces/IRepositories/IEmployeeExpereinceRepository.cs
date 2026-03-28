@@ -1,4 +1,5 @@
 ﻿using axionpro.application.DTOS.Employee.Experience;
+using axionpro.application.DTOS.Pagination;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 namespace axionpro.application.Interfaces.IRepositories;
@@ -18,6 +19,6 @@ public interface IEmployeeExperienceRepository
     Task<EmployeeExperience?> GetByIdAsync(long id, long employeeid);
 
     // 🔹 GET LIST (WITH DETAILS)
-    Task<List<EmployeeExperience>> GetByEmployeeIdWithDocumentsAsync(long employeeId);
+    Task<PagedResponseDTO<GetEmployeeExperienceResponseDTO>> GetByEmployeeIdWithDocumentsAsync(GetExperienceRequestDTO employee);
 }
 

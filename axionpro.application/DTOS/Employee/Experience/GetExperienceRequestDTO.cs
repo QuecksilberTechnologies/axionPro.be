@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks; 
 namespace axionpro.application.DTOS.Employee.Experience
 {
-    public class GetExperienceRequestDTO
+    public class GetExperienceRequestDTO : BaseRequest
     {
         // 🔹 Required (encoded)
         public required string EmployeeId { get; set; } = string.Empty;

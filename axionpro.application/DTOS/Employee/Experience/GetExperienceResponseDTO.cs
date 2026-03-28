@@ -52,6 +52,7 @@ namespace axionpro.application.DTOS.Employee.Experience
         public string? ReportingManagerNumber { get; set; }
 
         public string? VerificationEmail { get; set; }
+        public double CompletionPercentage { get; set; }
 
         // 🔹 Gap
         public bool IsAnyGap { get; set; }
@@ -73,7 +74,7 @@ namespace axionpro.application.DTOS.Employee.Experience
     }
     public class GetEmployeeExperienceDocumentDTO
     {
-        public string Id { get; set; }
+        public long Id { get; set; }
 
         public int DocumentType { get; set; }
         public string? DocumentTypeName { get; set; } // 🔥 UI ke liye
