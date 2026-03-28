@@ -76,6 +76,7 @@ public partial class EmployeeExperience
 
     public long? UpdatedById { get; set; }
     public DateTime? UpdatedDateTime { get; set; }
+    public DateTime? DeletedDateTime { get; set; }
 
     // 🔹 Child Navigation
     public virtual ICollection<EmployeeExperienceDocument> EmployeeExperienceDocuments { get; set; }

@@ -1,4 +1,5 @@
-﻿using axionpro.application.Common.Helpers.RequestHelper;
+﻿using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
+using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.Experience;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Exceptions;
@@ -7,12 +8,13 @@ using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Wrappers;
 using MediatR;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers;
 
 public class GetExperienceInfoQuery
-    : IRequest<ApiResponse<PagedResponseDTO<GetEmployeeExperienceResponseDTO>>>
+    : IRequest<ApiResponse<List<GetEmployeeExperienceResponseDTO>>>
 {
     public GetExperienceRequestDTO DTO { get; set; }
 
@@ -23,7 +25,7 @@ public class GetExperienceInfoQuery
 }
 
 public class GetExperienceInfoQueryHandler
-    : IRequestHandler<GetExperienceInfoQuery, ApiResponse<PagedResponseDTO<GetEmployeeExperienceResponseDTO>>>
+    : IRequestHandler<GetExperienceInfoQuery, ApiResponse<List<GetEmployeeExperienceResponseDTO>>>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<GetExperienceInfoQuery> _logger;
@@ -42,7 +44,7 @@ public class GetExperienceInfoQueryHandler
         _commonRequestService = commonRequestService;
     }
 
-    public async Task<ApiResponse<PagedResponseDTO<GetEmployeeExperienceResponseDTO>>> Handle(
+    public async Task<ApiResponse<List<GetEmployeeExperienceResponseDTO>>> Handle(
         GetExperienceInfoQuery request,
         CancellationToken cancellationToken)
     {
@@ -84,15 +86,35 @@ public class GetExperienceInfoQueryHandler
             // ===============================
             // 3️⃣ FETCH (REPO CALL)
             // ===============================
-            var pagedResult = await _unitOfWork.EmployeeExperienceRepository
-                .GetByEmployeeIdWithDocumentsAsync(request.DTO);
 
             // ===============================
-            // 4️⃣ ENCODE EMPLOYEE ID + VALIDATION
+            // 4️⃣ FETCH
             // ===============================
-            if (pagedResult?.Items != null && pagedResult.Items.Any())
+            var expEntities =
+                await _unitOfWork.EmployeeExperienceRepository
+                    .GetByEmployeeIdWithDocumentsAsync(request.DTO);
+
+            // ===============================
+            // 5️⃣ EMPTY LIST = SUCCESS
+            // ===============================
+            if (expEntities == null || expEntities.Items == null || !expEntities.Items.Any())
             {
-                foreach (var item in pagedResult.Items)
+                return ApiResponse<List<GetEmployeeExperienceResponseDTO>>
+                    .SuccessPaginatedPercentage(
+                        Data: new List<GetEmployeeExperienceResponseDTO>(),
+                        Message: "No experience info found.",
+                        PageNumber: expEntities?.PageNumber ?? 1,
+                        PageSize: expEntities?.PageSize ?? 0,
+                        TotalRecords: expEntities?.TotalCount ?? 0,
+                        TotalPages: expEntities?.TotalPages ?? 0,
+                        HasUploadedAll: expEntities?.HasUploadedAll ?? false,
+                        CompletionPercentage: expEntities?.CompletionPercentage ?? 0
+                    );
+            }
+
+            if (expEntities?.Items != null && expEntities.Items.Any())
+            {
+                foreach (var item in expEntities.Items)
                 {
                     // 🔥 Encode EmployeeId
                     item.EmployeeId = _idEncoderService.EncodeId_long(
@@ -102,10 +124,21 @@ public class GetExperienceInfoQueryHandler
             }
 
             // ===============================
-            // 4️⃣ RETURN
+            // 7️⃣ SUCCESS RESPONSE
             // ===============================
-            return ApiResponse<PagedResponseDTO<GetEmployeeExperienceResponseDTO>>
-                .Success(pagedResult, "Experience list fetched successfully.");
+            _logger.LogInformation("GetExperienceInfo success");
+
+            return ApiResponse<List<GetEmployeeExperienceResponseDTO>>
+                .SuccessPaginatedPercentage(
+                    Data: expEntities.Items,
+                    Message: "Experience info retrieved successfully.",
+                    PageNumber: expEntities.PageNumber,
+                    PageSize: expEntities.PageSize,
+                    TotalRecords: expEntities.TotalCount,
+                    TotalPages: expEntities.TotalPages,
+                    HasUploadedAll: expEntities.HasUploadedAll,
+                    CompletionPercentage: expEntities.CompletionPercentage
+                );
         }
         catch (Exception ex)
         {

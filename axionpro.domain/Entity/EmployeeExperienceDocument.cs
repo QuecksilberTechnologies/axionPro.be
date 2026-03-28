@@ -26,8 +26,10 @@ public partial class EmployeeExperienceDocument
     // 🔹 Audit
     public bool IsActive { get; set; } = true;
     public bool IsSoftDeleted { get; set; } = false;
-
+    public DateTime? DeletedDateTime { get; set; }
+    
     public long AddedById { get; set; }
+    public long? SoftDeletedById { get; set; }
     public DateTime AddedDateTime { get; set; }
 
     public long? UpdatedById { get; set; }

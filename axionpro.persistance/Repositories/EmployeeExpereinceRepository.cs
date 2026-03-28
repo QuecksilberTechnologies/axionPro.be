@@ -55,15 +55,26 @@ namespace axionpro.persistance.Repositories
             return await _context.SaveChangesAsync() > 0;
         }
 
-        // ===============================
-        // 🔹 DELETE (SOFT)
-        // ===============================
         public async Task<bool> SoftDeleteAsync(EmployeeExperience entity)
         {
+            // 🔹 Parent Soft Delete
             entity.IsSoftDeleted = true;
             entity.IsActive = false;
 
+            // 🔹 Child Documents Soft Delete
+            if (entity.EmployeeExperienceDocuments != null && entity.EmployeeExperienceDocuments.Any())
+            {
+                foreach (var doc in entity.EmployeeExperienceDocuments)
+                {
+                    doc.IsSoftDeleted = true;
+                    doc.IsActive = false;
+                    doc.DeletedDateTime = DateTime.UtcNow;
+                    doc.SoftDeletedById = entity.SoftDeletedById; // Assuming the same user is performing the delete action
+                }
+            }
+
             _context.EmployeeExperiences.Update(entity);
+
             return await _context.SaveChangesAsync() > 0;
         }
 
