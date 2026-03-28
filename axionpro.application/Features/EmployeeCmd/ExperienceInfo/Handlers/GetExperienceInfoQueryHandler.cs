@@ -45,12 +45,12 @@ public class GetExperienceInfoQueryHandler
     }
 
     public async Task<ApiResponse<List<GetEmployeeExperienceResponseDTO>>> Handle(
-        GetExperienceInfoQuery request,
-        CancellationToken cancellationToken)
+       GetExperienceInfoQuery request,
+       CancellationToken cancellationToken)
     {
         try
         {
-            _logger.LogInformation("🚀 GetExperience started");
+            _logger.LogInformation("🚀 START GetExperience Handler");
 
             // ===============================
             // 1️⃣ VALIDATION
@@ -58,47 +58,68 @@ public class GetExperienceInfoQueryHandler
             var validation = await _commonRequestService.ValidateRequestAsync();
 
             if (!validation.Success)
+            {
+                _logger.LogWarning("❌ Validation failed");
                 throw new UnauthorizedAccessException(validation.ErrorMessage);
+            }
 
             if (request?.DTO == null)
+            {
+                _logger.LogWarning("❌ Request DTO is null");
                 throw new ValidationErrorException("Invalid request");
+            }
 
             if (string.IsNullOrWhiteSpace(request.DTO.EmployeeId))
+            {
+                _logger.LogWarning("❌ EmployeeId is missing");
                 throw new ValidationErrorException("EmployeeId is required");
+            }
 
             request.DTO.Prop ??= new();
 
             request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
             request.DTO.Prop.TenantId = validation.TenantId;
 
+            _logger.LogInformation("✅ Validation Passed | UserId: {UserId}", validation.UserEmployeeId);
+
             // ===============================
             // 2️⃣ DECODE
             // ===============================
+            _logger.LogInformation("🔓 Decoding EmployeeId: {EncodedId}", request.DTO.EmployeeId);
+
             request.DTO.Prop.EmployeeId =
                 RequestCommonHelper.DecodeOnlyEmployeeId(
                     request.DTO.EmployeeId,
                     validation.Claims.TenantEncriptionKey,
                     _idEncoderService);
 
+            _logger.LogInformation("🔑 Decoded EmployeeId: {DecodedId}", request.DTO.Prop.EmployeeId);
+
             if (request.DTO.Prop.EmployeeId <= 0)
+            {
+                _logger.LogError("❌ Invalid decoded EmployeeId");
                 throw new ValidationErrorException("Invalid EmployeeId.");
+            }
 
             // ===============================
-            // 3️⃣ FETCH (REPO CALL)
+            // 3️⃣ FETCH
             // ===============================
+            _logger.LogInformation("📥 Fetching experience data...");
 
-            // ===============================
-            // 4️⃣ FETCH
-            // ===============================
             var expEntities =
                 await _unitOfWork.EmployeeExperienceRepository
                     .GetByEmployeeIdWithDocumentsAsync(request.DTO);
 
+            _logger.LogInformation("📦 Data fetched | Count: {Count}",
+                expEntities?.Items?.Count ?? 0);
+
             // ===============================
-            // 5️⃣ EMPTY LIST = SUCCESS
+            // 4️⃣ EMPTY LIST = SUCCESS
             // ===============================
             if (expEntities == null || expEntities.Items == null || !expEntities.Items.Any())
             {
+                _logger.LogWarning("⚠️ No experience records found");
+
                 return ApiResponse<List<GetEmployeeExperienceResponseDTO>>
                     .SuccessPaginatedPercentage(
                         Data: new List<GetEmployeeExperienceResponseDTO>(),
@@ -112,21 +133,30 @@ public class GetExperienceInfoQueryHandler
                     );
             }
 
-            if (expEntities?.Items != null && expEntities.Items.Any())
+            // ===============================
+            // 5️⃣ ENCODE IDS (FIXED 🔥)
+            // ===============================
+            foreach (var item in expEntities.Items)
             {
-                foreach (var item in expEntities.Items)
+                if (!string.IsNullOrWhiteSpace(item.EmployeeId) &&
+                    long.TryParse(item.EmployeeId, out var empId))
                 {
-                    // 🔥 Encode EmployeeId
                     item.EmployeeId = _idEncoderService.EncodeId_long(
-                        request.DTO.Prop.EmployeeId,
+                        empId,
                         validation.Claims.TenantEncriptionKey);
+                }
+                else
+                {
+                    _logger.LogWarning("⚠️ Skipping encoding | Invalid EmployeeId in item");
                 }
             }
 
+            _logger.LogInformation("🔐 EmployeeId encoding completed");
+
             // ===============================
-            // 7️⃣ SUCCESS RESPONSE
+            // 6️⃣ SUCCESS RESPONSE
             // ===============================
-            _logger.LogInformation("GetExperienceInfo success");
+            _logger.LogInformation("✅ END GetExperience SUCCESS");
 
             return ApiResponse<List<GetEmployeeExperienceResponseDTO>>
                 .SuccessPaginatedPercentage(
@@ -142,7 +172,7 @@ public class GetExperienceInfoQueryHandler
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ GetExperience failed");
+            _logger.LogError(ex, "❌ ERROR GetExperience Handler");
             throw;
         }
     }

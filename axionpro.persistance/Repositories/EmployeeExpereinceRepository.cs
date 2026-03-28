@@ -98,6 +98,8 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
+                _logger.LogInformation("🚀 START GetExperience | EmployeeId: {EmployeeId}", dto?.Prop?.EmployeeId);
+
                 // -----------------
                 // Pagination defaults
                 // -----------------
@@ -107,6 +109,9 @@ namespace axionpro.persistance.Repositories
                 string sortBy = dto.SortBy?.ToLower() ?? "id";
                 bool isDescending = (dto.SortOrder?.ToLower() ?? "desc") == "desc";
 
+                _logger.LogInformation("📄 Pagination | Page: {Page}, Size: {Size}, SortBy: {Sort}, Desc: {Desc}",
+                    pageNumber, pageSize, sortBy, isDescending);
+
                 // -----------------
                 // Base Query
                 // -----------------
@@ -115,9 +120,11 @@ namespace axionpro.persistance.Repositories
                     .Include(x => x.EmployeeExperienceDocuments)
                     .Where(x =>
                         x.EmployeeId == dto.Prop.EmployeeId &&
-                        (dto.Prop.IsActive == null || x.IsActive == dto.Prop.IsActive) &&
-                        (x.IsSoftDeleted != true)
+                        x.IsActive &&
+                        !x.IsSoftDeleted
                     );
+
+                _logger.LogInformation("🔍 BaseQuery applied | EmployeeId: {EmployeeId}", dto.Prop.EmployeeId);
 
                 // -----------------
                 // Sorting
@@ -131,10 +138,13 @@ namespace axionpro.persistance.Repositories
                     _ => isDescending ? baseQuery.OrderByDescending(x => x.Id) : baseQuery.OrderBy(x => x.Id)
                 };
 
+                _logger.LogInformation("📊 Sorting applied");
+
                 // -----------------
                 // Count
                 // -----------------
                 var totalRecords = await baseQuery.CountAsync();
+                _logger.LogInformation("📦 Total Records: {Count}", totalRecords);
 
                 // -----------------
                 // Fetch
@@ -144,9 +154,7 @@ namespace axionpro.persistance.Repositories
                     .Take(pageSize)
                     .ToListAsync();
 
-                // -----------------
-                // Mapping
-                // -----------------
+                _logger.LogInformation("📥 Records Fetched: {Count}", expList.Count);
 
                 // -----------------
                 // Mapping + Completion
@@ -156,10 +164,11 @@ namespace axionpro.persistance.Repositories
 
                 foreach (var exp in expList)
                 {
+                    _logger.LogInformation("➡️ Mapping Experience Id: {Id}", exp.Id);
+
                     var dtoItem = new GetEmployeeExperienceResponseDTO
                     {
                         Id = exp.Id,
-                       // EmployeeId = exp.EmployeeId.ToString(),
 
                         CompanyName = exp.CompanyName,
                         Designation = exp.Designation,
@@ -210,13 +219,14 @@ namespace axionpro.persistance.Repositories
                         }).ToList()
                     };
 
-                    // 🔥 PER RECORD COMPLETION
                     dtoItem.CompletionPercentage = CompletionCalculatorHelper.ExperiencePropCalculate(dtoItem);
 
                     totalPercentage += dtoItem.CompletionPercentage;
 
                     finalList.Add(dtoItem);
                 }
+
+                _logger.LogInformation("🧮 Mapping Completed | Items: {Count}", finalList.Count);
 
                 // -----------------
                 // Section Completion
@@ -225,15 +235,21 @@ namespace axionpro.persistance.Repositories
                     ? Math.Round(totalPercentage / finalList.Count, 0)
                     : 0;
 
+                _logger.LogInformation("📊 Completion %: {Percent}", averagePercentage);
+
                 // -----------------
                 // Has Uploaded All Docs
                 // -----------------
                 bool hasUploadedAll = finalList.All(x =>
                     x.Documents != null && x.Documents.Any());
 
+                _logger.LogInformation("📁 HasUploadedAll: {Flag}", hasUploadedAll);
+
                 // -----------------
                 // Final Response
                 // -----------------
+                _logger.LogInformation("✅ END GetExperience SUCCESS");
+
                 return new PagedResponseDTO<GetEmployeeExperienceResponseDTO>
                 {
                     Items = finalList,
@@ -241,22 +257,21 @@ namespace axionpro.persistance.Repositories
                     PageNumber = pageNumber,
                     PageSize = pageSize,
                     TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
-
-                    // 🔥 BANK STYLE ADDITIONS
                     CompletionPercentage = averagePercentage,
                     HasUploadedAll = hasUploadedAll
                 };
-
-            
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching experience info for EmployeeId: {EmployeeId}", dto.Prop.EmployeeId);
+                _logger.LogError(ex,
+                    "❌ ERROR GetExperience | EmployeeId: {EmployeeId}",
+                    dto?.Prop?.EmployeeId);
+
                 throw;
             }
         }
 
-       
+
     }
 
 }
