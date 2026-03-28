@@ -195,7 +195,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                         responseDTO.Items,
                         _idEncoderService,
                         validation.Claims.TenantEncriptionKey,
-                        _configuration
+                        _configuration, _fileStorageService
                     );
 
                 // ===============================

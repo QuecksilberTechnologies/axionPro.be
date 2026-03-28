@@ -6,6 +6,7 @@ using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
+using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
@@ -37,6 +38,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
         private readonly IEncryptionService _encryptionService;
         private readonly IIdEncoderService _idEncoderService;
         private readonly ICommonRequestService _commonRequestService;
+        private readonly IFileStorageService _fileStorageService ;
 
 
         public GetBankInfoQueryHandler(
@@ -47,7 +49,8 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,
-             IEncryptionService encryptionService, IIdEncoderService idEncoderService, ICommonRequestService commonRequestService)
+             IEncryptionService encryptionService, IIdEncoderService idEncoderService, ICommonRequestService commonRequestService,
+             IFileStorageService fileStorageService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -59,6 +62,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
             _encryptionService = encryptionService;
             _idEncoderService = idEncoderService;
             _commonRequestService = commonRequestService;
+            _fileStorageService = fileStorageService;
         }
 
         public async Task<ApiResponse<List<GetBankResponseDTO>>> Handle(
@@ -144,7 +148,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                     bankEntities,
                     _idEncoderService,
                     validation.Claims.TenantEncriptionKey,
-                    _config
+                    _config, _fileStorageService
                 );
 
                 // ===============================

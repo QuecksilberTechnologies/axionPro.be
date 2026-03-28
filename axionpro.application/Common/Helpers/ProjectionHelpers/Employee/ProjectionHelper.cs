@@ -100,7 +100,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
     List<GetDependentResponseDTO> entities,
     IIdEncoderService encoderService,
     string tenantKey,
-    IConfiguration configuration)
+    IConfiguration configuration ,IFileStorageService _fileStorageService)
         {
             if (entities == null || !entities.Any())
                 return new List<GetDependentResponseDTO>();
@@ -116,10 +116,11 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                     item.EmployeeId = encoderService.EncodeId_long(empRawId, tenantKey);
 
                 // 📁 File path
-                item.FilePath = !string.IsNullOrWhiteSpace(item.FilePath)
-                    ? $"{baseUrl}{item.FilePath}"
-                    : string.Empty;
-            
+               
+
+                if (!string.IsNullOrEmpty(item.FilePath))
+                    item.FilePath = _fileStorageService.GetFileUrl(item.FilePath);
+
                 // 📊 Completion %
                 item.CompletionPercentage =
                     CompletionCalculatorHelper.DependentPropCalculate(item);
@@ -237,8 +238,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
            
 
 
-            string baseUrl = configuration["FileSettings:BaseUrl"] ?? string.Empty;
-            string defaultImg = configuration["FileSettings:DefaultImage"] ?? string.Empty;
+            
             if (entities == null || !entities.Items.Any())
                 return new List<GetAllEmployeeInfoResponseDTO>();
 
@@ -307,7 +307,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         }
         public static SummaryEmployeeInfo? ToGetSummaryResponseDTO(
            SummaryEmployeeInfo? entity,
-           IIdEncoderService encoderService, string tenantKey, IConfiguration configuration
+           IIdEncoderService encoderService, string tenantKey, IConfiguration configuration, IFileStorageService _fileStorageService
           )
         {
             if (entity == null)
@@ -325,11 +325,11 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             string baseUrl =
            configuration["FileSettings:BaseUrl"] ?? string.Empty;
          
-            // 📁 File path handling
-            if (!string.IsNullOrWhiteSpace(entity.ProfileImage))
-                entity.ProfileImage = $"{baseUrl}{entity.ProfileImage}";
-            else
-                entity.ProfileImage = null; // 👈 fallback image (optional)
+           
+
+            if (!string.IsNullOrEmpty(entity.ProfileImage))
+                entity.ProfileImage = _fileStorageService.GetFileUrl(entity.ProfileImage);
+
 
             // =====================================================
             // 🔁 RELATION ENUM → STRING
@@ -529,13 +529,12 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
      PagedResponseDTO<GetBankResponseDTO> entities,
      IIdEncoderService encoderService,
      string tenantKey,
-     IConfiguration configuration)
+     IConfiguration configuration, IFileStorageService _fileStorageService)
         {
             if (entities?.Items == null || !entities.Items.Any())
                 return new List<GetBankResponseDTO>();
 
-            string baseUrl = configuration["FileSettings:BaseUrl"] ?? string.Empty;
-            string defaultImg = configuration["FileSettings:DefaultImage"] ?? string.Empty;
+           
 
             foreach (var item in entities.Items)
             {
@@ -550,11 +549,11 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                     item.EmployeeId = encoderService.EncodeId_long(rawEmpId, tenantKey);
                 }
 
-                // 📁 File path handling
-                if (!string.IsNullOrWhiteSpace(item.FilePath))
-                    item.FilePath = $"{baseUrl}{item.FilePath}";
-                else
-                    item.FilePath = defaultImg; // 👈 fallback image (optional)
+                if (!string.IsNullOrEmpty(item.FilePath))
+                    item.FilePath = _fileStorageService.GetFileUrl(item.FilePath);
+
+
+ 
 
                 // 🧹 Null safety
                 item.FileName ??= string.Empty;

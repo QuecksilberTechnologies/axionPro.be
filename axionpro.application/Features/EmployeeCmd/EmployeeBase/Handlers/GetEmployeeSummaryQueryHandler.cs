@@ -5,6 +5,7 @@ using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
+using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
 using MediatR;
@@ -32,6 +33,7 @@ namespace axionpro.application.Features.EmployeeCmd.Handlers
         private readonly ICommonRequestService _commonRequestService;
         private readonly IConfiguration _config;
         private readonly IIdEncoderService _idEncoderService;
+        private readonly IFileStorageService _fileStorageService;
 
         public GetEmployeeSummaryQueryHandler(
             IUnitOfWork unitOfWork,
@@ -39,7 +41,7 @@ namespace axionpro.application.Features.EmployeeCmd.Handlers
             IPermissionService permissionService,
             ICommonRequestService commonRequestService,
             IIdEncoderService idEncoderService,
-            IConfiguration config)
+            IConfiguration config, IFileStorageService fileStorageService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
@@ -47,6 +49,7 @@ namespace axionpro.application.Features.EmployeeCmd.Handlers
             _commonRequestService = commonRequestService;
             _idEncoderService = idEncoderService;
             _config = config;
+            _fileStorageService = fileStorageService;
         }
 
         public async Task<ApiResponse<SummaryEmployeeInfo>> Handle(
@@ -121,7 +124,7 @@ namespace axionpro.application.Features.EmployeeCmd.Handlers
                         summary,
                         _idEncoderService,
                         validation.Claims.TenantEncriptionKey,
-                        _config);
+                        _config, _fileStorageService);
 
                 _logger.LogInformation("GetEmployeeSummary success");
 
