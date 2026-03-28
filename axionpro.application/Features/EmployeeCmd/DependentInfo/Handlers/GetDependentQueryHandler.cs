@@ -4,6 +4,7 @@ using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
+using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
 using MediatR;
@@ -31,6 +32,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
         private readonly IIdEncoderService _idEncoderService;
         private readonly ICommonRequestService _commonRequestService;
         private readonly IConfiguration _configuration;
+        private readonly IFileStorageService _fileStorageService;
 
         public GetDependentInfoQueryHandler(
             IUnitOfWork unitOfWork,
@@ -38,14 +40,15 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
             IPermissionService permissionService,
             IIdEncoderService idEncoderService,
             ICommonRequestService commonRequestService,
-            IConfiguration configuration)
+            IConfiguration configuration, IFileStorageService fileStorageService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _permissionService = permissionService;
             _idEncoderService = idEncoderService;
             _commonRequestService = commonRequestService;
-            _configuration = configuration;
+            _configuration = configuration   ;
+            _fileStorageService = fileStorageService;
         }
 
         public async Task<ApiResponse<List<GetDependentResponseDTO>>> Handle(
@@ -111,7 +114,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                         result.Items,
                         _idEncoderService,
                         validation.Claims.TenantEncriptionKey,
-                        _configuration
+                        _configuration, _fileStorageService
                     );
 
                 await _unitOfWork.CommitTransactionAsync();

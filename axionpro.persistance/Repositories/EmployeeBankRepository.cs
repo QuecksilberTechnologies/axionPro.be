@@ -383,7 +383,7 @@ namespace axionpro.persistance.Repositories
                         IsEditAllowed = x.IsEditAllowed,
                         HasChequeDocUploaded = x.HasChequeDocUploaded,
                         // 🔥 Correct FilePath handling
-                        FilePath = !string.IsNullOrEmpty(x.FilePath)? _fileStorageService.GetFileUrl(x.FilePath) : null,
+                        FilePath =  x.FilePath ,
                         UPIId = x.UPIId   }).ToListAsync();
 
                 // =========================================================

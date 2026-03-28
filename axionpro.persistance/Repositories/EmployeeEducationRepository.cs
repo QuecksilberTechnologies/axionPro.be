@@ -181,7 +181,8 @@ namespace axionpro.persistance.Repositories
                         StartDate = edu.StartDate,
                         EndDate = edu.EndDate,
                         // 🔥 FIXED
-                        FilePath = !string.IsNullOrEmpty(edu.FilePath) ? _fileStorageService.GetFileUrl(edu.FilePath)  : null,
+                       // FilePath = !string.IsNullOrEmpty(edu.FilePath) ? _fileStorageService.GetFileUrl(edu.FilePath)  : null,
+                         FilePath = edu.FilePath  ,
                         FileType = edu.FileType?.ToString(),
                         FileName = edu.FileName,
                         IsActive = edu.IsActive,

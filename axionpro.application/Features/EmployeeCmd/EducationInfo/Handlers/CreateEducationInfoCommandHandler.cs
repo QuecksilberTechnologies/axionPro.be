@@ -206,7 +206,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                         responseDTO,
                         _idEncoderService,
                         validation.Claims.TenantEncriptionKey,
-                        _configuration);
+                        _configuration , _fileStorageService);
 
                 // ===============================
                 // 9️⃣ COMMIT

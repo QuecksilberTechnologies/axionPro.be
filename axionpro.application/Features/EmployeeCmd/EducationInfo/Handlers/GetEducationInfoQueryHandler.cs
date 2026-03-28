@@ -7,6 +7,7 @@ using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
+using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
@@ -39,6 +40,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
         private readonly IIdEncoderService _idEncoderService;
         private readonly IConfiguration _configuration;
         private readonly ICommonRequestService _commonRequestService;
+        private readonly IFileStorageService _fileStorageService;
 
 
         public GetEducationInfoQueryHandler(
@@ -49,7 +51,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,
-          IEncryptionService encryptionService, IIdEncoderService idEncoderService, IConfiguration configuration, ICommonRequestService commonRequestService)
+          IEncryptionService encryptionService, IIdEncoderService idEncoderService, IConfiguration configuration, ICommonRequestService commonRequestService, IFileStorageService fileStorageService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -62,6 +64,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
             _idEncoderService = idEncoderService;
             this._configuration = configuration;
             _commonRequestService = commonRequestService;
+            _fileStorageService = fileStorageService;
         }
 
 
@@ -130,7 +133,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                         entity,
                         _idEncoderService,
                         validation.Claims.TenantEncriptionKey,
-                        _configuration)
+                        _configuration, _fileStorageService)
                     : new List<GetEducationResponseDTO>();
 
                 _logger.LogInformation("GetEducationInfo success");

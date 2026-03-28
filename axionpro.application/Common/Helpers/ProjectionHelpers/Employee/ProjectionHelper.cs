@@ -322,13 +322,11 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             {
                 entity.EmployeeId = encoderService.EncodeId_long(rawId, tenantKey);
             }
-            string baseUrl =
-           configuration["FileSettings:BaseUrl"] ?? string.Empty;
-         
+            
            
 
             if (!string.IsNullOrEmpty(entity.ProfileImage))
-                entity.ProfileImage = _fileStorageService.GetFileUrl(entity.ProfileImage);
+                entity.ProfileImage  = _fileStorageService.GetFileUrl(entity.ProfileImage);
 
 
             // =====================================================
@@ -518,7 +516,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 item.InfoVerifiedDateTime = item.InfoVerifiedDateTime.HasValue
                    ? DateTime.SpecifyKind(item.InfoVerifiedDateTime.Value, DateTimeKind.Utc)
                    : null;
-
+                
 
             }
 
@@ -549,11 +547,11 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                     item.EmployeeId = encoderService.EncodeId_long(rawEmpId, tenantKey);
                 }
 
-                if (!string.IsNullOrEmpty(item.FilePath))
+               if (!string.IsNullOrEmpty(item.FilePath))
                     item.FilePath = _fileStorageService.GetFileUrl(item.FilePath);
 
+                else item.FilePath = null;
 
- 
 
                 // 🧹 Null safety
                 item.FileName ??= string.Empty;
@@ -575,26 +573,15 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             return string.Empty;
         }
 
-        private static string BuildFilePath(
-            string? filePath,
-            string baseUrl,
-            string defaultImage)
-        {
-            if (string.IsNullOrWhiteSpace(filePath))
-                return defaultImage;
-
-            return $"{baseUrl}{filePath}";
-        }
-
+       
          
 
         public static List<GetEducationResponseDTO> ToGetEducationResponseDTOs(
         PagedResponseDTO<GetEducationResponseDTO> source,
         IIdEncoderService encoderService,
-        string tenantKey, IConfiguration configuration)
+        string tenantKey, IConfiguration configuration, IFileStorageService _fileStorageService)
         {
-            string baseUrl = configuration["FileSettings:BaseUrl"] ?? string.Empty;
-            string defaultImg = configuration["FileSettings:DefaultImage"] ?? string.Empty;
+            
             if (source?.Items == null || source.Items.Count == 0)
                 return new();
 
@@ -608,13 +595,13 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                     Degree = item.Degree,
                     InstituteName = item.InstituteName,
                     ScoreType = item.ScoreType,
-                    StartDate = item.StartDate.HasValue
-                    
-                   ? DateTime.SpecifyKind(item.StartDate.Value, DateTimeKind.Utc)
+                    StartDate = item.StartDate.HasValue  ? DateTime.SpecifyKind(item.StartDate.Value, DateTimeKind.Utc)
                    : null,
                     EndDate = item.EndDate.HasValue ? DateTime.SpecifyKind(item.EndDate.Value, DateTimeKind.Utc) : null,
                     //FilePath   = BuildFilePath(item.FilePath, baseUrl, defaultImg),
-                    FileType = item.FileType,
+
+                    FilePath = !string.IsNullOrEmpty(item.FilePath) ? _fileStorageService.GetFileUrl(item.FilePath) : null,
+
                     FileName = item.FileName,
                     IsActive = item.IsActive,
                     IsEditAllowed = item.IsEditAllowed,

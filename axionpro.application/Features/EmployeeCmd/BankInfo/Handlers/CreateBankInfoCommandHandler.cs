@@ -201,7 +201,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                     responseDTO,
                     _idEncoderService,
                     validation.Claims.TenantEncriptionKey,
-                    _config);
+                    _config, _fileStorageService);
                  
                 // ===============================
                 // 🔟 COMMIT
