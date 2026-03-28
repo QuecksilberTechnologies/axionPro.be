@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using axionpro.application.Common.Helpers.PercentageHelper;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.Experience;
 using axionpro.application.Exceptions;
@@ -19,7 +20,7 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
 {
-    public class CreateExperienceInfoCommand : IRequest<ApiResponse<long>>
+    public class CreateExperienceInfoCommand : IRequest<ApiResponse<GetEmployeeExperienceResponseDTO>>
     {
         public CreateExperienceRequestDTO DTO { get; set; }
 
@@ -30,7 +31,7 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
     }
 
     public class CreateExperienceInfoCommandHandler
-     : IRequestHandler<CreateExperienceInfoCommand, ApiResponse<long>>
+     : IRequestHandler<CreateExperienceInfoCommand, ApiResponse<GetEmployeeExperienceResponseDTO>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<CreateExperienceInfoCommand> _logger;
@@ -50,7 +51,7 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
             _idEncoderService =idEncoderService;
         }
 
-        public async Task<ApiResponse<long>> Handle(
+        public async Task<ApiResponse<GetEmployeeExperienceResponseDTO>> Handle(
             CreateExperienceInfoCommand request,
             CancellationToken cancellationToken)
         {
@@ -163,22 +164,24 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                 // 5️⃣ SAVE (SINGLE)
                 // ===============================
 
-
+                // ===============================
                 // ADD
-                await _unitOfWork.EmployeeExperienceRepository.AddAsync(exp);
+                // ===============================
+                var response=   await _unitOfWork.EmployeeExperienceRepository.AddAsync(exp);
+                if (exp.Id <= 0)
+                {
+                    _logger.LogError("❌ CreateExperience failed | ID not generated");
+                    throw new ApiException("Failed to create experience.", 500);
+                }
+                 
 
-                await _unitOfWork.SaveChangesAsync();
+                _logger.LogInformation("✅ Experience created successfully | Id: {Id}", exp.Id);
 
-                var id = exp.Id;
-
-                // 🔥 MUST
-                await _unitOfWork.CommitTransactionAsync();
- 
-                // COMMIT
-
-                _logger.LogInformation("✅ Experience created successfully");
-
-                return ApiResponse<long>.Success(id, "Experience saved successfully.");
+                // ===============================
+                // 6️⃣ RETURN
+                // ===============================
+                return ApiResponse<GetEmployeeExperienceResponseDTO>
+                    .Success(response, "Experience saved successfully.");
             }
             catch (Exception ex)
             {

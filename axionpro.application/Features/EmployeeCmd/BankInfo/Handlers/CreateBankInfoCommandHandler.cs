@@ -202,7 +202,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                     _idEncoderService,
                     validation.Claims.TenantEncriptionKey,
                     _config);
-
+                 
                 // ===============================
                 // 🔟 COMMIT
                 // ===============================

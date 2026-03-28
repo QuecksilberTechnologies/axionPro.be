@@ -9,7 +9,7 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 namespace axionpro.application.DTOS.Employee.Bank
 {
 
-    public class GetBankResponseDTO
+    public class GetBankResponseDTO 
     {
         public int Id { get; set; }
         public string? EmployeeId { get; set; }
@@ -29,7 +29,8 @@ namespace axionpro.application.DTOS.Employee.Bank
         public bool? IsEditAllowed { get; set; }
         
         public bool IsActive { get; set; }
-        public double CompletionPercentage { get; set; }
+        public double CompletionPercentage { get; set; } 
+       
       
     
 

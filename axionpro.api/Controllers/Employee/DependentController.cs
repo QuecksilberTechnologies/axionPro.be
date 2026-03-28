@@ -37,7 +37,8 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         /// <param name="DTO"></param>
         /// <param name="Dto">Employee-Dependent details</param>
-        [HttpPost("create")]      
+        [HttpPost("create")]
+        [Consumes("multipart/form-data")]
         public async Task<IActionResult> CreateDependentInfo([FromForm] CreateDependentRequestDTO Dto)
         {
            
@@ -101,7 +102,8 @@ namespace axionpro.api.Controllers.Employee
         /// <summary>
         /// Updates employee details.
         /// </summary>
-        [HttpPost("update")]    
+        [HttpPost("update")]
+        [Consumes("multipart/form-data")]
         public async Task<IActionResult> Update([FromForm] UpdateDependentRequestDTO dto)
         {
             

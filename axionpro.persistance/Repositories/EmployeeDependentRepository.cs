@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers.PercentageHelper;
+using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.DTOS.Pagination;
@@ -34,7 +35,7 @@ namespace axionpro.persistance.Repositories
 
         }
 
-        public async Task<PagedResponseDTO<GetDependentResponseDTO>> CreateAsync(EmployeeDependent entity)
+        public async  Task<PagedResponseDTO<GetDependentResponseDTO>> CreateAsync(EmployeeDependent entity)
         {
             try
             {
@@ -59,6 +60,8 @@ namespace axionpro.persistance.Repositories
 
                 var totalRecords = await query.CountAsync();
 
+                // 🔥 SAFE DEFAULTS
+                int pageNumber = 1;
                 int pageSize = 10;
                 var records = await query.Take(pageSize).ToListAsync();
 
@@ -73,13 +76,17 @@ namespace axionpro.persistance.Repositories
                     
                 }
 
+            
+
                 return new PagedResponseDTO<GetDependentResponseDTO>
                 {
                     Items = responseData,
                     TotalCount = totalRecords,
                     PageNumber = 1,
                     PageSize = pageSize,
-                    TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize)
+                    TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
+                    CompletionPercentage = responseData.Any() ? Math.Round(responseData.Average(x => x.CompletionPercentage), 0) : 0,
+                    HasUploadedAll = responseData.All(x => x.HasProofUploaded)
                 };
             }
             catch (Exception ex)

@@ -7,7 +7,7 @@ namespace axionpro.application.Interfaces.IRepositories;
 public interface IEmployeeExperienceRepository
 {
     // 🔹 CREATE
-    Task  AddAsync(EmployeeExperience entity);
+    Task<GetEmployeeExperienceResponseDTO> AddAsync(EmployeeExperience entity);
 
     // 🔹 UPDATE
     Task<bool> UpdateAsync(EmployeeExperience entity);

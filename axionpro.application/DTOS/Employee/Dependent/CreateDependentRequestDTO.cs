@@ -9,12 +9,12 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOS.Employee.Dependent
 {
-    public class CreateDependentRequestDTO
+    public class CreateDependentRequestDTO  
     {
 
     
          public string EmployeeId { get; set; } = string.Empty;      
-        public string? DependentName { get; set; }
+         public string? DependentName { get; set; }
         public int Relation { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public bool? IsCoveredInPolicy { get; set; }

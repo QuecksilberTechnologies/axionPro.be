@@ -360,7 +360,13 @@ public class UnitOfWork : IUnitOfWork
     public ISandwitchRuleRepository SandwitchRuleRepository =>
         _sandwitchRuleRepository ??= new SandwitchRuleRepository(_mapper, _context, _loggerFactory.CreateLogger<SandwitchRuleRepository>());
 
-    public IEmployeeDependentRepository EmployeeDependentRepository => throw new NotImplementedException();
+    public IEmployeeDependentRepository EmployeeDependentRepository => 
+        _employeeDependentRepository ??= new EmployeeDependentRepository(
+            _context,
+            _mapper,
+            _loggerFactory.CreateLogger<EmployeeDependentRepository>(),
+            _passwordService,
+            _encriptionService);
 
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)

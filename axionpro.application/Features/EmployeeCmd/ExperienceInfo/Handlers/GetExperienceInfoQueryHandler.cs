@@ -1,14 +1,11 @@
-﻿using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
-using axionpro.application.Common.Helpers.RequestHelper;
+﻿using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.Experience;
-using axionpro.application.DTOS.Pagination;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Wrappers;
 using MediatR;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers;

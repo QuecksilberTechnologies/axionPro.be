@@ -192,7 +192,7 @@ namespace axionpro.application.Common.Helpers.PercentageHelper
         // 🔹 Core identity
         !string.IsNullOrWhiteSpace(dep.DependentName) ? 1 : 0,
 
-        // ✅ RELATION (INT ENUM VALUE)
+        // 🔹 Relation
         dep.Relation.HasValue && dep.Relation.Value > 0 ? 1 : 0,
 
         // 🔹 Personal info
@@ -202,16 +202,12 @@ namespace axionpro.application.Common.Helpers.PercentageHelper
         dep.IsCoveredInPolicy.HasValue ? 1 : 0,
         dep.IsMarried.HasValue ? 1 : 0,
 
-        // 🔹 Business rule
-        // Proof mandatory ONLY if covered in policy
-        dep.IsCoveredInPolicy == true
-            ? (dep.HasProofUploaded == true ? 1 : 0)
-            : 1
-    };
+        // 🔥 DOCUMENT (MANDATORY FOR ALL)
+        dep.HasProofUploaded ? 1 : 0
+       };
 
             return CalculatePercentage(checks);
         }
-
 
         // =========================================================
         // CONTACT DETAILS COMPLETION
