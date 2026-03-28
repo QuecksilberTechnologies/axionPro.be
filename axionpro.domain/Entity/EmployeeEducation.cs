@@ -24,7 +24,7 @@ public partial class EmployeeEducation
     public int? ScoreType { get; set; } // 1=GPA, 2=Percentage, 3=CGPA, etc.
     public string? GradeDivision { get; set; }
     public string? FilePath { get; set; }
-    public int? FileType { get; set; }
+    public int FileType { get; set; }
     public string? FileName { get; set; } 
 
     public bool? EducationGap { get; set; }

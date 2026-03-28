@@ -29,7 +29,7 @@ namespace axionpro.application.DTOS.Employee.Education
         public string? ScoreType { get; set; }
         public string? FilePath { get; set; }
 
-        public string? FileType { get; set; }   
+        public int FileType { get; set; }   
         public string? FileName { get; set; }   
 
         public bool? EducationGap { get; set; }

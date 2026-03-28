@@ -183,7 +183,7 @@ namespace axionpro.persistance.Repositories
                         // 🔥 FIXED
                        // FilePath = !string.IsNullOrEmpty(edu.FilePath) ? _fileStorageService.GetFileUrl(edu.FilePath)  : null,
                          FilePath = edu.FilePath  ,
-                        FileType = edu.FileType?.ToString(),
+                        FileType = edu.FileType,
                         FileName = edu.FileName,
                         IsActive = edu.IsActive,
                         IsEditAllowed = edu.IsEditAllowed,
