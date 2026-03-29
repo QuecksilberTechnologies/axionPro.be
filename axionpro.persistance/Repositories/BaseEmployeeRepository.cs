@@ -113,14 +113,14 @@ namespace axionpro.persistance.Repositories
                             .SetProperty(p => p.UpdatedDateTime, now), ct);
                     break;
 
-                //case TabInfoType.Experience:
-                //    affected = await _context.EmployeeExperienceDetails
-                //        .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
-                //        .ExecuteUpdateAsync(s => s
-                //            .SetProperty(p => p.IsEditAllowed, isVerified)
-                //            .SetProperty(p => p.UpdatedById, userEmployeeId)
-                //            .SetProperty(p => p.UpdatedDateTime, now), ct);
-                //    break;
+                case TabInfoType.Experience:
+                    affected = await _context.EmployeeExperienceDetails
+                        .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(p => p.IsEditAllowed, isVerified)
+                            .SetProperty(p => p.UpdatedById, userEmployeeId)
+                            .SetProperty(p => p.UpdatedDateTime, now), ct);
+                    break;
 
                 case TabInfoType.Identity:
                     affected = await _context.EmployeeIdentities
@@ -198,14 +198,14 @@ namespace axionpro.persistance.Repositories
                             .SetProperty(p => p.InfoVerifiedDateTime, now), ct);
                     break;
 
-                //case TabInfoType.Experience:
-                //    affected = await _context.EmployeeExperienceDetails
-                //        .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
-                //        .ExecuteUpdateAsync(s => s
-                //            .SetProperty(p => p.IsInfoVerified, isVerified)
-                //            .SetProperty(p => p.InfoVerifiedById, userEmployeeId)
-                //            .SetProperty(p => p.InfoVerifiedDateTime, now), ct);
-                //    break;
+                case TabInfoType.Experience:
+                    affected = await _context.EmployeeExperienceDetails
+                        .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(p => p.IsInfoVerified, isVerified)
+                            .SetProperty(p => p.InfoVerifiedById, userEmployeeId)
+                            .SetProperty(p => p.InfoVerifiedDateTime, now), ct);
+                    break;
 
                 case TabInfoType.Identity:
                     affected = await _context.EmployeeIdentities
