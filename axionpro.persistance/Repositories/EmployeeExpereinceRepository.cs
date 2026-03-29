@@ -45,64 +45,78 @@ namespace axionpro.persistance.Repositories
             if (entity == null)
                 throw new ArgumentNullException(nameof(entity));
 
-            // 🔹 Add
+            // 🔥 ONLY ADD (NO SAVE)
             await _context.EmployeeExperiences.AddAsync(entity);
 
-            // 🔹 Save (IMPORTANT 🔥)
-            await _context.SaveChangesAsync();
+            // ❌ REMOVE THIS LINE
+            // await _context.SaveChangesAsync();
 
-            // 🔹 Map to DTO
-            var result = new GetEmployeeExperienceResponseDTO
-            {
-                Id = entity.Id,
-                EmployeeId = entity.EmployeeId.ToString(),
-
-                CompanyName = entity.CompanyName,
-                Designation = entity.Designation,
-                EmployeeIdOfCompany = entity.EmployeeIdOfCompany,
-                Ctc = entity.Ctc,
-
-                StartDate = entity.StartDate,
-                EndDate = entity.EndDate,
-                Experience = entity.Experience,
-
-                IsWFH = entity.IsWFH,
-
-                WorkingCountryId = entity.WorkingCountryId,
-                WorkingStateId = entity.WorkingStateId,
-                WorkingDistrictId = entity.WorkingDistrictId,
-
-                IsForeignExperience = entity.IsForeignExperience,
-
-                ReasonForLeaving = entity.ReasonForLeaving,
-                Remark = entity.Remark,
-
-                ColleagueName = entity.ColleagueName,
-                ColleagueDesignation = entity.ColleagueDesignation,
-                ColleagueContactNumber = entity.ColleagueContactNumber,
-
-                ReportingManagerName = entity.ReportingManagerName,
-                ReportingManagerNumber = entity.ReportingManagerNumber,
-
-                VerificationEmail = entity.VerificationEmail,
-
-                IsAnyGap = entity.IsAnyGap,
-                ReasonOfGap = entity.ReasonOfGap,
-                GapYearFrom = entity.GapYearFrom,
-                GapYearTo = entity.GapYearTo,
-
-                IsEditAllowed = entity.IsEditAllowed,
-                IsInfoVerified = entity.IsInfoVerified,
-
-                Documents = new List<GetEmployeeExperienceDocumentDTO>()
-            };
-
-            // 🔥 Completion calculate
-            result.CompletionPercentage =
-                CompletionCalculatorHelper.ExperiencePropCalculate(result);
-
-            return result;
+            // 👉 Just return empty or minimal DTO (optional)
+            return new GetEmployeeExperienceResponseDTO();
         }
+        //public async Task<GetEmployeeExperienceResponseDTO> AddAsync(EmployeeExperience entity)
+        //{
+        //    if (entity == null)
+        //        throw new ArgumentNullException(nameof(entity));
+
+        //    // 🔹 Add
+        //    await _context.EmployeeExperiences.AddAsync(entity);
+
+        //    // 🔹 Save (IMPORTANT 🔥)
+        //    await _context.SaveChangesAsync();
+
+        //    // 🔹 Map to DTO
+        //    var result = new GetEmployeeExperienceResponseDTO
+        //    {
+        //        Id = entity.Id,
+        //        EmployeeId = entity.EmployeeId.ToString(),
+
+        //        CompanyName = entity.CompanyName,
+        //        Designation = entity.Designation,
+        //        EmployeeIdOfCompany = entity.EmployeeIdOfCompany,
+        //        Ctc = entity.Ctc,
+
+        //        StartDate = entity.StartDate,
+        //        EndDate = entity.EndDate,
+        //        Experience = entity.Experience,
+
+        //        IsWFH = entity.IsWFH,
+
+        //        WorkingCountryId = entity.WorkingCountryId,
+        //        WorkingStateId = entity.WorkingStateId,
+        //        WorkingDistrictId = entity.WorkingDistrictId,
+
+        //        IsForeignExperience = entity.IsForeignExperience,
+
+        //        ReasonForLeaving = entity.ReasonForLeaving,
+        //        Remark = entity.Remark,
+
+        //        ColleagueName = entity.ColleagueName,
+        //        ColleagueDesignation = entity.ColleagueDesignation,
+        //        ColleagueContactNumber = entity.ColleagueContactNumber,
+
+        //        ReportingManagerName = entity.ReportingManagerName,
+        //        ReportingManagerNumber = entity.ReportingManagerNumber,
+
+        //        VerificationEmail = entity.VerificationEmail,
+
+        //        IsAnyGap = entity.IsAnyGap,
+        //        ReasonOfGap = entity.ReasonOfGap,
+        //        GapYearFrom = entity.GapYearFrom,
+        //        GapYearTo = entity.GapYearTo,
+
+        //        IsEditAllowed = entity.IsEditAllowed,
+        //        IsInfoVerified = entity.IsInfoVerified,
+
+        //        Documents = new List<GetEmployeeExperienceDocumentDTO>()
+        //    };
+
+        //    // 🔥 Completion calculate
+        //    result.CompletionPercentage =
+        //        CompletionCalculatorHelper.ExperiencePropCalculate(result);
+
+        //    return result;
+        //}
 
         // ===============================
         // 🔹 UPDATE

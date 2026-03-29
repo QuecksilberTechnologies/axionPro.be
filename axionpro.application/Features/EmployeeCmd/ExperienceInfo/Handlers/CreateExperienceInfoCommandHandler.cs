@@ -73,7 +73,7 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                     throw new ValidationErrorException("Invalid request");
 
                 request.DTO.Prop.EmployeeId =
-                  RequestCommonHelper.DecodeOnlyEmployeeId(   request.DTO.EmployeeId,  validation.Claims.TenantEncriptionKey,    _idEncoderService);
+                  RequestCommonHelper.DecodeOnlyEmployeeId(request.DTO.EmployeeId, validation.Claims.TenantEncriptionKey, _idEncoderService);
 
                 if (request.DTO.Prop.EmployeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
@@ -160,26 +160,71 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                     }
                 }
 
-                // ===============================
-                // 5️⃣ SAVE (SINGLE)
-                // ===============================
 
                 // ===============================
-                // ADD
+                // 4️⃣ ADD
                 // ===============================
-                var response=   await _unitOfWork.EmployeeExperienceRepository.AddAsync(exp);
-                if (exp.Id <= 0)
-                {
-                    _logger.LogError("❌ CreateExperience failed | ID not generated");
-                    throw new ApiException("Failed to create experience.", 500);
-                }
                  
+                await _unitOfWork.EmployeeExperienceRepository.AddAsync(exp);
+
+                // ===============================
+                // SAVE (ONLY HERE 🔥)
+                // ===============================
+                var rows = await   _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                if (rows <= 0 || exp.Id <= 0)
+                {
+                    _logger.LogError("❌ CreateExperience failed | SaveChanges failed");
+                    throw new ApiException("Failed to save experience.", 500);
+                }
+
+                // ===============================
+                // COMMIT
+                // ===============================
+                await _unitOfWork.CommitTransactionAsync();
+
+                // ===============================
+                // MAP (NOW SAFE)
+                // ===============================
+                var response = new GetEmployeeExperienceResponseDTO
+                {
+                    Id = exp.Id,
+                    EmployeeId = exp.EmployeeId.ToString(),
+                    CompanyName = exp.CompanyName,
+                    Designation = exp.Designation,
+                    EmployeeIdOfCompany = exp.EmployeeIdOfCompany,
+                    Ctc = exp.Ctc,
+                    StartDate = exp.StartDate,
+                    EndDate = exp.EndDate,
+                    Experience = exp.Experience,
+                    IsWFH = exp.IsWFH,
+                    WorkingCountryId = exp.WorkingCountryId,
+                    WorkingStateId = exp.WorkingStateId,
+                    WorkingDistrictId = exp.WorkingDistrictId,
+                    IsForeignExperience = exp.IsForeignExperience,
+                    ReasonForLeaving = exp.ReasonForLeaving,
+                    Remark = exp.Remark,
+                    ColleagueName = exp.ColleagueName,
+                    ColleagueDesignation = exp.ColleagueDesignation,
+                    ColleagueContactNumber = exp.ColleagueContactNumber,
+                    ReportingManagerName = exp.ReportingManagerName,
+                    ReportingManagerNumber = exp.ReportingManagerNumber,
+                    VerificationEmail = exp.VerificationEmail,
+                    IsAnyGap = exp.IsAnyGap,
+                    ReasonOfGap = exp.ReasonOfGap,
+                    GapYearFrom = exp.GapYearFrom,
+                    GapYearTo = exp.GapYearTo,
+                    IsEditAllowed = exp.IsEditAllowed,
+                    IsInfoVerified = exp.IsInfoVerified,
+                    Documents = new List<GetEmployeeExperienceDocumentDTO>()
+                };
+
+                // Completion
+                response.CompletionPercentage =
+                    CompletionCalculatorHelper.ExperiencePropCalculate(response);
 
                 _logger.LogInformation("✅ Experience created successfully | Id: {Id}", exp.Id);
 
-                // ===============================
-                // 6️⃣ RETURN
-                // ===============================
                 return ApiResponse<GetEmployeeExperienceResponseDTO>
                     .Success(response, "Experience saved successfully.");
             }
@@ -190,6 +235,7 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                 await _unitOfWork.RollbackTransactionAsync();
 
                 // 🔥 FILE ROLLBACK
+
                 foreach (var file in uploadedFiles)
                 {
                     try { await _fileStorageService.DeleteFileAsync(file); }

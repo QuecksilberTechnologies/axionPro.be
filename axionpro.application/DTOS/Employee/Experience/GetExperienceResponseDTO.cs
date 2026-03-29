@@ -10,7 +10,7 @@ namespace axionpro.application.DTOS.Employee.Experience
 {
     
 
-    public class GetEmployeeExperienceResponseDTO : BaseRequest
+    public class GetEmployeeExperienceResponseDTO 
     {
 
       
