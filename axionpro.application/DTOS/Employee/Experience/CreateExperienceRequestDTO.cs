@@ -66,7 +66,7 @@ namespace axionpro.application.DTOS.Employee.Experience
         public int DocumentType { get; set; }   // ENUM use hoga
 
         public string? FileName { get; set; }
-        public string? FilePath { get; set; }
+        public IFormFile? File { get; set; }
 
         public string? Remark { get; set; }
     }

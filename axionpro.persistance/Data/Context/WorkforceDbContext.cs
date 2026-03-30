@@ -1290,7 +1290,7 @@ namespace axionpro.persistance.Data.Context
 
                 // 🔹 Defaults
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsUploaded).HasDefaultValue(true);
+                entity.Property(e => e.HasExperienceDocUploaded).HasDefaultValue(true);
 
                 // 🔥 FK → EmployeeExperience (NO SHADOW)
                 entity.HasOne(d => d.EmployeeExperience)

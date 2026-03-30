@@ -332,19 +332,19 @@ namespace axionpro.persistance.Repositories
                     break;
 
                 // ================= EXPERIENCE =================
-                //case TabInfoType.Experience:
-                //    // 🔥 DETAILS TABLE
-                //    affected = await _context.EmployeeExperienceDetails
-                //        .Where(x =>
-                //            x.EmployeeId == employeeId &&
-                //            x.IsSoftDeleted != true)
-                //        .ExecuteUpdateAsync(s => s
-                //            .SetProperty(p => p.IsInfoVerified, isVerified)
-                //            .SetProperty(p => p.IsEditAllowed, isEditAllowed)
-                //            .SetProperty(p => p.InfoVerifiedById, userId)
-                //            .SetProperty(p => p.InfoVerifiedDateTime, now),
-                //            ct);
-                //    break;
+                case TabInfoType.Experience:
+                    // 🔥 DETAILS TABLE
+                    affected = await _context.EmployeeExperienceDetails
+                        .Where(x =>
+                            x.EmployeeId == employeeId &&
+                            x.IsSoftDeleted != true)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(p => p.IsInfoVerified, isVerified)
+                            .SetProperty(p => p.IsEditAllowed, isEditAllowed)
+                            .SetProperty(p => p.InfoVerifiedById, userId)
+                            .SetProperty(p => p.InfoVerifiedDateTime, now),
+                            ct);
+                    break;
             }
 
             return affected > 0;

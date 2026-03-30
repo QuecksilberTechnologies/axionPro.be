@@ -19,7 +19,7 @@ public partial class EmployeeExperienceDocument
     public string? FileName { get; set; }
     public string? FilePath { get; set; }
 
-    public bool IsUploaded { get; set; } = true;
+    public bool HasExperienceDocUploaded { get; set; } = true;
 
     public string? Remark { get; set; }
 

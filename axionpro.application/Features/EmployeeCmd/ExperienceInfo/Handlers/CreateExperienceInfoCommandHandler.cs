@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers.PercentageHelper;
 using axionpro.application.Common.Helpers.RequestHelper;
+using axionpro.application.Constants;
 using axionpro.application.DTOS.Employee.Experience;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -81,6 +82,10 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                 // 2️⃣ TRANSACTION START
                 // ===============================
                 await _unitOfWork.BeginTransactionAsync();
+                // ===============================
+                // 5️⃣ FILE UPLOAD
+                // ===============================
+              
 
                 // ===============================
                 // 3️⃣ CREATE EXPERIENCE
@@ -130,8 +135,11 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                     IsSoftDeleted = false
                 };
 
+                
+                     
+
                 // ===============================
-                // 4️⃣ DOCUMENTS (DIRECT)
+                // 4️⃣ DOCUMENTS (UPLOAD LIKE EDUCATION 🔥)
                 // ===============================
                 if (request.DTO.Documents != null && request.DTO.Documents.Any())
                 {
@@ -139,13 +147,48 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
 
                     foreach (var docDto in request.DTO.Documents)
                     {
+                        string? docPath = null;
+                        string? fileName = null;
+                        bool hasUploaded = false;
+
+                        if (docDto.File != null && docDto.File.Length > 0)
+                        {
+                            try
+                            {
+                                fileName =
+                                    $"experience-{request.DTO.Prop.EmployeeId}-{DateTime.UtcNow:yyyyMMddHHmmss}";
+
+                                string folderPath = $"{ConstantValues.TenantFolder}-{request.DTO.Prop.TenantId}/" +
+                                    $"{ConstantValues.EmployeeFolder}/{request.DTO.Prop.EmployeeId}/" +
+                                       $"{ConstantValues.ExperienceFolder}";
+                      
+
+                                docPath = await _fileStorageService.UploadFileAsync(
+                                    docDto.File,   
+                                    folderPath,
+                                    fileName);
+
+                                if (!string.IsNullOrWhiteSpace(docPath))
+                                {
+                                    hasUploaded = true;
+                                    uploadedFiles.Add(docPath); // rollback support
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "Experience document upload failed");
+                                throw new ApiException("File upload failed.", 500);
+                            }
+                        }
+
                         var doc = new EmployeeExperienceDocument
                         {
                             DocumentType = docDto.DocumentType,
-                            FileName = docDto.FileName,
-                            FilePath = docDto.FilePath,
 
-                            IsUploaded = true,
+                            FileName = fileName,
+                            FilePath = docPath,
+
+                            HasExperienceDocUploaded = hasUploaded,
 
                             AddedById = validation.UserEmployeeId,
                             AddedDateTime = DateTime.UtcNow,
@@ -153,18 +196,14 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                             IsSoftDeleted = false
                         };
 
-                        if (!string.IsNullOrWhiteSpace(doc.FilePath))
-                            uploadedFiles.Add(doc.FilePath);
-
                         exp.EmployeeExperienceDocuments.Add(doc);
                     }
                 }
 
-
                 // ===============================
                 // 4️⃣ ADD
                 // ===============================
-                 
+
                 await _unitOfWork.EmployeeExperienceRepository.AddAsync(exp);
 
                 // ===============================

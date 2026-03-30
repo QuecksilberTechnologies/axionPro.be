@@ -2,7 +2,6 @@
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Constants;
-using axionpro.application.DTOs.Module;
 using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -18,7 +17,6 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Reflection;
 
 namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 {
