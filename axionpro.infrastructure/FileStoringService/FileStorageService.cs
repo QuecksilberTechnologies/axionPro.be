@@ -85,9 +85,29 @@ namespace axionpro.infrastructure.FileStoringService
                    response.HttpStatusCode == System.Net.HttpStatusCode.OK;
         }
 
+        public async Task<string> UploadMultiFileAsync(  MemoryStream memoryStream, string folderPath, string fileName, string contentType, string fileExtension)
+        {
+            if (memoryStream == null || memoryStream.Length == 0)
+                throw new Exception("File is empty.");
 
+            // ✅ Ensure stream position start se ho
+            memoryStream.Position = 0;
 
+            // ✅ Final S3 Key
+            var key = $"{folderPath}/{fileName}{fileExtension}";
 
+            var request = new PutObjectRequest
+            {
+                BucketName = _bucketName,
+                Key = key,
+                InputStream = memoryStream,   // ✅ Direct stream use
+                ContentType = contentType     // ✅ Proper content type
+            };
+
+            await _s3Client.PutObjectAsync(request);
+
+            return key;
+        }
     }
 }
 

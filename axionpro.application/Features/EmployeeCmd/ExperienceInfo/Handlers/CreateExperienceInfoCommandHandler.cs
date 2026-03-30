@@ -78,6 +78,11 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
 
                 if (request.DTO.Prop.EmployeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
+
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
+                if (request.DTO.Prop.TenantId <= 0)
+                    throw new ValidationErrorException("Invalid TenantId.");
                 // ===============================
                 // 2️⃣ TRANSACTION START
                 // ===============================
@@ -135,44 +140,70 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                     IsSoftDeleted = false
                 };
 
-                
-                     
 
+
+ 
                 // ===============================
                 // 4️⃣ DOCUMENTS (UPLOAD LIKE EDUCATION 🔥)
                 // ===============================
-                if (request.DTO.Documents != null && request.DTO.Documents.Any())
+                if (request.DTO.Documents != null)
                 {
-                    exp.EmployeeExperienceDocuments = new List<EmployeeExperienceDocument>();
+                    // ✅ Filter only valid files (IMPORTANT)
+                    var validDocs = request.DTO.Documents
+                        .Where(d => d.File != null && d.File.Length > 0)
+                        .ToList();
 
-                    foreach (var docDto in request.DTO.Documents)
+                    if (validDocs.Any())
                     {
-                        string? docPath = null;
-                        string? fileName = null;
-                        bool hasUploaded = false;
+                        exp.EmployeeExperienceDocuments = new List<EmployeeExperienceDocument>();
 
-                        if (docDto.File != null && docDto.File.Length > 0)
+                        foreach (var docDto in validDocs)
                         {
                             try
                             {
-                                fileName =
-                                    $"experience-{request.DTO.Prop.EmployeeId}-{DateTime.UtcNow:yyyyMMddHHmmss}";
+                                // ✅ STEP 1: Copy file to memory (fix stream issue)
+                                using var memoryStream = new MemoryStream();
+                                await docDto.File!.CopyToAsync(memoryStream);
+                                memoryStream.Position = 0;
 
-                                string folderPath = $"{ConstantValues.TenantFolder}-{request.DTO.Prop.TenantId}/" +
+                                // ✅ STEP 2: Generate unique filename
+                                var fileName = $"experience-{request.DTO.Prop.EmployeeId}-{Guid.NewGuid()}";
+
+                                // ✅ STEP 3: Folder path
+                                string folderPath =
+                                    $"{ConstantValues.TenantFolder}-{request.DTO.Prop.TenantId}/" +
                                     $"{ConstantValues.EmployeeFolder}/{request.DTO.Prop.EmployeeId}/" +
-                                       $"{ConstantValues.ExperienceFolder}";
-                      
+                                    $"{ConstantValues.ExperienceFolder}";
 
-                                docPath = await _fileStorageService.UploadFileAsync(
-                                    docDto.File,   
+                                // ✅ STEP 4: File extension
+                                var extension = Path.GetExtension(docDto.File.FileName);
+
+                                // ✅ STEP 5: Upload
+                                var docPath = await _fileStorageService.UploadMultiFileAsync(
+                                    memoryStream,
                                     folderPath,
-                                    fileName);
+                                    fileName,
+                                    docDto.File.ContentType,
+                                    extension);
 
-                                if (!string.IsNullOrWhiteSpace(docPath))
+                                // ✅ STEP 6: Validate upload
+                                if (string.IsNullOrWhiteSpace(docPath))
+                                    throw new ApiException("File upload failed.", 500);
+
+                                uploadedFiles.Add(docPath);
+
+                                // ✅ STEP 7: Save entity
+                                exp.EmployeeExperienceDocuments.Add(new EmployeeExperienceDocument
                                 {
-                                    hasUploaded = true;
-                                    uploadedFiles.Add(docPath); // rollback support
-                                }
+                                    DocumentType = docDto.DocumentType,
+                                    FileName = fileName,
+                                    FilePath = docPath,
+                                    HasExperienceDocUploaded = true,
+                                    AddedById = validation.UserEmployeeId,
+                                    AddedDateTime = DateTime.UtcNow,
+                                    IsActive = true,
+                                    IsSoftDeleted = false
+                                });
                             }
                             catch (Exception ex)
                             {
@@ -180,26 +211,8 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                                 throw new ApiException("File upload failed.", 500);
                             }
                         }
-
-                        var doc = new EmployeeExperienceDocument
-                        {
-                            DocumentType = docDto.DocumentType,
-
-                            FileName = fileName,
-                            FilePath = docPath,
-
-                            HasExperienceDocUploaded = hasUploaded,
-
-                            AddedById = validation.UserEmployeeId,
-                            AddedDateTime = DateTime.UtcNow,
-                            IsActive = true,
-                            IsSoftDeleted = false
-                        };
-
-                        exp.EmployeeExperienceDocuments.Add(doc);
                     }
                 }
-
                 // ===============================
                 // 4️⃣ ADD
                 // ===============================
@@ -255,7 +268,24 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                     GapYearTo = exp.GapYearTo,
                     IsEditAllowed = exp.IsEditAllowed,
                     IsInfoVerified = exp.IsInfoVerified,
-                    Documents = new List<GetEmployeeExperienceDocumentDTO>()
+
+                    // ✅ 🔥 DOCUMENT LIST  
+                   
+                    Documents = exp.EmployeeExperienceDocuments != null
+                        ? exp.EmployeeExperienceDocuments.Select(d => new GetEmployeeExperienceDocumentDTO
+                        {
+                            Id = d.Id,
+                            DocumentType = d.DocumentType,
+                            FileName = d.FileName,
+                            FilePath = d.FilePath,
+
+                            Url = !string.IsNullOrWhiteSpace(d.FilePath)
+                                ? _fileStorageService.GetFileUrl(d.FilePath)
+                                : null,
+
+                            HasExperienceDocUploaded = d.HasExperienceDocUploaded
+                        }).ToList()
+                        : new List<GetEmployeeExperienceDocumentDTO>()
                 };
 
                 // Completion
@@ -284,6 +314,7 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                 throw;
             }
         }
+      
     }
 
 

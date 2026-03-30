@@ -81,6 +81,7 @@ namespace axionpro.application.DTOS.Employee.Experience
 
         public string? FileName { get; set; }
         public string? FilePath { get; set; }
+        public bool HasExperienceDocUploaded { get; set; }
         public string? Url { get; set; } // 🔥 Ready URL
 
         public string? Remark { get; set; }

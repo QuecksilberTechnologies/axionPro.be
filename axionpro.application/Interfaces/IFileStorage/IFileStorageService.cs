@@ -38,6 +38,9 @@ namespace axionpro.application.Interfaces.IFileStorage
         //    string GetDefaultImagePath();
         //    string GetDefaultImageUrl();
         Task<string> UploadFileAsync(IFormFile file, string folderPath, string fileName);
+        Task<string> UploadMultiFileAsync(MemoryStream memoryStream, string folderPath, string fileName, string contentType, string fileExtension);
+
+
         string GetFileUrl(string key, int expiryMinutes = 30);
         Task<bool> DeleteFileAsync(string fileKey);
     }
