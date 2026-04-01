@@ -283,6 +283,7 @@ namespace axionpro.persistance.Repositories
                         {
                             Id = d.Id,
                             DocumentType = d.DocumentType,
+                            HasExperienceDocUploaded = d.HasExperienceDocUploaded,
                             FileName = d.FileName,
                             FilePath = !string.IsNullOrEmpty(d.FilePath)
                                 ? _fileStorageService.GetFileUrl(d.FilePath)

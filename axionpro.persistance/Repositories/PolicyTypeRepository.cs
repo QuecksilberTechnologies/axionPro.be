@@ -325,6 +325,14 @@ namespace axionpro.persistance.Repositories
             }
         }
 
+        public async Task<List<PolicyType>> AutoCreatePolicyTypesAsync(List<PolicyType> policyTypes)
+        {
+            if (policyTypes == null || !policyTypes.Any())
+                throw new ArgumentException("PolicyTypes list cannot be null or empty");
 
+            await _context.PolicyTypes.AddRangeAsync(policyTypes);
+
+            return policyTypes;
+        }
     }
 }

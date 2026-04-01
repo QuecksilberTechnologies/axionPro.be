@@ -70,9 +70,7 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                 // ===============================
                 // 3️⃣ FETCH RECORD
                 // ===============================
-                // ===============================
-                // 3️⃣ FETCH
-                // ===============================
+              
                 var existing = await _unitOfWork.EmployeeExperienceRepository
                   .GetByIdAsync(request.DTO.Id, loggedInEmployeeId);
 

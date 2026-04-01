@@ -57,9 +57,6 @@ namespace axionpro.api.Controllers.Employee
        /// Deletes employee education record by Id.
        /// </summary>
        [HttpDelete("delete")]
-        
-        
-        
         public async Task<IActionResult> Delete([FromQuery] DeleteEducationRequestDTO dto)
         {
                 _logger.LogInfo($"Deleting employee with Id: {dto.Id}");

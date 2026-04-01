@@ -15,6 +15,7 @@ namespace axionpro.application.Interfaces.IRepositories
         Task<GetPolicyTypeResponseDTO> CreatePolicyTypeAsync(
             PolicyType policyType);
 
+        Task<List<PolicyType>> AutoCreatePolicyTypesAsync(List<PolicyType> policyTypes);
         // ================================
         // 🔹 READ (Get by Id)
         // Used by handler to check existence

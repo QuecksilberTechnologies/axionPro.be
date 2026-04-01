@@ -18,6 +18,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text.RegularExpressions;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Model;
 
 namespace axionpro.application.Features.RegistrationCmd.Handlers
 {
@@ -493,6 +494,54 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                     return Fail("Employee creation failed.");
                 }
 
+                // ===============================
+                //  CREATE POLICY TYPE
+                // ===============================
+                var policyTypes = new List<PolicyType>
+                        {
+                            new PolicyType
+                            {
+                                TenantId = newTenantId,
+                                PolicyName = ConstantValues.DefaultInsurancePolicy,
+                                Description = "System Generated Predefined Insurance Policy",
+                                IsActive = true,
+                                IsStructured = true,
+                                IsSoftDelete = false,
+                                AddedById = newTenantId,
+                                AddedDateTime = DateTime.UtcNow
+                            },
+                        new PolicyType
+                        {
+                            TenantId = newTenantId,
+                            PolicyName = ConstantValues.DefaultLeavePolicy,
+                            Description = "System Generated Predefined Leave Policy",
+                            IsActive = true,
+                            IsStructured = true,
+                            IsSoftDelete = false,
+                            AddedById = newTenantId,
+                            AddedDateTime = DateTime.UtcNow
+                        }
+                    };
+                    
+                // INSERT POLICY TYPES
+                // ===============================
+                var insertedPolicies = await _unitOfWork.PolicyTypeRepository
+                    .AutoCreatePolicyTypesAsync(policyTypes);
+              
+
+                // ✅ VALIDATE INSERT RESULT
+                if (insertedPolicies == null || !insertedPolicies.Any())
+                {
+                    await SafeRollbackAsync();
+                    throw new Exception("Policy creation failed. Insert operation returned empty.");
+                }
+
+                // ===============================
+                // FINAL COMMIT (SINGLE TRANSACTION)
+                // ===============================
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+
                 // =====================================================
                 // STEP 18 : Create tenant profile
                 // =====================================================
@@ -533,8 +582,11 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 // =====================================================
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
+
+           
+
                 // =====================================================
-                // STEP 22 : Prepare token
+                // STEP 23 : Prepare token
                 // =====================================================
                 string encryptedEmployeeId = _idEncoderService.EncodeId_long(employeeId, null);
                 string encryptedTenantId = _idEncoderService.EncodeId_long(newTenantId, null);

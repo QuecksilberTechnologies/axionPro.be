@@ -57,7 +57,9 @@ namespace axionpro.application.Constants
         public const string DependentFolder = "dependent";
         public const string EducationFolder = "education";
         public const string ExperienceFolder = "experience";
-        
+
+        public const string DefaultInsurancePolicy = "Insurance Policy";
+        public const string DefaultLeavePolicy = "Leave Policy";
 
         public static readonly string invalidCredential = "Invalid credentials";
         public static readonly int ParmanentEmployeeType = 1;

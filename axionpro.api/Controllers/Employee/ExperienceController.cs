@@ -1,4 +1,6 @@
-﻿using axionpro.application.DTOS.Employee.BaseEmployee;
+﻿using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Employee.BaseEmployee;
+using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.DTOS.Employee.Experience;
 
 using axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers;
@@ -67,6 +69,23 @@ namespace axionpro.api.Controllers.Employee
                 _logger.LogInfo("Employee-experience updated successfully.");
                 return Ok(result);
             
+        }
+        /// <summary>
+        /// Deletes employee education record by Id.
+        /// </summary>
+        [HttpDelete("delete")]
+        public async Task<IActionResult> Delete([FromQuery] DeleteRequestDTO dto)
+        {
+            _logger.LogInfo($"Deleting employee with Id: {dto.Id}");
+
+            var command = new DeleteExperienceCommand(dto);
+            var result = await _mediator.Send(command);
+
+
+            _logger.LogInfo("Education deleted successfully.");
+            return Ok(result);
+
+
         }
     }
 }

@@ -77,7 +77,7 @@ namespace axionpro.application.DTOS.Employee.Experience
         public long Id { get; set; }
 
         public int DocumentType { get; set; }
-        public string? DocumentTypeName { get; set; } // 🔥 UI ke liye
+        public string? DocumentTypeName { get; set; }  
 
         public string? FileName { get; set; }
         public string? FilePath { get; set; }
