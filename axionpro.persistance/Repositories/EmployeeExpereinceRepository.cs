@@ -149,6 +149,13 @@ namespace axionpro.persistance.Repositories
 
             return await _context.SaveChangesAsync() > 0;
         }
+        public async Task<bool> SoftDeleteDocAsync(EmployeeExperienceDocument entity)
+        {
+
+            _context.EmployeeExperienceDocuments.Update(entity);
+
+            return await _context.SaveChangesAsync() > 0;
+        }
 
         // ===============================
         // 🔹 GET BY ID

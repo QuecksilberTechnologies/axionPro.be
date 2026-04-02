@@ -87,5 +87,22 @@ namespace axionpro.api.Controllers.Employee
 
 
         }
+        /// <summary>
+        /// Deletes employee education record by Id.
+        /// </summary>
+        [HttpDelete("delete-doc")]
+        public async Task<IActionResult> DeleteDoc([FromQuery] DeleteRequestDTO dto)
+        {
+            _logger.LogInfo($"Deleting employee with Id: {dto.Id}");
+
+            var command = new DeleteExperienceDocCommand(dto);
+            var result = await _mediator.Send(command);
+
+
+            _logger.LogInfo("Education deleted successfully.");
+            return Ok(result);
+
+
+        }
     }
 }

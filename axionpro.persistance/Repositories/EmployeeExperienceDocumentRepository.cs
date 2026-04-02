@@ -53,6 +53,11 @@ namespace axionpro.persistance.Repositories
                 .Where(x => x.EmployeeExperience.Id == detailId && !x.IsSoftDeleted)
                 .ToListAsync();
         }
+        public async Task<EmployeeExperienceDocument?> GetSingleByDetailIdAsync(long detailId)
+        {
+            return await _context.EmployeeExperienceDocuments
+                .FirstOrDefaultAsync(x => x.EmployeeExperience.Id == detailId && !x.IsSoftDeleted);
+        }
 
         // ===============================
         // 🔹 SOFT DELETE

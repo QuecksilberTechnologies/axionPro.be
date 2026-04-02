@@ -170,6 +170,7 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                 // ===============================
                 // 6️⃣ SAVE
                 // ===============================
+                await _unitOfWork.EmployeeExperienceRepository.UpdateAsync(existing);
                 await _unitOfWork.SaveChangesAsync();
 
                 // ===============================

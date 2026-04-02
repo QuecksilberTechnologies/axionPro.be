@@ -77,6 +77,7 @@ namespace axionpro.application.DTOS.Employee.Experience
     {
         // 🔥 IMPORTANT
         public long? Id { get; set; } // null = NEW, value = UPDATE
+        public IFormFile? File { get; set; }
 
         public int DocumentType { get; set; }
 

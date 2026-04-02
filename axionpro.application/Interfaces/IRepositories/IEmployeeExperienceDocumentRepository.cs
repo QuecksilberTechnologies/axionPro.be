@@ -12,6 +12,7 @@ namespace axionpro.application.Interfaces.IRepositories
 
         Task<bool> SoftDeleteAsync(EmployeeExperienceDocument entity);
 
-        Task<List<EmployeeExperienceDocument>> GetByDetailIdAsync(long detailId);
+         Task<List<EmployeeExperienceDocument>> GetByDetailIdAsync(long detailId);
+        Task<EmployeeExperienceDocument> GetSingleByDetailIdAsync(long detailId);
     }
 }
