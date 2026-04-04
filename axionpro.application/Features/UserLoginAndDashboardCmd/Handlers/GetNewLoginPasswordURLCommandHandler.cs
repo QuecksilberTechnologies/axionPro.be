@@ -16,7 +16,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace axionpro.application.Features.UserLoginAndcDsasxhboardCmd.Handlers
+namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 {
     public class GetNewLoginPasswordURLCommand : IRequest<ApiResponse<GetNewPasswordLinkResponseDTO>>
     {

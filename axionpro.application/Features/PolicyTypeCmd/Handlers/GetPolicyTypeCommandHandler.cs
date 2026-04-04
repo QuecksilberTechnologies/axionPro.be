@@ -1,7 +1,8 @@
 ﻿using axionpro.application.DTOs.PolicyType;
-using axionpro.application.DTOS.CompanyPolicyDocument;
+using axionpro.application.DTOS.PolicyTypeDocument;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
@@ -32,17 +33,18 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
         : IRequestHandler<GetPolicyTypeCommand, ApiResponse<List<GetPolicyTypeResponseDTO>>>
     {
         private readonly IPolicyTypeRepository _policyTypeRepository;
-        private readonly ICompanyPolicyDocumentRepository _companyPolicyDocumentRepository;
+        private readonly IPolicyTypeDocumentRepository _companyPolicyDocumentRepository;
         private readonly ICommonRequestService _commonRequestService;
         private readonly IConfiguration _config;
         private readonly ILogger<CreatePolicyTypeCommandHandler> _logger;
+        private readonly IFileStorageService _fileStorageService;
         IPermissionService permissionService;
 
         public GetPolicyTypeCommandHandler(
             IPolicyTypeRepository policyTypeRepository,
-            ICompanyPolicyDocumentRepository companyPolicyDocumentRepository,
+            IPolicyTypeDocumentRepository companyPolicyDocumentRepository,
             ICommonRequestService commonRequestService,
-            IConfiguration config, ILogger<CreatePolicyTypeCommandHandler> logger, IPermissionService permissionService)
+            IConfiguration config, ILogger<CreatePolicyTypeCommandHandler> logger, IPermissionService permissionService, IFileStorageService fileStorageService)
         {
             _policyTypeRepository = policyTypeRepository;
             _companyPolicyDocumentRepository = companyPolicyDocumentRepository;
@@ -50,6 +52,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
             _config = config;
             _logger = logger;
             this.permissionService = permissionService;
+            _fileStorageService = fileStorageService;   
         }
 
         public async Task<ApiResponse<List<GetPolicyTypeResponseDTO>>> Handle(
@@ -122,33 +125,31 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                 // ===============================
                 // 8️⃣ DOCUMENT ATTACH (OPTIONAL)
                 // ===============================
-                if (request.DTO.HasDocumnet == true && pagedList.Any())
+            
+                if (pagedList.Any())
                 {
                     var policyTypeIds = pagedList.Select(x => x.Id).ToList();
 
                     var documents = await _companyPolicyDocumentRepository
                         .GetByPolicyTypeIdsAsync(policyTypeIds, validation.TenantId);
 
-                    string baseUrl = _config["FileSettings:BaseUrl"] ?? string.Empty;
+                    
 
                     foreach (var policy in pagedList)
                     {
-                        var doc = documents.FirstOrDefault(d => d.PolicyTypeId == policy.Id);
+                        var docs = documents
+                            .Where(d => d.PolicyTypeId == policy.Id)
+                            .ToList();
 
-                        if (doc != null)
+                        policy.DocDetails = docs.Select(doc => new GetPolicyTypeDocumentResponseDTO
                         {
-                            policy.DocDetails = new GetCompanyPolicyDocumentResponseDTO
-                            {
-                                Id = doc.Id,
-                                PolicyTypeId = doc.PolicyTypeId,
-                                DocumentTitle = doc.DocumentTitle,
-                                FileName = doc.FileName,
-                                IsActive = doc.IsActive,
-                                URL = !string.IsNullOrWhiteSpace(doc.FilePath)
-                                    ? $"{baseUrl.TrimEnd('/')}/{doc.FilePath.TrimStart('/')}"
-                                    : null
-                            };
-                        }
+                            Id = doc.Id,
+                            PolicyTypeId = doc.PolicyTypeId,
+                            DocumentTitle = doc.DocumentTitle,
+                            FileName = doc.FileName,
+                            IsActive = doc.IsActive,
+                            FilePath = !string.IsNullOrWhiteSpace(doc.FilePath) ? _fileStorageService.GetFileUrl(doc.FilePath) : null
+                        }).ToList();
                     }
                 }
 

@@ -10,7 +10,7 @@ using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace axionpro.application.Features.EmployeeCmd.Handlers
+namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
     // =====================================================
     // QUERY

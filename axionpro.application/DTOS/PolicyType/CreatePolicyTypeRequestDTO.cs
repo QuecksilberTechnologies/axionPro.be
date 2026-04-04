@@ -1,12 +1,6 @@
 ﻿
 using axionpro.application.DTOS.Common;
-using axionpro.application.Interfaces.IFileStorage;
 using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOs.PolicyType
 {
@@ -15,8 +9,11 @@ namespace axionpro.application.DTOs.PolicyType
       
        
         public required bool  IsActive { get; set; }// = null! ;     
-        public required bool IsStructured { get; set; } = false ;     
-        public required string PolicyName { get; set; }// = null! ;       
+        public required bool IsStructured { get; set; } = true ;     
+        public required string PolicyName { get; set; }// = null! ;
+        public int PolicyTypeEnumVal { get; set; }
+        // 🔥 FIX: MULTIPLE EMPLOYEE TYPES
+        public required List<int> EmployeeTypeIds { get; set; } = new();
         public IFormFile? FormFile { get; set; }
         public required string Description { get; set; }
       //    public CreateCompanyPolicyDocumentRequestDTO?  policyDocumentRequestDTO { get; set; } = new CreateCompanyPolicyDocumentRequestDTO();

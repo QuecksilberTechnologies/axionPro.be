@@ -65,7 +65,7 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
                 // ===============================
                 var validation =
                     await _commonRequestService
-                        .ValidateRequestAsync(request.DTO?.UserEmployeeId);
+                        .ValidateRequestAsync();
 
                 if (!validation.Success)
                     throw new UnauthorizedAccessException(validation.ErrorMessage);
@@ -79,11 +79,9 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
                 // ===============================
                 // 3️⃣ DECODE EMPLOYEE ID
                 // ===============================
-                var employeeId =
-                    RequestCommonHelper.DecodeOnlyEmployeeId(
-                        request.DTO.EmployeeId,
-                        validation.Claims.TenantEncriptionKey,
-                        _idEncoderService);
+                var employeeId = validation.UserEmployeeId;
+
+
 
                 if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
@@ -107,7 +105,7 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
                         .GetIdentityRecordAsync(
                             employeeId,
                             request.DTO.CountryNationalityId,
-                            request.DTO.IsActive);
+                            true);
 
                 // ===============================
                 // 6️⃣ SAFE EMPTY HANDLING

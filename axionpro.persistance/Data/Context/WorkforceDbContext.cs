@@ -43,6 +43,7 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<AssetCategory> AssetCategories { get; set; }
 
         public virtual DbSet<AssetHistory> AssetHistories { get; set; }
+        public virtual DbSet<UnStructuredPolicyTypeMappingWithEmployeeType> UnStructuredPolicyTypeMappingWithEmployeeTypes { get; set; }
 
         public virtual DbSet<AssetImage> AssetImages { get; set; }
 
@@ -115,7 +116,7 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<EmployeeImage> EmployeeImages { get; set; }
 
         public virtual DbSet<EmployeeInsuranceMapping> EmployeeInsuranceMappings { get; set; }
-        public virtual DbSet<CompanyPolicyDocument> CompanyPolicyDocuments { get; set; }
+        public virtual DbSet<PolicyTypeDocument> PolicyTypeDocuments { get; set; }
         public virtual DbSet<InsurancePolicyDocument> InsurancePolicyDocuments { get; set; }
 
 
@@ -1397,11 +1398,11 @@ namespace axionpro.persistance.Data.Context
             });
 
 
-            modelBuilder.Entity<CompanyPolicyDocument>(entity =>
+            modelBuilder.Entity<PolicyTypeDocument>(entity =>
             {
                 entity.HasKey(e => e.Id).HasName("PK__CompanyP__3214EC07BADB592E");
 
-                entity.ToTable("CompanyPolicyDocument", "axionpro");
+                entity.ToTable("PolicyTypeDocument", "axionpro");
 
                 entity.Property(e => e.AddedDateTime).HasDefaultValueSql("(getdate())");
                 entity.Property(e => e.DocumentTitle).HasMaxLength(200);
@@ -1411,7 +1412,7 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
 
 
-                entity.HasOne(d => d.PolicyType).WithMany(p => p.CompanyPolicyDocuments)
+                entity.HasOne(d => d.PolicyType).WithMany(p => p.PolicyTypeDocuments)
                     .HasForeignKey(d => d.PolicyTypeId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_CompanyPolicyDocument_PolicyType");
@@ -3090,6 +3091,28 @@ namespace axionpro.persistance.Data.Context
                     .HasForeignKey(d => d.WorkstationTypeId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_UserAttendanceSetting_WorkstationType");
+            });
+            modelBuilder.Entity<UnStructuredPolicyTypeMappingWithEmployeeType>(entity =>
+            {
+                entity.ToTable("UnStructuredPolicyTypeMappingWithEmployeeType", "axionpro");
+
+                entity.Property(e => e.AddedDateTime)
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                    .HasColumnType("timestamp without time zone");
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.SoftDeletedDateTime).HasColumnType("timestamp without time zone");
+                entity.Property(e => e.StartDate).HasColumnType("timestamp without time zone");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp without time zone");
+
+                entity.HasOne(d => d.EmployeeType).WithMany(p => p.UnStructuredPolicyTypeMappingWithEmployeeType)
+                    .HasForeignKey(d => d.EmployeeTypeId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_UnStructuredPolicyTypeMappingWithEmployeeType_EmployeeType");
+
+                entity.HasOne(d => d.PolicyType).WithMany(p => p.UnStructuredPolicyTypeMappingWithEmployeeType)
+                    .HasForeignKey(d => d.PolicyTypeId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_UnStructuredPolicyTypeMappingWithEmployeeType_PolicyType");
             });
 
             modelBuilder.Entity<UserRole>(entity =>

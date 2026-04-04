@@ -29,7 +29,6 @@ using axionpro.application.DTOS.AssetDTO.asset;
 using axionpro.application.DTOS.AssetDTO.category;
 using axionpro.application.DTOS.AssetDTO.status;
 using axionpro.application.DTOS.AssetDTO.type;
-using axionpro.application.DTOS.CompanyPolicyDocument;
 using axionpro.application.DTOS.Department;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
@@ -54,7 +53,8 @@ using axionpro.application.Features.TicketFeatures.Classification.Commands;
 using axionpro.application.Interfaces.IEncryptionService;
 
 using FluentValidation;
-using axionpro.domain.Entity; using MediatR;
+using axionpro.domain.Entity;
+using MediatR;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -64,7 +64,10 @@ using System.Net.Mime;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+using System.Threading.Tasks;
+using axionpro.domain.Entity;
+using MediatR;
+using axionpro.application.DTOS.PolicyTypeDocument;
 
 
 namespace axionpro.application.Mappings
@@ -275,7 +278,7 @@ namespace axionpro.application.Mappings
             CreateMap<PolicyTypeInsuranceMapping, CreatePolicyTypeInsuranceMappingRequetDTO>().ReverseMap();
             CreateMap<GetPolicyTypeInsuranceMappingResponseDTO, PolicyTypeInsuranceMapping>().ReverseMap();
             CreateMap<GetPolicyTypeResponseDTO, PolicyType>().ReverseMap();
-            CreateMap<GetCompanyPolicyDocumentResponseDTO, CompanyPolicyDocument>().ReverseMap();
+            CreateMap<GetPolicyTypeDocumentResponseDTO, PolicyTypeDocument>().ReverseMap();
            
 
             // Get

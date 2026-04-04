@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using axionpro.application.DTOS.CompanyPolicyDocument;
 using axionpro.application.DTOS.Pagination;
+using axionpro.application.DTOS.PolicyTypeDocument;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
@@ -10,17 +10,17 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.persistance.Repositories
 {
-    public class CompanyPolicyDocumentRepository : ICompanyPolicyDocumentRepository
+    public class PolicyTypeDocumentRepository : IPolicyTypeDocumentRepository
     {
         private readonly WorkforceDbContext _context;
        
         private readonly IMapper _mapper;
-        private readonly ILogger<CompanyPolicyDocumentRepository> _logger;
+        private readonly ILogger<PolicyTypeDocumentRepository> _logger;
         private readonly IEncryptionService _encryptionService;
 
-        public CompanyPolicyDocumentRepository(
+        public PolicyTypeDocumentRepository(
             WorkforceDbContext context,
-            ILogger<CompanyPolicyDocumentRepository> logger,
+            ILogger<PolicyTypeDocumentRepository> logger,
             IMapper mapper,
             IEncryptionService encryptionService)
         {
@@ -34,15 +34,15 @@ namespace axionpro.persistance.Repositories
         }
 
         // 🔹 CREATE
-        public async Task<GetCompanyPolicyDocumentResponseDTO> AddAsync(CompanyPolicyDocument entity)
+        public async Task<GetPolicyTypeDocumentResponseDTO> AddAsync(PolicyTypeDocument entity)
         {
             try
             {
                
-                await _context.CompanyPolicyDocuments.AddAsync(entity);
+                await _context.PolicyTypeDocuments.AddAsync(entity);
                 await _context.SaveChangesAsync();
 
-                return _mapper.Map<GetCompanyPolicyDocumentResponseDTO>(entity);
+                return _mapper.Map<GetPolicyTypeDocumentResponseDTO>(entity);
 
             }
             catch (Exception ex)
@@ -55,14 +55,14 @@ namespace axionpro.persistance.Repositories
                 return null;
             }
         }
-        public async Task<List<CompanyPolicyDocument>> GetByPolicyTypeIdsAsync(
+        public async Task<List<PolicyTypeDocument>> GetByPolicyTypeIdsAsync(
             List<int> policyTypeIds,
     long tenantId)
         {
             try
             {
                
-                return await _context.CompanyPolicyDocuments
+                return await _context.PolicyTypeDocuments
                     .AsNoTracking()
                     .Where(x =>
                         policyTypeIds.Contains(x.PolicyTypeId) &&
@@ -77,12 +77,12 @@ namespace axionpro.persistance.Repositories
                     ex,
                     "Error while fetching CompanyPolicyDocuments for PolicyTypeIds");
 
-                return new List<CompanyPolicyDocument>();
+                return new List<PolicyTypeDocument>();
             }
         }
 
         // 🔹 GET BY ID
-        public async Task<CompanyPolicyDocument?> GetByIdAsync(
+        public async Task<PolicyTypeDocument?> GetByIdAsync(
             int id,
             long tenantId,
             bool isActive)
@@ -91,7 +91,7 @@ namespace axionpro.persistance.Repositories
             {
                
 
-                return await _context.CompanyPolicyDocuments
+                return await _context.PolicyTypeDocuments
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x =>
                         x.PolicyTypeId == id
@@ -110,83 +110,14 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        // 🔹 GET LIST (Grid / PolicyType wise)
-        //public async Task<PagedResponseDTO<CompanyPolicyDocumentResponseDTO>> GetListAsync(
-        //    GetCompanyPolicyDocumentRequestDTO request)
-        //{
-        //    try
-        //    {
-        //        await using var context = await _contextFactory.CreateDbContextAsync();
-
-        //        var query =
-        //            from doc in context.CompanyPolicyDocuments
-        //            where doc.TenantId == request.Prop.TenantId
-        //                  && !doc.IsSoftDeleted
-        //            select new CompanyPolicyDocumentResponseDTO
-        //            {
-        //                Id = doc.Id,
-        //                PolicyTypeId = doc.PolicyTypeId,
-        //                DocumentTitle = doc.DocumentTitle,
-        //                FileName = doc.FileName,
-        //                FilePath = doc.FilePath,
-        //                IsActive = doc.IsActive,
-        //                AddedDateTime = doc.AddedDateTime
-        //            };
-
-        //        // 🔍 Filters
-        //        if (request.PolicyTypeId.HasValue)
-        //            query = query.Where(x => x.PolicyTypeId == request.PolicyTypeId.Value);
-
-        //        if (!string.IsNullOrWhiteSpace(request.DocumentTitle))
-        //            query = query.Where(x =>
-        //                x.DocumentTitle.Contains(request.DocumentTitle));
-
-        //        if (request.IsActive.HasValue)
-        //            query = query.Where(x => x.IsActive == request.IsActive.Value);
-
-        //        var totalCount = await query.CountAsync();
-
-        //        // 🔃 Sorting
-        //        query = request.SortOrder?.ToLower() == "asc"
-        //            ? query.OrderBy(x => x.AddedDateTime)
-        //            : query.OrderByDescending(x => x.AddedDateTime);
-
-        //        // 📄 Paging
-        //        var pageNumber = request.PageNumber > 0 ? request.PageNumber : 1;
-        //        var pageSize = request.PageSize > 0 ? request.PageSize : 10;
-
-        //        var items = await query
-        //            .Skip((pageNumber - 1) * pageSize)
-        //            .Take(pageSize)
-        //            .ToListAsync();
-
-        //        return new PagedResponseDTO<CompanyPolicyDocumentResponseDTO>(
-        //            items,
-        //            pageNumber,
-        //            pageSize,
-        //            totalCount);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(
-        //            ex,
-        //            "Error while fetching CompanyPolicyDocument list");
-
-        //        return new PagedResponseDTO<CompanyPolicyDocumentResponseDTO>(
-        //            new List<CompanyPolicyDocumentResponseDTO>(),
-        //            request.PageNumber,
-        //            request.PageSize,
-        //            0);
-        //    }
-        //}
 
         // 🔹 UPDATE
-        public async Task<bool> UpdateAsync(CompanyPolicyDocument entity)
+        public async Task<bool> UpdateAsync(PolicyTypeDocument entity)
         {
             try
             {
                
-                _context.CompanyPolicyDocuments.Update(entity);
+                _context.PolicyTypeDocuments.Update(entity);
                 await _context.SaveChangesAsync();
 
                 return true;
@@ -208,7 +139,7 @@ namespace axionpro.persistance.Repositories
             try
             {
                
-                var entity = await _context.CompanyPolicyDocuments
+                var entity = await _context.PolicyTypeDocuments
                     .FirstOrDefaultAsync(x => x.Id == id && !x.IsSoftDeleted);
 
                 if (entity == null)
@@ -237,7 +168,7 @@ namespace axionpro.persistance.Repositories
             try
             {
                
-                return await _context.CompanyPolicyDocuments.AnyAsync(x =>
+                return await _context.PolicyTypeDocuments.AnyAsync(x =>
                     x.PolicyTypeId == policyTypeId
                     && x.TenantId == tenantId
                     && !x.IsSoftDeleted);
@@ -253,7 +184,7 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public Task<PagedResponseDTO<GetCompanyPolicyDocumentResponseDTO>> GetListAsync(GetCompanyPolicyDocumentRequestDTO request)
+        public Task<PagedResponseDTO<GetPolicyTypeDocumentResponseDTO>> GetListAsync(GetPolicyTypeDocumentRequestDTO request)
         {
             throw new NotImplementedException();
         }
@@ -263,7 +194,7 @@ namespace axionpro.persistance.Repositories
             {
                 
 
-                var documents = await _context.CompanyPolicyDocuments
+                var documents = await _context.PolicyTypeDocuments
                     .Where(x =>
                         x.PolicyTypeId == policyTypeId &&
                         (x.IsSoftDeleted == false || x.IsSoftDeleted == null))
@@ -294,9 +225,18 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public Task<bool> SoftDeleteAsync(CompanyPolicyDocument entity)
+
+
+        public async Task<bool> SoftDeleteOnlyDocAsync(PolicyTypeDocument entity)
+        {        
+
+            _context.PolicyTypeDocuments.Update(entity);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<PolicyTypeDocument?> GetPolicyTypeOnlyDocByIdAsync(long id)
         {
-            throw new NotImplementedException();
+            return await _context.PolicyTypeDocuments.FirstOrDefaultAsync(x => x.Id == id && !x.IsSoftDeleted);
         }
     }
 }

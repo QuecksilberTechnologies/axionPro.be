@@ -1,5 +1,4 @@
-﻿using axionpro.application.DTOS.CompanyPolicyDocument;
-using axionpro.application.DTOS.Pagination;
+﻿using axionpro.application.DTOS.Pagination;
 
 using System;
 using System.Collections.Generic;

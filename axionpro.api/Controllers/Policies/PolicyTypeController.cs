@@ -1,4 +1,5 @@
 ﻿using axionpro.application.DTOs.PolicyType;
+using axionpro.application.DTOS.Common;
 using axionpro.application.Features.PolicyTypeCmd.Handlers;
 using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
@@ -62,46 +63,12 @@ namespace axionpro.api.Controllers.Policies
           
            
         }
-
-
-
-        //[HttpGet("get-by-tenantId")]
-        //public async Task<IActionResult> GetAllPolicyTypesByIdAsync([FromQuery] CreatePolicyTypeRequestDTO requestDTO)
-        //{
-        //    try
-        //    {
-        //        _logger.LogInfo($"Received request to get PolicyTypes. Params: {JsonConvert.SerializeObject(requestDTO)}");
-        //        // Query use karein, Command nahi
-        //        // var query = new GetAllPolicyTypesQuery(requestDTO);
-        //        var query = new GetPolicyTypeCommand(requestDTO);
-        //        var result = await _mediator.Send(query);
-
-        //        if (!result.IsSucceeded)
-        //        {
-        //            return BadRequest(result); // Unauthorized ki jagah
-        //        }
-
-        //        return Ok(result);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogInfo($"Error occurred while fetching PolicyTypes. Params: {JsonConvert.SerializeObject(requestDTO)}");
-
-        //        // ApiResponse wrap kar ke bhejna better hoga
-        //        var errorResponse = new ApiResponse<PolicyTypeResponseDTO>
-        //        {
-        //            IsSucceeded = false,
-        //            Message = "An unexpected error occurred while fetching policy types.",
-        //            Data = null
-        //        };
-
-        //        return StatusCode(StatusCodes.Status500InternalServerError, errorResponse);
-        //    }
-        //}
+  
         /// <summary>
         /// Create new Policy Type.
         /// </summary>
         [HttpPost("create")]
+        [Consumes("multipart/form-data")]
         public async Task<IActionResult> CreatePolicyTypeAsync([FromForm] CreatePolicyTypeRequestDTO requestDTO)
         {
             _logger.LogInfo($"Received request to create PolicyType: {JsonConvert.SerializeObject(requestDTO)}");
@@ -113,7 +80,8 @@ namespace axionpro.api.Controllers.Policies
         /// <summary>
         /// Update new Policy Type.
         /// </summary>
-        [HttpPost("update")]        
+        [HttpPost("update")]
+        [Consumes("multipart/form-data")]
         public async Task<IActionResult> UpdatePolicyTypeAsync([FromForm] UpdatePolicyTypeRequestDTO requestDTO)
         {
             _logger.LogInfo($"Received request to update PolicyType: {JsonConvert.SerializeObject(requestDTO)}");
@@ -134,7 +102,14 @@ namespace axionpro.api.Controllers.Policies
             var result = await _mediator.Send(command);
             return Ok(result);
         }
-
+        [HttpDelete("delete-doc")]
+        public async Task<IActionResult> DeletePolicyTypeDocOnlyAsync([FromQuery] DeleteRequestDTO requestDTO)
+        {
+            _logger.LogInfo($"Received request to delete PolicyType: {JsonConvert.SerializeObject(requestDTO)}");
+            var command = new DeletePolicyTypeDocCommand(requestDTO);
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
 
     }
 }

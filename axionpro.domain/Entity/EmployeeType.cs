@@ -34,12 +34,13 @@ public partial class EmployeeType
     public virtual ICollection<EmployeeTypeBasicMenu> EmployeeTypeBasicMenus { get; set; } = new List<EmployeeTypeBasicMenu>();
 
     public virtual ICollection<Employee> Employees { get; set; } = new List<Employee>();
-
+    
     public virtual ICollection<EmployeesChangedTypeHistory> EmployeesChangedTypeHistoryNewEmployeeTypes { get; set; } = new List<EmployeesChangedTypeHistory>();
 
     public virtual ICollection<EmployeesChangedTypeHistory> EmployeesChangedTypeHistoryOldEmployeeTypes { get; set; } = new List<EmployeesChangedTypeHistory>();
 
     public virtual ICollection<MealAllowancePolicyByDesignation> MealAllowancePolicyByDesignations { get; set; } = new List<MealAllowancePolicyByDesignation>();
+    public virtual ICollection<UnStructuredPolicyTypeMappingWithEmployeeType> UnStructuredPolicyTypeMappingWithEmployeeType { get; set; } = new List<UnStructuredPolicyTypeMappingWithEmployeeType>();
 
     public virtual ICollection<TravelAllowancePolicyByDesignation> TravelAllowancePolicyByDesignations { get; set; } = new List<TravelAllowancePolicyByDesignation>();
 }

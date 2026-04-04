@@ -81,6 +81,7 @@ namespace axionpro.persistance
             services.AddScoped<IBaseEmployeeRepository, BaseEmployeeRepository>();
  
             services.AddScoped<IUserLoginReopsitory, UserLoginReopsitory>();
+            services.AddScoped<IUnStructuredEmployeePolicyTypeMappingRepository, UnStructuredEmployeePolicyTypeMappingRepository>();
             services.AddScoped<ILeaveRepository, LeaveRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<IUserRoleRepository, UserRoleRepository>();
@@ -120,7 +121,7 @@ namespace axionpro.persistance
              services.AddScoped<ITenantEmployeeCodePatternRepository, TenantEmployeeCodePatternRepository>();
              services.AddScoped<IInsuranceRepository, InsuranceRepository>();
              services.AddScoped<IPolicyTypeInsuranceMappingRepository, PolicyTypeInsuranceMappingRepository>();
-             services.AddScoped<ICompanyPolicyDocumentRepository, CompanyPolicyDocumentRepository>();
+             services.AddScoped<IPolicyTypeDocumentRepository, PolicyTypeDocumentRepository>();
             
             
             

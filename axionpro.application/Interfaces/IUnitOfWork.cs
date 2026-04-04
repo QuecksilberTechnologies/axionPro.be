@@ -12,7 +12,7 @@ namespace axionpro.application.Interfaces
         IInsuranceRepository InsuranceRepository { get; }
         IPolicyTypeInsuranceMappingRepository PolicyTypeInsuranceMappingRepository { get; }
         IPolicyTypeRepository PolicyTypeRepository { get; }
-        ICompanyPolicyDocumentRepository CompanyPolicyDocumentRepository { get; }
+        IPolicyTypeDocumentRepository PolicyTypeDocumentRepository { get; }
         IPermissionRepository PermissionRepository { get; }
         IReportingTypeRepository ReportingTypeRepository { get; }
         IAssetCategoryRepository AssetCategoryRepository { get; }
@@ -64,6 +64,7 @@ namespace axionpro.application.Interfaces
         ILeaveRuleRepository LeaveRuleRepository { get; }
         IGenderRepository GenderRepository { get; }
         IEmployeeTypeBasicMenuRepository EmployeeTypeBasicMenuRepository { get; }
+        IUnStructuredEmployeePolicyTypeMappingRepository UnStructuredEmployeePolicyTypeMappingRepository { get; }
         IUserRolesPermissionOnModuleRepository UserRolesPermissionOnModuleRepository { get; }
         IModuleOperationMappingRepository ModuleOperationMappingRepository { get; }
         Task BeginTransactionAsync(CancellationToken cancellationToken = default);

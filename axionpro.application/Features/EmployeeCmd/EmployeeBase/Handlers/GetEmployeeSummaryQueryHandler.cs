@@ -33,7 +33,7 @@ namespace axionpro.application.Features.EmployeeCmd.Handlers
         private readonly ICommonRequestService _commonRequestService;
         private readonly IConfiguration _config;
         private readonly IIdEncoderService _idEncoderService;
-        private readonly IFileStorageService _fileStorageService;
+        private readonly IFileStorageService  _fileStorageService;
 
         public GetEmployeeSummaryQueryHandler(
             IUnitOfWork unitOfWork,
@@ -49,7 +49,7 @@ namespace axionpro.application.Features.EmployeeCmd.Handlers
             _commonRequestService = commonRequestService;
             _idEncoderService = idEncoderService;
             _config = config;
-            _fileStorageService = fileStorageService;
+            _fileStorageService= fileStorageService;
         }
 
         public async Task<ApiResponse<SummaryEmployeeInfo>> Handle(

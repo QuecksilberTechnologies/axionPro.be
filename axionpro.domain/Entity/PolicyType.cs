@@ -18,6 +18,7 @@ public partial class PolicyType
     public bool? IsSoftDelete { get; set; }
     public  bool IsStructured { get; set; }
 
+    public int PolicyTypeEnumVal { get; set; }
 
     public long? AddedById { get; set; }
 
@@ -33,7 +34,7 @@ public partial class PolicyType
 
     public virtual ICollection<AccoumndationAllowancePolicyByDesignation> AccoumndationAllowancePolicyByDesignations { get; set; } = new List<AccoumndationAllowancePolicyByDesignation>();
 
-    public virtual ICollection<CompanyPolicyDocument> CompanyPolicyDocuments { get; set; } = new List<CompanyPolicyDocument>();
+    public virtual ICollection<PolicyTypeDocument> PolicyTypeDocuments { get; set; } = new List<PolicyTypeDocument>();
     public virtual ICollection<MealAllowancePolicyByDesignation> MealAllowancePolicyByDesignations { get; set; } = new List<MealAllowancePolicyByDesignation>();
 
     public virtual ICollection<InsurancePolicy> InsurancePolicies { get; set; } = new List<InsurancePolicy>();
@@ -41,6 +42,7 @@ public partial class PolicyType
     public virtual ICollection<PolicyTypeInsuranceMapping> PolicyTypeInsuranceMappings { get; set; } = new List<PolicyTypeInsuranceMapping>();
 
     public virtual Tenant? Tenant { get; set; }
+    public virtual ICollection<UnStructuredPolicyTypeMappingWithEmployeeType> UnStructuredPolicyTypeMappingWithEmployeeType { get; set; } = new List<UnStructuredPolicyTypeMappingWithEmployeeType>();
 
     public virtual ICollection<TravelAllowancePolicyByDesignation> TravelAllowancePolicyByDesignations { get; set; } = new List<TravelAllowancePolicyByDesignation>();
 

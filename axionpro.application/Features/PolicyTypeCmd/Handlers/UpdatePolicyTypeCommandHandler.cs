@@ -126,7 +126,7 @@ public class UpdatePolicyTypeCommandHandler
                     .Replace(" ", "_");
 
                 string fileName =
-                    $"company-policy-{safeName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
+                    $"{safeName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
 
                 string folderPath =
                     $"{ConstantValues.TenantFolder}-{validation.TenantId}/{ConstantValues.PoliciesFolder}";
@@ -139,13 +139,13 @@ public class UpdatePolicyTypeCommandHandler
                 if (!string.IsNullOrWhiteSpace(uploadedFileKey))
                 {
                     var existingDoc =
-                        await _unitOfWork.CompanyPolicyDocumentRepository
+                        await _unitOfWork.PolicyTypeDocumentRepository
                             .GetByIdAsync(policyType.Id, validation.TenantId, request.DTO.IsActive);
 
                     if (existingDoc == null)
                     {
-                        await _unitOfWork.CompanyPolicyDocumentRepository.AddAsync(
-                            new CompanyPolicyDocument
+                        await _unitOfWork.PolicyTypeDocumentRepository.AddAsync(
+                            new PolicyTypeDocument
                             {
                                 TenantId = validation.TenantId,
                                 PolicyTypeId = policyType.Id,
@@ -166,7 +166,7 @@ public class UpdatePolicyTypeCommandHandler
                         existingDoc.IsActive = request.DTO.IsActive;
                         existingDoc.UpdatedDateTime = DateTime.UtcNow;
 
-                        await _unitOfWork.CompanyPolicyDocumentRepository
+                        await _unitOfWork.PolicyTypeDocumentRepository
                             .UpdateAsync(existingDoc);
                     }
                 }

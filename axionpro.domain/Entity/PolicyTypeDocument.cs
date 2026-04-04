@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace axionpro.domain.Entity;
 
-public partial class CompanyPolicyDocument
+public partial class PolicyTypeDocument
 {
     public long Id { get; set; }
 

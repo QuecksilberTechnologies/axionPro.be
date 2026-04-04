@@ -1,26 +1,17 @@
-﻿using AutoMapper;
-using axionpro.application.Common.Helpers.EncryptionHelper;
-using axionpro.application.Common.Helpers.RequestHelper;
+﻿using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Constants;
-using axionpro.application.DTOs.Module;
 using axionpro.application.DTOs.PolicyType;
-using axionpro.application.DTOS.CompanyPolicyDocument;
-using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.Exceptions;
-using axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
 
-using axionpro.domain.Entity; using MediatR;
+using axionpro.domain.Entity;
+using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
-using System.Reflection;
 
 namespace axionpro.application.Features.PolicyTypeCmd.Handlers
 {
@@ -60,8 +51,8 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
         }
 
         public async Task<ApiResponse<GetPolicyTypeResponseDTO>> Handle(
-      CreatePolicyTypeCommand request,
-      CancellationToken cancellationToken)
+         CreatePolicyTypeCommand request,
+         CancellationToken cancellationToken)
         {
             string? uploadedFileKey = null;
 
@@ -80,28 +71,20 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                     throw new UnauthorizedAccessException(validation.ErrorMessage);
 
                 // ===============================
-                // 2️⃣ PERMISSION CHECK
-                // ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.PolicyType,
-                //    Operations.Add);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("Access denied.");
-
-                // ===============================
-                // 3️⃣ NULL SAFETY
+                // 2️⃣ NULL SAFETY
                 // ===============================
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request data.");
+
+                if (request.DTO.EmployeeTypeIds == null || !request.DTO.EmployeeTypeIds.Any())
+                    throw new ValidationErrorException("At least one EmployeeType is required.");
 
                 request.DTO.Prop ??= new();
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
                 // ===============================
-                // 4️⃣ CREATE POLICY TYPE
+                // 3️⃣ CREATE POLICY TYPE
                 // ===============================
                 var policyType = new PolicyType
                 {
@@ -124,6 +107,30 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                     throw new ApiException("Policy type creation failed.", 500);
 
                 // ===============================
+                // 4️⃣ 🔥 BULK INSERT (UNSTRUCTURED MAPPING)
+                // ===============================
+                var mappings = request.DTO.EmployeeTypeIds
+                    .Distinct()
+                    .Select(empTypeId => new UnStructuredPolicyTypeMappingWithEmployeeType
+                    {
+                        TenantId = validation.TenantId,
+                        EmployeeTypeId = empTypeId,
+                        PolicyTypeId = createdPolicyType.Id,
+                        IsActive = true,
+                        StartDate = DateTime.UtcNow,
+                        AddedById = validation.UserEmployeeId,
+                        AddedDateTime = DateTime.UtcNow,
+                        IsSoftDeleted = false
+                    })
+                    .ToList();
+
+                if (mappings.Any())
+                {
+                    await _unitOfWork.UnStructuredEmployeePolicyTypeMappingRepository
+                        .AddRangeAsync(mappings);
+                }
+
+                // ===============================
                 // 5️⃣ FILE UPLOAD
                 // ===============================
                 if (request.DTO.FormFile != null && request.DTO.FormFile.Length > 0)
@@ -133,7 +140,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                         .ToLower()
                         .Replace(" ", "_");
 
-                    string fileName = $"company-policy-{safeName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
+                    string fileName = $"{safeName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
                     string folderPath =
                         $"{ConstantValues.TenantFolder}-{validation.TenantId}/{ConstantValues.PoliciesFolder}";
 
@@ -144,7 +151,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
 
                     if (!string.IsNullOrWhiteSpace(uploadedFileKey))
                     {
-                        var doc = new CompanyPolicyDocument
+                        var doc = new PolicyTypeDocument
                         {
                             TenantId = validation.TenantId,
                             PolicyTypeId = createdPolicyType.Id,
@@ -157,7 +164,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                             AddedDateTime = DateTime.UtcNow
                         };
 
-                        await _unitOfWork.CompanyPolicyDocumentRepository.AddAsync(doc);
+                        await _unitOfWork.PolicyTypeDocumentRepository.AddAsync(doc);
                     }
                 }
 
@@ -190,7 +197,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                     }
                 }
 
-                throw; // ✅ CRITICAL
+                throw;
             }
         }
 

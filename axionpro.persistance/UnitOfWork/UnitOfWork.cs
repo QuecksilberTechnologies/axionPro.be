@@ -37,7 +37,7 @@ public class UnitOfWork : IUnitOfWork
     private ILeaveRuleRepository? _leaveRuleRepository;
     private IInsuranceRepository? _insuranceRepository;
     private IPolicyTypeRepository? _policyTypeRepository;
-    private ICompanyPolicyDocumentRepository? _companyPolicyDocumentRepository;
+    private IPolicyTypeDocumentRepository? _companyPolicyDocumentRepository;
     private ITenantEmailConfigRepository? _tenantEmailConfigRepository;
     private IHolidayCalandarRepository? _holidayCalandarRepository;
     private ITenantModuleConfigurationRepository? _tenantModuleConfigurationRepository;
@@ -77,6 +77,7 @@ public class UnitOfWork : IUnitOfWork
     private IAssetRepository? _assetRepository;
     private IRefreshTokenRepository? _refreshTokenRepository;
     private IStoreProcedureRepository? _commonRepository;
+    private IUnStructuredEmployeePolicyTypeMappingRepository? _unStructuredEmployeePolicyTypeMappingRepository;
     private IUserLoginReopsitory? _userLoginRepository;
     private IEmailTemplateRepository? _emailTemplateRepository;
     private ISubscriptionRepository? _subscriptionRepository;
@@ -120,6 +121,9 @@ public class UnitOfWork : IUnitOfWork
     }
 
    
+    public IUnStructuredEmployeePolicyTypeMappingRepository UnStructuredEmployeePolicyTypeMappingRepository =>
+        _unStructuredEmployeePolicyTypeMappingRepository ??= new UnStructuredEmployeePolicyTypeMappingRepository(_context, 
+            _loggerFactory.CreateLogger<UnStructuredEmployeePolicyTypeMappingRepository>(), _mapper);
     public IUserLoginReopsitory UserLoginRepository =>
         _userLoginRepository ??= new UserLoginReopsitory(_context, _loggerFactory.CreateLogger<UserLoginReopsitory>(), _mapper, _passwordService, _config);
 
@@ -198,10 +202,10 @@ public class UnitOfWork : IUnitOfWork
             _passwordService,
             _encriptionService);
 
-    public ICompanyPolicyDocumentRepository CompanyPolicyDocumentRepository =>
-        _companyPolicyDocumentRepository ??= new CompanyPolicyDocumentRepository(
+    public IPolicyTypeDocumentRepository PolicyTypeDocumentRepository =>
+        _companyPolicyDocumentRepository ??= new PolicyTypeDocumentRepository(
             _context,
-            _loggerFactory.CreateLogger<CompanyPolicyDocumentRepository>(),
+            _loggerFactory.CreateLogger<PolicyTypeDocumentRepository>(),
             _mapper,
             _encriptionService);
 

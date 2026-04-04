@@ -20,7 +20,9 @@ namespace axionpro.application.DTOs.PolicyType
 
         // Search by Policy Name (LIKE %PolicyName%)
         public string? PolicyName { get; set; }
-       
+        public int PolicyTypeEnumVal { get; set; }
+
+
         public required bool IsActive { get; set; }
 
         public bool? HasDocumnet { get; set; }

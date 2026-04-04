@@ -1,12 +1,4 @@
-﻿using axionpro.application.DTOS.CompanyPolicyDocument;
-using axionpro.application.DTOS.InsurancePolicy;
-using axionpro.application.DTOS.Pagination;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+﻿using axionpro.application.DTOS.PolicyTypeDocument;
 
 namespace axionpro.application.DTOs.PolicyType
 {
@@ -17,11 +9,13 @@ namespace axionpro.application.DTOs.PolicyType
         public string PolicyName { get; set; } = string.Empty;
         public string? Description { get; set; }
         public bool IsActive { get; set; }   
-        public bool IsMappedWithInsurance { get; set; } = false;
-        public bool IsStructured { get; set; } 
+       // public bool IsMappedWithInsurance { get; set; } = false;
+        public bool IsStructured { get; set; }
+        public int PolicyTypeEnumVal { get; set; }
         //   public List<GetPolicyTypeInsuranceMappingResponseDTO> InsuranceMappingList { get; set; }   = new List<GetPolicyTypeInsuranceMappingResponseDTO>();
-
-        public GetCompanyPolicyDocumentResponseDTO DocDetails { get; set; } = new GetCompanyPolicyDocumentResponseDTO();
+        // 🔥 FIX: MULTIPLE EMPLOYEE TYPES
+        public  List<int> EmployeeTypeIds { get; set; } = new();
+        public List<GetPolicyTypeDocumentResponseDTO> DocDetails { get; set; } = new();
 
     }
 

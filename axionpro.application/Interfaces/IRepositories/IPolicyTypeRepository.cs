@@ -1,10 +1,7 @@
 ﻿using axionpro.application.DTOs.PolicyType;
 using axionpro.application.Wrappers;
 
-using axionpro.domain.Entity; using MediatR;
-using System.Collections.Generic;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
-
+using axionpro.domain.Entity;
 namespace axionpro.application.Interfaces.IRepositories
 {
     public interface IPolicyTypeRepository
@@ -22,6 +19,7 @@ namespace axionpro.application.Interfaces.IRepositories
         // ================================
         Task<PolicyType?> GetPolicyTypeByIdAsync(
             int id, bool? isActive);
+      
 
         // ================================
         // 🔹 READ (Get all by Tenant)

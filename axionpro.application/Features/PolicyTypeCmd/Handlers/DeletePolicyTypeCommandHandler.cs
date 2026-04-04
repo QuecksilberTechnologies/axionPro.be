@@ -110,7 +110,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                 // 6️⃣ SOFT DELETE RELATED DOCS (OPTIONAL)
                 // ===============================
                 var docsDeleted =
-                    await _unitOfWork.CompanyPolicyDocumentRepository
+                    await _unitOfWork.PolicyTypeDocumentRepository
                         .SoftDeleteByPolicyTypeIdAsync(
                             policyType.Id,
                             validation.UserEmployeeId);
