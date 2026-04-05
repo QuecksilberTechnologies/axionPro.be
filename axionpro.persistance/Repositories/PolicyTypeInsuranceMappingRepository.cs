@@ -115,6 +115,58 @@ namespace axionpro.persistance.Repositories
             }
         }
 
+        public async Task<List<GetPolicyTypeInsuranceMappingResponseDTO>> GetMapInsuranceDDLForEmployeeMappingAsync(long tenantId, bool isActive, bool isSoftDeleted)
+        {
+            try
+            {
+                var query = from mapping in _context.PolicyTypeInsuranceMappings.AsNoTracking()
+
+                    join pt in _context.PolicyTypes.AsNoTracking()
+                        on mapping.PolicyTypeId equals pt.Id
+
+                    join ip in _context.InsurancePolicies.AsNoTracking()
+                        on mapping.InsurancePolicyId equals ip.Id
+
+                    where
+                        // 🔹 TENANT FILTER
+                        mapping.TenantId == tenantId &&
+
+                        // 🔹 MAPPING FILTER
+                        mapping.IsActive == isActive &&
+                        mapping.IsSoftDeleted != isSoftDeleted &&
+
+                        // 🔹 POLICY TYPE FILTER
+                        pt.IsActive == isActive &&
+                        pt.IsSoftDelete != isSoftDeleted &&
+
+                        // 🔹 INSURANCE FILTER
+                        ip.IsActive == isActive &&
+                        ip.IsSoftDeleted != isSoftDeleted
+
+                            orderby ip.InsurancePolicyName
+
+                    select new GetPolicyTypeInsuranceMappingResponseDTO
+                    {
+                        Id = mapping.Id,
+
+                        PolicyTypeId = pt.Id,
+                        PolicyName = pt.PolicyName,
+                        InsurancePolicyId = ip.Id,
+                        InsurancePolicyName = ip.InsurancePolicyName,
+                        InsurancePolicyNumber = ip.InsurancePolicyNumber,
+                        ProviderName = ip.ProviderName,
+
+                        IsActive = mapping.IsActive
+                    };
+
+                return await query.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error while fetching Insurance DDL");
+                return new List<GetPolicyTypeInsuranceMappingResponseDTO>();
+            }
+        }
         public async Task<List<GetPolicyTypeInsuranceMapDetailsResponseDTO>> GetMapInsuranceDetailAsync(int policyId, bool isActive)
         {
             try

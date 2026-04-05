@@ -67,7 +67,7 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                 // 3️⃣ NULL SAFETY
                 // ===============================
                 if (request?.DTO == null || request.DTO.Id <= 0)
-                    throw new ApiException("Invalid request data.", 401);
+                    throw new ApiException("Invalid request data.", 404);
 
                 // ===============================
                 // 4️⃣ FETCH ENTITY
@@ -78,7 +78,7 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
 
 
                 if (policy == null)
-                    throw new ApiException("Insurance policy not found.", 401);
+                    throw new ApiException("Insurance policy not found.", 400);
 
                 // ===============================
                 // 5️⃣ SOFT DELETE
@@ -111,7 +111,7 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                 var deletedInsurance = await _unitOfWork.InsuranceRepository.SoftDeleteAsync(policy);
 
                 if (!deletedInsurance)
-                    throw new ApiException("Failed to delete insurance policy.", 401);
+                    throw new ApiException("Failed to delete insurance policy.", 500);
 
                
                 // ===============================
