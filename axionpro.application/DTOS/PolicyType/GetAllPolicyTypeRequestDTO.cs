@@ -18,6 +18,7 @@ namespace axionpro.application.DTOs.PolicyType
     {
        
         public required bool IsActive { get; set; }     
+        public required int PolicyTypeEnumVal { get; set; }     
 
        
     }

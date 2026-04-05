@@ -211,7 +211,7 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<ApiResponse<List<GetAllPolicyTypeResponseDTO>>> GetAllPolicyTypesAsync(long tenantId, bool isActive)
+        public async Task<ApiResponse<List<GetAllPolicyTypeResponseDTO>>> GetAllPolicyTypesAsync(long tenantId, bool isActive, int enumval)
         {
             try
             {
@@ -220,7 +220,7 @@ namespace axionpro.persistance.Repositories
                 // --------------------------------------------------
                 var query = _context.PolicyTypes
                     .AsNoTracking() // ✅ fast read-only
-                    .Where(pt => pt.TenantId == tenantId && pt.IsStructured ==true);
+                    .Where(pt => pt.TenantId == tenantId && pt.PolicyTypeEnumVal==enumval);
 
                 // --------------------------------------------------
                 // 2️⃣ Active + SoftDelete filter

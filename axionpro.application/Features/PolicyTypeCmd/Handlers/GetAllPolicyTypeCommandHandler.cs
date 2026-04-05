@@ -84,7 +84,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                 var result =
                     await _policyTypeRepository.GetAllPolicyTypesAsync(
                         validation.TenantId,
-                        request.DTO.IsActive
+                        request.DTO.IsActive,request.DTO.PolicyTypeEnumVal
                     );
 
                 var data = result?.Data ?? new List<GetAllPolicyTypeResponseDTO>();
