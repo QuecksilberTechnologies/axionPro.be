@@ -91,12 +91,34 @@ namespace axionpro.persistance.Repositories
                 return null;
             }
         }
+        public async Task<PolicyTypeInsuranceMapping?> GetByMappedByInsuranceIdAsync( int id,   bool isActive)
+        {
+            try
+            {
+               
+
+                return await _context.PolicyTypeInsuranceMappings
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x =>
+                        x.InsurancePolicyId == id &&
+                        x.IsActive == isActive &&
+                        (x.IsSoftDeleted != true ));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Error while fetching PolicyTypeInsuranceMapping by Id {Id}",
+                    id);
+
+                return null;
+            }
+        }
 
         public async Task<List<GetPolicyTypeInsuranceMapDetailsResponseDTO>> GetMapInsuranceDetailAsync(int policyId, bool isActive)
         {
             try
             {
-
                 var query =
                     from map in _context.PolicyTypeInsuranceMappings.AsNoTracking()
 
@@ -106,23 +128,29 @@ namespace axionpro.persistance.Repositories
                     join ip in _context.InsurancePolicies.AsNoTracking()
                         on map.InsurancePolicyId equals ip.Id
 
-                    // 🔹 LEFT JOIN InsurancePolicyDocument (ACTIVE + NOT DELETED)
+                    // 🔥 LEFT JOIN DOCUMENT
                     join doc in _context.InsurancePolicyDocuments.AsNoTracking()
                         .Where(d => d.IsActive == true && d.IsSoftDeleted != true)
                         on ip.Id equals doc.InsurancePolicyId into docJoin
                     from doc in docJoin.DefaultIfEmpty()
 
                     where
+                        // 🔹 POLICY FILTER
                         map.PolicyTypeId == policyId &&
+
+                        // 🔹 MAPPING FILTER
                         map.IsActive == isActive &&
-                        (map.IsSoftDeleted == false || map.IsSoftDeleted == null)
+                        (map.IsSoftDeleted == false || map.IsSoftDeleted == null) &&
+
+                        // 🔥🔥 FIX: INSURANCE FILTER (MISSING THA)
+                        ip.IsActive == true &&
+                        (ip.IsSoftDeleted == false || ip.IsSoftDeleted == null)
 
                     orderby map.Id descending
 
                     select new GetPolicyTypeInsuranceMapDetailsResponseDTO
                     {
                         Id = map.Id,
-
                         PolicyTypeId = map.PolicyTypeId,
                         InsuranceTypeId = map.InsurancePolicyId,
 
@@ -132,7 +160,6 @@ namespace axionpro.persistance.Repositories
                         FileName = doc != null ? doc.FileName : string.Empty,
                         FilePath = doc != null ? doc.FilePath : string.Empty,
 
-                        // 🔥 URL controller/handler me baseUrl se banega
                         Url = string.Empty,
 
                         Description = ip.Description,
@@ -154,80 +181,121 @@ namespace axionpro.persistance.Repositories
 
 
         public async Task<PagedResponseDTO<GetPolicyTypeInsuranceMappingResponseDTO>> GetListAsync(
-       GetPolicyTypeInsuranceMappingRequestDTO request)
+            GetPolicyTypeInsuranceMappingRequestDTO request)
         {
-            
+            try
+            {
+                if (request.Props == null)
+                    throw new ArgumentNullException(nameof(request.Props));
 
-            if (request.Props == null)
-                throw new ArgumentNullException(nameof(request.Props));
+                var tenantId = request.Props.TenantId;
 
-            var query =
-                from mapping in _context.PolicyTypeInsuranceMappings
-                join policyType in _context.PolicyTypes
-                    on mapping.PolicyTypeId equals policyType.Id
+                var query =
+                    from mapping in _context.PolicyTypeInsuranceMappings.AsNoTracking()
 
-                // 🔥 LEFT JOIN (because InsurancePolicyId is nullable)
-                join insurance in _context.InsurancePolicies
-                    on mapping.InsurancePolicyId equals insurance.Id
-                    into insuranceGroup
-                from insurance in insuranceGroup.DefaultIfEmpty()
+                    join policyType in _context.PolicyTypes.AsNoTracking()
+                        on mapping.PolicyTypeId equals policyType.Id
 
-                where mapping.TenantId == request.Props.TenantId
-                      && (mapping.IsSoftDeleted !=true && mapping.IsActive== request.IsActive)
+                    // 🔥 LEFT JOIN (Insurance optional)
+                    join insurance in _context.InsurancePolicies.AsNoTracking()
+                        on mapping.InsurancePolicyId equals insurance.Id
+                        into insuranceGroup
+                    from insurance in insuranceGroup.DefaultIfEmpty()
 
-                select new GetPolicyTypeInsuranceMappingResponseDTO
-                {
-                    Id = mapping.Id,
-                    PolicyTypeId = mapping.PolicyTypeId,
-                    InsurancePolicyId = mapping.InsurancePolicyId,
+                    where
+                        // 🔹 TENANT
+                        mapping.TenantId == tenantId &&
 
-                    InsurancePolicyName = insurance != null
-                        ? insurance.InsurancePolicyName
-                        : null,
+                        // 🔹 MAPPING FILTER
+                        mapping.IsActive == request.IsActive &&
+                        (mapping.IsSoftDeleted == false || mapping.IsSoftDeleted == null) &&
 
-                    InsurancePolicyNumber = insurance != null
-                        ? insurance.InsurancePolicyNumber
-                        : null,
+                        // 🔥 POLICY TYPE FILTER
+                        policyType.IsActive == true &&
+                        (policyType.IsSoftDelete == false || policyType.IsSoftDelete == null) &&
 
-                    ProviderName = insurance != null
-                        ? insurance.ProviderName
-                        : null,
+                        // 🔥 INSURANCE FILTER (LEFT JOIN SAFE)
+                        (
+                            insurance == null ||
+                            (
+                                insurance.IsActive == true &&
+                                (insurance.IsSoftDeleted == false || insurance.IsSoftDeleted == null)
+                            )
+                        )
 
-                    PolicyName = policyType.PolicyName,
-                    IsActive = mapping.IsActive
-                };
+                    select new GetPolicyTypeInsuranceMappingResponseDTO
+                    {
+                        Id = mapping.Id,
+                        PolicyTypeId = mapping.PolicyTypeId,
+                        InsurancePolicyId = mapping.InsurancePolicyId,
 
-            // 🔹 Filters
-            if (request.PolicyTypeId.HasValue)
-                query = query.Where(x => x.PolicyTypeId == request.PolicyTypeId.Value);
+                        InsurancePolicyName = insurance != null
+                            ? insurance.InsurancePolicyName
+                            : null,
 
-            if (request.InsurancePolicyId.HasValue)
-                query = query.Where(x => x.InsurancePolicyId == request.InsurancePolicyId.Value);
+                        InsurancePolicyNumber = insurance != null
+                            ? insurance.InsurancePolicyNumber
+                            : null,
 
-            if (request.IsActive.HasValue)
-                query = query.Where(x => x.IsActive == request.IsActive.Value);
+                        ProviderName = insurance != null
+                            ? insurance.ProviderName
+                            : null,
 
-            var totalCount = await query.CountAsync();
+                        PolicyName = policyType.PolicyName,
+                        IsActive = mapping.IsActive
+                    };
 
-            var sortOrder = request.SortOrder?.ToLower() ?? "desc";
+                // ===============================
+                // 🔹 OPTIONAL FILTERS
+                // ===============================
+                if (request.PolicyTypeId.HasValue)
+                    query = query.Where(x => x.PolicyTypeId == request.PolicyTypeId.Value);
 
-            query = sortOrder == "asc"
-                ? query.OrderBy(x => x.InsurancePolicyName)
-                : query.OrderByDescending(x => x.InsurancePolicyName);
+                if (request.InsurancePolicyId.HasValue)
+                    query = query.Where(x => x.InsurancePolicyId == request.InsurancePolicyId.Value);
 
-            var pageNumber = request.PageNumber > 0 ? request.PageNumber : 1;
-            var pageSize = request.PageSize > 0 ? request.PageSize : 10;
+                if (request.IsActive.HasValue)
+                    query = query.Where(x => x.IsActive == request.IsActive.Value);
 
-            var items = await query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+                // ===============================
+                // 🔹 COUNT
+                // ===============================
+                var totalCount = await query.CountAsync();
 
-            return new PagedResponseDTO<GetPolicyTypeInsuranceMappingResponseDTO>(
-                items,
-                pageNumber,
-                pageSize,
-                totalCount);
+                // ===============================
+                // 🔹 SORTING
+                // ===============================
+                var sortOrder = request.SortOrder?.ToLower() ?? "desc";
+
+                query = sortOrder == "asc"
+                    ? query.OrderBy(x => x.InsurancePolicyName)
+                    : query.OrderByDescending(x => x.InsurancePolicyName);
+
+                // ===============================
+                // 🔹 PAGINATION
+                // ===============================
+                var pageNumber = request.PageNumber > 0 ? request.PageNumber : 1;
+                var pageSize = request.PageSize > 0 ? request.PageSize : 10;
+
+                var items = await query
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                // ===============================
+                // 🔹 RESPONSE
+                // ===============================
+                return new PagedResponseDTO<GetPolicyTypeInsuranceMappingResponseDTO>(
+                    items,
+                    pageNumber,
+                    pageSize,
+                    totalCount);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error while fetching PolicyTypeInsuranceMapping list");
+                throw;
+            }
         }
 
         public async Task<bool> SoftDeleteAsync(PolicyTypeInsuranceMapping entity)

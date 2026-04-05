@@ -3,14 +3,9 @@ using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; 
-using axionpro.domain.Entity; 
-using MediatR;
+using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Threading;
-using System.Threading.Tasks; 
 namespace axionpro.application.Features.InsuranceInfo.Handlers
 {
 
@@ -72,7 +67,7 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                 // 3️⃣ NULL SAFETY
                 // ===============================
                 if (request?.DTO == null || request.DTO.Id <= 0)
-                    throw new ValidationErrorException("Invalid request data.");
+                    throw new ApiException("Invalid request data.", 401);
 
                 // ===============================
                 // 4️⃣ FETCH ENTITY
@@ -80,8 +75,10 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                 var policy = await _unitOfWork.InsuranceRepository
                     .GetByIdAsync(request.DTO.Id, validation.TenantId, true);
 
+
+
                 if (policy == null)
-                    throw new ApiException("Insurance policy not found.", 404);
+                    throw new ApiException("Insurance policy not found.", 401);
 
                 // ===============================
                 // 5️⃣ SOFT DELETE
@@ -91,13 +88,32 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                 policy.DeletedDateTime = DateTime.UtcNow;
                 policy.IsActive = false;
 
-                var updated = await _unitOfWork.InsuranceRepository.UpdateAsync(policy);
+                var mapInsurance = await _unitOfWork.PolicyTypeInsuranceMappingRepository.GetByMappedByInsuranceIdAsync(request.DTO.Id, true);
 
-                if (!updated)
-                    throw new ApiException("Failed to delete insurance policy.", 500);
+                if (mapInsurance == null)
+                {
+                    _logger.LogWarning("⚠️ No mapping found for insurance policy ID {InsuranceId}", request.DTO.Id);
+                }
+                else
+                {
+                    // ===============================
+                    // 5️⃣ SOFT DELETE
+                    // ===============================
+                    policy.IsSoftDeleted = true;
+                    policy.SoftDeletedById = validation.UserEmployeeId;
+                    policy.DeletedDateTime = DateTime.UtcNow;
+                    policy.IsActive = false;
+                    _logger.LogInformation("✅ Insurance policy deleted successfully");
+                    var deletedInsuranceMapped = await _unitOfWork.PolicyTypeInsuranceMappingRepository.SoftDeleteAsync(mapInsurance);
 
-                _logger.LogInformation("✅ Insurance policy deleted successfully");
+                }
 
+                var deletedInsurance = await _unitOfWork.InsuranceRepository.SoftDeleteAsync(policy);
+
+                if (!deletedInsurance)
+                    throw new ApiException("Failed to delete insurance policy.", 401);
+
+               
                 // ===============================
                 // 6️⃣ SUCCESS
                 // ===============================

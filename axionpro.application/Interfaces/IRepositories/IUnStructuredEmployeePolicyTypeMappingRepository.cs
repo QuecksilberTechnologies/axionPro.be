@@ -7,7 +7,10 @@ namespace axionpro.application.Interfaces.IRepositories
 {
     public interface IUnStructuredEmployeePolicyTypeMappingRepository
     {
-        Task<List<UnStructuredPolicyTypeMappingWithEmployeeType>> GetAllAsync(long tenantId);
+        Task<List<UnStructuredPolicyTypeMappingWithEmployeeType>> GetAllAsync(
+      long tenantId,
+      int policyTypeId,    
+      bool isActive);
 
         Task<List<UnStructuredPolicyTypeMappingWithEmployeeType>> GetByEmployeeTypeIdAsync(int employeeTypeId, long tenantId);
 

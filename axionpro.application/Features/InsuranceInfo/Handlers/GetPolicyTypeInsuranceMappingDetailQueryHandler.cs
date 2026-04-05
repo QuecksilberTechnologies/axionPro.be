@@ -2,6 +2,7 @@
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
 using MediatR;
@@ -21,8 +22,7 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
             DTO = dto;
         }
     }
-    public class GetPolicyTypeInsuranceMappingDetailQueryHandler
-        : IRequestHandler<
+    public class GetPolicyTypeInsuranceMappingDetailQueryHandler    : IRequestHandler<
             GetPolicyInsuranceDetailRequestCommand,
             ApiResponse<List<GetPolicyTypeInsuranceMapDetailsResponseDTO>>>
     {
@@ -30,17 +30,19 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
         private readonly ILogger<GetPolicyTypeInsuranceMappingDetailQueryHandler> _logger;
         private readonly ICommonRequestService _commonRequestService;
         private readonly IConfiguration _configuration;
+        private readonly IFileStorageService _fileStorageService;
 
         public GetPolicyTypeInsuranceMappingDetailQueryHandler(
             IUnitOfWork unitOfWork,
             ILogger<GetPolicyTypeInsuranceMappingDetailQueryHandler> logger,
             ICommonRequestService commonRequestService,
-            IConfiguration configuration)
+            IConfiguration configuration, IFileStorageService fileStorageService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _commonRequestService = commonRequestService;
             _configuration = configuration;
+            _fileStorageService = fileStorageService;
         }
 
         public async Task<ApiResponse<List<GetPolicyTypeInsuranceMapDetailsResponseDTO>>> Handle(
@@ -79,12 +81,7 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                 // ===============================
                 // 4️⃣ FETCH DATA
                 // ===============================
-                var list =
-                    await _unitOfWork
-                        .PolicyTypeInsuranceMappingRepository
-                        .GetMapInsuranceDetailAsync(
-                            request.DTO.PolicyTypeId,
-                            request.DTO.IsActive);
+                var list =   await _unitOfWork.PolicyTypeInsuranceMappingRepository.GetMapInsuranceDetailAsync(request.DTO.PolicyTypeId, request.DTO.IsActive);
 
                 var data = list ?? new List<GetPolicyTypeInsuranceMapDetailsResponseDTO>();
 
@@ -98,8 +95,9 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                 {
                     if (!string.IsNullOrWhiteSpace(item.FilePath))
                     {
-                        item.Url =
-                            $"{baseUrl.TrimEnd('/')}/{item.FilePath.TrimStart('/')}";
+                        item.FilePath = _fileStorageService.GetFileUrl(item.FilePath);
+
+
                     }
                 }
 

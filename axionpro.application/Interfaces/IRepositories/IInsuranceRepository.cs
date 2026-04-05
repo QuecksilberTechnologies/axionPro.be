@@ -29,11 +29,8 @@ namespace axionpro.application.Interfaces.IRepositories
         Task<bool> UpdateAsync(InsurancePolicy policy);
 
         // 🔹 SOFT DELETE
-        Task SoftDeleteAsync(
-            int insurancePolicyId,
-            long tenantId,
-            long deletedById,
-            CancellationToken cancellationToken);
+        Task<bool> SoftDeleteAsync(InsurancePolicy policyType);
+       
 
         // 🔹 EXISTS (Validation use)
         Task<bool> ExistsAsync(

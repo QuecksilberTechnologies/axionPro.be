@@ -21,6 +21,8 @@ namespace axionpro.application.Interfaces.IRepositories
         // 🔹 GET LIST (Grid / Listing)
         Task<PagedResponseDTO<GetPolicyTypeInsuranceMappingResponseDTO>> GetListAsync( GetPolicyTypeInsuranceMappingRequestDTO request);
         Task<List<GetPolicyTypeInsuranceMapDetailsResponseDTO>> GetMapInsuranceDetailAsync( int policyId, bool isActive);
+
+        Task<PolicyTypeInsuranceMapping?> GetByMappedByInsuranceIdAsync(int id, bool isActive);
         Task<bool> ExistsAsync(int id, bool isActive);
 
         //    // 🔹 UPDATE

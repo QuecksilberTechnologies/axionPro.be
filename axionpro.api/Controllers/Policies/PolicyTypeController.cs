@@ -1,5 +1,6 @@
 ﻿using axionpro.application.DTOs.PolicyType;
 using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.PolicyType;
 using axionpro.application.Features.PolicyTypeCmd.Handlers;
 using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
@@ -53,6 +54,28 @@ namespace axionpro.api.Controllers.Policies
                 // 🔹 MediatR Command (returns List<GetPolicyTypeResponseDTO>)
                 // --------------------------------------------------
                 var query = new GetAllPolicyTypeCommand(requestDTO);
+                var result = await _mediator.Send(query);
+
+                // --------------------------------------------------
+                // 🔹 Safety: null / empty list
+                // --------------------------------------------------
+                
+                return Ok(result);
+          
+           
+        }
+        [HttpGet("get-all-unstruct")]     
+        public async Task<IActionResult> GetUnstructuredPolicyTypesAsync(
+             [FromQuery] GetAllUnStructuredPolicyTypeRequestDTO requestDTO)
+       
+            {
+                _logger.LogInfo(
+                    "Received request to get mapped PolicyType . Params: {Params}" );
+
+                // --------------------------------------------------
+                // 🔹 MediatR Command (returns List<GetPolicyTypeResponseDTO>)
+                // --------------------------------------------------
+                var query = new GetAllUnStructuredPolicyTypeCommand(requestDTO);
                 var result = await _mediator.Send(query);
 
                 // --------------------------------------------------

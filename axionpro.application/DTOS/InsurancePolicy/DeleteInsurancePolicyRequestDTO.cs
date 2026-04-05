@@ -13,8 +13,9 @@ namespace axionpro.application.DTOS.InsurancePolicy
     public class DeleteInsurancePolicyRequestDTO
     {
         [Required]
-        public int Id { get; set; }          // FK → PolicyType
- 
+        public int Id { get; set; }
+        // public int InsuranceId { get; set; }         
+
     }
 }
 

@@ -23,10 +23,19 @@ public class UnStructuredEmployeePolicyTypeMappingRepository
     }
 
     // ✅ GET ALL
-    public async Task<List<UnStructuredPolicyTypeMappingWithEmployeeType>> GetAllAsync(long tenantId)
+    public async Task<List<UnStructuredPolicyTypeMappingWithEmployeeType>> GetAllAsync(
+      long tenantId,
+      int policyTypeId,
+      bool isActive)
     {
         return await _context.UnStructuredPolicyTypeMappingWithEmployeeTypes
-            .Where(x => x.TenantId == tenantId && !x.IsSoftDeleted)
+            .Include(x => x.EmployeeType)   // 🔥 IMPORTANT
+            .Include(x => x.PolicyType)     // 🔥 IMPORTANT
+            .Where(x =>
+                x.TenantId == tenantId &&
+                x.PolicyTypeId == policyTypeId &&               
+                x.IsActive == isActive &&
+                !x.IsSoftDeleted)
             .ToListAsync();
     }
 

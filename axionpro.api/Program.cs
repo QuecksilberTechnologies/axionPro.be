@@ -149,7 +149,7 @@ try
     // check 
   // //  // ✅ Dynamic port (for hosting like Heroku)w
      var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-        app.Urls.Add($"http://*:{port}");
+       app.Urls.Add($"http://*:{port}");
    
    await app.RunAsync();
     

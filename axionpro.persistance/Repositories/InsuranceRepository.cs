@@ -365,27 +365,12 @@ namespace axionpro.persistance.Repositories
 
 
         // 🔹 SOFT DELETE
-        public async Task SoftDeleteAsync(
-            int insurancePolicyId,
-            long tenantId,
-            long deletedById,
-            CancellationToken cancellationToken)
+        public async Task<bool> SoftDeleteAsync(InsurancePolicy insurancePolicy)
         {
-            var policy = await _context.InsurancePolicies
-                .FirstOrDefaultAsync(x =>
-                    x.Id == insurancePolicyId &&
-                    x.TenantId == tenantId &&
-                    !x.IsSoftDeleted,
-                    cancellationToken);
+            _context.InsurancePolicies.Update(insurancePolicy);
 
-            if (policy == null)
-                return;
-
-            policy.IsSoftDeleted = true;
-            policy.SoftDeletedById = deletedById;
-            policy.DeletedDateTime = DateTime.UtcNow;
-
-            _context.InsurancePolicies.Update(policy);
+            var result = await _context.SaveChangesAsync();
+            return result > 0;
         }
     }
 

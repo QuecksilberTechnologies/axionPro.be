@@ -149,7 +149,7 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                 var updated = await _unitOfWork.InsuranceRepository.UpdateAsync(policy);
 
                 if (!updated)
-                    throw new ApiException("Failed to update insurance policy.", 500);
+                    throw new ApiException("Failed to update insurance policy.", 401);
 
                 _logger.LogInformation("✅ Insurance policy updated successfully");
 
