@@ -1,6 +1,7 @@
 ﻿using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.PolicyType;
+using axionpro.application.DTOS.PolicyTypeDocument;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
@@ -51,10 +52,11 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
         }
 
         public async Task<ApiResponse<GetPolicyTypeResponseDTO>> Handle(
-         CreatePolicyTypeCommand request,
-         CancellationToken cancellationToken)
+     CreatePolicyTypeCommand request,
+     CancellationToken cancellationToken)
         {
             string? uploadedFileKey = null;
+            bool hasPolicyDocUploaded = false; // ✅ FIX
 
             await _unitOfWork.BeginTransactionAsync();
 
@@ -62,17 +64,11 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
             {
                 _logger.LogInformation("🔹 CreatePolicyType started");
 
-                // ===============================
-                // 1️⃣ VALIDATION (AUTH)
-                // ===============================
                 var validation = await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
                     throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // ===============================
-                // 2️⃣ NULL SAFETY
-                // ===============================
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request data.");
 
@@ -82,6 +78,33 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                 request.DTO.Prop ??= new();
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
+
+                // ===============================
+                // 🔥 FILE UPLOAD FIRST (IMPORTANT)
+                // ===============================
+                string fileName = string.Empty;
+
+                if (request.DTO.FormFile != null && request.DTO.FormFile.Length > 0)
+                {
+                    string safeName = EncryptionSanitizer
+                        .CleanEncodedInput(request.DTO.PolicyName ?? "policy")
+                        .ToLower()
+                        .Replace(" ", "_");
+
+                    fileName = $"{safeName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
+                    string folderPath =
+                        $"{ConstantValues.TenantFolder}-{validation.TenantId}/{ConstantValues.PoliciesFolder}";
+
+                    uploadedFileKey = await _fileStorageService.UploadFileAsync(
+                        request.DTO.FormFile,
+                        folderPath,
+                        fileName);
+
+                    if (!string.IsNullOrWhiteSpace(uploadedFileKey))
+                    {
+                        hasPolicyDocUploaded = true; // ✅ SET FLAG
+                    }
+                }
 
                 // ===============================
                 // 3️⃣ CREATE POLICY TYPE
@@ -94,7 +117,9 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                         ? null
                         : request.DTO.Description.Trim(),
                     IsActive = request.DTO.IsActive,
+                    PolicyTypeEnumVal = request.DTO.PolicyTypeEnumVal,
                     IsStructured = request.DTO.IsStructured,
+                    HasPolicyDocUploaded = hasPolicyDocUploaded, // ✅ CORRECT
                     IsSoftDelete = false,
                     AddedById = validation.UserEmployeeId,
                     AddedDateTime = DateTime.UtcNow
@@ -107,7 +132,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                     throw new ApiException("Policy type creation failed.", 500);
 
                 // ===============================
-                // 4️⃣ 🔥 BULK INSERT (UNSTRUCTURED MAPPING)
+                // 🔥 BULK INSERT MAPPING
                 // ===============================
                 var mappings = request.DTO.EmployeeTypeIds
                     .Distinct()
@@ -131,49 +156,49 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                 }
 
                 // ===============================
-                // 5️⃣ FILE UPLOAD
+                // 🔥 SAVE DOCUMENT ENTRY
                 // ===============================
-                if (request.DTO.FormFile != null && request.DTO.FormFile.Length > 0)
+                if (hasPolicyDocUploaded && !string.IsNullOrWhiteSpace(uploadedFileKey))
                 {
-                    string safeName = EncryptionSanitizer
-                        .CleanEncodedInput(request.DTO.PolicyName ?? "policy")
-                        .ToLower()
-                        .Replace(" ", "_");
-
-                    string fileName = $"{safeName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
-                    string folderPath =
-                        $"{ConstantValues.TenantFolder}-{validation.TenantId}/{ConstantValues.PoliciesFolder}";
-
-                    uploadedFileKey = await _fileStorageService.UploadFileAsync(
-                        request.DTO.FormFile,
-                        folderPath,
-                        fileName);
-
-                    if (!string.IsNullOrWhiteSpace(uploadedFileKey))
+                    var doc = new PolicyTypeDocument
                     {
-                        var doc = new PolicyTypeDocument
-                        {
-                            TenantId = validation.TenantId,
-                            PolicyTypeId = createdPolicyType.Id,
-                            DocumentTitle = request.DTO.PolicyName.Trim(),
-                            FileName = fileName,
-                            FilePath = uploadedFileKey,
-                            IsActive = request.DTO.IsActive,
-                            IsSoftDeleted = false,
-                            AddedById = validation.UserEmployeeId,
-                            AddedDateTime = DateTime.UtcNow
-                        };
+                        TenantId = validation.TenantId,
+                        PolicyTypeId = createdPolicyType.Id,
+                        DocumentTitle = request.DTO.PolicyName.Trim(),
+                        FileName = fileName,
+                        FilePath = uploadedFileKey,
+                        IsActive = request.DTO.IsActive,
+                        IsSoftDeleted = false,
+                        AddedById = validation.UserEmployeeId,
+                        AddedDateTime = DateTime.UtcNow
+                    };
 
-                        await _unitOfWork.PolicyTypeDocumentRepository.AddAsync(doc);
-                    }
+                    await _unitOfWork.PolicyTypeDocumentRepository.AddAsync(doc);
                 }
 
-                // ===============================
-                // 6️⃣ COMMIT
-                // ===============================
                 await _unitOfWork.CommitTransactionAsync();
+                // 🔥 FIX: DocDetails
+                if (hasPolicyDocUploaded && !string.IsNullOrWhiteSpace(uploadedFileKey))
+                {
+                    createdPolicyType.DocDetails = new List<GetPolicyTypeDocumentResponseDTO>
+                        {
+                            new GetPolicyTypeDocumentResponseDTO
+                            {
+                                PolicyTypeId = createdPolicyType.Id,
+                                DocumentTitle = request.DTO.PolicyName,
+                                FileName = fileName,            
+                                FilePath = _fileStorageService.GetFileUrl(uploadedFileKey),
+                                IsActive = true
+                            }
+                        };
+                }
+                else
+                {
+                    createdPolicyType.DocDetails = new List<GetPolicyTypeDocumentResponseDTO>();
+                }
 
-                _logger.LogInformation("✅ PolicyType created successfully");
+                // 🔥 FIX: EmployeeTypeIds
+                createdPolicyType.EmployeeTypeIds = request.DTO.EmployeeTypeIds.ToList();
 
                 return ApiResponse<GetPolicyTypeResponseDTO>
                     .Success(createdPolicyType, "Policy type created successfully.");
@@ -184,7 +209,6 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
 
                 _logger.LogError(ex, "❌ CreatePolicyType failed");
 
-                // 🔥 FILE CLEANUP
                 if (!string.IsNullOrEmpty(uploadedFileKey))
                 {
                     try

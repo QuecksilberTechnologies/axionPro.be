@@ -20,6 +20,7 @@ public partial class PolicyTypeDocument
     public bool IsActive { get; set; }
 
     public bool IsSoftDeleted { get; set; }
+   
 
     public long? AddedById { get; set; }
 

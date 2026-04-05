@@ -70,4 +70,16 @@ public class UnStructuredEmployeePolicyTypeMappingRepository
         _context.UnStructuredPolicyTypeMappingWithEmployeeTypes.Update(entity);
         return await _context.SaveChangesAsync() > 0;
     }
+
+    public async Task<List<UnStructuredPolicyTypeMappingWithEmployeeType>> GetByEmployeeTypeByPolicyTypeIdAsync(int policyTypeId, long tenantId)
+    {
+        return await _context.UnStructuredPolicyTypeMappingWithEmployeeTypes
+       .AsNoTracking()
+       .Where(x =>
+        x.PolicyTypeId == policyTypeId &&
+        x.TenantId == tenantId &&
+        x.IsActive == true &&
+        (x.IsSoftDeleted == false || x.IsSoftDeleted == null))
+    .ToListAsync();
+    }
 }

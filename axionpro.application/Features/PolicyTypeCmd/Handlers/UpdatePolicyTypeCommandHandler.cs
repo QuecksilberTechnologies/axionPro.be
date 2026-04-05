@@ -1,19 +1,18 @@
 ﻿using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Constants;
-using axionpro.application.DTOs.Module;
 using axionpro.application.DTOs.PolicyType;
+using axionpro.application.DTOS.PolicyTypeDocument;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
-
-using axionpro.domain.Entity; using MediatR;
+using axionpro.domain.Entity;
+using MediatR;
 using Microsoft.Extensions.Logging;
-using System.Reflection;
 
-public class UpdatePolicyTypeCommand : IRequest<ApiResponse<bool>>
+public class UpdatePolicyTypeCommand : IRequest<ApiResponse<GetPolicyTypeResponseDTO>>
 {
     public UpdatePolicyTypeRequestDTO DTO { get; set; }
 
@@ -24,7 +23,7 @@ public class UpdatePolicyTypeCommand : IRequest<ApiResponse<bool>>
 }
 
 public class UpdatePolicyTypeCommandHandler
-    : IRequestHandler<UpdatePolicyTypeCommand, ApiResponse<bool>>
+    : IRequestHandler<UpdatePolicyTypeCommand, ApiResponse<GetPolicyTypeResponseDTO>>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<UpdatePolicyTypeCommandHandler> _logger;
@@ -46,11 +45,13 @@ public class UpdatePolicyTypeCommandHandler
         _commonRequestService = commonRequestService;
     }
 
-    public async Task<ApiResponse<bool>> Handle(
-      UpdatePolicyTypeCommand request,
-      CancellationToken cancellationToken)
+    public async Task<ApiResponse<GetPolicyTypeResponseDTO>> Handle(
+        UpdatePolicyTypeCommand request,
+        CancellationToken cancellationToken)
     {
         string? uploadedFileKey = null;
+        string fileName = string.Empty;
+        bool hasPolicyDocUploaded = false;
 
         await _unitOfWork.BeginTransactionAsync();
 
@@ -59,13 +60,7 @@ public class UpdatePolicyTypeCommandHandler
             _logger.LogInformation("🔹 UpdatePolicyType started");
 
             // ===============================
-            // 1️⃣ NULL SAFETY
-            // ===============================
-            if (request?.DTO == null || request.DTO.Id <= 0)
-                throw new ValidationErrorException("Invalid request.");
-
-            // ===============================
-            // 2️⃣ AUTH VALIDATION
+            // ✅ AUTH VALIDATION
             // ===============================
             var validation = await _commonRequestService.ValidateRequestAsync();
 
@@ -73,7 +68,7 @@ public class UpdatePolicyTypeCommandHandler
                 throw new UnauthorizedAccessException(validation.ErrorMessage);
 
             // ===============================
-            // 3️⃣ PERMISSION CHECK
+            // ✅ RBAC PERMISSION CHECK
             // ===============================
             //var hasAccess = await _permissionService.HasAccessAsync(
             //    validation.RoleId,
@@ -83,50 +78,26 @@ public class UpdatePolicyTypeCommandHandler
             //if (!hasAccess)
             //    throw new UnauthorizedAccessException("Access denied.");
 
-            request.DTO.Prop ??= new();
-            request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-            request.DTO.Prop.TenantId = validation.TenantId;
+            // ===============================
+            // ✅ REQUEST VALIDATION
+            // ===============================
+            if (request?.DTO == null || request.DTO.Id <= 0)
+                throw new ValidationErrorException("Invalid request.");
+
+            if (request.DTO.EmployeeTypeIds == null || !request.DTO.EmployeeTypeIds.Any())
+                throw new ValidationErrorException("At least one EmployeeType is required.");
 
             // ===============================
-            // 4️⃣ FETCH ENTITY
-            // ===============================
-            var policyType = await _unitOfWork.PolicyTypeRepository
-                .GetPolicyTypeByIdAsync(request.DTO.Id, true);
-
-            if (policyType == null)
-                throw new ApiException("Policy type not found.", 404);
-
-            // ===============================
-            // 5️⃣ UPDATE FIELDS
-            // ===============================
-            if (!string.IsNullOrWhiteSpace(request.DTO.PolicyName))
-                policyType.PolicyName = request.DTO.PolicyName.Trim();
-
-            if (!string.IsNullOrWhiteSpace(request.DTO.Description))
-                policyType.Description = request.DTO.Description.Trim();
-
-            policyType.IsActive = request.DTO.IsActive;
-            policyType.UpdateById = validation.UserEmployeeId;
-            policyType.UpdateDateTime = DateTime.UtcNow;
-
-            var updated = await _unitOfWork.PolicyTypeRepository
-                .UpdatePolicyTypeAsync(policyType);
-
-            if (!updated)
-                throw new ApiException("Policy type update failed.", 500);
-
-            // ===============================
-            // 6️⃣ FILE UPLOAD
+            // 🔥 FILE UPLOAD FIRST (SAFE)
             // ===============================
             if (request.DTO.FormFile != null && request.DTO.FormFile.Length > 0)
             {
                 string safeName = EncryptionSanitizer
-                    .CleanEncodedInput(policyType.PolicyName ?? "policy")
+                    .CleanEncodedInput(request.DTO.PolicyName ?? "policy")
                     .ToLower()
                     .Replace(" ", "_");
 
-                string fileName =
-                    $"{safeName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
+                fileName = $"{safeName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
 
                 string folderPath =
                     $"{ConstantValues.TenantFolder}-{validation.TenantId}/{ConstantValues.PoliciesFolder}";
@@ -137,76 +108,165 @@ public class UpdatePolicyTypeCommandHandler
                     fileName);
 
                 if (!string.IsNullOrWhiteSpace(uploadedFileKey))
+                    hasPolicyDocUploaded = true;
+            }
+
+            // ===============================
+            // 🔥 FETCH EXISTING POLICY
+            // ===============================
+            var policyType = await _unitOfWork.PolicyTypeRepository
+                .GetPolicyTypeByIdAsync(request.DTO.Id, true);
+
+            if (policyType == null)
+                throw new ApiException("Policy type not found.", 404);
+
+            // ===============================
+            // 🔥 UPDATE MAIN ENTITY
+            // ===============================
+            policyType.PolicyName = request.DTO.PolicyName.Trim();
+            policyType.Description = request.DTO.Description?.Trim();
+            policyType.IsActive = request.DTO.IsActive;
+            policyType.IsStructured = request.DTO.IsStructured;
+            policyType.PolicyTypeEnumVal = request.DTO.PolicyTypeEnumVal;
+            policyType.HasPolicyDocUploaded = hasPolicyDocUploaded;
+
+            policyType.UpdateById = validation.UserEmployeeId;
+            policyType.UpdateDateTime = DateTime.UtcNow;
+
+            await _unitOfWork.PolicyTypeRepository.UpdatePolicyTypeAsync(policyType);
+
+            // ===============================
+            // 🔥 REPLACE EMPLOYEE TYPE MAPPING
+            // ===============================
+            var existingMappings = await _unitOfWork
+                .UnStructuredEmployeePolicyTypeMappingRepository
+                .GetByEmployeeTypeByPolicyTypeIdAsync(policyType.Id, validation.TenantId);
+
+            foreach (var item in existingMappings)
+            {
+                item.IsSoftDeleted = true;
+                item.SoftDeletedById = validation.UserEmployeeId;
+                item.SoftDeletedDateTime = DateTime.UtcNow;
+            }
+
+            var newMappings = request.DTO.EmployeeTypeIds
+                .Distinct()
+                .Select(empTypeId => new UnStructuredPolicyTypeMappingWithEmployeeType
                 {
-                    var existingDoc =
-                        await _unitOfWork.PolicyTypeDocumentRepository
-                            .GetByIdAsync(policyType.Id, validation.TenantId, request.DTO.IsActive);
+                    TenantId = validation.TenantId,
+                    PolicyTypeId = policyType.Id,
+                    EmployeeTypeId = empTypeId,
+                    IsActive = true,
+                    StartDate = DateTime.UtcNow,
+                    AddedById = validation.UserEmployeeId,
+                    AddedDateTime = DateTime.UtcNow,
+                    IsSoftDeleted = false
+                })
+                .ToList();
 
-                    if (existingDoc == null)
-                    {
-                        await _unitOfWork.PolicyTypeDocumentRepository.AddAsync(
-                            new PolicyTypeDocument
-                            {
-                                TenantId = validation.TenantId,
-                                PolicyTypeId = policyType.Id,
-                                DocumentTitle = policyType.PolicyName,
-                                FileName = fileName,
-                                FilePath = uploadedFileKey,
-                                IsActive = true,
-                                IsSoftDeleted = false,
-                                AddedById = validation.UserEmployeeId,
-                                AddedDateTime = DateTime.UtcNow
-                            });
-                    }
-                    else
-                    {
-                        existingDoc.FileName = fileName;
-                        existingDoc.FilePath = uploadedFileKey;
-                        existingDoc.UpdatedById = validation.UserEmployeeId;
-                        existingDoc.IsActive = request.DTO.IsActive;
-                        existingDoc.UpdatedDateTime = DateTime.UtcNow;
+            if (newMappings.Any())
+            {
+                await _unitOfWork
+                    .UnStructuredEmployeePolicyTypeMappingRepository
+                    .AddRangeAsync(newMappings);
+            }
 
-                        await _unitOfWork.PolicyTypeDocumentRepository
-                            .UpdateAsync(existingDoc);
-                    }
+            // ===============================
+            // 🔥 DOCUMENT UPSERT
+            // ===============================
+            if (hasPolicyDocUploaded && uploadedFileKey != null)
+            {
+                var existingDoc = await _unitOfWork.PolicyTypeDocumentRepository
+                    .GetByIdAsync(policyType.Id, validation.TenantId, true);
+
+                if (existingDoc != null)
+                {
+                    // 🔥 DELETE OLD FILE
+                    if (!string.IsNullOrEmpty(existingDoc.FilePath))
+                        await _fileStorageService.DeleteFileAsync(existingDoc.FilePath);
+
+                    existingDoc.FileName = fileName;
+                    existingDoc.FilePath = uploadedFileKey;
+                    existingDoc.UpdatedById = validation.UserEmployeeId;
+                    existingDoc.UpdatedDateTime = DateTime.UtcNow;
+
+                    await _unitOfWork.PolicyTypeDocumentRepository.UpdateAsync(existingDoc);
+                }
+                else
+                {
+                    await _unitOfWork.PolicyTypeDocumentRepository.AddAsync(
+                        new PolicyTypeDocument
+                        {
+                            TenantId = validation.TenantId,
+                            PolicyTypeId = policyType.Id,
+                            DocumentTitle = policyType.PolicyName,
+                            FileName = fileName,
+                            FilePath = uploadedFileKey,
+                            IsActive = true,
+                            IsSoftDeleted = false,
+                            AddedById = validation.UserEmployeeId,
+                            AddedDateTime = DateTime.UtcNow
+                        });
                 }
             }
 
             // ===============================
-            // 7️⃣ COMMIT
+            // ✅ COMMIT TRANSACTION
             // ===============================
+
             await _unitOfWork.CommitTransactionAsync();
 
-            _logger.LogInformation("✅ PolicyType updated successfully");
+            // ===============================
+            // 🔥 BUILD RESPONSE (CORRECT WAY)
+            // ===============================
+            var response = new GetPolicyTypeResponseDTO
+            {
+                Id = policyType.Id,
+                PolicyName = policyType.PolicyName ?? string.Empty,
+                Description = policyType.Description,
+                IsActive = policyType.IsActive ?? false,
+                IsStructured = policyType.IsStructured,
+                PolicyTypeEnumVal = policyType.PolicyTypeEnumVal,
 
-            return ApiResponse<bool>
-                .Success(true, "Policy type updated successfully.");
+                // 🔥 Employee Types
+                EmployeeTypeIds = request.DTO.EmployeeTypeIds.ToList(),
+
+                // 🔥 Documents
+                DocDetails = new List<GetPolicyTypeDocumentResponseDTO>()
+            };
+
+            // 🔥 ADD DOCUMENT IF UPLOADED
+            if (hasPolicyDocUploaded && !string.IsNullOrWhiteSpace(uploadedFileKey))
+            {
+                response.DocDetails.Add(new GetPolicyTypeDocumentResponseDTO
+                {
+                    PolicyTypeId = policyType.Id,
+                    DocumentTitle = policyType.PolicyName,
+                    FileName = fileName,
+                    FilePath = _fileStorageService.GetFileUrl(uploadedFileKey),
+                    IsActive = true
+                });
+            }
+
+            return ApiResponse<GetPolicyTypeResponseDTO>.Success(response, "Policy type updated successfully.");
         }
         catch (Exception ex)
         {
             await _unitOfWork.RollbackTransactionAsync();
 
-            _logger.LogError(ex, "❌ UpdatePolicyType failed");
-
             // 🔥 FILE CLEANUP
             if (!string.IsNullOrEmpty(uploadedFileKey))
             {
-                try
-                {
-                    await _fileStorageService.DeleteFileAsync(uploadedFileKey);
-                }
-                catch (Exception fileEx)
-                {
-                    _logger.LogError(fileEx, "Failed to delete uploaded file after rollback.");
-                }
+                try { await _fileStorageService.DeleteFileAsync(uploadedFileKey); }
+                catch { }
             }
 
-            throw; // ✅ CRITICAL
+            _logger.LogError(ex, "❌ UpdatePolicyType failed");
+            throw;
         }
     }
 }
 
- 
 
 
 

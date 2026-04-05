@@ -5,7 +5,7 @@ namespace axionpro.application.DTOs.PolicyType
     public class GetPolicyTypeResponseDTO
     {
         public int Id { get; set; }
-        public long TenantId { get; set; }
+         
         public string PolicyName { get; set; } = string.Empty;
         public string? Description { get; set; }
         public bool IsActive { get; set; }   

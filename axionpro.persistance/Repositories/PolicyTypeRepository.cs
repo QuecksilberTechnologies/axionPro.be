@@ -171,7 +171,7 @@ namespace axionpro.persistance.Repositories
                     .Select(pt => new GetPolicyTypeResponseDTO
                     {
                         Id = pt.Id,
-                        TenantId = pt.TenantId,
+                        
                         PolicyName = pt.PolicyName ?? string.Empty,
                         IsActive = pt.IsActive ?? false,
                         IsStructured = pt.IsStructured,

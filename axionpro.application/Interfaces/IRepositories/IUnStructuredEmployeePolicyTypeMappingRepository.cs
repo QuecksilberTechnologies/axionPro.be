@@ -11,6 +11,8 @@ namespace axionpro.application.Interfaces.IRepositories
 
         Task<List<UnStructuredPolicyTypeMappingWithEmployeeType>> GetByEmployeeTypeIdAsync(int employeeTypeId, long tenantId);
 
+        Task<List<UnStructuredPolicyTypeMappingWithEmployeeType>> GetByEmployeeTypeByPolicyTypeIdAsync(int policyTypeId, long tenantId);
+
         Task<UnStructuredPolicyTypeMappingWithEmployeeType?> GetByIdAsync(long id);
 
         Task<bool> AddRangeAsync(List<UnStructuredPolicyTypeMappingWithEmployeeType> entities);

@@ -11,7 +11,7 @@ namespace axionpro.application.DTOs.PolicyType
         public required bool  IsActive { get; set; }// = null! ;     
         public required bool IsStructured { get; set; } = true ;     
         public required string PolicyName { get; set; }// = null! ;
-        public int PolicyTypeEnumVal { get; set; }
+        public required int PolicyTypeEnumVal { get; set; }
         // 🔥 FIX: MULTIPLE EMPLOYEE TYPES
         public required List<int> EmployeeTypeIds { get; set; } = new();
         public IFormFile? FormFile { get; set; }

@@ -10,14 +10,18 @@ namespace axionpro.application.DTOs.PolicyType
 {
     public class UpdatePolicyTypeRequestDTO
     {
-        public required int Id { get; set; }
-        public required bool IsActive { get; set; }// = null! ;     
-        public  string? PolicyName { get; set; }// = null! ;       
+        public int Id { get; set; }
+        public required bool IsActive { get; set; }
+        public required bool IsStructured { get; set; }
+        public required string PolicyName { get; set; }
+        public int PolicyTypeEnumVal { get; set; }
+
+        // 🔥 MULTIPLE EMPLOYEE TYPES
+        public required List<int> EmployeeTypeIds { get; set; } = new();
+
         public IFormFile? FormFile { get; set; }
-        public  string? Description { get; set; }
-        //  public CreateCompanyPolicyDocumentRequestDTO?  policyDocumentRequestDTO { get; set; } = new CreateCompanyPolicyDocumentRequestDTO();
-        public ExtraPropRequestDTO? Prop { get; set; } = new ExtraPropRequestDTO();     
-        
-       
+        public required string Description { get; set; }
+
+        public ExtraPropRequestDTO? Prop { get; set; } = new();
     }
 }
