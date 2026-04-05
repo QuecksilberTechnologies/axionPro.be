@@ -215,6 +215,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
+                enumval = 1;
                 // --------------------------------------------------
                 // 1️⃣ Base query (Tenant mandatory)
                 // --------------------------------------------------
@@ -225,8 +226,8 @@ namespace axionpro.persistance.Repositories
                 // --------------------------------------------------
                 // 2️⃣ Active + SoftDelete filter
                 // --------------------------------------------------
-                query = isActive ? query.Where(pt => pt.IsActive == true &&  (pt.IsSoftDelete == false || pt.IsSoftDelete == null))  : query.Where(pt =>  pt.IsActive == false &&
-                        (pt.IsSoftDelete == false || pt.IsSoftDelete == null));
+                query = isActive ? query.Where(pt => pt.IsActive == true && pt.IsSoftDelete!=true)  
+                    : query.Where(pt =>  pt.IsActive == false && (pt.IsSoftDelete == false || pt.IsSoftDelete == null));
 
                 // --------------------------------------------------
                 // 3️⃣ Projection → DDL DTO
