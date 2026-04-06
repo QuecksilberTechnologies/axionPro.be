@@ -1,34 +1,16 @@
 ﻿using axionpro.application.Common.Enums;
-using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.PercentageHelper;
-using axionpro.application.DTOs.Department;
-using axionpro.application.DTOs.Designation;
-using axionpro.application.DTOs.Employee.AccessResponse;
-using axionpro.application.DTOs.Role;
 using axionpro.application.DTOS.AssetDTO.asset;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.DTOS.Employee.Education;
-using axionpro.application.DTOS.Employee.Experience;
-using axionpro.application.DTOS.Employee.Sensitive;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.DTOS.StoreProcedures;
-using axionpro.application.Features.TenantConfigurationCmd.Configuration.EmployeeCodeCmd.Handlers;
-using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IFileStorage;
-using axionpro.domain.Entity; 
-using MediatR;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Win32.SafeHandles;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; 
 namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 {
     public static class ProjectionHelper

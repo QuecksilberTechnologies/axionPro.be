@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
+using axionpro.application.Common.Enums;
 using axionpro.application.Common.Helpers.PercentageHelper;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces.IEncryptionService;
+using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
@@ -23,8 +25,9 @@ namespace axionpro.persistance.Repositories
        
         private readonly IPasswordService _passwordService;
         private readonly IEncryptionService _encryptionService;
+        private readonly IFileStorageService _fileStorageService;
         public EmployeeDependentRepository(WorkforceDbContext context, IMapper mapper, ILogger<EmployeeDependentRepository> logger,
-            IPasswordService passwordService, IEncryptionService encryptionService)
+            IPasswordService passwordService, IEncryptionService encryptionService, IFileStorageService fileStorageService)
         {
             this._context = context;
             this._mapper = mapper;
@@ -32,6 +35,7 @@ namespace axionpro.persistance.Repositories
             
             _passwordService = passwordService;
             _encryptionService = encryptionService;
+            _fileStorageService = fileStorageService;
 
         }
 
@@ -156,7 +160,126 @@ namespace axionpro.persistance.Repositories
                 throw;
             }
         }
+        public async Task<GetDependentsDetailResponseDTO> GetDetailInfo(GetDependentRequestDTO dto)
+        {
+            try
+            {
+                // ===============================
+                // 🔹 STEP 1: FETCH DATA
+                // ===============================
+                var records = await _context.EmployeeDependents
+                    .AsNoTracking()
+                    .Where(x =>
+                        x.EmployeeId == dto.Prop.EmployeeId &&
+                        x.IsSoftDeleted != true &&
+                        x.IsActive == true)
+                    .OrderByDescending(x => x.Id)
+                    .ToListAsync();
 
+                if (records == null || !records.Any())
+                {
+                    return new GetDependentsDetailResponseDTO();
+                }
+
+                // ===============================
+                // 🔹 STEP 2: MAP + CALCULATE
+                // ===============================
+                var result = records.Select(x =>
+                {
+                    // 🔥 FILE URL (S3)
+                    string? fileUrl = !string.IsNullOrWhiteSpace(x.FilePath)
+                        ? _fileStorageService.GetFileUrl(x.FilePath)
+                        : null;
+
+                    // 🔥 FLAGS
+                    bool hasProof = !string.IsNullOrWhiteSpace(x.FilePath);
+
+                    
+                   
+
+                    string relationType;
+
+                    if (x.Relation == 1)
+                        relationType = "Father";
+                    else if (x.Relation == 2)
+                        relationType = "Mother";
+                    else if (x.Relation == 3)
+                        relationType = "Spouse";
+                    else if (x.Relation == 4)
+                        relationType = "Son";
+                    else if (x.Relation == 5)
+                        relationType = "Daughter";
+                    else if (x.Relation == 6)
+                        relationType = "Father-in-law";
+                    else if (x.Relation == 7)
+                        relationType = "Mother-in-law";
+                    else
+                        relationType = "Other";
+                    return new GetDependentResponseDTO
+                    {
+                        Id = x.Id,
+                        EmployeeId = x.EmployeeId.ToString(),
+
+                        DependentName = x.DependentName,
+
+                        Relation = x.Relation,
+                        RelationType = relationType, // 🔥 helper
+                        
+
+                        DateOfBirth = x.DateOfBirth,
+                        IsCoveredInPolicy = x.IsCoveredInPolicy,
+                        IsMarried = x.IsMarried,
+
+                        Remark = x.Remark,
+                        Description = x.Description,
+
+                        IsActive = x.IsActive,
+
+                        HasProofUploaded = hasProof,
+                        HasUploadedAll = hasProof, // 🔥 can extend later
+
+                        
+
+                        FilePath = fileUrl,
+
+                        InfoVerifiedById = x.InfoVerifiedById?.ToString(),
+                        IsInfoVerified = x.IsInfoVerified,
+                        IsEditAllowed = x.IsEditAllowed,
+                        InfoVerifiedDateTime = x.InfoVerifiedDateTime
+                    };
+                }).ToList();
+
+                // ===============================
+                // 🔹 STEP 3: COUNTS
+                // ===============================
+                var response = new GetDependentsDetailResponseDTO
+                {
+                    TotalDependents = result.Count,
+
+                    TotalChilds = result.Count(x =>
+                        x.Relation == 4 || x.Relation == 5), // Son/Daughter
+
+                    TotalSpouses = result.Count(x =>
+                        x.Relation == 3),
+
+                    TotalParents = result.Count(x =>
+                        x.Relation == 1 || x.Relation == 2),
+
+                    TotalInLaws = result.Count(x =>
+                        x.Relation == 6 || x.Relation == 7),
+
+                    Dependents = result
+                };
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error while fetching dependent details");
+
+                return new GetDependentsDetailResponseDTO();
+            }
+        }
 
         public async Task<PagedResponseDTO<GetDependentResponseDTO>> GetInfo(
        GetDependentRequestDTO dto)

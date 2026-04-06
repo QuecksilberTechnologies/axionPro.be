@@ -65,12 +65,27 @@ namespace axionpro.api.Controllers.Employee
         /// Get all employee-Dependent based on TenantId or filters.
         /// </summary>
         [HttpGet("get")]    
-        public async Task<IActionResult> GetBankinfo([FromQuery] GetDependentRequestDTO requestDto)
+        public async Task<IActionResult> Getinfo([FromQuery] GetDependentRequestDTO requestDto)
         {
           
-                _logger.LogInfo("Fetching all bank.");
+                _logger.LogInfo("Fetching all  .");
 
                 var command = new GetDependentInfoQuery(requestDto);
+                var result = await _mediator.Send(command);
+
+                return Ok(result);
+           
+        }
+        /// <summary>
+        /// Get all employee-Dependent based on TenantId or filters.
+        /// </summary>
+        [HttpGet("get-in-detail")]    
+        public async Task<IActionResult> GetInDetail([FromQuery] GetDependentRequestDTO requestDto)
+        {
+          
+                _logger.LogInfo("Fetching all .");
+
+                var command = new GetDependentCountsQuery(requestDto);
                 var result = await _mediator.Send(command);
 
                 return Ok(result);

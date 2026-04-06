@@ -370,7 +370,7 @@ public class UnitOfWork : IUnitOfWork
             _mapper,
             _loggerFactory.CreateLogger<EmployeeDependentRepository>(),
             _passwordService,
-            _encriptionService);
+            _encriptionService,_fileStorageService);
 
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)

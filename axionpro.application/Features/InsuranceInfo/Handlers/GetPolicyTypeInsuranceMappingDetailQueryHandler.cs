@@ -88,8 +88,7 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                 // ===============================
                 // 5️⃣ BUILD FILE URL
                 // ===============================
-                string baseUrl =
-                    _configuration["FileSettings:BaseUrl"] ?? string.Empty;
+               
 
                 foreach (var item in data)
                 {
