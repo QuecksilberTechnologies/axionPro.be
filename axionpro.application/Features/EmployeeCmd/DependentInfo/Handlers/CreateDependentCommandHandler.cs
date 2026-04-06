@@ -176,7 +176,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                 entity.FilePath = docPath;
                 entity.FileName = docName;
                 entity.HasProofUploaded = hasProofUploaded;
-
+                entity.IsCoveredInPolicy =false; // Default, can be updated later by HR/Admin
                 // ===============================
                 // 7️⃣ SAVE
                 // ===============================

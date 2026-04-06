@@ -62,7 +62,8 @@ namespace axionpro.api.Controllers.Insurance
             var result = await _mediator.Send(query);
 
             return Ok(result);
-        }
+           }
+
         // 🔹 DELETE INSURANCE POLICY
         [HttpDelete("delete")]        
         public async Task<IActionResult> Delete(

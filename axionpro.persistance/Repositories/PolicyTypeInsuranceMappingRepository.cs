@@ -117,56 +117,59 @@ namespace axionpro.persistance.Repositories
 
         public async Task<List<GetPolicyTypeInsuranceMappingResponseDTO>> GetMapInsuranceDDLForEmployeeMappingAsync(long tenantId, bool isActive, bool isSoftDeleted)
         {
-            try
-            {
-                var query = from mapping in _context.PolicyTypeInsuranceMappings.AsNoTracking()
+             
+                try
+                {
+                    var query =
+                        from mapping in _context.PolicyTypeInsuranceMappings.AsNoTracking()
 
-                    join pt in _context.PolicyTypes.AsNoTracking()
-                        on mapping.PolicyTypeId equals pt.Id
+                        join pt in _context.PolicyTypes.AsNoTracking()
+                            on mapping.PolicyTypeId equals pt.Id
 
-                    join ip in _context.InsurancePolicies.AsNoTracking()
-                        on mapping.InsurancePolicyId equals ip.Id
+                        join ip in _context.InsurancePolicies.AsNoTracking()
+                            on mapping.InsurancePolicyId equals ip.Id
 
-                    where
-                        // 🔹 TENANT FILTER
-                        mapping.TenantId == tenantId &&
+                        where
+                            // 🔹 TENANT
+                            mapping.TenantId == tenantId &&
 
-                        // 🔹 MAPPING FILTER
-                        mapping.IsActive == isActive &&
-                        mapping.IsSoftDeleted != isSoftDeleted &&
+                            // 🔥 MAPPING FILTER
+                            mapping.IsActive == true &&
+                            mapping.IsSoftDeleted != true &&
 
-                        // 🔹 POLICY TYPE FILTER
-                        pt.IsActive == isActive &&
-                        pt.IsSoftDelete != isSoftDeleted &&
+                            // 🔥 POLICY TYPE FILTER
+                            pt.IsActive == true &&
+                            pt.IsSoftDelete != true &&
 
-                        // 🔹 INSURANCE FILTER
-                        ip.IsActive == isActive &&
-                        ip.IsSoftDeleted != isSoftDeleted
+                            // 🔥 INSURANCE FILTER
+                            ip.IsActive == true &&
+                            ip.IsSoftDeleted != true
 
-                            orderby ip.InsurancePolicyName
+                        orderby ip.InsurancePolicyName
 
-                    select new GetPolicyTypeInsuranceMappingResponseDTO
-                    {
-                        Id = mapping.Id,
+                        select new GetPolicyTypeInsuranceMappingResponseDTO
+                        {
+                            Id = mapping.Id,
 
-                        PolicyTypeId = pt.Id,
-                        PolicyName = pt.PolicyName,
-                        InsurancePolicyId = ip.Id,
-                        InsurancePolicyName = ip.InsurancePolicyName,
-                        InsurancePolicyNumber = ip.InsurancePolicyNumber,
-                        ProviderName = ip.ProviderName,
+                            PolicyTypeId = pt.Id,
+                            PolicyName = pt.PolicyName,
 
-                        IsActive = mapping.IsActive
-                    };
+                            InsurancePolicyId = ip.Id,
+                            InsurancePolicyName = ip.InsurancePolicyName,
+                            InsurancePolicyNumber = ip.InsurancePolicyNumber,
+                            ProviderName = ip.ProviderName,
 
-                return await query.ToListAsync();
+                            IsActive = mapping.IsActive
+                        };
+
+                    return await query.ToListAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "❌ Error while fetching Insurance DDL");
+                    return new List<GetPolicyTypeInsuranceMappingResponseDTO>();
+                }
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error while fetching Insurance DDL");
-                return new List<GetPolicyTypeInsuranceMappingResponseDTO>();
-            }
-        }
         public async Task<List<GetPolicyTypeInsuranceMapDetailsResponseDTO>> GetMapInsuranceDetailAsync(int policyId, bool isActive)
         {
             try
@@ -210,12 +213,15 @@ namespace axionpro.persistance.Repositories
                         InsuranceTypeName = ip.InsurancePolicyName ?? string.Empty,
 
                         FileName = doc != null ? doc.FileName : string.Empty,
-                        FilePath = doc != null ? doc.FilePath : string.Empty,
-
-                        Url = string.Empty,
+                        FilePath = doc != null ? doc.FilePath : string.Empty,                      
 
                         Description = ip.Description,
-                        IsActive = map.IsActive
+                        IsActive = map.IsActive,
+                        MaxChildAllowed = ip.MaxChildAllowed,
+                        MaxSpouseAllowed = ip.MaxSpouseAllowed,
+                        InLawsAllowed = ip.InLawsAllowed,
+                        ParentsAllowed = ip.ParentsAllowed, 
+
                     };
 
                 return await query.ToListAsync();
