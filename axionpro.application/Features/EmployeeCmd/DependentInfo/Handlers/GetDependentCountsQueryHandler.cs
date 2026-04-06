@@ -74,8 +74,9 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                 // ===============================
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
+                request.DTO.Prop.EmployeeId = validation.LoggedInEmployeeId;
 
-                
+
 
                 // ===============================
                 // 🔑 STEP 3: PERMISSION CHECK (OPTIONAL)
