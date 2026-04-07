@@ -52,9 +52,7 @@ namespace axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers
             _fileStorageService = fileStorageService;
             _idEncoderService = idEncoderService;
         }
-        public async Task<ApiResponse<GetEmployeeEnrolledResponseDTO>> Handle(
-    CreateEmployeeInsuranceEnrollCommand request,
-    CancellationToken cancellationToken)
+        public async Task<ApiResponse<GetEmployeeEnrolledResponseDTO>> Handle( CreateEmployeeInsuranceEnrollCommand request, CancellationToken cancellationToken)
         {
             string? uploadedFileKey = null;
 
@@ -89,36 +87,16 @@ namespace axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers
                 // ===============================
                 EmployeePolicyEnrollment createdEnrollment = null;
 
-                try
+                // 🔥 CHECK EXISTING
+                var existingEnrollment = await _unitOfWork
+                    .EmployeePolicyEnrollmentRepository.GetExistingAsync( validation.UserEmployeeId,request.DTO.PolicyTypeId,request.DTO.InsurancePolicyId,validation.TenantId);
+
+                if (existingEnrollment != null)
                 {
-                    await _unitOfWork.BeginTransactionAsync();
+                    // ✅ USE EXISTING (NO INSERT)
+                    createdEnrollment = existingEnrollment;
 
-                    var enrollment = new EmployeePolicyEnrollment
-                    {
-                        TenantId = validation.TenantId,
-                        EmployeeId = validation.UserEmployeeId,
-                        PolicyTypeId = request.DTO.PolicyTypeId,
-                        InsurancePolicyId = request.DTO.InsurancePolicyId,
-                        HasDependent = request.DTO.HasDependent,
-                        StartDate = request.DTO.StartDate,
-                        EndDate = request.DTO.EndDate,
-                        IsActive = true,
-                        IsSoftDeleted = false,
-                        AddedById = validation.UserEmployeeId,
-                        AddedDateTime = DateTime.UtcNow
-                    };
-
-                    createdEnrollment = await _unitOfWork
-                        .EmployeePolicyEnrollmentRepository
-                        .AddAsync(enrollment);
-
-                    await _unitOfWork.CommitTransactionAsync();
-                }
-                catch (Exception ex)
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    _logger.LogError(ex, "❌ Enrollment failed");
-                    throw new ApiException("Enrollment failed.");
+                    _logger.LogInformation("⚠️ Enrollment already exists. Skipping insert.");
                 }
 
                 // ===============================
@@ -132,59 +110,92 @@ namespace axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers
                     {
                         await _unitOfWork.BeginTransactionAsync();
 
-                        // 🔹 BULK MAPPING INSERT
-                        var mappings = request.DTO.Dependents.Select(dep => new EmployeePolicyDependentMapping
+                        // ===============================
+                        // 🔥 STEP 1: EXISTING MAPPINGS FETCH
+                        // ===============================
+                        var existingMappings = await _unitOfWork
+                            .EmployeeDependentInsuranceMappingRepository
+                            .GetByEnrollmentIdAsync(createdEnrollment.Id, validation.TenantId);
+
+                        var existingDependentIds = existingMappings
+                            .Select(x => x.DependentId)
+                            .ToHashSet();   // 🔥 FAST LOOKUP
+
+                        // ===============================
+                        // 🔥 STEP 2: FILTER ONLY NEW DEPENDENTS
+                        // ===============================
+                        var newDependents = request.DTO.Dependents
+                            .Where(d => !existingDependentIds.Contains(d.DependentId))
+                            .ToList();
+
+                        if (newDependents.Any())
                         {
-                            TenantId = validation.TenantId,
-                            EmployeePolicyEnrollmentId = createdEnrollment.Id,
-                            DependentId = dep.DependentId,
-                            RelationType = dep.Relation,
-                            IsCovered = true,
-                            IsActive = true,
-                            IsSoftDeleted = false,
-                            AddedById = validation.UserEmployeeId,
-                            AddedDateTime = DateTime.UtcNow
-                        }).ToList();
+                            // ===============================
+                            // 🔥 STEP 3: INSERT ONLY NEW
+                            // ===============================
+                            var mappings = newDependents.Select(dep => new EmployeePolicyDependentMapping
+                            {
+                                TenantId = validation.TenantId,
+                                EmployeePolicyEnrollmentId = createdEnrollment.Id,
+                                DependentId = dep.DependentId,
+                                RelationType = dep.Relation,
+                                IsCovered = true,
+                                IsActive = true,
+                                IsSoftDeleted = false,
+                                AddedById = validation.UserEmployeeId,
+                                AddedDateTime = DateTime.UtcNow
+                            }).ToList();
 
-                        await _unitOfWork.EmployeeDependentInsuranceMappingRepository
-                            .AddRangeAsync(mappings);
+                            await _unitOfWork.EmployeeDependentInsuranceMappingRepository
+                                .AddRangeAsync(mappings);
+                        }
 
-                        // 🔹 UPDATE DEPENDENTS (IsCoveredInPolicy)
-                        var dependentIds = request.DTO.Dependents
+                        // ===============================
+                        // 🔥 STEP 4: UPDATE DEPENDENTS (ONLY NEW ONES)
+                        // ===============================
+                        var dependentIdsToUpdate = newDependents
                             .Select(d => d.DependentId)
                             .ToList();
 
-                        var dependents = await _unitOfWork.EmployeeDependentRepository
-                            .GetBulkInfo(dependentIds);
-
-                        var updateList = dependents.Select(d => new EmployeeDependent
+                        if (dependentIdsToUpdate.Any())
                         {
-                            Id = d.Id,
-                            IsCoveredInPolicy = true,
-                            UpdatedById = validation.UserEmployeeId,
-                            UpdatedDateTime = DateTime.UtcNow
-                        }).ToList();
+                            var dependents = await _unitOfWork.EmployeeDependentRepository
+                                .GetBulkInfo(dependentIdsToUpdate);
 
-                        if (updateList.Any())
-                        {
-                            await _unitOfWork.EmployeeDependentRepository
-                                .UpdateAsyncRangeAsync(updateList);
+                            var updateList = dependents.Select(d => new EmployeeDependent
+                            {
+                                Id = d.Id,
+                                IsCoveredInPolicy = true,
+                                UpdatedById = validation.UserEmployeeId,
+                                UpdatedDateTime = DateTime.UtcNow
+                            }).ToList();
+
+                            if (updateList.Any())
+                            {
+                                await _unitOfWork.EmployeeDependentRepository
+                                    .UpdateAsyncRangeAsync(updateList);
+                            }
                         }
 
                         await _unitOfWork.CommitTransactionAsync();
 
-                        // 🔹 RESPONSE BUILD
-                        dependentList = mappings.Select(d => new GetEmployeeDependentResponsePolicyDTO
+                        // ===============================
+                        // 🔹 RESPONSE BUILD (ALL DEPENDENTS)
+                        // ===============================
+                        var finalMappings = await _unitOfWork
+                            .EmployeeDependentInsuranceMappingRepository
+                            .GetByEnrollmentIdAsync(createdEnrollment.Id, validation.TenantId);
+
+                        dependentList = finalMappings.Select(d => new GetEmployeeDependentResponsePolicyDTO
                         {
                             Id = d.Id,
                             DependentId = d.DependentId,
                             Relation = d.RelationType,
-                            IsCovered = true
+                            IsCovered = d.IsCovered
                         }).ToList();
                     }
                     catch (Exception ex)
                     {
-                        // ❌ IMPORTANT: NO THROW → enrollment already saved
                         await _unitOfWork.RollbackTransactionAsync();
 
                         _logger.LogError(ex, "⚠️ Dependent mapping failed but enrollment saved");

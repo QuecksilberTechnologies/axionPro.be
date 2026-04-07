@@ -37,7 +37,16 @@ namespace axionpro.persistance.Repositories
             await _context.SaveChangesAsync();
             return entity;
         }
-
+        public async Task<EmployeePolicyEnrollment?> GetExistingAsync(  long employeeId, int policyTypeId,  int insurancePolicyId, long tenantId)
+        {
+            return await _context.EmployeePolicyEnrollment
+                .FirstOrDefaultAsync(x =>
+                    x.EmployeeId == employeeId &&
+                    x.PolicyTypeId == policyTypeId &&
+                    x.InsurancePolicyId == insurancePolicyId &&
+                    x.TenantId == tenantId &&
+                    x.IsSoftDeleted != true && x.IsActive==true);
+        }
         // ===============================
         // 🔹 GET BY ID
         // ===============================
@@ -48,7 +57,7 @@ namespace axionpro.persistance.Repositories
                 .FirstOrDefaultAsync(x =>
                     x.Id == id &&
                     x.TenantId == tenantId &&
-                    x.IsSoftDeleted != true);
+                    x.IsSoftDeleted != true && x.IsActive == true);
         }
 
         // ===============================

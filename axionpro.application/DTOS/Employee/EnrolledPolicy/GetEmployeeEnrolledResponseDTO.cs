@@ -26,7 +26,7 @@ namespace axionpro.application.DTOS.Employee.EnrolledPolicy
             public List<GetEmployeeDependentResponsePolicyDTO>? Dependents { get; set; } = new();
 
             // 🔹 COMMON PROPS (CLEAN ARCHITECTURE)
-            public ExtraPropRequestDTO? Prop { get; set; } = new();
+          
         }
     public class GetEmployeeDependentResponsePolicyDTO
     {

@@ -21,5 +21,8 @@ namespace axionpro.application.Interfaces.IRepositories
 
     // 🔹 SOFT DELETE
     Task<bool> SoftDeleteAsync(EmployeePolicyEnrollment entity);
+      Task<EmployeePolicyEnrollment?> GetExistingAsync(long employeeId, int policyTypeId, int insurancePolicyId, long tenantId);
+         
 }
+ 
 }

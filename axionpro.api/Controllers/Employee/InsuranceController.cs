@@ -2,6 +2,7 @@
  
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.Contact;
+using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.DTOS.Employee.EnrolledPolicy;
 using axionpro.application.Features.EmployeeCmd.Contact.Handlers;
 using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
@@ -39,7 +40,17 @@ public class InsuranceController : ControllerBase
     public async Task<IActionResult> EnrolledEmployee([FromBody] CreateEmployeeEnrolledRequestDTO employeeCreateDto)
     {
         var command = new CreateEmployeeInsuranceEnrollCommand(employeeCreateDto);
-         _logger.LogInfo("Creating new employee-contact"); // Log the info message
+         _logger.LogInfo("Creating enrolled employee"); // Log the info message
+
+         var result = await _mediator.Send(command);       
+        return Ok(result);
+    }
+    [HttpDelete("delete")]
+    //  [Authorize]   
+    public async Task<IActionResult> DeleteEnrolledEmployee([FromBody] DeleteEnrolledEmployeePolicyRequestDTO Dto)
+    {
+        var command = new DeleteEmployeeEnrollCommand(Dto);
+         _logger.LogInfo("Delete enrolled employee"); // Log the info message
 
          var result = await _mediator.Send(command);       
         return Ok(result);
@@ -48,15 +59,15 @@ public class InsuranceController : ControllerBase
     /// <summary>
     /// Get all employees that belong to the specified tenant.
     /// </summary>
-    [HttpGet("get")]  
-    public async Task<IActionResult> Get([FromQuery] GetContactRequestDTO requestDto)
+    [HttpGet("get-all-enroll")]  
+    public async Task<IActionResult> Get([FromQuery] GetEnrolledEmployeeRequestDTO requestDto)
     {
       
-            var command = new GetContactInfoQuery(requestDto);
-
-            // ✅ Send command instead of DTO
-            ApiResponse<List<GetContactResponseDTO>> result = await _mediator.Send(command);       
-                return Ok(result);
+            var command = new GetAllEnrollEmployeePoliciesCommand(requestDto);
+        _logger.LogInfo("Get enrolled employee"); // Log the info message
+        var result = await _mediator.Send(command);
+        return Ok(result);                          
+        
             
         }
         
