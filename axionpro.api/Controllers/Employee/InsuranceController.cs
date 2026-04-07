@@ -2,8 +2,10 @@
  
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.Contact;
+using axionpro.application.DTOS.Employee.EnrolledPolicy;
 using axionpro.application.Features.EmployeeCmd.Contact.Handlers;
 using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
+using axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers;
 using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
 using MediatR;
@@ -32,11 +34,11 @@ public class InsuranceController : ControllerBase
     ///Create new employee.
     /// </summary>
     
-    [HttpPost("create")]
+    [HttpPost("employee-insurance-enroll")]
     //  [Authorize]   
-    public async Task<IActionResult> CreateEmployee([FromBody] CreateBaseEmployeeRequestDTO employeeCreateDto)
+    public async Task<IActionResult> EnrolledEmployee([FromBody] CreateEmployeeEnrolledRequestDTO employeeCreateDto)
     {
-        var command = new CreateBaseEmployeeInfoCommand(employeeCreateDto);
+        var command = new CreateEmployeeInsuranceEnrollCommand(employeeCreateDto);
          _logger.LogInfo("Creating new employee-contact"); // Log the info message
 
          var result = await _mediator.Send(command);       

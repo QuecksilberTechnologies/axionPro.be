@@ -26,11 +26,13 @@ public interface IEmployeeDependentRepository
 
     #region Employee-dependent-info
     public Task<PagedResponseDTO<GetDependentResponseDTO>> GetInfo(GetDependentRequestDTO dto);
+    public Task<List<GetDependentResponseDTO>> GetBulkInfo(List<long> dependentIds);
     public Task<GetDependentsDetailResponseDTO> GetDetailInfo(GetDependentRequestDTO dto);
     public Task<PagedResponseDTO<GetDependentResponseDTO>> CreateAsync(EmployeeDependent entity);
   //  public Task<PagedResponseDTO<GetDependentResponseDTO>> AutoCreatedAsync(EmployeeContact entity);
     public Task<EmployeeDependent> GetSingleRecordAsync(long Id, bool IsActive);  // Ensure this returns 
     public Task<bool> UpdateAsync(EmployeeDependent dependent);
+    public Task<bool> UpdateAsyncRangeAsync(List<EmployeeDependent>dependents);
     public Task<bool> DeleteAsync(EmployeeDependent dependent);
 
 

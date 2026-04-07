@@ -34,7 +34,9 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<AccoumndationAllowancePolicyByDesignation> AccoumndationAllowancePolicyByDesignations { get; set; }
 
         public virtual DbSet<ApprovalWorkflow> ApprovalWorkflows { get; set; }
+        public virtual DbSet<EmployeePolicyDependentMapping> EmployeePolicyDependentMapping { get; set; }
 
+        public virtual DbSet<EmployeePolicyEnrollment> EmployeePolicyEnrollment { get; set; }
         public virtual DbSet<Asset> Assets { get; set; }
 
         public virtual DbSet<PolicyTypeInsuranceMapping> PolicyTypeInsuranceMappings { get; set; }
@@ -1627,6 +1629,65 @@ namespace axionpro.persistance.Data.Context
                     .HasForeignKey(d => d.EmployeeTypeId)
                     .HasConstraintName("FK_EmployeeTypeBasicMenu_EmployeeType");
             });
+
+            modelBuilder.Entity<EmployeePolicyDependentMapping>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("EmployeePolicyDependentMapping_pkey");
+
+                entity.ToTable("EmployeePolicyDependentMapping", "axionpro");
+
+                entity.Property(e => e.Id).UseIdentityAlwaysColumn();
+                entity.Property(e => e.AddedDateTime)
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                    .HasColumnType("timestamp without time zone");
+                entity.Property(e => e.DeletedDateTime).HasColumnType("timestamp without time zone");
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.IsCovered).HasDefaultValue(true);
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp without time zone");
+
+                entity.HasOne(d => d.Dependent).WithMany(p => p.EmployeePolicyDependentMapping)
+                    .HasForeignKey(d => d.DependentId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_EPD_Dependent");
+
+                entity.HasOne(d => d.EmployeePolicyEnrollment).WithMany(p => p.EmployeePolicyDependentMapping)
+                    .HasForeignKey(d => d.EmployeePolicyEnrollmentId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_EPD_Enrollment");
+            });
+
+            modelBuilder.Entity<EmployeePolicyEnrollment>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("EmployeePolicyEnrollment_pkey");
+
+                entity.ToTable("EmployeePolicyEnrollment", "axionpro");
+
+                entity.Property(e => e.Id).UseIdentityAlwaysColumn();
+                entity.Property(e => e.AddedDateTime)
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                    .HasColumnType("timestamp without time zone");
+                entity.Property(e => e.DeletedDateTime).HasColumnType("timestamp without time zone");
+                entity.Property(e => e.EndDate).HasColumnType("timestamp without time zone");
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.StartDate).HasColumnType("timestamp without time zone");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp without time zone");
+
+                entity.HasOne(d => d.Employee).WithMany(p => p.EmployeePolicyEnrollment)
+                    .HasForeignKey(d => d.EmployeeId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_EmployeePolicyEnrollment_Employee");
+
+                entity.HasOne(d => d.InsurancePolicy).WithMany(p => p.EmployeePolicyEnrollment)
+                    .HasForeignKey(d => d.InsurancePolicyId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_EmployeePolicyEnrollment_InsurancePolicy");
+
+                entity.HasOne(d => d.PolicyType).WithMany(p => p.EmployeePolicyEnrollment)
+                    .HasForeignKey(d => d.PolicyTypeId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_EmployeePolicyEnrollment_PolicyType");
+            });
+
 
             modelBuilder.Entity<EmployeesChangedTypeHistory>(entity =>
             {

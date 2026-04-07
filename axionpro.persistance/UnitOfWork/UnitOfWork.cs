@@ -32,6 +32,8 @@ public class UnitOfWork : IUnitOfWork
     private IDbContextTransaction? _currentTransaction;
     private bool _disposed;
 
+    private IEmployeeDependentInsuranceMappingRepository? _employeeDependentInsuranceMappingRepository;
+    private IEmployeePolicyEnrollmentRepository? _employeePolicyEnrollmentRepository;
     private IForgotPasswordOtpRepository? _forgotPasswordOtpRepository;
     private ISandwitchRuleRepository? _sandwitchRuleRepository;
     private ILeaveRuleRepository? _leaveRuleRepository;
@@ -185,6 +187,18 @@ public class UnitOfWork : IUnitOfWork
             _loggerFactory.CreateLogger<EmployeeIdentityRepository>(),
             _passwordService,
             _encriptionService);
+    public IEmployeeDependentInsuranceMappingRepository EmployeeDependentInsuranceMappingRepository =>
+        _employeeDependentInsuranceMappingRepository ??= new EmployeeDependentInsuranceMappingRepository(
+            _context,
+            _mapper,
+            _loggerFactory.CreateLogger<EmployeeDependentInsuranceMappingRepository>()
+            );
+    public IEmployeePolicyEnrollmentRepository EmployeePolicyEnrollmentRepository =>
+        _employeePolicyEnrollmentRepository ??= new EmployeePolicyEnrollmentRepository(
+            _context,
+            _mapper,
+            _loggerFactory.CreateLogger<EmployeePolicyEnrollmentRepository>()
+            );
 
     public IEmployeeInsuranceRepository EmployeeInsuranceRepository =>
         _employeeInsuranceRepository ??= new EmployeeInsuranceRepository(

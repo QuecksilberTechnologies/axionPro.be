@@ -14,6 +14,8 @@ namespace axionpro.application.Interfaces
         IPolicyTypeRepository PolicyTypeRepository { get; }
         IPolicyTypeDocumentRepository PolicyTypeDocumentRepository { get; }
         IPermissionRepository PermissionRepository { get; }
+        IEmployeePolicyEnrollmentRepository EmployeePolicyEnrollmentRepository { get; }
+        IEmployeeDependentInsuranceMappingRepository EmployeeDependentInsuranceMappingRepository { get; }
         IReportingTypeRepository ReportingTypeRepository { get; }
         IAssetCategoryRepository AssetCategoryRepository { get; }
         ITicketClassificationRepository TicketClassificationRepository { get; }

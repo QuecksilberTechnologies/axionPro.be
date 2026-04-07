@@ -22,7 +22,7 @@ namespace axionpro.persistance.Repositories
         private readonly WorkforceDbContext _context;
         private readonly IMapper _mapper;
         private readonly ILogger<EmployeeDependentRepository> _logger;
-       
+
         private readonly IPasswordService _passwordService;
         private readonly IEncryptionService _encryptionService;
         private readonly IFileStorageService _fileStorageService;
@@ -32,14 +32,14 @@ namespace axionpro.persistance.Repositories
             this._context = context;
             this._mapper = mapper;
             this._logger = logger;
-            
+
             _passwordService = passwordService;
             _encryptionService = encryptionService;
             _fileStorageService = fileStorageService;
 
         }
 
-        public async  Task<PagedResponseDTO<GetDependentResponseDTO>> CreateAsync(EmployeeDependent entity)
+        public async Task<PagedResponseDTO<GetDependentResponseDTO>> CreateAsync(EmployeeDependent entity)
         {
             try
             {
@@ -77,10 +77,10 @@ namespace axionpro.persistance.Repositories
                 {
                     item.CompletionPercentage =
                         CompletionCalculatorHelper.DependentPropCalculate(item);
-                    
+
                 }
 
-            
+
 
                 return new PagedResponseDTO<GetDependentResponseDTO>
                 {
@@ -194,8 +194,8 @@ namespace axionpro.persistance.Repositories
                     // 🔥 FLAGS
                     bool hasProof = !string.IsNullOrWhiteSpace(x.FilePath);
 
-                    
-                   
+
+
 
                     string relationType;
 
@@ -224,7 +224,7 @@ namespace axionpro.persistance.Repositories
 
                         Relation = x.Relation,
                         RelationType = relationType, // 🔥 helper
-                        
+
 
                         DateOfBirth = x.DateOfBirth,
                         IsCoveredInPolicy = x.IsCoveredInPolicy,
@@ -238,7 +238,7 @@ namespace axionpro.persistance.Repositories
                         HasProofUploaded = hasProof,
                         HasUploadedAll = hasProof, // 🔥 can extend later
 
-                        
+
 
                         FilePath = fileUrl,
 
@@ -286,7 +286,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-              
+
                 // 🔹 Fetch ONLY latest 10 dependents for employee
                 var records = await _context.EmployeeDependents
                     .AsNoTracking()
@@ -420,8 +420,61 @@ namespace axionpro.persistance.Repositories
                 throw;
             }
         }
+        public async Task<List<GetDependentResponseDTO>> GetBulkInfo(List<long> dependentIds)
+        {
+            try
+            {
+                if (dependentIds == null || !dependentIds.Any())
+                    return new List<GetDependentResponseDTO>();
 
+                // 🔹 FETCH DEPENDENTS (BULK)
+                var records = await _context.EmployeeDependents
+                    .AsNoTracking()
+                    .Where(x =>
+                        dependentIds.Contains(x.Id) &&     // 🔥 FIXED
+                        x.IsSoftDeleted != true &&
+                        x.IsActive == true)
+                    .OrderByDescending(x => x.Id)
+                    .ToListAsync();
 
+                // 🔹 MAP TO DTO
+                var responseData = _mapper.Map<List<GetDependentResponseDTO>>(records);
+
+                return responseData;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error in GetBulkInfo");
+                return new List<GetDependentResponseDTO>();
+            }
+        }
+
+        public async Task<bool> UpdateAsyncRangeAsync(List<EmployeeDependent> dependents)
+        {
+            try
+            {
+                if (dependents == null || !dependents.Any())
+                    return false;
+
+                // 🔹 TRACKING ENABLE (IMPORTANT)
+                foreach (var entity in dependents)
+                {
+                    _context.EmployeeDependents.Attach(entity);
+
+                    // 🔥 MARK ONLY REQUIRED FIELDS (BEST PRACTICE)
+                    _context.Entry(entity).Property(x => x.IsCoveredInPolicy).IsModified = true;
+                    _context.Entry(entity).Property(x => x.UpdatedDateTime).IsModified = true;
+                    _context.Entry(entity).Property(x => x.UpdatedById).IsModified = true;
+                }
+
+                return await _context.SaveChangesAsync() > 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error in UpdateAsyncRangeAsync (EmployeeDependent)");
+                throw;
+            }
+        }
     }
 
 

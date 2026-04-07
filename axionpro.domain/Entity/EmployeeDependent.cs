@@ -49,5 +49,6 @@ public partial class EmployeeDependent
     public DateTime? InfoVerifiedDateTime { get; set; }
 
     public virtual Employee? Employee { get; set; }
+    public virtual ICollection<EmployeePolicyDependentMapping> EmployeePolicyDependentMapping { get; set; } = new List<EmployeePolicyDependentMapping>();
 
 }
