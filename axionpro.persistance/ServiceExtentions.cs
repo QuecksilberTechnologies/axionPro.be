@@ -23,10 +23,16 @@ namespace axionpro.persistance
 
             // common options
             Action<DbContextOptionsBuilder> dbOptions = options =>
-                options.UseNpgsql(connectionString)
-                       .EnableDetailedErrors()
-                       .EnableSensitiveDataLogging()
-                       .LogTo(Console.WriteLine, LogLevel.Information);
+                    options.UseNpgsql(connectionString, npgsqlOptions =>
+                    {
+                        npgsqlOptions.EnableRetryOnFailure(
+                            maxRetryCount: 5,
+                            maxRetryDelay: TimeSpan.FromSeconds(10),
+                            errorCodesToAdd: null);
+                    })
+                    .EnableDetailedErrors()
+                    .EnableSensitiveDataLogging()
+                     .LogTo(Console.WriteLine, LogLevel.Information);
 
             // ✔ Scoped DbContext
             services.AddDbContext<WorkforceDbContext>(dbOptions);
