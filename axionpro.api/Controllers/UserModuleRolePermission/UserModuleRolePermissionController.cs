@@ -19,7 +19,7 @@ public class UserModuleRolePermissionController : ControllerBase
         _logger = logger;
     }
 
-    [HttpPost("create")]    
+    [HttpPost("assign-role-permissions")]    
     
     // [Authorize]
     public async Task<IActionResult> CreatePermission([FromBody] CreateModuleOperationRolePermissionsRequestDTO insertRoleModulePermissionsRequestDTO)

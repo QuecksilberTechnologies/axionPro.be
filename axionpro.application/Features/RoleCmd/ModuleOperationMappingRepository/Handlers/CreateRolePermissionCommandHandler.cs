@@ -1,12 +1,9 @@
 ﻿using AutoMapper;
-using axionpro.application.Common.Helpers.RequestHelper;
-using axionpro.application.Constants;
 using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
-using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
