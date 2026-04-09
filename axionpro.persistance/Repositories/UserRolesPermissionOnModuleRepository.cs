@@ -722,7 +722,73 @@ namespace axionpro.persistance.Repositories
                 return null;
             }
         }
+        // =====================================================
+        // 1️⃣ GET BY ROLE ID
+        // =====================================================
+        public async Task<List<RoleModuleAndPermission>> GetByRoleIdAsync(int roleId)
+        {
+            try
+            {
+                _logger.LogInformation("🔹 Fetching permissions for RoleId: {RoleId}", roleId);
 
+                var data = await _context.RoleModuleAndPermissions
+                    .AsNoTracking() // 🔥 performance
+                    .Where(x =>
+                        x.RoleId == roleId &&
+                        x.IsActive ==true && 
+                        (x.IsSoftDeleted != true))
+                    .ToListAsync();
+
+                _logger.LogInformation("✅ Permissions fetched: {Count}", data.Count);
+
+                return data;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error fetching Role permissions for RoleId: {RoleId}", roleId);
+                throw; // middleware handle karega
+            }
+        }
+
+        // =====================================================
+        // 2️⃣ BULK DELETE
+        // =====================================================
+        public async Task BulkDeleteAsync(List<RoleModuleAndPermission> list)
+        {
+            try
+            {
+                if (list == null || !list.Any())
+                    return;
+
+                _logger.LogInformation("🔹 Bulk delete started. Count: {Count}", list.Count);
+
+                // ===============================
+                // OPTION 1: HARD DELETE (FASTEST 🔥)
+                // ===============================
+                _context.RoleModuleAndPermissions.RemoveRange(list);
+
+                // ===============================
+                // OPTION 2: SOFT DELETE (if needed)
+                // ===============================
+                /*
+                foreach (var item in list)
+                {
+                    item.IsSoftDeleted = true;
+                    item.IsActive = false;
+                    item.DeletedDateTime = DateTime.UtcNow;
+                }
+
+                _context.RoleModuleAndPermissions.UpdateRange(list);
+                */
+
+                _logger.LogInformation("✅ Bulk delete prepared successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error in BulkDeleteAsync");
+                throw;
+            }
+        }
 
     }
 

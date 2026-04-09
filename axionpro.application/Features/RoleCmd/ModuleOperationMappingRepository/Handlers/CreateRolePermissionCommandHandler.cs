@@ -52,9 +52,7 @@ namespace axionpro.application.Features.RoleCmd.ModuleOperationMappingRepository
             _commonRequestService = commonRequestService;
             _idEncoderService = idEncoderService;
         }
-        public async Task<ApiResponse<int>> Handle(
-    CreateRolePermissionCommand request,
-    CancellationToken cancellationToken)
+        public async Task<ApiResponse<int>> Handle( CreateRolePermissionCommand request, CancellationToken cancellationToken)
         {
             try
             {
@@ -75,69 +73,125 @@ namespace axionpro.application.Features.RoleCmd.ModuleOperationMappingRepository
                 request.DTO.Prop.TenantId = validation.TenantId;
 
                 // ===============================
-                // 2️⃣ VALID ROLE CHECK (CORRECTED ✅)
+                // 2️⃣ VALID ROLE CHECK
                 // ===============================
                 if (request.DTO.RoleId <= 0)
                     throw new ValidationErrorException("Invalid RoleId.");
 
                 var role = await _unitOfWork.RoleRepository
-                    .GetRoleAsync(validation.TenantId, request.DTO.RoleId,true);
-                
+                    .GetRoleAsync(validation.TenantId, request.DTO.RoleId, true);
+
                 if (role == null)
-                    throw new ValidationErrorException("Selected role not found or does not belong to tenant.");
+                    throw new ValidationErrorException("Selected role not found.");
+
 
                 // ===============================
-                // 3️⃣ PREPARE PERMISSIONS
+                // 3️⃣ FETCH EXISTING PERMISSIONS (DB)
                 // ===============================
-                var rolePermissions = request.DTO.ModuleOperations
-                    .SelectMany(m => m.Operations.Select(op => new RoleModuleAndPermission
+                var existingPermissions = await _unitOfWork
+                    .UserRolesPermissionOnModuleRepository.GetByRoleIdAsync(request.DTO.RoleId);
+
+                // HashSet for fast lookup 🔥
+                var existingSet = existingPermissions
+                    .Select(x => (x.ModuleId, x.OperationId))
+                    .ToHashSet();
+
+                // ===============================
+                // 4️⃣ PREPARE INSERT + DELETE LIST
+                // ===============================
+                var toInsert = new List<RoleModuleAndPermission>();
+                var toDelete = new List<RoleModuleAndPermission>();
+
+                foreach (var module in request.DTO.ModuleOperations)
+                {
+                    if (module.Operations == null) continue;
+
+                    foreach (var op in module.Operations)
                     {
-                        RoleId = request.DTO.RoleId,
-                        ModuleId = m.ModuleId,
-                        OperationId = op.OperationId,
-                        HasAccess = op.HasAccess,
-                        IsActive = true,
-                        AddedById = validation.UserEmployeeId,
-                        AddedDateTime = DateTime.UtcNow,
-                        Remark = "Assigned via role permission UI"
-                    }))
-                    .ToList();
+                        var key = (module.ModuleId, op.OperationId);
 
-                if (!rolePermissions.Any())
-                    throw new ValidationErrorException("No permissions selected.");
+                        // ✅ CASE 1: CHECKED → INSERT if not exists
+                        if (op.HasAccess)
+                        {
+                            if (!existingSet.Contains(key))
+                            {
+                                toInsert.Add(new RoleModuleAndPermission
+                                {
+                                    RoleId = request.DTO.RoleId,
+                                    ModuleId = module.ModuleId,
+                                    OperationId = op.OperationId,
+                                    HasAccess = true,
+                                    IsActive = true,
+                                    AddedById = validation.UserEmployeeId,
+                                    AddedDateTime = DateTime.UtcNow,
+                                    Remark = "Assigned via role permission UI"
+                                });
+                            }
+                        }
+                        // ❌ CASE 2: UNCHECKED → DELETE if exists
+                        else
+                        {
+                            var existing = existingPermissions
+                                .FirstOrDefault(x =>
+                                    x.ModuleId == module.ModuleId &&
+                                    x.OperationId == op.OperationId);
+
+                            if (existing != null)
+                            {
+                                toDelete.Add(existing);
+                            }
+                        }
+                    }
+                }
 
                 // ===============================
-                // 4️⃣ BULK INSERT
+                // 5️⃣ APPLY DB OPERATIONS
                 // ===============================
-                int insertedCount = await _unitOfWork
-                    .UserRolesPermissionOnModuleRepository
-                    .BulkInsertAsync(rolePermissions);
 
-                if (insertedCount <= 0)
-                    throw new ValidationErrorException("Failed to assign role permissions.");
+                // 🔥 INSERT new permissions
+                if (toInsert.Any())
+                {
+                    await _unitOfWork
+                        .UserRolesPermissionOnModuleRepository
+                        .BulkInsertAsync(toInsert);
+                }
 
+                // 🔥 DELETE removed permissions
+                if (toDelete.Any())
+                {
+                    await _unitOfWork
+                        .UserRolesPermissionOnModuleRepository
+                        .BulkDeleteAsync(toDelete);
+                }
+
+                // ===============================
+                // 6️⃣ SAVE CHANGES
+                // ===============================
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
+                int affectedCount = toInsert.Count + toDelete.Count;
+
                 _logger.LogInformation(
-                    "✅ Permissions assigned | TenantId={TenantId} | UserId={UserId} | Count={Count}",
+                    "✅ Permissions updated | TenantId={TenantId} | RoleId={RoleId} | Inserted={Inserted} | Deleted={Deleted}",
                     validation.TenantId,
-                    validation.UserEmployeeId,
-                    insertedCount);
+                    request.DTO.RoleId,
+                    toInsert.Count,
+                    toDelete.Count);
 
                 // ===============================
-                // 5️⃣ RETURN (FIXED 🔥)
+                // 7️⃣ RESPONSE
                 // ===============================
                 return new ApiResponse<int>
                 {
                     IsSucceeded = true,
-                    Message = "Role permissions created successfully.",
-                    Data = insertedCount
+                    Message = "Role permissions updated successfully.",
+                    Data = affectedCount
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error in CreateRolePermission");
-                throw;
+                throw; // middleware handle karega 🔥
             }
         }
 

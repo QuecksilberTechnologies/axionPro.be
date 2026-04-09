@@ -23,7 +23,9 @@ namespace axionpro.application.Interfaces.IRepositories
         Task<List<TenantEnabledModule>> GetAllTenantEnabledModulesWithOperationsAsync(long? TenantId);
         Task<List<GetModuleOperationRolePermissionsResponseDTO>> GetTenantModulesOperationRolePermissionResponses(GetTenantModuleOperationRolePermissionsRequestDTO request);
 
+        Task<List<RoleModuleAndPermission>> GetByRoleIdAsync(int roleId);
 
+        Task BulkDeleteAsync(List<RoleModuleAndPermission> list);
         // Save new mappings
         Task<GetModuleOperationMappingResponseDTO> SaveModuleOperationMappingsAsync(GetModuleOperationMappingRequestDTO dto);
         Task<ModuleOperationMapping> UpdateModuleOperationMappingsAsync(ModuleOperationMapping dto);
