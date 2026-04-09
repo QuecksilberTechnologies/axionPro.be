@@ -9,9 +9,9 @@ using MediatR;
 
 namespace axionpro.application.DTOs.Tenant
 {
-    public class TenantEnabledModuleRequestDTO
+    public class TenantEnabledOperationsRequestDTO
     {
-       public bool IsActive { get; set; }
+       public required bool IsActive { get; set; }
        public ExtraPropRequestDTO? Prop { get; set; } = new ExtraPropRequestDTO();
         
 

@@ -284,8 +284,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                     }).ToList();
 
                 var TenantEnabledModulesWithOperationData =
-                    await _unitOfWork.TenantModuleConfigurationRepository
-                        .GetAllTenantEnabledModulesWithOperationsAsync(empMinimalResponse.TenantId);
+                    await _unitOfWork.UserRolesPermissionOnModuleRepository.GetAllTenantEnabledModulesWithOperationsAsync(empMinimalResponse.TenantId);
 
                 // =====================================================
                 // STEP 9: Fresh encryption key

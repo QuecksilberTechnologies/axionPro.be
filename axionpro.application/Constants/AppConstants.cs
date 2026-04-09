@@ -98,7 +98,7 @@ namespace axionpro.application.Constants
 
         public static readonly string TenantHRRoleCode = "TENANT_HR";
         public static readonly string TenantHRRoleType = "TENANT_OPERATIONAL";
-        public static readonly string TenantHRManagerRoleName = "HR Manager";
+        public static readonly string TenantManagerRoleName = "Manager";
 
 
         public static readonly string TenantEmployeeRoleCode = "TENANT_EMPLOYEE";

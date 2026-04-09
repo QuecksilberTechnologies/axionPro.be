@@ -4,7 +4,6 @@ using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
-using axionpro.application.Features.EmployeeCmd.Handlers;
 using axionpro.application.Features.EmployeeCmd.UpdateStatus.Handler;
 using axionpro.application.Features.EmployeeCmd.UpdateVerification.Handler;
 using axionpro.application.Interfaces.ILogger;
@@ -189,24 +188,24 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         [Authorize]
         [HttpGet("get-summary")]
-        public async Task<IActionResult> GetEmployeeSummary([FromQuery] GetEmployeeSummaryRequestDTO requestDto)
-        {
+        //public async Task<IActionResult> GetEmployeeSummary([FromQuery] GetEmployeeSummaryRequestDTO requestDto)
+        //{
            
-                _logger.LogInfo("Fetching all employees.");
+        //        _logger.LogInfo("Fetching all employees.");
 
-                var command = new GetEmployeeSummaryQuery(requestDto);
-                var result = await _mediator.Send(command);
+        //        var command = new GetEmployeeSummaryQuery(requestDto);
+        //        var result = await _mediator.Send(command);
 
-                if (!result.IsSucceeded)
-                {
-                    _logger.LogInfo("No employees summary found or request failed.");
-                    return BadRequest(result);
-                }
+        //        if (!result.IsSucceeded)
+        //        {
+        //            _logger.LogInfo("No employees summary found or request failed.");
+        //            return BadRequest(result);
+        //        }
 
-                return Ok(result);
+        //        return Ok(result);
            
             
-        }
+        //}
         [Authorize]
         [HttpGet("get-profile-summary")]
         public async Task<IActionResult> GetEmployeeProfileSummary([FromQuery] GetEmployeeSummaryRequestDTO requestDto)

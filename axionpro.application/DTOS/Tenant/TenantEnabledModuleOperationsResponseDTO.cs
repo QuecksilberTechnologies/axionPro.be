@@ -6,7 +6,7 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOs.Tenant
 {
-    public class TenantEnabledModuleOperationsResponseDTO
+    public class TenantEnabledOperationsResponseDTO
     {
        
             long? Id ;
@@ -16,9 +16,9 @@ namespace axionpro.application.DTOs.Tenant
 
         public class EnabledModuleActiveDTO
         {
-            public int? ParentModuleId { get; set; }
-            public string ParentModuleName { get; set; } = string.Empty;
             public int? Id { get; set; }
+            public int? ParentModuleId { get; set; }
+             public string ParentModuleName { get; set; } = string.Empty;         
             public string? ModuleName { get; set; } 
             public bool IsEnabled { get; set; }
             public List<EnabledOperationActiveDTO>? Operations { get; set; }
@@ -30,6 +30,7 @@ namespace axionpro.application.DTOs.Tenant
 
             public int Id { get; set; }
             public string? OperationName { get; set; }
+             public int? OperationType { get; set; }
              public bool IsEnabled { get; set; }
 
        }

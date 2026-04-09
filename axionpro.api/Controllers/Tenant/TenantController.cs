@@ -5,6 +5,7 @@ using axionpro.application.DTOS.Tenant;
 using axionpro.application.Features.RegistrationCmd.Handlers;
 using axionpro.application.Features.TenantConfigurationCmd.Configuration.EmployeeCodeCmd.Handlers;
 using axionpro.application.Features.TenantConfigurationCmd.Tenant.Commands;
+using axionpro.application.Features.TenantConfigurationCmd.Tenant.Handlers;
 using axionpro.application.Features.TenantConfigurationCmd.Tenant.Queries;
 using axionpro.application.Features.VerifyEmailCmd.Handlers;
 using axionpro.application.Interfaces.ILogger;
@@ -88,13 +89,13 @@ public class TenantController : ControllerBase
 
    
 
-    [HttpPost("get-enabled-operations")]        
+    [HttpGet("get-all-tenant-operations")]        
     
-    public async Task<IActionResult> GetAllNodeLeafeWithOperationsAsync([FromBody] TenantEnabledModuleRequestDTO code)
+    public async Task<IActionResult> GetAllNodeLeafeWithOperationsAsync([FromQuery] TenantEnabledOperationsRequestDTO code)
     {
         _logger.LogInfo($"Getting email templates for code: {code}");
 
-        var query = new GetAllTenantTrueEnabledModuleOperationByTenantIdCommand(code);
+        var query = new GetAllTenantOperationsCommand(code);
         var result = await _mediator.Send(query);
 
         return Ok(result);

@@ -68,7 +68,7 @@ namespace axionpro.application.Interfaces
         IEmployeeTypeBasicMenuRepository EmployeeTypeBasicMenuRepository { get; }
         IUnStructuredEmployeePolicyTypeMappingRepository UnStructuredEmployeePolicyTypeMappingRepository { get; }
         IUserRolesPermissionOnModuleRepository UserRolesPermissionOnModuleRepository { get; }
-        IModuleOperationMappingRepository ModuleOperationMappingRepository { get; }
+ 
         Task BeginTransactionAsync(CancellationToken cancellationToken = default);
         Task CommitTransactionAsync(CancellationToken cancellationToken = default);
         Task RollbackTransactionAsync(CancellationToken cancellationToken = default);

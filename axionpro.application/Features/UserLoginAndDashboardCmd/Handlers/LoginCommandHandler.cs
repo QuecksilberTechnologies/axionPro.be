@@ -315,7 +315,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                              }).ToList()
                      }).ToList()
              }).ToList();
-                var TenantEnabledModulesWithOperationData = await _unitOfWork.TenantModuleConfigurationRepository.GetAllTenantEnabledModulesWithOperationsAsync(empMinimalResponse.TenantId);
+                var TenantEnabledModulesWithOperationData = await _unitOfWork.UserRolesPermissionOnModuleRepository.GetAllTenantEnabledModulesWithOperationsAsync(empMinimalResponse.TenantId);
                 // ✅ Step 1: Safe TenantId extraction
                 
                 long tempTenantId = empMinimalResponse?.TenantId ?? 0;

@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using axionpro.application.Common.Helpers.PercentageHelper;
+﻿using axionpro.application.Common.Helpers.PercentageHelper;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.Employee.Experience;
@@ -8,14 +7,10 @@ using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IFileStorage;
-using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 
 using axionpro.domain.Entity;
 using MediatR;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 

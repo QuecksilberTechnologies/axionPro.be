@@ -178,6 +178,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     Employee = employee,
                     RoleId = request.DTO.RoleId,
                     RoleStartDate = DateTime.UtcNow,
+                    IsActive =true,
                     IsPrimaryRole = true,
                     AddedById = validation.UserEmployeeId,
                     AddedDateTime = DateTime.UtcNow

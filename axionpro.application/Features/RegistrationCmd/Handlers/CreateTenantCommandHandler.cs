@@ -234,7 +234,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 // STEP 10 : Prepare tenant enabled operations
                 // =====================================================
                 List<ModuleOperationMapping> allModuleOperations =
-                    await _unitOfWork.ModuleOperationMappingRepository
+                    await _unitOfWork.UserRolesPermissionOnModuleRepository
                         .GetModuleOperationMappings(leafNodeModules);
 
                 var tenantEnabledOperations = _mapper.Map<List<TenantEnabledOperation>>(allModuleOperations);
@@ -372,14 +372,14 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 foreach (var roleName in new[]
                 {
                     ConstantValues.TenantAdminRoleName,
-                    ConstantValues.TenantHRManagerRoleName,
+                    ConstantValues.TenantManagerRoleName,
                     ConstantValues.TenantEmployeeRoleName
-                })
+                                          })
                 {
                     int roleType = roleName switch
                     {
                         var r when r == ConstantValues.TenantAdminRoleName => ConstantValues.RoleTypeAdmin,
-                        var r when r == ConstantValues.TenantHRManagerRoleName => ConstantValues.RoleTypeManager,
+                        var r when r == ConstantValues.TenantManagerRoleName => ConstantValues.RoleTypeManager,
                         var r when r == ConstantValues.TenantEmployeeRoleName => ConstantValues.RoleTypeEmployee,
                         _ => 0
                     };
@@ -406,14 +406,65 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 }
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
+                // =====================================================
+                // STEP 16.1 : Create Role Permissions 🔥
+                // =====================================================
+               
 
+                // 🔥 IMPORTANT: rolesToCreate me Id reliable nahi hota → DB se fetch karo
                 var adminRole = await _unitOfWork.RoleRepository.GetTenantAdminRoleAsync(newTenantId);
 
                 if (adminRole == null || adminRole.Id <= 0)
                 {
                     await SafeRollbackAsync();
-                    return Fail("Default admin role not found.");
+                    return Fail("Admin role not found for permission setup.");
                 }
+ 
+                // Get enabled modules + operations (tenant specific)
+                TenantEnabledOperation tenantEnabledOperation = new TenantEnabledOperation
+                {
+                    TenantId = newTenantId
+                };
+
+                var moduleOperations = await _unitOfWork.UserRolesPermissionOnModuleRepository.GetAllTenantModuleWithOperation(tenantEnabledOperation);
+
+                // Prepare permissions (ONLY ADMIN)
+                var rolePermissions = new List<RoleModuleAndPermission>();
+
+                if (moduleOperations?.Modules != null)
+                {
+                    foreach (var module in moduleOperations.Modules)
+                    {
+                        if (module.Operations == null) continue;
+
+                        foreach (var op in module.Operations)
+                        {
+                            rolePermissions.Add(new RoleModuleAndPermission
+                            {
+                                RoleId = adminRole.Id, // 🔥 ONLY ADMIN
+                                ModuleId = module.Id,
+                                OperationId = op.Id,
+                                HasAccess = true,      // 🔥 FULL ACCESS
+                                IsActive = true,
+                                AddedById = newTenantId,
+                                AddedDateTime = DateTime.UtcNow,
+                                Remark = "Auto-assigned during tenant creation for admin role"
+
+
+                            });
+                        }
+                    }
+                }
+
+                // 4️⃣ Bulk insert
+                int insertedCount = await _unitOfWork.UserRolesPermissionOnModuleRepository.BulkInsertAsync(rolePermissions);
+                // 5️⃣ Save
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+                _logger.LogInformation(
+                        "Admin has been assigned permissions | TenantId={TenantId}, InsertedCount={InsertedCount}",
+                        newTenantId, insertedCount);
+
+
 
                 int createdAdminRoleId = adminRole.Id;
 

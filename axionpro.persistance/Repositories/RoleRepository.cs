@@ -521,10 +521,7 @@ public class RoleRepository : IRoleRepository
 
     #endregion
 
-    public async Task<List<GetRoleResponseDTO>> GetRoleAsync(
-     long tenantId,
-     int roleTypeId,
-     bool isActive)
+    public async Task<List<GetRoleResponseDTO>> GetRoleAsync(  long tenantId,   int roleTypeId,   bool isActive)
     {
         try
         {
@@ -534,7 +531,7 @@ public class RoleRepository : IRoleRepository
                 .Where(r =>
                     r.TenantId == tenantId &&
                     r.IsActive == isActive &&
-                    (r.IsSoftDeleted == null || r.IsSoftDeleted == false));
+                    (r.IsSoftDeleted !=true));
 
             // Optional filter
             if (roleTypeId > 0)

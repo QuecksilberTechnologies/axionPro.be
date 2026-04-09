@@ -85,7 +85,6 @@ public class UnitOfWork : IUnitOfWork
     private ISubscriptionRepository? _subscriptionRepository;
     private ITenantSubscriptionRepository? _tenantSubscriptionRepository;
     private IModuleRepository? _moduleRepository;
-    private IModuleOperationMappingRepository? _moduleOperationMappingRepository;
     private IGenderRepository? _genderRepository;
     private ITenantEncryptionKeyRepository? _tenantEncryptionKeyRepository;
     private IPermissionRepository? _permissionRepository;
@@ -255,11 +254,7 @@ public class UnitOfWork : IUnitOfWork
             _passwordService,
             _encriptionService);
 
-    public IModuleOperationMappingRepository ModuleOperationMappingRepository =>
-        _moduleOperationMappingRepository ??= new ModuleOperationMappingRepository(
-            _context,
-            _loggerFactory.CreateLogger<ModuleOperationMappingRepository>(),
-            _mapper);
+   
 
     public IGenderRepository GenderRepository =>
         _genderRepository ??= new GenderRepository(_context, _loggerFactory.CreateLogger<GenderRepository>(), _mapper);

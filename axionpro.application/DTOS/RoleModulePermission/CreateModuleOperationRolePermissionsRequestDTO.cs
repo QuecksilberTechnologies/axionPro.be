@@ -1,21 +1,33 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+﻿using axionpro.application.DTOS.Common;
 
 namespace axionpro.application.DTOs.RoleModulePermission
 {
+  
     public class CreateModuleOperationRolePermissionsRequestDTO
     {
-             public  long TenantId { get; set; }
-             public  long EmployeeId { get; set; }
-             public  long RoleId { get; set; }
-             public  int? ModuleId { get; set; }
-             public  int?  ParentModuleId { get; set; }       
-       
+        public int RoleId { get; set; }
+        public ExtraPropRequestDTO? Prop { get; set; } = new ExtraPropRequestDTO();
 
+        public List<ModulePermissionDTO> ModuleOperations { get; set; }
     }
-    
+
+    public class ModulePermissionDTO
+    {
+        public int ModuleId { get; set; }
+        public string? ModuleName { get; set; }
+
+        public List<OperationPermissionDTO> Operations { get; set; } = new();
+    }
+
+    public class OperationPermissionDTO
+    {
+        public int OperationId { get; set; }
+        public string? OperationName { get; set; }
+
+        public int OperationType { get; set; } // CRUD / Workflow / Status
+
+        public bool HasAccess { get; set; } // 🔥 checkbox value
+    }
+
 
 }

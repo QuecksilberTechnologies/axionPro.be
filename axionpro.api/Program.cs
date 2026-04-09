@@ -1,5 +1,4 @@
-﻿using axionpro.api.Common;
-using axionpro.api.Common.Swagger;
+﻿using axionpro.api.Common.Swagger;
 using axionpro.api.Middlewares;
 using axionpro.application;
 using axionpro.application.DTOS.Configruations;
@@ -148,7 +147,7 @@ try
     app.MapControllers();
     // check 
   // //  // ✅ Dynamic port (for hosting like Heroku)w
-       var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+      var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
       app.Urls.Add($"http://*:{port}");
    
    await app.RunAsync();
