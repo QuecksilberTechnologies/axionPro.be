@@ -143,9 +143,9 @@ try
     app.UseSwagger();
     app.UseSwaggerUI();
     // 🔥 Tenant context middleware (AFTER auth)
-    app.UseMiddleware<TenantContextMiddleware>();
-    app.UseWebSockets();              //   Required
-    app.UseMiddleware<WebSocketMiddleware>();
+    app.UseWebSockets();
+    app.UseMiddleware<WebSocketMiddleware>(); // 🔥 FIRST handle device
+    app.UseMiddleware<TenantContextMiddleware>(); // baad me
     app.MapControllers();
     // check 
     // //  // ✅ Dynamic port (for hosting like Heroku)w
