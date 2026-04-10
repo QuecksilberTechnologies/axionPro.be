@@ -70,33 +70,32 @@ try
     builder.Services.AddControllers();
 
     // ✅ CORS
-    //builder.Services.AddCors(options =>
-    //{
-    //    options.AddPolicy("AllowAngularApp", policy =>
-    //    {
-    //        policy.WithOrigins(
-    //            "http://localhost:4200",    // Angular local
-    //            "http://localhost:4201",    // React local (optional)
-
-    //            "https://axion-pro.vercel.app",
-    //            "https://axionpro-app.vercel.app/auth/login",
-    //            "https://axionpro-app.vercel.app"
-
-
-    //        )
-    //        .AllowAnyHeader()
-    //        .AllowAnyMethod();
-    //    });
-    //});
     builder.Services.AddCors(options =>
     {
-        options.AddPolicy("AllowAll", policy =>
+        options.AddPolicy("AllowAngularApp", policy =>
         {
-            policy.AllowAnyHeader()
-                  .AllowAnyMethod()
-                  .AllowAnyOrigin();
+            policy.WithOrigins(
+                "http://localhost:4200",    // Angular local
+                "http://localhost:4201",    // React local (optional)
+                "https://axion-pro.vercel.app",
+                "https://axionpro-app.vercel.app/auth/login",
+                "https://axionpro-app.vercel.app"
+
+
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod();
         });
     });
+    //builder.Services.AddCors(options =>
+    //{
+    //    options.AddPolicy("AllowAll", policy =>
+    //    {
+    //        policy.AllowAnyHeader()
+    //              .AllowAnyMethod()
+    //              .AllowAnyOrigin();
+    //    });
+    //});
 
     // ✅ Swagger
     builder.Services.AddEndpointsApiExplorer();
