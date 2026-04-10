@@ -32,6 +32,7 @@ try
             options.ListenAnyIP(7788); // 🔥 Device
             options.ListenAnyIP(5170); // 🔥 Swagger
         });
+        Log.Information("Application started on isLocal {IsLocal}", isLocal);
     }
 
     // ✅ Serilog
@@ -127,7 +128,7 @@ try
     }
 
     // ✅ Middleware pipeline
-    app.UseCors("AllowAll");
+    app.UseCors("AllowAngularApp");
 
     app.UseAuthentication();
     app.UseAuthorization();
@@ -153,6 +154,7 @@ try
     {
         var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
         app.Urls.Add($"http://*:{port}");
+        Log.Information("Application started on port {Port}", port);
     }
 
     await app.RunAsync();
