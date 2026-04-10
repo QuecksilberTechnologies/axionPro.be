@@ -73,7 +73,7 @@ try
             policy.WithOrigins(
                 "http://localhost:4200",    // Angular local
                 "http://localhost:4201",    // React local (optional)
-                
+
                 "https://axion-pro.vercel.app",
                 "https://axionpro-app.vercel.app/auth/login",
                 "https://axionpro-app.vercel.app"
@@ -126,9 +126,9 @@ try
     {
         FileProvider = new PhysicalFileProvider(
             Path.Combine(builder.Environment.ContentRootPath, "wwwroot/uploads")),
-            RequestPath = "/uploads"
+        RequestPath = "/uploads"
     });
-    
+
 
     // ✅ Middleware setup
     app.UseHttpsRedirection();
@@ -145,20 +145,15 @@ try
     // 🔥 Tenant context middleware (AFTER auth)
     app.UseMiddleware<TenantContextMiddleware>();
     app.UseWebSockets();              //   Required
-    app.UseMiddleware<WebSocketMiddleware>();  
+    app.UseMiddleware<WebSocketMiddleware>();
     app.MapControllers();
     // check 
-  // //  // ✅ Dynamic port (for hosting like Heroku)w
-<<<<<<< HEAD
-     var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-      app.Urls.Add($"http://*:{port}");
-=======
-   var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+    // //  // ✅ Dynamic port (for hosting like Heroku)w
+    var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
     app.Urls.Add($"http://*:{port}");
->>>>>>> LeaveManagement
-   
-   await app.RunAsync();
-    
+
+    await app.RunAsync();
+
 }
 catch (Exception ex)
 {
