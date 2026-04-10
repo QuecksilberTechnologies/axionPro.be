@@ -33,8 +33,8 @@ public class UserModuleRolePermissionController : ControllerBase
     /// <summary>
     /// Get all tenant enabled modules with operations
     /// </summary>
-    [HttpPost("get-role-based-permissions")]
-    public async Task<IActionResult> GetTenantEnabledOperations([FromBody] GetAllActiveRoleModuleOperationsRequestByRoleIdDTO code)
+    [HttpGet("get-role-based-permissions")]
+    public async Task<IActionResult> GetTenantEnabledOperations([FromQuery] GetAllActiveRoleModuleOperationsRequestByRoleIdDTO code)
     {
         _logger.LogInfo($"Getting email templates for code: {code}");
 
