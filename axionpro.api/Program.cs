@@ -1,11 +1,8 @@
-﻿using axionpro.api.Common.Swagger;
-using axionpro.api.Middlewares;
+﻿using axionpro.api.Middlewares;
 using axionpro.application;
-using axionpro.application.DTOS.Configruations;
 using axionpro.infrastructure;
 using axionpro.persistance;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Serilog;
@@ -24,15 +21,16 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    // 🔥 ENV CHECK (IMPORTANT)
+    // 🔥 ENV CHECK
     var isLocal = builder.Environment.IsDevelopment();
 
-    // 🔥 PORT CONFIG (FIXED)
+    // 🔥 Kestrel CONFIG (IMPORTANT)
     if (isLocal)
     {
         builder.WebHost.ConfigureKestrel(options =>
         {
-            options.ListenAnyIP(7788); // ✅ Device ke liye
+            options.ListenAnyIP(7788); // 🔥 Device
+            options.ListenAnyIP(5170); // 🔥 Swagger
         });
     }
 
@@ -63,29 +61,40 @@ try
         };
     });
 
-    // ✅ Services
+    // ✅ SERVICES
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
     builder.Services.AddPersistence(builder.Configuration);
     builder.Services.AddHttpContextAccessor();
 
-    builder.Services.Configure<EmailConfig>(
-        builder.Configuration.GetSection("EmailConfig"));
-
-    // ✅ Controllers + CORS
     builder.Services.AddControllers();
+
+    // ✅ CORS
+    //builder.Services.AddCors(options =>
+    //{
+    //    options.AddPolicy("AllowAngularApp", policy =>
+    //    {
+    //        policy.WithOrigins(
+    //            "http://localhost:4200",    // Angular local
+    //            "http://localhost:4201",    // React local (optional)
+
+    //            "https://axion-pro.vercel.app",
+    //            "https://axionpro-app.vercel.app/auth/login",
+    //            "https://axionpro-app.vercel.app"
+
+
+    //        )
+    //        .AllowAnyHeader()
+    //        .AllowAnyMethod();
+    //    });
+    //});
     builder.Services.AddCors(options =>
     {
-        options.AddPolicy("AllowAngularApp", policy =>
+        options.AddPolicy("AllowAll", policy =>
         {
-            policy.WithOrigins(
-                "http://localhost:4200",
-                "http://localhost:4201",
-                "https://axion-pro.vercel.app",
-                "https://axionpro-app.vercel.app"
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod();
+            policy.AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowAnyOrigin();
         });
     });
 
@@ -95,8 +104,8 @@ try
     {
         c.SwaggerDoc("v1", new OpenApiInfo
         {
-            Title = "Axion-Pro API",
-            Version = "1.0"
+            Title = "AxionPro API",
+            Version = "v1"
         });
 
         c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -107,44 +116,40 @@ try
             In = ParameterLocation.Header,
             Description = "Enter Bearer token"
         });
-
-        c.OperationFilter<AuthorizeCheckOperationFilter>();
     });
 
+    // 🔥 BUILD
     var app = builder.Build();
 
-    // ✅ Static files
-    app.UseStaticFiles();
-    app.UseStaticFiles(new StaticFileOptions
-    {
-        FileProvider = new PhysicalFileProvider(
-            Path.Combine(builder.Environment.ContentRootPath, "wwwroot/uploads")),
-        RequestPath = "/uploads"
-    });
-
-    // ❌ IMPORTANT: Device ke liye disable karo
+    // ❌ HTTPS only production
     if (!isLocal)
     {
-        app.UseHttpsRedirection(); // Render ke liye hi
+        app.UseHttpsRedirection();
     }
 
-    app.UseCors("AllowAngularApp");
+    // ✅ Middleware pipeline
+    app.UseCors("AllowAll");
 
     app.UseAuthentication();
     app.UseAuthorization();
 
+    // 🔥 IMPORTANT: Error handler BEFORE websocket safe
     app.UseMiddleware<ErrorHandlerMiddleware>();
 
-    // 🔥 WebSocket (MOST IMPORTANT)
+    // 🔥 WebSocket (Device)
     app.UseWebSockets();
-    app.UseMiddleware<WebSocketMiddleware>(); // FIRST
+    app.UseMiddleware<WebSocketMiddleware>();
 
-    // 🔥 Tenant baad me
+    // 🔥 Tenant AFTER websocket
     app.UseMiddleware<TenantContextMiddleware>();
 
     app.MapControllers();
 
-    // 🔥 Render ke liye port
+    // ✅ Swagger
+    app.UseSwagger();
+    app.UseSwaggerUI();
+
+    // 🔥 Production PORT (Render / VPS)
     if (!isLocal)
     {
         var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";

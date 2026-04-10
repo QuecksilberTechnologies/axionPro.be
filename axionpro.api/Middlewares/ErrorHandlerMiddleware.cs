@@ -22,6 +22,12 @@ namespace axionpro.api.Middlewares
         {
             try
             {
+                if (context.WebSockets.IsWebSocketRequest)
+                {
+                    await _next(context);
+                    return;
+                }
+
                 await _next(context);
             }
 
