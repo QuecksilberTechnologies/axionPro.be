@@ -33,15 +33,15 @@ public class UserModuleRolePermissionController : ControllerBase
     /// <summary>
     /// Get all tenant enabled modules with operations
     /// </summary>
-  //  [HttpPost("get-tenant-mapped-operations")]           
-    //public async Task<IActionResult> GetTenantEnabledOperations([FromBody] GetTenantModuleOperationRolePermissionsRequestDTO code)
-    //{
-    //    _logger.LogInfo($"Getting email templates for code: {code}");
+    [HttpPost("get-role-based-permissions")]
+    public async Task<IActionResult> GetTenantEnabledOperations([FromBody] GetAllActiveRoleModuleOperationsRequestByRoleIdDTO code)
+    {
+        _logger.LogInfo($"Getting email templates for code: {code}");
 
-    //    var query = new GetModuleOperationMappingRepositoryCommand(code);
-    //    var result = await _mediator.Send(query);
+        var query = new GetRolePermissionCommand(code);
+        var result = await _mediator.Send(query);
 
-    //    return Ok(result);
-//    }
- //}
+        return Ok(result);
+    }
 }
+ 

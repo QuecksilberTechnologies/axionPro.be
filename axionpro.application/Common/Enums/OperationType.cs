@@ -50,19 +50,14 @@ namespace axionpro.application.Common.Enums
         Insurance = 8,
        
     }
-
-    public enum RelationDependant
+  
+public enum RelationDependant
     {
-        Father = 1,
-        Mother = 2,
-        Spouse = 3,
-        Son = 4,
-        Daughter = 5,
-        Brother = 6,
-        Sister = 7,
-      
-
-        Other = 99
+    SPOUSE = 1,
+    PARENT = 2,
+    IN_LAWS = 3,
+    CHILDREN = 4,
+    Other = 99
     }
     public enum EmergencyContactRelation
     {

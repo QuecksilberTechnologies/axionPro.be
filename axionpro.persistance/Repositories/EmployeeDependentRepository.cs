@@ -256,17 +256,21 @@ namespace axionpro.persistance.Repositories
                 {
                     TotalDependents = result.Count,
 
+                    // 👶 Children
                     TotalChilds = result.Count(x =>
-                        x.Relation == 4 || x.Relation == 5), // Son/Daughter
+                        x.Relation == (int)RelationDependant.CHILDREN),
 
+                    // 💑 Spouse
                     TotalSpouses = result.Count(x =>
-                        x.Relation == 3),
+                        x.Relation == (int)RelationDependant.SPOUSE),
 
+                    // 👨‍👩‍👧 Parents
                     TotalParents = result.Count(x =>
-                        x.Relation == 1 || x.Relation == 2),
+                        x.Relation == (int)RelationDependant.PARENT),
 
+                    // 🧓 In-Laws
                     TotalInLaws = result.Count(x =>
-                        x.Relation == 6 || x.Relation == 7),
+                        x.Relation == (int)RelationDependant.IN_LAWS),
 
                     Dependents = result
                 };

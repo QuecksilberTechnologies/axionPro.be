@@ -295,6 +295,7 @@ namespace axionpro.persistance.Repositories
 {
     try
     {
+                //loginId = "admin@abc.com";
         _logger.LogInformation("Validating login for {LoginId}", loginId);
 
         var loginParam = new NpgsqlParameter("p_loginid", loginId);
