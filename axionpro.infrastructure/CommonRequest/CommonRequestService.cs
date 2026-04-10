@@ -1,21 +1,12 @@
 ﻿using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Common.Models.Security;
-using axionpro.application.DTOs.Role;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
-using axionpro.application.Wrappers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Drawing.Imaging;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Model;
 
 namespace axionpro.infrastructure.CommonRequest
 {

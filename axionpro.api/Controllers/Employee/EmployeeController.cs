@@ -4,6 +4,7 @@ using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
+using axionpro.application.Features.EmployeeCmd.Handlers;
 using axionpro.application.Features.EmployeeCmd.UpdateStatus.Handler;
 using axionpro.application.Features.EmployeeCmd.UpdateVerification.Handler;
 using axionpro.application.Interfaces.ILogger;
@@ -188,24 +189,24 @@ namespace axionpro.api.Controllers.Employee
         /// </summary>
         [Authorize]
         [HttpGet("get-summary")]
-        //public async Task<IActionResult> GetEmployeeSummary([FromQuery] GetEmployeeSummaryRequestDTO requestDto)
-        //{
-           
-        //        _logger.LogInfo("Fetching all employees.");
+        public async Task<IActionResult> GetEmployeeSummary([FromQuery] GetEmployeeSummaryRequestDTO requestDto)
+        {
 
-        //        var command = new GetEmployeeSummaryQuery(requestDto);
-        //        var result = await _mediator.Send(command);
+            _logger.LogInfo("Fetching all employees.");
 
-        //        if (!result.IsSucceeded)
-        //        {
-        //            _logger.LogInfo("No employees summary found or request failed.");
-        //            return BadRequest(result);
-        //        }
+            var command = new GetEmployeeSummaryQuery(requestDto);
+            var result = await _mediator.Send(command);
 
-        //        return Ok(result);
-           
-            
-        //}
+            if (!result.IsSucceeded)
+            {
+                _logger.LogInfo("No employees summary found or request failed.");
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+
+
+        }
         [Authorize]
         [HttpGet("get-profile-summary")]
         public async Task<IActionResult> GetEmployeeProfileSummary([FromQuery] GetEmployeeSummaryRequestDTO requestDto)
@@ -215,7 +216,7 @@ namespace axionpro.api.Controllers.Employee
                 var command = new GetEmployeeProfileSummaryQuery(requestDto);
                 var result = await _mediator.Send(command);
 
-               
+             
 
                 return Ok(result);
            
