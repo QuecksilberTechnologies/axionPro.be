@@ -24,17 +24,25 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    //builder.WebHost.UseIISIntegration();
+    // 🔥 ENV CHECK (IMPORTANT)
+    var isLocal = builder.Environment.IsDevelopment();
 
-    // ✅ Serilog integration
+    // 🔥 PORT CONFIG (FIXED)
+    if (isLocal)
+    {
+        builder.WebHost.ConfigureKestrel(options =>
+        {
+            options.ListenAnyIP(7788); // ✅ Device ke liye
+        });
+    }
+
+    // ✅ Serilog
     builder.Host.UseSerilog();
 
-    // ✅ Read JWT settings
+    // ✅ JWT
     var jwtSettings = builder.Configuration.GetSection("JWTSettings");
     var secretKey = Encoding.ASCII.GetBytes(jwtSettings["Secret"]);
-    var tokenLifetime = TimeSpan.Parse(jwtSettings["TokenLifetime"]);
 
-    // ✅ Configure JWT Authentication
     builder.Services.AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -51,11 +59,11 @@ try
             ValidIssuer = jwtSettings["Issuer"],
             ValidAudience = jwtSettings["Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(secretKey),
-            ClockSkew = TimeSpan.Zero // ⏱️ No extra time for expiration skew
+            ClockSkew = TimeSpan.Zero
         };
     });
 
-    // ✅ Add Services & DI
+    // ✅ Services
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
     builder.Services.AddPersistence(builder.Configuration);
@@ -64,64 +72,49 @@ try
     builder.Services.Configure<EmailConfig>(
         builder.Configuration.GetSection("EmailConfig"));
 
-    // ✅ Add Controllers & CORS
+    // ✅ Controllers + CORS
     builder.Services.AddControllers();
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowAngularApp", policy =>
         {
             policy.WithOrigins(
-                "http://localhost:4200",    // Angular local
-                "http://localhost:4201",    // React local (optional)
-
+                "http://localhost:4200",
+                "http://localhost:4201",
                 "https://axion-pro.vercel.app",
-                "https://axionpro-app.vercel.app/auth/login",
                 "https://axionpro-app.vercel.app"
-
-
             )
             .AllowAnyHeader()
             .AllowAnyMethod();
         });
     });
 
-    // ✅ Swagger with JWT Authorization
+    // ✅ Swagger
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(c =>
     {
-        var xmlFiles = Directory.GetFiles(AppContext.BaseDirectory, "*.xml", SearchOption.TopDirectoryOnly);
-        foreach (var xml in xmlFiles)
-        {
-            c.IncludeXmlComments(xml, includeControllerXmlComments: true);
-        }
-
         c.SwaggerDoc("v1", new OpenApiInfo
         {
             Title = "Axion-Pro API",
             Version = "1.0"
         });
 
-        //c.SchemaFilter<NullSchemaFilter>();
-
         c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
         {
             Name = "Authorization",
             Type = SecuritySchemeType.ApiKey,
             Scheme = "Bearer",
-            BearerFormat = "JWT",
             In = ParameterLocation.Header,
-            Description = "Enter 'Bearer' followed by space and JWT token. \n\nExample: Bearer eyJhbGciOi..."
+            Description = "Enter Bearer token"
         });
 
         c.OperationFilter<AuthorizeCheckOperationFilter>();
     });
-    builder.Host.UseDefaultServiceProvider(opts => opts.ValidateScopes = true);
-    // ✅ Build the app
-    var app = builder.Build();
-    // Enable static files
-    app.UseStaticFiles(); // For wwwroot folder
 
-    // Optional: agar aap specific folder ko custom path se expose karna chahte ho
+    var app = builder.Build();
+
+    // ✅ Static files
+    app.UseStaticFiles();
     app.UseStaticFiles(new StaticFileOptions
     {
         FileProvider = new PhysicalFileProvider(
@@ -129,31 +122,36 @@ try
         RequestPath = "/uploads"
     });
 
-
-    // ✅ Middleware setup
-    app.UseHttpsRedirection();
+    // ❌ IMPORTANT: Device ke liye disable karo
+    if (!isLocal)
+    {
+        app.UseHttpsRedirection(); // Render ke liye hi
+    }
 
     app.UseCors("AllowAngularApp");
 
-    app.UseAuthentication(); // 🔒 Important: before Authorization
+    app.UseAuthentication();
     app.UseAuthorization();
 
     app.UseMiddleware<ErrorHandlerMiddleware>();
-    AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-    app.UseSwagger();
-    app.UseSwaggerUI();
-    // 🔥 Tenant context middleware (AFTER auth)
+
+    // 🔥 WebSocket (MOST IMPORTANT)
     app.UseWebSockets();
-    app.UseMiddleware<WebSocketMiddleware>(); // 🔥 FIRST handle device
-    app.UseMiddleware<TenantContextMiddleware>(); // baad me
+    app.UseMiddleware<WebSocketMiddleware>(); // FIRST
+
+    // 🔥 Tenant baad me
+    app.UseMiddleware<TenantContextMiddleware>();
+
     app.MapControllers();
-    // check 
-    // //  // ✅ Dynamic port (for hosting like Heroku)w
-    var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-    app.Urls.Add($"http://*:{port}");
+
+    // 🔥 Render ke liye port
+    if (!isLocal)
+    {
+        var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+        app.Urls.Add($"http://*:{port}");
+    }
 
     await app.RunAsync();
-
 }
 catch (Exception ex)
 {
