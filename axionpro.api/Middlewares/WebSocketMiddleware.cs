@@ -14,8 +14,10 @@
 
         public async Task InvokeAsync(HttpContext context, WebSocketHandler handler)
         {
+
+            Console.WriteLine("👉 Middleware Hit");
             // 🔥 Only handle /ws requests
-            if (context.Request.Path == "/ws" && context.WebSockets.IsWebSocketRequest)
+            if (context.WebSockets.IsWebSocketRequest)
             {
                 await handler.HandleAsync(context);
                 return;

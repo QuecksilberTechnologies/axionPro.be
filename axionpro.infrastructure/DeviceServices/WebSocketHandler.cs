@@ -23,30 +23,23 @@ namespace axionpro.infrastructure.DeviceServices
         public async Task HandleAsync(HttpContext context)
         {
             var socket = await context.WebSockets.AcceptWebSocketAsync();
-            var buffer = new byte[4096];
 
-            string deviceSn = null;
+            Console.WriteLine("🔥 Device Connected");
+
+            var buffer = new byte[1024 * 4];
 
             while (socket.State == WebSocketState.Open)
             {
                 var result = await socket.ReceiveAsync(
                     new ArraySegment<byte>(buffer),
-                    CancellationToken.None);
+                    CancellationToken.None
+                );
 
                 var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
 
-                // 🔥 Process message
-                deviceSn = await _messageHandler.Handle(message, socket);
-
-                if (!string.IsNullOrEmpty(deviceSn))
-                {
-                    _connectionManager.Add(deviceSn, socket);
-                }
+                Console.WriteLine($"📩 Received: {message}");
             }
-
-            if (!string.IsNullOrEmpty(deviceSn))
-                _connectionManager.Remove(deviceSn);
         }
-     
+
     }
 }
