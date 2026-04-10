@@ -144,11 +144,18 @@ try
     app.UseSwaggerUI();
     // 🔥 Tenant context middleware (AFTER auth)
     app.UseMiddleware<TenantContextMiddleware>();
+    app.UseWebSockets();              //   Required
+    app.UseMiddleware<WebSocketMiddleware>();  
     app.MapControllers();
     // check 
   // //  // ✅ Dynamic port (for hosting like Heroku)w
+<<<<<<< HEAD
      var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
       app.Urls.Add($"http://*:{port}");
+=======
+   var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+    app.Urls.Add($"http://*:{port}");
+>>>>>>> LeaveManagement
    
    await app.RunAsync();
     

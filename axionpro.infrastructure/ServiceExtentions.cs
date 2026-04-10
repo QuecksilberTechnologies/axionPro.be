@@ -1,5 +1,6 @@
 ﻿using axionpro.application.Interfaces.ICacheService;
 using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IDeviceServices;
 using axionpro.application.Interfaces.IEmail;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IFileStorage;
@@ -13,6 +14,7 @@ using axionpro.application.Interfaces.ITokenService;
 using axionpro.infrastructure.BackgroundJob;
 using axionpro.infrastructure.CacheMemory;
 using axionpro.infrastructure.CommonRequest;
+using axionpro.infrastructure.DeviceServices;
 using axionpro.infrastructure.EncryptionService;
 using axionpro.infrastructure.FileStoringService;
 using axionpro.infrastructure.Logging;
@@ -61,8 +63,11 @@ namespace axionpro.infrastructure
             services.AddScoped<ICacheService, CacheService>();
             services.AddScoped<ITenantKeyCache, TenantKeyMemoryCache>();
             services.AddScoped<ITenantKeyResolver, TenantKeyResolver>();
-        
 
+            services.AddSingleton<DeviceConnectionManager>();  // 🔥 Global connection store
+            services.AddScoped<DeviceMessageHandler>();        // 🔥 Message processing
+            services.AddScoped<WebSocketHandler>();            // 🔥 Socket handling
+            services.AddScoped<IDeviceService, DeviceService>(); // 🔥 Command push
 
 
         }

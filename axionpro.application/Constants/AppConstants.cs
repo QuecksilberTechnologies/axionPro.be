@@ -18,6 +18,7 @@ namespace axionpro.application.Constants
         // etc.
     }
 
+
     public static class ConstantValues
     {
         public enum ContactTypeEnum
