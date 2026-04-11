@@ -891,10 +891,12 @@ namespace axionpro.persistance.Repositories
 
                 // 🧩 Step 2: Base employee query (NO tracking = faster)
                 var query = _context.Employees
-                    .AsNoTracking()
-                    .Where(x =>
-                        x.TenantId == dto.Prop.TenantId &&
-                        (x.IsSoftDeleted == null || x.IsSoftDeleted == false));
+               .AsNoTracking()
+               .Include(x => x.UserRoles)
+                   .ThenInclude(ur => ur.Role)
+               .Where(x =>
+                   x.TenantId == dto.Prop.TenantId &&
+                            (x.IsSoftDeleted != true && x.IsActive==true));
 
                 // 🧩 Step 3: Dynamic filters (SAFE & SAME RESULT)
                 if (dto.Prop.EmployeeId > 0)
@@ -997,7 +999,9 @@ namespace axionpro.persistance.Repositories
                         FirstName = x.Employee.FirstName,
                         MiddleName = x.Employee.MiddleName,
                         LastName = x.Employee.LastName,
-
+                        RoleId = x.Employee.UserRoles.FirstOrDefault()?.RoleId,
+                        RoleName = x.Employee.UserRoles.FirstOrDefault()?.Role?.RoleName,
+                        RoleType = x.Employee.UserRoles.FirstOrDefault()?.Role?.RoleType,
                         GenderId = x.Employee.GenderId ?? 0,
                         GenderName = genderLookup.GetValueOrDefault(x.Employee.GenderId ?? 0),
 
@@ -1291,8 +1295,8 @@ namespace axionpro.persistance.Repositories
         }
 
         public async Task<SummaryEmployeeInfo?> BuildEmployeeSummaryAsync(
-      long employeeId,
-      bool isActive)
+       long employeeId,
+       bool isActive)
         {
             if (employeeId <= 0)
                 throw new ArgumentException("Invalid EmployeeId.");
@@ -1304,8 +1308,20 @@ namespace axionpro.persistance.Repositories
                 await (
                     from emp in _context.Employees.AsNoTracking()
 
-                        // 🔹 Gender  ismei IsActive nahi check karna hai
-                    join gender in _context.Genders                        
+                    // 🔹 UserRole
+                    join userRole in _context.UserRoles
+                        .Where(x => x.IsActive == true && x.IsSoftDeleted != true)
+                        on emp.Id equals userRole.EmployeeId into userRoleJoin
+                    from ur in userRoleJoin.DefaultIfEmpty()
+
+                        // 🔹 Role
+                    join role in _context.Roles
+                        .Where(x => x.IsActive == true && x.IsSoftDeleted != true)
+                        on ur.RoleId equals role.Id into roleJoin
+                    from r in roleJoin.DefaultIfEmpty()
+
+                        // 🔹 Gender
+                    join gender in _context.Genders
                         on emp.GenderId equals (long?)gender.Id into genderJoin
                     from g in genderJoin.DefaultIfEmpty()
 
@@ -1327,28 +1343,28 @@ namespace axionpro.persistance.Repositories
                         on emp.DepartmentId equals (long?)department.Id into deptJoin
                     from dep in deptJoin.DefaultIfEmpty()
 
-                        // 🔹 Country  ismei IsActive nahi check karna hai
-                    join country in _context.Countries 
+                        // 🔹 Country
+                    join country in _context.Countries
                         .Where(x => x.IsActive == true)
                         on emp.CountryId equals country.Id into countryJoin
                     from c in countryJoin.DefaultIfEmpty()
 
                         // 🔹 Primary Contact
                     join contact in _context.EmployeeContacts
-                            .Where(ec =>
-                                ec.IsPrimary == true &&
-                                ec.IsActive == true &&
-                                ec.IsSoftDeleted != true)
+                        .Where(ec =>
+                            ec.IsPrimary == true &&
+                            ec.IsActive == true &&
+                            ec.IsSoftDeleted != true)
                         on emp.Id equals contact.EmployeeId into contactJoin
                     from cont in contactJoin.DefaultIfEmpty()
 
-                        // 🔹 District  
-                    join district in _context.Districts 
-                        .Where(x => x.IsActive == true )
+                        // 🔹 District
+                    join district in _context.Districts
+                        .Where(x => x.IsActive == true)
                         on cont.DistrictId equals district.Id into districtJoin
                     from dist in districtJoin.DefaultIfEmpty()
 
-                        // 🔹 FINAL FILTER (MOST IMPORTANT)
+                        // 🔹 FINAL FILTER
                     where emp.Id == employeeId
                           && emp.IsActive == isActive
                           && emp.IsSoftDeleted != true
@@ -1358,6 +1374,11 @@ namespace axionpro.persistance.Repositories
                         emp,
                         cont,
                         dist,
+
+                        RoleId = ur != null ? ur.RoleId : (int?)null,
+                        RoleName = r != null ? r.RoleName : null,
+                        RoleType = r != null ? r.RoleType : (int?)null,
+
                         DesignationName = d != null ? d.DesignationName : string.Empty,
                         EmployeeTypeName = et != null ? et.TypeName : string.Empty,
                         DepartmentName = dep != null ? dep.DepartmentName : string.Empty,
@@ -1369,7 +1390,7 @@ namespace axionpro.persistance.Repositories
                 return null;
 
             // =====================================================
-            // 🔹 PROFILE IMAGE (THUMBNAIL)
+            // 🔹 PROFILE IMAGE
             // =====================================================
             var img = await _context.EmployeeImages
                 .Where(i =>
@@ -1391,7 +1412,7 @@ namespace axionpro.persistance.Repositories
                     hasPrimaryImage);
 
             // =====================================================
-            // 🔹 FINAL SUMMARY DTO
+            // 🔹 FINAL DTO
             // =====================================================
             return new SummaryEmployeeInfo
             {
@@ -1401,19 +1422,26 @@ namespace axionpro.persistance.Repositories
                 MobileNumber = employeeData.emp.MobileNumber,
                 Relation = employeeData.emp.Relation,
 
+                RoleId = employeeData.RoleId ?? 0,
+                RoleName = employeeData.RoleName,
+                RoleType = employeeData.RoleType,
+
                 CountryCode = employeeData.CountryCode,
                 IsActive = employeeData.emp.IsActive,
                 IsMarried = employeeData.emp.IsMarried,
                 EmployeeCode = employeeData.emp.EmployementCode,
+
+                RelationName = employeeData.emp.Relation != null ?
+                    (employeeData.emp.Relation == 1 ? "Father" :
+                     employeeData.emp.Relation == 2 ? "Mother" :
+                     employeeData.emp.Relation == 3 ? "Spouse" :
+                     employeeData.emp.Relation == 4 ? "Sibling" : "Other") : null,
 
                 OnlineStatus = null,
                 LastLoginDateTime = DateTime.UtcNow,
 
                 CurrentSalaryStatusId = 1,
                 CurrentSalaryStatusRemark = null,
-
-                RoleId = 1,
-                RoleType = null,
 
                 EmployeeId = employeeData.emp.Id.ToString(),
 
@@ -1433,7 +1461,6 @@ namespace axionpro.persistance.Repositories
                 EmployeeTypeName = employeeData.EmployeeTypeName
             };
         }
-
         public async Task<EmployeeProfileSummaryInfo?> EmployeeProfileSummaryAsync(
    long employeeId,
    bool isActive)

@@ -345,7 +345,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             entity.City ??= string.Empty;
             entity.Address ??= string.Empty;
             entity.CurrentSalaryStatusRemark ??= string.Empty;
-            entity.RoleType ??= string.Empty;
+            entity.RoleType ??= null;
 
             // =====================================================
             // 🌍 UTC DATE NORMALIZATION

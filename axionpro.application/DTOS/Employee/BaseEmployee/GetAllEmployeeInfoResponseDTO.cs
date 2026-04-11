@@ -84,7 +84,8 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         public int CurrentSalaryStatusId { get; set; }
         public string? CurrentSalaryStatusRemark { get; set; }
         public int RoleId { get; set; }
-        public string? RoleType { get; set; }
+        public int? RoleType { get; set; }
+        public string? RoleName { get; set; } = null;
         public int DesignationId { get; set; }
         public string? Designation { get; set; }
         public int DepartmentId { get; set; }
