@@ -30,7 +30,7 @@ namespace axionpro.persistance.Data.Context
 
         public virtual DbSet<EmployeeContact> EmployeeContacts { get; set; }
         public virtual DbSet<District> Districts { get; set; }
-
+        public virtual DbSet<AttendanceLog> AttendanceLogs { get; set; }
         public virtual DbSet<AccoumndationAllowancePolicyByDesignation> AccoumndationAllowancePolicyByDesignations { get; set; }
 
         public virtual DbSet<ApprovalWorkflow> ApprovalWorkflows { get; set; }
@@ -88,6 +88,14 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<DayCombination> DayCombinations { get; set; }
 
         public virtual DbSet<Department> Departments { get; set; }
+        public virtual DbSet<DeviceCommandMaster> DeviceCommandMasters { get; set; }
+
+        public virtual DbSet<DeviceCommandQueue> DeviceCommandQueues { get; set; }
+
+        public virtual DbSet<DeviceLogRaw> DeviceLogRaws { get; set; }
+
+        public virtual DbSet<DeviceMaster> DeviceMasters { get; set; }
+
 
         public virtual DbSet<Designation> Designations { get; set; }
 
@@ -592,7 +600,21 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.Remark).HasMaxLength(255);
                 entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
             });
+            modelBuilder.Entity<AttendanceLog>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("AttendanceLogs_pkey");
 
+                entity.ToTable("AttendanceLogs", "axionpro");
+
+                entity.HasIndex(e => new { e.EmployeeCode, e.PunchTime }, "IX_AttendanceLogs_Employee_Time");
+
+                entity.Property(e => e.CreatedDate)
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                    .HasColumnType("timestamp without time zone");
+                entity.Property(e => e.DeviceSn).HasMaxLength(50);
+                entity.Property(e => e.EmployeeCode).HasMaxLength(50);
+                entity.Property(e => e.PunchTime).HasColumnType("timestamp without time zone");
+            });
             modelBuilder.Entity<AttendanceHistory>(entity =>
             {
                 entity.HasKey(e => e.Id).HasName("PK__Attendan__3214EC07AC1B1F0C");
@@ -868,6 +890,80 @@ namespace axionpro.persistance.Data.Context
                     .HasForeignKey(d => d.TenantId)
                     .HasConstraintName("FK_DayCombination_Tenant");
             });
+            modelBuilder.Entity<DeviceCommandMaster>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("DeviceCommandMaster_pkey");
+
+                entity.ToTable("DeviceCommandMaster", "axionpro");
+
+                entity.HasIndex(e => e.CommandName, "UQ_DeviceCommandMaster_CommandName").IsUnique();
+
+                entity.Property(e => e.CommandName).HasMaxLength(50);
+                entity.Property(e => e.CreatedDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.Description).HasMaxLength(255);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+            });
+
+            modelBuilder.Entity<DeviceCommandQueue>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("DeviceCommandQueue_pkey");
+
+                entity.ToTable("DeviceCommandQueue", "axionpro");
+
+                entity.HasIndex(e => e.Status, "IX_DeviceCommandQueue_Status");
+
+                entity.HasIndex(e => new { e.TenantId, e.DeviceId }, "IX_DeviceCommandQueue_Tenant_Device");
+
+                entity.Property(e => e.CommandName).HasMaxLength(50);
+                entity.Property(e => e.CreatedDate)
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                    .HasColumnType("timestamp without time zone");
+                entity.Property(e => e.DeviceSn).HasMaxLength(50);
+                entity.Property(e => e.RetryCount).HasDefaultValue(0);
+                entity.Property(e => e.Status).HasDefaultValue(0);
+                entity.Property(e => e.UpdatedDate).HasColumnType("timestamp without time zone");
+
+                entity.HasOne(d => d.Device).WithMany(p => p.DeviceCommandQueues)
+                    .HasForeignKey(d => d.DeviceId)
+                    .HasConstraintName("FK_DeviceCommandQueue_DeviceMaster");
+            });
+
+            modelBuilder.Entity<DeviceLogRaw>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("DeviceLogRaw_pkey");
+
+                entity.ToTable("DeviceLogRaw", "axionpro");
+
+                entity.HasIndex(e => e.IsProcessed, "IX_DeviceLogRaw_Processed");
+
+                entity.HasIndex(e => new { e.TenantId, e.DeviceSn }, "IX_DeviceLogRaw_Tenant_Device");
+
+                entity.Property(e => e.CommandName).HasMaxLength(50);
+                entity.Property(e => e.CreatedDate)
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                    .HasColumnType("timestamp without time zone");
+                entity.Property(e => e.DeviceSn).HasMaxLength(50);
+                entity.Property(e => e.IsProcessed).HasDefaultValue(false);
+                entity.Property(e => e.ProcessedDate).HasColumnType("timestamp without time zone");
+            });
+
+            modelBuilder.Entity<DeviceMaster>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("DeviceMaster_pkey");
+
+                entity.ToTable("DeviceMaster", "axionpro");
+
+                entity.HasIndex(e => new { e.TenantId, e.DeviceSn }, "UQ_DeviceMaster_Tenant_DeviceSn").IsUnique();
+
+                entity.Property(e => e.CreatedDate)
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                    .HasColumnType("timestamp without time zone");
+                entity.Property(e => e.DeviceName).HasMaxLength(100);
+                entity.Property(e => e.DeviceSn).HasMaxLength(50);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.Location).HasMaxLength(100);
+            });
+
 
             modelBuilder.Entity<Department>(entity =>
             {

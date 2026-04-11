@@ -66,6 +66,7 @@
 	<ItemGroup>
     <Folder Include="Common\PercentageHelper\" />
     <Folder Include="DTOS\BasicMenu\" />
+    <Folder Include="DTOS\Device\Configurations\" />
     <Folder Include="DTOS\Employee\Emplo\" />
     <Folder Include="DTOS\NewFolder1\" />
     <Folder Include="DTOS\NewFolder\" />
