@@ -199,13 +199,7 @@ public class UnitOfWork : IUnitOfWork
             _loggerFactory.CreateLogger<EmployeePolicyEnrollmentRepository>()
             );
 
-    public IEmployeeInsuranceRepository EmployeeInsuranceRepository =>
-        _employeeInsuranceRepository ??= new EmployeeInsuranceRepository(
-            _context,
-            _mapper,
-            _loggerFactory.CreateLogger<EmployeeInsuranceRepository>(),
-            _passwordService,
-            _encriptionService);
+    
 
     public IPolicyTypeRepository PolicyTypeRepository =>
         _policyTypeRepository ??= new PolicyTypeRepository(
