@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-
+using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.UserRoles;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -79,7 +79,11 @@ namespace axionpro.application.Features.RoleCmd.ModuleOperationMappingRepository
                 if (string.IsNullOrWhiteSpace(request.DTO.EmployeeId))
                     throw new ValidationErrorException("Invalid EmployeeId.");
 
-                var employeeId = request.DTO.EmployeeId;
+                var employeeId = request.DTO.Prop.EmployeeId =
+                    RequestCommonHelper.DecodeOnlyEmployeeId(
+                        request.DTO.EmployeeId,
+                        validation.Claims.TenantEncriptionKey,
+                        _idEncoderService);
 
                 // ===============================
                 // 3️⃣ FETCH EXISTING ROLES
