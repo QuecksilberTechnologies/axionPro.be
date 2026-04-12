@@ -11,15 +11,16 @@ namespace axionpro.application.Interfaces.IRepositories
     {
         // Get role name by user ID (for your login process)
         Task<List<UserRole>> GetUsersRoleByIdAsync(long userId);
-        Task<List<UserRole>> GetEmployeeRolesWithDetailsByIdAsync(long employeeId, long? TenantId);       
-         
+        Task<List<UserRole>> GetEmployeeRolesWithDetailsByIdAsync(long employeeId, long? TenantId);
+        // 🔥 BULK INSERT
+        Task AddRangeAsync(List<UserRole> entities);
 
-        // CRUD Operations
-        // Task<UserRole> GetUserRoleByIdAsync(int id);
-        Task<List<UserRole>> GetAllUserRolesAsync();
-        Task<int?> AddUserRoleAsync(UserRole userRole);
-        Task<int?> UpdateUserRoleAsync(UserRole userRole);
-        Task DeleteUserRoleAsync(int id);
+        // 🔥 BULK UPDATE
+        void UpdateRange(List<UserRole> entities);
+
+ 
+ 
+        
     }
      
 

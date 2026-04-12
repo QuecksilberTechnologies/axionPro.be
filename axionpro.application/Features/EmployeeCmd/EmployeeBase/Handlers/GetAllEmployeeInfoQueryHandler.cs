@@ -28,12 +28,12 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             DTO = dTO;
         }
     }
-    public class GetEmployeeSummaryQueryHandler : IRequestHandler<GetAllEmployeeInfoQuery, ApiResponse<List<GetAllEmployeeInfoResponseDTO>>>
+    public class GetAllEmployeeInfoQueryHandler : IRequestHandler<GetAllEmployeeInfoQuery, ApiResponse<List<GetAllEmployeeInfoResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ILogger<GetEmployeeSummaryQueryHandler> _logger;
+        private readonly ILogger<GetAllEmployeeInfoQueryHandler> _logger;
         private readonly ITokenService _tokenService;
         private readonly IPermissionService _permissionService;
         private readonly IConfiguration _config;
@@ -42,11 +42,11 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         private readonly ICommonRequestService _commonRequestService;
         private readonly IFileStorageService _fileStorageService;
 
-        public GetEmployeeSummaryQueryHandler(
+        public GetAllEmployeeInfoQueryHandler(
             IUnitOfWork unitOfWork,
             IMapper mapper,
             IHttpContextAccessor httpContextAccessor,
-            ILogger<GetEmployeeSummaryQueryHandler> logger,
+            ILogger<GetAllEmployeeInfoQueryHandler> logger,
             ITokenService tokenService,
             IPermissionService permissionService,
             IConfiguration config,

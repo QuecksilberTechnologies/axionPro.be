@@ -4,7 +4,6 @@ using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
-using axionpro.application.Features.EmployeeCmd.Handlers;
 using axionpro.application.Features.EmployeeCmd.UpdateStatus.Handler;
 using axionpro.application.Features.EmployeeCmd.UpdateVerification.Handler;
 using axionpro.application.Interfaces.ILogger;

@@ -1,23 +1,14 @@
 ﻿using AutoMapper;
-using axionpro.application.Constants;
-using axionpro.application.DTOs.Employee;
-using axionpro.application.DTOs.Module;
-using axionpro.application.DTOs.UserLogin;
-using axionpro.application.DTOs.UserRole;
-using axionpro.application.Features.UserLoginAndDashboardCmd.Commands;
-using axionpro.application.Interfaces.ITokenService;
-using axionpro.application.Interfaces;
-using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 using axionpro.application.Common.Helpers;
+using axionpro.application.DTOs.UserLogin;
+using axionpro.application.Features.UserLoginAndDashboardCmd.Commands;
+using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEmail;
-using Newtonsoft.Json.Linq;
+using axionpro.application.Interfaces.ITokenService;
+using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
+using MediatR;
+using Microsoft.Extensions.Logging;
 
 
 namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers

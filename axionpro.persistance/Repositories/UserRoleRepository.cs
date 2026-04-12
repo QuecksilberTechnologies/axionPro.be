@@ -1,5 +1,4 @@
-﻿using axionpro.application.Constants;
-using axionpro.application.Interfaces.IRepositories;
+﻿using axionpro.application.Interfaces.IRepositories;
 
 using axionpro.domain.Entity;
 
@@ -7,120 +6,114 @@ using axionpro.persistance.Data.Context;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
 
 
-namespace axionpro.persistance.Repositories
+namespace axionpro.persistance.Repositories;
+
+public class UserRoleRepository : IUserRoleRepository
 {
-    public class UserRoleRepository : IUserRoleRepository
+    private readonly WorkforceDbContext _context;
+    private readonly ILogger<UserRoleRepository>? _logger;
+
+    public UserRoleRepository(
+        WorkforceDbContext context,
+        ILogger<UserRoleRepository>? logger)
     {
-        private readonly WorkforceDbContext _context;
-        private readonly ILogger<UserRoleRepository>? _logger;
+        _context = context;
+        _logger = logger;
+    }
 
-        public UserRoleRepository(WorkforceDbContext context, ILogger<UserRoleRepository>? logger)
+    // ==========================================================
+    // 🔹 GET USER ROLES BY USER ID
+    // ==========================================================
+    public async Task<List<UserRole>> GetUsersRoleByIdAsync(long userId)
+    {
+        try
         {
-            _context = context;
-             _logger = logger;
-        }
+            _logger?.LogInformation("Fetching roles for user with ID: {UserId}", userId);
 
-        public async Task<List<UserRole>> GetUsersRoleByIdAsync(long userId)
+            var userRoles = await _context.UserRoles
+                .Where(ur => ur.EmployeeId == userId && ur.IsSoftDeleted != true)
+                .ToListAsync();
+
+            return userRoles ?? new List<UserRole>();
+        }
+        catch (Exception ex)
         {
-            try
-            {
-                _logger?.LogInformation("Fetching roles for user with ID: {UserId}", userId);
-
-                    // Fetch all roles for the user with related role details if necessary
-                var userRoles = await _context.UserRoles.Where(ur => ur.EmployeeId == userId)
-                                                .ToListAsync();
-
-                // If no roles are found, log a warning and return null
-                if (userRoles == null || userRoles.Count == 0)
-                {
-                    _logger?.LogWarning("No roles found for user with ID: {UserId}", userId);
-                    return null;
-                }
-
-
-                // Log the total number of roles fetched for the user
-                 _logger?.LogInformation("Fetched {Count} roles for user with ID: {UserId}", userRoles.Count, userId);
-                return userRoles;
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogError(ex, "An error occurred while fetching the roles for user with ID: {UserId}", userId);
-                throw;
-            }
+            _logger?.LogError(ex, "Error fetching roles for userId: {UserId}", userId);
+            throw;
         }
+    }
 
-        public async Task<int?> AddUserRoleAsync(UserRole userRole)
+    // ==========================================================
+    // 🔹 GET USER ROLES WITH ROLE DETAILS
+    // ==========================================================
+    public async Task<List<UserRole>> GetEmployeeRolesWithDetailsByIdAsync(long employeeId, long? tenantId)
+    {
+        try
         {
-            await _context.UserRoles.AddAsync(userRole);
-            await _context.SaveChangesAsync();
-            return userRole.RoleId;
-        }
+            _logger?.LogInformation("Fetching roles for EmployeeId: {EmployeeId}", employeeId);
 
-        public async Task DeleteUserRoleAsync(int id)
+            var userRoles = await _context.UserRoles
+                .Include(x => x.Role)
+                .Where(x =>
+                    x.EmployeeId == employeeId &&
+                    x.IsActive == true &&
+                    x.IsSoftDeleted != true &&
+                    x.Role != null &&
+                    x.Role.IsActive == true &&
+                    x.Role.IsSoftDeleted != true &&
+                    x.Role.TenantId == tenantId)
+                .ToListAsync();
+
+            return userRoles ?? new List<UserRole>();
+        }
+        catch (Exception ex)
         {
-            var userRole = await _context.UserRoles.FindAsync(id);
-            if (userRole != null)
-            {
-                _context.UserRoles.Remove(userRole);
-                await _context.SaveChangesAsync();
-            }
+            _logger?.LogError(ex, "Error fetching role details for EmployeeId: {EmployeeId}", employeeId);
+            throw;
         }
+    }
 
-        public async Task<List<UserRole>> GetAllUserRolesAsync()
+    // ==========================================================
+    // 🔥 BULK INSERT
+    // ==========================================================
+    public async Task AddRangeAsync(List<UserRole> entities)
+    {
+        try
         {
-            return await _context.UserRoles.ToListAsync();
-        }
+            if (entities == null || !entities.Any())
+                return;
 
-        public async Task<UserRole> GetUserRoleByIdAsync(int id)
+            await _context.UserRoles.AddRangeAsync(entities);
+
+            _logger?.LogInformation("Bulk Insert: {Count} roles", entities.Count);
+        }
+        catch (Exception ex)
         {
-            return await _context.UserRoles.FindAsync(id);
+            _logger?.LogError(ex, "Error in bulk insert UserRoles");
+            throw;
         }
+    }
 
-        public async Task<int?> UpdateUserRoleAsync(UserRole userRole)
+    // ==========================================================
+    // 🔥 BULK UPDATE (USED FOR UPDATE + DELETE)
+    // ==========================================================
+    public void UpdateRange(List<UserRole> entities)
+    {
+        try
         {
-            _context.UserRoles.Update(userRole);
-            await _context.SaveChangesAsync();
-            return userRole.RoleId;
+            if (entities == null || !entities.Any())
+                return;
+
+            _context.UserRoles.UpdateRange(entities);
+
+            _logger?.LogInformation("Bulk Update: {Count} roles", entities.Count);
         }
-        public async Task<List<UserRole>> GetEmployeeRolesWithDetailsByIdAsync(long employeeId, long? tenantId)
+        catch (Exception ex)
         {
-            try
-            {
-                _logger?.LogInformation("Fetching active roles for EmployeeId: {EmployeeId}", employeeId);
-
-                var userRoles = await _context.UserRoles
-                    .Include(ur => ur.Role)
-                    .Where(ur =>
-                        ur.EmployeeId == employeeId &&
-                        ur.IsActive == ConstantValues.IsByDefaultTrue &&
-                        (ur.IsSoftDeleted != ConstantValues.IsByDefaultTrue) &&
-                        ur.Role != null &&
-                        ur.Role.IsActive == ConstantValues.IsByDefaultTrue &&
-                        (ur.Role.IsSoftDeleted != ConstantValues.IsByDefaultTrue) &&
-                        ur.Role.TenantId == tenantId)
-                    .ToListAsync();
-
-                if (userRoles.Count == 0)
-                {
-                    _logger?.LogWarning("No active roles found for EmployeeId: {EmployeeId}", employeeId);
-                    return new List<UserRole>();
-                }
-
-                _logger?.LogInformation("Fetched {Count} active roles for EmployeeId: {EmployeeId}", userRoles.Count, employeeId);
-                return userRoles;
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogError(ex, "Error fetching user roles for EmployeeId: {EmployeeId}", employeeId);
-                return new List<UserRole>();
-            }
+            _logger?.LogError(ex, "Error in bulk update UserRoles");
+            throw;
         }
-
-
-
     }
 }

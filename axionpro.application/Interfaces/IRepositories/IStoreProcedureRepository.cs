@@ -1,19 +1,11 @@
 ﻿using axionpro.application.DTOs.Module.NewFolder;
 using axionpro.application.DTOs.Operation;
-using axionpro.application.DTOs.ProjectModule;
 using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOs.UserLogin;
-using axionpro.application.DTOs.UserRole;
 using axionpro.application.DTOS.RoleModulePermission;
 using axionpro.application.DTOS.StoreProcedures;
 using axionpro.application.DTOS.StoreProcedures.DashboardSummeries;
 using axionpro.application.DTOS.Tenant;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Interfaces.IRepositories
 {

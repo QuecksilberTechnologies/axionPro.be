@@ -35,8 +35,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         public int? CountryId { get; set; }
         public int? DepartmentId { get; set; }
         public int? EmployeeTypeId { get; set; }
-        public int? GenderId { get; set; }      
-        
+        public int? GenderId { get; set; }           
         public DateTime? DateOfOnBoarding { get; set; }
         public DateTime? DateOfExit { get; set; }
         public bool? HasPermanent { get; set; }

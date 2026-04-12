@@ -12,7 +12,7 @@ using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace axionpro.application.Features.EmployeeCmd.Handlers
+namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
     public class GetEmployeeSummaryQuery : IRequest<ApiResponse<SummaryEmployeeInfo>>
     {

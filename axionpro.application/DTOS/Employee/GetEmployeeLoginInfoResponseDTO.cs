@@ -1,4 +1,4 @@
-﻿using axionpro.application.DTOs.UserRole;
+﻿using axionpro.application.DTOS.UserRoles;
 
 namespace axionpro.application.DTOs.Employee
 {

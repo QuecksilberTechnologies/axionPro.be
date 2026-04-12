@@ -9,7 +9,7 @@ public partial class UserRole
 
     public long? EmployeeId { get; set; }
    
-    public int? RoleId { get; set; }
+    public int RoleId { get; set; }
 
     public bool IsActive { get; set; }
 
@@ -38,6 +38,7 @@ public partial class UserRole
     public DateTime? UpdatedDateTime { get; set; }
 
     public bool? IsSoftDeleted { get; set; }
+   
 
     public long? SoftDeletedById { get; set; }
 

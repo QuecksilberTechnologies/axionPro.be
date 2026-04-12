@@ -1,13 +1,10 @@
 ﻿using AutoMapper;
-using axionpro.application.Common.Helpers.Converters;
-using axionpro.application.DTOs.Category;
 using axionpro.application.DTOs.Client;
 using axionpro.application.DTOs.Department;
 using axionpro.application.DTOs.Designation;
 using axionpro.application.DTOs.EmailTemplate;
 using axionpro.application.DTOs.Employee;
 using axionpro.application.DTOs.Employee.AccessControlReadOnlyType;
-using axionpro.application.DTOs.Employee.AccessResponse;
 using axionpro.application.DTOs.Gender;
 using axionpro.application.DTOs.Leave;
 using axionpro.application.DTOs.Leave.LeaveRule;
@@ -23,7 +20,6 @@ using axionpro.application.DTOs.Tenant;
 using axionpro.application.DTOs.TenantIndustry;
 using axionpro.application.DTOs.Transport;
 using axionpro.application.DTOs.UserLogin;
-using axionpro.application.DTOs.UserRole;
 using axionpro.application.DTOs.WorkflowStage;
 using axionpro.application.DTOS.AssetDTO.asset;
 using axionpro.application.DTOS.AssetDTO.category;
@@ -36,8 +32,6 @@ using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.DTOS.Employee.Experience;
-using axionpro.application.DTOS.Employee.Sensitive;
-using axionpro.application.DTOS.Employee.Type;
 using axionpro.application.DTOS.Gender;
 using axionpro.application.DTOS.InsurancePoliciesMapping;
 using axionpro.application.DTOS.InsurancePolicy;
@@ -45,29 +39,15 @@ using axionpro.application.DTOS.Location;
 using axionpro.application.DTOS.Module.CommonModule;
 using axionpro.application.DTOS.Module.ParentModule;
 using axionpro.application.DTOS.Module.SubModule;
+using axionpro.application.DTOS.PolicyTypeDocument;
 //using axionpro.application.DTOS.Module.ParentModule;
 using axionpro.application.DTOS.TicketDTO.Classification;
 using axionpro.application.DTOS.TicketDTO.Header;
 using axionpro.application.DTOS.TicketDTO.TicketType;
+using axionpro.application.DTOS.UserRoles;
 using axionpro.application.Features.TicketFeatures.Classification.Commands;
-using axionpro.application.Interfaces.IEncryptionService;
-
+using axionpro.domain.Entity;
 using FluentValidation;
-using axionpro.domain.Entity;
-using MediatR;
-using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Net.Mime;
-using System.Reflection;
-using System.Security.AccessControl;
-using System.Text;
-using System.Threading.Tasks;
-using axionpro.domain.Entity;
-using MediatR;
-using axionpro.application.DTOS.PolicyTypeDocument;
 
 
 namespace axionpro.application.Mappings
@@ -358,6 +338,9 @@ namespace axionpro.application.Mappings
 
             CreateMap<UserRole, UserRoleDTO>()
                           .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role.RoleName)) // Example
+                          .ForMember(dest => dest.RoleType, opt => opt.MapFrom(src => src.Role.RoleType)) // Example
+                          .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src => src.Role.Id)) // Example
+                          .ForMember(dest => dest.UserRoleId, opt => opt.MapFrom(src => src.Id))  
                           .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive == true));
 
             // CreateRoleDTO to Role Mapping (for creating roles)
