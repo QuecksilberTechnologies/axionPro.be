@@ -68,7 +68,34 @@ public class UnStructuredEmployeePolicyTypeMappingRepository
         _context.UnStructuredPolicyTypeMappingWithEmployeeTypes.Update(entity);
         return await _context.SaveChangesAsync() > 0;
     }
+    public async Task<bool> UpdateRangeAsync(List<UnStructuredPolicyTypeMappingWithEmployeeType> entities)
+    {
+        try
+        {
+            if (entities == null || !entities.Any())
+                return false;
 
+            foreach (var entity in entities)
+            {
+                _context.UnStructuredPolicyTypeMappingWithEmployeeTypes.Attach(entity);
+
+                // 🔥 ONLY REQUIRED FIELDS (SOFT DELETE CASE)
+                _context.Entry(entity).Property(x => x.IsSoftDeleted).IsModified = true;
+                _context.Entry(entity).Property(x => x.SoftDeletedById).IsModified = true;
+                _context.Entry(entity).Property(x => x.SoftDeletedDateTime).IsModified = true;
+
+                // Optional (agar use kar rahe ho)
+                _context.Entry(entity).Property(x => x.IsActive).IsModified = true;
+            }
+
+            return await _context.SaveChangesAsync() > 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Error in UpdateRangeAsync (UnStructuredPolicyTypeMapping)");
+            throw;
+        }
+    }
     // ✅ SOFT DELETE
     public async Task<bool> SoftDeleteAsync(UnStructuredPolicyTypeMappingWithEmployeeType entity)
     {

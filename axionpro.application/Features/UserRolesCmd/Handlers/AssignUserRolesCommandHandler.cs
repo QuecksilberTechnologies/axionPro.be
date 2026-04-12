@@ -76,7 +76,7 @@ namespace axionpro.application.Features.RoleCmd.ModuleOperationMappingRepository
                 // ===============================
                 // 2️⃣ EMPLOYEE ID CHECK
                 // ===============================
-                if (request.DTO.EmployeeId <= 0)
+                if (string.IsNullOrWhiteSpace(request.DTO.EmployeeId))
                     throw new ValidationErrorException("Invalid EmployeeId.");
 
                 var employeeId = request.DTO.EmployeeId;
@@ -85,7 +85,7 @@ namespace axionpro.application.Features.RoleCmd.ModuleOperationMappingRepository
                 // 3️⃣ FETCH EXISTING ROLES
                 // ===============================
                 var existingRoles = await _unitOfWork.UserRoleRepository
-                    .GetEmployeeRolesWithDetailsByIdAsync(employeeId, request.DTO.Prop.TenantId);
+                    .GetEmployeeRolesWithDetailsByIdAsync(request.DTO.Prop.EmployeeId, request.DTO.Prop.TenantId);
 
                 var incomingRoles = request.DTO.UserRoles ?? new List<UserRoleDTO>();
 
@@ -121,7 +121,7 @@ namespace axionpro.application.Features.RoleCmd.ModuleOperationMappingRepository
                     .Where(x => !existingRoleIds.Contains(x.RoleId))
                     .Select(role => new UserRole
                     {
-                        EmployeeId = employeeId,
+                        EmployeeId = request.DTO.Prop.EmployeeId,
                         RoleId = role.RoleId,
 
                         IsPrimaryRole = false,
@@ -179,7 +179,7 @@ namespace axionpro.application.Features.RoleCmd.ModuleOperationMappingRepository
                 // 9️⃣ RETURN UPDATED DATA
                 // ===============================
                 var updatedRoles = await _unitOfWork.UserRoleRepository
-                    .GetEmployeeRolesWithDetailsByIdAsync(employeeId, request.DTO.Prop.TenantId);
+                    .GetEmployeeRolesWithDetailsByIdAsync(request.DTO.Prop.EmployeeId, request.DTO.Prop.TenantId);
 
                 var userRoleDTOs = _mapper.Map<List<UserRoleDTO>>(updatedRoles);
 

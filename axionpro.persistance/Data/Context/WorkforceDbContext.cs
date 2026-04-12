@@ -1498,37 +1498,47 @@ namespace axionpro.persistance.Data.Context
 
             modelBuilder.Entity<PolicyTypeDocument>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__CompanyP__3214EC07BADB592E");
+                entity.HasKey(e => e.Id)
+                    .HasName("PK__CompanyP__3214EC07BADB592E");
 
                 entity.ToTable("PolicyTypeDocument", "axionpro");
 
-                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("(getdate())");
-                entity.Property(e => e.DocumentTitle).HasMaxLength(200);
+                entity.Property(e => e.AddedDateTime)
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                    .HasColumnType("timestamp with time zone");
 
+                entity.Property(e => e.DocumentTitle).HasMaxLength(200);
                 entity.Property(e => e.FileName).HasMaxLength(200);
                 entity.Property(e => e.FilePath).HasMaxLength(500);
+
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
 
-
-                entity.HasOne(d => d.PolicyType).WithMany(p => p.PolicyTypeDocuments)
+                entity.HasOne(d => d.PolicyType)
+                    .WithMany(p => p.PolicyTypeDocuments)
                     .HasForeignKey(d => d.PolicyTypeId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_CompanyPolicyDocument_PolicyType");
             });
             modelBuilder.Entity<InsurancePolicyDocument>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Insuranc__3214EC07B3D0A432");
+                entity.HasKey(e => e.Id)
+                    .HasName("PK__Insuranc__3214EC07B3D0A432");
 
                 entity.ToTable("InsurancePolicyDocument", "axionpro");
 
-                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("(getdate())");
+                entity.Property(e => e.AddedDateTime)
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                    .HasColumnType("timestamp with time zone");
+
                 entity.Property(e => e.DocumentType).HasMaxLength(50);
                 entity.Property(e => e.FileName).HasMaxLength(200);
                 entity.Property(e => e.FilePath).HasMaxLength(500);
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.LanguageCode).HasMaxLength(10);
 
-                entity.HasOne(d => d.InsurancePolicy).WithMany(p => p.InsurancePolicyDocuments)
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+
+                entity.HasOne(d => d.InsurancePolicy)
+                    .WithMany(p => p.InsurancePolicyDocuments)
                     .HasForeignKey(d => d.InsurancePolicyId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_InsurancePolicyDocument_InsurancePolicy");
@@ -1536,19 +1546,26 @@ namespace axionpro.persistance.Data.Context
 
             modelBuilder.Entity<EmployeeInsuranceMapping>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC07EADC980E");
+                entity.HasKey(e => e.Id)
+                    .HasName("PK__Employee__3214EC07EADC980E");
 
                 entity.ToTable("EmployeeInsuranceMapping", "axionpro");
 
-                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("(getdate())");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.AddedDateTime)
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                    .HasColumnType("timestamp with time zone");
 
-                entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeInsuranceMappings)
+                entity.Property(e => e.IsActive)
+                    .HasDefaultValue(true);
+
+                entity.HasOne(d => d.Employee)
+                    .WithMany(p => p.EmployeeInsuranceMappings)
                     .HasForeignKey(d => d.EmployeeId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_EmployeeInsuranceMapping_Employee");
 
-                entity.HasOne(d => d.InsurancePolicy).WithMany(p => p.EmployeeInsuranceMappings)
+                entity.HasOne(d => d.InsurancePolicy)
+                    .WithMany(p => p.EmployeeInsuranceMappings)
                     .HasForeignKey(d => d.InsurancePolicyId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_EmployeeInsuranceMapping_InsurancePolicy");
@@ -2440,17 +2457,24 @@ namespace axionpro.persistance.Data.Context
             {
                 entity.HasKey(e => e.Id).HasName("PK__PolicyTy__3214EC07AAE08A64");
                 entity.ToTable("PolicyType", "axionpro");
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
+                 
                 entity.Property(e => e.Description).HasColumnType("text");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.IsSoftDelete).HasDefaultValue(false);
                 entity.Property(e => e.PolicyName).HasMaxLength(255);
-                entity.Property(e => e.SoftDeleteDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdateDateTime).HasColumnType("datetime");
+              
                 entity.HasOne(d => d.Tenant).WithMany(p => p.PolicyTypes)
                     .HasForeignKey(d => d.TenantId)
                     .HasConstraintName("FK_PolicyType_Tenant");
+                entity.Property(e => e.AddedDateTime)
+                  .HasColumnType("timestamp with time zone")
+                  .HasDefaultValueSql("CURRENT_TIMESTAMP"); // 🔥 important
 
+                            entity.Property(e => e.UpdateDateTime)
+                                .HasColumnType("timestamp with time zone");
+
+                            entity.Property(e => e.SoftDeleteDateTime)
+                                .HasColumnType("timestamp with time zone");
 
             });
 
@@ -3252,14 +3276,20 @@ namespace axionpro.persistance.Data.Context
             modelBuilder.Entity<UnStructuredPolicyTypeMappingWithEmployeeType>(entity =>
             {
                 entity.ToTable("UnStructuredPolicyTypeMappingWithEmployeeType", "axionpro");
-
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                    .HasColumnType("timestamp without time zone");
+                         .HasColumnType("timestamp with time zone")
+                         .HasDefaultValueSql("CURRENT_TIMESTAMP"); // 🔥 important
+
+                 entity.Property(e => e.UpdatedDateTime)
+                    .HasColumnType("timestamp with time zone");
+
+                entity.Property(e => e.SoftDeletedDateTime)
+                    .HasColumnType("timestamp with time zone");
+
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.SoftDeletedDateTime).HasColumnType("timestamp without time zone");
-                entity.Property(e => e.StartDate).HasColumnType("timestamp without time zone");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp without time zone");
+                
+                entity.Property(e => e.StartDate).HasColumnType("timestamp with time zone");
+       
 
                 entity.HasOne(d => d.EmployeeType).WithMany(p => p.UnStructuredPolicyTypeMappingWithEmployeeType)
                     .HasForeignKey(d => d.EmployeeTypeId)

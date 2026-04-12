@@ -55,6 +55,31 @@ namespace axionpro.persistance.Repositories
                 return null;
             }
         }
+        public async Task<PolicyTypeDocument?> GetByPolicyTypeIdAsync(
+    int policyTypeId,
+    long tenantId)
+        {
+            try
+            {
+                return await _context.PolicyTypeDocuments
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x =>
+                        x.PolicyTypeId == policyTypeId &&
+                        x.TenantId == tenantId &&
+                        x.IsActive == true &&
+                        (x.IsSoftDeleted !=true));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "❌ Error fetching PolicyTypeDocument. PolicyTypeId: {PolicyTypeId}, TenantId: {TenantId}",
+                    policyTypeId,
+                    tenantId);
+
+                return null;
+            }
+        }
         public async Task<List<PolicyTypeDocument>> GetByPolicyTypeIdsAsync(
             List<int> policyTypeIds,
     long tenantId)
@@ -117,8 +142,8 @@ namespace axionpro.persistance.Repositories
             try
             {
                
-                _context.PolicyTypeDocuments.Update(entity);
-                await _context.SaveChangesAsync();
+                _context.Update(entity);
+                 
 
                 return true;
             }
@@ -148,7 +173,7 @@ namespace axionpro.persistance.Repositories
                 entity.IsSoftDeleted = true;
                 entity.SoftDeletedDateTime = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                _context.Update(entity);
                 return true;
             }
             catch (Exception ex)

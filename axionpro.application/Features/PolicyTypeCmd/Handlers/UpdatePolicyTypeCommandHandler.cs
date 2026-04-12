@@ -46,14 +46,12 @@ public class UpdatePolicyTypeCommandHandler
     }
 
     public async Task<ApiResponse<GetPolicyTypeResponseDTO>> Handle(
-        UpdatePolicyTypeCommand request,
-        CancellationToken cancellationToken)
+    UpdatePolicyTypeCommand request,
+    CancellationToken cancellationToken)
     {
         string? uploadedFileKey = null;
         string fileName = string.Empty;
         bool hasPolicyDocUploaded = false;
-
-        await _unitOfWork.BeginTransactionAsync();
 
         try
         {
@@ -68,17 +66,6 @@ public class UpdatePolicyTypeCommandHandler
                 throw new UnauthorizedAccessException(validation.ErrorMessage);
 
             // ===============================
-            // ✅ RBAC PERMISSION CHECK
-            // ===============================
-            //var hasAccess = await _permissionService.HasAccessAsync(
-            //    validation.RoleId,
-            //    Modules.PolicyType,
-            //    Operations.Update);
-
-            //if (!hasAccess)
-            //    throw new UnauthorizedAccessException("Access denied.");
-
-            // ===============================
             // ✅ REQUEST VALIDATION
             // ===============================
             if (request?.DTO == null || request.DTO.Id <= 0)
@@ -88,7 +75,12 @@ public class UpdatePolicyTypeCommandHandler
                 throw new ValidationErrorException("At least one EmployeeType is required.");
 
             // ===============================
-            // 🔥 FILE UPLOAD FIRST (SAFE)
+            // 🔥 START TRANSACTION
+            // ===============================
+            await _unitOfWork.BeginTransactionAsync();
+
+            // ===============================
+            // 🔥 FILE UPLOAD
             // ===============================
             if (request.DTO.FormFile != null && request.DTO.FormFile.Length > 0)
             {
@@ -107,12 +99,11 @@ public class UpdatePolicyTypeCommandHandler
                     folderPath,
                     fileName);
 
-                if (!string.IsNullOrWhiteSpace(uploadedFileKey))
-                    hasPolicyDocUploaded = true;
+                hasPolicyDocUploaded = !string.IsNullOrWhiteSpace(uploadedFileKey);
             }
 
             // ===============================
-            // 🔥 FETCH EXISTING POLICY
+            // 🔥 FETCH POLICY
             // ===============================
             var policyType = await _unitOfWork.PolicyTypeRepository
                 .GetPolicyTypeByIdAsync(request.DTO.Id, true);
@@ -121,7 +112,7 @@ public class UpdatePolicyTypeCommandHandler
                 throw new ApiException("Policy type not found.", 404);
 
             // ===============================
-            // 🔥 UPDATE MAIN ENTITY
+            // 🔥 UPDATE ENTITY
             // ===============================
             policyType.PolicyName = request.DTO.PolicyName.Trim();
             policyType.Description = request.DTO.Description?.Trim();
@@ -134,7 +125,7 @@ public class UpdatePolicyTypeCommandHandler
             policyType.UpdateDateTime = DateTime.UtcNow;
 
             await _unitOfWork.PolicyTypeRepository.UpdatePolicyTypeAsync(policyType);
-
+           
             // ===============================
             // 🔥 REPLACE EMPLOYEE TYPE MAPPING
             // ===============================
@@ -149,6 +140,13 @@ public class UpdatePolicyTypeCommandHandler
                 item.SoftDeletedDateTime = DateTime.UtcNow;
             }
 
+            if (existingMappings.Any())
+            {
+                await _unitOfWork
+                    .UnStructuredEmployeePolicyTypeMappingRepository
+                    .UpdateRangeAsync(existingMappings); // 🔥 FIXED
+            }
+
             var newMappings = request.DTO.EmployeeTypeIds
                 .Distinct()
                 .Select(empTypeId => new UnStructuredPolicyTypeMappingWithEmployeeType
@@ -161,8 +159,7 @@ public class UpdatePolicyTypeCommandHandler
                     AddedById = validation.UserEmployeeId,
                     AddedDateTime = DateTime.UtcNow,
                     IsSoftDeleted = false
-                })
-                .ToList();
+                }).ToList();
 
             if (newMappings.Any())
             {
@@ -177,11 +174,10 @@ public class UpdatePolicyTypeCommandHandler
             if (hasPolicyDocUploaded && uploadedFileKey != null)
             {
                 var existingDoc = await _unitOfWork.PolicyTypeDocumentRepository
-                    .GetByIdAsync(policyType.Id, validation.TenantId, true);
+                    .GetByPolicyTypeIdAsync(policyType.Id, validation.TenantId); // 🔥 FIXED
 
                 if (existingDoc != null)
                 {
-                    // 🔥 DELETE OLD FILE
                     if (!string.IsNullOrEmpty(existingDoc.FilePath))
                         await _fileStorageService.DeleteFileAsync(existingDoc.FilePath);
 
@@ -191,6 +187,7 @@ public class UpdatePolicyTypeCommandHandler
                     existingDoc.UpdatedDateTime = DateTime.UtcNow;
 
                     await _unitOfWork.PolicyTypeDocumentRepository.UpdateAsync(existingDoc);
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
                 }
                 else
                 {
@@ -209,15 +206,14 @@ public class UpdatePolicyTypeCommandHandler
                         });
                 }
             }
-
+            
             // ===============================
-            // ✅ COMMIT TRANSACTION
+            // ✅ COMMIT
             // ===============================
-
             await _unitOfWork.CommitTransactionAsync();
 
             // ===============================
-            // 🔥 BUILD RESPONSE (CORRECT WAY)
+            // 🔥 RESPONSE
             // ===============================
             var response = new GetPolicyTypeResponseDTO
             {
@@ -227,16 +223,11 @@ public class UpdatePolicyTypeCommandHandler
                 IsActive = policyType.IsActive ?? false,
                 IsStructured = policyType.IsStructured,
                 PolicyTypeEnumVal = policyType.PolicyTypeEnumVal,
-
-                // 🔥 Employee Types
                 EmployeeTypeIds = request.DTO.EmployeeTypeIds.ToList(),
-
-                // 🔥 Documents
                 DocDetails = new List<GetPolicyTypeDocumentResponseDTO>()
             };
 
-            // 🔥 ADD DOCUMENT IF UPLOADED
-            if (hasPolicyDocUploaded && !string.IsNullOrWhiteSpace(uploadedFileKey))
+            if (hasPolicyDocUploaded && uploadedFileKey != null)
             {
                 response.DocDetails.Add(new GetPolicyTypeDocumentResponseDTO
                 {
@@ -248,13 +239,13 @@ public class UpdatePolicyTypeCommandHandler
                 });
             }
 
-            return ApiResponse<GetPolicyTypeResponseDTO>.Success(response, "Policy type updated successfully.");
+            return ApiResponse<GetPolicyTypeResponseDTO>
+                .Success(response, "Policy type updated successfully.");
         }
         catch (Exception ex)
         {
             await _unitOfWork.RollbackTransactionAsync();
 
-            // 🔥 FILE CLEANUP
             if (!string.IsNullOrEmpty(uploadedFileKey))
             {
                 try { await _fileStorageService.DeleteFileAsync(uploadedFileKey); }

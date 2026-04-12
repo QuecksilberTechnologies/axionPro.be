@@ -57,8 +57,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
         {
             string? uploadedFileKey = null;
             bool hasPolicyDocUploaded = false; // ✅ FIX
-
-            await _unitOfWork.BeginTransactionAsync();
+ 
 
             try
             {
@@ -122,7 +121,9 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                     HasPolicyDocUploaded = hasPolicyDocUploaded, // ✅ CORRECT
                     IsSoftDelete = false,
                     AddedById = validation.UserEmployeeId,
-                    AddedDateTime = DateTime.UtcNow
+                    AddedDateTime = DateTime.UtcNow,
+                    UpdateDateTime = null  ,
+                    SoftDeleteDateTime = null  ,
                 };
 
                 var createdPolicyType =
@@ -142,9 +143,11 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                         EmployeeTypeId = empTypeId,
                         PolicyTypeId = createdPolicyType.Id,
                         IsActive = true,
-                        StartDate = DateTime.UtcNow,
+                        
                         AddedById = validation.UserEmployeeId,
                         AddedDateTime = DateTime.UtcNow,
+                        UpdatedDateTime = null,
+                        SoftDeletedDateTime = null,
                         IsSoftDeleted = false
                     })
                     .ToList();
@@ -170,13 +173,16 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                         IsActive = request.DTO.IsActive,
                         IsSoftDeleted = false,
                         AddedById = validation.UserEmployeeId,
-                        AddedDateTime = DateTime.UtcNow
+                        AddedDateTime = DateTime.UtcNow,
+                        UpdatedDateTime = null,
+                        SoftDeletedDateTime = null,
+                        
                     };
 
                     await _unitOfWork.PolicyTypeDocumentRepository.AddAsync(doc);
                 }
-
                 await _unitOfWork.CommitTransactionAsync();
+
                 // 🔥 FIX: DocDetails
                 if (hasPolicyDocUploaded && !string.IsNullOrWhiteSpace(uploadedFileKey))
                 {
@@ -205,7 +211,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
             }
             catch (Exception ex)
             {
-                await _unitOfWork.RollbackTransactionAsync();
+               
 
                 _logger.LogError(ex, "❌ CreatePolicyType failed");
 

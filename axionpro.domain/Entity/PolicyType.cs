@@ -22,7 +22,7 @@ public partial class PolicyType
 
     public long? AddedById { get; set; }
 
-    public DateTime? AddedDateTime { get; set; }
+    public DateTime AddedDateTime { get; set; }
 
     public long? UpdateById { get; set; }
 
@@ -30,7 +30,7 @@ public partial class PolicyType
 
     public long? SoftDeleteById { get; set; }
 
-    public DateTime? SoftDeleteDateTime { get; set; }
+    public DateTime? SoftDeleteDateTime { get; set; } 
     public bool HasPolicyDocUploaded { get; set; }
 
     public virtual ICollection<AccoumndationAllowancePolicyByDesignation> AccoumndationAllowancePolicyByDesignations { get; set; } = new List<AccoumndationAllowancePolicyByDesignation>();

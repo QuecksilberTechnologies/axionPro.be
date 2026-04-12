@@ -24,7 +24,7 @@ namespace axionpro.application.DTOS.UserRoles
     } 
    public class UserRoleListDTO 
     {
-        public long EmployeeId { get; set; } = 0;
+        public required string EmployeeId { get; set; } 
         public List<UserRoleDTO> UserRoles { get; set; } = new List<UserRoleDTO>();
         public ExtraPropRequestDTO? Prop { get; set; } = new ExtraPropRequestDTO();
     }

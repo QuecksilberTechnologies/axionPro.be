@@ -23,8 +23,8 @@ namespace axionpro.application.Interfaces.IRepositories
         Task<bool> UpdateAsync(PolicyTypeDocument entity);
 
         // 🔹 SOFT DELETE
-
-          Task<bool> SoftDeleteByPolicyTypeIdAsync( int policyTypeId, long deletedById);
+        Task<PolicyTypeDocument?> GetByPolicyTypeIdAsync(int policyTypeId, long tenantId);
+        Task<bool> SoftDeleteByPolicyTypeIdAsync( int policyTypeId, long deletedById);
 
         Task<bool> SoftDeleteOnlyDocAsync(PolicyTypeDocument entity);
 
