@@ -53,6 +53,21 @@ namespace axionpro.api.Controllers.Insurance
         }
 
         // 🔹 GET INSURANCE LIST (GRID)
+        [HttpGet("get-detail-ddl")]     
+        
+        public async Task<IActionResult> GetDetailList(
+            [FromQuery] GetAllInsurancePolicyRequestWithEmployeeIdDTO requestDto)
+        {
+            _logger.LogInfo("Fetching insurance policy list.");
+
+            var query = new GetConsumedInsuranceListQuery(requestDto);
+            var result = await _mediator.Send(query);
+
+
+            return Ok(result);
+        }
+
+        // 🔹 GET INSURANCE LIST (GRID)
         [HttpGet("get-all")]        
         public async Task<IActionResult> GetList(
             [FromQuery] GetInsurancePolicyRequestDTO requestDto)

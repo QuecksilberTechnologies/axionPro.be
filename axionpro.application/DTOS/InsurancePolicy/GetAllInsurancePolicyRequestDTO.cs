@@ -13,8 +13,9 @@ namespace axionpro.application.DTOS.InsurancePolicy
 
        public required int PolicyId { get; set; }
         public required bool  IsActive { get; set; }
-        
+
     }
+    
 
 
 }

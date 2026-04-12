@@ -1,13 +1,14 @@
 ﻿using axionpro.application.DTOS.InsurancePolicy;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Wrappers;
-
+using axionpro.domain.Entity; 
+using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
-
+using System.Threading.Tasks;
+using static axionpro.application.DTOS.InsurancePolicy.GetAlllnsurancePolicyResponseDTO;
 namespace axionpro.application.Interfaces.IRepositories
 {
     public interface IInsuranceRepository
@@ -23,7 +24,8 @@ namespace axionpro.application.Interfaces.IRepositories
         Task<PagedResponseDTO<GetInsurancePolicyResponseDTO>> GetListAsync(  GetInsurancePolicyRequestDTO request  );
 
         Task<ApiResponse<List<GetAlllnsurancePolicyResponseDTO>>> GetAllListAsync(int policyId, bool isActive);
-
+        Task<ApiResponse<List<GetAlllnsurancePolicyWithDetailsResponseDTO>>> GetAllPolicyListWithConsumedDetailsAsync(long employeeId, int policyId, bool isActive);
+         
       
         // 🔹 UPDATE
         Task<bool> UpdateAsync(InsurancePolicy policy);

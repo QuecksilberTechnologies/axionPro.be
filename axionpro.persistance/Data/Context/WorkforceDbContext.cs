@@ -610,10 +610,10 @@ namespace axionpro.persistance.Data.Context
 
                 entity.Property(e => e.CreatedDate)
                     .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                    .HasColumnType("timestamp without time zone");
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.DeviceSn).HasMaxLength(50);
                 entity.Property(e => e.EmployeeCode).HasMaxLength(50);
-                entity.Property(e => e.PunchTime).HasColumnType("timestamp without time zone");
+                entity.Property(e => e.PunchTime).HasColumnType("timestamp with time zone");
             });
             modelBuilder.Entity<AttendanceHistory>(entity =>
             {
@@ -917,11 +917,11 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.CommandName).HasMaxLength(50);
                 entity.Property(e => e.CreatedDate)
                     .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                    .HasColumnType("timestamp without time zone");
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.DeviceSn).HasMaxLength(50);
                 entity.Property(e => e.RetryCount).HasDefaultValue(0);
                 entity.Property(e => e.Status).HasDefaultValue(0);
-                entity.Property(e => e.UpdatedDate).HasColumnType("timestamp without time zone");
+                entity.Property(e => e.UpdatedDate).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Device).WithMany(p => p.DeviceCommandQueues)
                     .HasForeignKey(d => d.DeviceId)
@@ -941,10 +941,10 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.CommandName).HasMaxLength(50);
                 entity.Property(e => e.CreatedDate)
                     .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                    .HasColumnType("timestamp without time zone");
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.DeviceSn).HasMaxLength(50);
                 entity.Property(e => e.IsProcessed).HasDefaultValue(false);
-                entity.Property(e => e.ProcessedDate).HasColumnType("timestamp without time zone");
+                entity.Property(e => e.ProcessedDate).HasColumnType("timestamp with time zone");
             });
 
             modelBuilder.Entity<DeviceMaster>(entity =>
@@ -957,7 +957,7 @@ namespace axionpro.persistance.Data.Context
 
                 entity.Property(e => e.CreatedDate)
                     .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                    .HasColumnType("timestamp without time zone");
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.DeviceName).HasMaxLength(100);
                 entity.Property(e => e.DeviceSn).HasMaxLength(50);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
@@ -1752,11 +1752,11 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.Id).UseIdentityAlwaysColumn();
                 entity.Property(e => e.AddedDateTime)
                     .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                    .HasColumnType("timestamp without time zone");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("timestamp without time zone");
+                    .HasColumnType("timestamp with time zone");
+                entity.Property(e => e.DeletedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.IsCovered).HasDefaultValue(true);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp without time zone");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Dependent).WithMany(p => p.EmployeePolicyDependentMapping)
                     .HasForeignKey(d => d.DependentId)
@@ -1778,12 +1778,12 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.Id).UseIdentityAlwaysColumn();
                 entity.Property(e => e.AddedDateTime)
                     .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                    .HasColumnType("timestamp without time zone");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("timestamp without time zone");
-                entity.Property(e => e.EndDate).HasColumnType("timestamp without time zone");
+                    .HasColumnType("timestamp with time zone");
+                entity.Property(e => e.DeletedDateTime).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.EndDate).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.StartDate).HasColumnType("timestamp without time zone");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp without time zone");
+                entity.Property(e => e.StartDate).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Employee).WithMany(p => p.EmployeePolicyEnrollment)
                     .HasForeignKey(d => d.EmployeeId)

@@ -52,10 +52,10 @@ namespace axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers
             _fileStorageService = fileStorageService;
             _idEncoderService = idEncoderService;
         }
-        public async Task<ApiResponse<GetEmployeeEnrolledResponseDTO>> Handle( CreateEmployeeInsuranceEnrollCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<GetEmployeeEnrolledResponseDTO>> Handle(
+     CreateEmployeeInsuranceEnrollCommand request,
+     CancellationToken cancellationToken)
         {
-            string? uploadedFileKey = null;
-
             try
             {
                 _logger.LogInformation("🔹 CreateEmployeeInsuranceEnroll started");
@@ -72,35 +72,48 @@ namespace axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers
                     throw new ValidationErrorException("Invalid request.");
 
                 // ===============================
-                // 🔐 STEP 2: PERMISSION CHECK
+                // 🔥 STEP 2: ENROLLMENT (INSERT OR USE EXISTING)
                 // ===============================
-                //var hasAccess = await _unitOfWork.PermissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.EmployeeInsurance,
-                //    Operations.Add);
+                EmployeePolicyEnrollment createdEnrollment;
 
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("Access denied.");
-
-                // ===============================
-                // 🔥 STEP 3: ENROLLMENT SAVE (FIRST COMMIT)
-                // ===============================
-                EmployeePolicyEnrollment createdEnrollment = null;
-
-                // 🔥 CHECK EXISTING
                 var existingEnrollment = await _unitOfWork
-                    .EmployeePolicyEnrollmentRepository.GetExistingAsync( validation.UserEmployeeId,request.DTO.PolicyTypeId,request.DTO.InsurancePolicyId,validation.TenantId);
+                    .EmployeePolicyEnrollmentRepository.GetExistingAsync(
+                        validation.UserEmployeeId,
+                        request.DTO.PolicyTypeId,
+                        request.DTO.InsurancePolicyId,
+                        validation.TenantId);
 
                 if (existingEnrollment != null)
                 {
-                    // ✅ USE EXISTING (NO INSERT)
                     createdEnrollment = existingEnrollment;
 
-                    _logger.LogInformation("⚠️ Enrollment already exists. Skipping insert.");
+                    _logger.LogInformation("⚠️ Enrollment already exists. Using existing record.");
+                }
+                else
+                {
+                    createdEnrollment = new EmployeePolicyEnrollment
+                    {
+                        TenantId = validation.TenantId,
+                        EmployeeId = validation.UserEmployeeId,
+                        PolicyTypeId = request.DTO.PolicyTypeId,
+                        InsurancePolicyId = request.DTO.InsurancePolicyId,
+                        HasDependent = request.DTO.HasDependent,
+                        StartDate = request.DTO.StartDate,
+                        EndDate = request.DTO.EndDate,
+                        IsActive = true,
+                        IsSoftDeleted = false,
+                        AddedById = validation.UserEmployeeId,
+                        AddedDateTime = DateTime.UtcNow
+                    };
+
+                    await _unitOfWork.EmployeePolicyEnrollmentRepository.AddAsync(createdEnrollment);
+                     
+
+                    _logger.LogInformation("✅ New enrollment inserted successfully");
                 }
 
                 // ===============================
-                // 🔥 STEP 4: DEPENDENT SAVE (SECOND COMMIT - OPTIONAL)
+                // 🔥 STEP 3: DEPENDENT MAPPING
                 // ===============================
                 List<GetEmployeeDependentResponsePolicyDTO> dependentList = new();
 
@@ -110,29 +123,21 @@ namespace axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers
                     {
                         await _unitOfWork.BeginTransactionAsync();
 
-                        // ===============================
-                        // 🔥 STEP 1: EXISTING MAPPINGS FETCH
-                        // ===============================
                         var existingMappings = await _unitOfWork
                             .EmployeeDependentInsuranceMappingRepository
                             .GetByEnrollmentIdAsync(createdEnrollment.Id, validation.TenantId);
 
                         var existingDependentIds = existingMappings
                             .Select(x => x.DependentId)
-                            .ToHashSet();   // 🔥 FAST LOOKUP
+                            .ToHashSet();
 
-                        // ===============================
-                        // 🔥 STEP 2: FILTER ONLY NEW DEPENDENTS
-                        // ===============================
                         var newDependents = request.DTO.Dependents
                             .Where(d => !existingDependentIds.Contains(d.DependentId))
                             .ToList();
 
+                        // 🔥 INSERT NEW MAPPINGS
                         if (newDependents.Any())
                         {
-                            // ===============================
-                            // 🔥 STEP 3: INSERT ONLY NEW
-                            // ===============================
                             var mappings = newDependents.Select(dep => new EmployeePolicyDependentMapping
                             {
                                 TenantId = validation.TenantId,
@@ -150,9 +155,7 @@ namespace axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers
                                 .AddRangeAsync(mappings);
                         }
 
-                        // ===============================
-                        // 🔥 STEP 4: UPDATE DEPENDENTS (ONLY NEW ONES)
-                        // ===============================
+                        // 🔥 UPDATE DEPENDENTS
                         var dependentIdsToUpdate = newDependents
                             .Select(d => d.DependentId)
                             .ToList();
@@ -179,9 +182,7 @@ namespace axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers
 
                         await _unitOfWork.CommitTransactionAsync();
 
-                        // ===============================
-                        // 🔹 RESPONSE BUILD (ALL DEPENDENTS)
-                        // ===============================
+                        // 🔥 FINAL FETCH
                         var finalMappings = await _unitOfWork
                             .EmployeeDependentInsuranceMappingRepository
                             .GetByEnrollmentIdAsync(createdEnrollment.Id, validation.TenantId);
@@ -225,10 +226,10 @@ namespace axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Critical failure in enrollment");
-
                 throw;
             }
         }
+
     }
 
     }

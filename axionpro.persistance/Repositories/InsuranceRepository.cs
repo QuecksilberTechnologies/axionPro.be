@@ -5,12 +5,11 @@ using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
-
+using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-
-using axionpro.domain.Entity;
+using static axionpro.application.DTOS.InsurancePolicy.GetAlllnsurancePolicyResponseDTO;
 
 namespace axionpro.persistance.Repositories
 {
@@ -187,7 +186,70 @@ namespace axionpro.persistance.Repositories
                     .Fail("An unexpected error occurred while fetching insurance policies.");
             }
         }
+        public async Task<ApiResponse<List<GetAlllnsurancePolicyWithDetailsResponseDTO>>>
+ GetAllPolicyListWithConsumedDetailsAsync(long employeeId, int policyTypeId, bool isActive)
+        {
+            try
+            {
+                var policies = await _context.InsurancePolicies
+                    .AsNoTracking()
+                    .Where(x =>
+                        x.PolicyTypeId == policyTypeId &&
+                        x.IsActive == isActive &&
+                        !x.IsSoftDeleted)
+                    .OrderBy(x => x.InsurancePolicyName)
+                    .ToListAsync();
 
+                if (!policies.Any())
+                {
+                    return ApiResponse<List<GetAlllnsurancePolicyWithDetailsResponseDTO>>
+                        .Success(new List<GetAlllnsurancePolicyWithDetailsResponseDTO>(), "No policies found.");
+                }
+
+                var enrollments = await _context.EmployeePolicyEnrollment
+                    .Where(x => x.EmployeeId == employeeId && !x.IsSoftDeleted)
+                    .ToListAsync();
+
+                var enrollmentIds = enrollments.Select(x => x.Id).ToList();
+
+                var dependentMappings = await _context.EmployeePolicyDependentMapping
+                    .Where(x =>
+                        enrollmentIds.Contains(x.EmployeePolicyEnrollmentId) &&
+                        x.IsActive &&
+                        !x.IsSoftDeleted)
+                    .ToListAsync();
+
+                var result = policies.Select(policy =>
+                {
+                    var enrollment = enrollments
+                        .FirstOrDefault(e => e.InsurancePolicyId == policy.Id);
+
+                    var mappings = dependentMappings
+                        .Where(m => m.EmployeePolicyEnrollmentId == (enrollment != null ? enrollment.Id : 0))
+                        .ToList();
+
+                    var coveredCount = mappings.Count(m => m.IsCovered);
+
+                    return new GetAlllnsurancePolicyWithDetailsResponseDTO
+                    {
+                        InsurancePolicyId = policy.Id,
+                        PolicyTypeId = policy.PolicyTypeId,
+                        InsurancePolicyName = policy.InsurancePolicyName,
+                        IsEmployeeConsumed = enrollment != null,
+                        IsDependentConsumed = coveredCount > 0,
+                        ConsumedDependentCount = coveredCount
+                    };
+                }).ToList();
+
+                return ApiResponse<List<GetAlllnsurancePolicyWithDetailsResponseDTO>>
+                    .Success(result, "Success");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Repository error");
+                throw;
+            }
+        }
 
 
 
