@@ -47,6 +47,7 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
         private readonly IIdEncoderService _idEncoderService;
         private readonly IFileStorageService _fileStorageService;
         private readonly ICommonRequestService _commonRequestService;
+        
 
         public GetAllAssetCommandHandler(
             IUnitOfWork unitOfWork,
@@ -148,7 +149,7 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
                     assets,
                     _idEncoderService,
                     validation.Claims.TenantEncriptionKey,
-                    _config);
+                    _config, _fileStorageService);
 
                 _logger.LogInformation(
                     "Successfully retrieved {Count} assets for TenantId: {TenantId}",

@@ -37,6 +37,8 @@ namespace axionpro.application.DTOS.AssetDTO.asset
         public int? AssetStatusId { get; set; }
         public string? ColorKey { get; set; }
         public string? StatusName { get; set; }
+
+      
       //   public bool? IsAssigned { get; set; }
        // public bool IsActive { get; set; }
     }

@@ -36,7 +36,7 @@ public partial class Asset : BaseEntity
 
     public int? AssetStatusId { get; set; }
 
-    public bool? IsAssigned { get; set; }
+    public bool IsAssigned { get; set; }
     public virtual ICollection<AssetImage> AssetImages { get; set; } = new List<AssetImage>();
 
     public virtual ICollection<AssetAssignment> AssetAssignments { get; set; } = new List<AssetAssignment>();

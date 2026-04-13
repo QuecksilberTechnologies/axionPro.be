@@ -250,39 +250,21 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
  
      
         public static List<GetAssetResponseDTO> ToGetAssetResponseDTOs( List<GetAssetResponseDTO> source, IIdEncoderService encoderService,
-        string tenantKey, IConfiguration configuration)
+        string tenantKey, IConfiguration configuration, IFileStorageService fileStorageService)
         {
             if (source == null || source.Count == 0)
                 return source ?? new List<GetAssetResponseDTO>();
-
-            string baseUrl =
-                configuration["FileSettings:BaseUrl"] ?? string.Empty;
-
-            string defaultImg =
-                configuration["FileSettings:DefaultImage"] ?? string.Empty;
-
+ 
             foreach (var item in source)
             {
                 if (item == null)
                     continue;
-
-                // 🔹 Normalize null
-                item.AssetImagePath ??= string.Empty;
+ 
 
                 // 🔹 Build full image URL
-                if (!string.IsNullOrWhiteSpace(item.AssetImagePath))
-                {
-                    item.AssetImagePath =
-                        $"{baseUrl}{item.AssetImagePath}";
-                }
-                else
-                {
-                    // 🔹 fallback default image (optional but recommended)
-                    item.AssetImagePath =
-                        string.IsNullOrEmpty(defaultImg)
-                            ? string.Empty
-                            : $"{baseUrl}{defaultImg}";
-                }
+
+                if (!string.IsNullOrEmpty(item.AssetImagePath))
+                    item.AssetImagePath = fileStorageService.GetFileUrl(item.AssetImagePath);
             }
 
             return source;

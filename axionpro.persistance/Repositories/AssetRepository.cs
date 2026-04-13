@@ -166,7 +166,7 @@ namespace axionpro.persistance.Repositories
                 PurchaseDate = asset.PurchaseDate,
                 WarrantyExpiryDate = asset.WarrantyExpiryDate,
                 AssetStatusId = asset.AssetStatusId,
-                IsAssigned = asset.IsAssigned ?? false,
+                IsAssigned = asset.IsAssigned ,
                 IsActive = asset.IsActive,
                 AssetImageId = image?.Id,
                 AssetImagePath = image?.AssetImagePath,
@@ -312,12 +312,11 @@ namespace axionpro.persistance.Repositories
                 throw;
             }
         }
-
         public async Task<List<GetAssetResponseDTO>> GetAssetsByFilterAsync(GetAssetRequestDTO asset)
         {
             try
             {
-                // ✅ Null-safe fallback instead of exception
+                // ✅ Null-safe fallback
                 if (asset == null || asset.Prop == null)
                 {
                     _logger.LogWarning("⚠️ GetAssetsByFilterAsync called with null filter");
@@ -329,7 +328,7 @@ namespace axionpro.persistance.Repositories
                     .Where(a => a.TenantId == asset.Prop.TenantId &&
                                 (a.IsSoftDeleted == false || a.IsSoftDeleted == null));
 
-                // 🔹 Filters (NULL SAFE)
+                // 🔹 Filters
                 if (asset.AssetId > 0)
                     query = query.Where(a => a.Id == asset.AssetId);
 
@@ -350,36 +349,49 @@ namespace axionpro.persistance.Repositories
                 if (asset.IsAssigned.HasValue)
                     query = query.Where(a => a.IsAssigned == asset.IsAssigned);
 
-                // 🔥 Execute query
-                var assets = await query
+                // 🔥 FINAL QUERY (Single DB Call)
+                var result = await query
                     .OrderByDescending(a => a.Id)
+                    .Select(a => new GetAssetResponseDTO
+                    {
+                        AssetId = a.Id,
+                        AssetName = a.AssetName,
+
+                        AssetTypeId = a.AssetTypeId,
+                        TypeName = a.AssetType != null ? a.AssetType.TypeName : null,
+
+                        // 🔥 NEW FIELD
+                        CategoryId = a.AssetType != null ? a.AssetType.AssetCategoryId : null,
+                        CategoryName = a.AssetType != null && a.AssetType.AssetCategory != null ? a.AssetType.AssetCategory.CategoryName : null,
+
+
+                        SerialNumber = a.SerialNumber,
+                        ModelNumber = a.ModelNo,
+                        AssetStatusId = a.AssetStatusId,
+                        StatusName = a.AssetStatus != null ? a.AssetStatus.StatusName : null,
+                        ColorKey = a.AssetStatus != null ? a.AssetStatus.ColorKey : null,
+
+                        Size = a.Size,
+                        Weight = a.Weight,
+                        Company = a.Company,
+                        Color = a.Color,
+                        Price = a.Price,
+
+                        IsActive = a.IsActive,
+                        IsAssigned = a.IsAssigned,
+
+                        PurchaseDate = a.PurchaseDate,
+                        WarrantyExpiryDate = a.WarrantyExpiryDate,
+
+                        // 🔥 Primary Image
+                        AssetImagePath = a.AssetImages
+                            .Where(i => i.IsPrimary == true && (i.IsSoftDeleted != true) && (i.IsActive == true))
+                            .Select(i => i.AssetImagePath)
+                            .FirstOrDefault()
+                    })
                     .ToListAsync();
 
-                if (assets == null || !assets.Any())
-                    return new List<GetAssetResponseDTO>();
-
-                var assetIds = assets.Select(a => a.Id).ToList();
-
-                // 🔥 Images null-safe
-                var images = await _context.AssetImages
-                    .Where(i => assetIds.Contains(i.AssetId))
-                    .ToListAsync();
-
-                var imageDict = images?
-                    .GroupBy(i => i.AssetId)
-                    .ToDictionary(g => g.Key, g => g.FirstOrDefault())
-                    ?? new Dictionary<long, AssetImage>();
-
-                // 🔥 Final Mapping (NULL SAFE)
-                var result = assets.Select(a =>
-                {
-                    imageDict.TryGetValue(a.Id, out var img);
-
-                    // even if img is null → handle inside mapper
-                    return MapToAssetDTO(a, img);
-                }).ToList();
-
-                return result;
+                return result ?? new List<GetAssetResponseDTO>();
             }
             catch (Exception ex)
             {
@@ -387,6 +399,7 @@ namespace axionpro.persistance.Repositories
                 throw;
             }
         }
+
         public async Task<bool> DeleteAssetAsync(DeleteAssetReqestDTO asset)
         {
             try
