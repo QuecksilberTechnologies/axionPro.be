@@ -50,7 +50,7 @@ namespace axionpro.application.Constants
         public const string EmployeeFolder = "employees";
         public const string ProfileFolder = "profile";
         public const string GapDocFolder = "gap-doc";
-        public const string AssetsFolder = "profile";
+        public const string AssetsFolder = "assets";
         public const string IdentityFolder = "identity";
         public const string BankFolder = "bank";
         public const string PoliciesFolder = "policies";

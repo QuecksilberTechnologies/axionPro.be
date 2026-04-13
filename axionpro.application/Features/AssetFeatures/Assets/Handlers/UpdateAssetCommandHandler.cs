@@ -8,6 +8,7 @@ using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -128,16 +129,20 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
                 existingAsset.Price = request.DTO.Price ?? existingAsset.Price;
                 existingAsset.SerialNumber = request.DTO.SerialNumber ?? existingAsset.SerialNumber;
                 existingAsset.Barcode = request.DTO.Barcode ?? existingAsset.Barcode;
-                existingAsset.PurchaseDate = request.DTO.PurchaseDate ?? existingAsset.PurchaseDate;
-                existingAsset.WarrantyExpiryDate = request.DTO.WarrantyExpiryDate ?? existingAsset.WarrantyExpiryDate;
+                
                 existingAsset.AssetStatusId = request.DTO.AssetStatusId ?? existingAsset.AssetStatusId;
                 existingAsset.IsAssigned = request.DTO.IsAssigned ?? existingAsset.IsAssigned;
                 existingAsset.IsActive = request.DTO.IsActive ?? existingAsset.IsActive;
+                existingAsset.IsSoftDeleted = false;
+                existingAsset.UpdatedDateTime = null;
+                existingAsset.DeletedDateTime = null;
+                existingAsset.PurchaseDate = request.DTO.PurchaseDate.HasValue ? DateTime.SpecifyKind(request.DTO.PurchaseDate.Value, DateTimeKind.Utc) : null;
+                existingAsset.WarrantyExpiryDate = request.DTO.WarrantyExpiryDate.HasValue ? DateTime.SpecifyKind(request.DTO.WarrantyExpiryDate.Value, DateTimeKind.Utc) : null;
 
                 // ===============================
                 // 6️⃣ QR UPDATE
                 // ===============================
-                existingAsset.Qrcode = JsonConvert.SerializeObject(new
+                existingAsset.QRCode = JsonConvert.SerializeObject(new
                 {
                     existingAsset.Id,
                     existingAsset.AssetName,

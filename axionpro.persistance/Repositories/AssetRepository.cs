@@ -162,7 +162,7 @@ namespace axionpro.persistance.Repositories
                 Price = asset.Price,
                 SerialNumber = asset.SerialNumber,
                 Barcode = asset.Barcode,
-                Qrcode = asset.Qrcode,
+                QRCode = asset.QRCode,
                 PurchaseDate = asset.PurchaseDate,
                 WarrantyExpiryDate = asset.WarrantyExpiryDate,
                 AssetStatusId = asset.AssetStatusId,
@@ -183,7 +183,7 @@ namespace axionpro.persistance.Repositories
             if (asset == null)
                 throw new Exception("Asset not found for QR update.");
 
-            asset.Qrcode = qrCode;
+            asset.QRCode = qrCode;
             await _context.SaveChangesAsync();
         }
 
@@ -194,28 +194,29 @@ namespace axionpro.persistance.Repositories
             {
                 _logger.LogInformation("Adding new asset for TenantId={TenantId}", asset.TenantId);
 
-                // 1️⃣ Insert Parent Asset
+                // 🔥 Attach child entity using navigation property
+                if (!string.IsNullOrEmpty(path))
+                {
+                    asset.AssetImages.Add(new AssetImage
+                    {
+                        TenantId = asset.TenantId,
+                        AssetImageType = ConstantValues.Web,
+                        AssetImagePath = path,
+                        IsPrimary = true,
+                        IsActive = true,
+                        IsSoftDeleted = false,
+                        AddedById = asset.AddedById,
+                        AddedDateTime = DateTime.UtcNow
+                    });
+                }
+
+                // 🔥 Single insert (Parent + Child)
                 await _context.Assets.AddAsync(asset);
                 await _context.SaveChangesAsync();
 
-                // 2️⃣ Insert Image
-                var assetImage = new AssetImage
-                {
-                    AssetId = asset.Id,
-                    TenantId = asset.TenantId,
-                    AssetImageType = ConstantValues.Web,
-                    AssetImagePath = path,
-                    IsPrimary = true,
-                    IsActive = true,
-                    IsSoftDeleted = false,
-                    AddedById = asset.AddedById,
-                    AddedDateTime = DateTime.UtcNow
-                };
+                // 🔥 Get inserted image (from navigation)
+                var assetImage = asset.AssetImages.FirstOrDefault();
 
-                await _context.AssetImages.AddAsync(assetImage);
-                await _context.SaveChangesAsync();
-
-                // 3️⃣ Return DTO
                 return MapToAssetDTO(asset, assetImage);
             }
             catch (Exception ex)
@@ -224,7 +225,6 @@ namespace axionpro.persistance.Repositories
                 throw;
             }
         }
-
 
         public async Task<List<GetAssetResponseDTO>> GetAllAsync(long tenantId, bool isActive)
         {
@@ -317,13 +317,19 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
+                // ✅ Null-safe fallback instead of exception
                 if (asset == null || asset.Prop == null)
-                    throw new ArgumentException("Invalid filter");
+                {
+                    _logger.LogWarning("⚠️ GetAssetsByFilterAsync called with null filter");
+                    return new List<GetAssetResponseDTO>();
+                }
 
                 IQueryable<Asset> query = _context.Assets
+                    .AsNoTracking()
                     .Where(a => a.TenantId == asset.Prop.TenantId &&
-                                a.IsSoftDeleted != true);
+                                (a.IsSoftDeleted == false || a.IsSoftDeleted == null));
 
+                // 🔹 Filters (NULL SAFE)
                 if (asset.AssetId > 0)
                     query = query.Where(a => a.Id == asset.AssetId);
 
@@ -331,10 +337,12 @@ namespace axionpro.persistance.Repositories
                     query = query.Where(a => a.AssetTypeId == asset.AssetTypeId);
 
                 if (!string.IsNullOrWhiteSpace(asset.SerialNumber))
-                    query = query.Where(a => a.SerialNumber.Contains(asset.SerialNumber));
+                    query = query.Where(a => a.SerialNumber != null &&
+                                             a.SerialNumber.Contains(asset.SerialNumber));
 
                 if (!string.IsNullOrWhiteSpace(asset.ModelNumber))
-                    query = query.Where(a => a.ModelNo.Contains(asset.ModelNumber));
+                    query = query.Where(a => a.ModelNo != null &&
+                                             a.ModelNo.Contains(asset.ModelNumber));
 
                 if (asset.IsActive.HasValue)
                     query = query.Where(a => a.IsActive == asset.IsActive);
@@ -342,19 +350,36 @@ namespace axionpro.persistance.Repositories
                 if (asset.IsAssigned.HasValue)
                     query = query.Where(a => a.IsAssigned == asset.IsAssigned);
 
-                var results = await query
+                // 🔥 Execute query
+                var assets = await query
                     .OrderByDescending(a => a.Id)
                     .ToListAsync();
 
-                var list = new List<GetAssetResponseDTO>();
+                if (assets == null || !assets.Any())
+                    return new List<GetAssetResponseDTO>();
 
-                foreach (var a in results)
+                var assetIds = assets.Select(a => a.Id).ToList();
+
+                // 🔥 Images null-safe
+                var images = await _context.AssetImages
+                    .Where(i => assetIds.Contains(i.AssetId))
+                    .ToListAsync();
+
+                var imageDict = images?
+                    .GroupBy(i => i.AssetId)
+                    .ToDictionary(g => g.Key, g => g.FirstOrDefault())
+                    ?? new Dictionary<long, AssetImage>();
+
+                // 🔥 Final Mapping (NULL SAFE)
+                var result = assets.Select(a =>
                 {
-                    var img = await GetAssetImageAsync(a.Id);
-                    list.Add(MapToAssetDTO(a, img));
-                }
+                    imageDict.TryGetValue(a.Id, out var img);
 
-                return list;
+                    // even if img is null → handle inside mapper
+                    return MapToAssetDTO(a, img);
+                }).ToList();
+
+                return result;
             }
             catch (Exception ex)
             {
@@ -362,7 +387,6 @@ namespace axionpro.persistance.Repositories
                 throw;
             }
         }
-
         public async Task<bool> DeleteAssetAsync(DeleteAssetReqestDTO asset)
         {
             try

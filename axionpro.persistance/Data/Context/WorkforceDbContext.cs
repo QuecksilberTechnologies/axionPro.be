@@ -11,6 +11,7 @@ using axionpro.application.Interfaces.IContext;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using Microsoft.EntityFrameworkCore;
+using QRCoder;
 using System.ComponentModel;
 
 namespace axionpro.persistance.Data.Context
@@ -299,8 +300,8 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("AccoumndationAllowancePolicyByDesignation", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.FixedStayAllowance)
                     .HasDefaultValue(0.00m)
                     .HasColumnType("decimal(10, 2)");
@@ -312,8 +313,8 @@ namespace axionpro.persistance.Data.Context
                     .HasColumnType("decimal(10, 2)");
                 entity.Property(e => e.MinDaysRequired).HasDefaultValue(0);
                 entity.Property(e => e.RequiredDocuments).HasColumnType("text");
-                entity.Property(e => e.SoftDeleteDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.SoftDeleteDateTime).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Designation).WithMany(p => p.AccoumndationAllowancePolicyByDesignations)
                     .HasForeignKey(d => d.DesignationId)
@@ -339,14 +340,14 @@ namespace axionpro.persistance.Data.Context
 
                 entity.Property(e => e.ActionName).HasMaxLength(150);
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
+                entity.Property(e => e.DeletedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.IsDeleted).HasDefaultValue(false);
                 entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
                 entity.Property(e => e.Remark).HasMaxLength(250);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.WorkflowName).HasMaxLength(150);
             });
 
@@ -357,7 +358,7 @@ namespace axionpro.persistance.Data.Context
 
                 entity.ToTable("AssetTicketTypeDetail", "axionpro");
 
-                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("(sysutcdatetime())");
+                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP)");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
 
                 entity.HasOne(d => d.AssetType).WithMany(p => p.AssetTicketTypeDetails)
@@ -391,14 +392,14 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.IsAssigned).HasDefaultValue(false);
                 entity.Property(e => e.IsRepairable).HasDefaultValue(true);
                 entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
-                //entity.Property(e => e.PurchaseDate).HasColumnType("datetime");
-                entity.Property(e => e.Qrcode)
-                    .HasMaxLength(100)
-                    .HasColumnName("QRCode");
+                //entity.Property(e => e.PurchaseDate).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.QRCode)
+                   .HasMaxLength(500)
+                      .HasColumnName("qrcode");  
                 // Common Entities
                 entity.ConfigureBaseEntity();
                 entity.Property(e => e.SerialNumber).HasMaxLength(100);
-                entity.Property(e => e.WarrantyExpiryDate).HasColumnType("datetime");
+                entity.Property(e => e.WarrantyExpiryDate).HasColumnType("timestamp with time zone");
                 entity.HasOne(d => d.AssetStatus).WithMany(p => p.Assets)
                     .HasForeignKey(d => d.AssetStatusId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
@@ -417,13 +418,13 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("AssetImage", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
+                entity.Property(e => e.DeletedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.AssetImagePath).HasMaxLength(500);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.Remark).HasMaxLength(250);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.Remark).HasMaxLength(500);
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Asset).WithMany(p => p.AssetImages)
                     .HasForeignKey(d => d.AssetId)
@@ -436,14 +437,14 @@ namespace axionpro.persistance.Data.Context
 
                 entity.ToTable("AssetAssignment", "axionpro");
 
-                entity.Property(e => e.ActualReturnDate).HasColumnType("datetime");
+                entity.Property(e => e.ActualReturnDate).HasColumnType("timestamp with time zone");
 
                 entity.Property(e => e.AssetConditionAtAssign).HasMaxLength(255);
                 entity.Property(e => e.AssetConditionAtReturn).HasMaxLength(255);
                 entity.Property(e => e.AssignedDate)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.ExpectedReturnDate).HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
+                entity.Property(e => e.ExpectedReturnDate).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IdentificationMethod).HasMaxLength(50);
                 entity.Property(e => e.IdentificationValue).HasMaxLength(100);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
@@ -474,17 +475,17 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("AssetHistory", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.AssetConditionAtAssign).HasMaxLength(100);
                 entity.Property(e => e.AssetConditionAtReturn).HasMaxLength(100);
-                entity.Property(e => e.AssignedDate).HasColumnType("datetime");
+                entity.Property(e => e.AssignedDate).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IdentificationMethod).HasMaxLength(50);
                 entity.Property(e => e.IdentificationValue).HasMaxLength(255);
                 entity.Property(e => e.IsScrapped).HasDefaultValue(false);
                 entity.Property(e => e.Remarks).HasMaxLength(500);
-                entity.Property(e => e.ReturnedDate).HasColumnType("datetime");
-                entity.Property(e => e.ScrapDate).HasColumnType("datetime");
+                entity.Property(e => e.ReturnedDate).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.ScrapDate).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.ScrapReason).HasMaxLength(255);
 
                 entity.HasOne(d => d.AssignmentStatus).WithMany(p => p.AssetHistories)
@@ -520,13 +521,13 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("AssetCategory", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.CategoryName).HasMaxLength(200);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.Remark).HasMaxLength(500);
-                entity.Property(e => e.SoftDeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.SoftDeletedDateTime).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Tenant).WithMany(p => p.AssetCategories)
                     .HasForeignKey(d => d.TenantId)
@@ -543,13 +544,13 @@ namespace axionpro.persistance.Data.Context
                 entity.HasIndex(e => e.TypeName, "UQ__AssetTyp__D4E7DFA8692FD5DF").IsUnique();
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
+                entity.Property(e => e.DeletedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Description).HasMaxLength(255);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.TypeName).HasMaxLength(100);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
                 entity.HasOne(d => d.AssetCategory).WithMany(p => p.AssetTypes)
                     .HasForeignKey(d => d.AssetCategoryId)
                     .HasConstraintName("FK_AssetType_AssetCategory");
@@ -567,13 +568,13 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("AssignmentStatus", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
+                entity.Property(e => e.DeletedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Description).HasMaxLength(255);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.StatusName).HasMaxLength(50);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
             });
 
             modelBuilder.Entity<Attendance>(entity =>
@@ -593,12 +594,12 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("AttendanceDeviceType", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.DeviceType).HasMaxLength(50);
                 entity.Property(e => e.IsDeviceRegister).HasDefaultValue(false);
                 entity.Property(e => e.Remark).HasMaxLength(255);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
             });
             modelBuilder.Entity<AttendanceLog>(entity =>
             {
@@ -622,17 +623,17 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("AttendanceHistory", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.InTime).HasColumnType("datetime");
-                entity.Property(e => e.OutTime).HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
+                entity.Property(e => e.InTime).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.OutTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Remarks).HasMaxLength(255);
                 entity.Property(e => e.Status).HasMaxLength(20);
                 entity.Property(e => e.TotalBreakHours).HasColumnType("decimal(5, 2)");
                 entity.Property(e => e.TotalWorkHours).HasColumnType("decimal(5, 2)");
                 entity.Property(e => e.UpdatedDateTime)
                     .HasDefaultValueSql("(NULL)")
-                    .HasColumnType("datetime");
+                    .HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Employee).WithMany(p => p.AttendanceHistories)
                     .HasForeignKey(d => d.EmployeeId)
@@ -646,7 +647,7 @@ namespace axionpro.persistance.Data.Context
 
                 entity.ToTable("AttendanceRequest", "axionpro");
 
-                entity.Property(e => e.AttendanceDate).HasColumnType("datetime");
+                entity.Property(e => e.AttendanceDate).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.AttendanceImagePath).HasMaxLength(200);
                 entity.Property(e => e.AttendanceImageUrl)
                     .HasMaxLength(200)
@@ -692,8 +693,8 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.Aadhaar).HasMaxLength(12);
                 entity.Property(e => e.ActionStatus).HasMaxLength(20);
                 entity.Property(e => e.AppliedDate)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.CandidateReferenceCode).HasMaxLength(20);
                 entity.Property(e => e.CurrentCompany).HasMaxLength(200);
                 entity.Property(e => e.CurrentLocation).HasMaxLength(200);
@@ -706,8 +707,8 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.LastName).HasMaxLength(100);
                 entity.Property(e => e.LastUpdatedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(NULL)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Pan)
                     .HasMaxLength(10)
                     .HasColumnName("PAN");
@@ -725,8 +726,8 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("CandidateCategorySkill", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Description).HasMaxLength(255);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
 
@@ -749,8 +750,8 @@ namespace axionpro.persistance.Data.Context
 
                 entity.Property(e => e.CreatedDateTime)
                     .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.ReapplyAllowedAfter).HasColumnType("datetime");
+                    .HasColumnType("timestamp with time zone");
+                entity.Property(e => e.ReapplyAllowedAfter).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Status).HasMaxLength(50);
 
                 entity.HasOne(d => d.Candidate).WithMany(p => p.CandidateHistories)
@@ -788,14 +789,14 @@ namespace axionpro.persistance.Data.Context
                 entity.HasIndex(e => e.StateId, "IX_District_StateId");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.DistrictCode).HasMaxLength(50);
                 entity.Property(e => e.DistrictName).HasMaxLength(200);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.PinCode).HasMaxLength(50);
                 entity.Property(e => e.Remark).HasMaxLength(500);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.State).WithMany(p => p.Districts)
                     .HasForeignKey(d => d.StateId)
@@ -876,15 +877,15 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("DayCombination", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.CombinationName).HasMaxLength(100);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.Remark).HasMaxLength(250);
                 entity.Property(e => e.AddedById).HasColumnType("long");
                 entity.Property(e => e.SoftDeletedById).HasColumnType("long");
-                entity.Property(e => e.SoftDeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.SoftDeletedDateTime).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Tenant).WithMany(p => p.DayCombinations)
                     .HasForeignKey(d => d.TenantId)
@@ -971,12 +972,12 @@ namespace axionpro.persistance.Data.Context
 
                 entity.ToTable("Department", "axionpro");
 
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.AddedDateTime).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.DeletedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.DepartmentName).HasMaxLength(255);
                 entity.Property(e => e.Description).HasMaxLength(500);
                 entity.Property(e => e.Remark).HasMaxLength(200);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Tenant).WithMany(p => p.Departments)
                     .HasForeignKey(d => d.TenantId)
@@ -989,11 +990,11 @@ namespace axionpro.persistance.Data.Context
 
                 entity.ToTable("Designation", "axionpro");
 
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.AddedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Description).HasMaxLength(500);
                 entity.Property(e => e.DesignationName).HasMaxLength(255);
-                entity.Property(e => e.SoftDeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.SoftDeletedDateTime).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Department).WithMany(p => p.Designations)
                     .HasForeignKey(d => d.DepartmentId)
@@ -1012,11 +1013,11 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("EmailQueue", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IsSent).HasDefaultValue(false);
                 entity.Property(e => e.RetryCount).HasDefaultValue(0);
-                entity.Property(e => e.SendDateTime).HasColumnType("datetime");
+                entity.Property(e => e.SendDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Subject).HasMaxLength(500);
                 entity.Property(e => e.ToEmail).HasMaxLength(250);
 
@@ -1033,8 +1034,8 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("EmailTemplate", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.AddedFromIp)
                     .HasMaxLength(50)
                     .HasColumnName("AddedFromIP");
@@ -1046,7 +1047,7 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.Subject).HasMaxLength(250);
                 entity.Property(e => e.TemplateCode).HasMaxLength(100);
                 entity.Property(e => e.TemplateName).HasMaxLength(150);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.UpdatedFromIp)
                     .HasMaxLength(50)
                     .HasColumnName("UpdatedFromIP");
@@ -1063,9 +1064,9 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.CcEmail).HasMaxLength(1000);
                 entity.Property(e => e.CreatedDateTime)
                     .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.ErrorMessage).HasMaxLength(1000);
-                entity.Property(e => e.SentDateTime).HasColumnType("datetime");
+                entity.Property(e => e.SentDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Status)
                     .HasMaxLength(20)
                     .IsUnicode(false)
@@ -1081,11 +1082,11 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("CountryIdentityRule", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.IsMandatory).HasDefaultValue(true);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Country).WithMany(p => p.CountryIdentityRules)
                     .HasForeignKey(d => d.CountryId)
@@ -1117,22 +1118,22 @@ namespace axionpro.persistance.Data.Context
                     .IsUnique()
                     .HasFilter("([TenantId] IS NULL AND [IsSoftDeleted]=(0))");
 
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.DateOfBirth).HasColumnType("datetime");
-                entity.Property(e => e.DateOfExit).HasColumnType("datetime");
-                entity.Property(e => e.DateOfOnBoarding).HasColumnType("datetime");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.AddedDateTime).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.DateOfBirth).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.DateOfExit).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.DateOfOnBoarding).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.DeletedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Description).HasMaxLength(500);
                 entity.Property(e => e.EmployementCode).HasMaxLength(50);
                 entity.Property(e => e.FirstName).HasMaxLength(100);
-                entity.Property(e => e.InfoVerifiedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.InfoVerifiedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
                 entity.Property(e => e.LastName).HasMaxLength(100);
                 entity.Property(e => e.MiddleName).HasMaxLength(100);
                 entity.Property(e => e.OfficialEmail).HasMaxLength(255);
                 entity.Property(e => e.Remark).HasMaxLength(200);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Country).WithMany(p => p.Employees)
                     .HasForeignKey(d => d.CountryId)
@@ -1164,14 +1165,14 @@ namespace axionpro.persistance.Data.Context
 
                 entity.ToTable("EmployeeContact", "axionpro");
 
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.AddedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.AlternateNumber).HasMaxLength(20);
                 entity.Property(e => e.ContactNumber).HasMaxLength(20);
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.DeletedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Description).HasMaxLength(500);
                 entity.Property(e => e.Email).HasMaxLength(100);
                 entity.Property(e => e.HouseNo).HasMaxLength(250);
-                entity.Property(e => e.InfoVerifiedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.InfoVerifiedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.IsEditAllowed).HasDefaultValue(false);
                 entity.Property(e => e.IsInfoVerified).HasDefaultValue(false);
@@ -1181,7 +1182,7 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.Address).HasMaxLength(250);
                 entity.Property(e => e.Remark).HasMaxLength(250);
                 entity.Property(e => e.Street).HasMaxLength(250);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeContacts)
                     .HasForeignKey(d => d.EmployeeId)
@@ -1198,17 +1199,17 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.AccountNumber).HasMaxLength(50);
                 entity.Property(e => e.AccountType).HasMaxLength(50);
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.BankName).HasMaxLength(100);
                 entity.Property(e => e.BranchName).HasMaxLength(100);
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.DeletedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IFSCCode)
                     .HasMaxLength(20)
                     .HasColumnName("IFSCCode");
-                entity.Property(e => e.InfoVerifiedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.InfoVerifiedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IsPrimaryAccount).HasDefaultValue(true);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.UPIId)
                     .HasMaxLength(100)
                     .HasColumnName("UPIId");
@@ -1271,10 +1272,10 @@ namespace axionpro.persistance.Data.Context
 
                 entity.ToTable("EmployeeDailyAttendance", "axionpro");
 
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.AttendanceDate).HasColumnType("datetime");
+                entity.Property(e => e.AddedDateTime).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.AttendanceDate).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IsLate).HasDefaultValue(false);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.AttendanceDeviceType).WithMany(p => p.EmployeeDailyAttendances)
                     .HasForeignKey(d => d.AttendanceDeviceTypeId)
@@ -1298,17 +1299,17 @@ namespace axionpro.persistance.Data.Context
 
                 entity.ToTable("EmployeeDependent", "axionpro");
 
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.AddedDateTime).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.DeletedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.DependentName).HasMaxLength(200);
                 entity.Property(e => e.Description).HasMaxLength(255);
-                entity.Property(e => e.InfoVerifiedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.InfoVerifiedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IsCoveredInPolicy).HasDefaultValue(false);
                 //  entity.Property(e => e.Relation).HasMaxLength(50);
                 entity.Property(e => e.Remark).HasMaxLength(255);
                 entity.Property(e => e.UpdatedDateTime)
                     .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeDependents)
                     .HasForeignKey(d => d.EmployeeId)
@@ -1319,20 +1320,20 @@ namespace axionpro.persistance.Data.Context
             {
                 entity.ToTable("EmployeeEducation", "axionpro");
 
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.AddedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Degree).HasMaxLength(50);
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.DeletedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.EducationGap).HasDefaultValue(false);
                 entity.Property(e => e.FileName).HasMaxLength(100);
                 entity.Property(e => e.FilePath).HasMaxLength(500);
 
                 entity.Property(e => e.ScoreValue).HasMaxLength(50);
                 entity.Property(e => e.GradeDivision).HasMaxLength(10);
-                entity.Property(e => e.InfoVerifiedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.InfoVerifiedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.InstituteName).HasMaxLength(100);
                 entity.Property(e => e.ReasonOfEducationGap).HasMaxLength(255);
                 entity.Property(e => e.Remark).HasMaxLength(100);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
             });
 
 
@@ -1407,8 +1408,8 @@ namespace axionpro.persistance.Data.Context
                 entity.HasIndex(e => e.Code, "UQ__Identity__A25C5AA7EC142E9A").IsUnique();
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Code)
                     .HasMaxLength(50)
                     .IsUnicode(false);
@@ -1419,7 +1420,7 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.Name)
                     .HasMaxLength(100)
                     .IsUnicode(false);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
             });
 
 
@@ -1430,8 +1431,8 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("IdentityCategoryDocument", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Code)
                     .HasMaxLength(50)
                     .IsUnicode(false);
@@ -1443,7 +1444,7 @@ namespace axionpro.persistance.Data.Context
                     .IsUnicode(false);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.IsUnique).HasDefaultValue(true);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.IdentityCategory).WithMany(p => p.IdentityCategoryDocuments)
                     .HasForeignKey(d => d.IdentityCategoryId)
@@ -1482,12 +1483,12 @@ namespace axionpro.persistance.Data.Context
 
                 entity.ToTable("EmployeeImage", "axionpro");
 
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.AddedDateTime).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.DeletedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.FileName).HasMaxLength(50);
                 entity.Property(e => e.FilePath).HasMaxLength(500);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeImages)
                     .HasForeignKey(d => d.EmployeeId)
@@ -1577,7 +1578,7 @@ namespace axionpro.persistance.Data.Context
 
                 entity.ToTable("EmployeeLeaveBalance", "axionpro");
 
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.AddedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Availed).HasColumnType("decimal(5, 2)");
                 entity.Property(e => e.CarryForwarded).HasColumnType("decimal(5, 2)");
                 entity.Property(e => e.CurrentBalance)
@@ -1588,7 +1589,7 @@ namespace axionpro.persistance.Data.Context
                     .HasDefaultValue(0m)
                     .HasColumnType("decimal(5, 2)");
                 entity.Property(e => e.OpeningBalance).HasColumnType("decimal(5, 2)");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.EmployeeLeavePolicyMapping).WithMany(p => p.EmployeeLeaveBalances)
                     .HasForeignKey(d => d.EmployeeLeavePolicyMappingId)
@@ -1607,13 +1608,13 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("EmployeeLeavePolicyMapping", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.EffectiveFrom).HasColumnType("datetime");
-                entity.Property(e => e.EffectiveTo).HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
+                entity.Property(e => e.EffectiveFrom).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.EffectiveTo).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.Remark).HasMaxLength(250);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeLeavePolicyMappings)
                     .HasForeignKey(d => d.EmployeeId)
@@ -1638,14 +1639,14 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("EmployeeManagerMapping", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Description).HasMaxLength(500);
-                entity.Property(e => e.EffectiveFrom).HasColumnType("datetime");
-                entity.Property(e => e.EffectiveTo).HasColumnType("datetime");
+                entity.Property(e => e.EffectiveFrom).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.EffectiveTo).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.Remark).HasMaxLength(250);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Department).WithMany(p => p.EmployeeManagerMappings)
                     .HasForeignKey(d => d.DepartmentId)
@@ -1682,9 +1683,9 @@ namespace axionpro.persistance.Data.Context
 
                 entity.ToTable("EmployeePersonalDetail", "axionpro");
                 entity.Property(e => e.AadhaarNumber).HasMaxLength(20);
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.AddedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.BloodGroup).HasMaxLength(10);
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.DeletedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.AadhaarDocPath).HasMaxLength(200);
                 entity.Property(e => e.PanDocPath).HasMaxLength(200);
                 entity.Property(e => e.PassportDocPath).HasMaxLength(200);
@@ -1693,12 +1694,12 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.EmergencyContactRelation).HasMaxLength(49);
                 entity.Property(e => e.UANNumber).HasMaxLength(15);
                 entity.Property(e => e.EmergencyContactNumber).HasMaxLength(15);
-                entity.Property(e => e.InfoVerifiedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.InfoVerifiedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.MaritalStatus).HasMaxLength(20);
                 entity.Property(e => e.Nationality).HasMaxLength(50);
                 entity.Property(e => e.PanNumber).HasMaxLength(20);
                 entity.Property(e => e.PassportNumber).HasMaxLength(20);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.VoterId).HasMaxLength(20);
 
                 entity.HasOne(d => d.Employee).WithMany(p => p.EmployeePersonalDetails)
@@ -1713,12 +1714,12 @@ namespace axionpro.persistance.Data.Context
 
                 entity.ToTable("EmployeeType", "axionpro");
 
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.AddedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Description).HasMaxLength(255);
                 entity.Property(e => e.Remark).HasMaxLength(255);
-                entity.Property(e => e.SoftDeletedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.SoftDeletedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.TypeName).HasMaxLength(255);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
             });
 
             modelBuilder.Entity<EmployeeTypeBasicMenu>(entity =>
@@ -1728,11 +1729,11 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("EmployeeTypeBasicMenu", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.IsMenuDisplayInUi).HasColumnName("IsMenuDisplayInUI");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.BasicMenu).WithMany(p => p.EmployeeTypeBasicMenus)
                     .HasForeignKey(d => d.BasicMenuId)
@@ -1809,14 +1810,14 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("EmployeesChangedTypeHistory", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.ChangeDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.Remark).HasMaxLength(200);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Employee).WithMany(p => p.EmployeesChangedTypeHistories)
                     .HasForeignKey(d => d.EmployeeId)
@@ -1842,15 +1843,15 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("ForgotPasswordOTPDetail", "axionpro");
 
                 entity.Property(e => e.CreatedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Otp)
                     .HasMaxLength(10)
                     .HasColumnName("OTP");
                 entity.Property(e => e.OtpexpireDateTime)
-                    .HasColumnType("datetime")
+                    .HasColumnType("timestamp with time zone")
                     .HasColumnName("OTPExpireDateTime");
-                entity.Property(e => e.UsedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UsedDateTime).HasColumnType("timestamp with time zone");
 
                 //entity.HasOne(d => d.Tenant).WithMany(p => p.ForgotPasswordRequests)
                 //    .HasForeignKey(d => d.TenantId)
@@ -1885,13 +1886,13 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("HolidayMaster", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.HolidayName).HasMaxLength(200);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.Region).HasMaxLength(100);
                 entity.Property(e => e.Remark).HasMaxLength(250);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
             });
 
 
@@ -1902,9 +1903,9 @@ namespace axionpro.persistance.Data.Context
 
                 entity.ToTable("InterviewFeedback", "axionpro");
 
-                entity.Property(e => e.CreatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.CreatedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Rating).HasColumnType("decimal(3, 1)");
-                entity.Property(e => e.ReapplyAfter).HasColumnType("datetime");
+                entity.Property(e => e.ReapplyAfter).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Status).HasMaxLength(50);
 
                 entity.HasOne(d => d.Candidate).WithMany(p => p.InterviewFeedbacks)
@@ -1969,7 +1970,7 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.Remarks)
                     .HasMaxLength(255)
                     .IsUnicode(false);
-                entity.Property(e => e.ScheduledDate).HasColumnType("datetime");
+                entity.Property(e => e.ScheduledDate).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Candidate).WithMany(p => p.InterviewSchedules)
                     .HasForeignKey(d => d.CandidateId)
@@ -1986,9 +1987,9 @@ namespace axionpro.persistance.Data.Context
 
                 entity.ToTable("InterviewSdule", "axionpro");
 
-                entity.Property(e => e.CreatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.CreatedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.InterviewMode).HasMaxLength(50);
-                entity.Property(e => e.ScheduledDateTime).HasColumnType("datetime");
+                entity.Property(e => e.ScheduledDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Status).HasMaxLength(50);
             });
 
@@ -1998,18 +1999,18 @@ namespace axionpro.persistance.Data.Context
 
                 entity.ToTable("LeaveRequest", "axionpro");
 
-                entity.Property(e => e.ApprovedDate).HasColumnType("datetime");
-                entity.Property(e => e.CancellationDate).HasColumnType("datetime");
+                entity.Property(e => e.ApprovedDate).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.CancellationDate).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.CreatedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IsHalfDay).HasDefaultValue(false);
                 entity.Property(e => e.IsSandwich).HasDefaultValue(false);
                 entity.Property(e => e.Reason).HasMaxLength(500);
                 entity.Property(e => e.Remark).HasMaxLength(100);
                 entity.Property(e => e.Status).HasDefaultValueSql("('Pending')");
                 entity.Property(e => e.TotalLeaveDays).HasColumnType("decimal(5, 2)");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Employee).WithMany(p => p.LeaveRequests)
                     .HasForeignKey(d => d.EmployeeId)
@@ -2039,13 +2040,13 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("LeaveRule", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.IsHalfDayAllowed).HasDefaultValue(true);
                 entity.Property(e => e.Remark).HasMaxLength(500);
-                entity.Property(e => e.SoftDeleteDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.SoftDeleteDateTime).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.PolicyLeaveType).WithMany(p => p.LeaveRules)
                     .HasForeignKey(d => d.PolicyLeaveTypeId)
@@ -2065,13 +2066,13 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("LeaveSandwichRule", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.Remark).HasMaxLength(250);
                 entity.Property(e => e.RuleName).HasMaxLength(100);
-                entity.Property(e => e.SoftDeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.SoftDeletedDateTime).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
             });
 
             modelBuilder.Entity<LeaveSandwichRuleMapping>(entity =>
@@ -2081,12 +2082,12 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("LeaveSandwichRuleMapping", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.Remark).HasMaxLength(250);
-                entity.Property(e => e.SoftDeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.SoftDeletedDateTime).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.DayCombination).WithMany(p => p.LeaveSandwichRuleMappings)
                     .HasForeignKey(d => d.DayCombinationId)
@@ -2112,7 +2113,7 @@ namespace axionpro.persistance.Data.Context
 
                 entity.Property(e => e.LeaveDays).HasColumnType("decimal(5, 2)");
                 entity.Property(e => e.Remarks).HasMaxLength(500);
-                entity.Property(e => e.TransactionDate).HasColumnType("datetime");
+                entity.Property(e => e.TransactionDate).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.TransactionType)
                     .HasMaxLength(20)
                     .IsUnicode(false);
@@ -2124,7 +2125,7 @@ namespace axionpro.persistance.Data.Context
 
                 entity.ToTable("LeaveType", "axionpro");
 
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.AddedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Description)
                     .HasMaxLength(500)
                     .IsUnicode(false);
@@ -2132,8 +2133,8 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.LeaveName)
                     .HasMaxLength(50)
                     .IsUnicode(false);
-                entity.Property(e => e.SoftDeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdateDateTime).HasColumnType("datetime");
+                entity.Property(e => e.SoftDeletedDateTime).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.UpdateDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Tenant).WithMany(p => p.LeaveTypes)
                     .HasForeignKey(d => d.TenantId)
@@ -2147,8 +2148,8 @@ namespace axionpro.persistance.Data.Context
             //    entity.ToTable("License", "axionpro");
 
             //    entity.Property(e => e.IsActive).HasDefaultValue(true);
-            //    entity.Property(e => e.LicenseEndDate).HasColumnType("datetime");
-            //    entity.Property(e => e.LicenseStartDate).HasColumnType("datetime");
+            //    entity.Property(e => e.LicenseEndDate).HasColumnType("timestamp with time zone");
+            //    entity.Property(e => e.LicenseStartDate).HasColumnType("timestamp with time zone");
             //});
 
             modelBuilder.Entity<LoginCredential>(entity =>
@@ -2161,10 +2162,10 @@ namespace axionpro.persistance.Data.Context
 
                 entity.Property(e => e.AddedById).HasDefaultValue(0L);
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.SoftDeletedById).HasDefaultValue(0L);
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.DeletedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.HasFirstLogin).HasDefaultValue(true);
                 entity.Property(e => e.IpAddressLocal).HasMaxLength(50);
                 entity.Property(e => e.IpAddressPublic).HasMaxLength(50);
@@ -2179,7 +2180,7 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.Password).HasMaxLength(555);
                 entity.Property(e => e.Remark).HasMaxLength(255);
                 entity.Property(e => e.UpdatedById).HasDefaultValue(0L);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
                 entity.HasOne(d => d.Employee).WithMany(p => p.LoginCredentials)
                    .HasForeignKey(d => d.EmployeeId)
                    .OnDelete(DeleteBehavior.Cascade)
@@ -2193,8 +2194,8 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("MealAllowancePolicyByDesignation", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.BreakfastAllowance)
                     .HasDefaultValue(0.00m)
                     .HasColumnType("decimal(10, 2)");
@@ -2215,8 +2216,8 @@ namespace axionpro.persistance.Data.Context
                     .HasColumnType("decimal(10, 2)");
                 entity.Property(e => e.MinDaysRequired).HasDefaultValue(0);
                 entity.Property(e => e.RequiredDocuments).HasColumnType("text");
-                entity.Property(e => e.SoftDeleteDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.SoftDeleteDateTime).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Designation).WithMany(p => p.MealAllowancePolicyByDesignations)
                     .HasForeignKey(d => d.DesignationId)
@@ -2241,8 +2242,8 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("Module", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.DisplayName).HasMaxLength(100);
                 entity.Property(e => e.ImageIconMobile)
                     .HasMaxLength(255)
@@ -2259,7 +2260,7 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.ModuleName).HasMaxLength(100);
                 entity.Property(e => e.Remark).HasMaxLength(200);
                 entity.Property(e => e.URLPath).HasMaxLength(500).HasColumnName("URLPath");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.ParentModule).WithMany(p => p.InverseParentModule)
                     .HasForeignKey(d => d.ParentModuleId)
@@ -2273,8 +2274,8 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("ModuleOperationMapping", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IconUrl)
                     .HasMaxLength(255)
                     .IsUnicode(false)
@@ -2290,7 +2291,7 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.Remark)
                     .HasMaxLength(255)
                     .IsUnicode(false);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.DataViewStructure).WithMany(p => p.ModuleOperationMappings)
                     .HasForeignKey(d => d.DataViewStructureId)
@@ -2331,13 +2332,13 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("Operation", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IconImage).HasMaxLength(250);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.OperationName).HasMaxLength(200);
                 entity.Property(e => e.Remark).HasMaxLength(200);
-                entity.Property(e => e.UpdateDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdateDateTime).HasColumnType("timestamp with time zone");
             });
 
             modelBuilder.Entity<OrganizationHolidayCalendar>(entity =>
@@ -2347,18 +2348,18 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("OrganizationHolidayCalendar", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.CountryCode).HasMaxLength(5);
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.DeletedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Description).HasMaxLength(255);
-                entity.Property(e => e.HolidayDate).HasColumnType("datetime");
+                entity.Property(e => e.HolidayDate).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.HolidayName).HasMaxLength(100);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
                 entity.Property(e => e.Remark).HasMaxLength(255);
                 entity.Property(e => e.StateCode).HasMaxLength(10);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Tenant).WithMany(p => p.OrganizationHolidayCalendars)
                     .HasForeignKey(d => d.TenantId)
@@ -2384,15 +2385,15 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("PlanModuleMapping", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.Remark)
                     .HasMaxLength(255)
                     .IsUnicode(false);
                 entity.Property(e => e.UpdatedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(NULL")
+                    .HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Module).WithMany(p => p.PlanModuleMappings)
                     .HasForeignKey(d => d.ModuleId)
@@ -2411,8 +2412,8 @@ namespace axionpro.persistance.Data.Context
 
                 entity.ToTable("PolicyTypeInsuranceMapping", "axionpro");
 
-                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("(getdate())");
-                entity.Property(e => e.SoftDeleteDateTime).HasDefaultValueSql("datetime");
+                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("(CURRENT_TIMESTAMP)");
+                entity.Property(e => e.SoftDeleteDateTime).HasDefaultValueSql("timestamp with time zone");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
 
@@ -2438,15 +2439,15 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("PolicyLeaveTypeMapping", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.EffectiveFrom).HasColumnType("datetime");
-                entity.Property(e => e.EffectiveTo).HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
+                entity.Property(e => e.EffectiveFrom).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.EffectiveTo).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.ProofDocumentType).HasMaxLength(100);
                 entity.Property(e => e.Remark).HasMaxLength(250);
-                entity.Property(e => e.SoftDeleteDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.SoftDeleteDateTime).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.ApplicableGender).WithMany(p => p.PolicyLeaveTypeMappings)
                     .HasForeignKey(d => d.ApplicableGenderId)
@@ -2524,19 +2525,19 @@ namespace axionpro.persistance.Data.Context
                       .HasMaxLength(500);
 
                 entity.Property(e => e.StartDate)
-                      .HasColumnType("datetime");
+                      .HasColumnType("timestamp with time zone");
 
                 entity.Property(e => e.EndDate)
-                      .HasColumnType("datetime");
+                      .HasColumnType("timestamp with time zone");
 
                 entity.Property(e => e.AddedDateTime)
-                      .HasColumnType("datetime");
+                      .HasColumnType("timestamp with time zone");
 
                 entity.Property(e => e.UpdatedDateTime)
-                      .HasColumnType("datetime");
+                      .HasColumnType("timestamp with time zone");
 
                 entity.Property(e => e.DeletedDateTime)
-                      .HasColumnType("datetime");
+                      .HasColumnType("timestamp with time zone");
 
                 // 🔹 Defaults (IMPORTANT)
                 entity.Property(e => e.IsActive)
@@ -2574,16 +2575,16 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("RefreshToken", "axionpro");
 
                 entity.Property(e => e.CreatedAt)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.CreatedByIp).HasMaxLength(50);
                 entity.Property(e => e.ExpiryDate)
-                    .HasDefaultValueSql("(dateadd(day,(5),getdate()))")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP + interval '5 day')")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IsRevoked).HasDefaultValue(false);
                 entity.Property(e => e.LoginId).HasMaxLength(255);
                 entity.Property(e => e.ReplacedByToken).HasMaxLength(500);
-                entity.Property(e => e.RevokedAt).HasColumnType("datetime");
+                entity.Property(e => e.RevokedAt).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.RevokedByIp).HasMaxLength(50);
                 entity.Property(e => e.Token).HasMaxLength(500);
 
@@ -2602,14 +2603,14 @@ namespace axionpro.persistance.Data.Context
                 entity.HasIndex(e => e.TypeName, "UQ__Reportin__D4E7DFA8AC2E2E45").IsUnique();
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Description).HasMaxLength(250);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.TypeName)
                     .HasMaxLength(50)
                     .IsUnicode(false);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
             });
 
             modelBuilder.Entity<RequestType>(entity =>
@@ -2621,9 +2622,9 @@ namespace axionpro.persistance.Data.Context
                 entity.HasIndex(e => new { e.TenantId, e.RequestTypeName }, "UQ_RequestType_Tenant").IsUnique();
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
+                entity.Property(e => e.DeletedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Description)
                     .HasMaxLength(255)
                     .IsUnicode(false);
@@ -2634,7 +2635,7 @@ namespace axionpro.persistance.Data.Context
                     .IsUnicode(false);
                 entity.Property(e => e.UpdatedDateTime)
                     .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Tenant).WithMany(p => p.RequestTypes)
                     .HasForeignKey(d => d.TenantId)
@@ -2647,10 +2648,10 @@ namespace axionpro.persistance.Data.Context
 
                 entity.ToTable("Role", "axionpro");
 
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.AddedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.DeletedDateTime)
                     .HasDefaultValueSql("(NULL)")
-                    .HasColumnType("datetime");
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
                 entity.Property(e => e.IsSystemDefault).HasDefaultValue(false);
@@ -2663,7 +2664,7 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.UpdatedById).HasDefaultValueSql("(NULL)");
                 entity.Property(e => e.UpdatedDateTime)
                     .HasDefaultValueSql("(NULL)")
-                    .HasColumnType("datetime");
+                    .HasColumnType("timestamp with time zone");
 
                 //entity.HasOne(d => d.Designation).WithMany(p => p.Roles)
                 //    .HasForeignKey(d => d.DesignationId)
@@ -2684,15 +2685,15 @@ namespace axionpro.persistance.Data.Context
 
                 entity.HasIndex(e => e.RoleId, "IDX_RolesPermission_RoleId");
 
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.AddedDateTime).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.DeletedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.ImageIcon).HasMaxLength(200);
                 entity.Property(e => e.Remark)
                     .HasMaxLength(255)
                     .IsUnicode(false);
                 entity.Property(e => e.SoftDeletedById).HasDefaultValue(0L);
-                entity.Property(e => e.UpdateDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdateDateTime).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Module).WithMany(p => p.RoleModuleAndPermissions)
                     .HasForeignKey(d => d.ModuleId)
@@ -2759,12 +2760,12 @@ namespace axionpro.persistance.Data.Context
 
                 entity.ToTable("SubscriptionPlan", "axionpro");
 
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.AddedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.CurrencyKey).HasMaxLength(20);
                 entity.Property(e => e.MonthlyPrice).HasColumnType("decimal(10, 2)");
                 entity.Property(e => e.PerDayPrice).HasColumnType("decimal(10, 2)");
                 entity.Property(e => e.PlanName).HasMaxLength(100);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.YearlyPrice).HasColumnType("decimal(10, 2)");
             });
 
@@ -2778,15 +2779,15 @@ namespace axionpro.persistance.Data.Context
 
                 entity.HasIndex(e => e.TenantEmail, "UQ__Tenant__F7C944DD7E3D53D9").IsUnique();
 
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.AddedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.CompanyEmailDomain).HasMaxLength(255);
                 entity.Property(e => e.CompanyName).HasMaxLength(200);
                 entity.Property(e => e.ContactNumber).HasMaxLength(20);
                 entity.Property(e => e.ContactPersonName).HasMaxLength(100);
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.DeletedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.TenantCode).HasMaxLength(100);
                 entity.Property(e => e.TenantEmail).HasMaxLength(200);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.TenantIndustry).WithMany(p => p.Tenants)
                     .HasForeignKey(d => d.TenantIndustryId)
@@ -2826,10 +2827,10 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("TenantEnabledModule", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IsEnabled).HasDefaultValue(true);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Module).WithMany(p => p.TenantEnabledModules)
                     .HasForeignKey(d => d.ModuleId)
@@ -2852,10 +2853,10 @@ namespace axionpro.persistance.Data.Context
 
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IsEnabled).HasDefaultValue(true);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Module).WithMany(p => p.TenantEnabledOperations)
                     .HasForeignKey(d => d.ModuleId)
@@ -2880,13 +2881,13 @@ namespace axionpro.persistance.Data.Context
 
                 entity.ToTable("TenantIndustry", "axionpro");
 
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.AddedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Description).HasMaxLength(255);
                 entity.Property(e => e.IndustryName).HasMaxLength(100);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.Remark).HasMaxLength(255);
-                entity.Property(e => e.SoftDeletedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.SoftDeletedDateTime).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
             });
 
             modelBuilder.Entity<TenantProfile>(entity =>
@@ -2916,7 +2917,7 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.PaymentMode).HasMaxLength(50);
                 entity.Property(e => e.PaymentTxnId).HasMaxLength(100);
-                entity.Property(e => e.SubscriptionStartDate).HasDefaultValueSql("(getdate())");
+                entity.Property(e => e.SubscriptionStartDate).HasDefaultValueSql("(CURRENT_TIMESTAMP)");
 
                 entity.HasOne(d => d.SubscriptionPlan).WithMany(p => p.TenantSubscriptions)
                     .HasForeignKey(d => d.SubscriptionPlanId)
@@ -2966,11 +2967,11 @@ namespace axionpro.persistance.Data.Context
                 entity.HasIndex(e => e.TenantId, "UQ_TenantKey_TenantId").IsUnique();
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.EncryptionKey).HasMaxLength(1000);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
             });
             modelBuilder.Entity<TenderProject>(entity =>
             {
@@ -2979,14 +2980,14 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("TenderProject", "axionpro");
 
                 entity.Property(e => e.Description).HasMaxLength(1000);
-                entity.Property(e => e.EndDate).HasColumnType("datetime");
+                entity.Property(e => e.EndDate).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.EstimatedBudget).HasColumnType("decimal(18, 2)");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.ProjectName).HasMaxLength(255);
                 entity.Property(e => e.Remark).HasMaxLength(1000);
                 entity.Property(e => e.StartDate)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Status).WithMany(p => p.TenderProjects)
                     .HasForeignKey(d => d.StatusId)
@@ -3119,12 +3120,12 @@ namespace axionpro.persistance.Data.Context
 
                 entity.ToTable("TicketClassification", "axionpro");
 
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.AddedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.ClassificationName).HasMaxLength(100);
                 entity.Property(e => e.Description).HasMaxLength(255);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.SoftDeletedTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.SoftDeletedTime).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Tenant).WithMany(p => p.TicketClassifications)
                     .HasForeignKey(d => d.TenantId)
@@ -3137,12 +3138,12 @@ namespace axionpro.persistance.Data.Context
 
                 entity.ToTable("TicketHeader", "axionpro");
 
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.AddedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Description).HasMaxLength(255);
                 entity.Property(e => e.HeaderName).HasMaxLength(150);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.SoftDeletedTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.SoftDeletedTime).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Tenant).WithMany(p => p.TicketHeaders)
                     .HasForeignKey(d => d.TenantId)
@@ -3161,14 +3162,14 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("TicketType", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Description).HasMaxLength(500);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.IsSoftDeleted).HasDefaultValue(true);
-                entity.Property(e => e.SoftDeletedTime).HasColumnType("datetime");
+                entity.Property(e => e.SoftDeletedTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.TicketTypeName).HasMaxLength(100);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.ResponsibleRole).WithMany(p => p.TicketTypes)
                     .HasForeignKey(d => d.ResponsibleRoleId)
@@ -3190,8 +3191,8 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("TravelAllowancePolicyByDesignation", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.AdvanceAllowed).HasDefaultValue(false);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.IsMetro).HasDefaultValue(false);
@@ -3206,7 +3207,7 @@ namespace axionpro.persistance.Data.Context
                     .HasColumnType("decimal(10, 2)")
                     .HasColumnName("ReimbursementPerKM");
                 entity.Property(e => e.RequiredDocuments).HasColumnType("text");
-                entity.Property(e => e.SoftDeleteDateTime).HasColumnType("datetime");
+                entity.Property(e => e.SoftDeleteDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.TravelClass)
                     .HasMaxLength(50)
                     .IsUnicode(false);
@@ -3234,12 +3235,12 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("TravelMode", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Description).HasMaxLength(500);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.TravelModeName).HasMaxLength(255);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
             });
 
             modelBuilder.Entity<UserAttendanceSetting>(entity =>
@@ -3249,15 +3250,15 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("UserAttendanceSetting", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.GeofenceLatitude).HasColumnType("decimal(10, 8)");
                 entity.Property(e => e.GeofenceLongitude).HasColumnType("decimal(10, 8)");
-                entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsAllowed).HasDefaultValue(true);
+                entity.Property(e => e.IsActive).HasDefaultValue(true); 
+                entity.Property(e => e.IsAllowed).HasDefaultValue(true);    
                 entity.Property(e => e.Remark).HasMaxLength(255);
-                entity.Property(e => e.ReportingTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.ReportingTime).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.AttendanceDeviceType).WithMany(p => p.UserAttendanceSettings)
                     .HasForeignKey(d => d.AttendanceDeviceTypeId)
@@ -3280,7 +3281,7 @@ namespace axionpro.persistance.Data.Context
                          .HasColumnType("timestamp with time zone")
                          .HasDefaultValueSql("CURRENT_TIMESTAMP"); // 🔥 important
 
-                 entity.Property(e => e.UpdatedDateTime)
+                entity.Property(e => e.UpdatedDateTime)
                     .HasColumnType("timestamp with time zone");
 
                 entity.Property(e => e.SoftDeletedDateTime)
@@ -3308,16 +3309,16 @@ namespace axionpro.persistance.Data.Context
 
                 entity.ToTable("UserRole", "axionpro");
 
-                entity.Property(e => e.AddedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.AddedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.ApprovalStatus)
                     .HasMaxLength(20)
                     .IsFixedLength();
-                entity.Property(e => e.AssignedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.AssignedDateTime).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.DeletedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
                 entity.Property(e => e.Remark).HasMaxLength(255);
-                entity.Property(e => e.RemovedDateTime).HasColumnType("datetime");
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.RemovedDateTime).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
 
                 entity.HasOne(d => d.Employee).WithMany(p => p.UserRoles)
                     .HasForeignKey(d => d.EmployeeId)
@@ -3335,14 +3336,14 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("WorkflowStage", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.ColorKey).HasMaxLength(50);
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.DeletedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.Description).HasMaxLength(500);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.StageName).HasMaxLength(100);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
             });
 
             modelBuilder.Entity<WorkflowStep>(entity =>
@@ -3352,14 +3353,14 @@ namespace axionpro.persistance.Data.Context
                 entity.ToTable("WorkflowStep", "axionpro");
 
                 entity.Property(e => e.AddedDateTime)
-                    .HasDefaultValueSql("(getdate())")
-                    .HasColumnType("datetime");
-                entity.Property(e => e.DeletedDateTime).HasColumnType("datetime");
+                    .HasDefaultValueSql("(CURRENT_TIMESTAMP)")
+                    .HasColumnType("timestamp with time zone");
+                entity.Property(e => e.DeletedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.IsMandatory).HasDefaultValue(true);
                 entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
                 entity.Property(e => e.Remark).HasMaxLength(250);
-                entity.Property(e => e.UpdatedDateTime).HasColumnType("datetime");
+                entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");
             });
             modelBuilder.Entity<RoleModuleOperationResponseDTO>().HasNoKey();
             modelBuilder.Entity<GetEmployeeCodePatternResponseDTO>().HasNoKey();

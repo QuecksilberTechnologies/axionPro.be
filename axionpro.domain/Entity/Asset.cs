@@ -28,7 +28,7 @@ public partial class Asset : BaseEntity
 
     public string? Barcode { get; set; }
 
-    public string? Qrcode { get; set; }
+    public string? QRCode { get; set; }
 
     public DateTime? PurchaseDate { get; set; }
 

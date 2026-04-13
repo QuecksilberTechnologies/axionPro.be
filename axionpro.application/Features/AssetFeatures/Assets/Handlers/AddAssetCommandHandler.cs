@@ -99,6 +99,10 @@ public class AddAssetCommandHandler
             asset.AddedDateTime = DateTime.UtcNow;
             asset.IsActive = true;
             asset.IsSoftDeleted = false;
+            asset.UpdatedDateTime = null; 
+            asset.DeletedDateTime = null;           
+            asset.PurchaseDate = request.DTO.PurchaseDate.HasValue? DateTime.SpecifyKind(request.DTO.PurchaseDate.Value, DateTimeKind.Utc)  : null;
+            asset.WarrantyExpiryDate = request.DTO.WarrantyExpiryDate.HasValue   ? DateTime.SpecifyKind(request.DTO.WarrantyExpiryDate.Value, DateTimeKind.Utc) : null;
 
             // ===============================
             // 4️⃣ VALIDATE FOREIGN KEYS

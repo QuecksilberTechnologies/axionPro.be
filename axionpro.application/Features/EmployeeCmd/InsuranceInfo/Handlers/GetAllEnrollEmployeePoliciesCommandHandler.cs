@@ -69,7 +69,7 @@ namespace axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers
                     // 🔹 GET DEPENDENTS (CORRECT METHOD)
                     var mappings = await _unitOfWork
                         .EmployeeDependentInsuranceMappingRepository
-                        .GetByEnrollmentIdAsync(enr.Id, validation.TenantId);
+                        .GetByEnrollmentIdAsync(validation.UserEmployeeId, validation.TenantId);
 
                     var dependents = mappings.Select(d => new GetEmployeeDependentResponsePolicyDTO
                     {

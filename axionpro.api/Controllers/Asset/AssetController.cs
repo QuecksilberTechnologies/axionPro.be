@@ -53,7 +53,8 @@ namespace axionpro.api.Controllers.Asset
         /// </summary>
         /// <param name="addAssetDTO">DTO containing asset details to create.</param>
         /// <returns>Returns the created asset with its Id and other details.</returns>
-        [HttpPost("add")]   
+        [HttpPost("add")]
+        [Consumes("multipart/form-data")]
         public async Task<IActionResult> AddAsset([FromForm] AddAssetRequestDTO  addAssetDTO)
         {
             _logger.LogInfo("Request: Add asset - " + addAssetDTO);
@@ -67,7 +68,8 @@ namespace axionpro.api.Controllers.Asset
         /// </summary>
         /// <param name="updateAssetDTO">DTO containing updated asset details including Id.</param>
         /// <returns>Returns the updated asset information.</returns>
-        [HttpPut("update")]       
+        [HttpPut("update")]    
+        
         public async Task<IActionResult> UpdateAsset([FromBody] UpdateAssetRequestDTO updateAssetDTO)
         {
             _logger.LogInfo("Request: Update asset - " + updateAssetDTO);
