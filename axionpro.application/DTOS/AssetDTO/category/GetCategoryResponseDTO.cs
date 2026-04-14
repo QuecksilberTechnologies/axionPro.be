@@ -17,11 +17,9 @@ namespace axionpro.application.DTOS.AssetDTO.category
         public string? Remark { get; set; }
 
         public bool IsActive { get; set; }
+        public bool HasMultipleUser { get; set; } = false;
 
-       public long AddedById { get; set; }
-         public DateTime AddedDateTime { get; set; }
-        public long? UpdatedById { get; set; }
-        public DateTime? UpdatedDateTime { get; set; }
+       
 
 
 

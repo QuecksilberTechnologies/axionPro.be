@@ -525,6 +525,7 @@ namespace axionpro.persistance.Data.Context
                     .HasColumnType("timestamp with time zone");
                 entity.Property(e => e.CategoryName).HasMaxLength(200);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.HasMultipleUser).HasDefaultValue(false);
                 entity.Property(e => e.Remark).HasMaxLength(500);
                 entity.Property(e => e.SoftDeletedDateTime).HasColumnType("timestamp with time zone");
                 entity.Property(e => e.UpdatedDateTime).HasColumnType("timestamp with time zone");

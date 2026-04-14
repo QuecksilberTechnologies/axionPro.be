@@ -19,6 +19,7 @@ namespace axionpro.domain.Entity
         public bool IsActive { get; set; }
 
         public bool? IsSoftDeleted { get; set; }
+        public bool HasMultipleUser { get; set; } = false;
 
         public long? AddedById { get; set; }
 

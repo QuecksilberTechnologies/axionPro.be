@@ -24,6 +24,7 @@ namespace axionpro.application.DTOS.AssetDTO.asset
         public string? Color { get; set; }
         public bool? IsRepairable { get; set; }
         public bool IsActive { get; set; }
+        public bool HasMultipleUser { get; set; }
         public bool IsAssigned { get; set; }
         public decimal? Price { get; set; }
         public string? SerialNumber { get; set; }

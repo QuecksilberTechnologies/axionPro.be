@@ -146,6 +146,7 @@ namespace axionpro.persistance.Repositories
                     Remark = Dto.Remark?.Trim(),
                    // IsActive = Dto.IsActive,
                     IsActive =true,
+                    HasMultipleUser = Dto.HasMultipleUser,
                     IsSoftDeleted = false,
                     AddedById = Dto.Prop.EmployeeId,
                     AddedDateTime = DateTime.UtcNow
@@ -218,6 +219,7 @@ namespace axionpro.persistance.Repositories
             entity.CategoryName = dto.CategoryName.Trim();
             entity.Remark = dto.Remark?.Trim();
             entity.IsActive = dto.IsActive ?? entity.IsActive;
+            entity.HasMultipleUser = dto.HasMultipleUser ;
             entity.UpdatedById = dto.Prop.UserEmployeeId;
             entity.UpdatedDateTime = DateTime.UtcNow;
 

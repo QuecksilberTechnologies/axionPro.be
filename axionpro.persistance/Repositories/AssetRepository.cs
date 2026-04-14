@@ -168,6 +168,7 @@ namespace axionpro.persistance.Repositories
                 AssetStatusId = asset.AssetStatusId,
                 IsAssigned = asset.IsAssigned ,
                 IsActive = asset.IsActive,
+                HasMultipleUser = asset.AssetType != null && asset.AssetType.AssetCategory != null ? asset.AssetType.AssetCategory.HasMultipleUser : false,
                 AssetImageId = image?.Id,
                 AssetImagePath = image?.AssetImagePath,
                 AssetImageType = image?.AssetImageType
@@ -363,7 +364,7 @@ namespace axionpro.persistance.Repositories
                         // 🔥 NEW FIELD
                         CategoryId = a.AssetType != null ? a.AssetType.AssetCategoryId : null,
                         CategoryName = a.AssetType != null && a.AssetType.AssetCategory != null ? a.AssetType.AssetCategory.CategoryName : null,
-
+                        HasMultipleUser = a.AssetType != null && a.AssetType.AssetCategory != null ? a.AssetType.AssetCategory.HasMultipleUser : false,
 
                         SerialNumber = a.SerialNumber,
                         ModelNumber = a.ModelNo,
