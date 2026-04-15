@@ -28,6 +28,7 @@
     <Compile Remove="Features\EmployeeCmd\BasicInfo - Copy %283%29 - Copy %282%29\**" />
     <Compile Remove="Features\EmployeeCmd\Commands\**" />
     <Compile Remove="Features\EmployeeCmd\DependentInfo\Command\**" />
+    <Compile Remove="Features\TenantIndustryCmd\Commands\**" />
     <EmbeddedResource Remove="Features\AssetFeatures\Category\Commands\**" />
     <EmbeddedResource Remove="Features\AssetFeatures\Category\Queries\**" />
     <EmbeddedResource Remove="Features\AssetFeatures\Status\Commands\**" />
@@ -37,6 +38,7 @@
     <EmbeddedResource Remove="Features\EmployeeCmd\BasicInfo - Copy %283%29 - Copy %282%29\**" />
     <EmbeddedResource Remove="Features\EmployeeCmd\Commands\**" />
     <EmbeddedResource Remove="Features\EmployeeCmd\DependentInfo\Command\**" />
+    <EmbeddedResource Remove="Features\TenantIndustryCmd\Commands\**" />
     <None Remove="Features\AssetFeatures\Category\Commands\**" />
     <None Remove="Features\AssetFeatures\Category\Queries\**" />
     <None Remove="Features\AssetFeatures\Status\Commands\**" />
@@ -46,6 +48,7 @@
     <None Remove="Features\EmployeeCmd\BasicInfo - Copy %283%29 - Copy %282%29\**" />
     <None Remove="Features\EmployeeCmd\Commands\**" />
     <None Remove="Features\EmployeeCmd\DependentInfo\Command\**" />
+    <None Remove="Features\TenantIndustryCmd\Commands\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -103,13 +106,13 @@
     <Folder Include="Features\ServiceProviderCmd\Commands\" />
     <Folder Include="Features\ServiceProviderCmd\Queries\" />
     <Folder Include="Features\SubscriptionCmd\Queries\" />
-    <Folder Include="Features\TenantIndustryCmd\Commands\" />
     <Folder Include="Features\UserLoginAndDashboardCmd\Queries\" />
     <Folder Include="Features\VerifyEmailCmd\Commands\" />
     <Folder Include="Features\VerifyEmailCmd\Queries\" />
     <Folder Include="Features\WorkstationCmd\Commands\" />
     <Folder Include="Features\WorkstationCmd\Queries\" />
     <Folder Include="Interfaces\IRepositories\NewFolder\" />
+    <Folder Include="Interfaces\NewFolder\" />
   </ItemGroup>
 
   <ItemGroup>

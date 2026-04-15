@@ -1,5 +1,4 @@
 ﻿using axionpro.application.DTOS.Pagination;
-using axionpro.application.Features.TicketFeatures.TicketHeader.Handlers;
 using Microsoft.Extensions.FileSystemGlobbing.Internal.PathSegments;
 using Microsoft.VisualBasic;
 using System;
@@ -21,9 +20,9 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
              public string? FirstName { get; set; } = string.Empty;
             public int GenderId { get; set; }
             public string? GenderName { get; set; }
-            public int CountryId { get; set; }
-         public string? CountryCode { get; set; }
-        public string? MobileNumber { get; set; }
+              public int CountryId { get; set; }
+              public string? CountryCode { get; set; }
+             public string? MobileNumber { get; set; }
           public string Nationality { get; set; } = string.Empty;           
             public string? DateOfBirth { get; set; }
             public string? DateOfOnBoarding { get; set; }

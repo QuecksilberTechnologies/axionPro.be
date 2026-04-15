@@ -45,7 +45,7 @@ using axionpro.application.DTOS.TicketDTO.Classification;
 using axionpro.application.DTOS.TicketDTO.Header;
 using axionpro.application.DTOS.TicketDTO.TicketType;
 using axionpro.application.DTOS.UserRoles;
-using axionpro.application.Features.TicketFeatures.Classification.Commands;
+using axionpro.application.Features.TicketCmd.Classification;
 using axionpro.domain.Entity;
 using FluentValidation;
 

@@ -11,7 +11,7 @@ namespace axionpro.application.DTOS.AssetDTO.category
     {
         
 
-        public int Id { get; set; }
+        public long Id { get; set; }
         public string? CategoryName { get; set; }
 
         public string? Remark { get; set; }

@@ -10,7 +10,7 @@ using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace axionpro.application.Features.RoleCmd.ModuleOperationMappingRepository.Handlers
+namespace axionpro.application.Features.UserRolesCmd.Handlers
 {
     // ===============================
     // COMMAND

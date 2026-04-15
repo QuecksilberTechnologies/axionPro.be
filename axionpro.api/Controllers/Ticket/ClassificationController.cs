@@ -1,5 +1,6 @@
 ﻿using axionpro.application.DTOS.TicketDTO.Classification;
-using axionpro.application.Features.TicketFeatures.Classification.Commands;
+using axionpro.application.Features.TicketCmd.Classification;
+
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

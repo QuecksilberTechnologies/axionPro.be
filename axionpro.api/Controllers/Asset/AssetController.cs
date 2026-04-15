@@ -70,7 +70,7 @@ namespace axionpro.api.Controllers.Asset
         /// <returns>Returns the updated asset information.</returns>
         [HttpPut("update")]    
         
-        public async Task<IActionResult> UpdateAsset([FromBody] UpdateAssetRequestDTO updateAssetDTO)
+        public async Task<IActionResult> UpdateAsset([FromForm] UpdateAssetRequestDTO updateAssetDTO)
         {
             _logger.LogInfo("Request: Update asset - " + updateAssetDTO);
             var command = new UpdateAssetCommand(updateAssetDTO);

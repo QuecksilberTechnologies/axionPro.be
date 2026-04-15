@@ -1,11 +1,12 @@
-﻿using axionpro.application.DTOS.TicketDTO.Classification;
-
+﻿using axionpro.application.DTOS.Pagination;
+using axionpro.application.DTOS.TicketDTO.Classification;
+using axionpro.domain.Entity; 
+using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
-
+using System.Threading.Tasks; 
 namespace axionpro.application.Interfaces.IRepositories
 {
    
@@ -14,7 +15,7 @@ namespace axionpro.application.Interfaces.IRepositories
         /// <summary>
         /// Add new ticket classification.
         /// </summary>
-           Task<List<GetClassificationResponseDTO>> AddAsync(AddClassificationRequestDTO dTO);
+           Task<GetClassificationResponseDTO> AddAsync(AddClassificationRequestDTO dTO);
 
             /// <summary>
             /// Get classification by Id.
@@ -24,7 +25,7 @@ namespace axionpro.application.Interfaces.IRepositories
             /// <summary>
             /// Get all active classifications.
             /// </summary>
-            Task<List<GetClassificationResponseDTO>> GetAllAsync(GetClassificationRequestDTO dTO);
+            Task<PagedResponseDTO<GetClassificationResponseDTO>> GetAllAsync(GetClassificationRequestDTO dto);
 
             /// <summary>
             /// Soft delete classification (mark inactive).

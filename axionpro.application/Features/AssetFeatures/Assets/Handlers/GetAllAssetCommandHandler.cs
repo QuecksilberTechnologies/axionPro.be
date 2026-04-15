@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.DTOS.AssetDTO.asset;
+using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -176,3 +177,5 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
         }
     }
 }
+
+ 

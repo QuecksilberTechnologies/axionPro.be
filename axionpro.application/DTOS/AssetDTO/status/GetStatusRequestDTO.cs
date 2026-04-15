@@ -13,7 +13,7 @@ namespace axionpro.application.DTOS.AssetDTO.status
     /// <summary>
     /// post-request to fetch all asset status
     /// </summary>
-    public class GetStatusRequestDTO 
+    public class GetStatusRequestDTO : BaseRequest
     {
          
            

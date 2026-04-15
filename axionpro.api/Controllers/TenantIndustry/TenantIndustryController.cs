@@ -1,7 +1,7 @@
 ﻿using axionpro.application.DTOs.Tenant;
 using axionpro.application.DTOs.TenantIndustry;
 using axionpro.application.Features.TenantConfigurationCmd.Tenant.Queries;
-using axionpro.application.Features.TenantIndustryCmd.Queries;
+using axionpro.application.Features.TenantIndustryCmd.Handlers;
 using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
 using MediatR;

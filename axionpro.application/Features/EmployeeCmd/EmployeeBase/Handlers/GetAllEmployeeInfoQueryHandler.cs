@@ -107,8 +107,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // ===============================
                 // 4️⃣ FETCH DATA
                 // ===============================
-                var responseDTO =
-                    await _unitOfWork.Employees.GetAllInfo(request.DTO);
+                var responseDTO =  await _unitOfWork.Employees.GetAllInfo(request.DTO);
 
                 // ===============================
                 // 5️⃣ OPTIMIZED EMPTY HANDLING
@@ -128,8 +127,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // ===============================
                 // 6️⃣ SINGLE RESPONSE
                 // ===============================
-                return ApiResponse<List<GetAllEmployeeInfoResponseDTO>>
-                    .SuccessPaginatedPercentage(
+                return ApiResponse<List<GetAllEmployeeInfoResponseDTO>> .SuccessPaginatedPercentage(
                         Data: resultList,
                         Message: items.Any()
                             ? "Employee info retrieved successfully."

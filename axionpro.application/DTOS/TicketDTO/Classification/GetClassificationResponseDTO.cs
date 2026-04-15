@@ -7,9 +7,10 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOS.TicketDTO.Classification
 {
-    public class GetClassificationResponseDTO : BaseRequest
+    public class GetClassificationResponseDTO  
     {
 
+        public int Id { get; set; } =0; 
         public string ClassificationName { get; set; } = null!;
 
         public string? Description { get; set; }

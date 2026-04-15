@@ -8,7 +8,7 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOS.AssetDTO.category
 {
-    public class GetCategoryReqestDTO 
+    public class GetCategoryReqestDTO : BaseRequest
     {
         public int Id { get; set; }        
         public bool? IsActive { get; set; }

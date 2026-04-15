@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using axionpro.application.DTOS.AssetDTO.category;
+using axionpro.application.DTOS.Pagination;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
@@ -15,7 +16,7 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.AssetFeatures.Category.Handlers
 {
-    public class GetAllCategoryCommand : IRequest<ApiResponse<List<GetCategoryResponseDTO>>>
+    public class GetAllCategoryCommand : IRequest<ApiResponse<PagedResponseDTO<GetCategoryResponseDTO>>>
     {
         public GetCategoryReqestDTO DTO { get; set; }
 
@@ -28,7 +29,7 @@ namespace axionpro.application.Features.AssetFeatures.Category.Handlers
     /// Handles fetching all Asset Categories for a given tenant.
     /// </summary>
     public class GetAllCategoryCommandHandler
-        : IRequestHandler<GetAllCategoryCommand, ApiResponse<List<GetCategoryResponseDTO>>>
+        : IRequestHandler<GetAllCategoryCommand, ApiResponse<PagedResponseDTO<GetCategoryResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -70,8 +71,7 @@ namespace axionpro.application.Features.AssetFeatures.Category.Handlers
         /// <summary>
         /// Handles the GetAllCategoryCommand request to retrieve all categories.
         /// </summary>
-        public async Task<ApiResponse<List<GetCategoryResponseDTO>>> Handle(
-     GetAllCategoryCommand request,
+        public async Task<ApiResponse<PagedResponseDTO<GetCategoryResponseDTO>>> Handle( GetAllCategoryCommand request,
      CancellationToken cancellationToken)
         {
             try
@@ -126,15 +126,19 @@ namespace axionpro.application.Features.AssetFeatures.Category.Handlers
                 // ===============================
                 // 5️⃣ HANDLE EMPTY DATA (IMPORTANT)
                 // ===============================
-                if (categoryEntities == null || categoryEntities.Count == 0)
+                if (categoryEntities == null || categoryEntities.Items.Count == 0)
                 {
                     _logger.LogWarning(
                         "No Asset Categories found for TenantId: {TenantId}",
                         request.DTO.Prop.TenantId);
 
                     // ✅ Empty list = success (best practice)
-                    return ApiResponse<List<GetCategoryResponseDTO>>
-                        .Success(new List<GetCategoryResponseDTO>(), "No Asset Categories found.");
+                    return ApiResponse<PagedResponseDTO<GetCategoryResponseDTO>>
+                        .Success(new PagedResponseDTO<GetCategoryResponseDTO>
+                        {
+                            Items = new List<GetCategoryResponseDTO>(),
+                            TotalCount = 0
+                        }, "No Asset Categories found.");
                 }
 
                 // ===============================
@@ -150,8 +154,14 @@ namespace axionpro.application.Features.AssetFeatures.Category.Handlers
                 // ===============================
                 // 7️⃣ SUCCESS RESPONSE
                 // ===============================
-                return ApiResponse<List<GetCategoryResponseDTO>>
-                    .Success(responseDTOs, "Asset Categories fetched successfully.");
+                return ApiResponse<PagedResponseDTO<GetCategoryResponseDTO>>
+                    .Success(new PagedResponseDTO<GetCategoryResponseDTO>
+                    {
+                        Items = responseDTOs,
+                        TotalCount = responseDTOs.Count,                       
+                        PageNumber = request.DTO.PageNumber,
+                        PageSize = request.DTO.PageSize
+                    }, "Asset Categories fetched successfully.");
             }
             catch (Exception ex)
             {

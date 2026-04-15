@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using axionpro.domain.Entity;
+using axionpro.application.DTOS.Pagination;
 
 namespace axionpro.persistance.Repositories
 {
@@ -126,7 +127,7 @@ namespace axionpro.persistance.Repositories
         /// Retrieves all AssetStatus records for a tenant with optional isActive filter.
         /// </summary>
         ///   public 
-        public async Task<List<GetStatusResponseDTO>> GetAllAsync(GetStatusRequestDTO? assetStatus)
+        public async Task<PagedResponseDTO<GetStatusResponseDTO>> GetAllAsync(GetStatusRequestDTO? assetStatus)
         {
           
             try
@@ -152,14 +153,20 @@ namespace axionpro.persistance.Repositories
                     entities.Count, assetStatus.Prop.TenantId);
 
                 // Map entities to DTOs
-                return _mapper.Map<List<GetStatusResponseDTO>>(entities);
+                return _mapper.Map<PagedResponseDTO<GetStatusResponseDTO>>(entities);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex,
                     "Error occurred while fetching AssetStatus records for TenantId: {TenantId}",
                     assetStatus.Prop.TenantId);
-                return new List<GetStatusResponseDTO>();
+                return new PagedResponseDTO<GetStatusResponseDTO>
+                {
+                    Items = new List<GetStatusResponseDTO>(),
+                    TotalCount = 0,
+                    PageNumber =0,
+                    PageSize = 0
+                };
             }
         }
 

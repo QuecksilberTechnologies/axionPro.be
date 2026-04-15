@@ -1,6 +1,5 @@
 ﻿using axionpro.application.DTOS.TicketDTO.TicketType;
-using axionpro.application.Features.TicketFeatures.TicketType.Commands;
-using axionpro.application.Features.TicketFeatures.TicketType.Queries;
+using axionpro.application.Features.TicketCmd.TicketType.Handlers;
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

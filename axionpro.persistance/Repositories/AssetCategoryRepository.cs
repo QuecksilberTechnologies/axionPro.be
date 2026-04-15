@@ -1,13 +1,13 @@
 ﻿using AutoMapper;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.AssetDTO.category;
+using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces.IRepositories;
-
+using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Data; using axionpro.domain.Entity;
-
+using System.Data; 
 namespace axionpro.persistance.Repositories
 {
     public class AssetCategoryRepository : IAssetCategoryRepository
@@ -48,7 +48,7 @@ namespace axionpro.persistance.Repositories
         /// </summary>
         /// <param name="dto">The filter criteria for retrieving asset categories.</param>
         /// <returns>A list of <see cref="GetCategoryResponseDTO"/> objects.</returns>
-        public async Task<List<GetCategoryResponseDTO>> GetAllAsync(GetCategoryReqestDTO? dto)
+        public async Task<PagedResponseDTO<GetCategoryResponseDTO>> GetAllAsync(GetCategoryReqestDTO? dto)
         {
             try
             {
@@ -58,13 +58,13 @@ namespace axionpro.persistance.Repositories
                 if (dto == null)
                 {
                     _logger.LogWarning("GetAllAsync called with null DTO.");
-                    return new List<GetCategoryResponseDTO>();
+                    return new PagedResponseDTO<GetCategoryResponseDTO>();
                 }
 
                 if (dto.Prop.TenantId <= 0)
                 {
                     _logger.LogWarning("Invalid TenantId provided: {TenantId}", dto.Prop.TenantId);
-                    return new List<GetCategoryResponseDTO>();
+                    return new PagedResponseDTO<GetCategoryResponseDTO>();
                 }
 
                 // ✅ 2️⃣ Build Query with Filters
@@ -89,20 +89,20 @@ namespace axionpro.persistance.Repositories
                 if (!entities.Any())
                 {
                     _logger.LogWarning("No AssetCategory records found for TenantId: {TenantId}", dto.Prop.TenantId);
-                    return new List<GetCategoryResponseDTO>();
+                    return new PagedResponseDTO<GetCategoryResponseDTO>();
                 }
 
                 // ✅ 4️⃣ Map and Return
-                var result = _mapper.Map<List<GetCategoryResponseDTO>>(entities);
+                var result = _mapper.Map<PagedResponseDTO<GetCategoryResponseDTO>>(entities);
 
-                _logger.LogInformation("Fetched {Count} AssetCategory records for TenantId: {TenantId}", result.Count, dto.Prop.TenantId);
+                _logger.LogInformation("Fetched {Count} AssetCategory records for TenantId: {TenantId}", result.Items.Count, dto.Prop.TenantId);
                 return result;
             }
             catch (Exception ex)
             {
                 // ✅ 5️⃣ Exception Handling
                 _logger.LogError(ex, "Error occurred while fetching AssetCategory records for TenantId: {TenantId}", dto?.Prop.TenantId);
-                return new List<GetCategoryResponseDTO>();
+                return new PagedResponseDTO<GetCategoryResponseDTO>();
             }
         }
 
@@ -112,82 +112,78 @@ namespace axionpro.persistance.Repositories
         /// </summary>
         /// <param name="Dto">AddCategoryRequestDTO containing TenantId, CategoryName, EmployeeId, etc.</param>
         /// <returns>List of GetCategoryResponseDTO after successful insertion.</returns>
-        public async Task<List<GetCategoryResponseDTO>> AddAsync(AddCategoryReqestDTO? Dto)
+        public async Task<GetCategoryResponseDTO> AddAsync(AddCategoryReqestDTO dto)
         {
             try
-            { 
-                  
+            {
+                // ===============================
+                // 1️⃣ NULL VALIDATION
+                // ===============================
+                if (dto == null)
+                    throw new ArgumentNullException(nameof(dto));
+
+                if (dto.Prop == null)
+                    throw new ArgumentException("Request context (Prop) is required.");
+
+                if (string.IsNullOrWhiteSpace(dto.CategoryName))
+                    throw new ArgumentException("Category name is required.");
+
                 _logger.LogInformation(
-                    "Attempting to insert new Asset Category for TenantId: {TenantId}, CategoryName: {CategoryName}",
-                    Dto.Prop.TenantId, Dto.CategoryName);
+                    "Attempting to insert Asset Category for TenantId: {TenantId}, CategoryName: {CategoryName}",
+                    dto.Prop.TenantId, dto.CategoryName);
 
-                // ✅ 2️⃣ Duplicate check
-                var existingCategory = await _context.AssetCategories
-                    .FirstOrDefaultAsync(ac =>
-                        ac.TenantId == Dto.Prop.TenantId &&
-                        ac.CategoryName.ToLower() == Dto.CategoryName.ToLower() &&
-                        ac.IsSoftDeleted == false);
+                var categoryName = dto.CategoryName.Trim();
 
-                if (existingCategory != null)
-                {
-                    _logger.LogWarning(
-                        "Duplicate Asset Category detected for TenantId: {TenantId}, CategoryName: {CategoryName}",
-                        Dto.Prop.TenantId, Dto.CategoryName);
-
-                    throw new InvalidOperationException(
-                        $"Category '{Dto.CategoryName}' already exists for TenantId {Dto.Prop.TenantId}.");
-                }
-
-                // ✅ 3️⃣ Map DTO → Entity
-                var newCategory = new AssetCategory
-                {
-                    TenantId = Dto.Prop.TenantId,
-                    CategoryName = Dto.CategoryName.Trim(),
-                    Remark = Dto.Remark?.Trim(),
-                   // IsActive = Dto.IsActive,
-                    IsActive =true,
-                    HasMultipleUser = Dto.HasMultipleUser,
+           
+                // ===============================
+                // 3️⃣ CREATE ENTITY
+                // ===============================
+                var entity = new AssetCategory
+                { 
+                    Id = 0, // EF will auto-generate
+                    TenantId = dto.Prop.TenantId,
+                    CategoryName = categoryName,
+                    Remark = dto.Remark?.Trim(),
+                    IsActive = true,
+                    HasMultipleUser = dto.HasMultipleUser,
                     IsSoftDeleted = false,
-                    AddedById = Dto.Prop.EmployeeId,
+                    AddedById = dto.Prop.EmployeeId,
                     AddedDateTime = DateTime.UtcNow
                 };
 
-                // ✅ 4️⃣ Save record
-                await _context.AssetCategories.AddAsync(newCategory);
+                // ===============================
+                // 4️⃣ SAVE
+                // ===============================
+                await _context.AssetCategories.AddAsync(entity);
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation(
-                    "✅ Asset Category added successfully with Id: {Id}, TenantId: {TenantId}",
-                    newCategory.Id, Dto.Prop.TenantId);
+                    "Asset Category created successfully with Id: {Id}",
+                    entity.Id);
 
-                // ✅ 5️⃣ Fetch updated list and map
-                var categories = await GetAllAssetCategoryAsync(Dto.Prop.TenantId, Dto.Prop.IsActive);
-                var mappedResponse = _mapper.Map<List<GetCategoryResponseDTO>>(categories);
-
-                return mappedResponse.OrderByDescending(r => r.Id).ToList();
-            }
-            catch (ArgumentNullException ex)
-            {
-                _logger.LogWarning(ex, "⚠️ Null input detected while adding Asset Category.");
-                throw;
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogWarning(ex, "⚠️ Invalid input data while adding Asset Category for TenantId: {TenantId}", Dto?.Prop.TenantId);
-                throw;
-            }
-            catch (InvalidOperationException ex)
-            {
-                _logger.LogWarning(ex, "⚠️ Duplicate category detected for TenantId: {TenantId}", Dto?.Prop.TenantId);
-                throw;
+                // ===============================
+                // 5️⃣ RETURN DTO (NO EXTRA DB CALL)
+                // ===============================
+                return new GetCategoryResponseDTO
+                {
+                    Id = entity.Id, // 🔐 later encode karna (tumhare pattern ke hisaab se)
+                    CategoryName = entity.CategoryName,
+                    Remark = entity.Remark,
+                    IsActive = entity.IsActive,
+                    HasMultipleUser = entity.HasMultipleUser
+                };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Unexpected error occurred while adding Asset Category for TenantId: {TenantId}", Dto?.Prop.TenantId);
+                _logger.LogError(
+                    ex,
+                    "Error while adding Asset Category for TenantId: {TenantId}",
+                    dto?.Prop?.TenantId);
+
                 throw;
             }
         }
- 
+
 
         // 🔹 DUPLICATE CHECK (UPDATE SAFE)
         public async Task<bool> ExistsAsync(
