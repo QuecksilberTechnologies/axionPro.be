@@ -61,10 +61,9 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
         }
 
         public async Task<ApiResponse<GetAssetResponseDTO>> Handle(
-       UpdateAssetCommand request,
-       CancellationToken cancellationToken)
+      UpdateAssetCommand request,
+      CancellationToken cancellationToken)
         {
-            // 🔹 Track uploaded file (VERY IMPORTANT for rollback cleanup)
             string? uploadedFileKey = null;
 
             await _unitOfWork.BeginTransactionAsync();
@@ -72,42 +71,24 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
             try
             {
                 // ===============================
-                // 1️⃣ COMMON VALIDATION
+                // 1️⃣ VALIDATION
                 // ===============================
                 var validation = await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
                     throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // ===============================
-                // 2️⃣ NULL SAFETY
-                // ===============================
                 if (request?.DTO == null || request.DTO.Id <= 0)
                     throw new ValidationErrorException(
                         "Invalid request.",
-                        new List<string> { "Asset Id is required." }
-                    );
+                        new List<string> { "Asset Id is required." });
 
-                if (request.DTO.Prop == null)
-                    request.DTO.Prop = new();
-
+                request.DTO.Prop ??= new();
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
                 // ===============================
-                // 3️⃣ PERMISSION CHECK (RBAC)
-                // ===============================
-                //var hasPermission = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    "Asset",
-                //    "Update"
-                //);
-
-                //if (!hasPermission)
-                //    throw new UnauthorizedAccessException("No permission to update asset.");
-
-                // ===============================
-                // 4️⃣ FETCH EXISTING ASSET
+                // 2️⃣ FETCH EXISTING
                 // ===============================
                 var existingAsset = await _unitOfWork.AssetRepository
                     .GetSingleRecordAsync(request.DTO.Id, true);
@@ -116,31 +97,33 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
                     throw new KeyNotFoundException("Asset not found.");
 
                 // ===============================
-                // 5️⃣ UPDATE FIELDS (SAFE MERGE)
+                // 3️⃣ UPDATE FIELDS (SAFE)
                 // ===============================
                 existingAsset.AssetName = request.DTO.AssetName ?? existingAsset.AssetName;
-                existingAsset.AssetTypeId = request.DTO.AssetTypeId ?? existingAsset.AssetTypeId;
+                existingAsset.AssetTypeId = request.DTO.AssetTypeId;
                 existingAsset.Company = request.DTO.Company ?? existingAsset.Company;
                 existingAsset.ModelNo = request.DTO.ModelNo ?? existingAsset.ModelNo;
                 existingAsset.Size = request.DTO.Size ?? existingAsset.Size;
                 existingAsset.Weight = request.DTO.Weight ?? existingAsset.Weight;
                 existingAsset.Color = request.DTO.Color ?? existingAsset.Color;
-                existingAsset.IsRepairable = request.DTO.IsRepairable ?? existingAsset.IsRepairable;
-                existingAsset.Price = request.DTO.Price ?? existingAsset.Price;
+
+                existingAsset.IsRepairable = request.DTO.IsRepairable;
+                existingAsset.Price = request.DTO.Price;
                 existingAsset.SerialNumber = request.DTO.SerialNumber ?? existingAsset.SerialNumber;
                 existingAsset.Barcode = request.DTO.Barcode ?? existingAsset.Barcode;
-                
-                existingAsset.AssetStatusId = request.DTO.AssetStatusId ?? existingAsset.AssetStatusId;
-                existingAsset.IsAssigned = request.DTO.IsAssigned ?? existingAsset.IsAssigned;
-                existingAsset.IsActive = request.DTO.IsActive ?? existingAsset.IsActive;
-                existingAsset.IsSoftDeleted = false;
-                existingAsset.UpdatedDateTime = null;
-                existingAsset.DeletedDateTime = null;
-                existingAsset.PurchaseDate = request.DTO.PurchaseDate.HasValue ? DateTime.SpecifyKind(request.DTO.PurchaseDate.Value, DateTimeKind.Utc) : null;
-                existingAsset.WarrantyExpiryDate = request.DTO.WarrantyExpiryDate.HasValue ? DateTime.SpecifyKind(request.DTO.WarrantyExpiryDate.Value, DateTimeKind.Utc) : null;
+
+                existingAsset.AssetStatusId = request.DTO.AssetStatusId;
+                existingAsset.IsAssigned = request.DTO.IsAssigned;
+                existingAsset.IsActive = request.DTO.IsActive;
+
+                existingAsset.PurchaseDate = request.DTO.PurchaseDate;
+                existingAsset.WarrantyExpiryDate = request.DTO.WarrantyExpiryDate;
+
+                existingAsset.UpdatedById = validation.UserEmployeeId;
+                existingAsset.UpdatedDateTime = DateTime.UtcNow;
 
                 // ===============================
-                // 6️⃣ QR UPDATE
+                // 4️⃣ QR CODE UPDATE
                 // ===============================
                 existingAsset.QRCode = JsonConvert.SerializeObject(new
                 {
@@ -152,15 +135,15 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
                     existingAsset.SerialNumber,
                     existingAsset.Barcode,
                     existingAsset.AssetStatusId,
-                    existingAsset.AssetStatus?.StatusName,
+                    StatusName = existingAsset.AssetStatus?.StatusName,
                     existingAsset.IsAssigned,
                     existingAsset.PurchaseDate,
                     existingAsset.WarrantyExpiryDate,
-                    existingAsset.IsRepairable,
+                    existingAsset.IsRepairable
                 });
 
                 // ===============================
-                // 7️⃣ IMAGE UPLOAD (CRITICAL SAFE BLOCK)
+                // 5️⃣ IMAGE UPLOAD
                 // ===============================
                 string? assetImagePath = null;
 
@@ -169,14 +152,12 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
                 {
                     try
                     {
-                        string cleanName =
-                            EncryptionSanitizer.CleanEncodedInput(
-                                request.DTO.AssetName ?? "asset")
+                        string cleanName = EncryptionSanitizer
+                            .CleanEncodedInput(request.DTO.AssetName ?? "asset")
                             .ToLower()
                             .Replace(" ", "_");
 
-                        string fileName =
-                            $"asset-{cleanName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
+                        string fileName = $"asset-{cleanName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
 
                         string folderPath =
                             $"{ConstantValues.TenantFolder}-{validation.TenantId}/{ConstantValues.AssetsFolder}";
@@ -190,13 +171,12 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
                     }
                     catch (Exception ex)
                     {
-                        // ❗ Image failure should NOT break update
                         _logger.LogError(ex, "Asset image upload failed");
                     }
                 }
 
                 // ===============================
-                // 8️⃣ UPDATE DATABASE
+                // 6️⃣ DB UPDATE
                 // ===============================
                 var updatedAsset = await _unitOfWork.AssetRepository
                     .UpdateAsync(existingAsset, assetImagePath);
@@ -205,7 +185,7 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
                     throw new ApiException("Asset update failed.", 500);
 
                 // ===============================
-                // 9️⃣ COMMIT TRANSACTION
+                // 7️⃣ COMMIT
                 // ===============================
                 await _unitOfWork.CommitTransactionAsync();
 
@@ -214,30 +194,22 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
             }
             catch (Exception ex)
             {
-                // ===============================
-                // 🔁 ROLLBACK DB
-                // ===============================
                 await _unitOfWork.RollbackTransactionAsync();
 
-                // ===============================
-                // 🧨 CRITICAL: DELETE UPLOADED IMAGE
-                // ===============================
                 if (!string.IsNullOrEmpty(uploadedFileKey))
                 {
                     try
                     {
                         await _fileStorageService.DeleteFileAsync(uploadedFileKey);
-                        _logger.LogWarning("Rollback: Uploaded image deleted from storage.");
+                        _logger.LogWarning("Rollback: Uploaded image deleted.");
                     }
                     catch (Exception deleteEx)
                     {
-                        _logger.LogError(deleteEx, "Failed to delete uploaded image after rollback.");
+                        _logger.LogError(deleteEx, "Image delete failed after rollback.");
                     }
                 }
 
                 _logger.LogError(ex, "UpdateAsset failed");
-
-                // ❗ IMPORTANT: Middleware handle karega
                 throw;
             }
         }

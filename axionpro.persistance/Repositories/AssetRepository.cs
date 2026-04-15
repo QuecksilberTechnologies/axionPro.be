@@ -1,16 +1,15 @@
 ﻿using AutoMapper;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.AssetDTO.asset;
+using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces.IFileStorage;
-
 using axionpro.application.Interfaces.IQRService;
 using axionpro.application.Interfaces.IRepositories;
-
+using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Data; using axionpro.domain.Entity;
-
+using System.Data; 
 namespace axionpro.persistance.Repositories
 {
     
@@ -38,103 +37,103 @@ namespace axionpro.persistance.Repositories
             
         }
 
-        public async Task<GetAssetResponseDTO> UpdateAsync(Asset asset,string? path)
+        public async Task<GetAssetResponseDTO> UpdateAsync(Asset asset, string? path)
         {
             try
             {
-                _logger.LogInformation(
-                    "Updating asset Id={AssetId}", asset.Id);
-
-                // ============================
-                // 1️⃣ Fetch Existing Asset
-                // ============================
-                var existingAsset = await _context.Assets
-                    .FirstOrDefaultAsync(a =>
-                        a.Id == asset.Id &&
-                        a.IsSoftDeleted != true);
-
-                if (existingAsset == null)
-                    throw new Exception("Asset not found.");
-
-                // ============================
-                // 2️⃣ Update Asset Fields
-                // (Already NULL-safe from handler)
-                // ============================
-                _context.Entry(existingAsset)
-                    .CurrentValues
-                    .SetValues(asset);
-
-                // ============================
-                // 3️⃣ IMAGE UPDATE (SINGLE IMAGE RULE)
-                // ============================
-                var assetImage = await GetAssetImageAsync(existingAsset.Id);
-
-                if (!string.IsNullOrWhiteSpace(path))
-                {
-                    if (assetImage != null)
-                    {
-                        // 🔁 Update same image
-                        assetImage.AssetImagePath = path;
-                        assetImage.IsActive = existingAsset.IsActive;
-                        assetImage.UpdatedById = asset.UpdatedById;
-                        assetImage.UpdatedDateTime = DateTime.UtcNow;
-                    }
-                    else
-                    {
-                        // ⚠️ Edge case: image missing → create once
-                        assetImage = new AssetImage
-                        {
-                            AssetId = existingAsset.Id,
-                            TenantId = existingAsset.TenantId,
-                            AssetImageType = ConstantValues.Web,
-                            AssetImagePath = path,
-                            IsPrimary = true,
-                            IsActive = existingAsset.IsActive,
-                            IsSoftDeleted = false,
-                            AddedById = asset.UpdatedById,
-                            AddedDateTime = DateTime.UtcNow
-                        };
-
-                        await _context.AssetImages.AddAsync(assetImage);
-                    }
-                }
-
-                // ============================
-                // 4️⃣ Sync Image with Asset State
-                // ============================
-                if (assetImage != null)
-                {
-                    assetImage.IsActive = existingAsset.IsActive;
-
-                    if (existingAsset.IsSoftDeleted == true)
-                    {
-                        assetImage.IsSoftDeleted = true;
-                    }
-                }
-
-                // ============================
-                // 5️⃣ SAVE
-                // ============================
+                // ===============================
+                // 1️⃣ UPDATE ASSET
+                // ===============================
+                _context.Assets.Update(asset);
                 await _context.SaveChangesAsync();
 
-                // ============================
-                // 6️⃣ RETURN DTO
-                // ============================
-                return MapToAssetDTO(existingAsset, assetImage);
+                // ===============================
+                // 2️⃣ HANDLE IMAGE (IMPORTANT)
+                // ===============================
+                if (!string.IsNullOrWhiteSpace(path))
+                {
+                    // 🔹 Existing primary image deactivate
+                    var existingImages = await _context.AssetImages
+                        .Where(x => x.AssetId == asset.Id && x.IsActive && (x.IsSoftDeleted == false || x.IsSoftDeleted == null))
+                        .ToListAsync();
+
+                    foreach (var img in existingImages)
+                    {
+                        img.IsActive = false;
+                        img.IsPrimary = false;
+                        img.UpdatedDateTime = DateTime.UtcNow;
+                    }
+
+                    // 🔹 Add new image
+                    var newImage = new AssetImage
+                    {
+                        AssetId = asset.Id,
+                        AssetImagePath = path,
+                        IsPrimary = true,
+                        IsActive = true,
+                        IsSoftDeleted = false,
+                        AddedDateTime = DateTime.UtcNow,
+                        AddedById = asset.UpdatedById
+                    };
+
+                    await _context.AssetImages.AddAsync(newImage);
+                    await _context.SaveChangesAsync();
+                }
+
+                // ===============================
+                // 3️⃣ FETCH UPDATED DATA (WITH JOIN)
+                // ===============================
+                var result = await _context.Assets
+                    .AsNoTracking()
+                    .Where(a => a.Id == asset.Id)
+                    .Select(a => new GetAssetResponseDTO
+                    {
+                        AssetId = a.Id,
+                        AssetName = a.AssetName,
+
+                        AssetTypeId = a.AssetTypeId,
+                        TypeName = a.AssetType.TypeName,
+
+                        CategoryId = a.AssetType.AssetCategoryId,
+                        CategoryName = a.AssetType.AssetCategory != null
+                            ? a.AssetType.AssetCategory.CategoryName
+                            : null,
+
+                        AssetStatusId = a.AssetStatusId,
+                        StatusName = a.AssetStatus.StatusName,
+                        ColorKey = a.AssetStatus.ColorKey,
+
+                        SerialNumber = a.SerialNumber,
+                        ModelNumber = a.ModelNo,
+
+                        Company = a.Company,
+                        Color = a.Color,
+                        Price = a.Price,
+
+                        IsActive = a.IsActive,
+                        IsAssigned = a.IsAssigned,
+
+                        PurchaseDate = a.PurchaseDate,
+                        WarrantyExpiryDate = a.WarrantyExpiryDate,
+
+                        AssetImagePath = a.AssetImages
+                            .Where(i => i.IsPrimary && i.IsActive && (i.IsSoftDeleted !=true))
+                            .Select(i => i.AssetImagePath)
+                            .FirstOrDefault()
+                    })
+                    .FirstOrDefaultAsync();
+
+                return result!;
             }
             catch (Exception ex)
             {
-                _logger.LogError(
-                    ex,
-                    "❌ Error while updating asset Id={AssetId}",
-                    asset.Id);
-
+                _logger.LogError(ex, "❌ AssetRepository UpdateAsync failed");
                 throw;
             }
         }
         #region 🔹 Common Helpers
 
-    
+
 
         private async Task<AssetImage?> GetAssetImageAsync(long assetId)
         {
@@ -313,7 +312,7 @@ namespace axionpro.persistance.Repositories
                 throw;
             }
         }
-        public async Task<List<GetAssetResponseDTO>> GetAssetsByFilterAsync(GetAssetRequestDTO asset)
+        public async Task<PagedResponseDTO<GetAssetResponseDTO>> GetAssetsByFilterAsync(GetAssetRequestDTO asset)
         {
             try
             {
@@ -321,7 +320,13 @@ namespace axionpro.persistance.Repositories
                 if (asset == null || asset.Prop == null)
                 {
                     _logger.LogWarning("⚠️ GetAssetsByFilterAsync called with null filter");
-                    return new List<GetAssetResponseDTO>();
+
+                    return new PagedResponseDTO<GetAssetResponseDTO>(
+                        new List<GetAssetResponseDTO>(),
+                        0,
+                        asset?.PageNumber ?? 1,
+                        asset?.PageSize ?? 10
+                    );
                 }
 
                 IQueryable<Asset> query = _context.Assets
@@ -350,9 +355,17 @@ namespace axionpro.persistance.Repositories
                 if (asset.IsAssigned.HasValue)
                     query = query.Where(a => a.IsAssigned == asset.IsAssigned);
 
-                // 🔥 FINAL QUERY (Single DB Call)
-                var result = await query
+                // 🔥 TOTAL COUNT (before pagination)
+                var totalCount = await query.CountAsync();
+
+                // 🔥 PAGINATION
+                var pageNumber = asset.PageNumber <= 0 ? 1 : asset.PageNumber;
+                var pageSize = asset.PageSize <= 0 ? 10 : asset.PageSize;
+
+                var data = await query
                     .OrderByDescending(a => a.Id)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
                     .Select(a => new GetAssetResponseDTO
                     {
                         AssetId = a.Id,
@@ -361,13 +374,18 @@ namespace axionpro.persistance.Repositories
                         AssetTypeId = a.AssetTypeId,
                         TypeName = a.AssetType != null ? a.AssetType.TypeName : null,
 
-                        // 🔥 NEW FIELD
                         CategoryId = a.AssetType != null ? a.AssetType.AssetCategoryId : null,
-                        CategoryName = a.AssetType != null && a.AssetType.AssetCategory != null ? a.AssetType.AssetCategory.CategoryName : null,
-                        HasMultipleUser = a.AssetType != null && a.AssetType.AssetCategory != null ? a.AssetType.AssetCategory.HasMultipleUser : false,
+                        CategoryName = a.AssetType != null && a.AssetType.AssetCategory != null
+                            ? a.AssetType.AssetCategory.CategoryName
+                            : null,
+
+                        HasMultipleUser = a.AssetType != null && a.AssetType.AssetCategory != null
+                            ? a.AssetType.AssetCategory.HasMultipleUser
+                            : false,
 
                         SerialNumber = a.SerialNumber,
                         ModelNumber = a.ModelNo,
+
                         AssetStatusId = a.AssetStatusId,
                         StatusName = a.AssetStatus != null ? a.AssetStatus.StatusName : null,
                         ColorKey = a.AssetStatus != null ? a.AssetStatus.ColorKey : null,
@@ -384,15 +402,22 @@ namespace axionpro.persistance.Repositories
                         PurchaseDate = a.PurchaseDate,
                         WarrantyExpiryDate = a.WarrantyExpiryDate,
 
-                        // 🔥 Primary Image
                         AssetImagePath = a.AssetImages
-                            .Where(i => i.IsPrimary == true && (i.IsSoftDeleted != true) && (i.IsActive == true))
+                            .Where(i => i.IsPrimary == true &&
+                                        (i.IsSoftDeleted != true) &&
+                                        (i.IsActive == true))
                             .Select(i => i.AssetImagePath)
                             .FirstOrDefault()
                     })
                     .ToListAsync();
 
-                return result ?? new List<GetAssetResponseDTO>();
+                // ✅ FINAL RESPONSE
+                return new PagedResponseDTO<GetAssetResponseDTO>(
+                    data,
+                    totalCount,
+                    pageNumber,
+                    pageSize
+                );
             }
             catch (Exception ex)
             {

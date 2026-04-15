@@ -1,6 +1,7 @@
 ﻿
 
 using axionpro.application.DTOS.AssetDTO.asset;
+using axionpro.application.DTOS.Pagination;
 using axionpro.domain.Entity;
 namespace axionpro.application.Interfaces.IRepositories
 {
@@ -19,7 +20,7 @@ namespace axionpro.application.Interfaces.IRepositories
         public Task<Asset> GetSingleRecordAsync(long Id, bool? IsActive);  // Ensure this returns 
 
         Task<List<GetAssetResponseDTO>> GetInsertedAssetAsync(long tenantId, bool Isactive);
-        Task<List<GetAssetResponseDTO>> GetAssetsByFilterAsync(GetAssetRequestDTO? asset);
+        Task<PagedResponseDTO<GetAssetResponseDTO>> GetAssetsByFilterAsync(GetAssetRequestDTO asset);
         Task<bool> DeleteAssetAsync(DeleteAssetReqestDTO? asset);
         
         #endregion
