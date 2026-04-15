@@ -166,7 +166,7 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                 // ===============================
                 // 9️⃣ HANDLE NO DATA (IMPORTANT)
                 // ===============================
-                if (responseDTO.Items == null || !responseDTO.Items.Any())
+                if (responseDTO.Data == null || !responseDTO.Data.Any())
                 {
                     _logger.LogWarning("No departments found.");
 
@@ -188,7 +188,7 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                     PageSize = responseDTO.PageSize,
                     TotalRecords = responseDTO.TotalCount,
                     TotalPages = responseDTO.TotalPages,
-                    Data = responseDTO.Items
+                    Data = responseDTO.Data
                 };
             }
             catch (Exception ex)

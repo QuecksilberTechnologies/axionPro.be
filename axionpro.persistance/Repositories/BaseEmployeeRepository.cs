@@ -1048,7 +1048,7 @@ namespace axionpro.persistance.Repositories
                 // 🧩 Step 11: Final response
                 return new PagedResponseDTO<GetBaseEmployeeResponseDTO>
                 {
-                    Items = records,
+                    Data = records,
                     TotalCount = totalCount,
                     PageNumber = pageNumber,
                     TotalPages = (int)Math.Ceiling((double)totalCount / pageSize),
@@ -1270,7 +1270,7 @@ namespace axionpro.persistance.Repositories
 
                 return new PagedResponseDTO<GetAllEmployeeInfoResponseDTO>
                 {
-                    Items = result,
+                    Data = result,
                     TotalCount = totalCount,
                     PageNumber = pageNumber,
                     PageSize = pageSize,
@@ -1285,7 +1285,7 @@ namespace axionpro.persistance.Repositories
 
                 return new PagedResponseDTO<GetAllEmployeeInfoResponseDTO>
                 {
-                    Items = new List<GetAllEmployeeInfoResponseDTO>(),
+                    Data = new List<GetAllEmployeeInfoResponseDTO>(),
                     TotalCount = 0,
                     PageNumber = dto.PageNumber,
                     PageSize = dto.PageSize,

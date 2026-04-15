@@ -93,7 +93,7 @@ namespace axionpro.application.Features.RoleCmd.Handlers
 
                 var responseDTO = await _unitOfWork.RoleRepository.GetAsync(request.DTO);
 
-                if (responseDTO.Items == null || !responseDTO.Items.Any())
+                if (responseDTO.Data == null || !responseDTO.Data.Any())
                 {
                     _logger.LogInformation("⚠️ No roles found for TenantId: {TenantId}", request.DTO.Prop.TenantId);
                     return new ApiResponse<List<GetRoleResponseDTO>>
@@ -119,7 +119,7 @@ namespace axionpro.application.Features.RoleCmd.Handlers
                 {
                     IsSucceeded = true,
                     Message = "Roles retrieved successfully.",
-                    Data = responseDTO.Items,
+                    Data = responseDTO.Data,
                     PageNumber = responseDTO.PageNumber,
                     PageSize = responseDTO.PageSize,
                     TotalRecords = responseDTO.TotalCount,

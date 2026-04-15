@@ -138,7 +138,7 @@ namespace axionpro.persistance.Repositories
                 // -----------------------------
                 return new PagedResponseDTO<GetBankResponseDTO>
                 {
-                    Items = records,
+                    Data = records,
                     TotalCount = totalRecords,
                     PageNumber = pageNumber,
                     PageSize = pageSize,
@@ -444,7 +444,7 @@ namespace axionpro.persistance.Repositories
                 // =========================================================
                 return new PagedResponseDTO<GetBankResponseDTO>
                 {
-                    Items = records,
+                    Data = records,
                     TotalCount = totalCount,
                     PageNumber = pageNumber,
                     PageSize = pageSize,

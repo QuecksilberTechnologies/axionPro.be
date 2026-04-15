@@ -221,10 +221,10 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 
 
             
-            if (entities == null || !entities.Items.Any())
+            if (entities == null || !entities.Data.Any())
                 return new List<GetAllEmployeeInfoResponseDTO>();
 
-            foreach (var item in entities.Items)
+            foreach (var item in entities.Data)
             {
                 if (long.TryParse(item.EmployeeId, out long rawId) && rawId > 0)
                 {
@@ -244,7 +244,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 
             }
 
-            return entities.Items;
+            return entities.Data;
         }
 
  
@@ -440,10 +440,10 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                   IIdEncoderService encoderService,
                    string tenantKey)
         {
-            if (pagedResult?.Items == null || !pagedResult.Items.Any())
+            if (pagedResult?.Data == null || !pagedResult.Data.Any())
                 return new List<GetContactResponseDTO>();
 
-            foreach (var item in pagedResult.Items)
+            foreach (var item in pagedResult.Data)
             {
                 if (item == null)
                     continue;
@@ -484,7 +484,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 
             }
 
-            return pagedResult.Items;
+            return pagedResult.Data;
         }
 
         public static List<GetBankResponseDTO> ToGetBankResponseDTOs(
@@ -493,12 +493,12 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
      string tenantKey,
      IConfiguration configuration, IFileStorageService _fileStorageService)
         {
-            if (entities?.Items == null || !entities.Items.Any())
+            if (entities?.Data == null || !entities.Data.Any())
                 return new List<GetBankResponseDTO>();
 
            
 
-            foreach (var item in entities.Items)
+            foreach (var item in entities.Data)
             {
                 if (item == null)
                     continue;
@@ -523,7 +523,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 item.EmployeeId ??= string.Empty;
             }
 
-            return entities.Items;
+            return entities.Data;
         }
 
         private static string EncodeId(
@@ -546,10 +546,10 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         string tenantKey, IConfiguration configuration, IFileStorageService _fileStorageService)
         {
             
-            if (source?.Items == null || source.Items.Count == 0)
+            if (source?.Data == null || source.Data.Count == 0)
                 return new();
 
-            return source.Items
+            return source.Data
                 .Where(x => x != null)
                 .Select(item => new GetEducationResponseDTO
                 {

@@ -376,7 +376,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 var roleTypeList = await _unitOfWork.RoleRepository.GetAsync(getRoleRequestDTO);
 
                 // ✅ Select specific role
-                var roleType = roleTypeList.Items.FirstOrDefault(r => r.Id == employeeInfo.UserPrimaryRole.RoleId && r.IsActive == true);
+                var roleType = roleTypeList.Data.FirstOrDefault(r => r.Id == employeeInfo.UserPrimaryRole.RoleId && r.IsActive == true);
                  
                 // ✅ Get tenant info (await lagana mat bhoolna)
 

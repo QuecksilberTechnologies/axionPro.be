@@ -349,7 +349,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 };
 
                 var roleTypeList = await _unitOfWork.RoleRepository.GetAsync(getRoleRequestDTO);
-                var roleType = roleTypeList.Items.FirstOrDefault(r =>
+                var roleType = roleTypeList.Data.FirstOrDefault(r =>
                     r.Id == employeeInfo.UserPrimaryRole.RoleId && r.IsActive == true);
 
                 if (dto.TenantId == 0)

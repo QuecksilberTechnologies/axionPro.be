@@ -119,7 +119,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // ===============================
                 // 5️⃣ OPTIMIZED EMPTY HANDLING
                 // ===============================
-             var items = responseDTO?.Items ?? new List<GetBaseEmployeeResponseDTO>();
+             var items = responseDTO?.Data ?? new List<GetBaseEmployeeResponseDTO>();
 
                 var resultList = items.Any()
                     ? ProjectionHelper.ToGetBaseInfoListResponseDTOs(

@@ -154,7 +154,7 @@ namespace axionpro.persistance.Repositories
 
                 var response = new PagedResponseDTO<GetClassificationResponseDTO>
                 {
-                    Items = result,
+                    Data = result,
                     TotalCount = result.Count,
                     PageNumber = 1,
                     PageSize = result.Count

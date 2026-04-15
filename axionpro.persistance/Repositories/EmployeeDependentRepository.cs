@@ -84,7 +84,7 @@ namespace axionpro.persistance.Repositories
 
                 return new PagedResponseDTO<GetDependentResponseDTO>
                 {
-                    Items = responseData,
+                    Data = responseData,
                     TotalCount = totalRecords,
                     PageNumber = 1,
                     PageSize = pageSize,
@@ -318,7 +318,7 @@ namespace axionpro.persistance.Repositories
 
                 return new PagedResponseDTO<GetDependentResponseDTO>
                 {
-                    Items = responseData,
+                    Data = responseData,
                     TotalCount = responseData.Count, // max 10
                     PageNumber = 1,
                     PageSize = 10,
@@ -335,7 +335,7 @@ namespace axionpro.persistance.Repositories
 
                 return new PagedResponseDTO<GetDependentResponseDTO>
                 {
-                    Items = new List<GetDependentResponseDTO>(),
+                    Data = new List<GetDependentResponseDTO>(),
                     TotalCount = 0,
                     PageNumber = 1,
                     PageSize = 10,

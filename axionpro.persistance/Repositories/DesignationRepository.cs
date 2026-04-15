@@ -148,7 +148,7 @@ namespace axionpro.persistance.Repositories
                 {
                     _logger.LogWarning("⚠️ Designation '{Name}' already exists for TenantId {TenantId}.", dto.DesignationName, dto.Prop.TenantId);
 
-                    result.Items = new List<GetDesignationResponseDTO>();
+                    result.Data = new List<GetDesignationResponseDTO>();
                     result.TotalCount = 0;
                     result.PageNumber = 1;
                     result.PageSize = 10;
@@ -193,7 +193,7 @@ namespace axionpro.persistance.Repositories
                     .ToListAsync();
 
                 // 🧩 7️⃣ Prepare paged response
-                result.Items = latestDesignations;
+                result.Data = latestDesignations;
                 result.TotalCount = await _context.Designations.CountAsync(d =>
                     d.TenantId == dto.Prop.TenantId && d.IsSoftDeleted != true);
                 result.PageNumber = 1;
@@ -324,7 +324,7 @@ namespace axionpro.persistance.Repositories
                     return dto;
                 }).ToList();
 
-                response.Items = mappedList;
+                response.Data = mappedList;
                 response.TotalCount = totalRecords;
                 response.PageNumber = request.PageNumber;
                 response.PageSize = request.PageSize;
@@ -335,7 +335,7 @@ namespace axionpro.persistance.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error fetching designations for TenantId: {TenantId}", request.Prop.TenantId);
-                response.Items = new List<GetDesignationResponseDTO>();
+                response.Data = new List<GetDesignationResponseDTO>();
             }
 
             return response;

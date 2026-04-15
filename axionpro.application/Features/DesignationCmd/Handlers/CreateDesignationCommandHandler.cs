@@ -141,7 +141,7 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                 var responseDTO = await _unitOfWork.DesignationRepository
                     .CreateAsync(request.DTO);
 
-                if (responseDTO == null || responseDTO.Items == null || !responseDTO.Items.Any())
+                if (responseDTO == null || responseDTO.Data == null || !responseDTO.Data.Any())
                     throw new ApiException("No designation was created.", 500);
 
                 // ===============================
@@ -160,7 +160,7 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                     PageSize = responseDTO.PageSize,
                     TotalRecords = responseDTO.TotalCount,
                     TotalPages = responseDTO.TotalPages,
-                    Data = responseDTO.Items
+                    Data = responseDTO.Data
                 };
             }
             catch (Exception ex)

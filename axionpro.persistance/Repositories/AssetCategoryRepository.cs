@@ -95,7 +95,7 @@ namespace axionpro.persistance.Repositories
                 // ✅ 4️⃣ Map and Return
                 var result = _mapper.Map<PagedResponseDTO<GetCategoryResponseDTO>>(entities);
 
-                _logger.LogInformation("Fetched {Count} AssetCategory records for TenantId: {TenantId}", result.Items.Count, dto.Prop.TenantId);
+                _logger.LogInformation("Fetched {Count} AssetCategory records for TenantId: {TenantId}", result.Data.Count, dto.Prop.TenantId);
                 return result;
             }
             catch (Exception ex)

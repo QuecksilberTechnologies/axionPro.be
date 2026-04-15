@@ -383,7 +383,7 @@ namespace axionpro.persistance.Repositories
 
             return new PagedResponseDTO<GetInsurancePolicyResponseDTO>
             {
-                Items = items,
+                Data = items,
                 TotalCount = totalCount,
                 PageNumber = pageNumber,
                 PageSize = pageSize,

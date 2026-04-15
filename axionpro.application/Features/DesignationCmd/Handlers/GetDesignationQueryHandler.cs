@@ -93,7 +93,7 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                 // 3️⃣ REPOSITORY CALL
                 var responseDTO = await _unitOfWork.DesignationRepository.GetAsync(request.DTO);
 
-                if (responseDTO.Items == null || !responseDTO.Items.Any())
+                if (responseDTO.Data == null || !responseDTO.Data.Any())
                 {
                     _logger.LogInformation("⚠️ No designation found for TenantId: {TenantId}",
                         request.DTO.Prop.TenantId);
@@ -118,7 +118,7 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                 {
                     IsSucceeded = true,
                     Message = "Designations retrieved successfully.",
-                    Data = responseDTO.Items,
+                    Data = responseDTO.Data,
                     PageNumber = responseDTO.PageNumber,
                     PageSize = responseDTO.PageSize,
                     TotalRecords = responseDTO.TotalCount,

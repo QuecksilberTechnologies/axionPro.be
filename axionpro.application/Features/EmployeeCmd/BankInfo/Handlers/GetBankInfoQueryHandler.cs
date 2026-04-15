@@ -126,7 +126,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 // ===============================
                 // 5️⃣ EMPTY LIST = SUCCESS
                 // ===============================
-                if (bankEntities == null || bankEntities.Items == null || !bankEntities.Items.Any())
+                if (bankEntities == null || bankEntities.Data == null || !bankEntities.Data.Any())
                 {
                     return ApiResponse<List<GetBankResponseDTO>>
                         .SuccessPaginatedPercentage(

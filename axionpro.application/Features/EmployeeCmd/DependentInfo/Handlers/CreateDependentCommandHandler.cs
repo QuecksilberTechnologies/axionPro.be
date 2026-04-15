@@ -192,7 +192,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                 // ===============================
                 var encryptedList =
                     ProjectionHelper.ToGetDependentResponseDTOs(
-                        responseDTO.Items,
+                        responseDTO.Data,
                         _idEncoderService,
                         validation.Claims.TenantEncriptionKey,
                         _configuration, _fileStorageService

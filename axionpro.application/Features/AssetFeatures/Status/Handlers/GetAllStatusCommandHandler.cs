@@ -91,7 +91,7 @@ namespace axionpro.application.Features.AssetFeatures.Status.Handlers
                 // ===============================
                 // 5️⃣ EMPTY HANDLING
                 // ===============================
-                if (result == null || result.Items.Count == 0)
+                if (result == null || result.Data.Count == 0)
                 {
                     _logger.LogWarning(
                         "No Asset Status found for TenantId: {TenantId}",
@@ -100,7 +100,7 @@ namespace axionpro.application.Features.AssetFeatures.Status.Handlers
                     return ApiResponse<PagedResponseDTO<GetStatusResponseDTO>>
                         .Success(new PagedResponseDTO<GetStatusResponseDTO>
                         {
-                            Items = new List<GetStatusResponseDTO>(),
+                            Data = new List<GetStatusResponseDTO>(),
                             TotalCount = 0,
                             PageNumber = request.DTO.PageNumber,
                             PageSize = request.DTO.PageSize
@@ -109,7 +109,7 @@ namespace axionpro.application.Features.AssetFeatures.Status.Handlers
 
                 _logger.LogInformation(
                     "Successfully retrieved {Count} records for TenantId: {TenantId}",
-                    result.Items.Count,
+                    result.Data.Count,
                     request.DTO.Prop.TenantId);
 
                 // ===============================
@@ -118,7 +118,7 @@ namespace axionpro.application.Features.AssetFeatures.Status.Handlers
                 return ApiResponse<PagedResponseDTO<GetStatusResponseDTO>>                  
                      .Success(new PagedResponseDTO<GetStatusResponseDTO>
                      {
-                         Items = new List<GetStatusResponseDTO>(),
+                         Data = new List<GetStatusResponseDTO>(),
                          TotalCount = result.TotalCount,
                          PageNumber = request.DTO.PageNumber,
                          PageSize = request.DTO.PageSize

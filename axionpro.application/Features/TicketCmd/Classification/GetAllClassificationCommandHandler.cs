@@ -95,7 +95,7 @@ namespace axionpro.application.Features.TicketCmd.Classification
                 // ===============================
                 // 5️⃣ EMPTY HANDLING (MASTER PATTERN)
                 // ===============================
-                var items = responseDTO?.Items ?? new List<GetClassificationResponseDTO>();
+                var items = responseDTO?.Data ?? new List<GetClassificationResponseDTO>();
 
                 var resultList = items.Any()
                     ? items

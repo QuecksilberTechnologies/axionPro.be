@@ -499,7 +499,7 @@ public class RoleRepository : IRoleRepository
             }).ToList();
 
             // ✅ Prepare paged response
-            response.Items = roles;
+            response.Data = roles;
             response.TotalCount = totalCount;
             response.PageNumber = pageNumber;
             response.PageSize = pageSize;
@@ -510,7 +510,7 @@ public class RoleRepository : IRoleRepository
         catch (Exception ex)
         {
             _logger.LogError(ex, "❌ Error creating role '{RoleName}' for TenantId: {TenantId}", dto?.RoleName, dto.Prop.TenantId);
-            response.Items = new List<GetRoleResponseDTO>();
+            response.Data = new List<GetRoleResponseDTO>();
             response.TotalCount = 0;
             response.PageNumber = 1;
             response.PageSize = 10;
@@ -617,7 +617,7 @@ public class RoleRepository : IRoleRepository
 
             var mappedList = _mapper.Map<List<GetRoleResponseDTO>>(roles);
 
-            response.Items = mappedList;
+            response.Data = mappedList;
             response.TotalCount = totalRecords;
             response.PageNumber = dto.PageNumber;
             response.PageSize = dto.PageSize;

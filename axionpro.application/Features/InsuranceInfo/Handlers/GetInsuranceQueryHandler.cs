@@ -93,7 +93,7 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                 var result =
                     await _unitOfWork.InsuranceRepository.GetListAsync(request.DTO);
 
-                var data = result?.Items ?? new List<GetInsurancePolicyResponseDTO>();
+                var data = result?.Data ?? new List<GetInsurancePolicyResponseDTO>();
 
                 _logger.LogInformation(
                     "✅ Retrieved {Count} insurance policies",

@@ -88,7 +88,7 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                     .PolicyTypeInsuranceMappingRepository
                     .GetListAsync(request.DTO);
 
-                var data = result?.Items ?? new List<GetPolicyTypeInsuranceMappingResponseDTO>();
+                var data = result?.Data ?? new List<GetPolicyTypeInsuranceMappingResponseDTO>();
 
                 _logger.LogInformation("✅ Retrieved {Count} mapping records", data.Count);
 

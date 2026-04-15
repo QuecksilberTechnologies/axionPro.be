@@ -121,7 +121,7 @@ namespace axionpro.persistance.Repositories
 
                 var mappedList = _mapper.Map<List<GetDepartmentResponseDTO>>(departments);
 
-                response.Items = mappedList;
+                response.Data = mappedList;
                 response.TotalCount = totalRecords;
                 response.PageNumber = request.PageNumber;
                 response.PageSize = request.PageSize;
@@ -132,7 +132,7 @@ namespace axionpro.persistance.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching departments.");
-                response.Items = new List<GetDepartmentResponseDTO>();
+                response.Data = new List<GetDepartmentResponseDTO>();
             }
 
             return response;
@@ -169,7 +169,7 @@ namespace axionpro.persistance.Repositories
                         dto.DepartmentName,
                         dto.Prop.TenantId);
 
-                    result.Items = new List<GetDepartmentResponseDTO>();
+                    result.Data = new List<GetDepartmentResponseDTO>();
                     result.TotalCount = 0;
                     result.PageNumber = pageNumber;
                     result.PageSize = pageSize;
@@ -212,7 +212,7 @@ namespace axionpro.persistance.Repositories
 
                 var mappedData = _mapper.Map<List<GetDepartmentResponseDTO>>(pagedData);
 
-                result.Items = mappedData;
+                result.Data = mappedData;
                 result.TotalCount = totalCount;
                 result.PageNumber = pageNumber;
                 result.PageSize = pageSize;

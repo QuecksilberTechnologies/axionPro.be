@@ -332,7 +332,7 @@ namespace axionpro.persistance.Repositories
 
                 return new PagedResponseDTO<GetEmployeeExperienceResponseDTO>
                 {
-                    Items = finalList,
+                    Data = finalList,
                     TotalCount = totalRecords,
                     PageNumber = pageNumber,
                     PageSize = pageSize,

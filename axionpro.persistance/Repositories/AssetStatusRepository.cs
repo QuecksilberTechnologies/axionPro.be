@@ -162,7 +162,7 @@ namespace axionpro.persistance.Repositories
                     assetStatus.Prop.TenantId);
                 return new PagedResponseDTO<GetStatusResponseDTO>
                 {
-                    Items = new List<GetStatusResponseDTO>(),
+                    Data = new List<GetStatusResponseDTO>(),
                     TotalCount = 0,
                     PageNumber =0,
                     PageSize = 0

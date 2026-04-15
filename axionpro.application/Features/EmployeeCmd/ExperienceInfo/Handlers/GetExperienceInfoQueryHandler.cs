@@ -108,12 +108,12 @@ public class GetExperienceInfoQueryHandler
                     .GetByEmployeeIdWithDocumentsAsync(request.DTO);
 
             _logger.LogInformation("📦 Data fetched | Count: {Count}",
-                expEntities?.Items?.Count ?? 0);
+                expEntities?.Data?.Count ?? 0);
 
             // ===============================
             // 4️⃣ EMPTY LIST = SUCCESS
             // ===============================
-            if (expEntities == null || expEntities.Items == null || !expEntities.Items.Any())
+            if (expEntities == null || expEntities.Data == null || !expEntities.Data.Any())
             {
                 _logger.LogWarning("⚠️ No experience records found");
 
@@ -133,7 +133,7 @@ public class GetExperienceInfoQueryHandler
             // ===============================
             // 5️⃣ ENCODE IDS (FIXED 🔥)
             // ===============================
-            foreach (var item in expEntities.Items)
+            foreach (var item in expEntities.Data)
             {
                 if (!string.IsNullOrWhiteSpace(item.EmployeeId) &&
                     long.TryParse(item.EmployeeId, out var empId))
@@ -157,7 +157,7 @@ public class GetExperienceInfoQueryHandler
 
             return ApiResponse<List<GetEmployeeExperienceResponseDTO>>
                 .SuccessPaginatedPercentage(
-                    Data: expEntities.Items,
+                    Data: expEntities.Data,
                     Message: "Experience info retrieved successfully.",
                     PageNumber: expEntities.PageNumber,
                     PageSize: expEntities.PageSize,

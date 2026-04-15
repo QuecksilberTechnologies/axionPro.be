@@ -126,7 +126,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                 // ===============================
                 // 5️⃣ OPTIMIZED EMPTY HANDLING
                 // ===============================
-                var items = entity?.Items ?? new List<GetEducationResponseDTO>();
+                var items = entity?.Data ?? new List<GetEducationResponseDTO>();
 
                 var responseDTO = items.Any()
                     ? ProjectionHelper.ToGetEducationResponseDTOs(

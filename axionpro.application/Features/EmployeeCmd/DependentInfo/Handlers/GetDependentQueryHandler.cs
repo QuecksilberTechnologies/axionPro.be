@@ -92,7 +92,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                     await _unitOfWork.EmployeeDependentRepository
                         .GetInfo(request.DTO);
 
-                if (result == null || !result.Items.Any())
+                if (result == null || !result.Data.Any())
                 {
                     return ApiResponse<List<GetDependentResponseDTO>>
                       .SuccessPaginatedPercentage(
@@ -111,7 +111,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                 // 🔐 STEP 5: Projection + Encryption + FilePath + Completion %
                 var responseDTO =
                     ProjectionHelper.ToGetDependentResponseDTOs(
-                        result.Items,
+                        result.Data,
                         _idEncoderService,
                         validation.Claims.TenantEncriptionKey,
                         _configuration, _fileStorageService
@@ -128,7 +128,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                         PageSize: result.PageSize,
                         TotalRecords: result.TotalCount,
                         TotalPages: result.TotalPages,
-                        CompletionPercentage: result.Items.Any()
+                        CompletionPercentage: result.Data.Any()
                             ? Math.Round(responseDTO.Average(x => x.CompletionPercentage), 0)
                             : 0,
                         HasUploadedAll: null

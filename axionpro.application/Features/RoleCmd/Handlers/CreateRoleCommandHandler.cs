@@ -114,10 +114,10 @@ namespace axionpro.application.Features.RoleCmd.Handlers
                 // ===============================
                 var result = await _unitOfWork.RoleRepository.CreateAsync(request.DTO);
 
-                if (result == null || result.Items == null)
+                if (result == null || result.Data == null)
                     throw new ApiException("Role creation failed.", 500);
 
-                var data = result.Items ?? new List<GetRoleResponseDTO>();
+                var data = result.Data ?? new List<GetRoleResponseDTO>();
 
                 _logger.LogInformation("✅ Created {Count} role(s)", data.Count);
 

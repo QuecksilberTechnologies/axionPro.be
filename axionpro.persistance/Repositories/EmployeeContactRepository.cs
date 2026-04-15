@@ -160,7 +160,7 @@ namespace axionpro.persistance.Repositories
 
                 return new PagedResponseDTO<GetContactResponseDTO>
                 {
-                    Items = records,
+                    Data = records,
                     TotalCount = totalRecords,
                     PageNumber = 1,
                     PageSize = 10
@@ -277,7 +277,7 @@ namespace axionpro.persistance.Repositories
  
                 return new PagedResponseDTO<GetContactResponseDTO>
                 {
-                    Items = records,
+                    Data = records,
                     TotalCount = records.Count,
                     PageNumber = 1,
                     PageSize = 10,

@@ -118,7 +118,7 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
                 // ===============================
                 // 4️⃣ EMPTY CHECK
                 // ===============================
-                if (pagedAssets == null || pagedAssets.Items.Count == 0)
+                if (pagedAssets == null || pagedAssets.Data.Count == 0)
                 {
                     _logger.LogInformation(
                         "No assets found for TenantId: {TenantId}",
@@ -140,7 +140,7 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
                 // 5️⃣ ENCRYPT / PROJECTION
                 // ===============================
                 var encryptedList = ProjectionHelper.ToGetAssetResponseDTOs(
-                    pagedAssets.Items,
+                    pagedAssets.Data,
                     _idEncoderService,
                     validation.Claims.TenantEncriptionKey,
                     _config,

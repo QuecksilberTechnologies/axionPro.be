@@ -15,7 +15,7 @@ namespace axionpro.application.DTOS.Pagination
     {
         public PagedResponseDTO()
         {
-            Items = new List<T>();
+            Data = new List<T>();
         }
 
         public PagedResponseDTO(
@@ -27,7 +27,7 @@ namespace axionpro.application.DTOS.Pagination
             double? completionPercentage = null)
             {
 
-            Items = items ?? new List<T>();
+            Data = items ?? new List<T>();
             TotalCount = totalCount;
             PageNumber = pageNumber;
             PageSize = pageSize > 0 ? pageSize : 10; // fallback if invalid
@@ -37,7 +37,7 @@ namespace axionpro.application.DTOS.Pagination
            
             }
      
-        public List<T> Items { get; set; }
+        public List<T> Data { get; set; }
         public int TotalCount { get; set; }
         public int PageNumber { get; set; }
 

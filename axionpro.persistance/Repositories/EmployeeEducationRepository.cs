@@ -73,7 +73,7 @@ namespace axionpro.persistance.Repositories
                 // ✅ 6️⃣ Prepare PagedResponse
                 return  new PagedResponseDTO<GetEducationResponseDTO>
                 {
-                    Items = responseData,
+                    Data = responseData,
                     TotalCount = totalRecords,
                     PageNumber = 1,
                     PageSize = 10,                        
@@ -220,7 +220,7 @@ namespace axionpro.persistance.Repositories
                 // -----------------
                 return new PagedResponseDTO<GetEducationResponseDTO>
                 {
-                    Items = finalList,
+                    Data = finalList,
                     TotalCount = totalRecords,
                     PageNumber = pageNumber,
                     PageSize = pageSize,

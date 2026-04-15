@@ -126,7 +126,7 @@ namespace axionpro.application.Features.AssetFeatures.Category.Handlers
                 // ===============================
                 // 5️⃣ HANDLE EMPTY DATA (IMPORTANT)
                 // ===============================
-                if (categoryEntities == null || categoryEntities.Items.Count == 0)
+                if (categoryEntities == null || categoryEntities.Data.Count == 0)
                 {
                     _logger.LogWarning(
                         "No Asset Categories found for TenantId: {TenantId}",
@@ -136,7 +136,7 @@ namespace axionpro.application.Features.AssetFeatures.Category.Handlers
                     return ApiResponse<PagedResponseDTO<GetCategoryResponseDTO>>
                         .Success(new PagedResponseDTO<GetCategoryResponseDTO>
                         {
-                            Items = new List<GetCategoryResponseDTO>(),
+                            Data = new List<GetCategoryResponseDTO>(),
                             TotalCount = 0
                         }, "No Asset Categories found.");
                 }
@@ -157,7 +157,7 @@ namespace axionpro.application.Features.AssetFeatures.Category.Handlers
                 return ApiResponse<PagedResponseDTO<GetCategoryResponseDTO>>
                     .Success(new PagedResponseDTO<GetCategoryResponseDTO>
                     {
-                        Items = responseDTOs,
+                        Data = responseDTOs,
                         TotalCount = responseDTOs.Count,                       
                         PageNumber = request.DTO.PageNumber,
                         PageSize = request.DTO.PageSize

@@ -107,7 +107,7 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
                 // ===============================
                 // 5️⃣ OPTIMIZED EMPTY HANDLING
                 // ===============================
-                var items = result?.Items ?? new List<GetContactResponseDTO>();
+                var items = result?.Data ?? new List<GetContactResponseDTO>();
 
                 var responseDTO = items.Any()
                     ? items // already DTO hai → projection ki zarurat nahi

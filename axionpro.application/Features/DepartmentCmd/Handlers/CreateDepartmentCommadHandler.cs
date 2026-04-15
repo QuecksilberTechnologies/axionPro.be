@@ -156,7 +156,7 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                 var responseDTO = await _unitOfWork.DepartmentRepository.CreateAsync(request.DTO);
 
                 // 🧩 STEP 7: Validate Response
-                if (responseDTO.Items == null || !responseDTO.Items.Any())
+                if (responseDTO.Data == null || !responseDTO.Data.Any())
                 {
                     _logger.LogWarning("❌ Department creation failed or empty result. TenantId: {TenantId}", request.DTO.Prop.UserEmployeeId);
                     return ApiResponse<List<GetDepartmentResponseDTO>>.Fail("No department was created. Please try again.");
@@ -174,7 +174,7 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                     PageSize = responseDTO.PageSize,
                     TotalRecords = responseDTO.TotalCount,
                     TotalPages = responseDTO.TotalPages,
-                    Data = responseDTO.Items
+                    Data = responseDTO.Data
                 };
             }
             catch (Exception ex)
