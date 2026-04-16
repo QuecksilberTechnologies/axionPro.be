@@ -7,7 +7,7 @@ public partial class Role
 {
     public int Id { get; set; }
 
-    public long? TenantId { get; set; }  
+    public long? TenantId { get; set; }
 
     public string? RoleName { get; set; }
 
@@ -21,7 +21,7 @@ public partial class Role
 
     public bool? IsSoftDeleted { get; set; }
 
-    public long? AddedById { get; set; }
+    public long AddedById { get; set; }
 
     public DateTime AddedDateTime { get; set; }
 
@@ -33,14 +33,11 @@ public partial class Role
 
     public DateTime? DeletedDateTime { get; set; }
 
-    public virtual ICollection<AssetTicketTypeDetail> AssetTicketTypeDetails { get; set; } = new List<AssetTicketTypeDetail>();
+    public virtual ICollection<AssetTicketTypeDetail> AssetTicketTypeDetail { get; set; } = new List<AssetTicketTypeDetail>();
 
-  
-    public virtual ICollection<RoleModuleAndPermission> RoleModuleAndPermissions { get; set; } = new List<RoleModuleAndPermission>();
+    public virtual ICollection<RoleModuleAndPermission> RoleModuleAndPermission { get; set; } = new List<RoleModuleAndPermission>();
 
-    public virtual Tenant? Tenant { get; set; }
+    public virtual ICollection<TicketType> TicketType { get; set; } = new List<TicketType>();
 
-    public virtual ICollection<TicketType> TicketTypes { get; set; } = new List<TicketType>();
-
-    public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+    public virtual ICollection<UserRole> UserRole { get; set; } = new List<UserRole>();
 }

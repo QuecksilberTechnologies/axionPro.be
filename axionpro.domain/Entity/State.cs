@@ -13,9 +13,9 @@ public partial class State
 
     public bool? IsActive { get; set; }
 
-    public virtual ICollection<City> Cities { get; set; } = new List<City>();
+    public virtual ICollection<City> City { get; set; } = new List<City>();
 
     public virtual Country Country { get; set; } = null!;
 
-    public virtual ICollection<District> Districts { get; set; } = new List<District>();
+    public virtual ICollection<District> District { get; set; } = new List<District>();
 }

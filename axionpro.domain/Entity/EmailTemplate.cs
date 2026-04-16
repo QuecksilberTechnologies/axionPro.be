@@ -41,5 +41,5 @@ public partial class EmailTemplate
 
     public string? UpdatedFromIp { get; set; }
 
-    public virtual ICollection<EmailQueue> EmailQueues { get; set; } = new List<EmailQueue>();
+    public virtual ICollection<EmailQueue> EmailQueue { get; set; } = new List<EmailQueue>();
 }

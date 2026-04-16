@@ -73,12 +73,12 @@ namespace axionpro.persistance.Repositories
                       .Take(pageSize)
                        .Select(bank => new GetBankResponseDTO
       {
-          Id = bank.Id ?? 0,
+          Id = bank.Id,
           EmployeeId = bank.EmployeeId.ToString(),
           BankName = bank.BankName,
           AccountNumber = bank.AccountNumber,
           AccountType = bank.AccountType,
-          IFSCCode = bank.IFSCCode,
+          IFSCCode = bank.Ifsccode,
           BranchName = bank.BranchName,
           IsPrimaryAccount = bank.IsPrimaryAccount,
           IsInfoVerified = bank.IsInfoVerified,
@@ -370,11 +370,11 @@ namespace axionpro.persistance.Repositories
                     .Take(pageSize)
                     .Select(x => new GetBankResponseDTO
                     {
-                        Id = x.Id ?? 0,
+                        Id = x.Id,
                         EmployeeId = x.EmployeeId.ToString(),
                         BankName = x.BankName,
                         AccountNumber = x.AccountNumber,
-                        IFSCCode = x.IFSCCode,
+                        IFSCCode = x.Ifsccode,
                         BranchName = x.BranchName,
                         AccountType = x.AccountType,
                         IsPrimaryAccount = x.IsPrimaryAccount,
@@ -384,7 +384,7 @@ namespace axionpro.persistance.Repositories
                         HasChequeDocUploaded = x.HasChequeDocUploaded,
                         // 🔥 Correct FilePath handling
                         FilePath =  x.FilePath ,
-                        UPIId = x.UPIId   }).ToListAsync();
+                        UPIId = x.Upiid   }).ToListAsync();
 
                 // =========================================================
                 // 7️⃣ Detect PRIMARY existence (LIST LEVEL)
@@ -500,7 +500,7 @@ namespace axionpro.persistance.Repositories
                 existingBank.AccountNumber = dto.AccountNumber.Trim();
 
             if (!string.IsNullOrWhiteSpace(dto.IFSCCode))
-                existingBank.IFSCCode = dto.IFSCCode.Trim();
+                existingBank.Ifsccode = dto.IFSCCode.Trim();
 
             if (!string.IsNullOrWhiteSpace(dto.BranchName))
                 existingBank.BranchName = dto.BranchName.Trim();
@@ -509,7 +509,7 @@ namespace axionpro.persistance.Repositories
                 existingBank.AccountType = dto.AccountType.Trim();
 
             if (!string.IsNullOrWhiteSpace(dto.UPIId))
-                existingBank.UPIId = dto.UPIId.Trim();
+                existingBank.Upiid = dto.UPIId.Trim();
 
             if (!string.IsNullOrWhiteSpace(dto.FileName))
                 existingBank.FileName = dto.FileName.Trim();

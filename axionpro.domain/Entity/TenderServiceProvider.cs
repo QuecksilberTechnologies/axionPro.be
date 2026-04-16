@@ -31,7 +31,7 @@ public partial class TenderServiceProvider
 
     public virtual TenderStatus Status { get; set; } = null!;
 
-    public virtual ICollection<TenderProject> TenderProjects { get; set; } = new List<TenderProject>();
+    public virtual ICollection<TenderProject> TenderProject { get; set; } = new List<TenderProject>();
 
     public virtual TenderServiceSpecification TenderServiceSpecification { get; set; } = null!;
 

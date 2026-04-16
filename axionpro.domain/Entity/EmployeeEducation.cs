@@ -14,18 +14,14 @@ public partial class EmployeeEducation
     public string? InstituteName { get; set; }
 
     public string? Remark { get; set; }
-    public double GapYears { get; set; }
 
-    public DateTime? StartDate { get; set; }
+    public DateOnly? StartDate { get; set; }
 
-    public bool  HasEducationDocUploded { get; set; }
-    public DateTime? EndDate { get; set; }
+    public DateOnly? EndDate { get; set; }
+
     public string? ScoreValue { get; set; }
-    public int? ScoreType { get; set; } // 1=GPA, 2=Percentage, 3=CGPA, etc.
+
     public string? GradeDivision { get; set; }
-    public string? FilePath { get; set; }
-    public int FileType { get; set; }
-    public string? FileName { get; set; } 
 
     public bool? EducationGap { get; set; }
 
@@ -54,7 +50,16 @@ public partial class EmployeeEducation
     public bool? IsEditAllowed { get; set; }
 
     public bool? IsActive { get; set; }
-    public virtual Employee Employee { get; set; } = null!;
 
+    public string? FilePath { get; set; }
 
+    public int? FileType { get; set; }
+
+    public string? FileName { get; set; }
+
+    public bool HasEducationDocUploded { get; set; } = false;
+
+    public int? ScoreType { get; set; }
+
+    public double? GapYears { get; set; }
 }

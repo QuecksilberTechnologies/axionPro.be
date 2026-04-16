@@ -7,7 +7,7 @@ public partial class EmployeeLeaveBalance
 {
     public long Id { get; set; }
 
-    public long TenantId { get; set; }
+    public long TenantId { get; set; } = 0;
 
     public long? EmployeeLeavePolicyMappingId { get; set; }
 

@@ -1,16 +1,19 @@
-﻿using axionpro.domain.Common;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace axionpro.domain.Entity;
 
-public partial class AssetAssignment :BaseEntity
+public partial class AssetAssignment
 {
-    public int Id { get; set; }
+    public long Id { get; set; }
+
+    public long TenantId { get; set; }
+
+    public long RequestId { get; set; }
 
     public long EmployeeId { get; set; }
 
-    public long AssetId { get; set; }
+    public long? AssetId { get; set; }
 
     public DateTime? AssignedDate { get; set; }
 
@@ -18,19 +21,29 @@ public partial class AssetAssignment :BaseEntity
 
     public DateTime? ActualReturnDate { get; set; }
 
-    public int AssignmentStatusId { get; set; }
+    public int? AssignmentStatus { get; set; }
 
-    public string AssetConditionAtAssign { get; set; } = null!;
+    public string? AssetConditionAtAssign { get; set; }
 
     public string? AssetConditionAtReturn { get; set; }
 
-    public string IdentificationMethod { get; set; } = null!;
+    public bool? IsActive { get; set; }
 
-    public string IdentificationValue { get; set; } = null!;   
+    public bool? IsSoftDeleted { get; set; }
 
-    public virtual Asset Asset { get; set; } = null!;
+    public long? AddedById { get; set; }
 
-    public virtual AssignmentStatus AssignmentStatus { get; set; } = null!;
+    public DateTime? AddedDateTime { get; set; }
 
-    public virtual Employee Employee { get; set; } = null!;
+    public long? UpdatedById { get; set; }
+
+    public DateTime? UpdatedByDateTime { get; set; }
+
+    public long? SoftDeletedById { get; set; }
+
+    public DateTime? SoftDeletedByDateTime { get; set; }
+
+    public virtual Asset? Asset { get; set; }
+
+    public virtual AssetRequest Request { get; set; } = null!;
 }

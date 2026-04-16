@@ -16,25 +16,14 @@ public partial class EmployeePersonalDetail
     public string? PassportNumber { get; set; }
 
     public string? DrivingLicenseNumber { get; set; }
-    public string? EmergencyContactRelation { get; set; }
-    public bool HasEPFAccount { get; set; }
-    public string? UANNumber { get; set; }
+
     public string? VoterId { get; set; }
-    public bool HasPanIdUploaded { get; set; }
-    public bool HasAadhaarIdUploaded { get; set; }
-    public bool HasPassportIdUploaded { get; set; }
-    public string? PanDocName { get; set; }
-    public string? PassportDocName { get; set; }
-    public string? AadhaarDocName { get; set; }
-    public string? PassportDocPath { get; set; }
-    public string? AadhaarDocPath { get; set; }
-    public string? PanDocPath { get; set; }
 
     public string? BloodGroup { get; set; }
 
-    public required bool MaritalStatus { get; set; }
+    public bool MaritalStatus { get; set; }
 
-    public required string Nationality { get; set; }
+    public string? Nationality { get; set; }
 
     public string? EmergencyContactName { get; set; }
 
@@ -42,7 +31,7 @@ public partial class EmployeePersonalDetail
 
     public bool IsActive { get; set; }
 
-    public bool IsEditAllowed { get; set; }
+    public bool? IsEditAllowed { get; set; }
 
     public bool? IsSoftDeleted { get; set; }
 
@@ -63,6 +52,30 @@ public partial class EmployeePersonalDetail
     public DateTime? InfoVerifiedDateTime { get; set; }
 
     public bool? IsInfoVerified { get; set; }
+
+    public bool? HasPanIdUploaded { get; set; }
+
+    public bool? HasAadhaarIdUploaded { get; set; }
+
+    public bool? HasPassportIdUploaded { get; set; }
+
+    public string? PanDocName { get; set; }
+
+    public string? PassportDocName { get; set; }
+
+    public string? AadhaarDocName { get; set; }
+
+    public string? PanDocPath { get; set; }
+
+    public string? PassportDocPath { get; set; }
+
+    public string? AadhaarDocPath { get; set; }
+
+    public string? EmergencyContactRelation { get; set; }
+
+    public string? Uannumber { get; set; }
+
+    public bool? HasEpfaccount { get; set; }
 
     public virtual Employee Employee { get; set; } = null!;
 }

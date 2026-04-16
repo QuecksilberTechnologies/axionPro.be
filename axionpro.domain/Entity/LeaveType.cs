@@ -29,7 +29,7 @@ public partial class LeaveType
 
     public DateTime? SoftDeletedDateTime { get; set; }
 
-    public virtual ICollection<LeaveRequest> LeaveRequests { get; set; } = new List<LeaveRequest>();
+    public virtual ICollection<LeaveRequest> LeaveRequest { get; set; } = new List<LeaveRequest>();
 
     public virtual Tenant? Tenant { get; set; }
 }

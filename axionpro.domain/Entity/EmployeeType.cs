@@ -29,18 +29,19 @@ public partial class EmployeeType
 
     public DateTime? SoftDeletedDateTime { get; set; }
 
-    public virtual ICollection<AccoumndationAllowancePolicyByDesignation> AccoumndationAllowancePolicyByDesignations { get; set; } = new List<AccoumndationAllowancePolicyByDesignation>();
+    public virtual ICollection<AccoumndationAllowancePolicyByDesignation> AccoumndationAllowancePolicyByDesignation { get; set; } = new List<AccoumndationAllowancePolicyByDesignation>();
 
-    public virtual ICollection<EmployeeTypeBasicMenu> EmployeeTypeBasicMenus { get; set; } = new List<EmployeeTypeBasicMenu>();
+    public virtual ICollection<Employee> Employee { get; set; } = new List<Employee>();
 
-    public virtual ICollection<Employee> Employees { get; set; } = new List<Employee>();
-    
-    public virtual ICollection<EmployeesChangedTypeHistory> EmployeesChangedTypeHistoryNewEmployeeTypes { get; set; } = new List<EmployeesChangedTypeHistory>();
+    public virtual ICollection<EmployeeTypeBasicMenu> EmployeeTypeBasicMenu { get; set; } = new List<EmployeeTypeBasicMenu>();
 
-    public virtual ICollection<EmployeesChangedTypeHistory> EmployeesChangedTypeHistoryOldEmployeeTypes { get; set; } = new List<EmployeesChangedTypeHistory>();
+    public virtual ICollection<EmployeesChangedTypeHistory> EmployeesChangedTypeHistoryNewEmployeeType { get; set; } = new List<EmployeesChangedTypeHistory>();
 
-    public virtual ICollection<MealAllowancePolicyByDesignation> MealAllowancePolicyByDesignations { get; set; } = new List<MealAllowancePolicyByDesignation>();
+    public virtual ICollection<EmployeesChangedTypeHistory> EmployeesChangedTypeHistoryOldEmployeeType { get; set; } = new List<EmployeesChangedTypeHistory>();
+
+    public virtual ICollection<MealAllowancePolicyByDesignation> MealAllowancePolicyByDesignation { get; set; } = new List<MealAllowancePolicyByDesignation>();
+
+    public virtual ICollection<TravelAllowancePolicyByDesignation> TravelAllowancePolicyByDesignation { get; set; } = new List<TravelAllowancePolicyByDesignation>();
+
     public virtual ICollection<UnStructuredPolicyTypeMappingWithEmployeeType> UnStructuredPolicyTypeMappingWithEmployeeType { get; set; } = new List<UnStructuredPolicyTypeMappingWithEmployeeType>();
-
-    public virtual ICollection<TravelAllowancePolicyByDesignation> TravelAllowancePolicyByDesignations { get; set; } = new List<TravelAllowancePolicyByDesignation>();
 }

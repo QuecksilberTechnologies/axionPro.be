@@ -15,7 +15,7 @@ public partial class TenderServiceType
 
     public bool? IsActive { get; set; }
 
-    public virtual ICollection<TenderServiceProvider> TenderServiceProviders { get; set; } = new List<TenderServiceProvider>();
+    public virtual ICollection<TenderService> TenderService { get; set; } = new List<TenderService>();
 
-    public virtual ICollection<TenderService> TenderServices { get; set; } = new List<TenderService>();
+    public virtual ICollection<TenderServiceProvider> TenderServiceProvider { get; set; } = new List<TenderServiceProvider>();
 }

@@ -135,12 +135,12 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 //   string subject = EmailTemplateRenderer.RenderBody(emailTemplate.Subject ?? "", placeholders);
 
                   
-                var newOtpEntry = new ForgotPasswordOTPDetail
+                var newOtpEntry = new ForgotPasswordOtpdetail
                 {
                     EmployeeId = empId,
                     Otp = Otp,
                     OtpexpireDateTime = DateTime.Now.AddMinutes(5),
-                    TenantId = TenantId,
+                    TenantId = (long)TenantId,
                     CreatedDateTime = DateTime.Now,
                     IsUsed = false,
                     UserId = userId,

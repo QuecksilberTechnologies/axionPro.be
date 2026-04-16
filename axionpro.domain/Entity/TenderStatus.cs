@@ -15,9 +15,9 @@ public partial class TenderStatus
 
     public bool IsActive { get; set; }
 
-    public virtual ICollection<TenderProject> TenderProjects { get; set; } = new List<TenderProject>();
+    public virtual ICollection<Tender> Tender { get; set; } = new List<Tender>();
 
-    public virtual ICollection<TenderServiceProvider> TenderServiceProviders { get; set; } = new List<TenderServiceProvider>();
+    public virtual ICollection<TenderProject> TenderProject { get; set; } = new List<TenderProject>();
 
-    public virtual ICollection<Tender> Tenders { get; set; } = new List<Tender>();
+    public virtual ICollection<TenderServiceProvider> TenderServiceProvider { get; set; } = new List<TenderServiceProvider>();
 }

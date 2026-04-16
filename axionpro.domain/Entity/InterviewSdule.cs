@@ -21,5 +21,5 @@ public partial class InterviewSdule
 
     public DateTime CreatedDateTime { get; set; }
 
-    public virtual ICollection<InterviewFeedback> InterviewFeedbacks { get; set; } = new List<InterviewFeedback>();
+    public virtual ICollection<InterviewFeedback> InterviewFeedback { get; set; } = new List<InterviewFeedback>();
 }

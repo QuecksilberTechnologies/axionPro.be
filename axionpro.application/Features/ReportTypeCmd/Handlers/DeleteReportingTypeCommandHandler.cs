@@ -3,12 +3,8 @@ using axionpro.application.Features.ReportTypeCmd.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
+using MediatR;
 using Microsoft.Extensions.Logging;
-using SkiaSharp;
-using System;
-using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Features.ReportTypeCmd.Handlers
 {

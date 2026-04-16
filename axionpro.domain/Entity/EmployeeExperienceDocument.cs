@@ -5,33 +5,35 @@ namespace axionpro.domain.Entity;
 
 public partial class EmployeeExperienceDocument
 {
-    // 🔹 Primary Key
     public long Id { get; set; }
 
-    // 🔹 Correct FK
     public long EmployeeExperienceId { get; set; }
 
-    // 🔹 Navigation
-    public virtual EmployeeExperience EmployeeExperience { get; set; } = null!;
-
-    // 🔹 Document Info
     public int DocumentType { get; set; }
+
     public string? FileName { get; set; }
+
     public string? FilePath { get; set; }
 
-    public bool HasExperienceDocUploaded { get; set; } = true;
+    public bool HasExperienceDocUploaded { get; set; } = false;
 
     public string? Remark { get; set; }
 
-    // 🔹 Audit
-    public bool IsActive { get; set; } = true;
-    public bool IsSoftDeleted { get; set; } = false;
-    public DateTime? DeletedDateTime { get; set; }
-    
+    public bool IsActive { get; set; }
+
+    public bool IsSoftDeleted { get; set; }
+
     public long AddedById { get; set; }
-    public long? SoftDeletedById { get; set; }
-    public DateTime AddedDateTime { get; set; }
 
     public long? UpdatedById { get; set; }
+
+    public DateTime AddedDateTime { get; set; }
+
     public DateTime? UpdatedDateTime { get; set; }
+
+    public DateTime? DeletedDateTime { get; set; }
+
+    public long? SoftDeletedById { get; set; }
+
+    public virtual EmployeeExperience EmployeeExperience { get; set; } = null!;
 }

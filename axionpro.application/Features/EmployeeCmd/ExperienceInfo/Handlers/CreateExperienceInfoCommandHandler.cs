@@ -100,7 +100,7 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                     StartDate = request.DTO.StartDate,
                     EndDate = request.DTO.EndDate,
                     Experience = request.DTO.Experience,
-                    IsWFH = request.DTO.IsWFH,
+                    IsWfh = request.DTO.IsWFH,
                     WorkingCountryId = request.DTO.WorkingCountryId,
                     WorkingStateId = request.DTO.WorkingStateId,
                     WorkingDistrictId = request.DTO.WorkingDistrictId,
@@ -150,7 +150,7 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
 
                     if (validDocs.Any())
                     {
-                        exp.EmployeeExperienceDocuments = new List<EmployeeExperienceDocument>();
+                        exp.EmployeeExperienceDocument = new List<EmployeeExperienceDocument>();
 
                         foreach (var docDto in validDocs)
                         {
@@ -188,7 +188,7 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                                 uploadedFiles.Add(docPath);
 
                                 // ✅ STEP 7: Save entity
-                                exp.EmployeeExperienceDocuments.Add(new EmployeeExperienceDocument
+                                exp.EmployeeExperienceDocument.Add(new EmployeeExperienceDocument
                                 {
                                     DocumentType = docDto.DocumentType,
                                     FileName = fileName,
@@ -244,7 +244,7 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                     StartDate = exp.StartDate,
                     EndDate = exp.EndDate,
                     Experience = exp.Experience,
-                    IsWFH = exp.IsWFH,
+                    IsWFH = exp.IsWfh,
                     WorkingCountryId = exp.WorkingCountryId,
                     WorkingStateId = exp.WorkingStateId,
                     WorkingDistrictId = exp.WorkingDistrictId,
@@ -257,7 +257,7 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                     ReportingManagerName = exp.ReportingManagerName,
                     ReportingManagerNumber = exp.ReportingManagerNumber,
                     VerificationEmail = exp.VerificationEmail,
-                    IsAnyGap = exp.IsAnyGap,
+                    IsAnyGap =  exp.IsAnyGap ,
                     ReasonOfGap = exp.ReasonOfGap,
                     GapYearFrom = exp.GapYearFrom,
                     GapYearTo = exp.GapYearTo,
@@ -266,8 +266,8 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
 
                     // ✅ 🔥 DOCUMENT LIST  
                    
-                    Documents = exp.EmployeeExperienceDocuments != null
-                        ? exp.EmployeeExperienceDocuments.Select(d => new GetEmployeeExperienceDocumentDTO
+                    Documents = exp.EmployeeExperienceDocument != null
+                        ? exp.EmployeeExperienceDocument.Select(d => new GetEmployeeExperienceDocumentDTO
                         {
                             Id = d.Id,
                             DocumentType = d.DocumentType,
@@ -278,7 +278,7 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                                 ? _fileStorageService.GetFileUrl(d.FilePath)
                                 : null,
 
-                            HasExperienceDocUploaded = d.HasExperienceDocUploaded
+                            HasExperienceDocUploaded = d.HasExperienceDocUploaded ,
                         }).ToList()
                         : new List<GetEmployeeExperienceDocumentDTO>()
                 };

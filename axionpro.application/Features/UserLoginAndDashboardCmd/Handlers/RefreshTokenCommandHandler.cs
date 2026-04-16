@@ -3,7 +3,6 @@ using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.Hash;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.Employee;
-using axionpro.application.DTOs.Operation;
 using axionpro.application.DTOs.Role;
 using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOs.Tenant;
@@ -16,14 +15,12 @@ using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IFileStorage;
-using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Serilog.Core;
 
 namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 {
@@ -97,7 +94,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                     throw new UnauthorizedAccessException("Invalid refresh token.");
                 }
 
-                if (oldToken.IsRevoked)
+                if (oldToken.IsRevoked.HasValue)
                 {
                     _logger.LogWarning("Refresh token reuse detected. LoginId={LoginId}, IP={IP}",
                         oldToken.LoginId, request.DTO.IpAddress);

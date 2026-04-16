@@ -126,7 +126,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // ======================================================
                 if (!request.DTO.IsActive)
                 {
-                    if (employeeImageInfo.HasImageUploaded &&
+                    if (employeeImageInfo.HasImageUploaded&&
                         !string.IsNullOrWhiteSpace(employeeImageInfo.FilePath))
                     {
                         await _fileStorageService.DeleteFileAsync(employeeImageInfo.FilePath);

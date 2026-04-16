@@ -1,14 +1,14 @@
 ﻿using AutoMapper;
+using axionpro.application.DTOS.Pagination;
 using axionpro.application.DTOS.TicketDTO.Header;
 using axionpro.application.Interfaces.IRepositories;
-
+using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
@@ -110,7 +110,7 @@ namespace axionpro.persistance.Repositories
                
                 var entity = await _context.TicketHeaders
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.Id == dto.Id && x.IsActive && (x.IsSoftDeleted == null || x.IsSoftDeleted == false));
+                    .FirstOrDefaultAsync(x => x.Id == dto.Id && x.IsActive && (x.IsSoftDeleted !=true));
 
                 if (entity == null)
                 {
@@ -133,9 +133,31 @@ namespace axionpro.persistance.Repositories
             }
         }
 
+
+
+        public async Task<List<GetHeaderResponseDTO>> GetByClassificationIdAsync(GetTicketHeaderByClassifyIdRequestDTO dto)
+        {
+            return await _context.TicketHeaders .AsNoTracking()
+                .AsNoTracking()
+                .Where(x =>
+                    x.TicketClassificationId == dto.TicketClassifyId &&
+                    x.TenantId == dto.Prop.TenantId &&
+                    x.IsActive &&
+                    !x.IsSoftDeleted)
+                .Select(x => new GetHeaderResponseDTO
+                {
+                    HeaderId = x.Id.ToString(), // 🔐 encode later
+                    HeaderName = x.HeaderName,
+
+                    TicketClassificationId = x.TicketClassificationId.ToString(),
+                    TicketClassificationName = x.TicketClassification.ClassificationName,
+
+                    Description = x.Description,
+                    IsActive = x.IsActive
+                })
+                .ToListAsync();
+        }
         // TODO: Add other repository functions (AddAsync, UpdateAsync, DeleteAsync, GetAllAsync) in similar style
-
-
 
         // ✅ GET ALL
         public async Task<List<GetHeaderResponseDTO>> GetAllAsync(GetHeaderRequestDTO dto)
@@ -147,7 +169,7 @@ namespace axionpro.persistance.Repositories
             
                 // ✅ Step 1: Base Query
                 var query = _context.TicketHeaders
-                    .Where(x => (x.IsSoftDeleted == null || x.IsSoftDeleted == false) && x.TenantId ==dto.TenantId)
+                    .Where(x => (x.IsSoftDeleted != true) && x.TenantId ==dto.TenantId)
                     .AsQueryable();                
 
                 // ✅ Step 3: Optional Filters

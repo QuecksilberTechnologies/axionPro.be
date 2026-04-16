@@ -110,13 +110,13 @@ namespace axionpro.persistance.Repositories
                         Color = a.Color,
                         Price = a.Price,
 
-                        IsActive = a.IsActive,
-                        IsAssigned = a.IsAssigned,
+                        IsActive = (bool)a.IsActive,
+                        IsAssigned = (bool)a.IsAssigned,
 
                         PurchaseDate = a.PurchaseDate,
                         WarrantyExpiryDate = a.WarrantyExpiryDate,
 
-                        AssetImagePath = a.AssetImages
+                        AssetImagePath = a.AssetImage
                             .Where(i => i.IsPrimary && i.IsActive && (i.IsSoftDeleted !=true))
                             .Select(i => i.AssetImagePath)
                             .FirstOrDefault()
@@ -161,13 +161,13 @@ namespace axionpro.persistance.Repositories
                 Price = asset.Price,
                 SerialNumber = asset.SerialNumber,
                 Barcode = asset.Barcode,
-                QRCode = asset.QRCode,
+                QRCode = asset.Qrcode,
                 PurchaseDate = asset.PurchaseDate,
                 WarrantyExpiryDate = asset.WarrantyExpiryDate,
                 AssetStatusId = asset.AssetStatusId,
-                IsAssigned = asset.IsAssigned ,
-                IsActive = asset.IsActive,
-                HasMultipleUser = asset.AssetType != null && asset.AssetType.AssetCategory != null ? asset.AssetType.AssetCategory.HasMultipleUser : false,
+                IsAssigned = asset.IsAssigned ?? false,
+                IsActive = asset.IsActive ?? false,
+                HasMultipleUser = (bool)(asset.AssetType != null && asset.AssetType.AssetCategory != null ? asset.AssetType.AssetCategory.HasMultipleUser : false),
                 AssetImageId = image?.Id,
                 AssetImagePath = image?.AssetImagePath,
                 AssetImageType = image?.AssetImageType
@@ -183,7 +183,7 @@ namespace axionpro.persistance.Repositories
             if (asset == null)
                 throw new Exception("Asset not found for QR update.");
 
-            asset.QRCode = qrCode;
+            asset.Qrcode = qrCode;
             await _context.SaveChangesAsync();
         }
 
@@ -197,7 +197,7 @@ namespace axionpro.persistance.Repositories
                 // 🔥 Attach child entity using navigation property
                 if (!string.IsNullOrEmpty(path))
                 {
-                    asset.AssetImages.Add(new AssetImage
+                    asset.AssetImage.Add(new AssetImage
                     {
                         TenantId = asset.TenantId,
                         AssetImageType = ConstantValues.Web,
@@ -215,7 +215,7 @@ namespace axionpro.persistance.Repositories
                 await _context.SaveChangesAsync();
 
                 // 🔥 Get inserted image (from navigation)
-                var assetImage = asset.AssetImages.FirstOrDefault();
+                var assetImage = asset.AssetImage.FirstOrDefault();
 
                 return MapToAssetDTO(asset, assetImage);
             }
@@ -379,9 +379,9 @@ namespace axionpro.persistance.Repositories
                             ? a.AssetType.AssetCategory.CategoryName
                             : null,
 
-                        HasMultipleUser = a.AssetType != null && a.AssetType.AssetCategory != null
+                        HasMultipleUser = (bool)(a.AssetType != null && a.AssetType.AssetCategory != null
                             ? a.AssetType.AssetCategory.HasMultipleUser
-                            : false,
+                            : false),
 
                         SerialNumber = a.SerialNumber,
                         ModelNumber = a.ModelNo,
@@ -396,13 +396,13 @@ namespace axionpro.persistance.Repositories
                         Color = a.Color,
                         Price = a.Price,
 
-                        IsActive = a.IsActive,
-                        IsAssigned = a.IsAssigned,
+                        IsActive = (bool)a.IsActive,
+                        IsAssigned = (bool)a.IsAssigned,
 
                         PurchaseDate = a.PurchaseDate,
                         WarrantyExpiryDate = a.WarrantyExpiryDate,
 
-                        AssetImagePath = a.AssetImages
+                        AssetImagePath = a.AssetImage
                             .Where(i => i.IsPrimary == true &&
                                         (i.IsSoftDeleted != true) &&
                                         (i.IsActive == true))

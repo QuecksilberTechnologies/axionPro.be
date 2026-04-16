@@ -1,8 +1,4 @@
-﻿using axionpro.application.Constants;
-using axionpro.domain.Entity;
-using FluentValidation;
-using Microsoft.Extensions.Logging;
-using Serilog.Core;
+﻿using axionpro.domain.Entity;
 
 namespace axionpro.application.Common.SeedData
 {

@@ -1,19 +1,19 @@
-﻿using axionpro.application.DTOS.Pagination;
+﻿using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Pagination;
+using axionpro.domain.Entity; 
+using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
-
+using System.Threading.Tasks; 
 namespace axionpro.application.DTOS.TicketDTO.TicketType
 {
     public class GetTicketTypeByHeaderIdRequestDTO 
     {
-        public long TenantId { get; set; }
-        public long Id { get; set; }
-        public long EmployerId { get; set; }
-        public int RoleId { get; set; }
-     
-        public int? TicketHeaderId { get; set; }
+   
+        public long  TicketHeaderId { get; set; }
+       
+        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
     }
 }

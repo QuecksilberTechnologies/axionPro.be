@@ -1,20 +1,35 @@
-﻿using axionpro.domain.Common;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace axionpro.domain.Entity;
 
-public partial class AssetStatus :BaseEntity
+public partial class AssetStatus
 {
     public int Id { get; set; }
 
-    public long? TenantId { get; set; }
+    public long TenantId { get; set; }
 
     public string StatusName { get; set; } = null!;
-    public string? ColorKey { get; set; } = null!;
 
-    public string? Description { get; set; } 
+    public string? Description { get; set; }
 
+    public bool? IsActive { get; set; }
 
-    public virtual ICollection<Asset> Assets { get; set; } = new List<Asset>();
+    public bool? IsSoftDeleted { get; set; }
+
+    public long AddedById { get; set; }
+
+    public DateTime AddedDateTime { get; set; }
+
+    public long? UpdatedById { get; set; }
+
+    public DateTime? UpdatedDateTime { get; set; }
+
+    public long? SoftDeletedById { get; set; }
+
+    public DateTime? DeletedDateTime { get; set; }
+
+    public string? ColorKey { get; set; }
+
+    public virtual ICollection<Asset> Asset { get; set; } = new List<Asset>();
 }

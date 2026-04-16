@@ -145,7 +145,7 @@ namespace axionpro.persistance.Repositories
                 var mappings = await _context.PlanModuleMappings
                     .Where(p => p.SubscriptionPlanId == subscriptionPlanId && p.IsActive == true)
                     .Include(p => p.Module)
-                        .ThenInclude(m => m.ModuleOperationMappings)
+                        .ThenInclude(m => m.ModuleOperationMapping)
                             .ThenInclude(mop => mop.Operation)
                     .Include(p => p.Module)
                         .ThenInclude(m => m.ParentModule) // ✅ Include Parent Module
@@ -165,7 +165,7 @@ namespace axionpro.persistance.Repositories
                             MainModuleId = p.Module.ParentModule?.Id ?? null,
                             MainModuleName = p.Module.ParentModule?.ModuleName ?? string.Empty,
                             
-                            Operations = p.Module.ModuleOperationMappings
+                            Operations = p.Module.ModuleOperationMapping
                                .Where(mop =>
                                         mop.IsActive == true &&
                                         mop.Operation != null/* &&

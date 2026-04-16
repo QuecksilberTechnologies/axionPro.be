@@ -1,21 +1,8 @@
-﻿
-
-using AutoMapper;
+﻿using AutoMapper;
 using axionpro.application.DTOs.BasicAndRoleBaseMenu;
-using axionpro.application.DTOs.UserLogin;
 using axionpro.application.Interfaces.IRepositories;
-
 using axionpro.persistance.Data.Context;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {

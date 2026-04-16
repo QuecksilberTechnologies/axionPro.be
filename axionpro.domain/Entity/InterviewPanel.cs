@@ -17,7 +17,7 @@ public partial class InterviewPanel
 
     public string? Description { get; set; }
 
-    public virtual ICollection<InterviewPanelMember> InterviewPanelMembers { get; set; } = new List<InterviewPanelMember>();
+    public virtual ICollection<InterviewPanelMember> InterviewPanelMember { get; set; } = new List<InterviewPanelMember>();
 
-    public virtual ICollection<InterviewSchedule> InterviewSchedules { get; set; } = new List<InterviewSchedule>();
+    public virtual ICollection<InterviewSchedule> InterviewSchedule { get; set; } = new List<InterviewSchedule>();
 }

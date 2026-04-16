@@ -26,7 +26,7 @@ using axionpro.infrastructure.Token;
 using axionpro.persistance.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+ 
 
 namespace axionpro.infrastructure
 {

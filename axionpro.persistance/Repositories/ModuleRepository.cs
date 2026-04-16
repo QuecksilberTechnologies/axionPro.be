@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using axionpro.application.DTOs.UserLogin;
 using axionpro.application.DTOS.Module.CommonModule;
 using axionpro.application.DTOS.Module.ManualModule;
 using axionpro.application.DTOS.Module.ParentModule;
@@ -90,7 +91,7 @@ namespace axionpro.persistance.Repositories
                 {
                     Id = m.Id,
                     ModuleName = m.ModuleName,
-                    URLPath = m.URLPath,
+                    URLPath = m.Urlpath,
                     IsLeafNode = m.IsLeafNode,
                     DisplayName = m.DisplayName,
                     ImageIconMobile = m.ImageIconMobile,
@@ -128,8 +129,8 @@ namespace axionpro.persistance.Repositories
                     Id = module.Id,
                     ModuleName = module.ModuleName,
                     DisplayName = module.DisplayName,
-                    SubModuleUrl = module.URLPath,
-                    URLPath = module.URLPath,
+                    SubModuleUrl = module.Urlpath,
+                    URLPath = module.Urlpath,
                     ImageIconWeb = module.ImageIconWeb,
                     ImageIconMobile = module.ImageIconMobile,
                     ItemPriority = module.ItemPriority,
@@ -195,8 +196,8 @@ namespace axionpro.persistance.Repositories
                     Id = module.Id,
                     ModuleName = module.ModuleName,
                     DisplayName = module.DisplayName,
-                    SubModuleUrl = module.URLPath,
-                    URLPath = module.URLPath,
+                    SubModuleUrl = module.Urlpath,
+                    URLPath = module.Urlpath,
                     ImageIconWeb = module.ImageIconWeb,
                     ImageIconMobile = module.ImageIconMobile,
                     ItemPriority = module.ItemPriority,
@@ -561,8 +562,8 @@ namespace axionpro.persistance.Repositories
                         Id = module.Id,
                         ModuleName = module.ModuleName,
                         DisplayName = module.DisplayName,
-                        SubModuleUrl = module.URLPath,
-                        URLPath = module.URLPath,
+                        SubModuleUrl = module.Urlpath,
+                        URLPath = module.Urlpath,
                         ImageIconWeb = module.ImageIconWeb,
                         ImageIconMobile = module.ImageIconMobile,
                         ItemPriority = module.ItemPriority,
@@ -606,7 +607,7 @@ namespace axionpro.persistance.Repositories
                         Id = parentModule.Id,
                         ModuleName = parentModule.ModuleName,
                         DisplayName = parentModule.DisplayName,
-                        URLPath = parentModule.URLPath,
+                        URLPath = parentModule.Urlpath,
                         ItemPriority = parentModule.ItemPriority,
                         Children = new List<GetModuleChildInversResponseDTO> { hierarchy }
                     };

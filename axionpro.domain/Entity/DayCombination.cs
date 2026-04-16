@@ -19,7 +19,7 @@ public partial class DayCombination
 
     public bool IsActive { get; set; }
 
-    public bool? IsSoftDeleted { get; set; }
+    public bool IsSoftDeleted { get; set; }
 
     public long? AddedById { get; set; }
 
@@ -33,7 +33,7 @@ public partial class DayCombination
 
     public DateTime? SoftDeletedDateTime { get; set; }
 
-    public virtual ICollection<LeaveSandwichRuleMapping> LeaveSandwichRuleMappings { get; set; } = new List<LeaveSandwichRuleMapping>();
+    public virtual ICollection<LeaveSandwichRuleMapping> LeaveSandwichRuleMapping { get; set; } = new List<LeaveSandwichRuleMapping>();
 
     public virtual Tenant? Tenant { get; set; }
 }

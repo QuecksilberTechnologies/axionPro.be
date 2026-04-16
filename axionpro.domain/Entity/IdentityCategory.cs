@@ -23,5 +23,5 @@ public partial class IdentityCategory
 
     public DateTime? UpdatedDateTime { get; set; }
 
-    public virtual ICollection<IdentityCategoryDocument> IdentityCategoryDocuments { get; set; } = new List<IdentityCategoryDocument>();
+    public virtual ICollection<IdentityCategoryDocument> IdentityCategoryDocument { get; set; } = new List<IdentityCategoryDocument>();
 }

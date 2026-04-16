@@ -220,7 +220,7 @@ public class RoleRepository : IRoleRepository
                     IsActive = true,
                     IsSoftDeleted = false,
                     Remark = dto.Remark ?? ConstantValues.TenantAllRoleRemark,
-                    AddedById = dto.TenantId,
+                    AddedById = dto.TenantId ?? 0,
                     AddedDateTime = DateTime.UtcNow
                 });
             }

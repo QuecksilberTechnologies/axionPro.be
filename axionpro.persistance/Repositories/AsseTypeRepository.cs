@@ -211,7 +211,7 @@ namespace axionpro.persistance.Repositories
                         CategoryName = x.AssetCategory != null ? x.AssetCategory.CategoryName : null, // ✅ fixed
                         TypeName = x.TypeName,
                         Description = x.Description,
-                        IsActive = x.IsActive,
+                        IsActive = (bool)x.IsActive,
                         AddedById = x.AddedById,
                         AddedDateTime = x.AddedDateTime,
                         UpdatedById = x.UpdatedById,

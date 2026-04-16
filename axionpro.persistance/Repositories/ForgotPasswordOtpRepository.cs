@@ -1,36 +1,30 @@
 ﻿using axionpro.application.Interfaces.IRepositories;
-
+using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Serilog.Core;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using axionpro.domain.Entity;
 
 
 namespace axionpro.persistance.Repositories
 {
     class ForgotPasswordOtpRepository : IForgotPasswordOtpRepository
     {
-        private readonly WorkforceDbContext _context;         
+        private readonly WorkforceDbContext _context;
         private ILogger<ForgotPasswordOtpRepository> _logger;
         public ForgotPasswordOtpRepository(WorkforceDbContext context, ILogger<ForgotPasswordOtpRepository> logger)
         {
             this._context = context;
             this._logger = logger;
         }
-        
-             public async Task<ForgotPasswordOTPDetail?> GetOtpValidateTrueAndUsedFalseByEmployeeIdAsync(long userId, long? tenantId)
-              {
-               try
-                {
-                var otpDetail = await _context.ForgotPasswordOTPDetails
+
+        public async Task<ForgotPasswordOtpdetail?> GetOtpValidateTrueAndUsedFalseByEmployeeIdAsync(long userId, long? tenantId)
+        {
+            try
+            {
+                var otpDetail = await _context.ForgotPasswordOtpdetails
                     .Where(x => x.UserId == userId
                                 && x.TenantId == tenantId
-                                && x.IsUsed==false
+                                && x.IsUsed == false
                                 && x.IsValidate == true
                                 && x.OtpexpireDateTime > DateTime.Now)
                     .OrderByDescending(x => x.CreatedDateTime)
@@ -54,15 +48,15 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<ForgotPasswordOTPDetail?> GetValidOtpByEmployeeIdAsync(long userId, long? tenantId)
+        public async Task<ForgotPasswordOtpdetail?> GetValidOtpByEmployeeIdAsync(long userId, long? tenantId)
         {
             try
             {
-                var otpDetail = await _context.ForgotPasswordOTPDetails
+                var otpDetail = await _context.ForgotPasswordOtpdetails
                     .Where(x => x.UserId == userId
                                 && x.TenantId == tenantId
                                 && !x.IsUsed
-                                &&  x.IsValidate==false
+                                && x.IsValidate == false
                                 && x.OtpexpireDateTime > DateTime.Now)
                     .OrderByDescending(x => x.CreatedDateTime)
                     .FirstOrDefaultAsync();
@@ -85,12 +79,12 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<bool> UpdateOTPAsync(ForgotPasswordOTPDetail otp)
+        public async Task<bool> UpdateOTPAsync(ForgotPasswordOtpdetail otp)
         {
             try
             {
-                 
-                _context.ForgotPasswordOTPDetails.Update(otp);
+
+                _context.ForgotPasswordOtpdetails.Update(otp);
                 await _context.SaveChangesAsync();
                 _logger.LogInformation("OTP updated successfully for EmployeeId {EmpId}", otp.EmployeeId);
                 return true;
@@ -102,11 +96,11 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<long> AddAsync(ForgotPasswordOTPDetail otp)
+        public async Task<long> AddAsync(ForgotPasswordOtpdetail otp)
         {
             try
             {
-                await _context.ForgotPasswordOTPDetails.AddAsync(otp);
+                await _context.ForgotPasswordOtpdetails.AddAsync(otp);
                 await _context.SaveChangesAsync();
 
                 // Return the inserted OTP record's Id (assuming Id is auto-incremented primary key)
@@ -122,17 +116,17 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task DeleteAsync(ForgotPasswordOTPDetail otp)
+        public async Task DeleteAsync(ForgotPasswordOtpdetail otp)
         {
-            _context.ForgotPasswordOTPDetails.Remove(otp);
+            _context.ForgotPasswordOtpdetails.Remove(otp);
         }
 
-        public async Task<ForgotPasswordOTPDetail?> GetByOtpAndEmployeeIdAsync(string otp, long employeeId)
+        public async Task<ForgotPasswordOtpdetail?> GetByOtpAndEmployeeIdAsync(string otp, long employeeId)
         {
-            return await _context.ForgotPasswordOTPDetails
+            return await _context.ForgotPasswordOtpdetails
                 .FirstOrDefaultAsync(x => x.Otp == otp && x.EmployeeId == employeeId && !x.IsUsed);
         }
 
-      
+
     }
 }

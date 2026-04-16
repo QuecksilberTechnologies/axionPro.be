@@ -1,23 +1,20 @@
-﻿using axionpro.domain.Common;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace axionpro.domain.Entity;
 
-public partial class Asset : BaseEntity
+public partial class Asset
 {
     public long Id { get; set; }
 
-    public long TenantId { get; set; } 
+    public long TenantId { get; set; }
 
-    public string? AssetName { get; set; }
+    public string AssetName { get; set; } = null!;
 
-    public int? AssetTypeId { get; set; }
+    public int AssetTypeId { get; set; }
 
-    public string? Company { get; set; }
-    public string? ModelNo { get; set; }
-    public string? Size { get; set; }
-    public string? Weight { get; set; }
+    public string Company { get; set; } = null!;
+
     public string? Color { get; set; }
 
     public bool? IsRepairable { get; set; }
@@ -28,22 +25,43 @@ public partial class Asset : BaseEntity
 
     public string? Barcode { get; set; }
 
-    public string? QRCode { get; set; }
-
     public DateTime? PurchaseDate { get; set; }
 
     public DateTime? WarrantyExpiryDate { get; set; }
 
-    public int? AssetStatusId { get; set; }
+    public string? Size { get; set; }
 
-    public bool IsAssigned { get; set; }
-    public virtual ICollection<AssetImage> AssetImages { get; set; } = new List<AssetImage>();
+    public string? ModelNo { get; set; }
 
-    public virtual ICollection<AssetAssignment> AssetAssignments { get; set; } = new List<AssetAssignment>();
+    public string? Weight { get; set; }
+
+    public int AssetStatusId { get; set; }
+
+    public bool? IsAssigned { get; set; }
+
+    public bool? IsActive { get; set; }
+
+    public bool IsSoftDeleted { get; set; }
+
+    public long? SoftDeletedById { get; set; }
+
+    public long AddedById { get; set; }
+
+    public DateTime? AddedDateTime { get; set; }
+
+    public long? UpdatedById { get; set; }
+
+    public DateTime? UpdatedDateTime { get; set; }
+
+    public DateTime? DeletedDateTime { get; set; }
+
+    public string? Qrcode { get; set; }
+
+    public virtual ICollection<AssetAssignment> AssetAssignment { get; set; } = new List<AssetAssignment>();
+
+    public virtual ICollection<AssetImage> AssetImage { get; set; } = new List<AssetImage>();
 
     public virtual AssetStatus AssetStatus { get; set; } = null!;
 
     public virtual AssetType AssetType { get; set; } = null!;
 }
-
- 

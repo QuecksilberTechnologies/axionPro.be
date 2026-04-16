@@ -16,8 +16,6 @@ public partial class InsurancePolicy
     public string? ProviderName { get; set; }
 
     public DateTime? StartDate { get; set; }
-    public int PolicyTypeId { get; set; }   // FK
-
 
     public DateTime? EndDate { get; set; }
 
@@ -27,23 +25,12 @@ public partial class InsurancePolicy
 
     public string? AgentOfficeNumber { get; set; }
 
-    // 🌍 Coverage Rules (NEW – UAE Ready)
-    public bool EmployeeAllowed { get; set; }
-    public int MaxSpouseAllowed { get; set; }
-    public int MaxChildAllowed { get; set; }
-    public bool ParentsAllowed { get; set; }
-    public bool InLawsAllowed { get; set; }
-
-    public int? CountryId { get; set; }
-
-    // 🔘 Status
     public bool IsActive { get; set; }
 
     public string? Remark { get; set; }
 
     public string? Description { get; set; }
 
-    // 🔹 Audit
     public long? AddedById { get; set; }
 
     public DateTime? AddedDateTime { get; set; }
@@ -58,12 +45,27 @@ public partial class InsurancePolicy
 
     public DateTime? DeletedDateTime { get; set; }
 
-    // 🔗 Navigation (optional but clean)
+    public bool EmployeeAllowed { get; set; }
+
+    public int MaxSpouseAllowed { get; set; }
+
+    public int MaxChildAllowed { get; set; }
+
+    public int CountryId { get; set; }
+
+    public bool ParentsAllowed { get; set; }
+
+    public bool InLawsAllowed { get; set; }
+
+    public int PolicyTypeId { get; set; }
+
     public virtual Country? Country { get; set; }
-    public virtual PolicyType PolicyType { get; set; } = null!;
-    public virtual ICollection<PolicyTypeInsuranceMapping> PolicyTypeInsuranceMappings { get; set; } = new List<PolicyTypeInsuranceMapping>();
-    public virtual ICollection<InsurancePolicyDocument> InsurancePolicyDocuments { get; set; } = new List<InsurancePolicyDocument>();
-    public virtual ICollection<EmployeeInsuranceMapping> EmployeeInsuranceMappings { get; set; } = new List<EmployeeInsuranceMapping>();
+
     public virtual ICollection<EmployeePolicyEnrollment> EmployeePolicyEnrollment { get; set; } = new List<EmployeePolicyEnrollment>();
 
+    public virtual ICollection<InsurancePolicyDocument> InsurancePolicyDocument { get; set; } = new List<InsurancePolicyDocument>();
+
+    public virtual PolicyType? PolicyType { get; set; }
+
+    public virtual ICollection<PolicyTypeInsuranceMapping> PolicyTypeInsuranceMapping { get; set; } = new List<PolicyTypeInsuranceMapping>();
 }

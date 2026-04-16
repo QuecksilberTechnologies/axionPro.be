@@ -21,5 +21,5 @@ public partial class ReportingType
 
     public DateTime? UpdatedDateTime { get; set; }
 
-    public virtual ICollection<EmployeeManagerMapping> EmployeeManagerMappings { get; set; } = new List<EmployeeManagerMapping>();
+    public virtual ICollection<EmployeeManagerMapping> EmployeeManagerMapping { get; set; } = new List<EmployeeManagerMapping>();
 }

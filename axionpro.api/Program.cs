@@ -5,17 +5,15 @@ using axionpro.persistance;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
-using Serilog;
-using Serilog.Events;
 using System.Text;
 
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Debug()
-    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-    .Enrich.FromLogContext()
-    .WriteTo.Console()
-    .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
-    .CreateLogger();
+//Log.Logger = new LoggerConfiguration()
+//    .MinimumLevel.Debug()
+//    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+//    .Enrich.FromLogContext()
+//    .WriteTo.Console()
+//    .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
+//    .CreateLogger();
 
 try
 {
@@ -32,11 +30,11 @@ try
             options.ListenAnyIP(7788); // 🔥 Device
             options.ListenAnyIP(5170); // 🔥 Swagger
         });
-        Log.Information("Application started on isLocal {IsLocal}", isLocal);
+        Console.WriteLine("Application started on isLocal {IsLocal}", isLocal);
     }
 
     // ✅ Serilog
-    builder.Host.UseSerilog();
+  //  builder.Host.UseSerilog();
 
     // ✅ JWT
     var jwtSettings = builder.Configuration.GetSection("JWTSettings");
@@ -154,16 +152,16 @@ try
     {
         var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
         app.Urls.Add($"http://*:{port}");
-        Log.Information("Application started on port {Port}", port);
+        Console.WriteLine($"Application started on port {port}");
     }
 
     await app.RunAsync();
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "Application start-up failed");
+    Console.WriteLine($"Application start-up failed: {ex.Message}");
 }
 finally
 {
-    Log.CloseAndFlush();
+    Console.WriteLine("Application shutting down...");
 }

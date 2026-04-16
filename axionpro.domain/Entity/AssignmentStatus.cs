@@ -27,7 +27,5 @@ public partial class AssignmentStatus
 
     public DateTime? DeletedDateTime { get; set; }
 
-    public virtual ICollection<AssetAssignment> AssetAssignments { get; set; } = new List<AssetAssignment>();
-
-    public virtual ICollection<AssetHistory> AssetHistories { get; set; } = new List<AssetHistory>();
+    public virtual ICollection<AssetHistory> AssetHistory { get; set; } = new List<AssetHistory>();
 }

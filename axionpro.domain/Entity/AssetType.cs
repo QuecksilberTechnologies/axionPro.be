@@ -1,23 +1,39 @@
-﻿using axionpro.domain.Common;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace axionpro.domain.Entity;
 
-public partial class AssetType :BaseEntity
+public partial class AssetType
 {
-    public int Id { get; set; }    
+    public int Id { get; set; }
+
+    public long TenantId { get; set; }
 
     public long? AssetCategoryId { get; set; }
-    public long? TenantId { get; set; }
 
     public string TypeName { get; set; } = null!;
 
     public string? Description { get; set; }
-    public virtual ICollection<Asset> Assets { get; set; } = new List<Asset>();
+
+    public bool? IsActive { get; set; }
+
+    public bool IsSoftDeleted { get; set; }
+
+    public long AddedById { get; set; }
+
+    public DateTime? AddedDateTime { get; set; }
+
+    public long? UpdatedById { get; set; }
+
+    public DateTime? UpdatedDateTime { get; set; }
+
+    public long? SoftDeletedById { get; set; }
+
+    public DateTime? DeletedDateTime { get; set; }
+
+    public virtual ICollection<Asset> Asset { get; set; } = new List<Asset>();
+
     public virtual AssetCategory? AssetCategory { get; set; }
 
-    public virtual ICollection<AssetTicketTypeDetail> AssetTicketTypeDetails { get; set; } = new List<AssetTicketTypeDetail>();
-
-
+    public virtual ICollection<AssetTicketTypeDetail> AssetTicketTypeDetail { get; set; } = new List<AssetTicketTypeDetail>();
 }

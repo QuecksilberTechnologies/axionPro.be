@@ -28,8 +28,6 @@ public partial class TenantEnabledOperation
     public virtual Module Module { get; set; } = null!;
 
     public virtual Operation Operation { get; set; } = null!;
+
     public virtual Tenant Tenant { get; set; } = null!;
-
-
-
 }

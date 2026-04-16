@@ -221,8 +221,8 @@ public class UpdatePolicyTypeCommandHandler
                 PolicyName = policyType.PolicyName ?? string.Empty,
                 Description = policyType.Description,
                 IsActive = policyType.IsActive ?? false,
-                IsStructured = policyType.IsStructured,
-                PolicyTypeEnumVal = policyType.PolicyTypeEnumVal,
+                IsStructured = policyType.IsStructured ,
+                PolicyTypeEnumVal = policyType.PolicyTypeEnumVal ,
                 EmployeeTypeIds = request.DTO.EmployeeTypeIds.ToList(),
                 DocDetails = new List<GetPolicyTypeDocumentResponseDTO>()
             };

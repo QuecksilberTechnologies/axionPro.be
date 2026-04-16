@@ -33,7 +33,7 @@ public partial class EmployeeLeavePolicyMapping
 
     public virtual Employee Employee { get; set; } = null!;
 
-    public virtual ICollection<EmployeeLeaveBalance> EmployeeLeaveBalances { get; set; } = new List<EmployeeLeaveBalance>();
+    public virtual ICollection<EmployeeLeaveBalance> EmployeeLeaveBalance { get; set; } = new List<EmployeeLeaveBalance>();
 
     public virtual PolicyLeaveTypeMapping PolicyLeaveTypeMapping { get; set; } = null!;
 

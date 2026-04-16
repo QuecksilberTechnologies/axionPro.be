@@ -19,9 +19,9 @@ namespace axionpro.application.DTOS.Employee.Education
 
         public string? Remark { get; set; }
 
-        public DateTime? StartDate { get; set; }
+        public DateOnly? StartDate { get; set; }
 
-        public DateTime? EndDate { get; set; }
+        public DateOnly? EndDate { get; set; }
         
         public string? ScoreValue { get; set; }
         public string? GradeDivision { get; set; }

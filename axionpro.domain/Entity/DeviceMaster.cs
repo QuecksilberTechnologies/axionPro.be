@@ -19,5 +19,5 @@ public partial class DeviceMaster
 
     public DateTime? CreatedDate { get; set; }
 
-    public virtual ICollection<DeviceCommandQueue> DeviceCommandQueues { get; set; } = new List<DeviceCommandQueue>();
+    public virtual ICollection<DeviceCommandQueue> DeviceCommandQueue { get; set; } = new List<DeviceCommandQueue>();
 }

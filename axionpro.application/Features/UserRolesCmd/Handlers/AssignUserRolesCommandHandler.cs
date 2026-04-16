@@ -100,9 +100,10 @@ namespace axionpro.application.Features.UserRolesCmd.Handlers
                 // ==========================================================
                 // 🟥 BULK DELETE (Soft Delete)
                 // ==========================================================
+
                 var rolesToDelete = existingRoles
-                    .Where(x => !incomingRoleIds.Contains(x.RoleId))
-                    .ToList();
+                    .Where(x => !incomingRoleIds.Contains(x.RoleId ?? 0))
+                             .ToList();
 
                 if (rolesToDelete.Any())
                 {
@@ -151,7 +152,7 @@ namespace axionpro.application.Features.UserRolesCmd.Handlers
                 // 🟨 BULK UPDATE
                 // ==========================================================
                 var rolesToUpdate = existingRoles
-                    .Where(x => incomingRoleIds.Contains(x.RoleId))
+                    .Where(x => incomingRoleIds.Contains(x.RoleId??0))
                     .ToList();
 
                 if (rolesToUpdate.Any())

@@ -134,9 +134,9 @@ namespace axionpro.persistance.Repositories
             entity.IsActive = false;
 
             // 🔹 Child Documents Soft Delete
-            if (entity.EmployeeExperienceDocuments != null && entity.EmployeeExperienceDocuments.Any())
+            if (entity.EmployeeExperienceDocument != null && entity.EmployeeExperienceDocument.Any())
             {
-                foreach (var doc in entity.EmployeeExperienceDocuments)
+                foreach (var doc in entity.EmployeeExperienceDocument)
                 {
                     doc.IsSoftDeleted = true;
                     doc.IsActive = false;
@@ -163,7 +163,7 @@ namespace axionpro.persistance.Repositories
         public async Task<EmployeeExperience?> GetByIdAsync(long id, long employeeId)
         {
             return await _context.EmployeeExperiences
-                .Include(x => x.EmployeeExperienceDocuments) // ✅ direct include
+                .Include(x => x.EmployeeExperienceDocument) // ✅ direct include
                 .FirstOrDefaultAsync(x =>
                     x.Id == id &&
                     x.EmployeeId == employeeId &&
@@ -196,7 +196,7 @@ namespace axionpro.persistance.Repositories
                 // -----------------
                 var baseQuery = _context.EmployeeExperiences
                     .AsNoTracking()
-                    .Include(x => x.EmployeeExperienceDocuments)
+                    .Include(x => x.EmployeeExperienceDocument)
                     .Where(x =>
                         x.EmployeeId == dto.Prop.EmployeeId &&
                         x.IsActive &&
@@ -258,7 +258,7 @@ namespace axionpro.persistance.Repositories
                         EndDate = exp.EndDate,
                         Experience = exp.Experience,
 
-                        IsWFH = exp.IsWFH,
+                        IsWFH = exp.IsWfh,
 
                         WorkingCountryId = exp.WorkingCountryId,
                         WorkingStateId = exp.WorkingStateId,
@@ -286,7 +286,7 @@ namespace axionpro.persistance.Repositories
                         IsEditAllowed = exp.IsEditAllowed,
                         IsInfoVerified = exp.IsInfoVerified,
 
-                        Documents = exp.EmployeeExperienceDocuments.Select(d => new GetEmployeeExperienceDocumentDTO
+                        Documents = exp.EmployeeExperienceDocument.Select(d => new GetEmployeeExperienceDocumentDTO
                         {
                             Id = d.Id,
                             DocumentType = d.DocumentType,

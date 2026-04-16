@@ -113,7 +113,7 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                     existing.Experience = request.DTO.Experience;
 
                 if (request.DTO.IsWFH)
-                    existing.IsWFH = request.DTO.IsWFH;
+                    existing.IsWfh = request.DTO.IsWFH;
 
                 if (request.DTO.WorkingCountryId.HasValue)
                     existing.WorkingCountryId = request.DTO.WorkingCountryId;

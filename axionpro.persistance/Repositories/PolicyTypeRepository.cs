@@ -187,7 +187,7 @@ namespace axionpro.persistance.Repositories
                         .ToList(),
 
                         // 🔥 DOCUMENTS INCLUDE
-                        DocDetails = pt.PolicyTypeDocuments
+                        DocDetails = pt.PolicyTypeDocument
                             .Where(d => d.IsSoftDeleted == false && d.IsActive == true)
                             .Select(d => new GetPolicyTypeDocumentResponseDTO
                             {

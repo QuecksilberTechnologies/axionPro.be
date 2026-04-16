@@ -55,11 +55,11 @@ public partial class Candidate
 
     public string? ResumeUrl { get; set; }
 
-    public virtual ICollection<CandidateCategorySkill> CandidateCategorySkills { get; set; } = new List<CandidateCategorySkill>();
+    public virtual ICollection<CandidateCategorySkill> CandidateCategorySkill { get; set; } = new List<CandidateCategorySkill>();
 
-    public virtual ICollection<CandidateHistory> CandidateHistories { get; set; } = new List<CandidateHistory>();
+    public virtual ICollection<CandidateHistory> CandidateHistory { get; set; } = new List<CandidateHistory>();
 
-    public virtual ICollection<InterviewFeedback> InterviewFeedbacks { get; set; } = new List<InterviewFeedback>();
+    public virtual ICollection<InterviewFeedback> InterviewFeedback { get; set; } = new List<InterviewFeedback>();
 
-    public virtual ICollection<InterviewSchedule> InterviewSchedules { get; set; } = new List<InterviewSchedule>();
+    public virtual ICollection<InterviewSchedule> InterviewSchedule { get; set; } = new List<InterviewSchedule>();
 }

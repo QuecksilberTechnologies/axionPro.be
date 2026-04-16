@@ -27,7 +27,7 @@ public partial class Tender
 
     public virtual ClientType Client { get; set; } = null!;
 
-    public virtual ICollection<TenderService> TenderServices { get; set; } = new List<TenderService>();
+    public virtual ICollection<TenderService> TenderService { get; set; } = new List<TenderService>();
 
     public virtual TenderStatus TenderStatus { get; set; } = null!;
 }

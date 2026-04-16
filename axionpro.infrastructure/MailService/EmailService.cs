@@ -75,7 +75,7 @@ namespace axionpro.infrastructure.MailService
                 var finalPlaceholders = new Dictionary<string, string>
                 {
                     ["TenantName"] = tenantConfigInfo.CompanyName ?? "",
-                    ["TenantLogoUrl"] = tenantConfigInfo.TenantProfiles
+                    ["TenantLogoUrl"] = tenantConfigInfo.TenantProfile
                                             .Select(x => x.LogoUrl)
                                             .FirstOrDefault()
                                             ?? "https://cdn.axionpro.com/default-logo.png",

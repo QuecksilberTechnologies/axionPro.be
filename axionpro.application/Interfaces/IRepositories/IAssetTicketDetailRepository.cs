@@ -1,14 +1,14 @@
-﻿
-
-using axionpro.application.DTOS.TicketDTO.AssetTicketMap;
-using axionpro.application.DTOS.TicketDTO.Header;
+﻿using axionpro.application.DTOS.TicketDTO.Header;
 using axionpro.application.DTOS.TicketDTO.TicketType;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+using System.Threading.Tasks;
+using axionpro.domain.Entity;
+using MediatR;
+using axionpro.application.DTOS.TicketDTO.Creation;
 
 namespace axionpro.application.Interfaces.IRepositories
 {

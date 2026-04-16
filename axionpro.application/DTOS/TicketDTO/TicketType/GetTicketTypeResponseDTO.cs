@@ -34,10 +34,10 @@ namespace axionpro.application.DTOS.TicketDTO.TicketType
         public string? Description { get; set; }
         public int ResponsibleRoleId { get; set; }
         public string ResponsibleRoleName { get; set; } = string.Empty;
-        public List<EmployeeShortInfoDTO> Employees { get; set; } = new();
+        public List<EmployeeMinInfoDTO> Employees { get; set; } = new();
     }
 
-    public class EmployeeShortInfoDTO
+    public class EmployeeMinInfoDTO
     {
         public long Id { get; set; }
         public string Name { get; set; } = string.Empty;

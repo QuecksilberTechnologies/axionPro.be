@@ -13,7 +13,7 @@ public partial class PolicyLeaveTypeMapping
 
     public long TenantId { get; set; }
 
-    public int EmployeeTypeId { get; set; }
+    public int? EmployeeTypeId { get; set; }
 
     public int? ApplicableGenderId { get; set; }
 
@@ -63,9 +63,9 @@ public partial class PolicyLeaveTypeMapping
 
     public virtual Gender? ApplicableGender { get; set; }
 
-    public virtual ICollection<EmployeeLeavePolicyMapping> EmployeeLeavePolicyMappings { get; set; } = new List<EmployeeLeavePolicyMapping>();
+    public virtual ICollection<EmployeeLeavePolicyMapping> EmployeeLeavePolicyMapping { get; set; } = new List<EmployeeLeavePolicyMapping>();
 
-    public virtual ICollection<LeaveRequest> LeaveRequests { get; set; } = new List<LeaveRequest>();
+    public virtual ICollection<LeaveRequest> LeaveRequest { get; set; } = new List<LeaveRequest>();
 
-    public virtual ICollection<LeaveRule> LeaveRules { get; set; } = new List<LeaveRule>();
+    public virtual ICollection<LeaveRule> LeaveRule { get; set; } = new List<LeaveRule>();
 }

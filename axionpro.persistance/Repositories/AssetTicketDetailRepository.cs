@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
- 
-using axionpro.application.DTOS.TicketDTO.AssetTicketMap;
+using axionpro.application.DTOS.TicketDTO.Creation;
 using axionpro.application.DTOS.TicketDTO.Header;
 using axionpro.application.DTOS.TicketDTO.TicketType;
 using axionpro.application.Interfaces.IRepositories;

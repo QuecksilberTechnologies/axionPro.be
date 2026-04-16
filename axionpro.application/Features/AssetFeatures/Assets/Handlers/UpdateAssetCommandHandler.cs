@@ -125,7 +125,7 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
                 // ===============================
                 // 4️⃣ QR CODE UPDATE
                 // ===============================
-                existingAsset.QRCode = JsonConvert.SerializeObject(new
+                existingAsset.Qrcode = JsonConvert.SerializeObject(new
                 {
                     existingAsset.Id,
                     existingAsset.AssetName,

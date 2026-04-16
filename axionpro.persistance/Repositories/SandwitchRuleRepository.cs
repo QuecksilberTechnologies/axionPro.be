@@ -1,20 +1,11 @@
 ﻿using AutoMapper;
-using axionpro.application.Constants;
 using axionpro.application.DTOs.SandwitchRule;
 using axionpro.application.DTOs.SandwitchRule.DayCombination;
-using axionpro.application.Features.ReportTypeCmd.Handlers;
-using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IRepositories;
-
+using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
-using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {

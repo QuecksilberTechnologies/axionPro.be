@@ -19,7 +19,7 @@ public partial class BasicMenu
 
     public string? ImageIcon { get; set; }
 
-    public virtual ICollection<EmployeeTypeBasicMenu> EmployeeTypeBasicMenus { get; set; } = new List<EmployeeTypeBasicMenu>();
+    public virtual ICollection<EmployeeTypeBasicMenu> EmployeeTypeBasicMenu { get; set; } = new List<EmployeeTypeBasicMenu>();
 
     public virtual ICollection<BasicMenu> InverseParentMenu { get; set; } = new List<BasicMenu>();
 

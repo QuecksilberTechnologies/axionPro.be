@@ -92,7 +92,7 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                 // ===============================
                 // 5️⃣ ALREADY DELETED CHECK 🔥
                 // ===============================
-                if (existing.IsSoftDeleted)
+                if (existing.IsSoftDeleted  )
                 {
                     _logger.LogWarning("⚠️ DeleteExperience skipped | Already deleted | Id: {Id}", request.DTO.Id);
                     throw new ApiException("Experience already deleted.", 400);

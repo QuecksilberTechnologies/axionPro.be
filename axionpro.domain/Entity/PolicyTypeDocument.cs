@@ -16,11 +16,10 @@ public partial class PolicyTypeDocument
     public string FileName { get; set; } = null!;
 
     public string FilePath { get; set; } = null!;
-       
+
     public bool IsActive { get; set; }
 
     public bool IsSoftDeleted { get; set; }
-   
 
     public long? AddedById { get; set; }
 

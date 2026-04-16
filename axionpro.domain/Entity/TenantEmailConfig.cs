@@ -18,12 +18,12 @@ public partial class TenantEmailConfig
     public string? SmtpPasswordEncrypted { get; set; }
 
     public string? FromEmail { get; set; }
-    public string? SecrateKey { get; set; }
-
 
     public string? FromName { get; set; }
 
     public bool IsActive { get; set; }
+
+    public string? SecrateKey { get; set; }
 
     public virtual Tenant Tenant { get; set; } = null!;
 }

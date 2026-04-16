@@ -26,6 +26,6 @@ public partial class TenantEnabledModule
     public DateTime? UpdatedDateTime { get; set; }
 
     public virtual Module Module { get; set; } = null!;
-    public virtual Tenant Tenant { get; set; } = null!;
 
+    public virtual Tenant Tenant { get; set; } = null!;
 }

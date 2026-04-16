@@ -170,7 +170,7 @@ namespace axionpro.persistance.Repositories
                     CategoryName = entity.CategoryName,
                     Remark = entity.Remark,
                     IsActive = entity.IsActive,
-                    HasMultipleUser = entity.HasMultipleUser
+                    HasMultipleUser = (bool)entity.HasMultipleUser
                 };
             }
             catch (Exception ex)

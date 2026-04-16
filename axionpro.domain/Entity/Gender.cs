@@ -9,9 +9,9 @@ public partial class Gender
 
     public string GenderName { get; set; } = null!;
 
-    public virtual ICollection<Employee> Employees { get; set; } = new List<Employee>();
-    public virtual ICollection<Tenant> Tenants { get; set; } = new List<Tenant>();
+    public virtual ICollection<Employee> Employee { get; set; } = new List<Employee>();
 
-    public virtual ICollection<PolicyLeaveTypeMapping> PolicyLeaveTypeMappings { get; set; } = new List<PolicyLeaveTypeMapping>();
+    public virtual ICollection<PolicyLeaveTypeMapping> PolicyLeaveTypeMapping { get; set; } = new List<PolicyLeaveTypeMapping>();
 
+    public virtual ICollection<Tenant> Tenant { get; set; } = new List<Tenant>();
 }

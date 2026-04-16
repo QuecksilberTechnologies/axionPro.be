@@ -14,6 +14,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Security.Principal;
 
 namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 {
@@ -143,10 +144,10 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                 existing.EducationGap = dto.IsEducationGapBeforeDegree;
                 existing.GapYears = dto.GapYears;
                 existing.ReasonOfEducationGap = dto.ReasonOfEducationGap?.Trim();
+                existing.StartDate = existing.StartDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
+                existing.EndDate = existing.EndDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
 
-                existing.StartDate = dto.StartDate ?? existing.StartDate;
-                existing.EndDate = dto.EndDate ?? existing.EndDate;
-
+                
                 // ===============================
                 // 7️⃣ FILE UPLOAD
                 // ===============================

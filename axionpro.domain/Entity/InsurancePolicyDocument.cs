@@ -25,7 +25,7 @@ public partial class InsurancePolicyDocument
 
     public bool IsSoftDeleted { get; set; }
 
-    public long? AddedById { get; set; }
+    public long AddedById { get; set; }
 
     public DateTime AddedDateTime { get; set; }
 
@@ -38,5 +38,4 @@ public partial class InsurancePolicyDocument
     public DateTime? SoftDeletedDateTime { get; set; }
 
     public virtual InsurancePolicy InsurancePolicy { get; set; } = null!;
- 
-}  
+}

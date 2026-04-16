@@ -1,16 +1,8 @@
-﻿using AutoMapper;
-using axionpro.application.DTOs;
- 
-using axionpro.application.Interfaces.ICacheService;
+﻿using axionpro.application.Interfaces.ICacheService;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace axionpro.persistance.Repositories
 {

@@ -1,13 +1,14 @@
 ﻿
 
 using axionpro.application.DTOS.TicketDTO.Header;
-using axionpro.application.DTOS.TicketDTO.TicketType;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+using System.Threading.Tasks;
+using axionpro.domain.Entity;
+using MediatR;
 
 namespace axionpro.application.Interfaces.IRepositories
 {
@@ -23,7 +24,7 @@ namespace axionpro.application.Interfaces.IRepositories
         /// Get header by Id.
         /// </summary>
         Task<List<GetHeaderResponseDTO>> GetByIdAsync(GetHeaderRequestDTO dto);
-
+        Task<List<GetHeaderResponseDTO>> GetByClassificationIdAsync(GetTicketHeaderByClassifyIdRequestDTO dto);
         /// <summary>
         /// Get all active header.
         /// </summary>

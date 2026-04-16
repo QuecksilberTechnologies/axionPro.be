@@ -1,15 +1,9 @@
 ﻿using AutoMapper;
-using axionpro.application.Interfaces.IEncryptionService;
-using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace axionpro.persistance.Repositories
 {
     public class EmployeePolicyEnrollmentRepository : IEmployeePolicyEnrollmentRepository

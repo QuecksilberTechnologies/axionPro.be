@@ -597,8 +597,8 @@ namespace axionpro.persistance.Repositories
                     bank.SoftDeletedById = employee.SoftDeletedById;
                     bank.DeletedDateTime = employee.DeletedDateTime;
                     bank.IsActive = employee.IsActive;
-                    bank.IsEditAllowed = employee.IsEditAllowed ?? false;
-                    bank.IsInfoVerified = employee.IsInfoVerified ?? false;
+                    bank.IsEditAllowed = employee.IsEditAllowed ;
+                    bank.IsInfoVerified = employee.IsInfoVerified ;
 
                 }
 
@@ -614,8 +614,8 @@ namespace axionpro.persistance.Repositories
                     contact.SoftDeletedById = employee.SoftDeletedById;
                     contact.DeletedDateTime = employee.DeletedDateTime;
                     contact.IsActive = employee.IsActive;
-                    contact.IsEditAllowed = employee.IsEditAllowed ?? false;
-                    contact.IsInfoVerified = employee.IsInfoVerified ?? false;
+                    contact.IsEditAllowed = employee.IsEditAllowed ;
+                    contact.IsInfoVerified = employee.IsInfoVerified ;
                 }
 
                 // 🔹 Dependant DETAILS
@@ -630,8 +630,8 @@ namespace axionpro.persistance.Repositories
                     dep.SoftDeletedById = employee.SoftDeletedById;
                     dep.DeletedDateTime = employee.DeletedDateTime;
                     dep.IsActive = employee.IsActive;
-                    dep.IsEditAllowed = employee.IsEditAllowed ?? false;
-                    dep.IsInfoVerified = employee.IsInfoVerified ?? false;
+                    dep.IsEditAllowed = employee.IsEditAllowed ;
+                    dep.IsInfoVerified = employee.IsInfoVerified ;
                 }
                 // 🔹 Images DETAILS
                 var images = await _context.EmployeeImages
@@ -641,7 +641,7 @@ namespace axionpro.persistance.Repositories
 
                 foreach (var img in images)
                 {
-                    img.IsSoftDeleted = employee.IsSoftDeleted ?? false;
+                    img.IsSoftDeleted = employee.IsSoftDeleted;
                     img.SoftDeletedById = employee.SoftDeletedById;
                     img.DeletedDateTime = employee.DeletedDateTime;
                     img.IsActive = employee.IsActive;
@@ -660,8 +660,8 @@ namespace axionpro.persistance.Repositories
                     edu.SoftDeletedById = employee.SoftDeletedById;
                     edu.DeletedDateTime = employee.DeletedDateTime;
                     edu.IsActive = employee.IsActive;
-                    edu.IsEditAllowed = employee.IsEditAllowed ?? false;
-                    edu.IsInfoVerified = employee.IsInfoVerified ?? false;
+                    edu.IsEditAllowed = employee.IsEditAllowed ;
+                    edu.IsInfoVerified = employee.IsInfoVerified ;
                 }
                 // 🔹 Identity DETAILS
                 var identites = await _context.EmployeePersonalDetails
@@ -675,8 +675,8 @@ namespace axionpro.persistance.Repositories
                     iden.SoftDeletedById = employee.SoftDeletedById;
                     iden.DeletedDateTime = employee.DeletedDateTime;
                     iden.IsActive = employee.IsActive;
-                    iden.IsEditAllowed = employee.IsEditAllowed ?? false;
-                    iden.IsInfoVerified = employee.IsInfoVerified ?? false;
+                    iden.IsEditAllowed = employee.IsEditAllowed ;
+                    iden.IsInfoVerified = employee.IsInfoVerified ;
                 }
 
                 // 🔹 SAVE ONCE
@@ -784,7 +784,7 @@ namespace axionpro.persistance.Repositories
                     FilePath = primaryImage.FilePath,
                     IsActive = primaryImage.IsActive,
                     IsPrimary = primaryImage.IsPrimary,
-                    HasImageUploaded = primaryImage.HasImageUploaded,
+                    HasImageUploaded = primaryImage.HasImageUploaded ,
                     CompletionPercentage = completionPercentage
                 };
             }
@@ -892,7 +892,7 @@ namespace axionpro.persistance.Repositories
                 // 🧩 Step 2: Base employee query (NO tracking = faster)
                 var query = _context.Employees
                .AsNoTracking()
-               .Include(x => x.UserRoles)
+               .Include(x => x.UserRole)
                    .ThenInclude(ur => ur.Role)
                .Where(x =>
                    x.TenantId == dto.Prop.TenantId &&
@@ -999,9 +999,9 @@ namespace axionpro.persistance.Repositories
                         FirstName = x.Employee.FirstName,
                         MiddleName = x.Employee.MiddleName,
                         LastName = x.Employee.LastName,
-                        RoleId = x.Employee.UserRoles.FirstOrDefault()?.RoleId,
-                        RoleName = x.Employee.UserRoles.FirstOrDefault()?.Role?.RoleName,
-                        RoleType = x.Employee.UserRoles.FirstOrDefault()?.Role?.RoleType,
+                        RoleId = x.Employee.UserRole.FirstOrDefault()?.RoleId,
+                        RoleName = x.Employee.UserRole.FirstOrDefault()?.Role?.RoleName,
+                        RoleType = x.Employee.UserRole.FirstOrDefault()?.Role?.RoleType,
                         GenderId = x.Employee.GenderId ?? 0,
                         GenderName = genderLookup.GetValueOrDefault(x.Employee.GenderId ?? 0),
 
@@ -1573,7 +1573,8 @@ namespace axionpro.persistance.Repositories
                         InstituteName = x.InstituteName,
                         ScoreType = x.ScoreType.ToString(),
                         HasEducationDocUploded = x.HasEducationDocUploded,
-                        StartDate = x.StartDate,
+
+                        StartDate = x.StartDate ?? DateOnly.FromDateTime(DateTime.UtcNow),                       
                         EndDate = x.EndDate,                       
                         IsEditAllowed =x.IsEditAllowed,
                         IsInfoVerified =x.IsInfoVerified,
@@ -1590,7 +1591,7 @@ namespace axionpro.persistance.Repositories
                     {
                         AccountNumber = x.AccountNumber,    
                         BankName = x.BankName,  
-                        IFSCCode = x.IFSCCode,  
+                        IFSCCode = x.Ifsccode,  
                         BranchName = x.BranchName,
                         AccountType = x.AccountType,
                         HasChequeDocUploaded = x.HasChequeDocUploaded,

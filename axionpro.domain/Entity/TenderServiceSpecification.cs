@@ -29,5 +29,5 @@ public partial class TenderServiceSpecification
 
     public virtual TenderService TenderService { get; set; } = null!;
 
-    public virtual ICollection<TenderServiceProvider> TenderServiceProviders { get; set; } = new List<TenderServiceProvider>();
+    public virtual ICollection<TenderServiceProvider> TenderServiceProvider { get; set; } = new List<TenderServiceProvider>();
 }

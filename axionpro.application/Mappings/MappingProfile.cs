@@ -45,7 +45,7 @@ using axionpro.application.DTOS.TicketDTO.Classification;
 using axionpro.application.DTOS.TicketDTO.Header;
 using axionpro.application.DTOS.TicketDTO.TicketType;
 using axionpro.application.DTOS.UserRoles;
-using axionpro.application.Features.TicketCmd.Classification;
+using axionpro.application.Features.TickeAllCmd.Classification;
 using axionpro.domain.Entity;
 using FluentValidation;
 
@@ -430,7 +430,7 @@ namespace axionpro.application.Mappings
            .ForMember(dest => dest.EmployeeId, opt => opt.Ignore())
             .ForMember(dest => dest.AccountType, opt => opt.MapFrom(src => src.AccountType))
            .ForMember(dest => dest.IsPrimaryAccount, opt => opt.MapFrom(src => src.IsPrimaryAccount))
-            .ForMember(dest => dest.UPIId, opt => opt.MapFrom(src => src.UPIId));
+            .ForMember(dest => dest.Upiid, opt => opt.MapFrom(src => src.UPIId));
 
             CreateMap<CreateContactRequestDTO, EmployeeContact>()
     // ❌ EmployeeId handler me set hoga
@@ -598,7 +598,7 @@ namespace axionpro.application.Mappings
                  .ForMember(dest => dest.UpdatedById, opt => opt.Ignore())
                  .ForMember(dest => dest.UpdatedDateTime, opt => opt.Ignore())
                  .ForMember(dest => dest.Employee, opt => opt.Ignore()) // navigation
-                 .ForMember(dest => dest.EmployeeExperienceDocuments, opt => opt.Ignore()); // handle manually
+                 .ForMember(dest => dest.EmployeeExperienceDocument, opt => opt.Ignore()); // handle manually
 
 
             CreateMap<CreateExperienceDocumentDTO, EmployeeExperienceDocument>()
@@ -678,7 +678,7 @@ namespace axionpro.application.Mappings
             CreateMap<TenantResponseDTO, Tenant>().ReverseMap();
 
             CreateMap<SubscriptionPlan, SubscriptionPlanResponseDTO>()
-               .ForMember(dest => dest.Modules, opt => opt.MapFrom(src => src.PlanModuleMappings
+               .ForMember(dest => dest.Modules, opt => opt.MapFrom(src => src.PlanModuleMapping
                .Where(pmm => pmm.Module != null)
                 .Select(pmm => new ModuleResponseDTO
                 {

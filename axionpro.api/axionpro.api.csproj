@@ -12,18 +12,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.3" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.5" />
     <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="10.0.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\axionpro.application\axionpro.application.csproj" />
-    <ProjectReference Include="..\axionpro.infrastructure\axionpro.infrastructure.csproj" />
-    <ProjectReference Include="..\axionpro.persistance\axionpro.persistance.csproj" />
   </ItemGroup>
 
 	
@@ -33,6 +25,13 @@
     <Folder Include="Properties\PublishProfiles\" />
     <Folder Include="wwwroot\" />
     <Folder Include="wwwroot\uploads\tenants\317\employees\234\profile\" />
+  </ItemGroup>
+
+	
+  <ItemGroup>
+    <ProjectReference Include="..\axionpro.application\axionpro.application.csproj" />
+    <ProjectReference Include="..\axionpro.infrastructure\axionpro.infrastructure.csproj" />
+    <ProjectReference Include="..\axionpro.persistance\axionpro.persistance.csproj" />
   </ItemGroup>
 
 </Project>

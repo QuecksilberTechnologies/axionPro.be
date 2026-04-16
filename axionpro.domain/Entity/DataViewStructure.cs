@@ -15,5 +15,5 @@ public partial class DataViewStructure
 
     public bool IsDisplayedAtPriority { get; set; }
 
-    public virtual ICollection<ModuleOperationMapping> ModuleOperationMappings { get; set; } = new List<ModuleOperationMapping>();
+    public virtual ICollection<ModuleOperationMapping> ModuleOperationMapping { get; set; } = new List<ModuleOperationMapping>();
 }

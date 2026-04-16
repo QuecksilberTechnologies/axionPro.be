@@ -19,7 +19,7 @@ public partial class TenderService
 
     public virtual Tender Tender { get; set; } = null!;
 
-    public virtual ICollection<TenderServiceSpecification> TenderServiceSpecifications { get; set; } = new List<TenderServiceSpecification>();
+    public virtual ICollection<TenderServiceSpecification> TenderServiceSpecification { get; set; } = new List<TenderServiceSpecification>();
 
     public virtual TenderServiceType TenderServiceType { get; set; } = null!;
 }

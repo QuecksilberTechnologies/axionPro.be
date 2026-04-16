@@ -140,7 +140,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                     bank.AccountNumber = dto.AccountNumber.Trim();
 
                 if (!string.IsNullOrWhiteSpace(dto.IFSCCode))
-                    bank.IFSCCode = dto.IFSCCode.Trim();
+                    bank.Ifsccode = dto.IFSCCode.Trim();
 
                 if (!string.IsNullOrWhiteSpace(dto.BranchName))
                     bank.BranchName = dto.BranchName.Trim();
@@ -149,7 +149,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                     bank.AccountType = dto.AccountType.Trim();
 
                 if (!string.IsNullOrWhiteSpace(dto.UPIId))
-                    bank.UPIId = dto.UPIId.Trim();
+                    bank.Upiid = dto.UPIId.Trim();
 
                 // ===============================
                 // 6️⃣ PRIMARY ACCOUNT RULE

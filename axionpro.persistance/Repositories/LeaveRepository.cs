@@ -1,16 +1,10 @@
 ﻿using axionpro.application.Constants;
 using axionpro.application.DTOs.Leave;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Wrappers;
-
+using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
@@ -120,11 +114,11 @@ namespace axionpro.persistance.Repositories
                           (x, et) => new GetLeaveTypeWithPolicyMappingResponseDTO
                           {
                               Id = x.m.Id,
-                              TenantId = x.m.TenantId,
+                              TenantId = (long)(x.m.TenantId),
                               PolicyTypeName = x.pt.PolicyName,
                               LeaveTypeId = x.m.LeaveTypeId,
                               LeaveTypeName = x.lt.LeaveName,
-                              EmployeeTypeId = x.m.EmployeeTypeId,
+                              EmployeeTypeId = (int)(x.m.EmployeeTypeId ?? 0),
                               EmployeeTypeName = et.TypeName,
                               ApplicableGenderId = x.m.ApplicableGenderId,
                               IsMarriedApplicable = x.m.IsMarriedApplicable,
@@ -398,7 +392,7 @@ namespace axionpro.persistance.Repositories
                     leavePolicy.Id, leavePolicy.PolicyTypeId, leavePolicy.LeaveTypeId);
 
                 // Saare active/inactive leave policies return karo (IsDeleted = false by default)
-                return await GetAllLeavePolicyByTenantIdAsync(leavePolicy.TenantId, leavePolicy.IsActive);
+                return await GetAllLeavePolicyByTenantIdAsync((long)(leavePolicy.TenantId), leavePolicy.IsActive);
             }
             catch (DbUpdateException dbEx)
             {

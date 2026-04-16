@@ -1,19 +1,11 @@
 ﻿using AutoMapper;
 using axionpro.application.Constants;
-using axionpro.application.DTOs.Leave;
 using axionpro.application.DTOS.TicketDTO.TicketType;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Wrappers;
-
-using axionpro.persistance.Data.Context;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using axionpro.domain.Entity;
+using axionpro.persistance.Data.Context;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace axionpro.persistance.Repositories
 {
@@ -126,7 +118,7 @@ namespace axionpro.persistance.Repositories
             try
             {
                 var ticketTypes = await _context.TicketTypes
-                    .Where(t => t.TicketHeaderId == dTO.TicketHeaderId && t.TenantId == dTO.TenantId && t.IsActive && (t.IsSoftDeleted == false || t.IsSoftDeleted == null))
+                    .Where(t => t.TicketHeaderId == dTO.TicketHeaderId && t.TenantId == dTO.Prop.TenantId && t.IsActive && (t.IsSoftDeleted !=true))
                     .ToListAsync();
 
                 if (ticketTypes == null || !ticketTypes.Any())
@@ -372,7 +364,7 @@ namespace axionpro.persistance.Repositories
                         Description = g.Key.Description,
                         ResponsibleRoleId = g.Key.ResponsibleRoleId,
                         ResponsibleRoleName = g.Key.ResponsibleRoleName,
-                        Employees = g.Select(e => new EmployeeShortInfoDTO
+                        Employees = g.Select(e => new EmployeeMinInfoDTO
                         {
                             Id = e.EmployeeId,
                             Name = e.EmployeeName,

@@ -40,8 +40,7 @@ public partial class EmployeePolicyEnrollment
     public virtual Employee Employee { get; set; } = null!;
 
     public virtual ICollection<EmployeePolicyDependentMapping> EmployeePolicyDependentMapping { get; set; } = new List<EmployeePolicyDependentMapping>();
-    public virtual ICollection<EmployeeInsuranceMapping> EmployeeInsuranceMapping { get; set; } = new List<EmployeeInsuranceMapping>();
- 
+
     public virtual InsurancePolicy InsurancePolicy { get; set; } = null!;
 
     public virtual PolicyType PolicyType { get; set; } = null!;

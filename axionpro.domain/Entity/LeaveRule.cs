@@ -43,7 +43,7 @@ public partial class LeaveRule
 
     public long? SoftDeleteById { get; set; }
 
-    public virtual ICollection<LeaveSandwichRuleMapping> LeaveSandwichRuleMappings { get; set; } = new List<LeaveSandwichRuleMapping>();
+    public virtual ICollection<LeaveSandwichRuleMapping> LeaveSandwichRuleMapping { get; set; } = new List<LeaveSandwichRuleMapping>();
 
     public virtual PolicyLeaveTypeMapping PolicyLeaveType { get; set; } = null!;
 

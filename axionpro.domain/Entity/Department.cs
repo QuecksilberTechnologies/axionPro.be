@@ -13,9 +13,9 @@ public partial class Department
 
     public string? Description { get; set; }
 
-    public bool? IsExecutiveOffice { get; set; }
+    public bool IsExecutiveOffice { get; set; } = false;
 
-    public bool IsActive { get; set; }
+    public bool IsActive { get; set; } = false;
 
     public string? Remark { get; set; }
 
@@ -27,15 +27,15 @@ public partial class Department
 
     public DateTime? UpdatedDateTime { get; set; }
 
-    public bool? IsSoftDeleted { get; set; }
+    public bool IsSoftDeleted { get; set; } = false;
 
     public long? SoftDeletedById { get; set; }
 
     public DateTime? DeletedDateTime { get; set; }
 
-    public virtual ICollection<Designation> Designations { get; set; } = new List<Designation>();
+    public virtual ICollection<Designation> Designation { get; set; } = new List<Designation>();
 
-    public virtual ICollection<EmployeeManagerMapping> EmployeeManagerMappings { get; set; } = new List<EmployeeManagerMapping>();
+    public virtual ICollection<EmployeeManagerMapping> EmployeeManagerMapping { get; set; } = new List<EmployeeManagerMapping>();
 
     public virtual Tenant? Tenant { get; set; }
 }

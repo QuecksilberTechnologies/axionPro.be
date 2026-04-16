@@ -15,7 +15,7 @@ public partial class ClientType
 
     public string? Description { get; set; }
 
-    public virtual ICollection<Client> Clients { get; set; } = new List<Client>();
+    public virtual ICollection<Client> Client { get; set; } = new List<Client>();
 
-    public virtual ICollection<Tender> Tenders { get; set; } = new List<Tender>();
+    public virtual ICollection<Tender> Tender { get; set; } = new List<Tender>();
 }

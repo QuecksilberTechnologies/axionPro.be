@@ -29,6 +29,5 @@ public partial class TenantIndustry
 
     public DateTime? SoftDeletedDateTime { get; set; }
 
-    public virtual ICollection<Tenant> Tenants { get; set; } = new List<Tenant>();
-
+    public virtual ICollection<Tenant> Tenant { get; set; } = new List<Tenant>();
 }

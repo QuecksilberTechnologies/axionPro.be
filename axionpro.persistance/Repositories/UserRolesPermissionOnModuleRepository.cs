@@ -193,7 +193,7 @@ namespace axionpro.persistance.Repositories
                 var modules = await _context.TenantEnabledModules
                     .Where(m => m.TenantId == tenantId && m.IsEnabled)
                     .Include(m => m.Module)
-                        .ThenInclude(mod => mod.ModuleOperationMappings
+                        .ThenInclude(mod => mod.ModuleOperationMapping
                             .Where(mop => mop.IsActive == true)) // ✅ filtered include EF Core 5+
                     .ToListAsync();
 

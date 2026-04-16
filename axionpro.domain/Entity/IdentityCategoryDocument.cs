@@ -27,9 +27,9 @@ public partial class IdentityCategoryDocument
 
     public DateTime? UpdatedDateTime { get; set; }
 
-    public virtual ICollection<CountryIdentityRule> CountryIdentityRules { get; set; } = new List<CountryIdentityRule>();
+    public virtual ICollection<CountryIdentityRule> CountryIdentityRule { get; set; } = new List<CountryIdentityRule>();
 
-    public virtual ICollection<EmployeeIdentity> EmployeeIdentities { get; set; } = new List<EmployeeIdentity>();
+    public virtual ICollection<EmployeeIdentity> EmployeeIdentity { get; set; } = new List<EmployeeIdentity>();
 
     public virtual IdentityCategory IdentityCategory { get; set; } = null!;
 }

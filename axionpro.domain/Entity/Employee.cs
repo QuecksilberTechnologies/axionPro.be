@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace axionpro.domain.Entity;
-
 
 public partial class Employee
 {
@@ -47,9 +45,9 @@ public partial class Employee
 
     public string? Remark { get; set; }
 
-    public bool? IsEditAllowed { get; set; }
+    public bool IsEditAllowed { get; set; } = false;
 
-    public bool? IsInfoVerified { get; set; }
+    public bool IsInfoVerified { get; set; } = false;
 
     public long AddedById { get; set; }
 
@@ -65,7 +63,7 @@ public partial class Employee
 
     public DateTime? DeletedDateTime { get; set; }
 
-    public bool? IsSoftDeleted { get; set; }
+    public bool IsSoftDeleted { get; set; } = false;
 
     public DateTime? InfoVerifiedDateTime { get; set; }
 
@@ -81,62 +79,71 @@ public partial class Employee
 
     public string? MobileNumber { get; set; }
 
-    public bool? IsMarried { get; set; }
+    public bool IsMarried { get; set; } = false;
 
     public string? EmergencyContactPerson { get; set; }
 
-    public virtual ICollection<AssetAssignment> AssetAssignments { get; set; } = new List<AssetAssignment>();
-    public virtual ICollection<EmployeePolicyEnrollment> EmployeePolicyEnrollment { get; set; } = new List<EmployeePolicyEnrollment>();
-    public virtual ICollection<AssetHistory> AssetHistoryEmployees { get; set; } = new List<AssetHistory>();
+    public virtual ICollection<AssetHistory> AssetHistoryEmployee { get; set; } = new List<AssetHistory>();
 
-    public virtual ICollection<AssetHistory> AssetHistoryScrapApprovedByNavigations { get; set; } = new List<AssetHistory>();
+    public virtual ICollection<AssetHistory> AssetHistoryScrapApprovedByNavigation { get; set; } = new List<AssetHistory>();
 
-    public virtual ICollection<AttendanceHistory> AttendanceHistories { get; set; } = new List<AttendanceHistory>();
+    public virtual ICollection<AttendanceHistory> AttendanceHistory { get; set; } = new List<AttendanceHistory>();
 
     public virtual Country Country { get; set; } = null!;
 
     public virtual Designation? Designation { get; set; }
 
-    public virtual ICollection<EmployeeBankDetail> EmployeeBankDetails { get; set; } = new List<EmployeeBankDetail>();
+    public virtual ICollection<EmployeeBankDetail> EmployeeBankDetail { get; set; } = new List<EmployeeBankDetail>();
 
-    public virtual ICollection<EmployeeCategorySkill> EmployeeCategorySkills { get; set; } = new List<EmployeeCategorySkill>();
+    public virtual ICollection<EmployeeCategorySkill> EmployeeCategorySkill { get; set; } = new List<EmployeeCategorySkill>();
 
-    public virtual ICollection<EmployeeContact> EmployeeContacts { get; set; } = new List<EmployeeContact>();
+    public virtual ICollection<EmployeeContact> EmployeeContact { get; set; } = new List<EmployeeContact>();
 
-    public virtual ICollection<EmployeeDailyAttendance> EmployeeDailyAttendances { get; set; } = new List<EmployeeDailyAttendance>();
+    public virtual ICollection<EmployeeDailyAttendance> EmployeeDailyAttendance { get; set; } = new List<EmployeeDailyAttendance>();
 
-    public virtual ICollection<EmployeeDependent> EmployeeDependents { get; set; } = new List<EmployeeDependent>();
+    public virtual ICollection<EmployeeDependent> EmployeeDependent { get; set; } = new List<EmployeeDependent>();
 
-    public virtual ICollection<EmployeeExperience> EmployeeExperiences { get; set; } = new List<EmployeeExperience>();    
+    public virtual ICollection<EmployeeExperience> EmployeeExperience { get; set; } = new List<EmployeeExperience>();
 
-    public virtual ICollection<EmployeeIdentity> EmployeeIdentities { get; set; } = new List<EmployeeIdentity>();
+    public virtual ICollection<EmployeeIdentity> EmployeeIdentity { get; set; } = new List<EmployeeIdentity>();
 
-    public virtual ICollection<EmployeeImage> EmployeeImages { get; set; } = new List<EmployeeImage>();
+    public virtual ICollection<EmployeeImage> EmployeeImage { get; set; } = new List<EmployeeImage>();
 
-    public virtual ICollection<EmployeeInsuranceMapping> EmployeeInsuranceMappings { get; set; } = new List<EmployeeInsuranceMapping>();
+    public virtual ICollection<EmployeeLeavePolicyMapping> EmployeeLeavePolicyMapping { get; set; } = new List<EmployeeLeavePolicyMapping>();
 
-    public virtual ICollection<EmployeeLeavePolicyMapping> EmployeeLeavePolicyMappings { get; set; } = new List<EmployeeLeavePolicyMapping>();
+    public virtual ICollection<EmployeeManagerMapping> EmployeeManagerMappingEmployee { get; set; } = new List<EmployeeManagerMapping>();
 
-    public virtual ICollection<EmployeeManagerMapping> EmployeeManagerMappingEmployees { get; set; } = new List<EmployeeManagerMapping>();
+    public virtual ICollection<EmployeeManagerMapping> EmployeeManagerMappingManager { get; set; } = new List<EmployeeManagerMapping>();
 
-    public virtual ICollection<EmployeeManagerMapping> EmployeeManagerMappingManagers { get; set; } = new List<EmployeeManagerMapping>();
+    public virtual ICollection<EmployeePersonalDetail> EmployeePersonalDetail { get; set; } = new List<EmployeePersonalDetail>();
 
-    public virtual ICollection<EmployeePersonalDetail> EmployeePersonalDetails { get; set; } = new List<EmployeePersonalDetail>();
+    public virtual ICollection<EmployeePolicyEnrollment> EmployeePolicyEnrollment { get; set; } = new List<EmployeePolicyEnrollment>();
 
     public virtual EmployeeType? EmployeeType { get; set; }
 
-    public virtual ICollection<EmployeesChangedTypeHistory> EmployeesChangedTypeHistories { get; set; } = new List<EmployeesChangedTypeHistory>();
+    public virtual ICollection<EmployeesChangedTypeHistory> EmployeesChangedTypeHistory { get; set; } = new List<EmployeesChangedTypeHistory>();
 
     public virtual Gender? Gender { get; set; }
 
-    public virtual ICollection<LeaveRequest> LeaveRequests { get; set; } = new List<LeaveRequest>();
+    public virtual ICollection<LeaveRequest> LeaveRequest { get; set; } = new List<LeaveRequest>();
 
-    public virtual ICollection<LoginCredential> LoginCredentials { get; set; } = new List<LoginCredential>();
+    public virtual ICollection<LoginCredential> LoginCredential { get; set; } = new List<LoginCredential>();
 
     public virtual Tenant? Tenant { get; set; }
 
-    public virtual ICollection<UserAttendanceSetting> UserAttendanceSettings { get; set; } = new List<UserAttendanceSetting>();
+    public virtual ICollection<ThreadMessage> ThreadMessage { get; set; } = new List<ThreadMessage>();
 
-    public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+    public virtual ICollection<Ticket> TicketAssignedToUser { get; set; } = new List<Ticket>();
+
+    public virtual ICollection<TicketAttachment> TicketAttachment { get; set; } = new List<TicketAttachment>();
+
+    public virtual ICollection<Ticket> TicketRecommendedByUser { get; set; } = new List<Ticket>();
+
+    public virtual ICollection<Ticket> TicketRequestedByUser { get; set; } = new List<Ticket>();
+
+    public virtual ICollection<Ticket> TicketRequestedForUser { get; set; } = new List<Ticket>();
+
+    public virtual ICollection<UserAttendanceSetting> UserAttendanceSetting { get; set; } = new List<UserAttendanceSetting>();
+
+    public virtual ICollection<UserRole> UserRole { get; set; } = new List<UserRole>();
 }
-

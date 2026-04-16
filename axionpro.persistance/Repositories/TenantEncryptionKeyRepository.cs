@@ -95,5 +95,12 @@ namespace axionpro.persistance.Repositories
                 throw;
             }
         }
+
+         
+
+        Task<TenantEncryptionKey?> ITenantEncryptionKeyRepository.GetActiveKeyByTenantIdAsync(long tenantId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

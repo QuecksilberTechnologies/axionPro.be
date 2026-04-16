@@ -35,7 +35,9 @@ public partial class TicketHeader
 
     public virtual Tenant? Tenant { get; set; }
 
+    public virtual ICollection<Ticket> Ticket { get; set; } = new List<Ticket>();
+
     public virtual TicketClassification TicketClassification { get; set; } = null!;
 
-    public virtual ICollection<TicketType> TicketTypes { get; set; } = new List<TicketType>();
+    public virtual ICollection<TicketType> TicketType { get; set; } = new List<TicketType>();
 }

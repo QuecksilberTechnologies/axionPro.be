@@ -5,15 +5,15 @@ namespace axionpro.application.Interfaces.IRepositories
 {
     public interface IForgotPasswordOtpRepository
     {
-        Task<ForgotPasswordOTPDetail?> GetValidOtpByEmployeeIdAsync(long employeeId, long? TenantId);
-        Task<ForgotPasswordOTPDetail?> GetOtpValidateTrueAndUsedFalseByEmployeeIdAsync(long employeeId, long? TenantId);
+        Task<ForgotPasswordOtpdetail?> GetValidOtpByEmployeeIdAsync(long employeeId, long? TenantId);
+        Task<ForgotPasswordOtpdetail?> GetOtpValidateTrueAndUsedFalseByEmployeeIdAsync(long employeeId, long? TenantId);
 
 
-        Task<long> AddAsync(ForgotPasswordOTPDetail otp);
-        Task DeleteAsync(ForgotPasswordOTPDetail otp);
+        Task<long> AddAsync(ForgotPasswordOtpdetail otp);
+        Task DeleteAsync(ForgotPasswordOtpdetail otp);
 
-        Task<ForgotPasswordOTPDetail?> GetByOtpAndEmployeeIdAsync(string otp, long employeeId);
+        Task<ForgotPasswordOtpdetail?> GetByOtpAndEmployeeIdAsync(string otp, long employeeId);
 
-        Task<bool> UpdateOTPAsync(ForgotPasswordOTPDetail otp); // ✅ New method
+        Task<bool> UpdateOTPAsync(ForgotPasswordOtpdetail otp); // ✅ New method
     }
 }

@@ -7,11 +7,11 @@ public partial class EmployeeDependent
 {
     public long Id { get; set; }
 
-    public long EmployeeId { get; set; }
+    public long? EmployeeId { get; set; }
 
     public string? DependentName { get; set; }
 
-    public int Relation { get; set; }
+    public int? Relation { get; set; }
 
     public DateTime? DateOfBirth { get; set; }
 
@@ -34,13 +34,8 @@ public partial class EmployeeDependent
     public long? SoftDeletedById { get; set; }
 
     public DateTime? DeletedDateTime { get; set; }
-    public bool HasProofUploaded { get; set; }
-    public string? FileName { get; set; }
-    public string? FilePath { get; set; }
-    public int  FileType { get; set; }
+
     public bool? IsSoftDeleted { get; set; }
-    public bool? IsEditAllowed { get; set; }
-    public bool? IsActive { get; set; }
 
     public long? InfoVerifiedById { get; set; }
 
@@ -48,7 +43,19 @@ public partial class EmployeeDependent
 
     public DateTime? InfoVerifiedDateTime { get; set; }
 
-    public virtual Employee? Employee { get; set; }
-    public virtual ICollection<EmployeePolicyDependentMapping> EmployeePolicyDependentMapping { get; set; } = new List<EmployeePolicyDependentMapping>();
+    public bool? IsEditAllowed { get; set; }
 
+    public bool? IsActive { get; set; }
+
+    public string? FilePath { get; set; }
+
+    public string? FileName { get; set; }
+
+    public bool? HasProofUploaded { get; set; }
+
+    public int? FileType { get; set; }
+
+    public virtual Employee? Employee { get; set; }
+
+    public virtual ICollection<EmployeePolicyDependentMapping> EmployeePolicyDependentMapping { get; set; } = new List<EmployeePolicyDependentMapping>();
 }

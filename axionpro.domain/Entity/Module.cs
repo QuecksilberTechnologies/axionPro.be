@@ -15,7 +15,7 @@ public partial class Module
 
     public string? DisplayName { get; set; }
 
-    public string? URLPath { get; set; }
+    public string? Urlpath { get; set; }
 
     public int? ParentModuleId { get; set; }
 
@@ -45,29 +45,15 @@ public partial class Module
 
     public virtual ICollection<Module> InverseParentModule { get; set; } = new List<Module>();
 
-    public virtual ICollection<ModuleOperationMapping> ModuleOperationMappings { get; set; } = new List<ModuleOperationMapping>();
+    public virtual ICollection<ModuleOperationMapping> ModuleOperationMapping { get; set; } = new List<ModuleOperationMapping>();
 
     public virtual Module? ParentModule { get; set; }
 
-    public virtual ICollection<PlanModuleMapping> PlanModuleMappings { get; set; } = new List<PlanModuleMapping>();
+    public virtual ICollection<PlanModuleMapping> PlanModuleMapping { get; set; } = new List<PlanModuleMapping>();
 
-    public virtual ICollection<RoleModuleAndPermission> RoleModuleAndPermissions { get; set; } = new List<RoleModuleAndPermission>();
+    public virtual ICollection<RoleModuleAndPermission> RoleModuleAndPermission { get; set; } = new List<RoleModuleAndPermission>();
 
-    public virtual ICollection<TenantEnabledModule> TenantEnabledModules { get; set; } = new List<TenantEnabledModule>();
+    public virtual ICollection<TenantEnabledModule> TenantEnabledModule { get; set; } = new List<TenantEnabledModule>();
 
-    public virtual ICollection<TenantEnabledOperation> TenantEnabledOperations { get; set; } = new List<TenantEnabledOperation>();
+    public virtual ICollection<TenantEnabledOperation> TenantEnabledOperation { get; set; } = new List<TenantEnabledOperation>();
 }
-public class ModuleDTO
-{
-    public int Id { get; set; }
-    public string ModuleName { get; set; }
-    public string? URLPath { get; set; }
-    public string? DisplayName { get; set; }
-    public bool? IsLeafNode { get; set; }
-  
-    public string? ImageIconWeb { get; set; }
-    public string? ImageIconMobile { get; set; }
-    public int? ItemPriority { get; set; }
-    public List<ModuleDTO> Children { get; set; } = new();
-}
-

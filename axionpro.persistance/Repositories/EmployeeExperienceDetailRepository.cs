@@ -6,7 +6,6 @@ using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Serilog.Core;
 
 namespace axionpro.persistance.Repositories
 {

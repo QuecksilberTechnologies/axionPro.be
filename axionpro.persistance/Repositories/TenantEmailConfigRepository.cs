@@ -3,11 +3,6 @@ using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace axionpro.persistance.Repositories
 {
@@ -26,7 +21,7 @@ namespace axionpro.persistance.Repositories
         {
             return await _context.TenantEmailConfigs
                 .Include(x => x.Tenant)          // 🔥 YAHI LINE IMPORTANT HAI
-                .Include(x => x.Tenant.TenantProfiles) // logo etc ke liye
+                .Include(x => x.Tenant.TenantProfile) // logo etc ke liye
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x =>
                     x.TenantId == tenantId &&

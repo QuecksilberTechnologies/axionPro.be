@@ -5,22 +5,25 @@ namespace axionpro.domain.Entity;
 
 public partial class Country
 {
-   
     public int Id { get; set; }
 
     public string CountryName { get; set; } = null!;
 
     public string? CountryCode { get; set; }
-    public required string STDCode { get; set; }
 
     public bool? IsActive { get; set; }
 
-    public virtual ICollection<CountryIdentityRule> CountryIdentityRules { get; set; } = new List<CountryIdentityRule>();
+    public string Stdcode { get; set; } = null!;
 
- 
-    public virtual ICollection<Employee> Employees { get; set; } = new List<Employee>();
+    public virtual ICollection<CountryIdentityRule> CountryIdentityRule { get; set; } = new List<CountryIdentityRule>();
 
-    public virtual ICollection<State> States { get; set; } = new List<State>();
+    public virtual ICollection<CountryStatutoryRule> CountryStatutoryRule { get; set; } = new List<CountryStatutoryRule>();
 
-   
+    public virtual ICollection<Employee> Employee { get; set; } = new List<Employee>();
+
+    public virtual ICollection<InsurancePolicy> InsurancePolicy { get; set; } = new List<InsurancePolicy>();
+
+    public virtual ICollection<State> State { get; set; } = new List<State>();
+
+    public virtual ICollection<StatutoryType> StatutoryType { get; set; } = new List<StatutoryType>();
 }

@@ -90,7 +90,7 @@ namespace axionpro.persistance.Repositories
                         YearlyPrice = plan.YearlyPrice,
                         IsFree = plan.IsFree,
 
-                        Modules = plan.PlanModuleMappings
+                        Modules = plan.PlanModuleMapping
                             .Where(pmm => pmm.IsActive ==true && pmm.Module.IsActive==true)
                             .Select(pmm => new ModuleActiveDTO
                             {

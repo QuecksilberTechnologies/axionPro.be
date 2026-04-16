@@ -1,14 +1,4 @@
-﻿using axionpro.application.DTOS.Pagination;
-using Microsoft.Extensions.FileSystemGlobbing.Internal.PathSegments;
-using Microsoft.VisualBasic;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
-using static QRCoder.PayloadGenerator;
-
-namespace axionpro.application.DTOS.Employee.BaseEmployee
+﻿namespace axionpro.application.DTOS.Employee.BaseEmployee
 {
     public class GetAllEmployeeInfoResponseDTO
     {

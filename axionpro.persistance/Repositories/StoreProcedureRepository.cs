@@ -15,8 +15,7 @@ using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Npgsql;
-using NpgsqlTypes;
-using SkiaSharp;
+
 using System.Data; 
 namespace axionpro.persistance.Repositories
 {

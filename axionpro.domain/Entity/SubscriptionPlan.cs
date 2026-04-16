@@ -35,7 +35,7 @@ public partial class SubscriptionPlan
 
     public bool? IsCustom { get; set; }
 
-    public virtual ICollection<PlanModuleMapping> PlanModuleMappings { get; set; } = new List<PlanModuleMapping>();
+    public virtual ICollection<PlanModuleMapping> PlanModuleMapping { get; set; } = new List<PlanModuleMapping>();
 
-    public virtual ICollection<TenantSubscription> TenantSubscriptions { get; set; } = new List<TenantSubscription>();
+    public virtual ICollection<TenantSubscription> TenantSubscription { get; set; } = new List<TenantSubscription>();
 }

@@ -559,11 +559,9 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                     Degree = item.Degree,
                     InstituteName = item.InstituteName,
                     ScoreType = item.ScoreType,
-                    StartDate = item.StartDate.HasValue  ? DateTime.SpecifyKind(item.StartDate.Value, DateTimeKind.Utc)
-                   : null,
-                    EndDate = item.EndDate.HasValue ? DateTime.SpecifyKind(item.EndDate.Value, DateTimeKind.Utc) : null,
-                    //FilePath   = BuildFilePath(item.FilePath, baseUrl, defaultImg),
-
+                    StartDate = item.StartDate,
+                    EndDate = item.EndDate,
+                  
                     FilePath = !string.IsNullOrEmpty(item.FilePath) ? _fileStorageService.GetFileUrl(item.FilePath) : null,
 
                     FileName = item.FileName,

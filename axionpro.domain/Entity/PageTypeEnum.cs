@@ -9,5 +9,5 @@ public partial class PageTypeEnum
 
     public string? PageTypeName { get; set; }
 
-    public virtual ICollection<ModuleOperationMapping> ModuleOperationMappings { get; set; } = new List<ModuleOperationMapping>();
+    public virtual ICollection<ModuleOperationMapping> ModuleOperationMapping { get; set; } = new List<ModuleOperationMapping>();
 }

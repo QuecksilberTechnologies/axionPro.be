@@ -23,7 +23,7 @@ public partial class AttendanceDeviceType
 
     public DateTime? UpdatedDateTime { get; set; }
 
-    public virtual ICollection<EmployeeDailyAttendance> EmployeeDailyAttendances { get; set; } = new List<EmployeeDailyAttendance>();
+    public virtual ICollection<EmployeeDailyAttendance> EmployeeDailyAttendance { get; set; } = new List<EmployeeDailyAttendance>();
 
-    public virtual ICollection<UserAttendanceSetting> UserAttendanceSettings { get; set; } = new List<UserAttendanceSetting>();
+    public virtual ICollection<UserAttendanceSetting> UserAttendanceSetting { get; set; } = new List<UserAttendanceSetting>();
 }

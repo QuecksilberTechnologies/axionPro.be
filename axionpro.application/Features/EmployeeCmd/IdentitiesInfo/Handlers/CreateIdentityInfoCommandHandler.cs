@@ -158,8 +158,8 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
                         DocumentFileName = documentName,
                         DocumentFilePath = documentPath,
 
-                        EffectiveFrom = identity.EffectiveFrom,
-                        EffectiveTo = identity.EffectiveTo,
+                        EffectiveFrom = identity.EffectiveFrom ?? DateOnly.FromDateTime(DateTime.UtcNow),
+                        EffectiveTo = identity.EffectiveTo ?? DateOnly.FromDateTime(DateTime.UtcNow),
 
                         HasIdentityUploaded = documentPath != null,
                         IsEditAllowed = true,

@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace axionpro.domain.Entity;
 
- 
 public partial class LoginCredential
 {
     public long Id { get; set; }
@@ -15,12 +13,11 @@ public partial class LoginCredential
 
     public string LoginId { get; set; } = null!;
 
-    public  string? Password { get; set; } 
+    public string? Password { get; set; }
 
     public bool HasFirstLogin { get; set; }
 
     public bool? IsPasswordChangeRequired { get; set; }
-    public bool IsOnboard { get; set; }
 
     public string? MacAddress { get; set; }
 
@@ -52,9 +49,9 @@ public partial class LoginCredential
 
     public DateTime? DeletedDateTime { get; set; }
 
-    public virtual ICollection<ForgotPasswordOTPDetail> ForgotPasswordRequests { get; set; } = new List<ForgotPasswordOTPDetail>();
+    public bool IsOnboard { get; set; }
 
-    public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
-    public virtual Employee? Employee { get; set; }
+    public virtual Employee Employee { get; set; } = null!;
 
+    public virtual ICollection<RefreshToken> RefreshToken { get; set; } = new List<RefreshToken>();
 }

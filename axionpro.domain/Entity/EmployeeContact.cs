@@ -11,27 +11,29 @@ public partial class EmployeeContact
 
     public int? ContactType { get; set; }
 
-    public string? ContactNumber { get; set; } 
+    public int? Relation { get; set; }
+
+    public string? ContactName { get; set; }
+
+    public string ContactNumber { get; set; } = null!;
 
     public string? AlternateNumber { get; set; }
 
     public string? Email { get; set; }
 
-    public bool IsPrimary { get; set; }
+    public bool IsPrimary { get; set; } =false;
 
     public int? CountryId { get; set; }
-    public int? Relation { get; set; }
 
     public int? StateId { get; set; }
 
     public int? DistrictId { get; set; }
-    public string? ContactName { get; set; }
 
     public string? HouseNo { get; set; }
 
     public string? LandMark { get; set; }
 
-    public string? Street { get; set; }  
+    public string? Street { get; set; }
 
     public string? Address { get; set; }
 
@@ -52,7 +54,7 @@ public partial class EmployeeContact
     public long? SoftDeletedById { get; set; }
 
     public DateTime? DeletedDateTime { get; set; }
-    
+
     public bool? IsEditAllowed { get; set; }
 
     public bool? IsInfoVerified { get; set; }

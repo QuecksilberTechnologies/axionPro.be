@@ -9,22 +9,24 @@ namespace axionpro.application.DTOS.TicketDTO.Header
 {
     public class GetHeaderResponseDTO : BaseRequest
     {
-      
-        public string HeaderName { get; set; } = null!;
 
-        public int? TicketClassificationId { get; set; }
+       
+            public string HeaderId { get; set; } = null!;  // 🔐 encoded string (as per your rule)
 
-        public string? TicketClassificationName { get; set; }
+            public string HeaderName { get; set; } = null!;
 
-        public bool IsAssetRelated { get; set; } 
+            public string? TicketClassificationId { get; set; }
 
-        public string? Description { get; set; }
+            public string? TicketClassificationName { get; set; }
 
-        public bool IsActive { get; set; } 
+            public string? Description { get; set; }
+
+            public bool IsActive { get; set; }
+        
 
 
 
-  
+
 
     }
 }

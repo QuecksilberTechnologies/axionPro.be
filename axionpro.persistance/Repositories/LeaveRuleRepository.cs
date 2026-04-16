@@ -1,17 +1,10 @@
 ﻿using axionpro.application.Constants;
-using axionpro.application.DTOs.Leave;
 using axionpro.application.DTOs.Leave.LeaveRule;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Wrappers;
-
+using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
@@ -34,6 +27,7 @@ namespace axionpro.persistance.Repositories
             {
                 var existing = await _context.LeaveRules
                     .FirstOrDefaultAsync(lr => lr.Id == leaveRuleId                                           
+                                               && lr.IsActive
                                                && !lr.IsSoftDeleted);
 
                 return existing;
