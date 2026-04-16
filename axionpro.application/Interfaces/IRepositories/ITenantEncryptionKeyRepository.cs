@@ -6,6 +6,7 @@ namespace axionpro.application.Interfaces.IRepositories
     {
         Task<TenantEncryptionKey?> GetActiveKeyByTenantIdAsync(long tenantId, CancellationToken cancellationToken = default);
         Task AddAsync(TenantEncryptionKey tenantKey, CancellationToken cancellationToken = default);
-        Task UpdateAsync(TenantEncryptionKey tenantKey, CancellationToken cancellationToken = default);
+    //    Task UpdateAsync(TenantEncryptionKey tenantKey, CancellationToken cancellationToken = default);
+
     }
 }
