@@ -28,8 +28,8 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<District> Districts { get; set; }
       //  public virtual DbSet<AttendanceLog> AttendanceLogs { get; set; }
         public virtual DbSet<AccoumndationAllowancePolicyByDesignation> AccoumndationAllowancePolicyByDesignations { get; set; }
-        public virtual DbSet<EmployeeCountResponseStatsSp> AccoumndationAllowancePolicyByDesignations { get; set; }
-        
+        public DbSet<EmployeeCountResponseStatsSp> EmployeeCountResponseStatsSp { get; set; }
+
         public virtual DbSet<ApprovalWorkflow> ApprovalWorkflows { get; set; }
         public virtual DbSet<EmployeePolicyDependentMapping> EmployeePolicyDependentMapping { get; set; }
 
@@ -3116,10 +3116,10 @@ namespace axionpro.persistance.Data.Context
                 .HasMaxLength(20)
                 .IsFixedLength();
         });
+            modelBuilder.Entity<EmployeeCountResponseStatsSp>().HasNoKey();
 
-       
-    }
-
+        }
+      
         public async Task<int> SaveChangesAsync()
         {
             return await base.SaveChangesAsync();
