@@ -85,8 +85,13 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // ===============================
                 // 2️⃣ NULL SAFETY
                 // ===============================
+                if (!validation.Success)
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+
                 if (request?.DTO == null)
-                    throw new ValidationErrorException("Invalid request.");
+                    throw new ValidationErrorException("Invalid request");
+
+                
 
                 request.DTO.Prop ??= new();
 
@@ -107,17 +112,19 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // ===============================
                 // 4️⃣ FETCH DATA
                 // ===============================
-                var responseDTO =  await _unitOfWork.Employees.GetAllInfo(request.DTO);
+                var responseDTO = await _unitOfWork.Employees.GetAllInfo(request.DTO);
+                
+                if (responseDTO == null)
+                    throw new ApiException("Employee data not found", 404);
 
                 // ===============================
                 // 5️⃣ OPTIMIZED EMPTY HANDLING
                 // ===============================
                 var items = responseDTO?.Data ?? new List<GetAllEmployeeInfoResponseDTO>();
 
+
                 var resultList = items.Any()
-                    ? ProjectionHelper.ToGetAllEmployeeInfoResponseDTOs(
-                        responseDTO,
-                        _idEncoderService,
+                    ? ProjectionHelper.ToGetAllEmployeeInfoResponseDTOs( responseDTO,  _idEncoderService,
                         validation.Claims.TenantEncriptionKey,
                         _config, _fileStorageService)
                     : new List<GetAllEmployeeInfoResponseDTO>();

@@ -3,6 +3,7 @@
 using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOS.RoleModulePermission;
 using axionpro.application.DTOS.StoreProcedures;
+using axionpro.application.DTOS.StoreProcedures.DashboardSummeries;
 using axionpro.application.Interfaces.IContext;
 using axionpro.domain.Entity;
 using Microsoft.EntityFrameworkCore;
@@ -27,7 +28,8 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<District> Districts { get; set; }
       //  public virtual DbSet<AttendanceLog> AttendanceLogs { get; set; }
         public virtual DbSet<AccoumndationAllowancePolicyByDesignation> AccoumndationAllowancePolicyByDesignations { get; set; }
-
+        public virtual DbSet<EmployeeCountResponseStatsSp> AccoumndationAllowancePolicyByDesignations { get; set; }
+        
         public virtual DbSet<ApprovalWorkflow> ApprovalWorkflows { get; set; }
         public virtual DbSet<EmployeePolicyDependentMapping> EmployeePolicyDependentMapping { get; set; }
 

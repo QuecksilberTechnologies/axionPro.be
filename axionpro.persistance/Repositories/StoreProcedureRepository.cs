@@ -411,8 +411,7 @@ namespace axionpro.persistance.Repositories
 
                 var tenantParam = new NpgsqlParameter("p_tenantid", tenantId);
 
-                var result = await _context
-                    .Set<EmployeeCountResponseStatsSp>()
+                var result = await _context.Set<EmployeeCountResponseStatsSp>()
                     .FromSqlRaw(
                         @"SELECT * 
                   FROM axionpro.""AllEmployeeCountData""(@p_tenantid)",

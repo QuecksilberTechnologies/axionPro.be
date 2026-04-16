@@ -31,43 +31,48 @@ namespace axionpro.api.Middlewares
                 await _next(context);
             }
 
-            // ✅ 401 - Unauthorized (Token fail)
             catch (UnauthorizedAccessException ex)
             {
                 await HandleExceptionAsync(context, 401, ex.Message);
             }
 
-            // ✅ 400 - Validation error
             catch (ValidationErrorException ex)
             {
                 await HandleExceptionAsync(context, 400, ex.Message, ex.Errors);
             }
 
-            // ✅ Custom ApiException (dynamic status)
             catch (ApiException ex)
             {
                 await HandleExceptionAsync(context, ex.StatusCode, ex.Message);
             }
 
-            // ✅ 404 - Not Found (optional)
             catch (KeyNotFoundException ex)
             {
                 await HandleExceptionAsync(context, 404, ex.Message);
             }
 
-            // ✅ 500 - Internal Server Error
-            catch (Exception ex)
+            catch (NullReferenceException ex)
             {
-                _logger.LogError(ex, ex.Message);
+                _logger.LogError(ex, "Null reference error");
 
                 await HandleExceptionAsync(
                     context,
                     500,
-                    "Internal Server Error"
+                    "Required data is missing"
+                );
+            }
+
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unhandled exception");
+
+                await HandleExceptionAsync(
+                    context,
+                    500,
+                    "Something went wrong. Please try again."
                 );
             }
         }
-
         private static async Task HandleExceptionAsync(
             HttpContext context,
             int statusCode,
