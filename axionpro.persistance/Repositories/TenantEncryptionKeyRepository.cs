@@ -70,9 +70,30 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-      
+        public async Task UpdateAsync(TenantEncryptionKey tenantKey, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                if (tenantKey == null)
+                {
+                    throw new ArgumentNullException(nameof(tenantKey));
+                }
 
-        
-     
+                _context.TenantEncryptionKeys.Update(tenantKey);
+
+                await Task.CompletedTask;
+
+                _logger.LogInformation(
+                    "Tenant encryption key marked for update successfully for TenantId: {TenantId}",
+                    tenantKey.TenantId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Error updating tenant encryption key for TenantId: {TenantId}",
+                    tenantKey?.TenantId);
+                throw;
+            }
+        }
     }
 }
