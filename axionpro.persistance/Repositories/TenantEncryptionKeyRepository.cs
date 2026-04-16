@@ -19,7 +19,7 @@ namespace axionpro.persistance.Repositories
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task AddAsync(TenantEncryptionKey tenantKey, CancellationToken cancellationToken = default)
+        public async Task AddAsync(TenantEncryptionKeys tenantKey, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -43,7 +43,7 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<TenantEncryptionKey?> GetActiveKeyByTenantIdAsync(long tenantId, CancellationToken cancellationToken = default)
+        public async Task<TenantEncryptionKeys?> GetActiveKeyByTenantIdAsync(long tenantId, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -70,7 +70,7 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task UpdateAsync(TenantEncryptionKey tenantKey, CancellationToken cancellationToken = default)
+        public async Task UpdateAsync(TenantEncryptionKeys tenantKey, CancellationToken cancellationToken = default)
         {
             try
             {

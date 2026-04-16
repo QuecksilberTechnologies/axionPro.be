@@ -245,7 +245,7 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<TenderStatus> TenderStatuses { get; set; }
 
         public virtual DbSet<TicketClassification> TicketClassifications { get; set; }
-        public virtual DbSet<TenantEncryptionKey> TenantEncryptionKeys { get; set; }
+        public virtual DbSet<TenantEncryptionKeys> TenantEncryptionKeys { get; set; }
       
 
         public virtual DbSet<ThreadMessage> ThreadMessage { get; set; }
@@ -2573,7 +2573,7 @@ namespace axionpro.persistance.Data.Context
                 .HasConstraintName("FK_TenantEnabledOperations_Tenant");
         });
 
-        modelBuilder.Entity<TenantEncryptionKey>(entity =>
+        modelBuilder.Entity<TenantEncryptionKeys>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__TenantEn__3214EC070E3540EE");
 

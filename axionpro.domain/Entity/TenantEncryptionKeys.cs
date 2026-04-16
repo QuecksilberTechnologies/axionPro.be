@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace axionpro.domain.Entity;
 
-public partial class TenantEncryptionKey
+public partial class TenantEncryptionKeys
 {
     public long Id { get; set; }
 

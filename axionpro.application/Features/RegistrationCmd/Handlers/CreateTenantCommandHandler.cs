@@ -253,7 +253,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 // =====================================================
                 string encryptedTenantKey = _encryptionService.GenerateKey();
 
-                var tenantEncryptionKey = new TenantEncryptionKey
+                var tenantEncryptionKey = new TenantEncryptionKeys
                 {
                     TenantId = newTenantId,
                     EncryptionKey = encryptedTenantKey,
