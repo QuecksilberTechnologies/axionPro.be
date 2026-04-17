@@ -17,7 +17,7 @@ public partial class Asset
 
     public string? Color { get; set; }
 
-    public bool? IsRepairable { get; set; }
+    public bool IsRepairable { get; set; }
 
     public decimal? Price { get; set; }
 

@@ -17,7 +17,7 @@ public partial class AssetCategory
 
     public bool IsSoftDeleted { get; set; }
 
-    public long? AddedById { get; set; }
+    public long AddedById { get; set; }
 
     public DateTime AddedDateTime { get; set; }
 
@@ -29,7 +29,7 @@ public partial class AssetCategory
 
     public DateTime? SoftDeletedDateTime { get; set; }
 
-    public bool? HasMultipleUser { get; set; }
+    public bool HasMultipleUser { get; set; }
 
     public virtual ICollection<AssetType> AssetType { get; set; } = new List<AssetType>();
 

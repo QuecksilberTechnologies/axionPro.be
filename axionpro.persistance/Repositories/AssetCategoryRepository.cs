@@ -115,7 +115,8 @@ namespace axionpro.persistance.Repositories
                         Id = x.Id,
                         CategoryName = x.CategoryName,
                         Remark = x.Remark,
-                        IsActive = x.IsActive
+                        IsActive = x.IsActive,
+                        HasMultipleUser= x.HasMultipleUser,
                     })
                     .ToListAsync();
 
@@ -187,7 +188,9 @@ namespace axionpro.persistance.Repositories
                     HasMultipleUser = dto.HasMultipleUser,
                     IsSoftDeleted = false,
                     AddedById = dto.Prop.EmployeeId,
-                    AddedDateTime = DateTime.UtcNow
+                    AddedDateTime = DateTime.UtcNow,
+                    
+
                 };
 
                 // ===============================

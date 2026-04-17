@@ -22,7 +22,7 @@ namespace axionpro.application.DTOS.AssetDTO.asset
         public string? Size { get; set; }
         public string? Weight { get; set; }
         public string? Color { get; set; }
-        public bool? IsRepairable { get; set; }
+        public bool IsRepairable { get; set; }
         public bool IsActive { get; set; }
         public bool HasMultipleUser { get; set; }
         public bool IsAssigned { get; set; }

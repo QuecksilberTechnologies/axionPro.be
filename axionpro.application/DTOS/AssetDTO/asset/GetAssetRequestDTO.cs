@@ -22,6 +22,7 @@ namespace axionpro.application.DTOS.AssetDTO.asset
         public bool? IsAssigned { get; set; } //optional for search by assignment status
         public long?  TypeId { get; set; }  //optional for search by type id
         public bool? IsActive { get; set; }     //optional for search by active status
+        public bool IsRepairable { get; set; } 
         public ExtraPropRequestDTO Prop = new ExtraPropRequestDTO();
 
     }

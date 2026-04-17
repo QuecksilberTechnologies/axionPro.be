@@ -23,6 +23,8 @@ namespace axionpro.application.DTOS.AssetDTO.asset
 
         public bool IsApproved { get; set; }
         public bool IsRecommended { get; set; }
+        public bool IsRepairable { get; set; } =false;
+
 
         public DateTime RequestedDate { get; set; }
     }

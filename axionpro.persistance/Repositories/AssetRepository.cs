@@ -390,6 +390,7 @@ namespace axionpro.persistance.Repositories
                         AssetStatusId = a.AssetStatusId,
                         StatusName = a.AssetStatus != null ? a.AssetStatus.StatusName : null,
                         ColorKey = a.AssetStatus != null ? a.AssetStatus.ColorKey : null,
+                        IsRepairable = a.IsRepairable,
 
                         Size = a.Size,
                         Weight = a.Weight,

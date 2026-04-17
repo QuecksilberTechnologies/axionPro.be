@@ -21,7 +21,7 @@ namespace axionpro.application.DTOS.AssetDTO.asset
         public string? Size { get; set; }
         public string? Weight { get; set; }
         public string? Color { get; set; }
-        public bool IsRepairable { get; set; }
+        public bool IsRepairable { get; set; } 
         public decimal Price { get; set; }
         public string? SerialNumber { get; set; }
         public string? Barcode { get; set; }
@@ -49,6 +49,8 @@ namespace axionpro.application.DTOS.AssetDTO.asset
         public int AssetStatusId { get; set; }
         public bool IsAssigned { get; set; }
         public bool IsActive { get; set; }
+    
+
         public IFormFile? AssetImageFile { get; set; }
         public ExtraPropRequestDTO? Prop { get; set; } = new ExtraPropRequestDTO();
 
