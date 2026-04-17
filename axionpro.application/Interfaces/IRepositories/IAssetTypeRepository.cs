@@ -1,11 +1,12 @@
 ﻿using axionpro.application.DTOS.AssetDTO.type;
-
+using axionpro.application.DTOS.Pagination;
+using axionpro.domain.Entity; 
+using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
-
+using System.Threading.Tasks; 
 namespace axionpro.application.Interfaces.IRepositories
 {
     public interface IAssetTypeRepository
@@ -14,7 +15,7 @@ namespace axionpro.application.Interfaces.IRepositories
       
 
         #region AsseType      
-        Task<List<GetTypeResponseDTO>> GetAllAsync(GetTypeRequestDTO? dto);
+        Task<PagedResponseDTO<GetTypeResponseDTO>> GetAllAsync(GetTypeRequestDTO? dto);
       
         Task<List<GetTypeResponseDTO>> AddAsync(AddTypeRequestDTO? dtO);
         Task<bool> UpdateAsync(UpdateTypeRequestDTO? dtO);

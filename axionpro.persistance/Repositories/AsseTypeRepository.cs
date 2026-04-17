@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using axionpro.domain.Entity;
+using axionpro.application.DTOS.Pagination;
 
 namespace axionpro.persistance.Repositories
 {
@@ -177,41 +178,79 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<List<GetTypeResponseDTO>> GetAllAsync(GetTypeRequestDTO? dto)
+        public async Task<PagedResponseDTO<GetTypeResponseDTO>> GetAllAsync(GetTypeRequestDTO? dto)
         {
             try
             {
-               
                 _logger.LogInformation("Fetching Asset Types with applied filters...");
 
-                // ✅ Include related AssetCategory
+                // ✅ 1️⃣ VALIDATION
+                if (dto == null)
+                {
+                    _logger.LogWarning("GetAllAsync called with null DTO.");
+                    return new PagedResponseDTO<GetTypeResponseDTO>();
+                }
+
+                if (dto.Prop?.TenantId <= 0)
+                {
+                    _logger.LogWarning("Invalid TenantId: {TenantId}", dto?.Prop?.TenantId);
+                    return new PagedResponseDTO<GetTypeResponseDTO>();
+                }
+
+                // ✅ 2️⃣ DEFAULT PAGINATION
+                int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
+                int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
+
+                // ✅ 3️⃣ BASE QUERY (No Include needed 🔥)
                 IQueryable<AssetType> query = _context.AssetTypes
-                    .Include(x => x.AssetCategory)
+                    .AsNoTracking()
                     .Where(x => x.IsSoftDeleted != true && x.TenantId == dto.Prop.TenantId);
 
-                // 🔹 Apply Filters
-                if (dto?.TypeId is > 0)
+                // 🔹 FILTERS
+                if (dto.TypeId.HasValue && dto.TypeId > 0)
                     query = query.Where(x => x.Id == dto.TypeId.Value);
-                else if (dto?.CategoryId is > 0)
+
+                if (dto.CategoryId.HasValue && dto.CategoryId > 0)
                     query = query.Where(x => x.AssetCategoryId == dto.CategoryId.Value);
 
-                if (dto?.IsActive.HasValue == true)
+                if (dto.IsActive.HasValue)
                     query = query.Where(x => x.IsActive == dto.IsActive.Value);
 
-                // 🔹 Sort by AddedDateTime DESC
-                query = query.OrderByDescending(x => x.AddedDateTime);
+                // ✅ 4️⃣ TOTAL COUNT
+                int totalCount = await query.CountAsync();
 
-                // 🔹 Project to DTO directly (better than mapping after ToList)
+                if (totalCount == 0)
+                {
+                    _logger.LogWarning(
+                        "No Asset Types found (TenantId: {TenantId})",
+                        dto.Prop.TenantId);
+
+                    return new PagedResponseDTO<GetTypeResponseDTO>(
+                        new List<GetTypeResponseDTO>(),
+                        0,
+                        pageNumber,
+                        pageSize
+                    );
+                }
+
+                // ✅ 5️⃣ SORTING
+                query = dto.SortOrder?.ToLower() == "asc"
+                    ? query.OrderBy(x => x.Id)
+                    : query.OrderByDescending(x => x.AddedDateTime);
+
+                // ✅ 6️⃣ PAGINATION + PROJECTION
                 var result = await query
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
                     .Select(x => new GetTypeResponseDTO
                     {
                         Id = x.Id,
                         TenantId = x.TenantId,
                         AssetCategoryId = x.AssetCategoryId,
-                        CategoryName = x.AssetCategory != null ? x.AssetCategory.CategoryName : null, // ✅ fixed
+                        CategoryName = x.AssetCategory != null ? x.AssetCategory.CategoryName : null,
                         TypeName = x.TypeName,
                         Description = x.Description,
-                        IsActive = (bool)x.IsActive,
+                        IsActive = x.IsActive ?? false,
                         AddedById = x.AddedById,
                         AddedDateTime = x.AddedDateTime,
                         UpdatedById = x.UpdatedById,
@@ -219,23 +258,32 @@ namespace axionpro.persistance.Repositories
                     })
                     .ToListAsync();
 
-                if (!result.Any())
-                {
-                    _logger.LogWarning("No Asset Types found for given filters (TenantId: {TenantId}, TypeId: {TypeId}, CategoryId: {CategoryId}).",
-                        dto?.Prop.TenantId, dto?.TypeId, dto?.CategoryId);
-                    return new List<GetTypeResponseDTO>();
-                }
+                // ✅ 7️⃣ RESPONSE
+                var response = new PagedResponseDTO<GetTypeResponseDTO>(
+                    result,
+                    totalCount,
+                    pageNumber,
+                    pageSize
+                );
 
-                _logger.LogInformation("Fetched {Count} Asset Types for TenantId: {TenantId}.", result.Count, dto?.Prop.TenantId);
-                return result;
+                _logger.LogInformation(
+                    "Fetched {Count} Asset Types (Page: {PageNumber}, Size: {PageSize}) for TenantId: {TenantId}",
+                    result.Count,
+                    pageNumber,
+                    pageSize,
+                    dto.Prop.TenantId);
+
+                return response;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while fetching Asset Types for TenantId: {TenantId}.", dto?.Prop.TenantId);
-                throw new Exception("An unexpected error occurred while fetching Asset Types.", ex);
+                _logger.LogError(ex,
+                    "Error occurred while fetching Asset Types for TenantId: {TenantId}",
+                    dto?.Prop?.TenantId);
+
+                throw;
             }
         }
-
         public async Task<bool> UpdateAsync(UpdateTypeRequestDTO? dto)
         {
            // await using var _context = await _contextFactory.CreateDbContextAsync();

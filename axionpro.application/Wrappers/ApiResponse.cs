@@ -197,5 +197,30 @@ namespace axionpro.application.Wrappers
                 IsPrimaryMarked = isPrimaryMarked
             };
         }
+
+        public static ApiResponse<T> SuccessPaginatedOnly(
+          T Data,
+          int PageNumber,
+          int PageSize,
+          int TotalRecords,
+          int TotalPages,
+          string Message = "",
+          bool? HasUploadedAll = null
+         )
+        {
+            return new ApiResponse<T>
+            {
+                IsSucceeded = true,
+                Message = Message,
+                Data = Data,
+                PageNumber = PageNumber,
+                PageSize = PageSize,
+                TotalRecords = TotalRecords,
+                TotalPages = TotalPages,
+                HasAllDocUploaded = HasUploadedAll
+                
+            };
+        }
+       
     }
 }

@@ -101,15 +101,15 @@ namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
                     request.DTO.Prop.TenantId);
 
                 // ✅ 🔥 YOUR CUSTOM RESPONSE
-                return ApiResponse<List<GetAssetResponseDTO>>.SuccessPaginatedPercentage(
+                return ApiResponse<List<GetAssetResponseDTO>>.SuccessPaginatedOnly(
                     Data: encryptedList,
                     PageNumber: pagedAssets.PageNumber,
                     PageSize: pagedAssets.PageSize,
                     TotalRecords: pagedAssets.TotalCount,
                     TotalPages: pagedAssets.TotalPages,
                     Message: "Assets fetched successfully.",
-                    HasUploadedAll: pagedAssets.HasUploadedAll,
-                    CompletionPercentage: pagedAssets.CompletionPercentage
+                    HasUploadedAll: pagedAssets.HasUploadedAll
+                     
                 );
             }
             catch (Exception ex)

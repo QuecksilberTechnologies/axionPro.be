@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 namespace axionpro.application.Features.AssetFeatures.Status.Handlers
 {
     public class GetAllAssetStatusCommand
-     : IRequest<ApiResponse<PagedResponseDTO<GetStatusResponseDTO>>>
+     : IRequest<ApiResponse<List<GetStatusResponseDTO>>>
     {
         public GetStatusRequestDTO DTO { get; set; }
 
@@ -21,7 +21,7 @@ namespace axionpro.application.Features.AssetFeatures.Status.Handlers
     }
 
     public class GetAllStatusCommandHandler
-        : IRequestHandler<GetAllAssetStatusCommand, ApiResponse<PagedResponseDTO<GetStatusResponseDTO>>>
+        : IRequestHandler<GetAllAssetStatusCommand, ApiResponse<List<GetStatusResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetAllStatusCommandHandler> _logger;
@@ -40,89 +40,68 @@ namespace axionpro.application.Features.AssetFeatures.Status.Handlers
             _permissionService = permissionService;
         }
 
-        public async Task<ApiResponse<PagedResponseDTO<GetStatusResponseDTO>>> Handle(
-            GetAllAssetStatusCommand request,
-            CancellationToken cancellationToken)
+        public async Task<ApiResponse<List<GetStatusResponseDTO>>> Handle(
+      GetAllAssetStatusCommand request,
+      CancellationToken cancellationToken)
         {
             try
             {
                 _logger.LogInformation("Fetching all Asset Statuses");
 
-                // ===============================
-                // 1️⃣ VALIDATION
-                // ===============================
+                // ✅ VALIDATION
                 var validation = await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
                     throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // ===============================
-                // 2️⃣ NULL CHECK
-                // ===============================
                 if (request?.DTO == null)
                     throw new ValidationErrorException(
                         "Invalid request.",
                         new List<string> { "Request DTO is required." });
 
                 request.DTO.Prop ??= new();
-
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
                 request.DTO.Prop.TenantId = validation.TenantId;
 
-                // ===============================
-                // 3️⃣ RBAC (OPTIONAL - UNCOMMENT IF NEEDED)
-                // ===============================
-                /*
-                var hasPermission = await _permissionService.HasAccessAsync(
-                    validation.RoleId,
-                    Modules.AssetStatus,
-                    Operations.View);
-
-                if (!hasPermission)
-                    throw new UnauthorizedAccessException("No permission.");
-                */
-
-                // ===============================
-                // 4️⃣ FETCH DATA (ALREADY PAGED)
-                // ===============================
-                var result = await _unitOfWork.AssetStatusRepository
+                // ✅ FETCH DATA
+                var pagedResult = await _unitOfWork.AssetStatusRepository
                     .GetAllAsync(request.DTO);
 
-                // ===============================
-                // 5️⃣ EMPTY HANDLING
-                // ===============================
-                if (result == null || result.Data.Count == 0)
+                // ✅ EMPTY CASE
+                if (pagedResult == null || pagedResult.Data == null || !pagedResult.Data.Any())
                 {
                     _logger.LogWarning(
                         "No Asset Status found for TenantId: {TenantId}",
                         request.DTO.Prop.TenantId);
 
-                    return ApiResponse<PagedResponseDTO<GetStatusResponseDTO>>
-                        .Success(new PagedResponseDTO<GetStatusResponseDTO>
-                        {
-                            Data = new List<GetStatusResponseDTO>(),
-                            TotalCount = 0,
-                            PageNumber = request.DTO.PageNumber,
-                            PageSize = request.DTO.PageSize
-                        }, "No Asset Status found.");
+                    return ApiResponse<List<GetStatusResponseDTO>>.SuccessPaginatedPercentage(
+                        Data: new List<GetStatusResponseDTO>(),
+                        PageNumber: request.DTO.PageNumber <= 0 ? 1 : request.DTO.PageNumber,
+                        PageSize: request.DTO.PageSize <= 0 ? 10 : request.DTO.PageSize,
+                        TotalRecords: 0,
+                        TotalPages: 0,
+                        Message: "No Asset Status found.",
+                        HasUploadedAll: null,
+                        CompletionPercentage: null
+                    );
                 }
 
                 _logger.LogInformation(
                     "Successfully retrieved {Count} records for TenantId: {TenantId}",
-                    result.Data.Count,
+                    pagedResult.Data.Count,
                     request.DTO.Prop.TenantId);
 
-                // ===============================
-                // 6️⃣ SUCCESS
-                // ===============================
-                return ApiResponse<PagedResponseDTO<GetStatusResponseDTO>>                  
-                     .Success(new PagedResponseDTO<GetStatusResponseDTO>
-                     {
-                         Data = new List<GetStatusResponseDTO>(),
-                         TotalCount = result.TotalCount,
-                         PageNumber = request.DTO.PageNumber,
-                         PageSize = request.DTO.PageSize
-                     }, "No Asset Status found.");
+                // ✅ FINAL RESPONSE (IMPORTANT 🔥)
+                return ApiResponse<List<GetStatusResponseDTO>>.SuccessPaginatedPercentage(
+                    Data: pagedResult.Data,
+                    PageNumber: pagedResult.PageNumber,
+                    PageSize: pagedResult.PageSize,
+                    TotalRecords: pagedResult.TotalCount,
+                    TotalPages: pagedResult.TotalPages,
+                    Message: "Asset Status fetched successfully.",
+                    HasUploadedAll: pagedResult.HasUploadedAll,
+                    CompletionPercentage: pagedResult.CompletionPercentage
+                );
             }
             catch (Exception ex)
             {
@@ -135,4 +114,5 @@ namespace axionpro.application.Features.AssetFeatures.Status.Handlers
             }
         }
     }
+
 }

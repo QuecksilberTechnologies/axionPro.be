@@ -30,7 +30,7 @@ namespace axionpro.application.DTOS.AssetDTO.asset
         public string? SerialNumber { get; set; }
         public string? Barcode { get; set; }
         public string? QRCode { get; set; }
-        public string? ModelNumber { get; set; }       
+       // public string? ModelNumber { get; set; }       
         public string? AssetImagePath { get; set; } 
         public int? AssetImageType { get; set; }             
         public DateTime? PurchaseDate { get; set; }

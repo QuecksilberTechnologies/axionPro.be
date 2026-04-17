@@ -104,7 +104,7 @@ namespace axionpro.persistance.Repositories
                         ColorKey = a.AssetStatus.ColorKey,
 
                         SerialNumber = a.SerialNumber,
-                        ModelNumber = a.ModelNo,
+                        ModelNo = a.ModelNo,
 
                         Company = a.Company,
                         Color = a.Color,
@@ -162,6 +162,7 @@ namespace axionpro.persistance.Repositories
                 SerialNumber = asset.SerialNumber,
                 Barcode = asset.Barcode,
                 QRCode = asset.Qrcode,
+               
                 PurchaseDate = asset.PurchaseDate,
                 WarrantyExpiryDate = asset.WarrantyExpiryDate,
                 AssetStatusId = asset.AssetStatusId,
@@ -384,7 +385,7 @@ namespace axionpro.persistance.Repositories
                             : false),
 
                         SerialNumber = a.SerialNumber,
-                        ModelNumber = a.ModelNo,
+                        ModelNo = a.ModelNo,
 
                         AssetStatusId = a.AssetStatusId,
                         StatusName = a.AssetStatus != null ? a.AssetStatus.StatusName : null,

@@ -127,50 +127,103 @@ namespace axionpro.persistance.Repositories
         /// Retrieves all AssetStatus records for a tenant with optional isActive filter.
         /// </summary>
         ///   public 
-        public async Task<PagedResponseDTO<GetStatusResponseDTO>> GetAllAsync(GetStatusRequestDTO? assetStatus)
+        public async Task<PagedResponseDTO<GetStatusResponseDTO>> GetAllAsync(GetStatusRequestDTO? dto)
         {
-          
             try
             {
+                // ✅ 1️⃣ VALIDATION
+                if (dto == null)
+                {
+                    _logger.LogWarning("GetAllAsync called with null DTO.");
+                    return new PagedResponseDTO<GetStatusResponseDTO>();
+                }
+
+                if (dto.Prop?.TenantId <= 0)
+                {
+                    _logger.LogWarning("Invalid TenantId: {TenantId}", dto?.Prop?.TenantId);
+                    return new PagedResponseDTO<GetStatusResponseDTO>();
+                }
+
+                // ✅ 2️⃣ DEFAULT PAGINATION
+                int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
+                int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
+
+                // ✅ 3️⃣ BASE QUERY
                 IQueryable<AssetStatus> query = _context.AssetStatuses
+                    .AsNoTracking()
                     .Where(a => a.IsSoftDeleted != true &&
-                                a.TenantId == assetStatus.Prop.TenantId);
+                                a.TenantId == dto.Prop.TenantId);
 
-                // Optional: filter by IsActive
-                if (assetStatus.IsActive != null)
-                    query = query.Where(a => a.IsActive == assetStatus.IsActive);
+                // 🔹 FILTER: IsActive
+                if (dto.IsActive)
+                    query = query.Where(a => a.IsActive == dto.IsActive);
 
-                // Filter by Id if provided, else fetch all
-                if (assetStatus.Id>0)
-                    query = query.Where(a => a.Id == assetStatus.Id);
+                // 🔹 FILTER: Id
+                if (dto.Id > 0)
+                    query = query.Where(a => a.Id == dto.Id);
 
-                var entities = await query
-                    .OrderByDescending(a => a.AddedDateTime)
+                // ✅ 4️⃣ TOTAL COUNT
+                int totalCount = await query.CountAsync();
+
+                if (totalCount == 0)
+                {
+                    _logger.LogWarning(
+                        "No AssetStatus records found for TenantId: {TenantId}",
+                        dto.Prop.TenantId);
+
+                    return new PagedResponseDTO<GetStatusResponseDTO>(
+                        new List<GetStatusResponseDTO>(),
+                        0,
+                        pageNumber,
+                        pageSize
+                    );
+                }
+
+                // ✅ 5️⃣ SORTING
+                query = query.OrderByDescending(a => a.AddedDateTime);
+
+                // ✅ 6️⃣ PAGINATION + PROJECTION
+                var data = await query
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(a => new GetStatusResponseDTO
+                    {
+                        Id = a.Id,
+                        StatusName = a.StatusName,
+                        Description = a.Description,
+                        IsActive = a.IsActive ?? false,
+                         
+                    })
                     .ToListAsync();
 
-                _logger.LogInformation(
-                    "Fetched {Count} AssetStatus records for TenantId: {TenantId}",
-                    entities.Count, assetStatus.Prop.TenantId);
+                // ✅ 7️⃣ RESPONSE
+                var response = new PagedResponseDTO<GetStatusResponseDTO>(
+                    data,
+                    totalCount,
+                    pageNumber,
+                    pageSize
+                );
 
-                // Map entities to DTOs
-                return _mapper.Map<PagedResponseDTO<GetStatusResponseDTO>>(entities);
+                _logger.LogInformation(
+                    "Fetched {Count} AssetStatus records (Page: {PageNumber}, Size: {PageSize}) for TenantId: {TenantId}",
+                    data.Count,
+                    pageNumber,
+                    pageSize,
+                    dto.Prop.TenantId);
+
+                return response;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex,
                     "Error occurred while fetching AssetStatus records for TenantId: {TenantId}",
-                    assetStatus.Prop.TenantId);
-                return new PagedResponseDTO<GetStatusResponseDTO>
-                {
-                    Data = new List<GetStatusResponseDTO>(),
-                    TotalCount = 0,
-                    PageNumber =0,
-                    PageSize = 0
-                };
+                    dto?.Prop?.TenantId);
+
+                return new PagedResponseDTO<GetStatusResponseDTO>();
             }
         }
 
-      
+
         public async Task<AssetStatus?> GetByIdAsync(int? id)
         {
             try

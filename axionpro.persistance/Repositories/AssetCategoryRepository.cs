@@ -52,60 +52,99 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-             //   await using var _context = await _contextFactory.CreateDbContextAsync();
-
-                // ✅ 1️⃣ Basic Validation Checks
+                // ✅ 1️⃣ VALIDATION
                 if (dto == null)
                 {
                     _logger.LogWarning("GetAllAsync called with null DTO.");
                     return new PagedResponseDTO<GetCategoryResponseDTO>();
                 }
 
-                if (dto.Prop.TenantId <= 0)
+                if (dto.Prop?.TenantId <= 0)
                 {
-                    _logger.LogWarning("Invalid TenantId provided: {TenantId}", dto.Prop.TenantId);
+                    _logger.LogWarning("Invalid TenantId provided: {TenantId}", dto?.Prop?.TenantId);
                     return new PagedResponseDTO<GetCategoryResponseDTO>();
                 }
 
-                // ✅ 2️⃣ Build Query with Filters
+                // ✅ 2️⃣ DEFAULT PAGINATION (IMPORTANT 🔥)
+                int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
+                int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
+
+                // ✅ 3️⃣ BASE QUERY
                 IQueryable<AssetCategory> query = _context.AssetCategories
+                    .AsNoTracking()
                     .Where(x => x.TenantId == dto.Prop.TenantId && x.IsSoftDeleted != true);
 
-                // 🔹 Filter by Id (if provided)
-                if (dto.Id >  0)
+                // 🔹 FILTER: Id
+                if (dto.Id > 0)
                 {
                     query = query.Where(x => x.Id == dto.Id);
                 }
 
-                // 🔹 Filter by Active status (true/false/null)
+                // 🔹 FILTER: IsActive
                 if (dto.IsActive.HasValue)
                 {
                     query = query.Where(x => x.IsActive == dto.IsActive.Value);
                 }
 
-                // ✅ 3️⃣ Execute Query
-                var entities = await query.OrderByDescending(x => x.Id).ToListAsync();
+                // ✅ 4️⃣ TOTAL COUNT (before paging)
+                int totalCount = await query.CountAsync();
 
-                if (!entities.Any())
+                if (totalCount == 0)
                 {
                     _logger.LogWarning("No AssetCategory records found for TenantId: {TenantId}", dto.Prop.TenantId);
-                    return new PagedResponseDTO<GetCategoryResponseDTO>();
+
+                    return new PagedResponseDTO<GetCategoryResponseDTO>(
+                        new List<GetCategoryResponseDTO>(),
+                        0,
+                        pageNumber,
+                        pageSize
+                    );
                 }
 
-                // ✅ 4️⃣ Map and Return
-                var result = _mapper.Map<PagedResponseDTO<GetCategoryResponseDTO>>(entities);
+                // ✅ 5️⃣ SORTING (Dynamic)
+                query = dto.SortOrder?.ToLower() == "asc"
+                    ? query.OrderBy(x => x.Id)
+                    : query.OrderByDescending(x => x.Id);
 
-                _logger.LogInformation("Fetched {Count} AssetCategory records for TenantId: {TenantId}", result.Data.Count, dto.Prop.TenantId);
-                return result;
+                // ✅ 6️⃣ PAGINATION
+                var pagedData = await query
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(x => new GetCategoryResponseDTO
+                    {
+                        Id = x.Id,
+                        CategoryName = x.CategoryName,
+                        Remark = x.Remark,
+                        IsActive = x.IsActive
+                    })
+                    .ToListAsync();
+
+                // ✅ 7️⃣ RESPONSE BUILD
+                var response = new PagedResponseDTO<GetCategoryResponseDTO>(
+                    pagedData,
+                    totalCount,
+                    pageNumber,
+                    pageSize
+                );
+
+                _logger.LogInformation(
+                    "Fetched {Count} AssetCategory records (Page: {PageNumber}, Size: {PageSize}) for TenantId: {TenantId}",
+                    pagedData.Count,
+                    pageNumber,
+                    pageSize,
+                    dto.Prop.TenantId);
+
+                return response;
             }
             catch (Exception ex)
             {
-                // ✅ 5️⃣ Exception Handling
-                _logger.LogError(ex, "Error occurred while fetching AssetCategory records for TenantId: {TenantId}", dto?.Prop.TenantId);
+                _logger.LogError(ex,
+                    "Error occurred while fetching AssetCategory records for TenantId: {TenantId}",
+                    dto?.Prop?.TenantId);
+
                 return new PagedResponseDTO<GetCategoryResponseDTO>();
             }
         }
-
         /// <summary>
         /// Adds a new Asset Category record for a given tenant.
         /// Includes validation for null input, duplicate category check, and soft delete flag.
@@ -256,7 +295,7 @@ namespace axionpro.persistance.Repositories
                 var categories = await _context.AssetCategories
                     .Where(ac => ac.TenantId == tenantId
                               && ac.IsActive == isActive
-                              && (ac.IsSoftDeleted == ConstantValues.IsByDefaultFalse || ac.IsSoftDeleted == null))
+                              && (ac.IsSoftDeleted !=true))
                     .OrderByDescending(ac => ac.Id) // Latest sabse pehle
                     .ToListAsync();
 
