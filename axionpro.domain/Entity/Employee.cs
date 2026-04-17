@@ -84,7 +84,7 @@ public partial class Employee
     public string? EmergencyContactPerson { get; set; }
 
     public virtual ICollection<AssetHistory> AssetHistoryEmployee { get; set; } = new List<AssetHistory>();
-
+    public virtual ICollection<Ticket> TicketApprovedByUser { get; set; } = new List<Ticket>();
     public virtual ICollection<AssetHistory> AssetHistoryScrapApprovedByNavigation { get; set; } = new List<AssetHistory>();
 
     public virtual ICollection<AttendanceHistory> AttendanceHistory { get; set; } = new List<AttendanceHistory>();

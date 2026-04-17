@@ -2825,50 +2825,63 @@ namespace axionpro.persistance.Data.Context
                 .HasConstraintName("FK_ThreadMessage_Thread");
         });
 
-        modelBuilder.Entity<Ticket>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("Ticket_pkey");
+            modelBuilder.Entity<Ticket>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("Ticket_pkey");
 
-            entity.ToTable("Ticket", "axionpro");
+                entity.ToTable("Ticket", "axionpro");
 
-            entity.Property(e => e.Id).HasDefaultValueSql("nextval('\"Ticket_Id_seq\"'::regclass)");
-            entity.Property(e => e.Description).HasMaxLength(500);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
-            entity.Property(e => e.TicketNumber).HasMaxLength(50);
+                entity.Property(e => e.Description).HasMaxLength(500);
+                entity.Property(e => e.RejectedReason).HasMaxLength(500);
+                entity.Property(e => e.TicketNumber).HasMaxLength(50);
+   
 
-            entity.HasOne(d => d.AssignedToUser).WithMany(p => p.TicketAssignedToUser)
-                .HasForeignKey(d => d.AssignedToUserId)
-                .OnDelete(DeleteBehavior.SetNull)
-                .HasConstraintName("FK_Ticket_AssignedUser");
+                entity.HasOne(d => d.ApprovedByUser).WithMany(p => p.TicketApprovedByUser)
+                    .HasForeignKey(d => d.ApprovedByUserId)
+                    .HasConstraintName("FK_Ticket_ApprovedBy");
 
-            entity.HasOne(d => d.RecommendedByUser).WithMany(p => p.TicketRecommendedByUser)
-                .HasForeignKey(d => d.RecommendedByUserId)
-                .OnDelete(DeleteBehavior.SetNull)
-                .HasConstraintName("FK_Ticket_RecommendedBy");
+                entity.HasOne(d => d.AssignedToRole).WithMany(p => p.Ticket)
+                    .HasForeignKey(d => d.AssignedToRoleId)
+                    .HasConstraintName("FK_Ticket_AssignedRole");
 
-            entity.HasOne(d => d.RequestedByUser).WithMany(p => p.TicketRequestedByUser)
-                .HasForeignKey(d => d.RequestedByUserId)
-                .HasConstraintName("FK_Ticket_RequestedBy");
+                entity.HasOne(d => d.AssignedToUser).WithMany(p => p.TicketAssignedToUser)
+                    .HasForeignKey(d => d.AssignedToUserId)
+                    .HasConstraintName("FK_Ticket_AssignedUser");
 
-            entity.HasOne(d => d.RequestedForUser).WithMany(p => p.TicketRequestedForUser)
-                .HasForeignKey(d => d.RequestedForUserId)
-                .HasConstraintName("FK_Ticket_RequestedFor");
+                entity.HasOne(d => d.RecommendedByUser).WithMany(p => p.TicketRecommendedByUser)
+                    .HasForeignKey(d => d.RecommendedByUserId)
+                    .HasConstraintName("FK_Ticket_RecommendedBy");
 
-            entity.HasOne(d => d.TicketClassification).WithMany(p => p.Ticket)
-                .HasForeignKey(d => d.TicketClassificationId)
-                .HasConstraintName("FK_Ticket_Classification");
+                entity.HasOne(d => d.RequestedByUser).WithMany(p => p.TicketRequestedByUser)
+                    .HasForeignKey(d => d.RequestedByUserId)
+                    .HasConstraintName("FK_Ticket_RequestedBy");
 
-            entity.HasOne(d => d.TicketHeader).WithMany(p => p.Ticket)
-                .HasForeignKey(d => d.TicketHeaderId)
-                .HasConstraintName("FK_Ticket_Header");
+                entity.HasOne(d => d.RequestedForUser).WithMany(p => p.TicketRequestedForUser)
+                    .HasForeignKey(d => d.RequestedForUserId)
+                    .HasConstraintName("FK_Ticket_RequestedFor");
 
-            entity.HasOne(d => d.TicketType).WithMany(p => p.Ticket)
-                .HasForeignKey(d => d.TicketTypeId)
-                .HasConstraintName("FK_Ticket_Type");
-        });
+                entity.HasOne(d => d.Tenant).WithMany(p => p.Ticket)
+                    .HasForeignKey(d => d.TenantId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Ticket_Tenant");
 
-        modelBuilder.Entity<TicketAttachment>(entity =>
+                entity.HasOne(d => d.TicketClassification).WithMany(p => p.Ticket)
+                    .HasForeignKey(d => d.TicketClassificationId)
+                    .HasConstraintName("FK_Ticket_Classification");
+
+                entity.HasOne(d => d.TicketHeader).WithMany(p => p.Ticket)
+                    .HasForeignKey(d => d.TicketHeaderId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Ticket_Header");
+
+                entity.HasOne(d => d.TicketType).WithMany(p => p.Ticket)
+                    .HasForeignKey(d => d.TicketTypeId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Ticket_TicketType");
+ 
+            });
+
+            modelBuilder.Entity<TicketAttachment>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("TicketAttachment_pkey");
 
@@ -2882,9 +2895,10 @@ namespace axionpro.persistance.Data.Context
             entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
             entity.Property(e => e.UploadedDateTime).HasDefaultValueSql("now()");
 
-            entity.HasOne(d => d.Ticket).WithMany(p => p.TicketAttachment)
-                .HasForeignKey(d => d.TicketId)
-                .HasConstraintName("FK_TicketAttachment_Ticket");
+            entity.HasOne(d => d.UploadedByUser).WithMany(p => p.TicketAttachment)
+              .HasForeignKey(d => d.UploadedByUserId)
+              .OnDelete(DeleteBehavior.SetNull)
+              .HasConstraintName("FK_TicketAttachment_User");
 
             entity.HasOne(d => d.UploadedByUser).WithMany(p => p.TicketAttachment)
                 .HasForeignKey(d => d.UploadedByUserId)
@@ -2939,6 +2953,7 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.IsActiveForAllUsers).HasDefaultValue(true);
                 entity.Property(e => e.IsApprovalRequired).HasDefaultValue(false);
+                entity.Property(e => e.IsAttachmentRequired).HasDefaultValue(false);
                 entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
                 entity.Property(e => e.TicketTypeName).HasMaxLength(100);
 

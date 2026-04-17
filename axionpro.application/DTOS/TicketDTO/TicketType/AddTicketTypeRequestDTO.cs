@@ -21,7 +21,7 @@ namespace axionpro.application.DTOS.TicketDTO.TicketType
         public int ResponsibleRoleId { get; set; }
 
         // 🔥 Approval Engine
-        public bool IsApprovalRequired { get; set; }
+        public bool IsApprovalRequired { get; set; } = false;
 
         public int? ApprovalRoleId { get; set; }
 
@@ -30,10 +30,13 @@ namespace axionpro.application.DTOS.TicketDTO.TicketType
         // 🔥 SLA
         public int? SLAHours { get; set; }
 
+        // 🔥 Attachment Rule
+        public bool IsAttachmentRequired { get; set; }
+
         // 🔹 Extra Config
         public bool IsActiveForAllUsers { get; set; } = true;
 
-        // 🔹 Common Request (Tumhare pattern ke hisaab se)
-        public ExtraPropRequestDTO? Prop { get; set; } = new ExtraPropRequestDTO();
+        // 🔹 Common Request
+        public ExtraPropRequestDTO Prop { get; set; } = null!;
     }
 }

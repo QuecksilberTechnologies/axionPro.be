@@ -37,8 +37,9 @@ public partial class Role
 
     public virtual ICollection<RoleModuleAndPermission> RoleModuleAndPermission { get; set; } = new List<RoleModuleAndPermission>();
 
- 
- 
+
+    public virtual ICollection<Ticket> Ticket { get; set; } = new List<Ticket>();
+
 
     public virtual ICollection<UserRole> UserRole { get; set; } = new List<UserRole>();
 }

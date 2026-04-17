@@ -24,6 +24,7 @@ namespace axionpro.application.DTOS.TicketDTO.TicketType
         public bool IsApprovalRequired { get; set; }
 
         public int? ApprovalRoleId { get; set; }
+        public bool IsAttachmentRequired { get; set; }
 
         public bool AutoApproveIfSameRole { get; set; }
 

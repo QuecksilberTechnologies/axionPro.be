@@ -76,6 +76,7 @@ public partial class Tenant
     public virtual ICollection<RequestType> RequestType { get; set; } = new List<RequestType>();
 
     public virtual ICollection<TenantEmailConfig> TenantEmailConfig { get; set; } = new List<TenantEmailConfig>();
+    public virtual ICollection<Ticket> Ticket { get; set; } = new List<Ticket>();
 
     public virtual ICollection<TenantEnabledModule> TenantEnabledModule { get; set; } = new List<TenantEnabledModule>();
 

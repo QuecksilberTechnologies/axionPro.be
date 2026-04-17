@@ -80,6 +80,7 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
 
                 if (dto.IsApprovalRequired && dto.ApprovalRoleId == null)
                     throw new ValidationErrorException("ApprovalRoleId is required.");
+ 
 
                 if (dto.SLAHours != null && dto.SLAHours <= 0)
                     throw new ValidationErrorException("SLAHours must be greater than 0.");
@@ -121,6 +122,20 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
 
                     if (approvalRole == null)
                         throw new ValidationErrorException("Invalid ApprovalRoleId.");
+                }
+
+                // 🔥 Is Attachment requirement check
+                if (dto.IsAttachmentRequired)
+                {
+                    var attachmentRequest  = new GetSingleRoleRequestDTO
+                    {
+                        Id = dto.IsAttachmentRequired ? 1 : 0
+                    };
+
+                    var attachmentRequire = await _unitOfWork.RoleRepository
+                        .GetByIdAsync1(attachmentRequest);
+                       if (attachmentRequire == null)
+                        throw new ValidationErrorException("Is Attachment required.");
                 }
 
                 // ===============================

@@ -48,6 +48,7 @@ public partial class TicketType
     public int? SLAHours { get; set; }
 
     public bool IsActiveForAllUsers { get; set; } = true;
+    public bool IsAttachmentRequired { get; set; } = false;
 
     // 🔗 Navigation
     public virtual Role? ApprovalRole { get; set; }
