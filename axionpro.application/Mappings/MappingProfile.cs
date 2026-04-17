@@ -40,6 +40,8 @@ using axionpro.application.DTOS.Module.CommonModule;
 using axionpro.application.DTOS.Module.ParentModule;
 using axionpro.application.DTOS.Module.SubModule;
 using axionpro.application.DTOS.PolicyTypeDocument;
+using axionpro.application.DTOS.Role;
+
 //using axionpro.application.DTOS.Module.ParentModule;
 using axionpro.application.DTOS.TicketDTO.Classification;
 using axionpro.application.DTOS.TicketDTO.Header;
@@ -82,7 +84,32 @@ namespace axionpro.application.Mappings
 
             // CreateMap<Asset, GetAllAssetWithDependentEntityDTO>();
 
-            CreateMap<TicketType, GetTicketTypeResponseDTO>().ReverseMap();
+            CreateMap<AddTicketTypeRequestDTO, TicketType>().ReverseMap();
+
+            CreateMap<TicketType, GetTicketTypeResponseDTO>()
+
+                // 🔹 Responsible Role
+                .ForMember(dest => dest.ResponsibleRoleName,
+                    opt => opt.MapFrom(src =>
+                        src.ResponsibleRole != null
+                            ? src.ResponsibleRole.RoleName
+                            : null))
+
+                // 🔹 Approval Role
+                .ForMember(dest => dest.ApprovalRoleName,
+                    opt => opt.MapFrom(src =>
+                        src.ApprovalRole != null
+                            ? src.ApprovalRole.RoleName
+                            : null))
+
+                // 🔹 Header
+                .ForMember(dest => dest.TicketHeaderName,
+                    opt => opt.MapFrom(src =>
+                        src.TicketHeader != null
+                            ? src.TicketHeader.HeaderName
+                            : null));
+
+
             CreateMap<GetClassificationRequestDTO, TicketClassification>().ReverseMap();
             CreateMap<GetClassificationResponseDTO, TicketClassification>().ReverseMap();
             CreateMap<AddClassificationRequestDTO, TicketClassification>().ReverseMap();
@@ -290,6 +317,8 @@ namespace axionpro.application.Mappings
             CreateMap<GetLeaveRuleResponseDTO, LeaveRule>().ReverseMap();
             CreateMap<CreateLeaveRuleDTORequest, LeaveRule>().ReverseMap();
             CreateMap<UpdateLeaveRuleRequestDTO, LeaveRule>().ReverseMap();
+            CreateMap<Role, GetSingleRoleResponseDTO>().ReverseMap();
+            CreateMap<Role, GetTicketTypeResponseDTO>().ReverseMap();
 
 
             CreateMap<CreateRoleRequestDTO, Role>()

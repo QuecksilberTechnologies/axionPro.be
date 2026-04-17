@@ -94,7 +94,7 @@ namespace axionpro.persistance.Repositories
         /// <summary>
         /// Get header by Id
         /// </summary>
-        public async Task<List<GetHeaderResponseDTO>> GetByIdAsync(GetHeaderRequestDTO dto)
+        public async Task<List<GetHeaderResponseDTO>> GetAllHeaderAsync(GetHeaderRequestDTO dto)
         {
             var result = new List<GetHeaderResponseDTO>();
 
@@ -133,7 +133,32 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-
+        public async Task<GetHeaderResponseDTO> GetByIdAsync(long headerId)
+        {
+            try
+            {
+                if (headerId <= 0)
+                {
+                    _logger.LogWarning("⚠️ Invalid Id for GetByIdAsync.");
+                    return new GetHeaderResponseDTO();
+                }
+                var entity = await _context.TicketHeaders
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.Id == headerId && x.IsActive && (x.IsSoftDeleted != true));
+                if (entity == null)
+                {
+                    _logger.LogWarning("⚠️ Ticket header not found for Id: {Id}", headerId);
+                    return new GetHeaderResponseDTO();
+                }
+                var response = _mapper.Map<GetHeaderResponseDTO>(entity);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error while fetching ticket header by Id: {Id}", headerId);
+                return new GetHeaderResponseDTO();
+            }
+        }
 
         public async Task<List<GetHeaderResponseDTO>> GetByClassificationIdAsync(GetTicketHeaderByClassifyIdRequestDTO dto)
         {

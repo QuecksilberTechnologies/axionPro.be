@@ -23,7 +23,8 @@ namespace axionpro.application.Interfaces.IRepositories
         /// <summary>
         /// Get header by Id.
         /// </summary>
-        Task<List<GetHeaderResponseDTO>> GetByIdAsync(GetHeaderRequestDTO dto);
+        Task<List<GetHeaderResponseDTO>> GetAllHeaderAsync(GetHeaderRequestDTO dto);
+        Task<GetHeaderResponseDTO> GetByIdAsync(long headerId);
         Task<List<GetHeaderResponseDTO>> GetByClassificationIdAsync(GetTicketHeaderByClassifyIdRequestDTO dto);
         /// <summary>
         /// Get all active header.

@@ -38,16 +38,16 @@ namespace axionpro.api.Controllers.Ticket
         /// </summary>
         /// <param name="dto">Ticket type data to be created.</param>
         /// <returns>Returns the created Ticket Type list with success message.</returns>
-        //[HttpPost("create")] 
-        //public async Task<IActionResult> CreateTicketType([FromBody] AddTicketTypeRequestDTO dto)
-        //{
-            
-        //        _logger.LogInformation("🎯 Received request to create TicketType: {Data}", JsonConvert.SerializeObject(dto));
-        //        var result = await _mediator.Send(new CreateTicketTypeCommand(dto));
-        //        return Ok(result);
-        //}
-          
-       
+        [HttpPost("create")]
+        public async Task<IActionResult> CreateTicketType([FromBody] AddTicketTypeRequestDTO dto)
+        {
+
+            _logger.LogInformation("🎯 Received request to create TicketType: {Data}", JsonConvert.SerializeObject(dto));
+            var result = await _mediator.Send(new CreateTicketTypeCommand(dto));
+            return Ok(result);
+        }
+
+
 
         // ----------------------------------------------------------------------------------------------------
         // 2️⃣ READ - Get all Ticket Types
@@ -57,12 +57,12 @@ namespace axionpro.api.Controllers.Ticket
         /// Retrieves all Ticket Types available in the system.
         /// </summary>
         /// <returns>Returns a list of all Ticket Types.</returns>
-       
-       
+
+
         //[HttpGet("get-all")]      
         //public async Task<IActionResult> GetAllTicketTypes([FromQuery] GetTicketTypeRequestDTO dto)
         //{
-           
+
         //        _logger.LogInformation("📦 Fetching all Ticket Types...");
         //        var result = await _mediator.Send(new GetAllTicketTypeQuery(dto));
         //        return Ok(result);           

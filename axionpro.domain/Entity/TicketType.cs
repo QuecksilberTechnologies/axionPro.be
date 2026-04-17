@@ -3,25 +3,29 @@ using System.Collections.Generic;
 
 namespace axionpro.domain.Entity;
 
+ 
 public partial class TicketType
 {
     public long Id { get; set; }
 
     public string TicketTypeName { get; set; } = null!;
 
-    public long? TicketHeaderId { get; set; }
+    // 🔥 REQUIRED (Fix)
+    public long TicketHeaderId { get; set; }
 
-    public long? TenantId { get; set; }
+    // 🔥 REQUIRED (Fix)
+    public long TenantId { get; set; }
 
-    public int? ResponsibleRoleId { get; set; }
+    // 🔥 REQUIRED (Fix)
+    public int ResponsibleRoleId { get; set; }
 
     public string? Description { get; set; }
 
-    public bool IsActive { get; set; }
+    public bool IsActive { get; set; } = true;
 
-    public bool IsSoftDeleted { get; set; }
+    public bool IsSoftDeleted { get; set; } = false;
 
-    public long? AddedById { get; set; }
+    public long AddedById { get; set; }
 
     public DateTime AddedDateTime { get; set; }
 
@@ -33,13 +37,28 @@ public partial class TicketType
 
     public DateTime? SoftDeletedTime { get; set; }
 
+    // 🔥 Approval Engine
+    public bool IsApprovalRequired { get; set; } = false;
+
+    public int? ApprovalRoleId { get; set; }
+
+    public bool AutoApproveIfSameRole { get; set; } = false;
+
+    // 🔥 SLA (flexible)
+    public int? SLAHours { get; set; }
+
+    public bool IsActiveForAllUsers { get; set; } = true;
+
+    // 🔗 Navigation
+    public virtual Role? ApprovalRole { get; set; }
+
+    public virtual Role ResponsibleRole { get; set; } = null!;
+
+    public virtual Tenant Tenant { get; set; } = null!;
+
+    public virtual TicketHeader TicketHeader { get; set; } = null!;
+
     public virtual ICollection<AssetTicketTypeDetail> AssetTicketTypeDetail { get; set; } = new List<AssetTicketTypeDetail>();
 
-    public virtual Role? ResponsibleRole { get; set; }
-
-    public virtual Tenant? Tenant { get; set; }
-
     public virtual ICollection<Ticket> Ticket { get; set; } = new List<Ticket>();
-
-    public virtual TicketHeader? TicketHeader { get; set; }
 }

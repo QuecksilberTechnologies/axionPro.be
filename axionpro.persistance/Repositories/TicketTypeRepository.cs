@@ -157,27 +157,16 @@ namespace axionpro.persistance.Repositories
         #endregion
 
         #region Add Method
-        public async Task<List<GetTicketTypeResponseDTO>> AddAsync(AddTicketTypeRequestDTO dto)
+        public async Task<List<GetTicketTypeResponseDTO>> AddAsync(TicketType entity)
         {
             try
-            {
-                var entity = new TicketType
-                {
-                    TicketTypeName = dto.TicketTypeName,
-                    ResponsibleRoleId= dto.ResponsibleRoleId,
-                    Description = dto.Description,
-                    TenantId = dto.TenantId,
-                    IsActive = true,
-                    TicketHeaderId = dto.TicketHeaderId,
-                    AddedDateTime = DateTime.UtcNow,
-                    AddedById = dto.EmployeeId,
-                };
+            {            
 
                 await _context.TicketTypes.AddAsync(entity);
                 await _context.SaveChangesAsync();
 
                 var ticketTypes = await _context.TicketTypes
-                    .Where(t => t.IsActive && (t.IsSoftDeleted == false || t.IsSoftDeleted == null))
+                    .Where(t => t.IsActive && (t.IsSoftDeleted != true))
                     .ToListAsync();
 
                 return _mapper.Map<List<GetTicketTypeResponseDTO>>(ticketTypes);

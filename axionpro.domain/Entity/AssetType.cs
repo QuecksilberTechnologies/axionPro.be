@@ -37,3 +37,5 @@ public partial class AssetType
 
     public virtual ICollection<AssetTicketTypeDetail> AssetTicketTypeDetail { get; set; } = new List<AssetTicketTypeDetail>();
 }
+
+ 

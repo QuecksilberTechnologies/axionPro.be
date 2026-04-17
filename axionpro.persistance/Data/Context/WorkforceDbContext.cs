@@ -519,25 +519,26 @@ namespace axionpro.persistance.Data.Context
                 .HasConstraintName("FK_TckType_AstTypeDetail_ID");
         });
 
-        modelBuilder.Entity<AssetType>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__AssetTyp__3214EC077375A9AA");
 
-            entity.ToTable("AssetType", "axionpro");
+            modelBuilder.Entity<AssetType>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("PK__AssetTyp__3214EC077375A9AA");
 
-            entity.HasIndex(e => e.TypeName, "UQ__AssetTyp__D4E7DFA8692FD5DF").IsUnique();
+                entity.ToTable("AssetType", "axionpro");
 
-            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.Description).HasMaxLength(255);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.TypeName).HasMaxLength(100);
+                entity.HasIndex(e => e.TypeName, "UQ__AssetTyp__D4E7DFA8692FD5DF").IsUnique();
 
-            entity.HasOne(d => d.AssetCategory).WithMany(p => p.AssetType)
-                .HasForeignKey(d => d.AssetCategoryId)
-                .HasConstraintName("FK_AssetType_AssetCategory");
-        });
+                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.Description).HasMaxLength(255);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.TypeName).HasMaxLength(100);
 
-        modelBuilder.Entity<AssignmentStatus>(entity =>
+                entity.HasOne(d => d.AssetCategory).WithMany(p => p.AssetType)
+                    .HasForeignKey(d => d.AssetCategoryId)
+                    .HasConstraintName("FK_AssetType_AssetCategory");
+            });
+
+            modelBuilder.Entity<AssignmentStatus>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Assignme__3214EC07BCFD76FA");
 
@@ -2926,32 +2927,44 @@ namespace axionpro.persistance.Data.Context
                 .HasConstraintName("FK_TicketHeaderType_TicketClassification");
         });
 
-        modelBuilder.Entity<TicketType>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__TicketTy__3214EC07554DC568");
+            modelBuilder.Entity<TicketType>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("PK__TicketTy__3214EC07554DC568");
 
-            entity.ToTable("TicketType", "axionpro");
+                entity.ToTable("TicketType", "axionpro");
 
-            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.Description).HasMaxLength(500);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.IsSoftDeleted).HasDefaultValue(true);
-            entity.Property(e => e.TicketTypeName).HasMaxLength(100);
+                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.AutoApproveIfSameRole).HasDefaultValue(false);
+                entity.Property(e => e.Description).HasMaxLength(500);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.IsActiveForAllUsers).HasDefaultValue(true);
+                entity.Property(e => e.IsApprovalRequired).HasDefaultValue(false);
+                entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
+                entity.Property(e => e.TicketTypeName).HasMaxLength(100);
 
-            entity.HasOne(d => d.ResponsibleRole).WithMany(p => p.TicketType)
-                .HasForeignKey(d => d.ResponsibleRoleId)
-                .HasConstraintName("FK_TicketType_ResponsibleRole");
+                entity.HasOne(d => d.ApprovalRole)
+                      .WithMany()
+                      .HasForeignKey(d => d.ApprovalRoleId)
+                      .OnDelete(DeleteBehavior.SetNull)
+                      .HasConstraintName("FK_TicketType_ApprovalRole");
 
-            entity.HasOne(d => d.Tenant).WithMany(p => p.TicketType)
-                .HasForeignKey(d => d.TenantId)
-                .HasConstraintName("FK_TicketType_Tenant");
+                entity.HasOne(d => d.ResponsibleRole)
+                    .WithMany()
+                    .HasForeignKey(d => d.ResponsibleRoleId)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .HasConstraintName("FK_TicketType_ResponsibleRole");
 
-            entity.HasOne(d => d.TicketHeader).WithMany(p => p.TicketType)
-                .HasForeignKey(d => d.TicketHeaderId)
-                .HasConstraintName("FK_TicketType_Header");
-        });
 
-        modelBuilder.Entity<TravelAllowancePolicyByDesignation>(entity =>
+                entity.HasOne(d => d.Tenant).WithMany(p => p.TicketType)
+                    .HasForeignKey(d => d.TenantId)
+                    .HasConstraintName("FK_TicketType_Tenant");
+
+                entity.HasOne(d => d.TicketHeader).WithMany(p => p.TicketType)
+                    .HasForeignKey(d => d.TicketHeaderId)
+                    .HasConstraintName("FK_TicketType_Header");
+            });
+
+            modelBuilder.Entity<TravelAllowancePolicyByDesignation>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__TravelAl__3214EC072DD6C86A");
 

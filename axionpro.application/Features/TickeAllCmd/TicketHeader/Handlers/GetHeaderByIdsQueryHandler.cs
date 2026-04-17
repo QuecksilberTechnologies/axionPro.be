@@ -59,7 +59,7 @@ namespace axionpro.application.Features.TickeAllCmd.TicketHeader.Handlers
                 _logger.LogInformation("🔍 Fetching headers with filters from request DTO...");
 
                 // ✅ Step 2: Fetch all headers from repository
-                var headers = await _repository.GetByIdAsync(request.DTO);
+                var headers = await _repository.GetAllHeaderAsync(request.DTO);
 
                 if (headers == null || !headers.Any())
                 {
