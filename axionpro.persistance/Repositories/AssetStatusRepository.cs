@@ -102,9 +102,9 @@ namespace axionpro.persistance.Repositories
                 existingStatus.IsSoftDeleted = true;
                 existingStatus.IsActive = false;
                 existingStatus.SoftDeletedById = requestDTO.Prop.EmployeeId;
-                existingStatus.DeletedDateTime = DateTime.Now;
+                existingStatus.DeletedDateTime = DateTime.UtcNow;
                 existingStatus.UpdatedById = requestDTO.Prop.EmployeeId;
-                existingStatus.UpdatedDateTime = DateTime.Now;
+                existingStatus.UpdatedDateTime = DateTime.UtcNow; ;
 
                 this._context.AssetStatuses.Update(existingStatus);
                 await this._context.SaveChangesAsync();
@@ -156,7 +156,7 @@ namespace axionpro.persistance.Repositories
 
                 // 🔹 FILTER: IsActive
                 if (dto.IsActive)
-                    query = query.Where(a => a.IsActive == dto.IsActive);
+                    query = query.Where(a => a.IsActive == dto.IsActive && a.IsSoftDeleted !=true);
 
                 // 🔹 FILTER: Id
                 if (dto.Id > 0)
@@ -287,7 +287,7 @@ namespace axionpro.persistance.Repositories
                     existingStatus.IsActive = assetStatus.IsActive.Value;
                 }
                 existingStatus.UpdatedById = assetStatus.Prop.EmployeeId;
-                existingStatus.UpdatedDateTime = DateTime.Now;
+                existingStatus.UpdatedDateTime = DateTime.UtcNow;
 
                 this._context.AssetStatuses.Update(existingStatus);
                var change= await _context.SaveChangesAsync();

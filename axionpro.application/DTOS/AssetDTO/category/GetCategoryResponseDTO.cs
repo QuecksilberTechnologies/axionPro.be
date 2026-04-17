@@ -17,7 +17,7 @@ namespace axionpro.application.DTOS.AssetDTO.category
         public string? Remark { get; set; }
 
         public bool IsActive { get; set; }
-        public bool HasMultipleUser { get; set; } = false;
+        public bool HasMultipleUser { get; set; } 
 
        
 
