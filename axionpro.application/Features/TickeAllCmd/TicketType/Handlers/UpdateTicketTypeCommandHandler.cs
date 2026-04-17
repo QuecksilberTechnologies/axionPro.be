@@ -1,6 +1,10 @@
 ﻿using AutoMapper;
+using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Role;
 using axionpro.application.DTOS.TicketDTO.TicketType;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
 using MediatR;
@@ -10,98 +14,135 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
 {
     public class UpdateTicketTypeCommand : IRequest<ApiResponse<bool>>
     {
+        public UpdateTicketTypeRequestDTO DTO { get; }
 
-        public UpdateTicketTypeRequestDTO DTO { get; set; }
-
-        public UpdateTicketTypeCommand(UpdateTicketTypeRequestDTO dTO)
+        public UpdateTicketTypeCommand(UpdateTicketTypeRequestDTO dto)
         {
-            DTO = dTO;
+            DTO = dto;
         }
-
     }
-    public class UpdateTicketTypeCommandHandler : IRequestHandler<UpdateTicketTypeCommand, ApiResponse<bool>>
+    public class UpdateTicketTypeCommandHandler
+     : IRequestHandler<UpdateTicketTypeCommand, ApiResponse<bool>>
     {
-        private readonly ITicketTypeRepository _repository;
-        private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IStoreProcedureRepository _commonRepository;
         private readonly ILogger<UpdateTicketTypeCommandHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
 
         public UpdateTicketTypeCommandHandler(
-            ITicketTypeRepository repository,
-            IMapper mapper,
             IUnitOfWork unitOfWork,
-            IStoreProcedureRepository commonRepository,
-            ILogger<UpdateTicketTypeCommandHandler> logger)
+            ILogger<UpdateTicketTypeCommandHandler> logger,
+            ICommonRequestService commonRequestService)
         {
-            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-            _commonRepository = commonRepository ?? throw new ArgumentNullException(nameof(commonRepository));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _unitOfWork = unitOfWork;
+            _logger = logger;
+            _commonRequestService = commonRequestService;
         }
 
-        public async Task<ApiResponse<bool>> Handle(UpdateTicketTypeCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<bool>> Handle(
+            UpdateTicketTypeCommand request,
+            CancellationToken cancellationToken)
         {
+            await _unitOfWork.BeginTransactionAsync();
+
             try
             {
-                // 1️⃣ Validate Request
-                if (request.DTO == null)
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
+                var validation = await _commonRequestService.ValidateRequestAsync();
+
+                if (!validation.Success)
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+
+                // ===============================
+                // 2️⃣ RBAC
+                // ===============================
+                //await _commonRequestService.HasAccessAsync(
+                //    ModuleEnum.Ticket,
+                //    OperationEnum.Update);
+
+                // ===============================
+                // 3️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request data.");
+
+                request.DTO.Prop ??= new ExtraPropRequestDTO();
+                request.DTO.Prop.TenantId = validation.TenantId;
+
+                var dto = request.DTO;
+
+                // ===============================
+                // 4️⃣ BUSINESS VALIDATION
+                // ===============================
+                if (string.IsNullOrWhiteSpace(dto.TicketTypeName))
+                    throw new ValidationErrorException("TicketTypeName is required.");
+
+                if (dto.IsApprovalRequired && dto.ApprovalRoleId == null)
+                    throw new ValidationErrorException("ApprovalRoleId is required.");
+
+                if (dto.SLAHours != null && dto.SLAHours <= 0)
+                    throw new ValidationErrorException("SLAHours must be greater than 0.");
+                // ===============================
+                // 5️⃣ FK VALIDATION
+                // ===============================
+
+                // Header check
+                var header = await _unitOfWork.TicketHeaderRepository
+                    .GetByIdAsync(dto.TicketHeaderId);
+
+                if (header == null)
+                    throw new ValidationErrorException("Invalid TicketHeaderId.");
+
+
+                // 🔥 Responsible Role check
+                var responsibleRoleRequest = new GetSingleRoleRequestDTO
                 {
-                    return new ApiResponse<bool>
+                    Id = dto.ResponsibleRoleId
+                };
+
+                var responsibleRole = await _unitOfWork.RoleRepository
+                    .GetByIdAsync1(responsibleRoleRequest);
+
+                if (responsibleRole == null)
+                    throw new ValidationErrorException("Invalid ResponsibleRoleId.");
+
+
+                // 🔥 Approval Role check
+                if (dto.IsApprovalRequired)
+                {
+                    var approvalRoleRequest = new GetSingleRoleRequestDTO
                     {
-                        IsSucceeded = false,
-                        Message = "Invalid request. TicketType data is required.",
-                        Data = false
+                        Id = dto.ApprovalRoleId ?? 0
                     };
+
+                    var approvalRole = await _unitOfWork.RoleRepository
+                        .GetByIdAsync1(approvalRoleRequest);
+
+                    if (approvalRole == null)
+                        throw new ValidationErrorException("Invalid ApprovalRoleId.");
                 }
 
-                if (request.DTO.Id <= 0)
-                {
-                    return new ApiResponse<bool>
-                    {
-                        IsSucceeded = false,
-                        Message = "TicketType Id must be valid.",
-                        Data = false
-                    };
-                }
-
-                // 2️⃣ Update TicketType using Repository
-                bool isUpdated = await _repository.UpdateAsync(request.DTO);
+                // ===============================
+                // 6️⃣ UPDATE CALL
+                // ===============================
+                var isUpdated = await _unitOfWork.TicketTypeRepository.UpdateAsync(dto, validation.UserEmployeeId);
 
                 if (!isUpdated)
-                {
-                    return new ApiResponse<bool>
-                    {
-                        IsSucceeded = false,
-                        Message = "TicketType update failed. Either not found or no changes detected.",
-                        Data = false
-                    };
-                }
+                    throw new ApiException("TicketType update failed.", 500);
 
-                // 3️⃣ Commit Transaction (if using UnitOfWork)
-                await _unitOfWork.CommitAsync();
+                // ===============================
+                // 7️⃣ COMMIT
+                // ===============================
+                await _unitOfWork.CommitTransactionAsync();
 
-                _logger.LogInformation("TicketType updated successfully with Id {Id}", request.DTO.Id);
-
-                // 4️⃣ Return Success Response
-                return new ApiResponse<bool>
-                {
-                    IsSucceeded = true,
-                    Message = "TicketType updated successfully.",
-                    Data = true
-                };
+                return ApiResponse<bool>.Success(true, "TicketType updated successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while updating TicketType with Id {Id}", request.DTO?.Id);
-
-                return new ApiResponse<bool>
-                {
-                    IsSucceeded = false,
-                    Message = $"An error occurred while updating TicketType: {ex.Message}",
-                    Data = false
-                };
+                await _unitOfWork.RollbackTransactionAsync();
+                _logger.LogError(ex, "Error updating TicketType");
+                throw;
             }
         }
     }

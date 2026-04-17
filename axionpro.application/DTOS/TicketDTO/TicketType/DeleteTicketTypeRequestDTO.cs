@@ -9,9 +9,7 @@ namespace axionpro.application.DTOS.TicketDTO.TicketType
     public class DeleteTicketTypeRequestDTO
     {
         public long Id { get; set; }
-        public long EmployeeId { get; set; }
-        public long RoleId { get; set; }
-        public long TenantId { get; set; }
+       
 
     }
 }

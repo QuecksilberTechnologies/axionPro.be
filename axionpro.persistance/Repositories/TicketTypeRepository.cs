@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using axionpro.application.Constants;
+using axionpro.application.DTOS.Pagination;
 using axionpro.application.DTOS.TicketDTO.TicketType;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
@@ -46,70 +48,107 @@ namespace axionpro.persistance.Repositories
         /// and <see cref="GetTicketTypeRequestDTO.IsActive"/>.
         /// </param>
         /// <returns>
-        public async Task<List<GetTicketTypeResponseDTO>> AllAsync(GetTicketTypeRequestDTO dTO)
+        public async Task<PagedResponseDTO<GetTicketTypeResponseDTO>> AllAsync(GetTicketTypeRequestDTO dto)
         {
             try
             {
-                if (dTO == null || dTO.TenantId <= 0)
-                {
-                    _logger.LogWarning("AllAsync called with invalid DTO or TenantId: {TenantId}", dTO?.TenantId);
-                    return new List<GetTicketTypeResponseDTO>();
-                }
+                // ===============================
+                // 1️⃣ DEFAULT PAGINATION
+                // ===============================
+                int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
+                int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
 
-               
-
-                var query =
+                // ===============================
+                // 2️⃣ BASE QUERY
+                // ===============================
+                var baseQuery =
                     from t in _context.TicketTypes.AsNoTracking()
-                    join r in _context.Roles.AsNoTracking() on t.ResponsibleRoleId equals r.Id into roleGroup
+
+                    join th in _context.TicketHeaders.AsNoTracking()
+                        on t.TicketHeaderId equals th.Id into headerGroup
+                    from th in headerGroup.DefaultIfEmpty()
+
+                    join r in _context.Roles.AsNoTracking()
+                        on t.ResponsibleRoleId equals r.Id into roleGroup
                     from r in roleGroup.DefaultIfEmpty()
-                    join ur in _context.UserRoles.AsNoTracking()
-                        on r.Id equals ur.RoleId into userRoleGroup
-                    from ur in userRoleGroup
-                        .Where(x => x.IsPrimaryRole == true && x.IsActive == true)
-                        .DefaultIfEmpty()
-                    join e in _context.Employees.AsNoTracking()
-                        on ur.EmployeeId equals e.Id into empGroup
-                    from e in empGroup
-                        .Where(emp => emp.IsActive == true)
-                        .DefaultIfEmpty()
-                    where t.TenantId == dTO.TenantId
-                          && t.IsActive == dTO.IsActive
-                          && (t.IsSoftDeleted == false || t.IsSoftDeleted == null)
+
+                    join ar in _context.Roles.AsNoTracking()
+                        on t.ApprovalRoleId equals ar.Id into approvalGroup
+                    from ar in approvalGroup.DefaultIfEmpty()
+
+                    where t.TenantId == dto.Prop.TenantId
+                          && t.IsActive == true
+                          && t.IsSoftDeleted != true
+
                     select new GetTicketTypeResponseDTO
                     {
                         Id = t.Id,
                         TicketTypeName = t.TicketTypeName,
+
                         TicketHeaderId = t.TicketHeaderId,
+                        TicketHeaderName = th != null ? th.HeaderName : null,
+
+                        TenantId = t.TenantId,
+
                         ResponsibleRoleId = r != null ? r.Id : null,
                         ResponsibleRoleName = r != null ? r.RoleName : null,
-                        ResponsibleEmployeeId = e != null ? e.Id : null,
-                        ResponsibleEmployeeName = e != null ? (e.FirstName + " " + e.LastName) : null,
-                        ResponsibleEmployeeEmailId = e != null ? e.OfficialEmail : null,
-                        TenantId = t.TenantId,
+
+                        ApprovalRoleId = t.ApprovalRoleId,
+                        ApprovalRoleName = ar != null ? ar.RoleName : null,
+
+                        IsApprovalRequired = t.IsApprovalRequired,
+                        AutoApproveIfSameRole = t.AutoApproveIfSameRole,
+
+                        SLAHours = t.SLAHours,
+                        IsActiveForAllUsers = t.IsActiveForAllUsers,
+
                         Description = t.Description,
-                        IsActive = t.IsActive,
-                       
+                        IsActive = t.IsActive
                     };
 
-                var ticketTypes = await query.ToListAsync();
+                // ===============================
+                // 3️⃣ TOTAL COUNT (BEFORE PAGINATION)
+                // ===============================
+                var totalCount = await baseQuery.CountAsync();
 
-                if (ticketTypes == null || !ticketTypes.Any())
+                // ===============================
+                // 4️⃣ SORTING
+                // ===============================
+                baseQuery = dto.SortBy?.ToLower() switch
                 {
-                    _logger.LogInformation("No TicketTypes found for TenantId {TenantId}", dTO.TenantId);
-                    return new List<GetTicketTypeResponseDTO>();
-                }
+                    "name" => dto.SortOrder == "asc"
+                        ? baseQuery.OrderBy(x => x.TicketTypeName)
+                        : baseQuery.OrderByDescending(x => x.TicketTypeName),
 
-                _logger.LogInformation("Fetched {Count} TicketTypes for TenantId {TenantId}", ticketTypes.Count, dTO.TenantId);
+                    _ => baseQuery.OrderByDescending(x => x.Id)
+                };
 
-                return ticketTypes;
+                // ===============================
+                // 5️⃣ PAGINATION
+                // ===============================
+                var data = await baseQuery
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                // ===============================
+                // 6️⃣ RESPONSE
+                // ===============================
+                return new PagedResponseDTO<GetTicketTypeResponseDTO>
+                {
+                    Data = data,
+                    TotalCount = totalCount,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
+                };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while fetching all TicketTypes for TenantId {TenantId}", dTO?.TenantId);
+                _logger.LogError(ex, "Error fetching TicketTypes for TenantId {TenantId}", dto.Prop?.TenantId);
                 throw;
             }
         }
-
         public async Task<List<GetTicketTypeResponseDTO>> AllByHeaderIdAsync(GetTicketTypeByHeaderIdRequestDTO dTO)
         {
             try
@@ -186,71 +225,45 @@ namespace axionpro.persistance.Repositories
         /// <summary>
         /// Updates an existing TicketType record. Only non-null values from DTO will be updated.
         /// </summary>
-        public async Task<bool> UpdateAsync(UpdateTicketTypeRequestDTO dto)
+        public async Task<bool> UpdateAsync(UpdateTicketTypeRequestDTO dto, long userId)
         {
             try
             {
-                // 1️⃣ Fetch existing entity with IsActive check
                 var entity = await _context.TicketTypes
-                    .FirstOrDefaultAsync(t => t.Id == dto.Id && t.IsActive);
+                    .FirstOrDefaultAsync(x =>
+                        x.Id == dto.Id &&
+                        x.IsSoftDeleted != true &&
+                        x.TenantId == dto.Prop.TenantId);
 
                 if (entity == null)
-                {
-                    _logger.LogWarning("TicketType with Id {Id} not found or inactive", dto.Id);
-                    return false;
-                }
+                    throw new ValidationErrorException("TicketType not found.");
 
-                bool isModified = false;
+                // ===============================
+                // UPDATE FIELDS
+                // ===============================
+                entity.TicketTypeName = dto.TicketTypeName;
+                entity.TicketHeaderId = dto.TicketHeaderId;
+                entity.Description = dto.Description;
 
-                // 2️⃣ Update only if DTO value is not null
-                if (!string.IsNullOrWhiteSpace(dto.TicketTypeName) &&
-                    !string.Equals(entity.TicketTypeName, dto.TicketTypeName, StringComparison.OrdinalIgnoreCase))
-                {
-                    entity.TicketTypeName = dto.TicketTypeName;
-                    isModified = true;
-                }
+                entity.ResponsibleRoleId = dto.ResponsibleRoleId;
 
+                entity.IsApprovalRequired = dto.IsApprovalRequired;
+                entity.ApprovalRoleId = dto.ApprovalRoleId;
+                entity.AutoApproveIfSameRole = dto.AutoApproveIfSameRole;
 
-                if (dto.ResponsibleRoleId.HasValue && entity.ResponsibleRoleId != dto.ResponsibleRoleId.Value)
-                {
-                    entity.ResponsibleRoleId = dto.ResponsibleRoleId.Value;
-                    isModified = true;
-                }
-              
+                entity.SLAHours = dto.SLAHours;
+                entity.IsActiveForAllUsers = dto.IsActiveForAllUsers;
 
-                if (dto.IsActive.HasValue && entity.IsActive != dto.IsActive.Value)
-                {
-                    entity.IsActive = dto.IsActive.Value;
-                    isModified = true;
-                }
-
-                if (!string.IsNullOrWhiteSpace(dto.Description) &&
-                    !string.Equals(entity.Description, dto.Description, StringComparison.OrdinalIgnoreCase))
-                {
-                    entity.Description = dto.Description;
-                    isModified = true;
-                }
-
-                if (!isModified)
-                {
-                  
-                    _logger.LogInformation("No changes detected for TicketType with Id {Id}", dto.Id);
-                    return true; // No update needed
-                }
-                entity.IsSoftDeleted = false;
-
-                // 3️⃣ Set Updated metadata
-                entity.UpdatedById = dto.EmployeeId;
+                entity.UpdatedById = userId;
                 entity.UpdatedDateTime = DateTime.UtcNow;
 
-                // 4️⃣ Save changes
-                var result = await _context.SaveChangesAsync();
-                _logger.LogInformation("TicketType with Id {Id} updated successfully", dto.Id);
-                return result > 0;
+                await _context.SaveChangesAsync();
+
+                return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while updating TicketType with Id {Id}", dto.Id);
+                _logger.LogError(ex, "Error updating TicketType Id {Id}", dto.Id);
                 throw;
             }
         }
@@ -263,26 +276,25 @@ namespace axionpro.persistance.Repositories
             try
             {
                 var entity = await _context.TicketTypes
-                    .FirstOrDefaultAsync(t => t.Id == id && t.IsActive);
+                    .FirstOrDefaultAsync(x =>
+                        x.Id == id && x.IsSoftDeleted != true && x.IsActive);
 
                 if (entity == null)
-                {
-                    _logger.LogWarning("TicketType with Id {Id} not found for delete", id);
-                    return false;
-                }
+                    throw new ValidationErrorException("TicketType not found.");
 
-                entity.IsActive = ConstantValues.IsByDefaultFalse;
-                entity.IsSoftDeleted = ConstantValues.IsByDefaultTrue;
+                // 🔥 SOFT DELETE
+                entity.IsSoftDeleted = true;
+                entity.IsActive = false;
                 entity.SoftDeletedById = employeeId;
                 entity.SoftDeletedTime = DateTime.UtcNow;
-               
 
-                var result = await _context.SaveChangesAsync();
-                return result > 0;
+                await _context.SaveChangesAsync();
+
+                return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while deleting TicketType with Id {Id}", id);
+                _logger.LogError(ex, "Error deleting TicketType Id {Id}", id);
                 throw;
             }
         }

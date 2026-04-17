@@ -1,6 +1,9 @@
 ﻿using AutoMapper;
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.TicketDTO.TicketType;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
 using MediatR;
@@ -18,77 +21,64 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
         }
     }
 
-    public class DeleteTicketTypeCommandHandler : IRequestHandler<DeleteTicketTypeCommand, ApiResponse<bool>>
+    public class DeleteTicketTypeCommandHandler
+   : IRequestHandler<DeleteTicketTypeCommand, ApiResponse<bool>>
     {
-        private readonly ITicketTypeRepository _repository;
-        private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IStoreProcedureRepository _commonRepository;
         private readonly ILogger<DeleteTicketTypeCommandHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
+
         public DeleteTicketTypeCommandHandler(
-            ITicketTypeRepository repository,
-            IMapper mapper,
             IUnitOfWork unitOfWork,
-            IStoreProcedureRepository commonRepository,
-            ILogger<DeleteTicketTypeCommandHandler> logger)
+            ILogger<DeleteTicketTypeCommandHandler> logger,
+            ICommonRequestService commonRequestService)
         {
-            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-            _commonRepository = commonRepository ?? throw new ArgumentNullException(nameof(commonRepository));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _unitOfWork = unitOfWork;
+            _logger = logger;
+            _commonRequestService = commonRequestService;
         }
-        public async Task<ApiResponse<bool>> Handle(DeleteTicketTypeCommand request, CancellationToken cancellationToken)
+
+        public async Task<ApiResponse<bool>> Handle(
+            DeleteTicketTypeCommand request,
+            CancellationToken cancellationToken)
         {
+            await _unitOfWork.BeginTransactionAsync();
+
             try
             {
-                if (request.DTO.Id <= 0)
-                {
-                    return new ApiResponse<bool>
-                    {
-                        IsSucceeded = false,
-                        Message = "Invalid TicketType Id.",
-                        Data = false
-                    };
-                }
+                // 1️⃣ COMMON VALIDATION
+                var validation = await _commonRequestService.ValidateRequestAsync();
+                if (!validation.Success)
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // Repository se entity fetch karo
-                var entity = await _unitOfWork.TicketTypeRepository.GetByIdAsync(request.DTO.Id);
+                // 2️⃣ RBAC
+                //await _commonRequestService.HasAccessAsync(
+                //    ModuleEnum.Ticket,
+                //    OperationEnum.Delete);
 
-                if (entity == null)
-                {
-                    return new ApiResponse<bool>
-                    {
-                        IsSucceeded = false,
-                        Message = " TicketType not found.",
-                        Data = false
-                    };
-                }
+                // 3️⃣ NULL + ID VALIDATION
+                if (request?.DTO == null || request.DTO.Id <= 0)
+                    throw new ValidationErrorException("Invalid TicketType Id.");
 
-                 
+               
 
-                await _unitOfWork.TicketTypeRepository.DeleteAsync(request.DTO.Id, request.DTO.EmployeeId );
+                // 4️⃣ REPOSITORY CALL
+                var isDeleted = await _unitOfWork.TicketTypeRepository
+                    .DeleteAsync(request.DTO.Id, validation.UserEmployeeId);
 
-                await _unitOfWork.CommitAsync();
+                if (!isDeleted)
+                    throw new ApiException("TicketType deletion failed.", 500);
 
-                _logger.LogInformation("TicketType with Id {Id} deleted successfully.", request.DTO.Id);
+                // 5️⃣ COMMIT
+                await _unitOfWork.CommitTransactionAsync();
 
-                return new ApiResponse<bool>
-                {
-                    IsSucceeded = true,
-                    Message = "TicketType deleted successfully.",
-                    Data = true
-                };
+                return ApiResponse<bool>.Success(true, "TicketType deleted successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while deleting TicketType Id {Id}", request.DTO.Id);
-                return new ApiResponse<bool>
-                {
-                    IsSucceeded = false,
-                    Message = $"An error occurred while deleting TicketType: {ex.Message}",
-                    Data = false
-                };
+                await _unitOfWork.RollbackTransactionAsync();
+                _logger.LogError(ex, "Error deleting TicketType");
+                throw;
             }
         }
     }

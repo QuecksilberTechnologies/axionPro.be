@@ -1,6 +1,11 @@
 ﻿using AutoMapper;
+using axionpro.application.DTOs.OrganizationHolidayCalendar;
+using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Pagination;
 using axionpro.application.DTOS.TicketDTO.TicketType;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
 using MediatR;
@@ -8,90 +13,97 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
 {
-    public class GetAllTicketTypeQuery : IRequest<ApiResponse<List<GetTicketTypeResponseDTO>>>
+    public class GetAllTicketTypeQuery
+        : IRequest<ApiResponse<List<GetTicketTypeResponseDTO>>>
     {
-        public GetTicketTypeRequestDTO DTO { get; set; }
+        public GetTicketTypeRequestDTO DTO { get; }
 
-        public GetAllTicketTypeQuery(GetTicketTypeRequestDTO dTO)
+        public GetAllTicketTypeQuery(GetTicketTypeRequestDTO dto)
         {
-            DTO = dTO;
+            DTO = dto;
         }
-        public class GetAllTicketTypeQueryHandler : IRequestHandler<GetAllTicketTypeQuery, ApiResponse<List<GetTicketTypeResponseDTO>>>
+    }
+    public class GetAllTicketTypeQueryHandler: IRequestHandler<GetAllTicketTypeQuery, ApiResponse<List<GetTicketTypeResponseDTO>>>
+    {
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger<GetAllTicketTypeQueryHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
+
+        public GetAllTicketTypeQueryHandler(
+            IUnitOfWork unitOfWork,
+            ILogger<GetAllTicketTypeQueryHandler> logger,
+            ICommonRequestService commonRequestService)
         {
-            private readonly ITicketTypeRepository _repository;
-            private readonly IMapper _mapper;
-            private readonly IUnitOfWork _unitOfWork;
-            private readonly IStoreProcedureRepository _commonRepository;
-            private readonly ILogger<GetAllTicketTypeQueryHandler> _logger;
+            _unitOfWork = unitOfWork;
+            _logger = logger;
+            _commonRequestService = commonRequestService;
+        }
 
-            public GetAllTicketTypeQueryHandler(
-                ITicketTypeRepository repository,
-                IMapper mapper,
-                IUnitOfWork unitOfWork,
-                IStoreProcedureRepository commonRepository,
-                ILogger<GetAllTicketTypeQueryHandler> logger)
+        public async Task<ApiResponse<List<GetTicketTypeResponseDTO>>> Handle(
+     GetAllTicketTypeQuery request,
+     CancellationToken cancellationToken)
+        {
+            try
             {
-                _repository = repository ?? throw new ArgumentNullException(nameof(repository));
-                _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-                _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-                _commonRepository = commonRepository ?? throw new ArgumentNullException(nameof(commonRepository));
-                _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+                // ===============================
+                // 1️⃣ COMMON VALIDATION
+                // ===============================
+                var validation = await _commonRequestService.ValidateRequestAsync();
+
+                if (!validation.Success)
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+
+                // ===============================
+                // 2️⃣ RBAC CHECK
+                // ===============================
+                //await _commonRequestService.HasAccessAsync(
+                //    ModuleEnum.Ticket,
+                //    OperationEnum.View);
+
+                // ===============================
+                // 3️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request data.");
+
+                request.DTO.Prop ??= new ExtraPropRequestDTO();
+                request.DTO.Prop.TenantId = validation.TenantId;
+
+                // ===============================
+                // 4️⃣ DEFAULT PAGINATION (IMPORTANT 🔥)
+                // ===============================
+                request.DTO.PageNumber = request.DTO.PageNumber <= 0 ? 1 : request.DTO.PageNumber;
+                request.DTO.PageSize = request.DTO.PageSize <= 0 ? 10 : request.DTO.PageSize;
+
+                // ===============================
+                // 5️⃣ REPOSITORY CALL
+                // ===============================
+                var result = await _unitOfWork.TicketTypeRepository
+                    .AllAsync(request.DTO);
+
+                if (result == null)
+                    throw new ApiException("Failed to fetch TicketTypes.", 500);
+
+                // ===============================
+                // 6️⃣ RETURN (YOUR PATTERN 🔥)
+                // ===============================
+                return ApiResponse<List<GetTicketTypeResponseDTO>>
+                    .SuccessPaginatedOnly(
+                        result.Data,
+                        result.PageNumber,
+                        result.PageSize,
+                        result.TotalCount,
+                        result.TotalPages,
+                        "TicketTypes fetched successfully."
+                    );
             }
-
-            public async Task<ApiResponse<List<GetTicketTypeResponseDTO>>> Handle(GetAllTicketTypeQuery request, CancellationToken cancellationToken)
+            catch (Exception ex)
             {
-                try
-                {
-                    // 1️⃣ Validate Request
-                    if (request == null)
-                    {
-                        _logger.LogWarning("GetAllTicketTypeQuery request is null.");
-                        return new ApiResponse<List<GetTicketTypeResponseDTO>>
-                        {
-                            IsSucceeded = false,
-                            Message = "Invalid request received.",
-                            Data = new List<GetTicketTypeResponseDTO>()
-                        };
-                    }
-
-                    // 2️⃣ Fetch All Active Ticket Types
-                    var ticketTypes = await _repository.AllAsync(request.DTO);
-
-                    // 3️⃣ Validation: If no data found
-                    if (ticketTypes == null || !ticketTypes.Any())
-                    {
-                        _logger.LogWarning("No TicketTypes found in database.");
-                        return new ApiResponse<List<GetTicketTypeResponseDTO>>
-                        {
-                            IsSucceeded = false,
-                            Message = "No TicketTypes found.",
-                            Data = new List<GetTicketTypeResponseDTO>()
-                        };
-                    }
-
-                    _logger.LogInformation("Successfully retrieved {Count} TicketTypes.", ticketTypes.Count);
-
-                    // 4️⃣ Return Success Response
-                    return new ApiResponse<List<GetTicketTypeResponseDTO>>
-                    {
-                        IsSucceeded = true,
-                        Message = "TicketTypes fetched successfully.",
-                        Data = ticketTypes
-                    };
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error occurred while fetching all TicketTypes.");
-
-                    return new ApiResponse<List<GetTicketTypeResponseDTO>>
-                    {
-                        IsSucceeded = false,
-                        Message = $"An error occurred while fetching TicketTypes: {ex.Message}",
-                        Data = new List<GetTicketTypeResponseDTO>()
-                    };
-                }
+                _logger.LogError(ex, "Error fetching TicketTypes");
+                throw;
             }
         }
     }
+
 }
 

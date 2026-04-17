@@ -53,20 +53,21 @@ namespace axionpro.api.Controllers.Ticket
         // 2️⃣ READ - Get all Ticket Types
         // ----------------------------------------------------------------------------------------------------
 
-        /// <summary>
-        /// Retrieves all Ticket Types available in the system.
+        // <summary>
+       /// <summary>
+       /// Retrieves all Ticket Types available in the system.
         /// </summary>
         /// <returns>Returns a list of all Ticket Types.</returns>
 
 
-        //[HttpGet("get-all")]      
-        //public async Task<IActionResult> GetAllTicketTypes([FromQuery] GetTicketTypeRequestDTO dto)
-        //{
+        [HttpGet("get-all")]
+        public async Task<IActionResult> GetAllTicketTypes([FromQuery] GetTicketTypeRequestDTO dto)
+        {
 
-        //        _logger.LogInformation("📦 Fetching all Ticket Types...");
-        //        var result = await _mediator.Send(new GetAllTicketTypeQuery(dto));
-        //        return Ok(result);           
-        //}
+            _logger.LogInformation("📦 Fetching all Ticket Types...");
+            var result = await _mediator.Send(new GetAllTicketTypeQuery(dto));
+            return Ok(result);
+        }
 
         // ----------------------------------------------------------------------------------------------------
         // 3️⃣ READ (BY ID) - Get specific Ticket Type
@@ -77,15 +78,15 @@ namespace axionpro.api.Controllers.Ticket
         /// </summary>
         /// <param name="dto">Unique identifier of the Ticket Type.</param>
         /// <returns>Returns Ticket Type details.</returns>
-        [HttpGet("get")]    
-        public async Task<IActionResult> GetTicketTypeById([FromQuery] GetTicketTypeByIdRequestDTO dto)
-        {
+        //[HttpGet("get")]    
+        //public async Task<IActionResult> GetTicketTypeById([FromQuery] GetTicketTypeByIdRequestDTO dto)
+        //{
             
-                _logger.LogInformation("🔍 Fetching TicketType details for Id = {Id}", dto);
-                var result = await _mediator.Send(new GetTicketTypeByIdQuery(dto));
-                return Ok(result);
+        //        _logger.LogInformation("🔍 Fetching TicketType details for Id = {Id}", dto);
+        //        var result = await _mediator.Send(new GetTicketTypeByIdQuery(dto));
+        //        return Ok(result);
            
-        }
+        //}
 
         // ----------------------------------------------------------------------------------------------------
         // 4️⃣ UPDATE - Modify existing Ticket Type
