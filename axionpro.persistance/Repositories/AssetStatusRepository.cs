@@ -192,6 +192,7 @@ namespace axionpro.persistance.Repositories
                         StatusName = a.StatusName,
                         Description = a.Description,
                         IsActive = a.IsActive ?? false,
+                        ColorKey = a.ColorKey
                          
                     })
                     .ToListAsync();
