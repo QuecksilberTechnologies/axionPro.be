@@ -88,10 +88,7 @@ namespace axionpro.persistance.Repositories
                         TenantId = t.TenantId,
                         Description = t.Description,
                         IsActive = t.IsActive,
-                        AddedById = t.AddedById,
-                        AddedDateTime = t.AddedDateTime,
-                        UpdatedById = t.UpdatedById,
-                        UpdatedDateTime = t.UpdatedDateTime
+                       
                     };
 
                 var ticketTypes = await query.ToListAsync();
@@ -157,19 +154,20 @@ namespace axionpro.persistance.Repositories
         #endregion
 
         #region Add Method
-        public async Task<List<GetTicketTypeResponseDTO>> AddAsync(TicketType entity)
+        public async Task<GetTicketTypeResponseDTO> AddAsync(TicketType entity)
         {
             try
-            {            
-
+            {
                 await _context.TicketTypes.AddAsync(entity);
                 await _context.SaveChangesAsync();
 
-                var ticketTypes = await _context.TicketTypes
-                    .Where(t => t.IsActive && (t.IsSoftDeleted != true))
-                    .ToListAsync();
+                var data = await _context.TicketTypes
+                    .Include(t => t.TicketHeader)
+                    .Include(t => t.ResponsibleRole)
+                    .Include(t => t.ApprovalRole)
+                    .FirstOrDefaultAsync(t => t.Id == entity.Id);
 
-                return _mapper.Map<List<GetTicketTypeResponseDTO>>(ticketTypes);
+                return _mapper.Map<GetTicketTypeResponseDTO>(data);
             }
             catch (Exception ex)
             {
@@ -177,7 +175,6 @@ namespace axionpro.persistance.Repositories
                 throw;
             }
         }
-
         #endregion
 
         #region Update Method

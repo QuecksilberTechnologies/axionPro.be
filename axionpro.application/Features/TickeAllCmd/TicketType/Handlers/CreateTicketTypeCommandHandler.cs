@@ -150,7 +150,7 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
                 // ===============================
                 // 9️⃣ RESPONSE MAPPING
                 // ===============================
-                var response = _mapper.Map<GetTicketTypeResponseDTO>(inserted);
+               
 
                 // ===============================
                 // 🔟 COMMIT
@@ -158,7 +158,7 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
                 await _unitOfWork.CommitTransactionAsync();
 
                 return ApiResponse<GetTicketTypeResponseDTO>
-                    .Success(response, "TicketType created successfully.");
+                    .Success(inserted, "TicketType created successfully.");
             }
             catch (Exception ex)
             {

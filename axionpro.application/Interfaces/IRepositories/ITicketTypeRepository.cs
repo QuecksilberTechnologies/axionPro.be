@@ -13,7 +13,7 @@ namespace axionpro.application.Interfaces.IRepositories
 
 
 
-        public Task<List<GetTicketTypeResponseDTO>> AddAsync(TicketType entity);
+        public Task<GetTicketTypeResponseDTO> AddAsync(TicketType entity);
         public Task<List<GetTicketTypeResponseDTO>> AllAsync(GetTicketTypeRequestDTO dTO);
         public Task<List<GetTicketTypeResponseDTO>> AllByHeaderIdAsync(GetTicketTypeByHeaderIdRequestDTO dTO);
         public Task<List<GetTicketTypeRoleResponseDTO>> AllByRoleIdAsync(GetTicketTypeByRoleIdRequestDTO dTO);
