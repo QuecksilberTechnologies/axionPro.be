@@ -70,8 +70,7 @@ namespace axionpro.application.Features.TickeAllCmd.Classification
                 // ===============================
                 // 3️⃣ SET COMMON PROPS
                 // ===============================
-                request.DTO.TenantId = validation.TenantId;
-                request.DTO.EmployeeId = validation.UserEmployeeId;
+ 
 
                 // ===============================
                 // 4️⃣ RBAC PERMISSION CHECK 🔥
@@ -91,7 +90,7 @@ namespace axionpro.application.Features.TickeAllCmd.Classification
                 _logger.LogInformation("🗑️ Deleting classification Id={Id}", request.DTO.Id);
 
                 var isDeleted = await _unitOfWork.TicketClassificationRepository
-                    .DeleteAsync(request.DTO);
+                    .DeleteAsync(request.DTO, validation.LoggedInEmployeeId);
 
                 if (!isDeleted)
                     throw new KeyNotFoundException("Classification not found or already deleted.");

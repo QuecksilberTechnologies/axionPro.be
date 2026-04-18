@@ -30,7 +30,7 @@ namespace axionpro.application.Interfaces.IRepositories
             /// <summary>
             /// Soft delete classification (mark inactive).
             /// </summary>
-            Task<bool> DeleteAsync(DeleteClassificationRequestDTO dTO);
+            Task<bool> DeleteAsync(DeleteClassificationRequestDTO dTO, long employeeId);
 
             /// <summary>
             /// Update existing classification details.

@@ -138,39 +138,96 @@ namespace axionpro.persistance.Repositories
         }
 
         //  GET ALL
-  
+        public class BaseRequest
+        {
+            public int PageNumber { get; set; }
+            public int PageSize { get; set; }
+            public string? SortBy { get; set; }
+            public string? SortOrder { get; set; } = "desc";
+            public string? UserEmployeeId { get; set; }
+
+
+
+        }
         public async Task<PagedResponseDTO<GetClassificationResponseDTO>> GetAllAsync(GetClassificationRequestDTO dto)
         {
-            var result = new List<GetClassificationResponseDTO>();
             try
             {
-                
-                var query = _context.TicketClassifications.AsQueryable();
+                // ===============================
+                // 1️⃣ DEFAULT PAGINATION
+                // ===============================
+                int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
+                int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
 
-               
-                    query = query.Where(x =>   x.TenantId == dto.Prop.TenantId && (x.IsSoftDeleted!=true)&& x.IsActive == true);
+                // ===============================
+                // 2️⃣ BASE QUERY
+                // ===============================
+                var query = _context.TicketClassifications
+                    .AsNoTracking()
+                    .Where(x =>
+                        x.TenantId == dto.Prop.TenantId &&
+                        x.IsActive == true &&
+                        (x.IsSoftDeleted != true));
 
-                var list = await query.AsNoTracking().ToListAsync();
+                // ===============================
+                // 3️⃣ TOTAL COUNT
+                // ===============================
+                var totalCount = await query.CountAsync();
 
-                result = _mapper.Map<List<GetClassificationResponseDTO>>(list);
-
-                _logger.LogInformation(" {Count} classifications fetched successfully.", result.Count);
-
-                var response = new PagedResponseDTO<GetClassificationResponseDTO>
+                // ===============================
+                // 4️⃣ SORTING
+                // ===============================
+                query = dto.SortBy?.ToLower() switch
                 {
-                    Data = result,
-                    TotalCount = result.Count,
-                    PageNumber = 1,
-                    PageSize = result.Count
+                    "name" => dto.SortOrder == "asc"
+                        ? query.OrderBy(x => x.ClassificationName)
+                        : query.OrderByDescending(x => x.ClassificationName),
+
+                    "date" => dto.SortOrder == "asc"
+                        ? query.OrderBy(x => x.AddedDateTime)
+                        : query.OrderByDescending(x => x.AddedDateTime),
+
+                    _ => query.OrderByDescending(x => x.Id)
                 };
 
-                return response;
+                // ===============================
+                // 5️⃣ PAGINATION
+                // ===============================
+                var data = await query
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(x => new GetClassificationResponseDTO
+                    {
+                        Id = x.Id,
+                        ClassificationName = x.ClassificationName,
+                        Description = x.Description,
+                        IsActive = x.IsActive,
+                        AddedDateTime = x.AddedDateTime
+                    })
+                    .ToListAsync();
+
+                // ===============================
+                // 6️⃣ TOTAL PAGES
+                // ===============================
+                int totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+                // ===============================
+                // 7️⃣ RESPONSE
+                // ===============================
+                return new PagedResponseDTO<GetClassificationResponseDTO>
+                {
+                    Data = data,
+                    TotalCount = totalCount,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    TotalPages = totalPages,
+                    HasUploadedAll = pageNumber >= totalPages
+                };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while fetching all classifications.");
-                return new PagedResponseDTO<GetClassificationResponseDTO>();
-                 
+                _logger.LogError(ex, "Error while fetching classifications.");
+                throw;
             }
         }
 
@@ -186,7 +243,7 @@ namespace axionpro.persistance.Repositories
                 }
 
                 
-                var existing = await _context.TicketClassifications.FirstOrDefaultAsync(x => x.Id == dto.Id && (x.IsSoftDeleted==false || x.IsSoftDeleted ==null));
+                var existing = await _context.TicketClassifications.FirstOrDefaultAsync(x => x.Id == dto.Id && (x.IsSoftDeleted!=true));
                 if (existing == null)
                 {
                     _logger.LogWarning("⚠️ Classification not found for update. Id: {Id}", dto.Id);
@@ -196,7 +253,7 @@ namespace axionpro.persistance.Repositories
                 existing.ClassificationName = dto.ClassificationName ?? existing.ClassificationName;
                 existing.Description = dto.Description ?? existing.Description;
                 existing.IsActive = dto.IsActive ?? existing.IsActive;
-                existing.UpdatedById = dto.EmployeeId;
+                existing.UpdatedById = dto.Prop?.EmployeeId;
                 existing.UpdatedDateTime = DateTime.UtcNow;
 
                 _context.TicketClassifications.Update(existing);
@@ -216,7 +273,7 @@ namespace axionpro.persistance.Repositories
         }
 
         //  DELETE (Soft Delete)
-        public async Task<bool> DeleteAsync(DeleteClassificationRequestDTO dto)
+        public async Task<bool> DeleteAsync(DeleteClassificationRequestDTO dto , long employeeId)
         {
             try
             {
@@ -235,7 +292,7 @@ namespace axionpro.persistance.Repositories
 
                 entity.IsActive = false;
                 entity.IsSoftDeleted = true;
-                entity.SoftDeletedById = dto.EmployeeId;
+                entity.SoftDeletedById = employeeId;
                 entity.SoftDeletedTime = DateTime.UtcNow;
 
                 _context.TicketClassifications.Update(entity);

@@ -1,6 +1,8 @@
-﻿using AutoMapper;
+﻿using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.TicketDTO.Classification;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -11,78 +13,89 @@ namespace axionpro.application.Features.TickeAllCmd.Classification
     {
         public UpdateClassificationRequestDTO DTO { get; set; }
 
-        public UpdateClassificationCommand(UpdateClassificationRequestDTO dTO)
+        public UpdateClassificationCommand(UpdateClassificationRequestDTO dto)
         {
-            this.DTO = dTO;
+            DTO = dto;
         }
-
     }
-    public class UpdateClassificationCommandHandler : IRequestHandler<UpdateClassificationCommand, ApiResponse<GetClassificationResponseDTO>>
+
+    public class UpdateClassificationCommandHandler
+        : IRequestHandler<UpdateClassificationCommand, ApiResponse<GetClassificationResponseDTO>>
     {
-        private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<UpdateClassificationCommandHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
 
-        public UpdateClassificationCommandHandler(IMapper mapper, IUnitOfWork unitOfWork, ILogger<UpdateClassificationCommandHandler> logger)
+        public UpdateClassificationCommandHandler(
+            IUnitOfWork unitOfWork,
+            ILogger<UpdateClassificationCommandHandler> logger,
+            ICommonRequestService commonRequestService)
         {
-            _mapper = mapper;
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _commonRequestService = commonRequestService;
         }
 
-        public async Task<ApiResponse<GetClassificationResponseDTO>> Handle(UpdateClassificationCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<GetClassificationResponseDTO>> Handle(
+            UpdateClassificationCommand request,
+            CancellationToken cancellationToken)
         {
             try
             {
-                if (request == null || request == null)
-                {
-                    return new ApiResponse<GetClassificationResponseDTO>
-                    {
-                        IsSucceeded = false,
-                        Message = "Invalid request or missing ticketclassification creation.",
-                        Data = null
-                    };
-                }
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
+                var validation = await _commonRequestService.ValidateRequestAsync();
 
+                if (!validation.Success)
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
+                // ===============================
+                // 2️⃣ RBAC
+                // ===============================
+                //await _commonRequestService.HasAccessAsync(
+                //    ModuleEnum.Ticket,
+                //    OperationEnum.Update);
 
-                // Add ticketclassification and fetch updated ticketclassification list
+                // ===============================
+                // 3️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null || request.DTO.Id <= 0)
+                    throw new ValidationErrorException("Invalid request data.");
+
+                var dto = request.DTO;
+
+                dto.Prop ??= new ExtraPropRequestDTO();
+                dto.Prop.TenantId = validation.TenantId;
+
+                if (string.IsNullOrWhiteSpace(dto.ClassificationName))
+                    throw new ValidationErrorException("ClassificationName is required.");
+
+                // ===============================
+                // 4️⃣ TRANSACTION
+                // ===============================
                 await _unitOfWork.BeginTransactionAsync();
-                var ticketclassifications = await _unitOfWork.TicketClassificationRepository.UpdateAsync(request.DTO);
 
+                var result = await _unitOfWork.TicketClassificationRepository
+                    .UpdateAsync(dto);
 
-                if (ticketclassifications == null)
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return new ApiResponse<GetClassificationResponseDTO>
-                    {
-                        IsSucceeded = false,
-                        Message = "Failed to add ticketclassification or no ticketclassifications found.",
-                        Data = null
-                    };
-                }
+                if (result == null)
+                    throw new ApiException("Classification not found or could not be updated.", 404);
+
                 await _unitOfWork.CommitTransactionAsync();
 
-                return new ApiResponse<GetClassificationResponseDTO>
-                {
-                    IsSucceeded = true,
-                    Message = "ticketclassification created successfully.",
-                    Data = ticketclassifications
-                };
-
+                // ===============================
+                // 5️⃣ RESPONSE
+                // ===============================
+                return ApiResponse<GetClassificationResponseDTO>
+                    .Success(result, "Ticket classification updated successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while processing the ticketclassification creation request.");
-                return new ApiResponse<GetClassificationResponseDTO>
-                {
-                    IsSucceeded = false,
-                    Message = "An error occurred while processing the request.",
-                    Data = null
-                };
+                await _unitOfWork.RollbackTransactionAsync();
+                _logger.LogError(ex, "Error updating TicketClassification");
+                throw;
             }
         }
     }
-
-
 }

@@ -1,4 +1,6 @@
-﻿using axionpro.application.DTOS.TicketDTO.Classification;
+﻿using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Pagination;
+using axionpro.application.DTOS.TicketDTO.Classification;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
@@ -13,7 +15,7 @@ namespace axionpro.application.Features.TickeAllCmd.Classification
     // COMMAND
     // ===============================
     public class GetAllClassificationCommand
-        : IRequest<ApiResponse<List<GetClassificationResponseDTO>>>
+      : IRequest<ApiResponse<PagedResponseDTO<GetClassificationResponseDTO>>>
     {
         public GetClassificationRequestDTO DTO { get; }
 
@@ -27,7 +29,7 @@ namespace axionpro.application.Features.TickeAllCmd.Classification
     // HANDLER (MASTER PATTERN)
     // ===============================
     public class GetAllClassificationCommandHandler
-        : IRequestHandler<GetAllClassificationCommand, ApiResponse<List<GetClassificationResponseDTO>>>
+     : IRequestHandler<GetAllClassificationCommand, ApiResponse<PagedResponseDTO<GetClassificationResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetAllClassificationCommandHandler> _logger;
@@ -46,19 +48,18 @@ namespace axionpro.application.Features.TickeAllCmd.Classification
             _permissionService = permissionService;
         }
 
-        public async Task<ApiResponse<List<GetClassificationResponseDTO>>> Handle(
-            GetAllClassificationCommand request,
-            CancellationToken cancellationToken)
+        public async Task<ApiResponse<PagedResponseDTO<GetClassificationResponseDTO>>> Handle(
+     GetAllClassificationCommand request,
+     CancellationToken cancellationToken)
         {
             try
             {
-                _logger.LogInformation("🚀 GetAllClassification started");
+                _logger.LogInformation("GetAllClassification started");
 
                 // ===============================
-                // 1️⃣ VALIDATION (MASTER PATTERN)
+                // 1️⃣ VALIDATION
                 // ===============================
-                var validation =
-                    await _commonRequestService.ValidateRequestAsync();
+                var validation = await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
                     throw new UnauthorizedAccessException(validation.ErrorMessage);
@@ -69,66 +70,54 @@ namespace axionpro.application.Features.TickeAllCmd.Classification
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request.");
 
-                request.DTO.Prop ??= new();
-
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop ??= new ExtraPropRequestDTO();
                 request.DTO.Prop.TenantId = validation.TenantId;
 
                 // ===============================
-                // 3️⃣ PERMISSION (OPTIONAL - SAME AS EMPLOYEE)
+                // 3️⃣ RBAC (OPTIONAL)
                 // ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.TicketClassification,
-                //    Operations.View);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("No permission to view classification.");
+                // await _commonRequestService.HasAccessAsync(
+                //     ModuleEnum.Ticket,
+                //     OperationEnum.View);
 
                 // ===============================
-                // 4️⃣ FETCH DATA
+                // 4️⃣ REPOSITORY CALL
                 // ===============================
-                var responseDTO =
-                    await _unitOfWork.TicketClassificationRepository
-                        .GetAllAsync(request.DTO);
+                var result = await _unitOfWork.TicketClassificationRepository
+                    .GetAllAsync(request.DTO);
 
-                // ===============================
-                // 5️⃣ EMPTY HANDLING (MASTER PATTERN)
-                // ===============================
-                var items = responseDTO?.Data ?? new List<GetClassificationResponseDTO>();
-
-                var resultList = items.Any()
-                    ? items
-                    : new List<GetClassificationResponseDTO>();
+                if (result == null)
+                    throw new ApiException("Failed to fetch classifications.", 500);
 
                 _logger.LogInformation("GetAllClassification success");
 
                 // ===============================
-                // 6️⃣ FINAL RESPONSE (MASTER PATTERN)
+                // 5️⃣ FINAL RESPONSE
                 // ===============================
-                return ApiResponse<List<GetClassificationResponseDTO>>
-                    .SuccessPaginatedPercentage(
-                        Data: resultList,
-                        Message: items.Any()
+                return ApiResponse<PagedResponseDTO<GetClassificationResponseDTO>>
+                    .SuccessPaginatedOnly(
+                        Data: result,
+                        PageNumber: result.PageNumber,
+                        PageSize: result.PageSize,
+                        TotalRecords: result.TotalCount,
+                        TotalPages: result.TotalPages,
+                        Message: result.Data.Any()
                             ? "Classifications retrieved successfully."
-                            : "No classifications found.",
-                        PageNumber: responseDTO?.PageNumber ?? 1,
-                        PageSize: responseDTO?.PageSize ?? 0,
-                        TotalRecords: responseDTO?.TotalCount ?? 0,
-                        TotalPages: responseDTO?.TotalPages ?? 0,
-                        CompletionPercentage: responseDTO?.CompletionPercentage ?? 0,
-                        HasUploadedAll: responseDTO?.HasUploadedAll ?? false
+                            : "No classifications found."
+                      
                     );
             }
             catch (Exception ex)
             {
                 _logger.LogError(
                     ex,
-                    "❌ Error fetching classifications | UserId: {UserId}",
+                    "Error fetching classifications | UserId: {UserId}",
                     request.DTO?.Prop?.UserEmployeeId);
 
-                throw; // 🔥 IMPORTANT
+                throw;
             }
         }
     }
+
+
 }
