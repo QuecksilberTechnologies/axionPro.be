@@ -242,49 +242,57 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                if (dto == null || dto.Id <= 0)
-                {
-                    _logger.LogWarning("⚠️ Invalid DTO or Id for UpdateAsync.");
-                    return new GetHeaderResponseDTO();
-                }
+                var entity = await _context.TicketHeaders
+                    .FirstOrDefaultAsync(x =>
+                        x.Id == dto.Id &&
+                        x.TenantId == dto.Prop.TenantId &&
+                        x.IsSoftDeleted != true);
 
-                
-                var existing = await _context.TicketHeaders.FirstOrDefaultAsync(x => x.Id == dto.Id && (x.IsSoftDeleted == null || x.IsSoftDeleted == false));
-                if (existing == null)
-                {
-                    _logger.LogWarning("⚠️ Ticket header not found for update. Id: {Id}", dto.Id);
-                    return new GetHeaderResponseDTO();
+                if (entity == null)
+                    return null;
 
-                }
+                // ===============================
+                // 1️⃣ UPDATE FIELDS
+                // ===============================
+                entity.HeaderName = dto.HeaderName;
+                entity.Description = dto.Description;
 
-                existing.HeaderName = dto.HeaderName ?? existing.HeaderName;
-                existing.Description = dto.Description ?? existing.Description;
-                existing.IsActive = dto.IsActive ?? existing.IsActive;
-                existing.UpdatedById = dto.EmployeeId;
-               
-                existing.UpdatedDateTime = DateTime.UtcNow;
-                existing.TicketClassificationId =
-                   (dto.TicketClassificationId.HasValue && dto.TicketClassificationId.Value != 0)
-                             ? dto.TicketClassificationId.Value
-                             : existing.TicketClassificationId;
+                entity.UpdatedById = dto.Prop.UserEmployeeId;
+                entity.UpdatedDateTime = DateTime.UtcNow;
 
-                _context.TicketHeaders.Update(existing);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("✅ Ticket header updated successfully. Id: {Id}", dto.Id);
+                // ===============================
+                // 2️⃣ RE-FETCH WITH JOIN
+                // ===============================
+                var result = await (
+                    from h in _context.TicketHeaders.AsNoTracking()
+                    join c in _context.TicketClassifications.AsNoTracking()
+                        on h.TicketClassificationId equals c.Id into hc
+                    from c in hc.DefaultIfEmpty()
+                    where h.Id == entity.Id
+                    select new GetHeaderResponseDTO
+                    {
+                        Id = h.Id,
+                        HeaderName = h.HeaderName,
+                        Description = h.Description,
+                        IsActive = h.IsActive,
 
-                var response = _mapper.Map<GetHeaderResponseDTO>(existing);
-                return response;
+                        TicketClassificationId = h.TicketClassificationId,
+                        TicketClassificationName = c != null ? c.ClassificationName : null,
 
+                        
+                    }
+                ).FirstOrDefaultAsync();
+
+                return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error while updating ticket header. Id: {Id}", dto.Id);
-                return new GetHeaderResponseDTO();
-
+                _logger.LogError(ex, "Error while updating TicketHeader");
+                throw;
             }
         }
-
         // ✅ DELETE (Soft Delete)
         public async Task<bool> DeleteAsync(DeleteHeaderRequestDTO dto, long EmployeeId)
         {

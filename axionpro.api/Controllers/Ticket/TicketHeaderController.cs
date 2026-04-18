@@ -101,33 +101,33 @@ namespace axionpro.api.Controllers.Ticket
         /// <summary>
         /// Updates the details of an existing Ticket Header.
         /// </summary>
-       // [HttpPut("update")]
-        
-        
-        
-        //public async Task<IActionResult> UpdateHeader([FromBody] UpdateHeaderRequestDTO dto)
-        //{
-        //    try
-        //    {
-        //        _logger.LogInformation("🛠️ Updating Ticket Header: {Data}", JsonConvert.SerializeObject(dto));
+          [HttpPut("update")]
 
-        //        var result = await _mediator.Send(new UpdateHeaderCommand(dto));
 
-        //        if (!result.IsSucceeded)
-        //            return BadRequest(result);
 
-        //        return Ok(result);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "❌ Error occurred while updating Ticket Header.");
-        //        return StatusCode(500, new ApiResponse<string>
-        //        {
-        //            IsSucceeded = false,
-        //            Message = $"Internal Server Error: {ex.Message}"
-        //        });
-        //    }
-        //}
+        public async Task<IActionResult> UpdateHeader([FromBody] UpdateHeaderRequestDTO dto)
+        {
+            try
+            {
+                _logger.LogInformation("🛠️ Updating Ticket Header: {Data}", JsonConvert.SerializeObject(dto));
+
+                var result = await _mediator.Send(new UpdateHeaderCommand(dto));
+
+                if (!result.IsSucceeded)
+                    return BadRequest(result);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error occurred while updating Ticket Header.");
+                return StatusCode(500, new ApiResponse<string>
+                {
+                    IsSucceeded = false,
+                    Message = $"Internal Server Error: {ex.Message}"
+                });
+            }
+        }
 
         // ----------------------------------------------------------------------------------------------------
         // 4️⃣ DELETE - Soft delete Ticket Header
@@ -135,7 +135,7 @@ namespace axionpro.api.Controllers.Ticket
         /// <summary>
         /// Soft deletes a Ticket Header based on its unique ID.
         /// </summary>
-         [HttpDelete("delete")]
+        [HttpDelete("delete")]
  
         public async Task<IActionResult> DeleteTicketHeader([FromBody]  DeleteHeaderRequestDTO dto)
         {
@@ -146,28 +146,6 @@ namespace axionpro.api.Controllers.Ticket
 
         }
 
-        //public async task<iactionresult> deleteheader([frombody] deleteheaderrequestdto dto)
-        //{
-        //    try
-        //    {
-        //        _logger.loginformation("🗑️ request received to delete ticket header with id = {id}", dto.id);
-
-        //        var result = await _mediator.send(new deleteheadercommand(dto));
-
-        //        if (!result.issucceeded)
-        //            return notfound(result);
-
-        //        return ok(result);
-        //    }
-        //    catch (exception ex)
-        //    {
-        //        _logger.logerror(ex, "❌ error occurred while deleting ticket header id = {id}", dto.id);
-        //        return statuscode(500, new apiresponse<string>
-        //        {
-        //            issucceeded = false,
-        //            message = $"internal server error: {ex.message}"
-        //        });
-        //    }
-        //}
+         
     }
 }

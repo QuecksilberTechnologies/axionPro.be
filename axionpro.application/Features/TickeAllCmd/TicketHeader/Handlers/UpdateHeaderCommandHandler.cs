@@ -1,6 +1,8 @@
-﻿using AutoMapper;
+﻿using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.TicketDTO.Header;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -11,89 +13,88 @@ namespace axionpro.application.Features.TickeAllCmd.TicketHeader.Handlers
     {
         public UpdateHeaderRequestDTO DTO { get; set; }
 
-        public UpdateHeaderCommand(UpdateHeaderRequestDTO dTO)
+        public UpdateHeaderCommand(UpdateHeaderRequestDTO dto)
         {
-            this.DTO = dTO;
+            DTO = dto;
         }
-
     }
-    /// <summary>
-    /// Handles the update of an existing Ticket Header.
-    /// </summary>
-    public class UpdateHeaderCommandHandler : IRequestHandler<UpdateHeaderCommand, ApiResponse<GetHeaderResponseDTO>>
+
+    public class UpdateHeaderCommandHandler
+        : IRequestHandler<UpdateHeaderCommand, ApiResponse<GetHeaderResponseDTO>>
     {
-        private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<UpdateHeaderCommandHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
 
         public UpdateHeaderCommandHandler(
-            IMapper mapper,
             IUnitOfWork unitOfWork,
-            ILogger<UpdateHeaderCommandHandler> logger)
+            ILogger<UpdateHeaderCommandHandler> logger,
+            ICommonRequestService commonRequestService)
         {
-            _mapper = mapper;
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _commonRequestService = commonRequestService;
         }
 
-        public async Task<ApiResponse<GetHeaderResponseDTO>> Handle(UpdateHeaderCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<GetHeaderResponseDTO>> Handle(
+            UpdateHeaderCommand request,
+            CancellationToken cancellationToken)
         {
             try
             {
-                // Step 1: Validate request
-                if (request == null || request.DTO == null || request.DTO.Id <= 0)
-                {
-                    _logger.LogWarning("⚠️ UpdateHeaderCommand received with invalid DTO or Id.");
-                    return new ApiResponse<GetHeaderResponseDTO>
-                    {
-                        IsSucceeded = false,
-                        Message = "Invalid request or missing header data.",
-                        Data = null
-                    };
-                }
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
+                var validation = await _commonRequestService.ValidateRequestAsync();
 
-                _logger.LogInformation("✏️ Attempting to update header with Id: {Id}", request.DTO.Id);
+                if (!validation.Success)
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // Step 2: Begin transaction
+                // ===============================
+                // 2️⃣ RBAC
+                // ===============================
+                //await _commonRequestService.HasAccessAsync(
+                //    ModuleEnum.Ticket,
+                //    OperationEnum.Update);
+
+                // ===============================
+                // 3️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null || request.DTO.Id <= 0)
+                    throw new ValidationErrorException("Invalid request data.");
+
+                var dto = request.DTO;
+
+                dto.Prop ??= new ExtraPropRequestDTO();
+                dto.Prop.TenantId = validation.TenantId;
+
+                if (string.IsNullOrWhiteSpace(dto.HeaderName))
+                    throw new ValidationErrorException("Header name is required.");
+
+                // ===============================
+                // 4️⃣ TRANSACTION
+                // ===============================
                 await _unitOfWork.BeginTransactionAsync();
 
-                // Step 3: Call repository to update header
-                var updatedHeader = await _unitOfWork.TicketHeaderRepository.UpdateAsync(request.DTO);
+                var result = await _unitOfWork.TicketHeaderRepository
+                    .UpdateAsync(dto);
 
-                if (updatedHeader == null)
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    _logger.LogWarning("⚠️ Header with Id {Id} not found or could not be updated.", request.DTO.Id);
-                    return new ApiResponse<GetHeaderResponseDTO>
-                    {
-                        IsSucceeded = false,
-                        Message = "Header not found or could not be updated.",
-                        Data = null
-                    };
-                }
+                if (result == null)
+                    throw new ApiException("Header not found or could not be updated.", 404);
 
-                // Step 4: Commit transaction
                 await _unitOfWork.CommitTransactionAsync();
 
-                _logger.LogInformation("✅ Header updated successfully. Id: {Id}", request.DTO.Id);
-
-                return new ApiResponse<GetHeaderResponseDTO>
-                {
-                    IsSucceeded = true,
-                    Message = "Ticket header updated successfully.",
-                    Data = updatedHeader
-                };
+                // ===============================
+                // 5️⃣ RESPONSE
+                // ===============================
+                return ApiResponse<GetHeaderResponseDTO>
+                    .Success(result, "Ticket header updated successfully.");
             }
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackTransactionAsync();
-                _logger.LogError(ex, "❌ Error occurred while updating header with Id: {Id}", request.DTO?.Id);
-                return new ApiResponse<GetHeaderResponseDTO>
-                {
-                    IsSucceeded = false,
-                    Message = "An error occurred while updating the ticket header.",
-                    Data = null
-                };
+                _logger.LogError(ex, "Error updating TicketHeader");
+                throw;
             }
         }
     }
