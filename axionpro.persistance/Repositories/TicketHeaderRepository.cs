@@ -286,7 +286,7 @@ namespace axionpro.persistance.Repositories
         }
 
         // ✅ DELETE (Soft Delete)
-        public async Task<bool> DeleteAsync(DeleteHeaderRequestDTO dto)
+        public async Task<bool> DeleteAsync(DeleteHeaderRequestDTO dto, long EmployeeId)
         {
             try
             {
@@ -294,21 +294,19 @@ namespace axionpro.persistance.Repositories
                 {
                     _logger.LogWarning("⚠️ Invalid DTO or Id for DeleteHeaderAsync.");
                     return false;
-                }
+                } 
 
-  
-
-                var entity = await _context.TicketHeaders.FirstOrDefaultAsync(x => x.Id == dto.Id && (x.IsSoftDeleted == null || x.IsSoftDeleted == false));
+                var entity = await _context.TicketHeaders.FirstOrDefaultAsync(x => x.Id == dto.Id && (x.IsSoftDeleted != true && x.IsActive == true));
                 if (entity == null)
                 {
                     _logger.LogWarning("⚠️ Ticket header not found for deletion. Id: {Id}", dto.Id);
                     return false;
                 }
 
+                entity.SoftDeletedById = EmployeeId;
+                entity.SoftDeletedTime = DateTime.UtcNow;
                 entity.IsActive = false;
                 entity.IsSoftDeleted = true;
-                entity.SoftDeletedById = dto.EmployeeId;
-                entity.SoftDeletedTime = DateTime.UtcNow;
 
                 _context.TicketHeaders.Update(entity);
                 await _context.SaveChangesAsync();

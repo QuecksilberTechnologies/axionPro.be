@@ -1,15 +1,15 @@
 ﻿
 
+using axionpro.application.DTOS.Pagination;
 using axionpro.application.DTOS.TicketDTO.Header;
-
+using axionpro.domain.Entity;
+using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using axionpro.domain.Entity;
-using MediatR;
-using axionpro.application.DTOS.Pagination;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Model;
 
 namespace axionpro.application.Interfaces.IRepositories
 {
@@ -35,7 +35,7 @@ namespace axionpro.application.Interfaces.IRepositories
         /// <summary>
         /// Soft delete header (mark inactive).
         /// </summary>
-        Task<bool> DeleteAsync(DeleteHeaderRequestDTO dTO);
+        Task<bool> DeleteAsync(DeleteHeaderRequestDTO dTO, long EmployeeId);
          
         /// <summary>
         /// Update existing header details.

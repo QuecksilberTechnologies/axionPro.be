@@ -1,5 +1,7 @@
 ﻿using axionpro.application.DTOS.TicketDTO.Header;
+using axionpro.application.DTOS.TicketDTO.TicketType;
 using axionpro.application.Features.TickeAllCmd.TicketHeader.Handlers;
+using axionpro.application.Features.TickeAllCmd.TicketType.Handlers;
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -133,30 +135,37 @@ namespace axionpro.api.Controllers.Ticket
         /// <summary>
         /// Soft deletes a Ticket Header based on its unique ID.
         /// </summary>
-       // [HttpDelete("delete")]
-        
-        
-        
-        //public async Task<IActionResult> DeleteHeader([FromBody] DeleteHeaderRequestDTO dto)
+         [HttpDelete("delete")]
+ 
+        public async Task<IActionResult> DeleteTicketHeader([FromBody]  DeleteHeaderRequestDTO dto)
+        {
+
+            _logger.LogInformation("🗑️ Request received to delete TicketHeader with Id = {Id}", dto.Id);
+            var result = await _mediator.Send(new DeleteHeaderCommand(dto));
+            return Ok(result);
+
+        }
+
+        //public async task<iactionresult> deleteheader([frombody] deleteheaderrequestdto dto)
         //{
         //    try
         //    {
-        //        _logger.LogInformation("🗑️ Request received to delete Ticket Header with Id = {Id}", dto.Id);
+        //        _logger.loginformation("🗑️ request received to delete ticket header with id = {id}", dto.id);
 
-        //        var result = await _mediator.Send(new DeleteHeaderCommand(dto));
+        //        var result = await _mediator.send(new deleteheadercommand(dto));
 
-        //        if (!result.IsSucceeded)
-        //            return NotFound(result);
+        //        if (!result.issucceeded)
+        //            return notfound(result);
 
-        //        return Ok(result);
+        //        return ok(result);
         //    }
-        //    catch (Exception ex)
+        //    catch (exception ex)
         //    {
-        //        _logger.LogError(ex, "❌ Error occurred while deleting Ticket Header Id = {Id}", dto.Id);
-        //        return StatusCode(500, new ApiResponse<string>
+        //        _logger.logerror(ex, "❌ error occurred while deleting ticket header id = {id}", dto.id);
+        //        return statuscode(500, new apiresponse<string>
         //        {
-        //            IsSucceeded = false,
-        //            Message = $"Internal Server Error: {ex.Message}"
+        //            issucceeded = false,
+        //            message = $"internal server error: {ex.message}"
         //        });
         //    }
         //}

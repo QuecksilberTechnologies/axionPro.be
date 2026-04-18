@@ -1,6 +1,9 @@
 ﻿using AutoMapper;
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.TicketDTO.Header;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -28,68 +31,72 @@ namespace axionpro.application.Features.TickeAllCmd.TicketHeader.Handlers
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<DeleteHeaderCommandHandler> _logger;
-
+        private readonly ICommonRequestService _commonRequestService;
         public DeleteHeaderCommandHandler(
             IMapper mapper,
             IUnitOfWork unitOfWork,
-            ILogger<DeleteHeaderCommandHandler> logger)
+            ILogger<DeleteHeaderCommandHandler> logger,
+            ICommonRequestService commonRequestService)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _commonRequestService = commonRequestService;
         }
 
-        public async Task<ApiResponse<bool>> Handle(DeleteHeaderCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<bool>> Handle(
+     DeleteHeaderCommand request,
+     CancellationToken cancellationToken)
         {
             try
             {
-                // ✅ Step 1: Validate input
-                if (request == null || request.DTO == null || request.DTO.Id <= 0)
-                {
-                    _logger.LogWarning("⚠️ DeleteHeaderCommand received with invalid Header Id.");
-                    return new ApiResponse<bool>
-                    {
-                        IsSucceeded = false,
-                        Message = "Invalid header Id.",
-                        Data = false
-                    };
-                }
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
+                var validation = await _commonRequestService.ValidateRequestAsync();
 
-                _logger.LogInformation("🗑️ Attempting to delete header with Id: {Id}", request.DTO.Id);
+                if (!validation.Success)
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // ✅ Step 2: Call repository to delete header
-                var isDeleted = await _unitOfWork.TicketHeaderRepository.DeleteAsync(request.DTO);
+                // ===============================
+                // 2️⃣ RBAC
+                // ===============================
+                //await _commonRequestService.HasAccessAsync(
+                //    ModuleEnum.Ticket,
+                //    OperationEnum.Delete);
 
-                // ✅ Step 3: Check deletion status
-                if (!isDeleted)
-                {
-                    _logger.LogWarning("⚠️ Header with Id {Id} could not be deleted or not found.", request.DTO.Id);
-                    return new ApiResponse<bool>
-                    {
-                        IsSucceeded = false,
-                        Message = "Header not found or could not be deleted.",
-                        Data = false
-                    };
-                }
+                // ===============================
+                // 3️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null || request.DTO.Id <= 0)
+                    throw new ValidationErrorException("Invalid request data.");
+                
+              
 
-                _logger.LogInformation("✅ Header deleted successfully with Id: {Id}", request.DTO.Id);
+                // ===============================
+                // 4️⃣ TRANSACTION
+                // ===============================
+                await _unitOfWork.BeginTransactionAsync();
 
-                return new ApiResponse<bool>
-                {
-                    IsSucceeded = true,
-                    Message = "Ticket header deleted successfully.",
-                    Data = true
-                };
+                var result = await _unitOfWork.TicketHeaderRepository
+                    .DeleteAsync(request.DTO, validation.LoggedInEmployeeId);
+
+                if (!result)
+                    throw new ApiException("Header not found or could not be deleted.", 404);
+
+                await _unitOfWork.CommitTransactionAsync();
+
+                // ===============================
+                // 5️⃣ RESPONSE
+                // ===============================
+                return ApiResponse<bool>
+                    .Success(true, "Ticket header deleted successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error occurred while deleting header with Id: {Id}", request.DTO?.Id);
-                return new ApiResponse<bool>
-                {
-                    IsSucceeded = false,
-                    Message = "An error occurred while deleting the ticket header.",
-                    Data = false
-                };
+                await _unitOfWork.RollbackTransactionAsync();
+                _logger.LogError(ex, "Error deleting TicketHeader");
+                throw;
             }
         }
     }
