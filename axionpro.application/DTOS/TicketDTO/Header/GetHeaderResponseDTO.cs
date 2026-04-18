@@ -7,15 +7,15 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOS.TicketDTO.Header
 {
-    public class GetHeaderResponseDTO : BaseRequest
+    public class GetHeaderResponseDTO 
     {
 
        
-            public string HeaderId { get; set; } = null!;  // 🔐 encoded string (as per your rule)
+            public long Id { get; set; }  // 🔐 encoded string (as per your rule)
 
             public string HeaderName { get; set; } = null!;
 
-            public string? TicketClassificationId { get; set; }
+            public int TicketClassificationId { get; set; }
 
             public string? TicketClassificationName { get; set; }
 

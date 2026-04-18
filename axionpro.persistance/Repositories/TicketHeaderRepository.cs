@@ -32,64 +32,56 @@ namespace axionpro.persistance.Repositories
         }
 
         // ✅ ADD
-        public async Task<List<GetHeaderResponseDTO>> AddAsync(AddHeaderRequestDTO dto)
+        public async Task<GetHeaderResponseDTO> AddAsync(AddHeaderRequestDTO dto)
         {
-            var result = new List<GetHeaderResponseDTO>();
-
             try
             {
-                if (dto == null)
+                var entity = new TicketHeader
                 {
-                    _logger.LogWarning("⚠️ AddAsync called with null DTO.");
-                    return result;
-                }
+                    HeaderName = dto.HeaderName,
+                    Description = dto.Description,
 
-               
-                // ✅ Duplicate check
-                bool exists = await _context.TicketHeaders
-                    .AnyAsync(x => x.HeaderName.ToLower() == dto.HeaderName.ToLower()
-                                && x.IsActive
-                                && (x.IsSoftDeleted == null || x.IsSoftDeleted == false)
-                                && x.TenantId == dto.TenantId);
+                    TenantId = dto.Prop.TenantId,
 
-                if (exists)
-                {
-                    _logger.LogWarning("⚠️ Ticket header already exists: {Name}", dto.HeaderName);
-                    // ✅ Return existing list instead of empty
-                    var existingHeaders = await _context.TicketHeaders
-                        .Where(x => x.TenantId == dto.TenantId && x.IsActive && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
-                        .ToListAsync();
-                    return _mapper.Map<List<GetHeaderResponseDTO>>(existingHeaders);
-                }
+                    IsActive = true,
+                    IsSoftDeleted = false,
 
-                // ✅ Map DTO → Entity
-                var entity = _mapper.Map<TicketHeader>(dto);
-                entity.AddedById = dto.EmployeeId;
-                entity.AddedDateTime = DateTime.UtcNow;
-                entity.IsActive = true;
+                    AddedById = dto.Prop.UserEmployeeId,
+                    AddedDateTime = DateTime.UtcNow
+                };
 
-                // ✅ Add to DB
                 await _context.TicketHeaders.AddAsync(entity);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("✅ Ticket header added successfully. Id: {Id}", entity.Id);
+                // 🔥 IMPORTANT: re-fetch with join
+                var result = await (
+                    from h in _context.TicketHeaders
+                    join c in _context.TicketClassifications
+                        on h.TicketClassificationId equals c.Id into hc
+                    from c in hc.DefaultIfEmpty()
+                    where h.Id == entity.Id
+                    select new GetHeaderResponseDTO
+                    {
+                        Id = h.Id,
+                        HeaderName = h.HeaderName,
+                        Description = h.Description,
+                        IsActive = h.IsActive,
 
-                // ✅ Fetch all headers for this tenant after adding
-                var allHeaders = await _context.TicketHeaders
-                    .Where(x => x.TenantId == dto.TenantId && x.IsActive && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
-                    .ToListAsync();
+                        TicketClassificationId = h.TicketClassificationId,
+                        TicketClassificationName = c != null ? c.ClassificationName : null,
 
-                result = _mapper.Map<List<GetHeaderResponseDTO>>(allHeaders);
-                return result;
+                        
+                    }
+                ).FirstOrDefaultAsync();
+
+                return result!;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error occurred while adding ticket header.");
-                return result;
+                _logger.LogError(ex, "Error while adding TicketHeader");
+                throw;
             }
         }
-
-
         // ✅ GET BY ID
         /// <summary>
         /// Get header by Id
@@ -171,10 +163,10 @@ namespace axionpro.persistance.Repositories
                     !x.IsSoftDeleted)
                 .Select(x => new GetHeaderResponseDTO
                 {
-                    HeaderId = x.Id.ToString(), // 🔐 encode later
+                    Id = x.Id, // 🔐 encode later
                     HeaderName = x.HeaderName,
 
-                    TicketClassificationId = x.TicketClassificationId.ToString(),
+                    TicketClassificationId = x.TicketClassificationId,
                     TicketClassificationName = x.TicketClassification.ClassificationName,
 
                     Description = x.Description,

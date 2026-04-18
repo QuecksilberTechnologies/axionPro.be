@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using axionpro.domain.Entity;
 using MediatR;
+using axionpro.application.DTOS.Pagination;
 
 namespace axionpro.application.Interfaces.IRepositories
 {
@@ -18,7 +19,7 @@ namespace axionpro.application.Interfaces.IRepositories
         /// <summary>
         /// Add new ticket header.
         /// </summary>
-     public Task<List<GetHeaderResponseDTO>> AddAsync(AddHeaderRequestDTO dTO);
+     public Task<GetHeaderResponseDTO> AddAsync(AddHeaderRequestDTO dTO);
 
         /// <summary>
         /// Get header by Id.

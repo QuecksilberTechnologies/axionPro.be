@@ -1,11 +1,10 @@
 ﻿using AutoMapper;
+using axionpro.application.DTOS.TicketDTO.Ticket;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Microsoft.EntityFrameworkCore;
 
 namespace axionpro.persistance.Repositories
 {
@@ -27,14 +26,32 @@ namespace axionpro.persistance.Repositories
             _mapper = mapper;
 
         }
-        public Task AddAsync(Ticket ticket)
+        public async Task<bool> AddAsync(Ticket entity)
         {
-            throw new NotImplementedException();
+            await _context.Ticket.AddAsync(entity);
+            return true;
         }
 
-        public Task<Ticket> GetByIdAsync(long typeId)
+      
+        Task ITicketGenrationRepository.AddAsync(Ticket ticket)
         {
-            throw new NotImplementedException();
+            return AddAsync(ticket);
+        }
+
+        public async Task<GetTicketResponseDTO?> GetByIdAsync(long ticketId)
+        {
+            return await _context.Ticket
+                .Where(t => t.Id == ticketId)
+                .Select(t => new GetTicketResponseDTO
+                {
+                    Id = t.Id,
+                    TicketNumber = t.TicketNumber,
+                    Description = t.Description,
+                    Priority = t.Priority,
+                    Status = t.Status,
+                    AddedDateTime = t.AddedDateTime
+                })
+                .FirstOrDefaultAsync();
         }
     }
 }

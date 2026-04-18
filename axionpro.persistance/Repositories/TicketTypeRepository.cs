@@ -174,7 +174,7 @@ namespace axionpro.persistance.Repositories
             try
             {
                 var entity = await _context.TicketTypes
-                    .FirstOrDefaultAsync(t =>  t.Id == id && t.IsActive && (t.IsSoftDeleted == false || t.IsSoftDeleted == null));
+                    .FirstOrDefaultAsync(t =>  t.Id == id && t.IsActive && (t.IsSoftDeleted != true));
 
                 if (entity == null)
                 {

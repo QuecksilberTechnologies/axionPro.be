@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using axionpro.application.DTOS.TicketDTO.Header;
 using axionpro.application.Interfaces.IRepositories;
+using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.Extensions.Logging;
 using System;
@@ -28,39 +29,10 @@ namespace axionpro.persistance.Repositories
 
         }
 
-        public Task<List<GetHeaderResponseDTO>> AddAsync(AddHeaderRequestDTO dTO)
+        public async Task<bool> AddEntityAsync(TicketHistory entity)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> DeleteAsync(DeleteHeaderRequestDTO dTO)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<List<GetHeaderResponseDTO>> GetAllAsync(GetHeaderRequestDTO dTO)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<List<GetHeaderResponseDTO>> GetAllHeaderAsync(GetHeaderRequestDTO dto)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<List<GetHeaderResponseDTO>> GetByClassificationIdAsync(GetTicketHeaderByClassifyIdRequestDTO dto)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<GetHeaderResponseDTO> GetByIdAsync(long headerId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<GetHeaderResponseDTO?> UpdateAsync(UpdateHeaderRequestDTO dTO)
-        {
-            throw new NotImplementedException();
+            await _context.TicketHistories.AddAsync(entity);
+            return true;
         }
     }
 }

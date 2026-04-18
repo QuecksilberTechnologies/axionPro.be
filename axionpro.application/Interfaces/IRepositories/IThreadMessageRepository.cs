@@ -1,46 +1,23 @@
 ﻿
 
 using axionpro.application.DTOS.TicketDTO.Header;
-
+using axionpro.domain.Entity;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using axionpro.domain.Entity;
-using MediatR;
 
 namespace axionpro.application.Interfaces.IRepositories
 {
 
     public interface IThreadMessageRepository
     {
-        /// <summary>
-        /// Add new ticket header.
-        /// </summary>
-     public Task<List<GetHeaderResponseDTO>> AddAsync(AddHeaderRequestDTO dTO);
+        Task<bool> AddEntityAsync(ThreadMessage entity);
+       
 
-        /// <summary>
-        /// Get header by Id.
-        /// </summary>
-        Task<List<GetHeaderResponseDTO>> GetAllHeaderAsync(GetHeaderRequestDTO dto);
-        Task<GetHeaderResponseDTO> GetByIdAsync(long headerId);
-        Task<List<GetHeaderResponseDTO>> GetByClassificationIdAsync(GetTicketHeaderByClassifyIdRequestDTO dto);
-        /// <summary>
-        /// Get all active header.
-        /// </summary>
-        Task<List<GetHeaderResponseDTO>> GetAllAsync(GetHeaderRequestDTO dTO);
-
-        /// <summary>
-        /// Soft delete header (mark inactive).
-        /// </summary>
-        Task<bool> DeleteAsync(DeleteHeaderRequestDTO dTO);
-         
-        /// <summary>
-        /// Update existing header details.
-        /// </summary>
-        Task<GetHeaderResponseDTO?> UpdateAsync(UpdateHeaderRequestDTO dTO);
-        
     }
 
 }

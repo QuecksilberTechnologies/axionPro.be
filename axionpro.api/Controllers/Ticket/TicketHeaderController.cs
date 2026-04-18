@@ -32,16 +32,15 @@ namespace axionpro.api.Controllers.Ticket
         /// </summary>
         /// <param name="dto">Ticket header data to be created.</param>
         /// <returns>Returns the created Ticket Header with a success message.</returns>
-      //  [HttpPost("create")] 
-        //public async Task<IActionResult> CreateHeader([FromBody] AddHeaderRequestDTO dto)
-        //{
+           [HttpPost("create")] 
+         public async Task<IActionResult> CreateHeader([FromBody] AddHeaderRequestDTO dto)
+         {
             
-        //        _logger.LogInformation("🎯 Received request to create Ticket Header: {Data}", JsonConvert.SerializeObject(dto));
-
-        //        var result = await _mediator.Send(new AddHeaderCommand(dto));
-        //        return Ok(result);
+               _logger.LogInformation("🎯 Received request to create Ticket Header: {Data}", JsonConvert.SerializeObject(dto));
+                var result = await _mediator.Send(new AddHeaderCommand(dto));
+                  return Ok(result);
            
-        //}
+         }
 
         // ----------------------------------------------------------------------------------------------------
         // 2️⃣ READ - Get all Ticket Headers with filters

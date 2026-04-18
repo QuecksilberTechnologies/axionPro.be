@@ -28,9 +28,10 @@ namespace axionpro.persistance.Repositories
 
         }
 
-        public Task<long> AddAsync(TicketThread thread)
+        public async Task<bool> AddAsync(TicketThread entity)
         {
-            throw new NotImplementedException();
+            await _context.TicketThreads.AddAsync(entity);
+            return true;
         }
     }
 }

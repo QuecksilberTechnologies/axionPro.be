@@ -19,7 +19,7 @@ public partial class Ticket
 
     public string? Description { get; set; }
 
-    public int? Priority { get; set; }
+    public int Priority { get; set; }
 
     public int Status { get; set; }
 
@@ -29,7 +29,7 @@ public partial class Ticket
 
     public long? RequestedForUserId { get; set; }
 
-    public long? RequestedByUserId { get; set; }
+    public long RequestedByUserId { get; set; }
 
     public long? RecommendedByUserId { get; set; }
 
@@ -91,6 +91,8 @@ public partial class Ticket
     public virtual Tenant Tenant { get; set; } = null!;
 
     public virtual TicketClassification? TicketClassification { get; set; }
+    public virtual ICollection<TicketHistory> TicketHistory { get; set; } = new List<TicketHistory>();
+
 
     public virtual TicketHeader TicketHeader { get; set; } = null!;
 

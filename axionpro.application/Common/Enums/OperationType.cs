@@ -102,4 +102,19 @@ public enum RelationDependant
         Rejected = 4,   
             
     }
+    public enum MessageType
+    {
+        System = 1,
+        User = 2,
+        Internal = 3
+    }
+    public enum ThreadEntityType
+    {
+        Ticket = 1,
+        Asset = 2,
+        Leave = 3,
+        Payroll = 4,
+        Employee = 5,
+        Notification = 6
+    }
 }

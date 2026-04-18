@@ -9,7 +9,7 @@ namespace axionpro.application.Interfaces.IRepositories
 {
     public interface ITicketAttachmentRepository
     {
-        Task AddAsync(TicketAttachment ticketAttachment);
+        Task<bool> AddAsync(TicketAttachment entity);
         Task<TicketAttachment> GetByIdAsync(long id);
     }
 

@@ -28,13 +28,16 @@ namespace axionpro.persistance.Repositories
             _mapper = mapper;
 
         }
-        public Task AddAsync(TicketAttachment ticketAttachment)
+        public async Task<bool> AddAsync(TicketAttachment entity)
         {
-            throw new NotImplementedException();
+            await _context.TicketAttachment.AddAsync(entity);
+            return true;
         }
         public Task<TicketAttachment> GetByIdAsync(long id)
         {
             throw new NotImplementedException();
         }
+
+       
     }
 }

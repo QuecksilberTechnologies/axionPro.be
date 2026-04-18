@@ -1,114 +1,100 @@
 ﻿using AutoMapper;
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.TicketDTO.Header;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.TickeAllCmd.TicketHeader.Handlers
 {
-    public class AddHeaderCommand : IRequest<ApiResponse<List<GetHeaderResponseDTO>>>
+    public class AddHeaderCommand : IRequest<ApiResponse<GetHeaderResponseDTO>>
     {
-        public AddHeaderRequestDTO dto { get; set; }
+        public AddHeaderRequestDTO DTO { get; set; }
 
         public AddHeaderCommand(AddHeaderRequestDTO dto)
         {
-            this.dto = dto;
+            DTO = dto;
         }
-
     }
-    public class AddHeaderCommandHandler : IRequestHandler<AddHeaderCommand, ApiResponse<List<GetHeaderResponseDTO>>>
+
+    public class AddHeaderCommandHandler
+        : IRequestHandler<AddHeaderCommand, ApiResponse<GetHeaderResponseDTO>>
     {
-        private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<AddHeaderCommandHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
 
         public AddHeaderCommandHandler(
-            IMapper mapper,
             IUnitOfWork unitOfWork,
-            ILogger<AddHeaderCommandHandler> logger)
+            ILogger<AddHeaderCommandHandler> logger,
+            ICommonRequestService commonRequestService)
         {
-            _mapper = mapper;
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _commonRequestService = commonRequestService;
         }
 
-        public async Task<ApiResponse<List<GetHeaderResponseDTO>>> Handle(AddHeaderCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<GetHeaderResponseDTO>> Handle(
+            AddHeaderCommand request,
+            CancellationToken cancellationToken)
         {
             try
             {
-                if (request == null || request.dto == null)
-                {
-                    _logger.LogWarning("⚠️ Null request or DTO in AddHeaderCommandHandler.");
-                    return new ApiResponse<List<GetHeaderResponseDTO>>
-                    {
-                        IsSucceeded = false,
-                        Message = "Invalid request or header data.",
-                        Data = null
-                    };
-                }
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
+                var validation = await _commonRequestService.ValidateRequestAsync();
 
-                var dto = request.dto;
+                if (!validation.Success)
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+
+                // ===============================
+                // 2️⃣ RBAC
+                // ===============================
+                //await _commonRequestService.HasAccessAsync(
+                //    ModuleEnum.Ticket,
+                //    OperationEnum.Create);
+
+                // ===============================
+                // 3️⃣ NULL SAFETY
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request data.");
+
+                var dto = request.DTO;
+
+                dto.Prop ??= new ExtraPropRequestDTO();
+                dto.Prop.TenantId = validation.TenantId;
 
                 if (string.IsNullOrWhiteSpace(dto.HeaderName))
-                {
-                    return new ApiResponse<List<GetHeaderResponseDTO>>
-                    {
-                        IsSucceeded = false,
-                        Message = "Header name is required.",
-                        Data = null
-                    };
-                }
+                    throw new ValidationErrorException("Header name is required.");
 
-                if (dto.EmployeeId <= 0)
-                {
-                    return new ApiResponse<List<GetHeaderResponseDTO>>
-                    {
-                        IsSucceeded = false,
-                        Message = "Invalid EmployeeId.",
-                        Data = null
-                    };
-                }
-
-                // Begin transaction
+                // ===============================
+                // 4️⃣ TRANSACTION
+                // ===============================
                 await _unitOfWork.BeginTransactionAsync();
 
-                // Add header via repository
-                var addedHeader = await _unitOfWork.TicketHeaderRepository.AddAsync(dto);
+                var result = await _unitOfWork.TicketHeaderRepository.AddAsync(dto);
 
-                if (addedHeader == null)
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    _logger.LogWarning("❌ Failed to add header: {HeaderName}", dto.HeaderName);
-                    return new ApiResponse<List<GetHeaderResponseDTO>>
-                    {
-                        IsSucceeded = false,
-                        Message = "Failed to add header.",
-                        Data = null
-                    };
-                }
+                if (result == null)
+                    throw new ApiException("Failed to add header.", 500);
 
                 await _unitOfWork.CommitTransactionAsync();
 
-                _logger.LogInformation("✅ Header '{HeaderName}' added successfully.", dto.HeaderName);
- 
-                return new ApiResponse<List<GetHeaderResponseDTO>>
-                {
-                    IsSucceeded = true,
-                    Message = "Header added successfully.",
-                    Data = addedHeader
-                };
+                // ===============================
+                // 5️⃣ RESPONSE
+                // ===============================
+                return ApiResponse<GetHeaderResponseDTO>
+                    .Success(result, "Header added successfully.");
             }
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackTransactionAsync();
-                _logger.LogError(ex, "❌ Exception in AddHeaderCommandHandler.");
-                return new ApiResponse<List<GetHeaderResponseDTO>>
-                {
-                    IsSucceeded = false,
-                    Message = "Error occurred while adding header.",
-                    Data = null
-                };
+                _logger.LogError(ex, "Error in AddHeaderCommandHandler");
+                throw;
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using Npgsql.Internal.Postgres;
+﻿using axionpro.application.DTOS.TicketDTO.Ticket;
+using Npgsql.Internal.Postgres;
 using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
@@ -9,7 +10,8 @@ namespace axionpro.application.Interfaces.IRepositories
     public interface ITicketGenrationRepository
     {
         Task AddAsync( axionpro.domain.Entity.Ticket ticket);
-        Task<axionpro.domain.Entity.Ticket> GetByIdAsync(long typeId);
+ 
+        Task<GetTicketResponseDTO?> GetByIdAsync(long ticketId);
     }
 
    

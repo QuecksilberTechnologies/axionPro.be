@@ -218,6 +218,7 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<Tenant> Tenants { get; set; }
 
         public virtual DbSet<TenantEmailConfig> TenantEmailConfigs { get; set; }
+        public virtual DbSet<TicketHistory> TicketHistories { get; set; }
 
         public virtual DbSet<TenantEnabledModule> TenantEnabledModules { get; set; }
 
@@ -251,6 +252,7 @@ namespace axionpro.persistance.Data.Context
       
 
         public virtual DbSet<ThreadMessage> ThreadMessage { get; set; }
+        public virtual DbSet<TicketThread> TicketThreads { get; set; }
 
         public virtual DbSet<Ticket> Ticket { get; set; }
 
@@ -2791,7 +2793,28 @@ namespace axionpro.persistance.Data.Context
             entity.Property(e => e.StatusName).HasMaxLength(100);
         });
 
-        modelBuilder.Entity <axionpro.domain.Entity.TicketThread>(entity =>
+            modelBuilder.Entity<TicketHistory>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("TicketHistory_pkey");
+
+                entity.ToTable("TicketHistory", "axionpro");
+
+                entity.Property(e => e.Action).HasMaxLength(100);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.Remarks).HasMaxLength(500);
+
+                entity.HasOne(d => d.DoneByUser).WithMany(p => p.TicketHistory)
+                    .HasForeignKey(d => d.DoneByUserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_TicketHistory_User");
+
+                entity.HasOne(d => d.Ticket).WithMany(p => p.TicketHistory)
+                    .HasForeignKey(d => d.TicketId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_TicketHistory_Ticket");
+            });
+
+            modelBuilder.Entity <axionpro.domain.Entity.TicketThread>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("Thread_pkey");
 

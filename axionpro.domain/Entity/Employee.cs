@@ -88,7 +88,7 @@ public partial class Employee
     public virtual ICollection<AssetHistory> AssetHistoryScrapApprovedByNavigation { get; set; } = new List<AssetHistory>();
 
     public virtual ICollection<AttendanceHistory> AttendanceHistory { get; set; } = new List<AttendanceHistory>();
-
+    public virtual ICollection<TicketHistory> TicketHistory { get; set; } = new List<TicketHistory>();
     public virtual Country Country { get; set; } = null!;
 
     public virtual Designation? Designation { get; set; }
