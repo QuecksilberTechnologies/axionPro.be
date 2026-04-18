@@ -22,7 +22,7 @@ namespace axionpro.application.DTOS.TicketDTO.TicketType
 
         public bool IsApprovalRequired { get; set; }
 
-        public int? ApprovalRoleId { get; set; }
+        public int? ApprovalId { get; set; }
         public string? ApprovalRoleName { get; set; }
 
         public bool AutoApproveIfSameRole { get; set; }

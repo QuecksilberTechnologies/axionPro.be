@@ -23,5 +23,5 @@ public partial class ThreadMessage
 
     public virtual Employee? AddedBy { get; set; }
 
-    public virtual Thread Thread { get; set; } = null!;
+    public virtual TicketThread Thread { get; set; } = null!;
 }

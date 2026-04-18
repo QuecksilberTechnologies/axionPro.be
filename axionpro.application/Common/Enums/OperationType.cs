@@ -94,4 +94,12 @@ public enum RelationDependant
         ImmigrationStamp = 10,
         ForeignContract = 11
     }
+    public enum TicketStatus
+    {
+        PendingApproval =  1,
+                Open = 2,
+        Closed = 3,
+        Rejected = 4,   
+            
+    }
 }

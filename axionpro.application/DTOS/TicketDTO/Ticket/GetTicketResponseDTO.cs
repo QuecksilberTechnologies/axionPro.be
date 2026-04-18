@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace axionpro.application.DTOS.TicketDTO.TicketType
+namespace axionpro.application.DTOS.TicketDTO.Ticket
 {
-    public class AddTicketResponseDTO
+    public class GetTicketResponseDTO :BaseRequest
     {
         // 🔹 Identity
         public long Id { get; set; }
@@ -55,11 +55,29 @@ namespace axionpro.application.DTOS.TicketDTO.TicketType
         public bool? IsSLABreached { get; set; }
 
         // 🔹 Timeline
-      
+        public DateTime AddedDateTime { get; set; }
 
         // 🔥 Helpful UI Flags (VERY IMPORTANT)
         public bool IsEditable { get; set; }
         public bool CanApprove { get; set; }
         public bool CanAssign { get; set; }
+        public TicketAttachmentDTO? TicketAttachmentDTO { get; set; } = null;
     }
+    public class TicketAttachmentDTO
+    {
+        public long Id { get; set; }
+
+        public string FileName { get; set; } = null!;
+
+        public string FilePath { get; set; } = null!;
+
+        public string? FileType { get; set; }
+
+        public long? FileSize { get; set; }
+
+        public long? UploadedByUserId { get; set; }
+
+        public DateTime? UploadedDateTime { get; set; }
+    }
+
 }

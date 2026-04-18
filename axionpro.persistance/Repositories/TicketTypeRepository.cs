@@ -93,12 +93,12 @@ namespace axionpro.persistance.Repositories
                         ResponsibleRoleId = r != null ? r.Id : null,
                         ResponsibleRoleName = r != null ? r.RoleName : null,
 
-                        ApprovalRoleId = t.ApprovalRoleId,
+                        ApprovalId = t.ApprovalRoleId,
                         ApprovalRoleName = ar != null ? ar.RoleName : null,
 
                         IsApprovalRequired = t.IsApprovalRequired,
                         AutoApproveIfSameRole = t.AutoApproveIfSameRole,
-
+                        IsAttachmentRequired = t.IsAttachmentRequired,
                         SLAHours = t.SLAHours,
                         IsActiveForAllUsers = t.IsActiveForAllUsers,
 
@@ -250,7 +250,7 @@ namespace axionpro.persistance.Repositories
                 entity.IsApprovalRequired = dto.IsApprovalRequired;
                 entity.ApprovalRoleId = dto.ApprovalRoleId;
                 entity.AutoApproveIfSameRole = dto.AutoApproveIfSameRole;
-
+                entity.IsAttachmentRequired = dto.IsAttachmentRequired;
                 entity.SLAHours = dto.SLAHours;
                 entity.IsActiveForAllUsers = dto.IsActiveForAllUsers;
 
@@ -342,7 +342,8 @@ namespace axionpro.persistance.Repositories
                         ResponsibleRoleName = role.RoleName,
                         EmployeeId = emp.Id,
                         EmployeeName = emp.FirstName + " " + emp.LastName,
-                        EmployeeEmail = emp.OfficialEmail
+                        EmployeeEmail = emp.OfficialEmail,
+                       
                     };
 
                 // 2️⃣ Group by TicketType to consolidate multiple employees
@@ -362,6 +363,7 @@ namespace axionpro.persistance.Repositories
                         Description = g.Key.Description,
                         ResponsibleRoleId = g.Key.ResponsibleRoleId,
                         ResponsibleRoleName = g.Key.ResponsibleRoleName,
+                        
                         Employees = g.Select(e => new EmployeeMinInfoDTO
                         {
                             Id = e.EmployeeId,

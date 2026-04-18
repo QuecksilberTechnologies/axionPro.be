@@ -6,6 +6,6 @@ namespace axionpro.application.Interfaces.IRepositories
 {
     public interface ITicketThreadRepository
     {
-        Task<long> AddAsync(axionpro.domain.Entity.Thread thread);
+        Task<long> AddAsync(axionpro.domain.Entity.TicketThread thread);
     }
 }

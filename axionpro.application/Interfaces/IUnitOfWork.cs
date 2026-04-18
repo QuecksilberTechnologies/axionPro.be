@@ -1,5 +1,6 @@
 ﻿using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces.ITokenService;
+using axionpro.domain.Entity;
 
 namespace axionpro.application.Interfaces
 {
@@ -16,6 +17,9 @@ namespace axionpro.application.Interfaces
         IPermissionRepository PermissionRepository { get; }
         IEmployeePolicyEnrollmentRepository EmployeePolicyEnrollmentRepository { get; }
         IEmployeeDependentInsuranceMappingRepository EmployeeDependentInsuranceMappingRepository { get; }
+        ITicketThreadRepository TicketThreadRepository { get; }
+        ITicketHistoryRepository TicketHistoryRepository { get; }
+        IThreadMessageRepository ThreadMessageRepository { get; }
         IReportingTypeRepository ReportingTypeRepository { get; }
         IAssetCategoryRepository AssetCategoryRepository { get; }
         ITicketClassificationRepository TicketClassificationRepository { get; }
@@ -24,6 +28,7 @@ namespace axionpro.application.Interfaces
         IWorkflowStagesRepository WorkflowStagesRepository { get; }
         IAssetStatusRepository AssetStatusRepository { get; }
         ITicketTypeRepository TicketTypeRepository { get; }
+        ITicketAttachmentRepository TicketAttachmentRepository { get; }
         IUserLoginReopsitory UserLoginRepository { get; }
         IForgotPasswordOtpRepository ForgotPasswordOtpRepository { get; }
         ISandwitchRuleRepository SandwitchRuleRepository { get; }
@@ -68,6 +73,8 @@ namespace axionpro.application.Interfaces
         IEmployeeTypeBasicMenuRepository EmployeeTypeBasicMenuRepository { get; }
         IUnStructuredEmployeePolicyTypeMappingRepository UnStructuredEmployeePolicyTypeMappingRepository { get; }
         IUserRolesPermissionOnModuleRepository UserRolesPermissionOnModuleRepository { get; }
+         ITicketGenrationRepository TicketGenrationRepository { get; }
+ 
  
         Task BeginTransactionAsync(CancellationToken cancellationToken = default);
         Task CommitTransactionAsync(CancellationToken cancellationToken = default);

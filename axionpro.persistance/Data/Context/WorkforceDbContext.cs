@@ -2791,7 +2791,7 @@ namespace axionpro.persistance.Data.Context
             entity.Property(e => e.StatusName).HasMaxLength(100);
         });
 
-        modelBuilder.Entity <axionpro.domain.Entity.Thread>(entity =>
+        modelBuilder.Entity <axionpro.domain.Entity.TicketThread>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("Thread_pkey");
 
@@ -2834,51 +2834,80 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.Description).HasMaxLength(500);
                 entity.Property(e => e.RejectedReason).HasMaxLength(500);
                 entity.Property(e => e.TicketNumber).HasMaxLength(50);
-   
 
-                entity.HasOne(d => d.ApprovedByUser).WithMany(p => p.TicketApprovedByUser)
-                    .HasForeignKey(d => d.ApprovedByUserId)
-                    .HasConstraintName("FK_Ticket_ApprovedBy");
+                // ===============================
+                // 🔥 EMPLOYEE RELATIONS (IMPORTANT)
+                // ===============================
 
-                entity.HasOne(d => d.AssignedToRole).WithMany(p => p.Ticket)
-                    .HasForeignKey(d => d.AssignedToRoleId)
-                    .HasConstraintName("FK_Ticket_AssignedRole");
-
-                entity.HasOne(d => d.AssignedToUser).WithMany(p => p.TicketAssignedToUser)
-                    .HasForeignKey(d => d.AssignedToUserId)
-                    .HasConstraintName("FK_Ticket_AssignedUser");
-
-                entity.HasOne(d => d.RecommendedByUser).WithMany(p => p.TicketRecommendedByUser)
-                    .HasForeignKey(d => d.RecommendedByUserId)
-                    .HasConstraintName("FK_Ticket_RecommendedBy");
-
-                entity.HasOne(d => d.RequestedByUser).WithMany(p => p.TicketRequestedByUser)
+                entity.HasOne(d => d.RequestedByUser)
+                    .WithMany(p => p.TicketRequestedByUser)
                     .HasForeignKey(d => d.RequestedByUserId)
+                    .OnDelete(DeleteBehavior.Restrict)
                     .HasConstraintName("FK_Ticket_RequestedBy");
 
-                entity.HasOne(d => d.RequestedForUser).WithMany(p => p.TicketRequestedForUser)
+                entity.HasOne(d => d.RequestedForUser)
+                    .WithMany(p => p.TicketRequestedForUser)
                     .HasForeignKey(d => d.RequestedForUserId)
+                    .OnDelete(DeleteBehavior.Restrict)
                     .HasConstraintName("FK_Ticket_RequestedFor");
 
-                entity.HasOne(d => d.Tenant).WithMany(p => p.Ticket)
+                entity.HasOne(d => d.RecommendedByUser)
+                    .WithMany(p => p.TicketRecommendedByUser)
+                    .HasForeignKey(d => d.RecommendedByUserId)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .HasConstraintName("FK_Ticket_RecommendedBy");
+
+                entity.HasOne(d => d.ApprovedByUser)
+                    .WithMany(p => p.TicketApprovedByUser)
+                    .HasForeignKey(d => d.ApprovedByUserId)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .HasConstraintName("FK_Ticket_ApprovedBy");
+
+                entity.HasOne(d => d.AssignedToUser)
+                    .WithMany(p => p.TicketAssignedToUser)
+                    .HasForeignKey(d => d.AssignedToUserId)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .HasConstraintName("FK_Ticket_AssignedUser");
+
+               
+
+                // ===============================
+                // 🔥 ROLE
+                // ===============================
+
+                entity.HasOne(d => d.AssignedToRole)
+                    .WithMany(p => p.Ticket)
+                    .HasForeignKey(d => d.AssignedToRoleId)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .HasConstraintName("FK_Ticket_AssignedRole");
+
+                // ===============================
+                // 🔥 MASTER TABLES
+                // ===============================
+
+                entity.HasOne(d => d.Tenant)
+                    .WithMany(p => p.Ticket)
                     .HasForeignKey(d => d.TenantId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .OnDelete(DeleteBehavior.Restrict)
                     .HasConstraintName("FK_Ticket_Tenant");
 
-                entity.HasOne(d => d.TicketClassification).WithMany(p => p.Ticket)
+                entity.HasOne(d => d.TicketClassification)
+                    .WithMany(p => p.Ticket)
                     .HasForeignKey(d => d.TicketClassificationId)
+                    .OnDelete(DeleteBehavior.Restrict)
                     .HasConstraintName("FK_Ticket_Classification");
 
-                entity.HasOne(d => d.TicketHeader).WithMany(p => p.Ticket)
+                entity.HasOne(d => d.TicketHeader)
+                    .WithMany(p => p.Ticket)
                     .HasForeignKey(d => d.TicketHeaderId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .OnDelete(DeleteBehavior.Restrict)
                     .HasConstraintName("FK_Ticket_Header");
 
-                entity.HasOne(d => d.TicketType).WithMany(p => p.Ticket)
+                entity.HasOne(d => d.TicketType)
+                    .WithMany(p => p.Ticket)
                     .HasForeignKey(d => d.TicketTypeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .OnDelete(DeleteBehavior.Restrict)
                     .HasConstraintName("FK_Ticket_TicketType");
- 
             });
 
             modelBuilder.Entity<TicketAttachment>(entity =>

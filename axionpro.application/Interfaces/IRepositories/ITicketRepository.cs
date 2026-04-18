@@ -6,7 +6,7 @@ using System.Text;
 
 namespace axionpro.application.Interfaces.IRepositories
 {
-    public interface ITicketRepository
+    public interface ITicketGenrationRepository
     {
         Task AddAsync( axionpro.domain.Entity.Ticket ticket);
         Task<axionpro.domain.Entity.Ticket> GetByIdAsync(long typeId);

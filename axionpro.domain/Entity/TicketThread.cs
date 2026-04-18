@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace axionpro.domain.Entity;
 
-public partial class Thread
+public partial class TicketThread
 {
     public long Id { get; set; }
 

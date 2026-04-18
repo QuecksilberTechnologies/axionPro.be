@@ -75,8 +75,7 @@ public partial class Ticket
 
     public bool IsSoftDeleted { get; set; }
 
-    public virtual Employee AddedBy { get; set; } = null!;
-
+ 
     public virtual Employee? ApprovedByUser { get; set; }
 
     public virtual Role? AssignedToRole { get; set; }
@@ -97,5 +96,5 @@ public partial class Ticket
 
     public virtual TicketType TicketType { get; set; } = null!;
 
-    public virtual Employee? UpdatedBy { get; set; }
+ 
 }

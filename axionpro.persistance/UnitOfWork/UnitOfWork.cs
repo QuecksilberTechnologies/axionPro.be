@@ -29,8 +29,17 @@ public class UnitOfWork : IUnitOfWork
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<UnitOfWork> _logger;
 
+    
+    
+
     private IDbContextTransaction? _currentTransaction;
     private bool _disposed;
+    private   ITicketGenrationRepository _ticketRepository;
+    private ITicketThreadRepository _ticketThreadRepository;
+    private IThreadMessageRepository _threadMessageRepository;
+
+    private  ITicketAttachmentRepository _ticketAttachmentRepository;
+    private ITicketHistoryRepository _ticketHistoryRepository;
 
     private IEmployeeDependentInsuranceMappingRepository? _employeeDependentInsuranceMappingRepository;
     private IEmployeePolicyEnrollmentRepository? _employeePolicyEnrollmentRepository;
@@ -357,7 +366,15 @@ public class UnitOfWork : IUnitOfWork
 
     public ITicketClassificationRepository TicketClassificationRepository =>
         _ticketClassificationRepository ??= new TicketClassificationRepository(_context, _loggerFactory.CreateLogger<TicketClassificationRepository>(), _mapper);
-
+    public IThreadMessageRepository ThreadMessageRepository =>
+    _threadMessageRepository ??= new ThreadMessageRepository(_context, _loggerFactory.CreateLogger<ThreadMessageRepository>(), _mapper);
+   
+    public ITicketHistoryRepository TicketHistoryRepository =>
+    _ticketHistoryRepository ??= new TicketHistoryRepository(_context, _loggerFactory.CreateLogger<TicketHistoryRepository>(), _mapper);
+   
+    public ITicketGenrationRepository TicketGenrationRepository =>
+    _ticketRepository ??= new TicketGenrationRepository(_context, _loggerFactory.CreateLogger<TicketGenrationRepository>(), _mapper);
+   
     public IAssetTypeRepository AssetTypeRepository =>
         _assetTypeRepository ??= new AssetTypeRepository(_context, _loggerFactory.CreateLogger<AssetTypeRepository>(), _mapper);
 
@@ -374,7 +391,12 @@ public class UnitOfWork : IUnitOfWork
             _loggerFactory.CreateLogger<EmployeeDependentRepository>(),
             _passwordService,
             _encriptionService,_fileStorageService);
+    public ITicketThreadRepository TicketThreadRepository =>
+   _ticketThreadRepository ??= new TicketThreadRepository(_context, _loggerFactory.CreateLogger<TicketThreadRepository >(), _mapper);
+    public ITicketAttachmentRepository TicketAttachmentRepository =>
+   _ticketAttachmentRepository ??= new TicketAttachmentRepository(_context, _loggerFactory.CreateLogger<TicketAttachmentRepository>(), _mapper);
 
+ 
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {

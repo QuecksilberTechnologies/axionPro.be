@@ -122,10 +122,26 @@ namespace axionpro.persistance
              services.AddScoped<IInsuranceRepository, InsuranceRepository>();
              services.AddScoped<IPolicyTypeInsuranceMappingRepository, PolicyTypeInsuranceMappingRepository>();
              services.AddScoped<IPolicyTypeDocumentRepository, PolicyTypeDocumentRepository>();
+             services.AddScoped<ITicketGenrationRepository, TicketGenrationRepository>();
+             services.AddScoped<ITicketThreadRepository, TicketThreadRepository>();
+             services.AddScoped<IThreadMessageRepository, ThreadMessageRepository>();
+             services.AddScoped<ITicketHistoryRepository, TicketHistoryRepository>();
+
+
+
+             
+                 
+             
+             
+              
             
-            
-            
-            
+
+
+
+
+
+
+
             services.AddScoped<IEmployeeBankRepository, EmployeeBankRepository>();
             services.AddScoped<IEmployeeContactRepository, EmployeeContactRepository>();
             services.AddScoped<IEmployeeIdentityRepository, EmployeeIdentityRepository>();
