@@ -42,42 +42,40 @@ namespace axionpro.persistance.Repositories
                 // 1️⃣ VALIDATION
                 // ===============================
                 if (dto == null)
-                {
-                    _logger.LogWarning("⚠️ AddAsync called with null DTO.");
                     throw new ArgumentException("Request cannot be null.");
-                }
 
                 if (string.IsNullOrWhiteSpace(dto.ClassificationName))
                     throw new ArgumentException("ClassificationName is required.");
 
                 // ===============================
-                // 2️⃣ DUPLICATE CHECK (SAFE)
+                // 2️⃣ DUPLICATE CHECK
                 // ===============================
-                bool exists = await _context.TicketClassifications
+                var exists = await _context.TicketClassifications
                     .AnyAsync(x =>
-                        x.TenantId == dto.TenantId &&
+                        x.TenantId == dto.Prop.TenantId &&
                         x.IsActive &&
-                        (x.IsSoftDeleted !=true) &&
-                        x.ClassificationName.ToLower() == dto.ClassificationName.ToLower()
-                    );
+                        (x.IsSoftDeleted != true) &&
+                        x.ClassificationName.ToLower() == dto.ClassificationName.ToLower());
 
                 if (exists)
-                {
-                    _logger.LogWarning("⚠️ Classification already exists: {Name}", dto.ClassificationName);
                     throw new InvalidOperationException("Classification already exists.");
-                }
 
                 // ===============================
-                // 3️⃣ MAP DTO → ENTITY
+                // 3️⃣ CREATE ENTITY (MANUAL)
                 // ===============================
-                var entity = _mapper.Map<TicketClassification>(dto);
+                var entity = new TicketClassification
+                {
+                    ClassificationName = dto.ClassificationName,
+                    Description = dto.Description,
 
-                entity.TenantId = dto.TenantId;
-                entity.AddedById = dto.EmployeeId;
-                entity.AddedDateTime = DateTime.UtcNow;
+                    TenantId = dto.Prop.TenantId,
 
-                entity.IsActive = dto.IsActive ?? true;
-                entity.IsSoftDeleted = false;
+                    IsActive = dto.IsActive ?? true,
+                    IsSoftDeleted = false,
+
+                    AddedById = dto.Prop.UserEmployeeId,
+                    AddedDateTime = DateTime.UtcNow
+                };
 
                 // ===============================
                 // 4️⃣ SAVE
@@ -85,21 +83,27 @@ namespace axionpro.persistance.Repositories
                 await _context.TicketClassifications.AddAsync(entity);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("✅ Ticket classification added. Id: {Id}", entity.Id);
+                _logger.LogInformation("Ticket classification added. Id: {Id}", entity.Id);
 
                 // ===============================
-                // 5️⃣ RETURN SINGLE DTO
+                // 5️⃣ RETURN DTO
                 // ===============================
-                var result = _mapper.Map<GetClassificationResponseDTO>(entity);
-
-                return result;
+                return new GetClassificationResponseDTO
+                {
+                    Id = entity.Id,
+                    ClassificationName = entity.ClassificationName,
+                    Description = entity.Description,
+                    IsActive = entity.IsActive,
+                  
+                };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error while adding ticket classification.");
+                _logger.LogError(ex, "Error while adding ticket classification.");
                 throw;
             }
         }
+
         //  GET BY ID
         public async Task<PagedResponseDTO<GetClassificationResponseDTO?>> GetByIdAsync(GetClassificationRequestDTO dto)
         {

@@ -63,8 +63,8 @@ public class AddClassificationCommandHandler : IRequestHandler<AddClassification
             // ===============================
             // 3️⃣ SET COMMON PROPS
             // ===============================
-            request.DTO.TenantId = validation.TenantId;
-            request.DTO.EmployeeId = validation.UserEmployeeId;
+            request.DTO.Prop.TenantId = validation.TenantId;
+            request.DTO.Prop.EmployeeId = validation.UserEmployeeId;
             //var hasPermission = await _permissionService.HasAccessAsync(
             //    validation.RoleId,
             //    "TicketClassification",   // ModuleName (DB match)
