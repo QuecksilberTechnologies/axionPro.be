@@ -16,7 +16,7 @@ namespace axionpro.application.DTOS.TicketDTO.Header
 
         public string HeaderName { get; set; } = null!;
 
-        public string? TicketClassificationId { get; set; }
+        public long TicketClassificationId { get; set; }
 
         public string? TicketClassificationName { get; set; }
 
