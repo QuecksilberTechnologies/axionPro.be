@@ -1,10 +1,11 @@
-﻿using System;
+﻿using axionpro.application.DTOS.Pagination;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace axionpro.application.DTOS.TicketDTO.Ticket
 {
-    public class GetTicketResponseDTO :BaseRequest
+    public class GetTicketResponseDTO :BaseResponse
     {
         // 🔹 Identity
         public long Id { get; set; }

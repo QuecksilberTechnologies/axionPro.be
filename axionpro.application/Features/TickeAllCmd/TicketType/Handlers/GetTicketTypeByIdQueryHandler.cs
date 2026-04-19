@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using axionpro.application.DTOS.TicketDTO.TicketType;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
@@ -25,17 +27,20 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
         private readonly IUnitOfWork _unitOfWork;
         private readonly IStoreProcedureRepository _commonRepository;
         private readonly ILogger<GetTicketTypeByIdQueryHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
 
         public GetTicketTypeByIdQueryHandler(
             ITicketTypeRepository repository,
             IMapper mapper,
             IUnitOfWork unitOfWork,
             IStoreProcedureRepository commonRepository,
+            ICommonRequestService commonRequestService,
             ILogger<GetTicketTypeByIdQueryHandler> logger)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _commonRequestService = commonRequestService ?? throw new ArgumentNullException(nameof(commonRequestService));
             _commonRepository = commonRepository ?? throw new ArgumentNullException(nameof(commonRepository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -44,20 +49,22 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
         {
             try
             {
-                // 1️⃣ Validation
-                if (request == null || request.DTO.Id <= 0)
-                {
-                    _logger.LogWarning("⚠️ Invalid request received in GetTicketTypeByIdQuery. Id = {Id}", request.DTO?.Id);
-                    return new ApiResponse<GetTicketTypeResponseDTO>
-                    {
-                        IsSucceeded = false,
-                        Message = "Invalid request. TicketType Id must be greater than zero.",
-                        Data = null
-                    };
-                }
+                _logger.LogInformation("🔍 GetAllTicketTypeByHeaderId started. HeaderId: {HeaderId}", request?.DTO?.Id);
 
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
+                var validation = await _commonRequestService.ValidateRequestAsync();
+
+                if (!validation.Success)
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request.");
+
+                
                 // 2️⃣ Fetch from repository
-                var Entity = await _repository.GetByIdAsync(request.DTO.Id);
+                var Entity = await _repository.GetByIdAsync(request.DTO.Id, request.DTO.IsActive);
                 if (Entity == null)
                 {
                     _logger.LogWarning("⚠️ No TicketType found for Id = {Id}", request.DTO.Id);
@@ -70,8 +77,7 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
                 }
  
 
-                // 4️⃣ Optional: Commit transaction if needed (not required for read ops, but safe)
-                await _unitOfWork.CommitAsync();
+                
 
                 _logger.LogInformation("✅ Successfully fetched TicketType (Id = {Id})", request.DTO.Id);
 

@@ -16,15 +16,12 @@ namespace axionpro.application.DTOS.TicketDTO.TicketType
 
 
     }
-}
-public class BaseRequest
-{
-    public int PageNumber { get; set; }
-    public int PageSize { get; set; }
-    public string? SortBy { get; set; }
-    public string? SortOrder { get; set; } = "desc";
-    public string? UserEmployeeId { get; set; }
+    public class GetDDLTicketTypeRequestDTO
+    {
+
+        public bool IsActive { get; set; }
 
 
+    }
 
 }

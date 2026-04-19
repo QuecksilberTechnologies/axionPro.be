@@ -1,4 +1,5 @@
 ﻿using axionpro.application.DTOS.TicketDTO.TicketType;
+using axionpro.application.Features.TicckeAllCmd.TicketType.Handlers;
 using axionpro.application.Features.TickeAllCmd.TicketType.Handlers;
 using axionpro.application.Wrappers;
 using MediatR;
@@ -69,6 +70,15 @@ namespace axionpro.api.Controllers.Ticket
             return Ok(result);
         }
 
+        [HttpGet("ddl-list")]
+        public async Task<IActionResult> GetDDLTicketTypes([FromQuery] GetDDLTicketTypeRequestDTO dto)
+        {
+
+            _logger.LogInformation("📦 Fetching all Ticket Types for DDL...");
+            var result = await _mediator.Send(new DDLTicketTypeQuery(dto));
+            return Ok(result);
+        }
+
         // ----------------------------------------------------------------------------------------------------
         // 3️⃣ READ (BY ID) - Get specific Ticket Type
         // ----------------------------------------------------------------------------------------------------
@@ -78,15 +88,15 @@ namespace axionpro.api.Controllers.Ticket
         /// </summary>
         /// <param name="dto">Unique identifier of the Ticket Type.</param>
         /// <returns>Returns Ticket Type details.</returns>
-        //[HttpGet("get")]    
-        //public async Task<IActionResult> GetTicketTypeById([FromQuery] GetTicketTypeByIdRequestDTO dto)
-        //{
-            
-        //        _logger.LogInformation("🔍 Fetching TicketType details for Id = {Id}", dto);
-        //        var result = await _mediator.Send(new GetTicketTypeByIdQuery(dto));
-        //        return Ok(result);
-           
-        //}
+        [HttpGet("get-by-id")]
+        public async Task<IActionResult> GetTicketTypeById([FromQuery] GetTicketTypeByIdRequestDTO dto)
+        {
+
+            _logger.LogInformation("🔍 Fetching TicketType details for Id = {Id}", dto);
+            var result = await _mediator.Send(new GetTicketTypeByIdQuery(dto));
+            return Ok(result);
+
+        }
 
         // ----------------------------------------------------------------------------------------------------
         // 4️⃣ UPDATE - Modify existing Ticket Type

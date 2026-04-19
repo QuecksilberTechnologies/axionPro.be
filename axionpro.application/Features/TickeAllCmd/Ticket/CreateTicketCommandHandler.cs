@@ -67,7 +67,7 @@ public class CreateTicketCommandHandler
             // 2️⃣ GET TICKET TYPE
             // ===============================
             var ticketType = await _unitOfWork.TicketTypeRepository
-                .GetByIdAsync(dto.TicketTypeId);
+                .GetByIdAsync(dto.TicketTypeId, true);
 
             if (ticketType == null)
                 throw new ValidationErrorException("Invalid TicketType");

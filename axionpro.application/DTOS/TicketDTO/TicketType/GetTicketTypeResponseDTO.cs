@@ -56,10 +56,27 @@ namespace axionpro.application.DTOS.TicketDTO.TicketType
 
         public List<EmployeeMinInfoDTO> Employees { get; set; } = new();
     }
+    
+    
     public class EmployeeMinInfoDTO
     {
         public long Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
     }
+
+    public class GetDDLTicketTypeResponseDTO
+    {
+        public long Id { get; set; }
+
+        public string TicketTypeName { get; set; } = null!;   
+
+        public string? Description { get; set; }
+
+        public bool IsActive { get; set; }
+
+
+    }
+   
+
 }

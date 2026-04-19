@@ -149,6 +149,52 @@ namespace axionpro.persistance.Repositories
                 throw;
             }
         }
+
+        public async Task<List<GetDDLTicketTypeResponseDTO>> GetDDLAsync(bool isActive, long tenantId)
+        {
+            try
+            {
+                _logger.LogInformation("Fetching TicketType DDL for TenantId: {TenantId}", tenantId);
+
+                // ===============================
+                // 1️⃣ BASE QUERY
+                // ===============================
+                var query = _context.TicketTypes
+                    .AsNoTracking()
+                    .Where(t => t.TenantId == tenantId &&
+                                t.IsSoftDeleted != true);
+
+                // ===============================
+                // 2️⃣ OPTIONAL FILTER
+                // ===============================
+               
+                    query = query.Where(t => t.IsActive == isActive);
+                
+
+                // ===============================
+                // 3️⃣ PROJECTION (DDL)
+                // ===============================
+                var data = await query
+                    .OrderBy(t => t.TicketTypeName)
+                    .Select(t => new GetDDLTicketTypeResponseDTO
+                    {
+                        Id = t.Id,
+                        TicketTypeName = t.TicketTypeName,
+                        IsActive = isActive,
+                        Description = t.Description
+
+                    })
+                    .ToListAsync();
+
+                return data;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching TicketTypes for TenantId {TenantId}", tenantId);
+                throw;
+            }
+        }
+
         public async Task<List<GetTicketTypeResponseDTO>> AllByHeaderIdAsync(GetTicketTypeByHeaderIdRequestDTO dTO)
         {
             try
@@ -169,12 +215,12 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<GetTicketTypeResponseDTO?> GetByIdAsync(long id)
+        public async Task<GetTicketTypeResponseDTO?> GetByIdAsync(long id, bool isActive)
         {
             try
             {
                 var entity = await _context.TicketTypes
-                    .FirstOrDefaultAsync(t =>  t.Id == id && t.IsActive && (t.IsSoftDeleted != true));
+                    .FirstOrDefaultAsync(t =>  t.Id == id && t.IsActive == isActive && (t.IsSoftDeleted != true));
 
                 if (entity == null)
                 {
