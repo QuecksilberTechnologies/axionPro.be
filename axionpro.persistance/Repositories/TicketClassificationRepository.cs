@@ -149,6 +149,36 @@ namespace axionpro.persistance.Repositories
 
 
         }
+
+        public async Task<List<GetClassificationResponseDTO>> GetDDLAsync(bool isActive, long tenantId)
+        {
+            try
+            {
+                var result = await _context.TicketClassifications
+                    .AsNoTracking()
+                    .Where(x =>
+                        x.TenantId == tenantId &&
+                        x.IsActive == isActive &&
+                        (x.IsSoftDeleted != true))
+                    .OrderBy(x => x.ClassificationName)
+                    .Select(x => new GetClassificationResponseDTO
+                    {
+                        Id = x.Id,
+                        ClassificationName = x.ClassificationName,
+                        IsActive = x.IsActive,
+                        Description = x.Description
+
+                    })
+                    .ToListAsync();
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching classification DDL");
+                throw;
+            }
+        }
         public async Task<PagedResponseDTO<GetClassificationResponseDTO>> GetAllAsync(GetAllClassificationRequestDTO dto)
         {
             try
@@ -202,7 +232,7 @@ namespace axionpro.persistance.Repositories
                         ClassificationName = x.ClassificationName,
                         Description = x.Description,
                         IsActive = x.IsActive,
-                        AddedDateTime = x.AddedDateTime
+                      
                     })
                     .ToListAsync();
 
@@ -283,7 +313,7 @@ namespace axionpro.persistance.Repositories
                     return false;
                 }
  
-                var entity = await _context.TicketClassifications.FirstOrDefaultAsync(x => x.Id == dto.Id && (x.IsSoftDeleted == false || x.IsSoftDeleted == null));
+                var entity = await _context.TicketClassifications.FirstOrDefaultAsync(x => x.Id == dto.Id && x.IsSoftDeleted !=true);
                 if (entity == null)
                 {
                     _logger.LogWarning("⚠️ Classification not found for deletion. Id: {Id}", dto.Id);
@@ -325,7 +355,7 @@ namespace axionpro.persistance.Repositories
                         ClassificationName = x.ClassificationName,
                         Description = x.Description,
                         IsActive = x.IsActive,
-                        AddedDateTime = x.AddedDateTime
+                        
                     })
                     .FirstOrDefaultAsync();
 

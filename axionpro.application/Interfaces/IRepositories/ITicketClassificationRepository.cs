@@ -26,6 +26,7 @@ namespace axionpro.application.Interfaces.IRepositories
             /// Get all active classifications.
             /// </summary>
             Task<PagedResponseDTO<GetClassificationResponseDTO>> GetAllAsync(GetAllClassificationRequestDTO dto);
+            Task<List<GetClassificationResponseDTO>> GetDDLAsync(bool isActive, long tenantId);
 
             /// <summary>
             /// Soft delete classification (mark inactive).

@@ -17,15 +17,10 @@ namespace axionpro.application.DTOS.TicketDTO.Classification
 
         public bool IsActive { get; set; }
 
-        public bool IsSoftDeleted { get; set; }
+        
+        
 
-        public long? AddedById { get; set; }
-
-        public DateTime? AddedDateTime { get; set; }
-
-        public long? UpdatedById { get; set; }
-
-        public DateTime? UpdatedDateTime { get; set; }
+        
 
         // ✅ Add these two lines
      

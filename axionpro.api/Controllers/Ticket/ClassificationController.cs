@@ -52,6 +52,17 @@ public class TicketClassificationController : ControllerBase
 
 
     }
+    [HttpGet("ddl-list")]
+    public async Task<IActionResult> GetAllTicketClassifications([FromQuery] DDLClassificationRequestDTO dto)
+    {
+
+        _logger.LogInformation("📦 Fetching all Ticket Classifications...");
+        var command = new DDLClassificationCommand(dto);
+        var result = await _mediator.Send(command);
+        return Ok(result);
+
+
+    }
 
     // ----------------------------------------------------------------------------------------------------
     // 3️⃣ READ (BY ID) - Get specific Ticket Classification

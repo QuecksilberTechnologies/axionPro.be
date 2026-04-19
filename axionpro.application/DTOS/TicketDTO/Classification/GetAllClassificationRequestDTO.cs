@@ -19,4 +19,8 @@ namespace axionpro.application.DTOS.TicketDTO.Classification
 
 
     }
+    public class DDLClassificationRequestDTO 
+    {
+    public required bool  IsActive { get; set; } = true;
+    }
 }
