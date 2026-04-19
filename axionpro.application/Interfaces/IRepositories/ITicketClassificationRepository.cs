@@ -17,15 +17,15 @@ namespace axionpro.application.Interfaces.IRepositories
         /// </summary>
            Task<GetClassificationResponseDTO> AddAsync(AddClassificationRequestDTO dTO);
 
-            /// <summary>
-            /// Get classification by Id.
-            /// </summary>
-            Task<GetClassificationResponseDTO?> GetByIdAsync(GetClassificationRequestDTO dTO);
+        /// <summary>
+        /// Get classification by Id.
+        /// </summary>
+           Task<GetClassificationResponseDTO?> GetByIdAsync(long id, long tenantId);
 
             /// <summary>
             /// Get all active classifications.
             /// </summary>
-            Task<PagedResponseDTO<GetClassificationResponseDTO>> GetAllAsync(GetClassificationRequestDTO dto);
+            Task<PagedResponseDTO<GetClassificationResponseDTO>> GetAllAsync(GetAllClassificationRequestDTO dto);
 
             /// <summary>
             /// Soft delete classification (mark inactive).

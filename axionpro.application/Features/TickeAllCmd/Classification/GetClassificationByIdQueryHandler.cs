@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using axionpro.application.DTOS.TicketDTO.Classification;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
@@ -22,74 +24,65 @@ namespace axionpro.application.Features.TickeAllCmd.Classification
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICommonRequestService _commonRequestService;
         private readonly ILogger<GetClassificationByIdQueryHandler> _logger;
 
         public GetClassificationByIdQueryHandler(
             IMapper mapper,
-            IUnitOfWork unitOfWork,
+            IUnitOfWork unitOfWork,ICommonRequestService commonRequestService,
             ILogger<GetClassificationByIdQueryHandler> logger)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _commonRequestService = commonRequestService;
         }
 
-        public async Task<ApiResponse<GetClassificationResponseDTO>> Handle(GetClassificationByIdQuery request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<GetClassificationResponseDTO>> Handle(
+            GetClassificationByIdQuery request,
+            CancellationToken cancellationToken)
         {
-            // 🧩 Step 1: Validate input
-            if (request == null || request == null)
-            {
-                _logger.LogWarning("⚠️ GetClassificationByIdQuery received with null or invalid DTO.");
-                return new ApiResponse<GetClassificationResponseDTO>
-                {
-                    IsSucceeded = false,
-                    Message = "Invalid request. DTO cannot be null.",
-                    Data = null
-                };
-            }
-
             try
             {
-                _logger.LogInformation("🔍 Fetching classification by Id: {Id}", request.Dto.Id);
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
+                var validation = await _commonRequestService.ValidateRequestAsync();
 
-                // 🧩 Step 2: Fetch classification by Id from repository
-                var classification = await _unitOfWork.TicketClassificationRepository.GetByIdAsync(request.Dto);
+                if (!validation.Success)
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+                // ===============================
+                // 3️⃣ RBAC (OPTIONAL)
+                // ===============================
+                // await _commonRequestService.HasAccessAsync(
+                //     ModuleEnum.Ticket,
+                //     OperationEnum.View);
 
-                // 🧩 Step 3: Check if classification exists
-                if (classification == null)
-                {
-                    _logger.LogInformation("ℹ️ No classification found for Id: {Id}", request.Dto.Id);
-                    return new ApiResponse<GetClassificationResponseDTO>
-                    {
-                        IsSucceeded = false,
-                        Message = "No classification found for the provided Id.",
-                        Data = null
-                    };
-                }
+                // ===============================
+                // 2️⃣ NULL SAFETY
+                // ===============================
+                if (request?.Dto == null || request.Dto.Id <= 0)
+                    throw new ValidationErrorException("Invalid request.");
 
-                // 🧩 Step 4: Map to response DTO
-                var mappedResult = _mapper.Map<GetClassificationResponseDTO>(classification);
+                // ===============================
+                // 3️⃣ REPOSITORY CALL
+                // ===============================
+                var result = await _unitOfWork.TicketClassificationRepository
+                    .GetByIdAsync(request.Dto.Id, validation.TenantId);
 
-                // 🧩 Step 5: Success log and return
-                _logger.LogInformation("✅ Successfully fetched classification. Id: {Id}", request.Dto.Id);
+                if (result == null)
+                    throw new ApiException("Classification not found.", 404);
 
-                return new ApiResponse<GetClassificationResponseDTO>
-                {
-                    IsSucceeded = true,
-                    Message = "Ticket classification fetched successfully.",
-                    Data = mappedResult
-                };
+                // ===============================
+                // 4️⃣ RESPONSE
+                // ===============================
+                return ApiResponse<GetClassificationResponseDTO>
+                    .Success(result, "Classification fetched successfully.");
             }
             catch (Exception ex)
             {
-                // 🧩 Step 6: Exception handling
-                _logger.LogError(ex, "❌ Error occurred while fetching classification info. Id: {Id}", request.Dto.Id);
-                return new ApiResponse<GetClassificationResponseDTO>
-                {
-                    IsSucceeded = false,
-                    Message = "An unexpected error occurred while fetching ticket classification details.",
-                    Data = null
-                };
+                _logger.LogError(ex, "Error fetching classification by Id: {Id}", request?.Dto?.Id);
+                throw;
             }
         }
     }

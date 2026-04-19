@@ -41,17 +41,17 @@ public class TicketClassificationController : ControllerBase
     // ----------------------------------------------------------------------------------------------------
     // 2️⃣ READ - Get all Ticket Classifications
     // ----------------------------------------------------------------------------------------------------
-    //[HttpGet("all")]   
-    //public async Task<IActionResult> GetAllTicketClassifications([FromQuery] GetClassificationRequestDTO dto)
-    //{
-        
-    //        _logger.LogInformation("📦 Fetching all Ticket Classifications...");
-    //        var command = new GetAllClassificationCommand(dto);
-    //        var result = await _mediator.Send(command);           
-    //        return Ok(result);
-        
-        
-    //}
+    [HttpGet("all")]
+    public async Task<IActionResult> GetAllTicketClassifications([FromQuery] GetAllClassificationRequestDTO dto)
+    {
+
+        _logger.LogInformation("📦 Fetching all Ticket Classifications...");
+        var command = new GetAllClassificationCommand(dto);
+        var result = await _mediator.Send(command);
+        return Ok(result);
+
+
+    }
 
     // ----------------------------------------------------------------------------------------------------
     // 3️⃣ READ (BY ID) - Get specific Ticket Classification

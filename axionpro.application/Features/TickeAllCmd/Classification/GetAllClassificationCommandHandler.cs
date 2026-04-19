@@ -17,9 +17,9 @@ namespace axionpro.application.Features.TickeAllCmd.Classification
     public class GetAllClassificationCommand
       : IRequest<ApiResponse<PagedResponseDTO<GetClassificationResponseDTO>>>
     {
-        public GetClassificationRequestDTO DTO { get; }
+        public GetAllClassificationRequestDTO DTO { get; }
 
-        public GetAllClassificationCommand(GetClassificationRequestDTO dto)
+        public GetAllClassificationCommand(GetAllClassificationRequestDTO dto)
         {
             DTO = dto;
         }

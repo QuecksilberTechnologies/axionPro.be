@@ -10,11 +10,12 @@ using axionpro.application.DTOS.Common;
 
 namespace axionpro.application.DTOS.TicketDTO.Classification
 {
-    public class GetClassificationRequestDTO 
+    public class GetAllClassificationRequestDTO : BaseRequest
     {
 
-        public int Id { get; set; }  
-         
+  
+        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
+
 
 
     }

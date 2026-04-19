@@ -38,20 +38,62 @@ namespace axionpro.persistance.Repositories
             return AddAsync(ticket);
         }
 
-        public async Task<GetTicketResponseDTO?> GetByIdAsync(long ticketId)
+        public async Task<GetTicketResponseDTO?> GetByIdAsync(long id)
         {
-            return await _context.Ticket
-                .Where(t => t.Id == ticketId)
-                .Select(t => new GetTicketResponseDTO
+            var result =
+                from t in _context.Ticket.AsNoTracking()
+
+                join tt in _context.TicketTypes
+                    on t.TicketTypeId equals tt.Id into ttj
+                from tt in ttj.DefaultIfEmpty()
+
+                join th in _context.TicketHeaders
+                    on t.TicketHeaderId equals th.Id into thj
+                from th in thj.DefaultIfEmpty()
+
+                join tc in _context.TicketClassifications
+                    on t.TicketClassificationId equals tc.Id into tcj
+                from tc in tcj.DefaultIfEmpty()
+
+                where t.Id == id
+
+                select new GetTicketResponseDTO
                 {
                     Id = t.Id,
                     TicketNumber = t.TicketNumber,
+
+                    TicketClassificationId = t.TicketClassificationId,
+                    TicketClassificationName = tc != null ? tc.ClassificationName : null,
+
+                    TicketHeaderId = t.TicketHeaderId,
+                    TicketHeaderName = th != null ? th.HeaderName : null,
+
+                    TicketTypeId = t.TicketTypeId,
+                    TicketTypeName = tt != null ? tt.TicketTypeName : null,
+
                     Description = t.Description,
                     Priority = t.Priority,
                     Status = t.Status,
+
+                    AssignedToRoleId = t.AssignedToRoleId,
+                    AssignedToUserId = t.AssignedToUserId,
+
+                    RequestedForUserId = t.RequestedForUserId,
+                    RequestedByUserId = t.RequestedByUserId,
+
+                    IsApproved = t.IsApproved,
+                    ApprovedByUserId = t.ApprovedByUserId,
+                    ApprovedDateTime = t.ApprovedDateTime,
+
+                    SLAHours = t.SLAHoursSnapshot,
+                    SLAStartTime = t.SLAStartTime,
+                    SLAEndTime = t.SLAEndTime,
+                    IsSLABreached = t.IsSLABreached,
+
                     AddedDateTime = t.AddedDateTime
-                })
-                .FirstOrDefaultAsync();
+                };
+
+            return await result.FirstOrDefaultAsync();
         }
     }
 }

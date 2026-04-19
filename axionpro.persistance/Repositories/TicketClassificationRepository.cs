@@ -149,7 +149,7 @@ namespace axionpro.persistance.Repositories
 
 
         }
-        public async Task<PagedResponseDTO<GetClassificationResponseDTO>> GetAllAsync(GetClassificationRequestDTO dto)
+        public async Task<PagedResponseDTO<GetClassificationResponseDTO>> GetAllAsync(GetAllClassificationRequestDTO dto)
         {
             try
             {
@@ -179,11 +179,11 @@ namespace axionpro.persistance.Repositories
                 // ===============================
                 query = dto.SortBy?.ToLower() switch
                 {
-                    "name" => dto.SortOrder == "asc"
+                    "classificationname" => dto.SortOrder == "asc"
                         ? query.OrderBy(x => x.ClassificationName)
                         : query.OrderByDescending(x => x.ClassificationName),
 
-                    "date" => dto.SortOrder == "asc"
+                    "addeddatetime" => dto.SortOrder == "asc"
                         ? query.OrderBy(x => x.AddedDateTime)
                         : query.OrderByDescending(x => x.AddedDateTime),
 
@@ -308,9 +308,34 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        Task<GetClassificationResponseDTO?> ITicketClassificationRepository.GetByIdAsync(GetClassificationRequestDTO dTO)
+        public async Task<GetClassificationResponseDTO?> GetByIdAsync(long id, long tenantId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var result = await _context.TicketClassifications
+                    .AsNoTracking()
+                    .Where(x =>
+                        x.Id == id &&
+                        x.TenantId == tenantId &&
+                        x.IsActive == true &&
+                        (x.IsSoftDeleted != true))
+                    .Select(x => new GetClassificationResponseDTO
+                    {
+                        Id = x.Id,
+                        ClassificationName = x.ClassificationName,
+                        Description = x.Description,
+                        IsActive = x.IsActive,
+                        AddedDateTime = x.AddedDateTime
+                    })
+                    .FirstOrDefaultAsync();
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching classification by Id: {Id}", id);
+                throw;
+            }
         }
     }
 }

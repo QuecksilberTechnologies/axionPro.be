@@ -2818,7 +2818,7 @@ namespace axionpro.persistance.Data.Context
         {
             entity.HasKey(e => e.Id).HasName("Thread_pkey");
 
-            entity.ToTable("Thread", "axionpro");
+            entity.ToTable("TicketThread", "axionpro");
 
             entity.Property(e => e.Id).HasDefaultValueSql("nextval('\"Thread_Id_seq\"'::regclass)");
             entity.Property(e => e.AddedDateTime).HasDefaultValueSql("now()");

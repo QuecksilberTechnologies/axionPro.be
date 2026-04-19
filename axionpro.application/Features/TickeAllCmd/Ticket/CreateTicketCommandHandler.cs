@@ -159,21 +159,7 @@ public class CreateTicketCommandHandler
                 IsSoftDeleted = false
             });
 
-            // ===============================
-            // 7️⃣ HISTORY
-            // ===============================
-            await _unitOfWork.TicketHistoryRepository.AddEntityAsync(new TicketHistory
-            {
-                TicketId = ticket.Id,
-                Action = "Created",
-                NewStatus = ticket.Status,
-                DoneByUserId = validation.UserEmployeeId,
-                DoneOn = DateTime.UtcNow,
-                TenantId = validation.TenantId,
-                IsActive = true,
-                IsSoftDeleted = false
-            });
-
+         
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitTransactionAsync();
             // ===============================
@@ -181,31 +167,31 @@ public class CreateTicketCommandHandler
             // ===============================
             var result = await _unitOfWork.TicketGenrationRepository
                 .GetByIdAsync(ticket.Id);
-            var resultDto = new GetTicketResponseDTO
-            {
-                Id = result.Id,
-                TicketNumber = result.TicketNumber,
-                TicketClassificationId = result.TicketClassificationId,
-                TicketHeaderId = result.TicketHeaderId,
-                TicketTypeId = result.TicketTypeId,
-                Description = result.Description,
-                Priority = result.Priority,
-                Status = result.Status,
-                AssignedToRoleId = result.AssignedToRoleId,
-                AssignedToUserId = result.AssignedToUserId,
-                RequestedForUserId = result.RequestedForUserId,
-                RequestedByUserId = result.RequestedByUserId,
-                IsApproved = result.IsApproved,
-                ApprovedByUserId = result.ApprovedByUserId,
-                ApprovedDateTime = result.ApprovedDateTime,
-                SLAHours = result.SLAHours,
-                SLAStartTime = result.SLAStartTime,
-                SLAEndTime = result.SLAEndTime,
-                IsSLABreached = result.IsSLABreached,
-                AddedDateTime = result.AddedDateTime
-            };
+            //var resultDto = new GetTicketResponseDTO
+            //{
+            //    Id = result.Id,
+            //    TicketNumber = result.TicketNumber,
+            //    TicketClassificationId = result.TicketClassificationId,
+            //    TicketHeaderId = result.TicketHeaderId,
+            //    TicketTypeId = result.TicketTypeId,
+            //    Description = result.Description,
+            //    Priority = result.Priority,
+            //    Status = result.Status,
+            //    AssignedToRoleId = result.AssignedToRoleId,
+            //    AssignedToUserId = result.AssignedToUserId,
+            //    RequestedForUserId = result.RequestedForUserId,
+            //    RequestedByUserId = result.RequestedByUserId,
+            //    IsApproved = result.IsApproved,
+            //    ApprovedByUserId = result.ApprovedByUserId,
+            //    ApprovedDateTime = result.ApprovedDateTime,
+            //    SLAHours = result.SLAHours,
+            //    SLAStartTime = result.SLAStartTime,
+            //    SLAEndTime = result.SLAEndTime,
+            //    IsSLABreached = result.IsSLABreached,
+            //    AddedDateTime = result.AddedDateTime
+            //};
             return ApiResponse<GetTicketResponseDTO>
-                .Success(resultDto, "Ticket created successfully");
+                .Success(result, "Ticket created successfully");
         }
         catch (Exception ex)
         {
