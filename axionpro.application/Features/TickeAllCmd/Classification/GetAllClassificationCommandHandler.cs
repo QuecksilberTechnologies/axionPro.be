@@ -15,7 +15,7 @@ namespace axionpro.application.Features.TickeAllCmd.Classification
     // COMMAND
     // ===============================
     public class GetAllClassificationCommand
-      : IRequest<ApiResponse<PagedResponseDTO<GetClassificationResponseDTO>>>
+      : IRequest<ApiResponse<List<GetClassificationResponseDTO>>>
     {
         public GetAllClassificationRequestDTO DTO { get; }
 
@@ -29,7 +29,7 @@ namespace axionpro.application.Features.TickeAllCmd.Classification
     // HANDLER (MASTER PATTERN)
     // ===============================
     public class GetAllClassificationCommandHandler
-     : IRequestHandler<GetAllClassificationCommand, ApiResponse<PagedResponseDTO<GetClassificationResponseDTO>>>
+     : IRequestHandler<GetAllClassificationCommand, ApiResponse<List<GetClassificationResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetAllClassificationCommandHandler> _logger;
@@ -48,7 +48,7 @@ namespace axionpro.application.Features.TickeAllCmd.Classification
             _permissionService = permissionService;
         }
 
-        public async Task<ApiResponse<PagedResponseDTO<GetClassificationResponseDTO>>> Handle(
+        public async Task<ApiResponse<List<GetClassificationResponseDTO>>> Handle(
      GetAllClassificationCommand request,
      CancellationToken cancellationToken)
         {
@@ -94,9 +94,8 @@ namespace axionpro.application.Features.TickeAllCmd.Classification
                 // ===============================
                 // 5️⃣ FINAL RESPONSE
                 // ===============================
-                return ApiResponse<PagedResponseDTO<GetClassificationResponseDTO>>
-                    .SuccessPaginatedOnly(
-                        Data: result,
+                return ApiResponse<List<GetClassificationResponseDTO>>.SuccessPaginatedOnly(
+                        Data: result.Data,
                         PageNumber: result.PageNumber,
                         PageSize: result.PageSize,
                         TotalRecords: result.TotalCount,
