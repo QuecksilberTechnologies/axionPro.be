@@ -9,6 +9,7 @@ namespace axionpro.application.DTOS.TicketDTO.TicketType
     public class GetTicketTypeResponseDTO
     {
         public long Id { get; set; }
+        public int ClassificationId { get; set; }
 
         public string TicketTypeName { get; set; } = null!;
 

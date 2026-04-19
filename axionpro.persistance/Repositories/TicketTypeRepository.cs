@@ -95,6 +95,8 @@ namespace axionpro.persistance.Repositories
 
                         ApprovalId = t.ApprovalRoleId,
                         ApprovalRoleName = ar != null ? ar.RoleName : null,
+                        // 🔥 FIX YEH HAI
+                        ClassificationId = th != null ? th.TicketClassificationId : 0,
 
                         IsApprovalRequired = t.IsApprovalRequired,
                         AutoApproveIfSameRole = t.AutoApproveIfSameRole,
