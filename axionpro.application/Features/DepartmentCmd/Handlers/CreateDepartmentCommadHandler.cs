@@ -69,7 +69,7 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
             try
             {
 
-                _logger.LogInformation("Creating Asset Status");
+                _logger.LogInformation("Creating Department ");
 
                 // ===============================
                 // 1️⃣ COMMON VALIDATION (AUTH + CONTEXT)

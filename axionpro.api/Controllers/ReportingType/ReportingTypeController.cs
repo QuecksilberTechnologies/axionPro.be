@@ -1,6 +1,6 @@
 ﻿using axionpro.application.DTOs.Manager.ReportingType;
-using axionpro.application.Features.ReportTypeCmd.Commands;
-using axionpro.application.Features.ReportTypeCmd.Queries;
+using axionpro.application.Features.ReportTypeCmd.Handlers;
+ 
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -86,7 +86,7 @@ namespace axionpro.api.Controllers.ReportingType
         /// </summary>
         /// <param name="dto">DTO containing reporting type ID.</param>
         /// <returns>Returns reporting type details.</returns>
-        [HttpGet("get")]   
+        [HttpGet("get-by-id")]   
         public async Task<IActionResult> GetReportingTypeById([FromQuery] GetReportingTypeByIdRequestDTO dto)
         {         
 

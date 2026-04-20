@@ -2345,8 +2345,10 @@ namespace axionpro.persistance.Data.Context
             entity.HasIndex(e => e.TypeName, "UQ__Reportin__D4E7DFA8AC2E2E45").IsUnique();
 
             entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.SoftDeletedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(e => e.Description).HasMaxLength(250);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
             entity.Property(e => e.TypeName).HasMaxLength(50);
         });
 

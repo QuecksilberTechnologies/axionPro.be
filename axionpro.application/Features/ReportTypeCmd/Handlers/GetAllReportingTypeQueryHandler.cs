@@ -1,97 +1,104 @@
-﻿using AutoMapper;
-using axionpro.application.DTOs.Manager.ReportingType;
-using axionpro.application.Features.ReportTypeCmd.Queries;
+﻿using axionpro.application.DTOs.Manager.ReportingType;
 using axionpro.application.Interfaces;
-using axionpro.application.Interfaces.IRepositories;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
+using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Features.ReportTypeCmd.Handlers
 {
-    /// <summary>
-    /// Handles query to fetch all ReportingTypes.
-    /// </summary>
-    public class GetAllReportingTypeQueryHandler : IRequestHandler<GetAllReportingTypeQuery, ApiResponse<List<GetReportingTypeResponseDTO>>>
+    public class GetAllReportingTypeQuery
+        : IRequest<ApiResponse<List<GetReportingTypeResponseDTO>>>
     {
-        private readonly IReportingTypeRepository _workflowRepository;
-        private readonly IMapper _mapper;
+        public GetReportingTypeRequestDTO DTO { get; set; }
+
+        public GetAllReportingTypeQuery(GetReportingTypeRequestDTO dto)
+        {
+            DTO = dto;
+        }
+    }
+
+    public class GetAllReportingTypeQueryHandler
+        : IRequestHandler<GetAllReportingTypeQuery, ApiResponse<List<GetReportingTypeResponseDTO>>>
+    {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IStoreProcedureRepository _commonRepository;
         private readonly ILogger<GetAllReportingTypeQueryHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
 
         public GetAllReportingTypeQueryHandler(
-            IReportingTypeRepository workflowRepository,
-            IMapper mapper,
             IUnitOfWork unitOfWork,
-            IStoreProcedureRepository commonRepository,
-            ILogger<GetAllReportingTypeQueryHandler> logger)
+            ILogger<GetAllReportingTypeQueryHandler> logger,
+            ICommonRequestService commonRequestService)
         {
-            _workflowRepository = workflowRepository ?? throw new ArgumentNullException(nameof(workflowRepository));
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-            _commonRepository = commonRepository ?? throw new ArgumentNullException(nameof(commonRepository));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _unitOfWork = unitOfWork;
+            _logger = logger;
+            _commonRequestService = commonRequestService;
         }
 
-        /// <summary>
-        /// Handles the retrieval of all ReportingTypes based on filters.
-        /// </summary>
-        public async Task<ApiResponse<List<GetReportingTypeResponseDTO>>> Handle(GetAllReportingTypeQuery request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<List<GetReportingTypeResponseDTO>>> Handle(
+            GetAllReportingTypeQuery request,
+            CancellationToken cancellationToken)
         {
             try
             {
-                // 1️⃣ Validation
-                if (request == null || request.DTO == null)
-                {
-                    _logger.LogWarning("⚠️ Invalid request received in GetAllReportingTypeQuery.");
-                    return new ApiResponse<List<GetReportingTypeResponseDTO>>
-                    {
-                        IsSucceeded = false,
-                        Message = "Invalid request. Please provide valid filter data.",
-                        Data = new List<GetReportingTypeResponseDTO>()
-                    };
-                }
- 
+                _logger.LogInformation("🔹 GetAllReportingType started");
 
-                // 2️⃣ Repository Call
-                var ReportingTypes = await _workflowRepository.AllAsync(request.DTO);
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
+                var validation = await _commonRequestService.ValidateRequestAsync();
 
-                // 3️⃣ Result Validation
-                if (ReportingTypes == null || !ReportingTypes.Any())
-                {
-                   
-                    return new ApiResponse<List<GetReportingTypeResponseDTO>>
-                    {
-                        IsSucceeded = false,
-                        Message = "No ReportingTypes found.",
-                        Data = new List<GetReportingTypeResponseDTO>()
-                    };
-                }
+                if (!validation.Success)
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-             
+                // ===============================
+                // 2️⃣ PERMISSION (MANDATORY)
+                // ===============================
+                //var hasAccess = await _commonRequestService.HasAccessAsync(
+                //    validation.RoleId,
+                //    Modules.ReportingType,
+                //    Operations.View);
 
-                return new ApiResponse<List<GetReportingTypeResponseDTO>>
-                {
-                    IsSucceeded = true,
-                    Message = "ReportingTypes fetched successfully.",
-                    Data = ReportingTypes
-                };
+                //if (!hasAccess)
+                //    throw new UnauthorizedAccessException("Access denied for view operation.");
+
+                // ===============================
+                // 3️⃣ NULL CHECK
+                // ===============================
+                if (request?.DTO == null)
+                    throw new Exception("Invalid request data.");
+
+                request.DTO.Prop ??= new();
+                request.DTO.Prop.TenantId = validation.TenantId;
+
+                // ===============================
+                // 4️⃣ REPOSITORY CALL (PAGINATION)
+                // ===============================
+                var result = await _unitOfWork.ReportingTypeRepository
+                    .AllAsync(request.DTO);
+
+                if (result == null)
+                    throw new Exception("Failed to fetch ReportingTypes.");
+
+                // ===============================
+                // 5️⃣ SUCCESS RESPONSE (PAGINATED)
+                // ===============================
+                return ApiResponse<List<GetReportingTypeResponseDTO>>
+                    .SuccessPaginatedOnly(
+                        Data: result.Data,
+                        PageNumber: result.PageNumber,
+                        PageSize: result.PageSize,
+                        TotalRecords: result.TotalCount,
+                        TotalPages: result.TotalPages,
+                        Message: result.Data.Any()
+                            ? "ReportingTypes retrieved successfully."
+                            : "No ReportingTypes found."
+                    );
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error occurred while fetching ReportingTypes.");
-                return new ApiResponse<List<GetReportingTypeResponseDTO>>
-                {
-                    IsSucceeded = false,
-                    Message = $"An error occurred while fetching ReportingTypes: {ex.Message}",
-                    Data = new List<GetReportingTypeResponseDTO>()
-                };
+                _logger.LogError(ex, "Error in GetAllReportingType");
+                throw; // ✅ middleware handle karega
             }
         }
     }

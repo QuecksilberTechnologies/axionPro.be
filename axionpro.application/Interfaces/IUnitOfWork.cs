@@ -23,6 +23,7 @@ namespace axionpro.application.Interfaces
         IReportingTypeRepository ReportingTypeRepository { get; }
         IAssetCategoryRepository AssetCategoryRepository { get; }
         ITicketClassificationRepository TicketClassificationRepository { get; }
+        IEmployeeManagerMappingRepository EmployeeManagerMappingRepository { get; }    
         IAssetTypeRepository AssetTypeRepository { get; }
         ITicketHeaderRepository TicketHeaderRepository { get; }
         IWorkflowStagesRepository WorkflowStagesRepository { get; }

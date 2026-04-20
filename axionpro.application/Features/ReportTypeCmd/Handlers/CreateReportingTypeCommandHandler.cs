@@ -1,89 +1,97 @@
 ﻿using AutoMapper;
 using axionpro.application.DTOs.Manager.ReportingType;
-using axionpro.application.Features.ReportTypeCmd.Commands;
-using axionpro.application.Features.SandwitchRuleCmd.Handlers;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
-using axionpro.application.Interfaces.IRepositories;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
+using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.ReportTypeCmd.Handlers
 {
-    /// <summary>
-    /// Handles the creation of ReportingTypes.
-    /// </summary>
-    public class CreateReportingTypeCommandHandler: IRequestHandler<CreateReportingTypeCommand, ApiResponse<List<GetReportingTypeResponseDTO>>>
+    // ✅ Command
+    public class CreateReportingTypeCommand : IRequest<ApiResponse<GetReportingTypeResponseDTO>>
     {
+        public CreateReportingTypeRequestDTO DTO { get; set; }
 
-      
-       
-        private readonly IMapper _mapper;
+        public CreateReportingTypeCommand(CreateReportingTypeRequestDTO dto)
+        {
+            DTO = dto;
+        }
+    }
+
+    // ✅ Handler
+    public class CreateReportingTypeCommandHandler
+        : IRequestHandler<CreateReportingTypeCommand, ApiResponse<GetReportingTypeResponseDTO>>
+    {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IStoreProcedureRepository _commonRepository;
         private readonly ILogger<CreateReportingTypeCommandHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
 
         public CreateReportingTypeCommandHandler(
-           
-            IMapper mapper,
             IUnitOfWork unitOfWork,
-            IStoreProcedureRepository commonRepository,
-            ILogger<CreateReportingTypeCommandHandler> logger)
+            ILogger<CreateReportingTypeCommandHandler> logger,
+            ICommonRequestService commonRequestService)
         {
-            
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-            _commonRepository = commonRepository ?? throw new ArgumentNullException(nameof(commonRepository));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _unitOfWork = unitOfWork;
+            _logger = logger;
+            _commonRequestService = commonRequestService;
         }
 
-        public async Task<ApiResponse<List<GetReportingTypeResponseDTO>>> Handle(CreateReportingTypeCommand request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<GetReportingTypeResponseDTO>> Handle(
+            CreateReportingTypeCommand request,
+            CancellationToken cancellationToken)
         {
             try
             {
-                // 1️⃣ Validate incoming request
-                if (request.DTO == null)
-                {
-                    return new ApiResponse<List<GetReportingTypeResponseDTO>>
-                    {
-                        IsSucceeded = false,
-                        Message = "Invalid ReportingType request. Data is required.",
-                        Data = new List<GetReportingTypeResponseDTO>()
-                    };
-                }
+                _logger.LogInformation("🔹 CreateReportingType started");
 
-          
+                // ===============================
+                // 1️⃣ VALIDATION
+                // ===============================
+                var validation = await _commonRequestService.ValidateRequestAsync();
 
-                // 3️⃣ Repository Call — Add ReportingType
-                var response = await _unitOfWork.ReportingTypeRepository.AddAsync(request.DTO);
+                if (!validation.Success)
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                if (response == null || !response.Any())
-                {
-                    return new ApiResponse<List<GetReportingTypeResponseDTO>>
-                    {
-                        IsSucceeded = false,
-                        Message = "ReportingType creation failed.",
-                        Data = new List<GetReportingTypeResponseDTO>()
-                    };
-                }
+                // ===============================
+                // 2️⃣ NULL CHECK
+                // ===============================
+                if (request?.DTO == null)
+                    throw new ValidationErrorException("Invalid request data.");
 
-                // 4️⃣ Success response
-                return new ApiResponse<List<GetReportingTypeResponseDTO>>
-                {
-                    IsSucceeded = true,
-                    Message = "ReportingType created successfully.",
-                    Data = response
-                };
+                request.DTO.Prop ??= new();
+
+                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+                request.DTO.Prop.TenantId = validation.TenantId;
+                //var hasPermission = await _permissionService.HasAccessAsync(
+                //    validation.RoleId,
+                //    "TicketClassification",   // ModuleName (DB match)
+                //    "Delete"                  // Operation
+                //);
+
+                //if (!hasPermission)
+                //    throw new UnauthorizedAccessException("You do not have permission to delete classification.");
+                // ===============================
+                // ===============================
+                // 3️⃣ REPOSITORY CALL
+                // ===============================
+                var response = await _unitOfWork.ReportingTypeRepository
+                    .AddAsync(request.DTO);
+
+                if (response == null)
+                    throw new Exception("ReportingType creation failed.");
+
+                // ===============================
+                // 4️⃣ SUCCESS
+                // ===============================
+                return ApiResponse<GetReportingTypeResponseDTO>
+                    .Success(response, "ReportingType created successfully.");
             }
             catch (Exception ex)
             {
-                // 5️⃣ Exception handling with clear message
-                return new ApiResponse<List<GetReportingTypeResponseDTO>>
-                {
-                    IsSucceeded = false,
-                    Message = $"An error occurred while creating ReportingType: {ex.Message}",
-                    Data = new List<GetReportingTypeResponseDTO>()
-                };
+                _logger.LogError(ex, "Error in CreateReportingType");
+                throw; // ✅ middleware handle karega
             }
         }
     }

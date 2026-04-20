@@ -8,7 +8,7 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOs.Manager.ReportingType
 {
-    public class GetReportingTypeResponseDTO: BaseRequest
+    public class GetReportingTypeResponseDTO: BaseResponse
     {
     public int Id { get; set; }
 
@@ -18,9 +18,6 @@ namespace axionpro.application.DTOs.Manager.ReportingType
         public bool IsActive { get; set; } = true;
 
         // Common audit fields
-        public long AddedById { get; set; }
-        public DateTime AddedDateTime { get; set; } = DateTime.UtcNow;
-        public long? UpdatedById { get; set; }
-        public DateTime? UpdatedDateTime { get; set; }
+   
     }
 }

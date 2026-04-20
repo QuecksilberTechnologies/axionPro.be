@@ -90,6 +90,7 @@
     <Folder Include="Features\PolicyTypeCmd\Commands\" />
     <Folder Include="Features\RegistrationCmd\Queries\" />
     <Folder Include="Features\ReportTypeCmd\NewFolder\" />
+    <Folder Include="Features\ReportTypeCmd\Queries\" />
     <Folder Include="Features\TenantCmd1\" />
     <Folder Include="Features\NewFolder\" />
     <Folder Include="Features\LocationCmd\Commands\" />

@@ -41,6 +41,7 @@ public class UnitOfWork : IUnitOfWork
     private  ITicketAttachmentRepository _ticketAttachmentRepository;
     private ITicketHistoryRepository _ticketHistoryRepository;
 
+    private IEmployeeManagerMappingRepository? _employeeManagerMappingRepository    ;
     private IEmployeeDependentInsuranceMappingRepository? _employeeDependentInsuranceMappingRepository;
     private IEmployeePolicyEnrollmentRepository? _employeePolicyEnrollmentRepository;
     private IForgotPasswordOtpRepository? _forgotPasswordOtpRepository;
@@ -206,6 +207,12 @@ public class UnitOfWork : IUnitOfWork
             _context,
             _mapper,
             _loggerFactory.CreateLogger<EmployeePolicyEnrollmentRepository>()
+            );
+    public IEmployeeManagerMappingRepository EmployeeManagerMappingRepository =>
+        _employeeManagerMappingRepository ??= new EmployeeManagerMappingRepository(
+            _context,
+            _mapper,
+            _loggerFactory.CreateLogger<EmployeeManagerMappingRepository>()
             );
 
     
