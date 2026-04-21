@@ -23,7 +23,7 @@ namespace axionpro.api.Controllers.Entity
         public IActionResult GetStaticEntityNames([FromQuery] GetEntityNameRequestDTO dTO)
         {
             var entities = new List<GetEntityNameResponseDTO>
-    {
+           {
         new GetEntityNameResponseDTO { Id = 1, Name = "Employee" },
         new GetEntityNameResponseDTO { Id = 2, Name = "EmployeeBankDetail" },
         new GetEntityNameResponseDTO { Id = 3, Name = "EmployeeExperience" },
@@ -33,7 +33,7 @@ namespace axionpro.api.Controllers.Entity
         new GetEntityNameResponseDTO { Id = 6, Name = "EmployeeDependent" },
         new GetEntityNameResponseDTO { Id = 6, Name = "EmployeeInsurance" },
         new GetEntityNameResponseDTO { Id = 6, Name = "EmployeeContact" }
-    };
+           };
 
             return Ok(ApiResponse<List<GetEntityNameResponseDTO>>.Success(entities));
         }

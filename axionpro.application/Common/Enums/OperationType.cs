@@ -117,4 +117,19 @@ public enum RelationDependant
         Employee = 5,
         Notification = 6
     }
+    public enum CurrencyCode
+    {
+        INR = 1,   // Indian Rupee
+        USD = 2,   // US Dollar
+        EUR = 3,   // Euro
+        GBP = 4,   // British Pound
+        AED = 5,   // UAE Dirham
+        SGD = 6,   // Singapore Dollar
+        AUD = 7,   // Australian Dollar
+        CAD = 8,   // Canadian Dollar
+        JPY = 9,   // Japanese Yen
+        CNY = 10,  // Chinese Yuan
+        CHF = 11,  // Swiss Franc
+        ZAR = 12   // South African Rand
+    }
 }
