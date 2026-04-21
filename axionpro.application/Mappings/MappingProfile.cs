@@ -8,6 +8,7 @@ using axionpro.application.DTOs.Employee.AccessControlReadOnlyType;
 using axionpro.application.DTOs.Gender;
 using axionpro.application.DTOs.Leave;
 using axionpro.application.DTOs.Leave.LeaveRule;
+using axionpro.application.DTOs.Manager.ReportingType;
 using axionpro.application.DTOs.Module;
 using axionpro.application.DTOs.Module.NewFolder;
 using axionpro.application.DTOs.Operation;
@@ -658,6 +659,7 @@ namespace axionpro.application.Mappings
             #endregion
 
             // Agar reverse mapping chahiye toh, isse bhi add kar sakte hain
+            CreateMap<GetReportingTypeResponseDTO, ReportingType>().ReverseMap();
 
 
             CreateMap<OrganizationHolidayCalendar, OrganizationHolidayCalendarDTO>();

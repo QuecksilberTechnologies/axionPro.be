@@ -32,45 +32,59 @@ namespace axionpro.persistance.Repositories
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             
         }
-       
+
         #endregion
 
         #region AddAsync
-        public async Task<GetReportingTypeResponseDTO> AddAsync(CreateReportingTypeRequestDTO dto )
+        public async Task<GetReportingTypeResponseDTO> AddAsync(CreateReportingTypeRequestDTO dto)
         {
             try
             {
-              
-                // Duplicate check
+                // ===============================
+                // 1️⃣ Duplicate check (FIXED)
+                // ===============================
                 bool isExist = await _context.ReportingTypes
-                    .AnyAsync(x => x.TypeName.ToLower() == dto.TypeName.ToLower() && x.IsActive);
+                    .AnyAsync(x =>
+                        x.TypeName.ToLower() == dto.TypeName.ToLower()
+                        && x.IsSoftDeleted != true
+                        && x.IsActive == true);
 
                 if (isExist)
                     throw new Exception($"Reporting type '{dto.TypeName}' already exists.");
 
-                var entity = _mapper.Map<ReportingType>(dto);
-                entity.AddedDateTime = DateTime.UtcNow;
-                entity.AddedById = dto.Prop.EmployeeId;
-                entity.SoftDeletedById= null;
-                entity.SoftDeletedDateTime= null;
-                entity.IsSoftDeleted= false;
-                entity.IsActive = dto.IsActive;
-                entity.UpdatedById = null;
-                entity.UpdatedDateTime = DateTime.UtcNow;
-                entity.Description = dto.Description;
+                // ===============================
+                // 2️⃣ Create Entity
+                // ===============================
+                var entity = new ReportingType
+                {
+                    TypeName = dto.TypeName,
+                    TenantId = dto.Prop.TenantId,
+                    AddedDateTime = DateTime.UtcNow,
+                    AddedById = dto.Prop.UserEmployeeId,
+                    IsSoftDeleted = false,
+                    IsActive = true,
+                    UpdatedDateTime = DateTime.UtcNow,
+                    Description = dto.Description
+                };
 
                 await _context.ReportingTypes.AddAsync(entity);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("ReportingType '{TypeName}' added successfully by UserId {UserId}", dto.TypeName, entity.AddedById);
+                _logger.LogInformation(
+                    "ReportingType '{TypeName}' added successfully by UserId {UserId}",
+                    dto.TypeName,
+                    entity.AddedById);
 
-                // Return updated list
-                var result = await _context.ReportingTypes
-                    .Where(x => x.IsActive)
-                    .OrderByDescending(x => x.AddedDateTime)
-                    .ToListAsync();
-
-                return _mapper.Map<GetReportingTypeResponseDTO>(result);
+                // ===============================
+                // 3️⃣ Return CREATED OBJECT (BEST)
+                // ===============================
+                return new GetReportingTypeResponseDTO
+                {
+                    Id = entity.Id,
+                    TypeName = entity.TypeName,
+                    Description = entity.Description,
+                    IsActive = entity.IsActive
+                };
             }
             catch (Exception ex)
             {
@@ -78,6 +92,7 @@ namespace axionpro.persistance.Repositories
                 throw;
             }
         }
+
         #endregion
 
         #region AllAsync

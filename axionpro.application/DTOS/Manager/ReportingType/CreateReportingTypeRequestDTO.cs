@@ -13,7 +13,7 @@ namespace axionpro.application.DTOs.Manager.ReportingType
     {
         
 
-        public string? TypeName { get; set; }
+        public required string TypeName { get; set; }
         public string? Description { get; set; }
         public bool IsActive { get; set; } = true;
         public ExtraPropRequestDTO Prop = new ExtraPropRequestDTO();

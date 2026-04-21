@@ -1,19 +1,9 @@
-﻿using axionpro.application.DTOs.EmployeeType;
-using axionpro.application.DTOs.Leave;
-using axionpro.application.DTOs.Role;
-using axionpro.application.DTOS.Common;
-using axionpro.application.DTOS.EmployeeManagerMappings;
-using axionpro.application.DTOS.EmployeeType;
+﻿using axionpro.application.DTOS.EmployeeManagerMappings;
 using axionpro.application.Features.EmployeeManagerMapping.Command;
-using axionpro.application.Features.EmployeeTypeCmd.Handlers;
-using axionpro.application.Features.LeaveCmd.Commands;
-using axionpro.application.Features.LeaveCmd.Queries;
-using axionpro.application.Features.RoleCmd.Handlers;
-using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-namespace axionpro.api.Controllers.EmployeeType
+namespace axionpro.api.Controllers.ManagerMapping   
 {
     [Route("api/[controller]")]
     [ApiController]

@@ -92,6 +92,7 @@ namespace axionpro.persistance
             services.AddScoped<IEmployeeExperienceDetailRepository, EmployeeExperienceDetailRepository>();
             services.AddScoped<IEmployeeExperienceDocumentRepository, EmployeeExperienceDocumentRepository>();
             services.AddScoped<ICandidateRegistrationRepository, CandidateRegistrationRepository>();
+            services.AddScoped<IReportingTypeRepository, ReportingTypeRepository>();
             services.AddScoped<IClientRepository, ClientRepository>();
             services.AddScoped<ITravelRepository, TravelRepository>();
             services.AddScoped<IOperationRepository, OperationRepository>();

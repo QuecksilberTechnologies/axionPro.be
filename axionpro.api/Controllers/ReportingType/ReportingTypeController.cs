@@ -18,19 +18,21 @@ namespace axionpro.api.Controllers.ReportingType
     public class ReportingTypeController : ControllerBase
     {
         private readonly IMediator _mediator;
-        private readonly ILogger _logger;
+        private readonly ILogger<ReportingTypeController> _logger;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Repo1rtingTypeController"/> class.
+        /// Initializes a new instance of the <see cref="ReportingTypeController"/> class.
         /// </summary>
         /// <param name="mediator">Mediator instance for sending commands/queries.</param>
         /// <param name="logger">Logger instance for tracking actions.</param>
-        public ReportingTypeController(IMediator mediator, ILogger logger)
+
+        public ReportingTypeController(
+            IMediator mediator,
+            ILogger<ReportingTypeController> logger)
         {
             _mediator = mediator;
             _logger = logger;
         }
-
         // =============================================================================================
         #region 🔹 CREATE reporting type
         // =============================================================================================
@@ -40,11 +42,11 @@ namespace axionpro.api.Controllers.ReportingType
         /// </summary>
         /// <param name="dto">reporting type creation data.</param>
         /// <returns>Returns a response containing success status and message.</returns>
-        
+
         [HttpPost("create")]       
         
         public async Task<IActionResult> CreateReportingType([FromBody] CreateReportingTypeRequestDTO dto)
-        {
+         {
            
                 _logger.LogInformation("🎯 Received request to create ReportingType: {Data}", JsonConvert.SerializeObject(dto));
 
@@ -130,7 +132,7 @@ namespace axionpro.api.Controllers.ReportingType
         /// <param name="dto">reporting type ID to be deleted.</param>
         /// <returns>Returns success or failure message.</returns>
         [HttpDelete("delete")]       
-        public async Task<IActionResult> DeleteReportingType([FromBody] DeleteReportingTypeRequestDTO dto)
+        public async Task<IActionResult> DeleteReportingType([FromQuery] DeleteReportingTypeRequestDTO dto)
         {
            
                 var result = await _mediator.Send(new DeleteReportingTypeCommand(dto));

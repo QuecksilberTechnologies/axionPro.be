@@ -12,7 +12,7 @@ public partial class ReportingType
     public string? Description { get; set; }
 
     public bool IsActive { get; set; }
-    public bool IsSoftDeleted{ get; set; }
+    public bool IsSoftDeleted{ get; set; } = false;
 
     public long? SoftDeletedById { get; set; }
     public long? AddedById { get; set; }

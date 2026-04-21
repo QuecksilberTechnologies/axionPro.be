@@ -2341,8 +2341,7 @@ namespace axionpro.persistance.Data.Context
             entity.HasKey(e => e.Id).HasName("PK__Reportin__3214EC0773736C22");
 
             entity.ToTable("ReportingType", "axionpro");
-
-            entity.HasIndex(e => e.TypeName, "UQ__Reportin__D4E7DFA8AC2E2E45").IsUnique();
+ 
 
             entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(e => e.SoftDeletedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
