@@ -45,6 +45,7 @@ namespace axionpro.application.Features.SubscriptionCmd.Handlers
                         Data = null
                     };
                 }
+                request.subscriptionPlanRequestDTO.TenantId = 54;
 
                 if (request.subscriptionPlanRequestDTO.TenantId == 0 || request.subscriptionPlanRequestDTO.TenantId <= 0)
                 {

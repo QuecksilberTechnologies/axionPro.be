@@ -2461,8 +2461,90 @@ namespace axionpro.persistance.Data.Context
                 .HasMaxLength(255)
                 .HasColumnName("WebsiteURL");
         });
+            modelBuilder.Entity<SalaryComponentMaster>(entity =>
+            {
+                entity.ToTable("SalaryComponentMaster", "axionpro");
 
-        modelBuilder.Entity<State>(entity =>
+                entity.HasIndex(e => new { e.TenantId, e.ComponentName, e.EffectiveFrom }, "UQ_SalaryComponent_Tenant_ComponentName_Effective").IsUnique();
+
+                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("now()");
+                entity.Property(e => e.ComponentName).HasMaxLength(150);
+                entity.Property(e => e.DisplayOrder).HasDefaultValue(0);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.IsEditable).HasDefaultValue(true);
+                entity.Property(e => e.IsProrated).HasDefaultValue(true);
+                entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
+                entity.Property(e => e.IsVisibleInPayslip).HasDefaultValue(true);
+
+                entity.HasOne(d => d.ComplianceType).WithMany(p => p.SalaryComponentMaster)
+                    .HasForeignKey(d => d.ComplianceTypeId)
+                    .HasConstraintName("FK_SalaryComponent_Compliance");
+
+                entity.HasOne(d => d.Country).WithMany(p => p.SalaryComponentMaster)
+                    .HasForeignKey(d => d.CountryId)
+                    .HasConstraintName("FK_SalaryComponent_Country");
+
+                entity.HasOne(d => d.DependsOnComponent).WithMany(p => p.InverseDependsOnComponent)
+                    .HasForeignKey(d => d.DependsOnComponentId)
+                    .HasConstraintName("FK_SalaryComponent_Dependency");
+
+                entity.HasOne(d => d.State).WithMany(p => p.SalaryComponentMaster)
+                    .HasForeignKey(d => d.StateId)
+                    .HasConstraintName("FK_SalaryComponent_State");
+
+                entity.HasOne(d => d.Tenant).WithMany(p => p.SalaryComponentMaster)
+                    .HasForeignKey(d => d.TenantId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_SalaryComponent_Tenant");
+            });
+
+            modelBuilder.Entity<SalaryStructure>(entity =>
+            {
+                entity.ToTable("SalaryStructure", "axionpro");
+
+                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("now()");
+                entity.Property(e => e.Description).HasMaxLength(500);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.IsDefault).HasDefaultValue(false);
+                entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
+                entity.Property(e => e.StructureName).HasMaxLength(150);
+
+                entity.HasOne(d => d.Tenant).WithMany(p => p.SalaryStructure)
+                    .HasForeignKey(d => d.TenantId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_SalaryStructure_Tenant");
+            });
+
+            modelBuilder.Entity<SalaryStructureDetail>(entity =>
+            {
+                entity.ToTable("SalaryStructureDetail", "axionpro");
+
+                entity.HasIndex(e => new { e.SalaryStructureId, e.CalculationOrder }, "UQ_Structure_Order").IsUnique();
+
+                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("now()");
+                entity.Property(e => e.FormulaExpression).HasColumnType("jsonb");
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
+                entity.Property(e => e.MaxAmount).HasPrecision(18, 2);
+                entity.Property(e => e.MinAmount).HasPrecision(18, 2);
+                entity.Property(e => e.Value).HasPrecision(18, 2);
+
+                entity.HasOne(d => d.Component).WithMany(p => p.SalaryStructureDetailComponent)
+                    .HasForeignKey(d => d.ComponentId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_StructureDetail_Component");
+
+                entity.HasOne(d => d.DependsOnComponent).WithMany(p => p.SalaryStructureDetailDependsOnComponent)
+                    .HasForeignKey(d => d.DependsOnComponentId)
+                    .HasConstraintName("FK_StructureDetail_Dependency");
+
+                entity.HasOne(d => d.SalaryStructure).WithMany(p => p.SalaryStructureDetail)
+                    .HasForeignKey(d => d.SalaryStructureId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_StructureDetail_Structure");
+            });
+
+            modelBuilder.Entity<State>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__State__3214EC0705AF0D74");
 
