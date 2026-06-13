@@ -42,6 +42,7 @@ namespace axionpro.application.Interfaces
         ISubscriptionRepository SubscriptionRepository { get; }
         IPlanModuleMappingRepository PlanModuleMappingRepository { get; }
         ITenantRepository TenantRepository { get; }
+        ICompilanceRuleRepository CompilanceRuleRepository { get; }
         ITenantSubscriptionRepository TenantSubscriptionRepository { get; }
         IRefreshTokenRepository RefreshTokenRepository { get; }
         IAssetRepository AssetRepository { get; }

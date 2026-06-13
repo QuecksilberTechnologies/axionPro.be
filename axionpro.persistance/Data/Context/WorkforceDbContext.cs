@@ -93,7 +93,28 @@ namespace axionpro.persistance.Data.Context
 
         public virtual DbSet<DeviceMaster> DeviceMasters { get; set; }
 
+        public virtual DbSet<EmployeeTaxProfile> EmployeeTaxProfile { get; set; }
+        public virtual DbSet<ComplianceRule> ComplianceRule { get; set; }
 
+        public virtual DbSet<ComplianceTypeMaster> ComplianceTypeMaster { get; set; }
+        public virtual DbSet<PayrollEmployee> PayrollEmployee { get; set; }
+
+        public virtual DbSet<PayrollEmployeeDetail> PayrollEmployeeDetail { get; set; }
+
+        public virtual DbSet<PayrollRun> PayrollRun { get; set; }
+        public virtual DbSet<SalaryComponentMaster> SalaryComponentMaster { get; set; }
+
+        public virtual DbSet<SalaryStructure> SalaryStructure { get; set; }
+
+        public virtual DbSet<SalaryStructureDetail> SalaryStructureDetail { get; set; }
+
+        public virtual DbSet<TaxRegimeMaster> TaxRegimeMaster { get; set; }
+
+        public virtual DbSet<TaxRule> TaxRule { get; set; }
+
+        public virtual DbSet<TaxSlab> TaxSlab { get; set; }
+
+        public virtual DbSet<TaxSystemMaster> TaxSystemMaster { get; set; }
         public virtual DbSet<Designation> Designations { get; set; }
 
         public virtual DbSet<EmailQueue> EmailQueues { get; set; }
@@ -3197,6 +3218,70 @@ namespace axionpro.persistance.Data.Context
                 .HasMaxLength(20)
                 .IsFixedLength();
         });
+            modelBuilder.Entity<EmployeeSalary>(entity =>
+            {
+                entity.ToTable("EmployeeSalary", "axionpro");
+
+                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("now()");
+                entity.Property(e => e.BasicOverride).HasPrecision(18, 2);
+                entity.Property(e => e.CTC).HasPrecision(18, 2);
+                entity.Property(e => e.CurrencyCode).HasMaxLength(10);
+                entity.Property(e => e.HRAOverride).HasPrecision(18, 2);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
+
+                entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeSalary)
+                    .HasForeignKey(d => d.EmployeeId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_EmployeeSalary_Employee");
+
+                entity.HasOne(d => d.SalaryStructure).WithMany(p => p.EmployeeSalary)
+                    .HasForeignKey(d => d.SalaryStructureId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_EmployeeSalary_Structure");
+            });
+
+
+            modelBuilder.Entity<EmployeeTaxProfile>(entity =>
+            {
+                entity.ToTable("EmployeeTaxProfile", "axionpro");
+
+                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("now()");
+                entity.Property(e => e.FinancialYear).HasMaxLength(10);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
+
+                entity.HasOne(d => d.Country).WithMany(p => p.EmployeeTaxProfile)
+                    .HasForeignKey(d => d.CountryId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_EmployeeTaxProfile_Country");
+
+                entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeTaxProfile)
+                    .HasForeignKey(d => d.EmployeeId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_EmployeeTaxProfile_Employee");
+
+                entity.HasOne(d => d.Regime).WithMany(p => p.EmployeeTaxProfile)
+                    .HasForeignKey(d => d.RegimeId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_EmployeeTaxProfile_Regime");
+
+                entity.HasOne(d => d.State).WithMany(p => p.EmployeeTaxProfile)
+                    .HasForeignKey(d => d.StateId)
+                    .HasConstraintName("FK_EmployeeTaxProfile_State");
+            });
+
+            modelBuilder.Entity<EmployeeType>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("PK__Employee__3214EC0760C5ED38");
+
+                entity.ToTable("EmployeeType", "axionpro");
+
+                entity.Property(e => e.Description).HasMaxLength(255);
+                entity.Property(e => e.Remark).HasMaxLength(255);
+                entity.Property(e => e.TypeName).HasMaxLength(255);
+            });
+
             modelBuilder.Entity<EmployeeCountResponseStatsSp>().HasNoKey();
 
         }

@@ -45,9 +45,9 @@ public partial class Employee
 
     public string? Remark { get; set; }
 
-    public bool IsEditAllowed { get; set; } = false;
+    public bool IsEditAllowed { get; set; }
 
-    public bool IsInfoVerified { get; set; } = false;
+    public bool IsInfoVerified { get; set; }
 
     public long AddedById { get; set; }
 
@@ -63,7 +63,7 @@ public partial class Employee
 
     public DateTime? DeletedDateTime { get; set; }
 
-    public bool IsSoftDeleted { get; set; } = false;
+    public bool IsSoftDeleted { get; set; }
 
     public DateTime? InfoVerifiedDateTime { get; set; }
 
@@ -79,16 +79,16 @@ public partial class Employee
 
     public string? MobileNumber { get; set; }
 
-    public bool IsMarried { get; set; } = false;
+    public bool? IsMarried { get; set; }
 
     public string? EmergencyContactPerson { get; set; }
 
     public virtual ICollection<AssetHistory> AssetHistoryEmployee { get; set; } = new List<AssetHistory>();
-    public virtual ICollection<Ticket> TicketApprovedByUser { get; set; } = new List<Ticket>();
+
     public virtual ICollection<AssetHistory> AssetHistoryScrapApprovedByNavigation { get; set; } = new List<AssetHistory>();
 
     public virtual ICollection<AttendanceHistory> AttendanceHistory { get; set; } = new List<AttendanceHistory>();
-    public virtual ICollection<TicketHistory> TicketHistory { get; set; } = new List<TicketHistory>();
+
     public virtual Country Country { get; set; } = null!;
 
     public virtual Designation? Designation { get; set; }
@@ -119,6 +119,10 @@ public partial class Employee
 
     public virtual ICollection<EmployeePolicyEnrollment> EmployeePolicyEnrollment { get; set; } = new List<EmployeePolicyEnrollment>();
 
+    public virtual ICollection<EmployeeSalary> EmployeeSalary { get; set; } = new List<EmployeeSalary>();
+
+    public virtual ICollection<EmployeeTaxProfile> EmployeeTaxProfile { get; set; } = new List<EmployeeTaxProfile>();
+
     public virtual EmployeeType? EmployeeType { get; set; }
 
     public virtual ICollection<EmployeesChangedTypeHistory> EmployeesChangedTypeHistory { get; set; } = new List<EmployeesChangedTypeHistory>();
@@ -129,13 +133,19 @@ public partial class Employee
 
     public virtual ICollection<LoginCredential> LoginCredential { get; set; } = new List<LoginCredential>();
 
+    public virtual ICollection<PayrollEmployee> PayrollEmployee { get; set; } = new List<PayrollEmployee>();
+
     public virtual Tenant? Tenant { get; set; }
 
     public virtual ICollection<ThreadMessage> ThreadMessage { get; set; } = new List<ThreadMessage>();
 
+    public virtual ICollection<Ticket> TicketApprovedByUser { get; set; } = new List<Ticket>();
+
     public virtual ICollection<Ticket> TicketAssignedToUser { get; set; } = new List<Ticket>();
 
     public virtual ICollection<TicketAttachment> TicketAttachment { get; set; } = new List<TicketAttachment>();
+
+    public virtual ICollection<TicketHistory> TicketHistory { get; set; } = new List<TicketHistory>();
 
     public virtual ICollection<Ticket> TicketRecommendedByUser { get; set; } = new List<Ticket>();
 

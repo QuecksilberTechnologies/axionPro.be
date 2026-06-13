@@ -29,10 +29,11 @@ public class UnitOfWork : IUnitOfWork
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<UnitOfWork> _logger;
 
-    
-    
 
+
+    
     private IDbContextTransaction? _currentTransaction;
+    private ICompilanceRuleRepository? _compilanceRuleRepository;
     private bool _disposed;
     private   ITicketGenrationRepository _ticketRepository;
     private ITicketThreadRepository _ticketThreadRepository;
@@ -137,6 +138,8 @@ public class UnitOfWork : IUnitOfWork
             _loggerFactory.CreateLogger<UnStructuredEmployeePolicyTypeMappingRepository>(), _mapper);
     public IUserLoginReopsitory UserLoginRepository =>
         _userLoginRepository ??= new UserLoginReopsitory(_context, _loggerFactory.CreateLogger<UserLoginReopsitory>(), _mapper, _passwordService, _config);
+    //public ICompilanceRuleRepository CompilanceRuleRepository =>
+    //    _compilanceRuleRepository ??= new CompilanceRuleRepository(_context, _loggerFactory.CreateLogger<CompilanceRuleRepository>(), _mapper, _config);
 
     public IPermissionRepository PermissionRepository =>
         _permissionRepository ??= new PermissionRepository(_context, _loggerFactory.CreateLogger<PermissionRepository>(), _cacheService);
@@ -403,7 +406,7 @@ public class UnitOfWork : IUnitOfWork
     public ITicketAttachmentRepository TicketAttachmentRepository =>
    _ticketAttachmentRepository ??= new TicketAttachmentRepository(_context, _loggerFactory.CreateLogger<TicketAttachmentRepository>(), _mapper);
 
- 
+    public ICompilanceRuleRepository CompilanceRuleRepository => throw new NotImplementedException();
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {

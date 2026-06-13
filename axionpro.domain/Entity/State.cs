@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 
 namespace axionpro.domain.Entity;
-
+ 
 public partial class State
 {
     public int Id { get; set; }
@@ -15,7 +15,16 @@ public partial class State
 
     public virtual ICollection<City> City { get; set; } = new List<City>();
 
+    public virtual ICollection<ComplianceRule> ComplianceRule { get; set; } = new List<ComplianceRule>();
+
     public virtual Country Country { get; set; } = null!;
 
     public virtual ICollection<District> District { get; set; } = new List<District>();
+
+    public virtual ICollection<EmployeeTaxProfile> EmployeeTaxProfile { get; set; } = new List<EmployeeTaxProfile>();
+
+    public virtual ICollection<SalaryComponentMaster> SalaryComponentMaster { get; set; } = new List<SalaryComponentMaster>();
+
+    public virtual ICollection<TaxSlab> TaxSlab { get; set; } = new List<TaxSlab>();
 }
+

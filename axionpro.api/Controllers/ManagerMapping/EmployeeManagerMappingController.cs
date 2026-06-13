@@ -1,5 +1,5 @@
 ﻿using axionpro.application.DTOS.EmployeeManagerMappings;
-using axionpro.application.Features.EmployeeManagerMapping.Command;
+//using axionpro.application.Features.EmployeeManagerMapping.Command;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -44,15 +44,15 @@ namespace axionpro.api.Controllers.ManagerMapping
         /// </summary>
 
 
-        [HttpPost("add")]
-        // [Authorize]
-        public async Task<IActionResult> CreateRole([FromBody] AddEmployeeManagerMappingDTO DTO)
-        {
-            _logger.LogInformation("Received request to mapping manager: " + DTO.ToString());
-            var command = new AddEmployeeManagerMappingCommand(DTO);
-            var result = await _mediator.Send(command);
-            return Ok(result);
-        }
+        //[HttpPost("add")]
+        //// [Authorize]
+        //public async Task<IActionResult> CreateRole([FromBody] AddEmployeeManagerMappingDTO DTO)
+        //{
+        //    _logger.LogInformation("Received request to mapping manager: " + DTO.ToString());
+        //    var command = new AddEmployeeManagerMappingCommand(DTO);
+        //    var result = await _mediator.Send(command);
+        //    return Ok(result);
+        //}
 
 
 

@@ -12,7 +12,7 @@ using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace axionpro.application.Features.TicckeAllCmd.TicketType.Handlers
+namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
 {
     public class DDLTicketTypeQuery
         : IRequest<ApiResponse<List<GetDDLTicketTypeResponseDTO>>>

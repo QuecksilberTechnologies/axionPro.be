@@ -1,5 +1,5 @@
 ﻿using axionpro.application.DTOS.TicketDTO.TicketType;
-using axionpro.application.Features.TicckeAllCmd.TicketType.Handlers;
+ 
 using axionpro.application.Features.TickeAllCmd.TicketType.Handlers;
 using axionpro.application.Wrappers;
 using MediatR;

@@ -43,7 +43,11 @@ public partial class Tenant
 
     public DateTime? DeletedDateTime { get; set; }
 
+    public int? DefaultCurrency { get; set; }
+
     public virtual ICollection<AssetCategory> AssetCategory { get; set; } = new List<AssetCategory>();
+
+    public virtual ICollection<ComplianceRule> ComplianceRule { get; set; } = new List<ComplianceRule>();
 
     public virtual ICollection<DayCombination> DayCombination { get; set; } = new List<DayCombination>();
 
@@ -71,12 +75,21 @@ public partial class Tenant
 
     public virtual ICollection<OrganizationHolidayCalendar> OrganizationHolidayCalendar { get; set; } = new List<OrganizationHolidayCalendar>();
 
+    public virtual ICollection<PayrollRun> PayrollRun { get; set; } = new List<PayrollRun>();
+
     public virtual ICollection<PolicyType> PolicyType { get; set; } = new List<PolicyType>();
 
     public virtual ICollection<RequestType> RequestType { get; set; } = new List<RequestType>();
 
+    public virtual ICollection<SalaryComponentMaster> SalaryComponentMaster { get; set; } = new List<SalaryComponentMaster>();
+
+    public virtual ICollection<SalaryStructure> SalaryStructure { get; set; } = new List<SalaryStructure>();
+
+    public virtual ICollection<TaxRule> TaxRule { get; set; } = new List<TaxRule>();
+
+    public virtual ICollection<TaxSlab> TaxSlab { get; set; } = new List<TaxSlab>();
+
     public virtual ICollection<TenantEmailConfig> TenantEmailConfig { get; set; } = new List<TenantEmailConfig>();
-    public virtual ICollection<Ticket> Ticket { get; set; } = new List<Ticket>();
 
     public virtual ICollection<TenantEnabledModule> TenantEnabledModule { get; set; } = new List<TenantEnabledModule>();
 
@@ -87,6 +100,8 @@ public partial class Tenant
     public virtual ICollection<TenantProfile> TenantProfile { get; set; } = new List<TenantProfile>();
 
     public virtual ICollection<TenantSubscription> TenantSubscription { get; set; } = new List<TenantSubscription>();
+
+    public virtual ICollection<Ticket> Ticket { get; set; } = new List<Ticket>();
 
     public virtual ICollection<TicketClassification> TicketClassification { get; set; } = new List<TicketClassification>();
 

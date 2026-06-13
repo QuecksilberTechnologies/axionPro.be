@@ -1,135 +1,159 @@
 ﻿using axionpro.application.DTOS.Common;
-using axionpro.application.DTOS.EmployeeManagerMappings;
+using axionpro.application.DTOS.Compliances.ComplianceRule;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace axionpro.application.Features.EmployeeManagerMapping.Command
+namespace axionpro.application.Features.EmployeeManagerMapCmd
 {
-    public class AddEmployeeManagerMappingCommand
-        : IRequest<ApiResponse<bool>>
-    {
-        public AddEmployeeManagerMappingDTO DTO { get; set; }
+    //public class CreateComplianceRuleCommand
+    // : IRequest<ApiResponse<GetComplianceRuleResponseDTO>>
+    //{
+    //    public CreateComplianceRuleRequestDTO DTO { get; set; }
 
-        public AddEmployeeManagerMappingCommand(AddEmployeeManagerMappingDTO dto)
-        {
-            DTO = dto;
-        }
-    }
+    //    public CreateComplianceRuleCommand(CreateComplianceRuleRequestDTO dto)
+    //    {
+    //        DTO = dto;
+    //    }
+    //}
 
-    public class AddEmployeeManagerMappingCommandHandler
-       : IRequestHandler<AddEmployeeManagerMappingCommand, ApiResponse<bool>>
-    {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly ILogger<AddEmployeeManagerMappingCommandHandler> _logger;
-        private readonly ICommonRequestService _commonRequestService;
+    //public class CreateComplianceRuleCommandHandler
+    //: IRequestHandler<CreateComplianceRuleCommand, ApiResponse<GetComplianceRuleResponseDTO>>
+    //{
+    //    private readonly IUnitOfWork _unitOfWork;
+    //    private readonly ILogger<CreateComplianceRuleCommandHandler> _logger;
+    //    private readonly ICommonRequestService _commonRequestService;
 
-        public AddEmployeeManagerMappingCommandHandler(
-            IUnitOfWork unitOfWork,
-            ILogger<AddEmployeeManagerMappingCommandHandler> logger,
-            ICommonRequestService commonRequestService)
-        {
-            _unitOfWork = unitOfWork;
-            _logger = logger;
-            _commonRequestService = commonRequestService;
-        }
+    //    public CreateComplianceRuleCommandHandler(
+    //        IUnitOfWork unitOfWork,
+    //        ILogger<CreateComplianceRuleCommandHandler> logger,
+    //        ICommonRequestService commonRequestService)
+    //    {
+    //        _unitOfWork = unitOfWork;
+    //        _logger = logger;
+    //        _commonRequestService = commonRequestService;
+    //    }
 
-        public async Task<ApiResponse<bool>> Handle(
-            AddEmployeeManagerMappingCommand request,
-            CancellationToken cancellationToken)
-        {
-            try
-            {
-                // ===============================
-                // 1️⃣ VALIDATION
-                // ===============================
-                var validation = await _commonRequestService.ValidateRequestAsync();
+    //    public async Task<ApiResponse<GetComplianceRuleResponseDTO>> Handle(
+    //        CreateComplianceRuleCommand request,
+    //        CancellationToken cancellationToken)
+    //    {
+    //        try
+    //        {
+    //            // ===============================
+    //            // 1️⃣ VALIDATION
+    //            // ===============================
+    //            var validation = await _commonRequestService.ValidateRequestAsync();
 
-                if (!validation.Success)
-                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+    //            if (!validation.Success)
+    //                throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                if (request?.DTO == null)
-                    throw new ValidationErrorException("Invalid request.");
+    //            if (request?.DTO == null)
+    //                throw new ValidationErrorException("Invalid request.");
 
-                var dto = request.DTO;
+    //            var dto = request.DTO;
 
-                dto.Prop ??= new ExtraPropRequestDTO();
-                dto.Prop.TenantId = validation.TenantId;
+    //            dto.Prop ??= new ExtraPropRequestDTO();
+    //            dto.Prop.TenantId = validation.TenantId;
 
-                // ===============================
-                // 2️⃣ BUSINESS RULES
-                // ===============================
+    //            // ===============================
+    //            // 2️⃣ BUSINESS VALIDATION
+    //            // ===============================
 
-                // ❌ Self mapping not allowed
-                if (dto.EmployeeId == dto.ManagerId)
-                    throw new ValidationErrorException("Employee cannot be their own manager.");
+    //            if (dto.EffectiveTo != null && dto.EffectiveFrom > dto.EffectiveTo)
+    //                throw new ValidationErrorException("EffectiveFrom cannot be greater than EffectiveTo.");
 
-                // ❌ Primary manager duplicate check
-                if (dto.ReportingTypeId == 1)
-                {
-                    var exists = await _unitOfWork.EmployeeManagerMappingRepository
-                        .ExistsPrimaryAsync(dto.EmployeeId, dto.Prop.TenantId);
+    //            bool exists = await _unitOfWork.ComplianceRuleRepository
+    //                .ExistsAsync(dto.ComplianceTypeId, dto.CountryId, dto.StateId, dto.Prop.TenantId, dto.EffectiveFrom);
 
-                    if (exists)
-                        throw new ValidationErrorException("Primary manager already exists.");
-                }
+    //            if (exists)
+    //                throw new ValidationErrorException("Compliance rule already exists.");
 
-                // ❌ Date validation
-                if (dto.EffectiveTo != null && dto.EffectiveFrom > dto.EffectiveTo)
-                    throw new ValidationErrorException("EffectiveFrom cannot be greater than EffectiveTo.");
+    //            // ===============================
+    //            // 3️⃣ TRANSACTION
+    //            // ===============================
+    //            await _unitOfWork.BeginTransactionAsync();
 
-                // ===============================
-                // 3️⃣ TRANSACTION
-                // ===============================
-                await _unitOfWork.BeginTransactionAsync();
+    //            // 🔥 CLOSE OLD RULE (VERSIONING)
+    //            var existingRule = await _unitOfWork.ComplianceRuleRepository
+    //                .GetApplicableRuleAsync(
+    //                    dto.ComplianceTypeId,
+    //                    dto.CountryId,
+    //                    dto.StateId,
+    //                    dto.Prop.TenantId,
+    //                    dto.EffectiveFrom);
 
-                var entity = new domain.Entity.EmployeeManagerMapping
-                {
-                    EmployeeId = dto.EmployeeId,
-                    ManagerId = dto.ManagerId,
-                    ReportingTypeId = dto.ReportingTypeId,
-                    DepartmentId = dto.DepartmentId,
-                    DesignationId = dto.DesignationId,
-                    EffectiveFrom = dto.EffectiveFrom,
-                    EffectiveTo = dto.EffectiveTo,
-                    TenantId = dto.Prop.TenantId,
+    //            if (existingRule != null)
+    //            {
+    //                existingRule.EffectiveTo = dto.EffectiveFrom.AddDays(-1);
+    //                existingRule.UpdatedById = validation.UserEmployeeId;
+    //                existingRule.UpdatedDateTime = DateTime.UtcNow;
 
-                    Description = dto.Description,
-                    Remark = dto.Remark,
+    //                await _unitOfWork.ComplianceRuleRepository.UpdateAsync(existingRule);
+    //            }
 
-                    AddedById = validation.UserEmployeeId,
-                    AddedDateTime = DateTime.UtcNow,
+    //            // 🔥 CREATE NEW RULE
+    //            var entity = new ComplianceRule
+    //            {
+    //                ComplianceTypeId = dto.ComplianceTypeId,
+    //                CountryId = dto.CountryId,
+    //                StateId = dto.StateId,
+    //                TenantId = dto.Prop.TenantId,
 
-                    IsActive = true,
-                    IsSoftDeleted = false
-                };
+    //                RuleJson = JsonSerializer.Serialize(dto.RuleJson),
 
-                await _unitOfWork.EmployeeManagerMappingRepository.AddAsync(entity);
-                await _unitOfWork.SaveChangesAsync();
+    //                Priority = dto.Priority,
+    //                EffectiveFrom = dto.EffectiveFrom,
+    //                EffectiveTo = dto.EffectiveTo,
 
-                await _unitOfWork.CommitTransactionAsync();
+    //                AddedById = validation.UserEmployeeId,
+    //                AddedDateTime = DateTime.UtcNow,
 
-                _logger.LogInformation(
-                    "EmployeeManagerMapping added | EmployeeId: {EmployeeId}, ManagerId: {ManagerId}",
-                    dto.EmployeeId,
-                    dto.ManagerId);
+    //                IsActive = true,
+    //                IsSoftDeleted = false
+    //            };
 
-                // ===============================
-                // 4️⃣ RESPONSE
-                // ===============================
-                return ApiResponse<bool>.Success(true, "Mapping added successfully.");
-            }
-            catch (Exception ex)
-            {
-                await _unitOfWork.RollbackTransactionAsync();
-                _logger.LogError(ex, "Error in AddEmployeeManagerMappingCommandHandler");
-                throw;
-            }
-        }
-    }
+    //            await _unitOfWork.ComplianceRuleRepository.AddAsync(entity);
+    //            await _unitOfWork.SaveChangesAsync();
 
-    }
+    //            await _unitOfWork.CommitTransactionAsync();
+
+    //            _logger.LogInformation(
+    //                "ComplianceRule created | Type: {Type}, Country: {Country}, Tenant: {Tenant}",
+    //                dto.ComplianceTypeId,
+    //                dto.CountryId,
+    //                dto.Prop.TenantId);
+
+    //            // ===============================
+    //            // 4️⃣ RESPONSE
+    //            // ===============================
+    //            var response = new GetComplianceRuleReponseDTO
+    //            {
+    //                Id = entity.Id,
+    //                ComplianceTypeId = entity.ComplianceTypeId,
+    //                CountryId = entity.CountryId,
+    //                StateId = entity.StateId,
+    //                TenantId = entity.TenantId,
+    //                RuleJson = entity.RuleJson,
+    //                Priority = entity.Priority,
+    //                EffectiveFrom = entity.EffectiveFrom,
+    //                EffectiveTo = entity.EffectiveTo,
+    //                IsActive = entity.IsActive
+    //            };
+
+    //            return ApiResponse<GetComplianceRuleReponseDTO>
+    //                .Success(response, "Compliance rule created successfully.");
+    //        }
+    //        catch (Exception ex)
+    //        {
+    //            await _unitOfWork.RollbackTransactionAsync();
+    //            _logger.LogError(ex, "Error in CreateComplianceRuleCommandHandler");
+    //            throw;
+    //        }
+    //    }
+    //}
+
+}

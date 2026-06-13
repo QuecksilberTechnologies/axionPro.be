@@ -117,6 +117,7 @@
 
   <ItemGroup>
     <None Include="C:\codebase\AxionPro\axionpro.application\DTOs\RoleDTO\.editorconfig" />
+    <None Include="DTOS\Compliances\ComplianceRule\UpdateComplianceRuleReponseDTO.cs" />
     <None Include="DTOS\Department\GetDepartmentRequestDTO.cs" />
     <None Include="DTOS\Department\GetDepartmentOptionResponseDTO.cs" />
   </ItemGroup>
