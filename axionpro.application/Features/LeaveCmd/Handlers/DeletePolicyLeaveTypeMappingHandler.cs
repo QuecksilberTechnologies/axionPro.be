@@ -1,4 +1,12 @@
-﻿using axionpro.application.Features.LeaveCmd.Commands;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Deletes a leave policy mapping.
+// ================================================================
+
+using axionpro.application.DTOs.Leave;
+using axionpro.application.Features.LeaveCmd.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity; using MediatR;
@@ -7,7 +15,31 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+using System.Threading.Tasks;
+
+namespace axionpro.application.Features.LeaveCmd.Commands
+{
+    #region Command
+
+    /// <summary>
+    /// Represents the request to delete a leave policy mapping.
+    /// </summary>
+    public class DeleteLeavePolicyCommand : IRequest<ApiResponse<bool>>
+    {
+        public DeletePolicyLeaveTypeMappingRequestDTO DTO { get; set; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DeleteLeavePolicyCommand"/> class.
+        /// </summary>
+        /// <param name="deleteLeaveRequestDTO">The leave policy mapping data.</param>
+        public DeleteLeavePolicyCommand(DeletePolicyLeaveTypeMappingRequestDTO deleteLeaveRequestDTO)
+        {
+            this.DTO = deleteLeaveRequestDTO;
+        }
+    }
+
+    #endregion
+}
 
 namespace axionpro.application.Features.LeaveCmd.Handlers
 {
