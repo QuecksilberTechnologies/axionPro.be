@@ -1,23 +1,70 @@
-﻿using AutoMapper;
- 
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles the request to Create Workflow Stage.
+// ================================================================
+
+using axionpro.application.DTOs.Leave;
 using axionpro.application.DTOs.WorkflowStage;
+using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
+using MediatR;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using AutoMapper;
 using axionpro.application.Features.WorkflowStage.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
+
+namespace axionpro.application.Features.WorkflowStage.Commands
+{
+    #region Command
+
+    /// <summary>
+    /// Represents the request to Create Workflow Stage.
+    /// </summary>
+public class CreateWorkflowStageCommand : IRequest<ApiResponse<List<GetWorkflowStageResponseDTO>>>
+    {
+        
+            public CreateWorkflowStageRequestDTO DTO { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CreateWorkflowStageCommand"/> class.
+        /// </summary>
+
+            public CreateWorkflowStageCommand(CreateWorkflowStageRequestDTO dTO)
+            {
+                this.DTO = dTO;
+            }
+
+        }
+
+    #endregion
+}
 
 namespace axionpro.application.Features.WorkflowStage.Handlers
 {
-    /// <summary>
+/// <summary>
     /// Handles the creation of workflow stages.
     /// </summary>
     public class CreateWorkflowStageCommandHandler: IRequestHandler<CreateWorkflowStageCommand, ApiResponse<List<GetWorkflowStageResponseDTO>>>
     {
+        #region Fields
+
         private readonly IWorkflowStagesRepository _repository;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IStoreProcedureRepository _commonRepository;
+        #endregion
+
+        #region Constructor
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CreateWorkflowStageCommandHandler"/> class.
+        /// </summary>
+
 
         public CreateWorkflowStageCommandHandler(
             IWorkflowStagesRepository repository,
@@ -30,6 +77,16 @@ namespace axionpro.application.Features.WorkflowStage.Handlers
             _unitOfWork = unitOfWork;
             _commonRepository = commonRepository;
         }
+        #endregion
+
+        #region Handler
+        /// <summary>
+        /// Processes the supplied CreateWorkflowStageCommand.
+        /// </summary>
+        /// <param name="request">The request to process.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The response produced for the request.</returns>
+
 
         public async Task<ApiResponse<List<GetWorkflowStageResponseDTO>>> Handle(CreateWorkflowStageCommand request, CancellationToken cancellationToken)
         {
@@ -80,5 +137,7 @@ namespace axionpro.application.Features.WorkflowStage.Handlers
                 };
             }
         }
-    }
+    
+        #endregion
+}
 }

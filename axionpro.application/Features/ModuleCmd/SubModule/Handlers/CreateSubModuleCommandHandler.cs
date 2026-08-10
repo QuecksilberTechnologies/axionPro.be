@@ -1,27 +1,72 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Processes the CreateSubModuleRequestCommand use case.
+// ================================================================
+
+using axionpro.application.DTOs.Leave;
+using axionpro.application.DTOs.Module;
+using axionpro.application.DTOs.Module.NewFolder;
 using axionpro.application.DTOS.Module.ManualModule;
 using axionpro.application.DTOS.Module.SubModule;
+using axionpro.application.Features.ModuleCmd.Parent.Handlers;
+using axionpro.application.Wrappers;
+using AutoMapper;
 using axionpro.application.Features.ModuleCmd.SubModule.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+
+using MediatR;
+
+namespace axionpro.application.Features.ModuleCmd.SubModule.Commands
+{
+    #region Command
+
+    /// <summary>
+    /// Represents the command request for Create Sub Module Request.
+    /// </summary>
+public class CreateSubModuleRequestCommand : IRequest<ApiResponse<List<GetModuleChildInversResponseDTO>>>
+    {
+
+        public CreateSubModuleRequestDTO DTO { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CreateSubModuleRequestCommand"/> class.
+        /// </summary>
+
+        public CreateSubModuleRequestCommand(CreateSubModuleRequestDTO dTO)
+        {
+            this.DTO = dTO;
+        }
+
+    }
+
+    #endregion
+}
 
 namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
 {
-    /// <summary>
+/// <summary>
     /// Handles the creation of a new Sub-Module.
     /// </summary>
     public class CreateSubModuleCommandHandler : IRequestHandler<CreateSubModuleRequestCommand, ApiResponse<List<GetModuleChildInversResponseDTO>>>
     {
+        #region Fields
+
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<CreateSubModuleCommandHandler> _logger;
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CreateSubModuleCommandHandler"/> class.
+        /// </summary>
 
         public CreateSubModuleCommandHandler(
             IMapper mapper,
@@ -32,6 +77,16 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
+        #endregion
+
+        #region Handler
+
+        /// <summary>
+        /// Handles the request asynchronously.
+        /// </summary>
+        /// <param name="request">The request to process.</param>
+        /// <param name="cancellationToken">A token used to cancel the operation.</param>
+        /// <returns>The response produced by handling the request.</returns>
 
         public async Task<ApiResponse<List<GetModuleChildInversResponseDTO>>> Handle(CreateSubModuleRequestCommand request, CancellationToken cancellationToken)
         {
@@ -89,5 +144,7 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
                 };
             }
         }
-    }
+    
+        #endregion
+}
 }

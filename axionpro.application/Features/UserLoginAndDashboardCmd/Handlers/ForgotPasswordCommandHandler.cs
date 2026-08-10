@@ -1,26 +1,76 @@
-﻿using AutoMapper;
-using axionpro.application.Common.Helpers;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles the request to Forgot Password.
+// ================================================================
+
 using axionpro.application.DTOs.UserLogin;
+using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
+using MediatR;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using AutoMapper;
+using axionpro.application.Common.Helpers;
 using axionpro.application.Features.UserLoginAndDashboardCmd.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEmail;
 using axionpro.application.Interfaces.ITokenService;
-using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
-using MediatR;
 using Microsoft.Extensions.Logging;
 
+namespace axionpro.application.Features.UserLoginAndDashboardCmd.Commands
+{
+    #region Command
+
+    /// <summary>
+    /// Represents the request to Forgot Password.
+    /// </summary>
+public class ForgotPasswordCommand : IRequest<ApiResponse<ForgotPasswordResponseDTO>>
+    {
+        public ForgotPasswordUserIdRequestDTO dTO { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ForgotPasswordCommand"/> class.
+        /// </summary>
+
+
+        public ForgotPasswordCommand(ForgotPasswordUserIdRequestDTO dto)
+        {
+            dTO = dto;
+        }
+
+
+
+    }
+
+    #endregion
+}
 
 namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 {
-    public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordCommand, ApiResponse<ForgotPasswordResponseDTO>>
+    /// <summary>
+    /// Handles the request to Forgot Password.
+    /// </summary>
+public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordCommand, ApiResponse<ForgotPasswordResponseDTO>>
     {
+        #region Fields
+
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ITokenService _tokenService;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly ILogger<ForgotPasswordCommandHandler> _logger;
         private readonly IEmailService _emailService;
+        #endregion
+
+        #region Constructor
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ForgotPasswordCommandHandler"/> class.
+        /// </summary>
+
         public ForgotPasswordCommandHandler(IMapper mapper, IUnitOfWork unitOfWork, ITokenService tokenService, IRefreshTokenRepository refreshTokenRepository, ILogger<ForgotPasswordCommandHandler> logger, IEmailService emailService)
         {
             _logger = logger;
@@ -31,6 +81,16 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
             _emailService = emailService;
             
         }
+        #endregion
+
+        #region Handler
+        /// <summary>
+        /// Processes the supplied ForgotPasswordCommand.
+        /// </summary>
+        /// <param name="request">The request to process.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The response produced for the request.</returns>
+
       
         public async Task<ApiResponse<ForgotPasswordResponseDTO>> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
         {
@@ -179,6 +239,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
         }
 
       
-    }
-
+    
+        #endregion
+}
 }

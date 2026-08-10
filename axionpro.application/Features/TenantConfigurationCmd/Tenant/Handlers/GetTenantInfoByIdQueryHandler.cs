@@ -1,23 +1,69 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles the read-only request to retrieve Get Tenant Info By Id.
+// ================================================================
+
 using axionpro.application.DTOs.Tenant;
+using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
+using MediatR;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using AutoMapper;
 using axionpro.application.Features.TenantConfigurationCmd.Tenant.Queries;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+
+namespace axionpro.application.Features.TenantConfigurationCmd.Tenant.Queries
+{
+    #region Query
+
+    /// <summary>
+    /// Represents the read-only request to retrieve Get Tenant Info By Id.
+    /// </summary>
+public class GetTenantInfoByIdQuery : IRequest<ApiResponse<TenantResponseDTO>>
+    {
+        public long TenantId  { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetTenantInfoByIdQuery"/> class.
+        /// </summary>
+
+        public GetTenantInfoByIdQuery(long TenantId)
+        {
+            this.TenantId = TenantId;
+        }
+    }
+
+    #endregion
+}
 
 namespace axionpro.application.Features.TenantConfigurationCmd.Tenant.Handlers
 {
-    public class GetTenantInfoByIdQueryHandler : IRequestHandler<GetTenantInfoByIdQuery, ApiResponse<TenantResponseDTO>>
+    /// <summary>
+    /// Handles the request to Get Tenant Info By Id.
+    /// </summary>
+public class GetTenantInfoByIdQueryHandler : IRequestHandler<GetTenantInfoByIdQuery, ApiResponse<TenantResponseDTO>>
     {
+        #region Fields
+
         private readonly ITenantRepository _tenantRepository;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetTenantInfoByIdQueryHandler> _logger;
+        #endregion
+
+        #region Constructor
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetTenantInfoByIdQueryHandler"/> class.
+        /// </summary>
+
 
         public GetTenantInfoByIdQueryHandler(
             ITenantRepository tenantRepository,
@@ -30,6 +76,16 @@ namespace axionpro.application.Features.TenantConfigurationCmd.Tenant.Handlers
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
+        #endregion
+
+        #region Handler
+        /// <summary>
+        /// Processes the supplied GetTenantInfoByIdQuery.
+        /// </summary>
+        /// <param name="request">The request to process.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The response produced for the request.</returns>
+
 
         public async Task<ApiResponse<TenantResponseDTO>> Handle(GetTenantInfoByIdQuery request, CancellationToken cancellationToken)
         {
@@ -76,5 +132,7 @@ namespace axionpro.application.Features.TenantConfigurationCmd.Tenant.Handlers
                 };
             }
         }
-    }
+    
+        #endregion
+}
 }

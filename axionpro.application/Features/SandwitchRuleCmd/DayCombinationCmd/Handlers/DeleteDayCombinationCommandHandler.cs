@@ -1,23 +1,72 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles the request to Delete Day Combination.
+// ================================================================
+
+using axionpro.application.DTOs.Leave;
+using axionpro.application.DTOs.SandwitchRule.DayCombination;
+using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
+using MediatR;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using AutoMapper;
 using axionpro.application.DTOs.SandwitchRule;
 using axionpro.application.Features.SandwitchRuleCmd.DayCombinationCmd.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+
+namespace axionpro.application.Features.SandwitchRuleCmd.DayCombinationCmd.Commands
+{
+    #region Command
+
+    /// <summary>
+    /// Represents the request to Delete Day Combination.
+    /// </summary>
+public class DeleteDayCombinationCommand : IRequest<ApiResponse<bool>>
+    {
+
+        public DeleteDayCombinationRequestDTO DTO { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DeleteDayCombinationCommand"/> class.
+        /// </summary>
+
+        public DeleteDayCombinationCommand(DeleteDayCombinationRequestDTO dto)
+        {
+            DTO = dto;
+        }
+    }
+
+    #endregion
+}
 
 namespace axionpro.application.Features.SandwitchRuleCmd.DayCombinationCmd.Handlers
 {
-    public class DeleteDayCombinationCommandHandler : IRequestHandler<DeleteDayCombinationCommand, ApiResponse<bool>>
+    /// <summary>
+    /// Handles the request to Delete Day Combination.
+    /// </summary>
+public class DeleteDayCombinationCommandHandler : IRequestHandler<DeleteDayCombinationCommand, ApiResponse<bool>>
     {
+        #region Fields
+
         private readonly ILogger<UpdateDayCombinationCommandHandler> _logger;
         private readonly ISandwitchRuleRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        #endregion
+
+        #region Constructor
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DeleteDayCombinationCommandHandler"/> class.
+        /// </summary>
+
 
         public DeleteDayCombinationCommandHandler(
             IMapper mapper,
@@ -30,6 +79,16 @@ namespace axionpro.application.Features.SandwitchRuleCmd.DayCombinationCmd.Handl
             _repository = sandwitchRuleRepository;
             _logger = logger;
         }
+        #endregion
+
+        #region Handler
+        /// <summary>
+        /// Processes the supplied DeleteDayCombinationCommand.
+        /// </summary>
+        /// <param name="request">The request to process.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The response produced for the request.</returns>
+
 
         public async Task<ApiResponse<bool>> Handle(DeleteDayCombinationCommand request, CancellationToken cancellationToken)
         {
@@ -107,5 +166,7 @@ namespace axionpro.application.Features.SandwitchRuleCmd.DayCombinationCmd.Handl
                 };
             }
         }
-    }
+    
+        #endregion
+}
 }

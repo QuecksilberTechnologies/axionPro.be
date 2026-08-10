@@ -1,30 +1,76 @@
-﻿using AutoMapper;
-using axionpro.application.Common.Helpers;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles the request to Validate Otp.
+// ================================================================
+
 using axionpro.application.DTOs.UserLogin;
+using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
+using MediatR;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using AutoMapper;
+using axionpro.application.Common.Helpers;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.Features.UserLoginAndDashboardCmd.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEmail;
 using axionpro.application.Interfaces.ITokenService;
-using axionpro.application.Wrappers;
-
-using axionpro.domain.Entity; using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+
+namespace axionpro.application.Features.UserLoginAndDashboardCmd.Commands
+{
+    #region Command
+
+    /// <summary>
+    /// Represents the request to Validate Otp.
+    /// </summary>
+public class ValidateOtpCommand : IRequest<ApiResponse<bool>>
+    {
+        public ValidateOtpRequestDTO dTO { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ValidateOtpCommand"/> class.
+        /// </summary>
+
+
+        public ValidateOtpCommand(ValidateOtpRequestDTO dto)
+        {
+            dTO = dto;
+        }
+
+
+
+    }
+
+    #endregion
+}
 
 namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 {
-    public class ValidateOtpCommandHandler : IRequestHandler<ValidateOtpCommand, ApiResponse<bool>>
+    /// <summary>
+    /// Handles the request to Validate Otp.
+    /// </summary>
+public class ValidateOtpCommandHandler : IRequestHandler<ValidateOtpCommand, ApiResponse<bool>>
     {
+        #region Fields
+
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
        
       
         private readonly ILogger<ValidateOtpCommandHandler> _logger;
+        #endregion
+
+        #region Constructor
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ValidateOtpCommandHandler"/> class.
+        /// </summary>
+
      
         public ValidateOtpCommandHandler(IMapper mapper, IUnitOfWork unitOfWork  , ILogger<ValidateOtpCommandHandler> logger )
         {
@@ -34,6 +80,16 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
             
 
         }
+        #endregion
+
+        #region Handler
+        /// <summary>
+        /// Processes the supplied ValidateOtpCommand.
+        /// </summary>
+        /// <param name="request">The request to process.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The response produced for the request.</returns>
+
 
         public async Task<ApiResponse<bool>> Handle(ValidateOtpCommand request, CancellationToken cancellationToken)
         {
@@ -93,5 +149,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
         }
 
 
-    }
+    
+        #endregion
+}
 }

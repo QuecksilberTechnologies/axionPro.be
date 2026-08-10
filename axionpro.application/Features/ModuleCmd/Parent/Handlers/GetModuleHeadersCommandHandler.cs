@@ -1,30 +1,72 @@
-﻿using AutoMapper;
-using axionpro.application.DTOs.Module.NewFolder;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles the read-only request to retrieve Get Module Headers.
+// ================================================================
+
 using axionpro.application.DTOS.Module.ManualModule;
 using axionpro.application.DTOS.Module.ParentModule;
- 
+using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
+using MediatR;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using AutoMapper;
+using axionpro.application.DTOs.Module.NewFolder;
 using axionpro.application.Features.ModuleCmd.Parent.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Wrappers;
-
-using axionpro.domain.Entity; using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+
+namespace axionpro.application.Features.ModuleCmd.Parent.Commands
+{
+    #region Command
+
+    /// <summary>
+    /// Represents the read-only request to retrieve Get Module Headers.
+    /// </summary>
+public class GetModuleHeadersCommand : IRequest<ApiResponse<List<GetModuleChildInversResponseDTO>>>
+    {
+
+        public GetModuleChildInversRequestDTO DTO { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetModuleHeadersCommand"/> class.
+        /// </summary>
+
+        public GetModuleHeadersCommand(GetModuleChildInversRequestDTO dTO)
+        {
+            DTO = dTO;
+        }
+
+    }
+
+    #endregion
+}
 
 namespace axionpro.application.Features.ModuleCmd.Parent.Handlers
 {
-    /// <summary>
+/// <summary>
     /// Handles the creation of a new Parent Module.
     /// </summary>
     public class GetModuleHeadersCommandHandler : IRequestHandler<GetModuleHeadersCommand, ApiResponse<List<GetModuleChildInversResponseDTO>>>
     {
+        #region Fields
+
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetModuleHeadersCommandHandler> _logger;
+        #endregion
+
+        #region Constructor
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetModuleHeadersCommandHandler"/> class.
+        /// </summary>
+
 
         public GetModuleHeadersCommandHandler(
             IMapper mapper,
@@ -35,6 +77,16 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Handlers
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
+        #endregion
+
+        #region Handler
+        /// <summary>
+        /// Processes the supplied GetModuleHeadersCommand.
+        /// </summary>
+        /// <param name="request">The request to process.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The response produced for the request.</returns>
+
 
         public async Task<ApiResponse<List<GetModuleChildInversResponseDTO>>> Handle(GetModuleHeadersCommand request, CancellationToken cancellationToken)
         {
@@ -94,5 +146,7 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Handlers
         }
    
 
-    }
+    
+        #endregion
+}
 }

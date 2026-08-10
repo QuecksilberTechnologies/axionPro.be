@@ -1,25 +1,74 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles the request to Candidate Registration.
+// ================================================================
+
+using axionpro.application.DTOs.Registration;
+using axionpro.application.DTOs.UserLogin;
+using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
+using MediatR;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using AutoMapper;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Interfaces;
-using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 using axionpro.application.Features.UserLoginAndDashboardCmd.Commands;
 
-using axionpro.application.DTOs.Registration;
+namespace axionpro.application.Features.UserLoginAndDashboardCmd.Commands
+{
+    #region Command
+
+    /// <summary>
+    /// Represents the request to Candidate Registration.
+    /// </summary>
+public class CandidateRegistrationCommand : IRequest<ApiResponse<CandidateResponseDTO>>
+    {
+        public CandidateRequestDTO RequestCandidateRegistrationDTO { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CandidateRegistrationCommand"/> class.
+        /// </summary>
+
+
+        public CandidateRegistrationCommand(CandidateRequestDTO candidateRegistrationRequestDTO)
+        {
+            RequestCandidateRegistrationDTO = candidateRegistrationRequestDTO;
+        }
+
+
+
+    }
+
+    #endregion
+}
 
 namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 {
-
-    public class CandidateRegistrationCommandHandler : IRequestHandler<CandidateRegistrationCommand, ApiResponse<CandidateResponseDTO>>
+    /// <summary>
+    /// Handles the request to Candidate Registration.
+    /// </summary>
+public class CandidateRegistrationCommandHandler : IRequestHandler<CandidateRegistrationCommand, ApiResponse<CandidateResponseDTO>>
     {
+        #region Fields
+
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<CandidateRegistrationCommandHandler> _logger;
+        #endregion
+
+        #region Constructor
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CandidateRegistrationCommandHandler"/> class.
+        /// </summary>
+
 
         public CandidateRegistrationCommandHandler(IMapper mapper, IUnitOfWork unitOfWork, ILogger<CandidateRegistrationCommandHandler> logger)
         {
@@ -27,6 +76,16 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
+        #endregion
+
+        #region Handler
+        /// <summary>
+        /// Processes the supplied CandidateRegistrationCommand.
+        /// </summary>
+        /// <param name="request">The request to process.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The response produced for the request.</returns>
+
 
         public async Task<ApiResponse<CandidateResponseDTO>> Handle(CandidateRegistrationCommand request, CancellationToken cancellationToken)
         {
@@ -105,5 +164,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 
 
 
-    }
+    
+        #endregion
+}
 }

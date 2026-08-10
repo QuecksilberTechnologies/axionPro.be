@@ -1,26 +1,71 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Processes the GetCommonModuleRequestCommand use case.
+// ================================================================
+
+using axionpro.application.DTOs.Leave;
+using axionpro.application.Wrappers;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using axionpro.application.DTOs.Module.NewFolder;
 using axionpro.application.DTOS.Module.CommonModule;
+using AutoMapper;
 using axionpro.application.Features.ModuleCmd.Common.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+
+using MediatR;
+
+namespace axionpro.application.Features.ModuleCmd.Common.Commands
+{
+    #region Command
+
+    /// <summary>
+    /// Represents the command request for Get Common Module Request.
+    /// </summary>
+public class GetCommonModuleRequestCommand : IRequest<ApiResponse<List<GetCommonModuleResponseDTO>>>
+    {
+
+        public GetCommonModuleRequestDTO DTO { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetCommonModuleRequestCommand"/> class.
+        /// </summary>
+
+        public GetCommonModuleRequestCommand(GetCommonModuleRequestDTO dTO)
+        {
+            DTO = dTO;
+        }
+
+    }
+
+    #endregion
+}
 
 namespace axionpro.application.Features.ModuleCmd.Common.Handlers
 {
-    /// <summary>
+/// <summary>
     /// Handles retrieval of Common Modules.
     /// </summary>
     public class GetCommonModuleCommandHandler : IRequestHandler<GetCommonModuleRequestCommand, ApiResponse<List<GetCommonModuleResponseDTO>>>
     {
+        #region Fields
+
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetCommonModuleCommandHandler> _logger;
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetCommonModuleCommandHandler"/> class.
+        /// </summary>
 
         public GetCommonModuleCommandHandler(
             IMapper mapper,
@@ -31,6 +76,16 @@ namespace axionpro.application.Features.ModuleCmd.Common.Handlers
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
+        #endregion
+
+        #region Handler
+
+        /// <summary>
+        /// Handles the request asynchronously.
+        /// </summary>
+        /// <param name="request">The request to process.</param>
+        /// <param name="cancellationToken">A token used to cancel the operation.</param>
+        /// <returns>The response produced by handling the request.</returns>
 
         public async Task<ApiResponse<List<GetCommonModuleResponseDTO>>> Handle(GetCommonModuleRequestCommand request, CancellationToken cancellationToken)
         {
@@ -88,5 +143,7 @@ namespace axionpro.application.Features.ModuleCmd.Common.Handlers
                 };
             }
         }
-    }
+    
+        #endregion
+}
 }

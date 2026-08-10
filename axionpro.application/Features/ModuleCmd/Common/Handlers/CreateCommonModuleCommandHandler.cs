@@ -1,28 +1,72 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles the request to Create Common Module.
+// ================================================================
+
+using axionpro.application.DTOs.Leave;
 using axionpro.application.DTOs.Module.NewFolder;
 using axionpro.application.DTOS.Module.CommonModule;
+using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
+using MediatR;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using AutoMapper;
 using axionpro.application.Features.ModuleCmd.Common.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Wrappers;
-
-using axionpro.domain.Entity; using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+
+namespace axionpro.application.Features.ModuleCmd.Common.Commands
+{
+    #region Command
+
+    /// <summary>
+    /// Represents the request to Create Common Module.
+    /// </summary>
+public class CreateCommonModuleCommand : IRequest<ApiResponse<List<GetCommonModuleResponseDTO>>>
+    {
+
+        public CreateCommonModuleRequestDTO DTO { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CreateCommonModuleCommand"/> class.
+        /// </summary>
+
+        public CreateCommonModuleCommand(CreateCommonModuleRequestDTO dTO)
+        {
+            DTO = dTO;
+        }
+
+    }
+
+    #endregion
+}
 
 namespace axionpro.application.Features.ModuleCmd.Common.Handlers
 {
-    /// <summary>
+/// <summary>
     /// Handles the creation of a new Common Module.
     /// </summary>
     public class CreateCommonModuleCommandHandler : IRequestHandler<CreateCommonModuleCommand, ApiResponse<List<GetCommonModuleResponseDTO>>>
     {
+        #region Fields
+
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<CreateCommonModuleCommandHandler> _logger;
+        #endregion
+
+        #region Constructor
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CreateCommonModuleCommandHandler"/> class.
+        /// </summary>
+
 
         public CreateCommonModuleCommandHandler(
             IMapper mapper,
@@ -33,6 +77,16 @@ namespace axionpro.application.Features.ModuleCmd.Common.Handlers
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
+        #endregion
+
+        #region Handler
+        /// <summary>
+        /// Processes the supplied CreateCommonModuleCommand.
+        /// </summary>
+        /// <param name="request">The request to process.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The response produced for the request.</returns>
+
 
         public async Task<ApiResponse<List<GetCommonModuleResponseDTO>>> Handle(CreateCommonModuleCommand request, CancellationToken cancellationToken)
         {
@@ -92,5 +146,7 @@ namespace axionpro.application.Features.ModuleCmd.Common.Handlers
         }
 
 
-    }
+    
+        #endregion
+}
 }

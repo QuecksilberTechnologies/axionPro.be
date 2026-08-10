@@ -1,23 +1,68 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Processes the GetMainChildCategoryCommand use case.
+// ================================================================
+
 using axionpro.application.DTOs.Category;
-using axionpro.application.Features.CategoryCmd.Command;
-using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+using AutoMapper;
+using axionpro.application.Features.CategoryCmd.Command;
+using axionpro.application.Interfaces;
+using Microsoft.Extensions.Logging;
+
+using MediatR;
+
+namespace axionpro.application.Features.CategoryCmd.Command
+{
+    #region Command
+
+    /// <summary>
+    /// Represents the command request for Get Main Child Category.
+    /// </summary>
+public class GetMainChildCategoryCommand : IRequest<ApiResponse<List<CategoryResponseDTO>>>
+    {
+        public CategoryRequestDTO CategoryRequestDTO { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetMainChildCategoryCommand"/> class.
+        /// </summary>
+
+
+        public GetMainChildCategoryCommand(CategoryRequestDTO categoryRequestDTO)
+        {
+            CategoryRequestDTO = categoryRequestDTO;
+        }
+     
+
+    }
+
+    #endregion
+}
 
 namespace axionpro.application.Features.CategoryCmd.Handlers
 {
-    public class GetMainCategoryChildRequestCommandHandler : IRequestHandler<GetMainChildCategoryCommand, ApiResponse<List<CategoryResponseDTO>>>
+    /// <summary>
+    /// Handles the request for Get Main Child Category.
+    /// </summary>
+public class GetMainCategoryChildRequestCommandHandler : IRequestHandler<GetMainChildCategoryCommand, ApiResponse<List<CategoryResponseDTO>>>
     {
+        #region Fields
+
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetMainCategoryCommandHandler> _logger;
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetMainCategoryChildRequestCommandHandler"/> class.
+        /// </summary>
 
         public GetMainCategoryChildRequestCommandHandler(IMapper mapper, IUnitOfWork unitOfWork, ILogger<GetMainCategoryCommandHandler> logger)
         {
@@ -25,6 +70,16 @@ namespace axionpro.application.Features.CategoryCmd.Handlers
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
+        #endregion
+
+        #region Handler
+
+        /// <summary>
+        /// Handles the request asynchronously.
+        /// </summary>
+        /// <param name="request">The request to process.</param>
+        /// <param name="cancellationToken">A token used to cancel the operation.</param>
+        /// <returns>The response produced by handling the request.</returns>
 
         public async Task<ApiResponse<List<CategoryResponseDTO>>> Handle(GetMainChildCategoryCommand request, CancellationToken cancellationToken)
         {
@@ -85,6 +140,7 @@ namespace axionpro.application.Features.CategoryCmd.Handlers
         }
 
        
-    }
-
+    
+        #endregion
+}
 }

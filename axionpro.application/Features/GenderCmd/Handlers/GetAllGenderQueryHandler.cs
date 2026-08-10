@@ -1,27 +1,69 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles the read-only request to retrieve Get All Gender.
+// ================================================================
+
 using axionpro.application.DTOs.Gender;
 using axionpro.application.DTOs.Leave;
-using axionpro.application.Features.GenderCmd.Queries;
-using axionpro.application.Features.LeaveCmd.Handlers;
-using axionpro.application.Features.LeaveCmd.Queries;
-using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
-
-using axionpro.domain.Entity; using MediatR;
-using Microsoft.Extensions.Logging;
+using axionpro.domain.Entity;
+using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+using System.Threading.Tasks;
+using AutoMapper;
+using axionpro.application.Features.GenderCmd.Queries;
+using axionpro.application.Features.LeaveCmd.Handlers;
+using axionpro.application.Features.LeaveCmd.Queries;
+using axionpro.application.Interfaces;
+using Microsoft.Extensions.Logging;
+
+namespace axionpro.application.Features.GenderCmd.Queries
+{
+    #region Query
+
+    /// <summary>
+    /// Represents the read-only request to retrieve Get All Gender.
+    /// </summary>
+public class GetAllGenderQuery : IRequest<ApiResponse<List<GetGenderResponseDTO>>>
+    {
+        public GetGenderRequestDTO DTO { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetAllGenderQuery"/> class.
+        /// </summary>
+
+        public GetAllGenderQuery(GetGenderRequestDTO dTO)
+        {
+            DTO = dTO;
+        }
+    }
+
+    #endregion
+}
 
 namespace axionpro.application.Features.GenderCmd.Handlers
 {
-    public class GetAllGenderQueryHandler : IRequestHandler<GetAllGenderQuery, ApiResponse<List<GetGenderResponseDTO>>>
+    /// <summary>
+    /// Handles the request to Get All Gender.
+    /// </summary>
+public class GetAllGenderQueryHandler : IRequestHandler<GetAllGenderQuery, ApiResponse<List<GetGenderResponseDTO>>>
     {
+        #region Fields
+
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetAllGenderQueryHandler> _logger;
+        #endregion
+
+        #region Constructor
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetAllGenderQueryHandler"/> class.
+        /// </summary>
+
 
         public GetAllGenderQueryHandler(IMapper mapper, IUnitOfWork unitOfWork, ILogger<GetAllGenderQueryHandler> logger)
         {
@@ -29,6 +71,16 @@ namespace axionpro.application.Features.GenderCmd.Handlers
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
+        #endregion
+
+        #region Handler
+        /// <summary>
+        /// Processes the supplied GetAllGenderQuery.
+        /// </summary>
+        /// <param name="request">The request to process.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The response produced for the request.</returns>
+
 
         public async Task<ApiResponse<List<GetGenderResponseDTO>>> Handle(GetAllGenderQuery request, CancellationToken cancellationToken)
         {
@@ -86,6 +138,7 @@ namespace axionpro.application.Features.GenderCmd.Handlers
         }
 
 
-    }
+    
+        #endregion
 }
-     
+}

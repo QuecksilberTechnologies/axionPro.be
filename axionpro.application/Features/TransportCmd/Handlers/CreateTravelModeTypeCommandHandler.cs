@@ -1,26 +1,68 @@
-﻿using AutoMapper;
-using axionpro.application.Features.TransportCmd.Commands;
-using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Interfaces;
-using axionpro.application.Wrappers;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles the request to Create Travel Mode Type.
+// ================================================================
 
+using axionpro.application.DTOs.Transport;
+using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
+using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+using System.Threading.Tasks;
+using AutoMapper;
+using axionpro.application.Features.TransportCmd.Commands;
+using axionpro.application.Interfaces.IRepositories;
+using axionpro.application.Interfaces;
 
-using axionpro.domain.Entity; using MediatR;
-using axionpro.application.DTOs.Transport;
+namespace axionpro.application.Features.TransportCmd.Commands
+{
+    #region Command
 
+    /// <summary>
+    /// Represents the request to Create Travel Mode Type.
+    /// </summary>
+public class CreateTravelModeTypeCommand : IRequest<ApiResponse<List<GetAllTravelModeDTO>>>
+    {
+
+        public CreateTravelModeDTO createTravelModeDTO { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CreateTravelModeTypeCommand"/> class.
+        /// </summary>
+
+        public CreateTravelModeTypeCommand(CreateTravelModeDTO createClientTypeDTO)
+        {
+            this.createTravelModeDTO = createClientTypeDTO;
+        }
+   
+    }
+
+    #endregion
+}
 
 namespace axionpro.application.Features.TransportCmd.Handlers
 {
-    public class CreateTravelModeTypeCommandHandler :IRequestHandler<CreateTravelModeTypeCommand, ApiResponse<List<GetAllTravelModeDTO>>>
+    /// <summary>
+    /// Handles the request to Create Travel Mode Type.
+    /// </summary>
+public class CreateTravelModeTypeCommandHandler :IRequestHandler<CreateTravelModeTypeCommand, ApiResponse<List<GetAllTravelModeDTO>>>
     {
+        #region Fields
+
         private readonly ITravelRepository travelRepository;
     private readonly IMapper _mapper;
     private readonly IUnitOfWork _unitOfWork;
+        #endregion
+
+        #region Constructor
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CreateTravelModeTypeCommandHandler"/> class.
+        /// </summary>
+
 
     public CreateTravelModeTypeCommandHandler(ITravelRepository travelRepository, IMapper mapper, IUnitOfWork unitOfWork)
     {
@@ -28,6 +70,16 @@ namespace axionpro.application.Features.TransportCmd.Handlers
         _mapper = mapper;
         _unitOfWork = unitOfWork;
     }
+        #endregion
+
+        #region Handler
+        /// <summary>
+        /// Processes the supplied CreateTravelModeTypeCommand.
+        /// </summary>
+        /// <param name="request">The request to process.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The response produced for the request.</returns>
+
     public async Task<ApiResponse<List<GetAllTravelModeDTO>>> Handle(CreateTravelModeTypeCommand request, CancellationToken cancellationToken)
     {
         try
@@ -69,7 +121,7 @@ namespace axionpro.application.Features.TransportCmd.Handlers
     }
 
 
+
+        #endregion
 }
-
-
 }

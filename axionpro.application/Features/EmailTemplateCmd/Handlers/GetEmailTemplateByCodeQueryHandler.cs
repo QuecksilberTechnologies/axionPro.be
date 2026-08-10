@@ -1,20 +1,61 @@
-﻿using AutoMapper;
-using axionpro.application.DTOs.EmailTemplate;
-using axionpro.application.Features.EmailTemplateCmd.Queries;
-using axionpro.application.Interfaces;
-using axionpro.application.Wrappers;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles the read-only request to retrieve Get Email Template By Code.
+// ================================================================
 
+using axionpro.application.DTOs.EmailTemplate;
+using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
+using AutoMapper;
+using axionpro.application.Features.EmailTemplateCmd.Queries;
+using axionpro.application.Interfaces;
 using Microsoft.Extensions.Logging;
+
+namespace axionpro.application.Features.EmailTemplateCmd.Queries
+{
+    #region Query
+
+    /// <summary>
+    /// Represents the read-only request to retrieve Get Email Template By Code.
+    /// </summary>
+public class GetEmailTemplateByCodeQuery : IRequest<ApiResponse<EmailTemplateDTO>>
+    {
+        public string Code { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetEmailTemplateByCodeQuery"/> class.
+        /// </summary>
+
+        public GetEmailTemplateByCodeQuery(string code)
+        {
+            Code = code;
+        }
+    }
+
+    #endregion
+}
 
 namespace axionpro.application.Features.EmailTemplateCmd.Handlers
 {
-    public class GetEmailTemplateByCodeQueryHandler : IRequestHandler<GetEmailTemplateByCodeQuery, ApiResponse<EmailTemplateDTO>>
+    /// <summary>
+    /// Handles the request to Get Email Template By Code.
+    /// </summary>
+public class GetEmailTemplateByCodeQueryHandler : IRequestHandler<GetEmailTemplateByCodeQuery, ApiResponse<EmailTemplateDTO>>
     {
+        #region Fields
+
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetEmailTemplateByCodeQueryHandler> _logger;
+        #endregion
+
+        #region Constructor
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetEmailTemplateByCodeQueryHandler"/> class.
+        /// </summary>
+
         
         public GetEmailTemplateByCodeQueryHandler(
             IMapper mapper,
@@ -25,6 +66,16 @@ namespace axionpro.application.Features.EmailTemplateCmd.Handlers
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
+        #endregion
+
+        #region Handler
+        /// <summary>
+        /// Processes the supplied GetEmailTemplateByCodeQuery.
+        /// </summary>
+        /// <param name="request">The request to process.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The response produced for the request.</returns>
+
 
         public async Task<ApiResponse<EmailTemplateDTO>> Handle(GetEmailTemplateByCodeQuery request, CancellationToken cancellationToken)
         {
@@ -67,6 +118,7 @@ namespace axionpro.application.Features.EmailTemplateCmd.Handlers
                 };
             }
         }
-    }
+    
+        #endregion
 }
- 
+}

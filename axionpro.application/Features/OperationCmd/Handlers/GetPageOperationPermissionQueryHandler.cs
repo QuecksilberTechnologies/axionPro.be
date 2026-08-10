@@ -1,21 +1,68 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles the read-only request to retrieve Get Page Operation Permission.
+// ================================================================
+
 using axionpro.application.DTOs.Operation;
+using axionpro.application.DTOs.Role;
+using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
+using MediatR;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using AutoMapper;
 using axionpro.application.Features.OperationCmd.Queries;
 using axionpro.application.Interfaces;
-using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+
+namespace axionpro.application.Features.OperationCmd.Queries
+{
+    #region Query
+
+    /// <summary>
+    /// Represents the read-only request to retrieve Get Page Operation Permission.
+    /// </summary>
+public class GetPageOperationPermissionQuery : IRequest<ApiResponse<GetHasAccessOperationDTO>>
+    {
+        public GetCheckOperationPermissionRequestDTO? CheckOperationPermissionRequest { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetPageOperationPermissionQuery"/> class.
+        /// </summary>
+        
+        public GetPageOperationPermissionQuery(GetCheckOperationPermissionRequestDTO checkOperationPermissionRequest)
+        {
+            this.CheckOperationPermissionRequest = checkOperationPermissionRequest;
+        }
+    }
+
+    #endregion
+}
 
 namespace axionpro.application.Features.OperationCmd.Handlers
 {
-    public class GetPageOperationPermissionQueryHandler : IRequestHandler<GetPageOperationPermissionQuery, ApiResponse<GetHasAccessOperationDTO>>
+    /// <summary>
+    /// Handles the request to Get Page Operation Permission.
+    /// </summary>
+public class GetPageOperationPermissionQueryHandler : IRequestHandler<GetPageOperationPermissionQuery, ApiResponse<GetHasAccessOperationDTO>>
     {
+        #region Fields
+
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetPageOperationPermissionQueryHandler> _logger;
+        #endregion
+
+        #region Constructor
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetPageOperationPermissionQueryHandler"/> class.
+        /// </summary>
+
 
         public GetPageOperationPermissionQueryHandler(IMapper mapper, IUnitOfWork unitOfWork, ILogger<GetPageOperationPermissionQueryHandler> logger)
         {
@@ -23,6 +70,16 @@ namespace axionpro.application.Features.OperationCmd.Handlers
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
+        #endregion
+
+        #region Handler
+        /// <summary>
+        /// Processes the supplied GetPageOperationPermissionQuery.
+        /// </summary>
+        /// <param name="request">The request to process.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The response produced for the request.</returns>
+
 
         public async Task<ApiResponse<GetHasAccessOperationDTO>> Handle(GetPageOperationPermissionQuery request, CancellationToken cancellationToken)
         {
@@ -71,5 +128,7 @@ namespace axionpro.application.Features.OperationCmd.Handlers
 
             return response;
         }
-    }
+    
+        #endregion
+}
 }

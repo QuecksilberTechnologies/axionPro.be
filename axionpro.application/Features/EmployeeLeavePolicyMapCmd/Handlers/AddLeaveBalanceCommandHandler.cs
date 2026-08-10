@@ -1,25 +1,71 @@
-﻿using AutoMapper;
-using axionpro.application.DTOs.Leave;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles the request to Add Leave Balance.
+// ================================================================
+
 using axionpro.application.DTOS.EmployeeLeavePolicyMap;
+using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
+using MediatR;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using AutoMapper;
+using axionpro.application.DTOs.Leave;
 using axionpro.application.Features.EmployeeLeavePolicyMapCmd.Commands;
 using axionpro.application.Features.LeaveCmd.Commands;
 using axionpro.application.Interfaces;
-using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+
+namespace axionpro.application.Features.EmployeeLeavePolicyMapCmd.Commands
+{
+    #region Command
+
+    /// <summary>
+    /// Represents the request to Add Leave Balance.
+    /// </summary>
+public class AddLeaveBalanceCommand : IRequest<ApiResponse<GetEmployeeLeavePolicyMappingReponseDTO>>
+    {
+
+        public AddLeaveBalanceToEmployeeRequestDTO DTO { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AddLeaveBalanceCommand"/> class.
+        /// </summary>
+
+        public AddLeaveBalanceCommand(AddLeaveBalanceToEmployeeRequestDTO addLeaveBalanceToEmployeeRequest)
+        {
+            this.DTO = addLeaveBalanceToEmployeeRequest;
+        }
+    }
+
+    #endregion
+}
 
 namespace axionpro.application.Features.EmployeeLeavePolicyMapCmd.Handlers
 {
-    public class AddLeaveBalanceCommandHandler
+    /// <summary>
+    /// Handles the request to Add Leave Balance.
+    /// </summary>
+public class AddLeaveBalanceCommandHandler
         : IRequestHandler<AddLeaveBalanceCommand, ApiResponse<GetEmployeeLeavePolicyMappingReponseDTO>>
     {
+        #region Fields
+
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<AddLeaveBalanceCommandHandler> _logger;
+        #endregion
+
+        #region Constructor
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AddLeaveBalanceCommandHandler"/> class.
+        /// </summary>
+
 
         public AddLeaveBalanceCommandHandler(
             IMapper mapper,
@@ -30,6 +76,16 @@ namespace axionpro.application.Features.EmployeeLeavePolicyMapCmd.Handlers
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
+        #endregion
+
+        #region Handler
+        /// <summary>
+        /// Processes the supplied AddLeaveBalanceCommand.
+        /// </summary>
+        /// <param name="request">The request to process.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The response produced for the request.</returns>
+
 
         public async Task<ApiResponse<GetEmployeeLeavePolicyMappingReponseDTO>> Handle(AddLeaveBalanceCommand request, CancellationToken cancellationToken)
         {
@@ -182,5 +238,7 @@ namespace axionpro.application.Features.EmployeeLeavePolicyMapCmd.Handlers
                 };
             }
         }
-    }
+    
+        #endregion
+}
 }

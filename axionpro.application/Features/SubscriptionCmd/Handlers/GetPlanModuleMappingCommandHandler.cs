@@ -1,23 +1,71 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles the read-only request to retrieve Get Plan Module Mapping.
+// ================================================================
+
 using axionpro.application.DTOs.SubscriptionModule;
+using axionpro.application.DTOs.Tenant;
+using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
+using MediatR;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using AutoMapper;
 using axionpro.application.Features.SubscriptionCmd.Commands;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces;
-using axionpro.application.Wrappers;
-
 using Microsoft.Extensions.Logging;
- using MediatR;
 
-using axionpro.application.DTOs.Tenant;
+namespace axionpro.application.Features.SubscriptionCmd.Commands
+{
+    #region Command
+
+    /// <summary>
+    /// Represents the read-only request to retrieve Get Plan Module Mapping.
+    /// </summary>
+public class GetPlanModuleMappingCommand : IRequest<ApiResponse<PlanModuleMappingResponseDTO>>
+    {
+
+        public PlanModuleMappingRequestDTO planModuleMappingRequest { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetPlanModuleMappingCommand"/> class.
+        /// </summary>
+
+        public GetPlanModuleMappingCommand(PlanModuleMappingRequestDTO planModuleMappingRequest)
+        {
+            this.planModuleMappingRequest = planModuleMappingRequest;
+        }
+
+    }
+
+    #endregion
+}
 
 namespace axionpro.application.Features.SubscriptionCmd.Handlers
 {
-    public class GetPlanModuleMappingCommandHandler :IRequestHandler<GetPlanModuleMappingCommand, ApiResponse<PlanModuleMappingResponseDTO>>
+    /// <summary>
+    /// Handles the request to Get Plan Module Mapping.
+    /// </summary>
+public class GetPlanModuleMappingCommandHandler :IRequestHandler<GetPlanModuleMappingCommand, ApiResponse<PlanModuleMappingResponseDTO>>
     {
+        #region Fields
+
         private readonly IPlanModuleMappingRepository _planModuleMappingRepository;
     private readonly IMapper _mapper;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<GetPlanModuleMappingCommandHandler> _logger;
+        #endregion
+
+        #region Constructor
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetPlanModuleMappingCommandHandler"/> class.
+        /// </summary>
+
 
 
     public GetPlanModuleMappingCommandHandler(IPlanModuleMappingRepository planModuleMappingRepository, IMapper mapper, IUnitOfWork unitOfWork, ILogger<GetPlanModuleMappingCommandHandler> logger)
@@ -26,6 +74,16 @@ namespace axionpro.application.Features.SubscriptionCmd.Handlers
         _mapper = mapper;
         _unitOfWork = unitOfWork;
     }
+        #endregion
+
+        #region Handler
+        /// <summary>
+        /// Processes the supplied GetPlanModuleMappingCommand.
+        /// </summary>
+        /// <param name="request">The request to process.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The response produced for the request.</returns>
+
 
     public async Task<ApiResponse<PlanModuleMappingResponseDTO>> Handle(GetPlanModuleMappingCommand request, CancellationToken cancellationToken)
     {
@@ -82,5 +140,7 @@ namespace axionpro.application.Features.SubscriptionCmd.Handlers
             };
         }
     }
+
+        #endregion
 }
 }

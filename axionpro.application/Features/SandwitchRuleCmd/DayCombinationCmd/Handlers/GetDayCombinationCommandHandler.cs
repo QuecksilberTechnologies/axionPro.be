@@ -1,26 +1,72 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles the read-only request to retrieve Get Day Combination.
+// ================================================================
+
+using axionpro.application.DTOs.Leave;
 using axionpro.application.DTOs.SandwitchRule.DayCombination;
+using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
+using MediatR;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using AutoMapper;
 using axionpro.application.Features.SandwitchRuleCmd.DayCombinationCmd.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Wrappers;
-
-using axionpro.domain.Entity; using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+
+namespace axionpro.application.Features.SandwitchRuleCmd.DayCombinationCmd.Commands
+{
+    #region Command
+
+    /// <summary>
+    /// Represents the read-only request to retrieve Get Day Combination.
+    /// </summary>
+public class GetDayCombinationCommand : IRequest<ApiResponse<IEnumerable<GetDayCombinationResponseDTO>>>
+    {
+
+        public GetDayCombinationRequestDTO DTO { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetDayCombinationCommand"/> class.
+        /// </summary>
+
+        public GetDayCombinationCommand(GetDayCombinationRequestDTO dto)
+        {
+            DTO = dto;
+        }
+    }
+
+    #endregion
+}
 
 namespace axionpro.application.Features.SandwitchRuleCmd.DayCombinationCmd.Handlers
 {
-    public class GetDayCombinationCommandHandler : IRequestHandler<GetDayCombinationCommand, ApiResponse<IEnumerable<GetDayCombinationResponseDTO>>>
+    /// <summary>
+    /// Handles the request to Get Day Combination.
+    /// </summary>
+public class GetDayCombinationCommandHandler : IRequestHandler<GetDayCombinationCommand, ApiResponse<IEnumerable<GetDayCombinationResponseDTO>>>
     {
+        #region Fields
+
    
         private readonly ILogger<GetDayCombinationCommandHandler> _logger;
         private readonly ISandwitchRuleRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        #endregion
+
+        #region Constructor
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetDayCombinationCommandHandler"/> class.
+        /// </summary>
+
       
         public GetDayCombinationCommandHandler(
             IMapper mapper,
@@ -33,6 +79,16 @@ namespace axionpro.application.Features.SandwitchRuleCmd.DayCombinationCmd.Handl
             _repository = sandwitchRuleRepository;
             _logger = logger;
         }
+        #endregion
+
+        #region Handler
+        /// <summary>
+        /// Processes the supplied GetDayCombinationCommand.
+        /// </summary>
+        /// <param name="request">The request to process.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The response produced for the request.</returns>
+
 
         public async Task<ApiResponse<IEnumerable<GetDayCombinationResponseDTO>>> Handle(
      GetDayCombinationCommand request,
@@ -107,5 +163,7 @@ namespace axionpro.application.Features.SandwitchRuleCmd.DayCombinationCmd.Handl
         }
 
 
-    }
+    
+        #endregion
+}
 }

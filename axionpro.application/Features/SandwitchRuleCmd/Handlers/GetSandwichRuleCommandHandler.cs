@@ -1,27 +1,73 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles the read-only request to retrieve Get Sandwich Rule.
+// ================================================================
+
+using axionpro.application.DTOs.Leave;
 using axionpro.application.DTOs.SandwitchRule;
 using axionpro.application.DTOs.SandwitchRule.DayCombination;
-using axionpro.application.Features.SandwitchRuleCmd.Commands;
-using axionpro.application.Interfaces;
-using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
-using Microsoft.Extensions.Logging;
+using axionpro.domain.Entity;
+using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using AutoMapper;
+using axionpro.application.Features.SandwitchRuleCmd.Commands;
+using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.IRepositories;
+using Microsoft.Extensions.Logging;
 using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+
+namespace axionpro.application.Features.SandwitchRuleCmd.Commands
+{
+    #region Command
+
+    /// <summary>
+    /// Represents the read-only request to retrieve Get Sandwich Rule.
+    /// </summary>
+public class GetSandwichRuleCommand : IRequest<ApiResponse<IEnumerable<GetLeaveSandwitchRuleResponseDTO>>>
+    {
+
+        public GetLeaveSandwitchRuleRequestDTO DTO { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetSandwichRuleCommand"/> class.
+        /// </summary>
+
+        public GetSandwichRuleCommand(GetLeaveSandwitchRuleRequestDTO dto)
+        {
+            DTO = dto;
+        }
+    }
+
+    #endregion
+}
 
 namespace axionpro.application.Features.SandwitchRuleCmd.Handlers
 {
-    public class GetSandwichRuleCommandHandler
+    /// <summary>
+    /// Handles the request to Get Sandwich Rule.
+    /// </summary>
+public class GetSandwichRuleCommandHandler
         : IRequestHandler<GetSandwichRuleCommand, ApiResponse<IEnumerable<GetLeaveSandwitchRuleResponseDTO>>>
     {
+        #region Fields
+
         private readonly ILogger<GetSandwichRuleCommandHandler> _logger;
         private readonly ISandwitchRuleRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        #endregion
+
+        #region Constructor
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetSandwichRuleCommandHandler"/> class.
+        /// </summary>
+
 
         public GetSandwichRuleCommandHandler(
             IMapper mapper,
@@ -34,6 +80,16 @@ namespace axionpro.application.Features.SandwitchRuleCmd.Handlers
             _repository = sandwitchRuleRepository;
             _logger = logger;
         }
+        #endregion
+
+        #region Handler
+        /// <summary>
+        /// Processes the supplied GetSandwichRuleCommand.
+        /// </summary>
+        /// <param name="request">The request to process.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The response produced for the request.</returns>
+
 
         public async Task<ApiResponse<IEnumerable<GetLeaveSandwitchRuleResponseDTO>>> Handle(
             GetSandwichRuleCommand request,
@@ -91,5 +147,7 @@ namespace axionpro.application.Features.SandwitchRuleCmd.Handlers
                 };
             }
         }
-    }
+    
+        #endregion
+}
 }

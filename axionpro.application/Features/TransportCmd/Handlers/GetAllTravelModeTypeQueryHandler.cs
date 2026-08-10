@@ -1,27 +1,68 @@
-﻿using AutoMapper;
- 
-using axionpro.application.DTOs.Transport;
-using axionpro.application.Features.LeaveCmd.Handlers;
-using axionpro.application.Features.LeaveCmd.Queries;
-using axionpro.application.Features.TransportCmd.Queries;
-using axionpro.application.Interfaces;
-using axionpro.application.Wrappers;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles the read-only request to retrieve Get All Travel Mode Type.
+// ================================================================
 
-using axionpro.domain.Entity; using MediatR;
-using Microsoft.Extensions.Logging;
+using axionpro.application.DTOs.Transport;
+using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
+using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+using System.Threading.Tasks;
+using AutoMapper;
+using axionpro.application.Features.LeaveCmd.Handlers;
+using axionpro.application.Features.LeaveCmd.Queries;
+using axionpro.application.Features.TransportCmd.Queries;
+using axionpro.application.Interfaces;
+using Microsoft.Extensions.Logging;
+
+namespace axionpro.application.Features.TransportCmd.Queries
+{
+    #region Query
+
+    /// <summary>
+    /// Represents the read-only request to retrieve Get All Travel Mode Type.
+    /// </summary>
+public class GetAllTravelModeTypeQuery : IRequest<ApiResponse<List<GetAllTravelModeDTO>>>
+    {
+        public TravelModeRequestDTO? travelModeRequestDTO { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetAllTravelModeTypeQuery"/> class.
+        /// </summary>
+
+        public GetAllTravelModeTypeQuery(TravelModeRequestDTO clientTypeRequestDTO)
+        {
+            this.travelModeRequestDTO = travelModeRequestDTO;
+        }
+    }
+
+    #endregion
+}
 
 namespace axionpro.application.Features.TransportCmd.Handlers
 {
-    public class GetAllTravelModeTypeQueryHandler : IRequestHandler<GetAllTravelModeTypeQuery, ApiResponse<List<GetAllTravelModeDTO>>>
+    /// <summary>
+    /// Handles the request to Get All Travel Mode Type.
+    /// </summary>
+public class GetAllTravelModeTypeQueryHandler : IRequestHandler<GetAllTravelModeTypeQuery, ApiResponse<List<GetAllTravelModeDTO>>>
     {
+        #region Fields
+
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetAllTravelModeTypeQueryHandler> _logger;
+        #endregion
+
+        #region Constructor
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetAllTravelModeTypeQueryHandler"/> class.
+        /// </summary>
+
 
         public GetAllTravelModeTypeQueryHandler(IMapper mapper, IUnitOfWork unitOfWork, ILogger<GetAllTravelModeTypeQueryHandler> logger)
         {
@@ -29,6 +70,16 @@ namespace axionpro.application.Features.TransportCmd.Handlers
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
+        #endregion
+
+        #region Handler
+        /// <summary>
+        /// Processes the supplied GetAllTravelModeTypeQuery.
+        /// </summary>
+        /// <param name="request">The request to process.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The response produced for the request.</returns>
+
         public async Task<ApiResponse<List<GetAllTravelModeDTO>>> Handle(GetAllTravelModeTypeQuery request, CancellationToken cancellationToken)
         {
             try
@@ -67,5 +118,7 @@ namespace axionpro.application.Features.TransportCmd.Handlers
          
 
        
-    }
+    
+        #endregion
+}
 }

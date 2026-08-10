@@ -1,24 +1,72 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles the request to Update Sandwich Rule.
+// ================================================================
+
+using axionpro.application.DTOs.Leave;
 using axionpro.application.DTOs.SandwitchRule;
- 
+using axionpro.application.DTOs.SandwitchRule.DayCombination;
+using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
+using MediatR;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using AutoMapper;
 using axionpro.application.Features.SandwitchRuleCmd.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+
+namespace axionpro.application.Features.SandwitchRuleCmd.Commands
+{
+    #region Command
+
+    /// <summary>
+    /// Represents the request to Update Sandwich Rule.
+    /// </summary>
+public class UpdateSandwichRuleCommand : IRequest<ApiResponse<bool>>
+    {
+
+        public UpdateLeaveSandwitchRuleRequestDTO DTO { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UpdateSandwichRuleCommand"/> class.
+        /// </summary>
+
+        public UpdateSandwichRuleCommand(UpdateLeaveSandwitchRuleRequestDTO dto)
+        {
+            DTO = dto;
+        }
+    }
+
+    #endregion
+}
 
 namespace axionpro.application.Features.SandwitchRuleCmd.Handlers
 {
-    public class UpdateSandwichRuleCommandHandler : IRequestHandler<UpdateSandwichRuleCommand, ApiResponse<bool>>
+    /// <summary>
+    /// Handles the request to Update Sandwich Rule.
+    /// </summary>
+public class UpdateSandwichRuleCommandHandler : IRequestHandler<UpdateSandwichRuleCommand, ApiResponse<bool>>
     {
+        #region Fields
+
         private readonly ILogger<UpdateSandwichRuleCommandHandler> _logger;
         private readonly ISandwitchRuleRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        #endregion
+
+        #region Constructor
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UpdateSandwichRuleCommandHandler"/> class.
+        /// </summary>
+
 
         public UpdateSandwichRuleCommandHandler(
             IMapper mapper,
@@ -31,6 +79,16 @@ namespace axionpro.application.Features.SandwitchRuleCmd.Handlers
             _repository = sandwitchRuleRepository;
             _logger = logger;
         }
+        #endregion
+
+        #region Handler
+        /// <summary>
+        /// Processes the supplied UpdateSandwichRuleCommand.
+        /// </summary>
+        /// <param name="request">The request to process.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The response produced for the request.</returns>
+
 
         public async Task<ApiResponse<bool>> Handle(UpdateSandwichRuleCommand request, CancellationToken cancellationToken)
         {
@@ -108,5 +166,7 @@ namespace axionpro.application.Features.SandwitchRuleCmd.Handlers
                 };
             }
         }
-    }
+    
+        #endregion
+}
 }

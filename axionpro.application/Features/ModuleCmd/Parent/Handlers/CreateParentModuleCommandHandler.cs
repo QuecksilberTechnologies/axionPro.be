@@ -1,29 +1,71 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Processes the CreateParentModuleRequestCommand use case.
+// ================================================================
+
+using axionpro.application.DTOs.Leave;
+using axionpro.application.Wrappers;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using axionpro.application.DTOs.Module.NewFolder;
 using axionpro.application.DTOS.Module.ParentModule;
- 
+using AutoMapper;
 using axionpro.application.Features.ModuleCmd.Parent.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Wrappers;
-
-using axionpro.domain.Entity; using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+
+using MediatR;
+
+namespace axionpro.application.Features.ModuleCmd.Parent.Commands
+{
+    #region Command
+
+    /// <summary>
+    /// Represents the command request for Create Parent Module Request.
+    /// </summary>
+public class CreateParentModuleRequestCommand : IRequest<ApiResponse<List<GetParentModuleResponseDTO>>>
+    {
+
+        public CreateParentModuleRequestDTO DTO { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CreateParentModuleRequestCommand"/> class.
+        /// </summary>
+
+        public CreateParentModuleRequestCommand(CreateParentModuleRequestDTO dTO)
+        {
+            DTO = dTO;
+        }
+
+    }
+
+    #endregion
+}
 
 namespace axionpro.application.Features.ModuleCmd.Parent.Handlers
 {
-    /// <summary>
+/// <summary>
     /// Handles the creation of a new Parent Module.
     /// </summary>
     public class CreateParentModuleCommandHandler : IRequestHandler<CreateParentModuleRequestCommand, ApiResponse<List<GetParentModuleResponseDTO>>>
     {
+        #region Fields
+
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<CreateParentModuleCommandHandler> _logger;
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CreateParentModuleCommandHandler"/> class.
+        /// </summary>
 
         public CreateParentModuleCommandHandler(
             IMapper mapper,
@@ -34,6 +76,16 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Handlers
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
+        #endregion
+
+        #region Handler
+
+        /// <summary>
+        /// Handles the request asynchronously.
+        /// </summary>
+        /// <param name="request">The request to process.</param>
+        /// <param name="cancellationToken">A token used to cancel the operation.</param>
+        /// <returns>The response produced by handling the request.</returns>
 
         public async Task<ApiResponse<List<GetParentModuleResponseDTO>>> Handle(CreateParentModuleRequestCommand request, CancellationToken cancellationToken)
         {
@@ -93,5 +145,7 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Handlers
         }
 
 
-    }
+    
+        #endregion
+}
 }

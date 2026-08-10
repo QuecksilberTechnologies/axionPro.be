@@ -1,26 +1,69 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles the read-only request to retrieve Get All Employee Leave Policy.
+// ================================================================
+
 using axionpro.application.DTOs.Leave;
 using axionpro.application.DTOS.EmployeeLeavePolicyMap;
-using axionpro.application.Features.EmployeeLeavePolicyMapCmd.Commands;
-using axionpro.application.Features.LeaveCmd.Handlers;
-using axionpro.application.Features.LeaveCmd.Queries;
-using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
-using Microsoft.Extensions.Logging;
+using axionpro.domain.Entity;
+using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+using System.Threading.Tasks;
+using AutoMapper;
+using axionpro.application.Features.EmployeeLeavePolicyMapCmd.Commands;
+using axionpro.application.Features.LeaveCmd.Handlers;
+using axionpro.application.Features.LeaveCmd.Queries;
+using axionpro.application.Interfaces;
+using Microsoft.Extensions.Logging;
+
+namespace axionpro.application.Features.EmployeeLeavePolicyMapCmd.Commands
+{
+    #region Query
+
+    /// <summary>
+    /// Represents the read-only request to retrieve Get All Employee Leave Policy.
+    /// </summary>
+public class GetAllEmployeeLeavePolicyQuery : IRequest<ApiResponse<List<GetEmployeeLeavePolicyMappingReponseDTO>>>
+    {
+        public GetEmployeeLeavePolicyMappingRequestDTO DTO { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetAllEmployeeLeavePolicyQuery"/> class.
+        /// </summary>
+
+        public GetAllEmployeeLeavePolicyQuery(GetEmployeeLeavePolicyMappingRequestDTO getAllLeavePolicy)
+        {
+            this.DTO = getAllLeavePolicy;
+        }
+    }
+
+    #endregion
+}
 
 namespace axionpro.application.Features.EmployeeLeavePolicyMapCmd.Handlers
 {
-    public class GetAllEmployeeLeavePolicyQueryHandler : IRequestHandler<GetAllEmployeeLeavePolicyQuery, ApiResponse<List<GetEmployeeLeavePolicyMappingReponseDTO>>>
+    /// <summary>
+    /// Handles the request to Get All Employee Leave Policy.
+    /// </summary>
+public class GetAllEmployeeLeavePolicyQueryHandler : IRequestHandler<GetAllEmployeeLeavePolicyQuery, ApiResponse<List<GetEmployeeLeavePolicyMappingReponseDTO>>>
     {
+        #region Fields
+
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetAllEmployeeLeavePolicyQueryHandler> _logger;
+        #endregion
+
+        #region Constructor
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetAllEmployeeLeavePolicyQueryHandler"/> class.
+        /// </summary>
+
 
         public GetAllEmployeeLeavePolicyQueryHandler(IMapper mapper, IUnitOfWork unitOfWork, ILogger<GetAllEmployeeLeavePolicyQueryHandler> logger)
         {
@@ -28,6 +71,16 @@ namespace axionpro.application.Features.EmployeeLeavePolicyMapCmd.Handlers
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
+        #endregion
+
+        #region Handler
+        /// <summary>
+        /// Processes the supplied GetAllEmployeeLeavePolicyQuery.
+        /// </summary>
+        /// <param name="request">The request to process.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The response produced for the request.</returns>
+
 
         public async Task<ApiResponse<List<GetEmployeeLeavePolicyMappingReponseDTO>>> Handle(GetAllEmployeeLeavePolicyQuery request, CancellationToken cancellationToken)
         {
@@ -93,5 +146,7 @@ namespace axionpro.application.Features.EmployeeLeavePolicyMapCmd.Handlers
             }
         }
 
-    }
+    
+        #endregion
+}
 }

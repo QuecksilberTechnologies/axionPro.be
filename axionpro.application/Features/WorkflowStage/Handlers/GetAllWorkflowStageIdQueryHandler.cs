@@ -1,30 +1,70 @@
-﻿using AutoMapper;
- 
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Processes the GetAllWorkflowStageQuery use case.
+// ================================================================
+
+using axionpro.application.DTOs.Leave;
 using axionpro.application.DTOs.WorkflowStage;
-using axionpro.application.Features.WorkflowStage.Queries;
-using axionpro.application.Interfaces;
-using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using AutoMapper;
+using axionpro.application.Features.WorkflowStage.Queries;
+using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.IRepositories;
+using Microsoft.Extensions.Logging;
 using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+
+using MediatR;
+
+namespace axionpro.application.Features.WorkflowStage.Queries
+{
+    #region Query
+
+    /// <summary>
+    /// Represents the query request for Get All Workflow Stage.
+    /// </summary>
+public class GetAllWorkflowStageQuery : IRequest<ApiResponse<List<GetWorkflowStageResponseDTO>>>
+    {
+        public GetWorkflowStageRequestDTO DTO { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetAllWorkflowStageQuery"/> class.
+        /// </summary>
+
+    public GetAllWorkflowStageQuery(GetWorkflowStageRequestDTO dTO)
+    {
+        this.DTO = dTO;
+    }
+}
+
+    #endregion
+}
 
 namespace axionpro.application.Features.WorkflowStage.Handlers
 {
-    /// <summary>
+/// <summary>
     /// Handles query to fetch all workflow stages.
     /// </summary>
     public class GetAllWorkflowStageQueryHandler : IRequestHandler<GetAllWorkflowStageQuery, ApiResponse<List<GetWorkflowStageResponseDTO>>>
     {
+        #region Fields
+
         private readonly IWorkflowStagesRepository _workflowRepository;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IStoreProcedureRepository _commonRepository;
         private readonly ILogger<GetAllWorkflowStageQueryHandler> _logger;
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetAllWorkflowStageQueryHandler"/> class.
+        /// </summary>
 
         public GetAllWorkflowStageQueryHandler(
             IWorkflowStagesRepository workflowRepository,
@@ -40,9 +80,16 @@ namespace axionpro.application.Features.WorkflowStage.Handlers
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+        #endregion
+
+        #region Handler
+
         /// <summary>
         /// Handles the retrieval of all workflow stages based on filters.
         /// </summary>
+        /// <param name="request">The query request to process.</param>
+        /// <param name="cancellationToken">A token used to cancel the operation.</param>
+        /// <returns>The response produced by handling the query.</returns>
         public async Task<ApiResponse<List<GetWorkflowStageResponseDTO>>> Handle(GetAllWorkflowStageQuery request, CancellationToken cancellationToken)
         {
             try
@@ -95,5 +142,7 @@ namespace axionpro.application.Features.WorkflowStage.Handlers
                 };
             }
         }
-    }
+    
+        #endregion
+}
 }

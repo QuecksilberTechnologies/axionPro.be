@@ -1,20 +1,68 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Processes the GetTenantEnabledModuleCommand use case.
+// ================================================================
+
 using axionpro.application.DTOs.Tenant;
+using axionpro.application.Wrappers;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using AutoMapper;
 using axionpro.application.Features.TenantConfigurationCmd.Tenant.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
+namespace axionpro.application.Features.TenantConfigurationCmd.Tenant.Commands
+{
+    #region Command
+
+    /// <summary>
+    /// Represents the command request for Get Tenant Enabled Module.
+    /// </summary>
+public class GetTenantEnabledModuleCommand : IRequest<ApiResponse<GetModuleHierarchyResponseDTO>>
+    {
+
+        public TenantEnabledModuleRequestDTO dto { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetTenantEnabledModuleCommand"/> class.
+        /// </summary>
+
+        public GetTenantEnabledModuleCommand(TenantEnabledModuleRequestDTO dto)
+        {
+            this.dto = dto;
+        }
+
+    }
+
+    #endregion
+}
+
 namespace axionpro.application.Features.TenantConfigurationCmd.Tenant.Handlers
 {
-    public class GetAllTenantEnabledModuleOperationByTenantIdCommandHandler : IRequestHandler<GetTenantEnabledModuleCommand, ApiResponse<GetModuleHierarchyResponseDTO>>
+    /// <summary>
+    /// Handles the request for Get Tenant Enabled Module.
+    /// </summary>
+public class GetAllTenantEnabledModuleOperationByTenantIdCommandHandler : IRequestHandler<GetTenantEnabledModuleCommand, ApiResponse<GetModuleHierarchyResponseDTO>>
     {
+        #region Fields
+
         private readonly ITenantModuleConfigurationRepository _tenantModuleConfigurationRepository;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetAllTenantOperationsCommandHandler> _logger;
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetAllTenantEnabledModuleOperationByTenantIdCommandHandler"/> class.
+        /// </summary>
 
         public GetAllTenantEnabledModuleOperationByTenantIdCommandHandler(
             ITenantModuleConfigurationRepository tenantModuleConfigurationRepository,
@@ -27,6 +75,16 @@ namespace axionpro.application.Features.TenantConfigurationCmd.Tenant.Handlers
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
+        #endregion
+
+        #region Handler
+
+        /// <summary>
+        /// Handles the request asynchronously.
+        /// </summary>
+        /// <param name="request">The request to process.</param>
+        /// <param name="cancellationToken">A token used to cancel the operation.</param>
+        /// <returns>The response produced by handling the request.</returns>
 
         public async Task<ApiResponse<GetModuleHierarchyResponseDTO>> Handle(GetTenantEnabledModuleCommand request, CancellationToken cancellationToken)
            {
@@ -79,7 +137,7 @@ namespace axionpro.application.Features.TenantConfigurationCmd.Tenant.Handlers
                 };
             }
         }
-    }
-
+    
+        #endregion
 }
-
+}

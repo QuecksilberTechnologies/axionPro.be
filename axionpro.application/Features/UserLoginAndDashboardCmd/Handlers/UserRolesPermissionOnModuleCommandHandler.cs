@@ -1,27 +1,71 @@
-﻿using AutoMapper;
-using axionpro.application.Constants;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles the request to User Roles Permission On Module.
+// ================================================================
+
+using axionpro.application.DTOs.BasicAndRoleBaseMenu;
 using axionpro.application.DTOs.UserLogin;
-using axionpro.application.Features.UserLoginAndDashboardCmd.Commands;
-using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
+using axionpro.domain.Entity;
+using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
-
+using System.Threading.Tasks;
+using AutoMapper;
+using axionpro.application.Constants;
+using axionpro.application.Features.UserLoginAndDashboardCmd.Commands;
+using axionpro.application.Interfaces.IRepositories;
+using axionpro.application.Interfaces;
 using FluentValidation;
-using axionpro.application.DTOs.BasicAndRoleBaseMenu;
+
+namespace axionpro.application.Features.UserLoginAndDashboardCmd.Commands
+{
+    #region Command
+
+    /// <summary>
+    /// Represents the request to User Roles Permission On Module.
+    /// </summary>
+public class UserRolesPermissionOnModuleCommand : IRequest<ApiResponse<IEnumerable<UserRolesPermissionOnModuleDTO>>>
+    {
+        //till completed
+        public AccessDetailRequestDTO AccessDetailDTO { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UserRolesPermissionOnModuleCommand"/> class.
+        /// </summary>
+        public UserRolesPermissionOnModuleCommand(AccessDetailRequestDTO accessRequestDTO)
+        {
+            AccessDetailDTO = accessRequestDTO;
+        }
+
+    
+    }
+
+    #endregion
+}
 
 namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 {
-    public class UserRolesPermissionOnModuleCommandHandler : IRequestHandler<UserRolesPermissionOnModuleCommand, ApiResponse<IEnumerable<UserRolesPermissionOnModuleDTO>>>
+    /// <summary>
+    /// Handles the request to User Roles Permission On Module.
+    /// </summary>
+public class UserRolesPermissionOnModuleCommandHandler : IRequestHandler<UserRolesPermissionOnModuleCommand, ApiResponse<IEnumerable<UserRolesPermissionOnModuleDTO>>>
     {
+        #region Fields
+
         private readonly IUserRolesPermissionOnModuleRepository userRolesPermissionOnModuleRepository; // Add repository here
         private readonly IMapper mapper;
         private readonly IUnitOfWork unitOfWork;
+        #endregion
+
+        #region Constructor
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UserRolesPermissionOnModuleCommandHandler"/> class.
+        /// </summary>
+
 
         public UserRolesPermissionOnModuleCommandHandler(IUserRolesPermissionOnModuleRepository userRolesPermissionOnModuleRepository, IMapper mapper, IUnitOfWork unitOfWork)
         {
@@ -29,6 +73,16 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
             this.mapper = mapper;
             this.unitOfWork = unitOfWork;
         }
+        #endregion
+
+        #region Handler
+        /// <summary>
+        /// Processes the supplied UserRolesPermissionOnModuleCommand.
+        /// </summary>
+        /// <param name="request">The request to process.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The response produced for the request.</returns>
+
 
         public async Task<ApiResponse<IEnumerable<UserRolesPermissionOnModuleDTO>>> Handle(UserRolesPermissionOnModuleCommand? request, CancellationToken cancellationToken)
         {
@@ -75,5 +129,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 };
             }
         }
-    }
+    
+        #endregion
+}
 }

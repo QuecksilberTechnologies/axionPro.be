@@ -1,26 +1,68 @@
-﻿using AutoMapper;
-using axionpro.application.DTOs.Operation;
-using axionpro.application.Features.OperationCmd.Commands;
-using axionpro.application.Features.TransportCmd.Handlers;
-using axionpro.application.Features.TransportCmd.Queries;
-using axionpro.application.Interfaces;
-using axionpro.application.Wrappers;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Processes the GetAllOperationCommand use case.
+// ================================================================
 
-using axionpro.domain.Entity; using MediatR;
-using Microsoft.Extensions.Logging;
+using axionpro.application.DTOs.Operation;
+using axionpro.application.Wrappers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+using AutoMapper;
+using axionpro.application.Features.OperationCmd.Commands;
+using axionpro.application.Features.TransportCmd.Handlers;
+using axionpro.application.Features.TransportCmd.Queries;
+using axionpro.application.Interfaces;
+using axionpro.domain.Entity;
+using Microsoft.Extensions.Logging;
+
+using MediatR;
+
+namespace axionpro.application.Features.OperationCmd.Commands
+{
+    #region Command
+
+    /// <summary>
+    /// Represents the command request for Get All Operation.
+    /// </summary>
+public class GetAllOperationCommand : IRequest<ApiResponse<List<GetOperationResponseDTO>>>
+    {
+        public GetOperationRequestDTO? Dto { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetAllOperationCommand"/> class.
+        /// </summary>
+
+        public GetAllOperationCommand(GetOperationRequestDTO dto)
+        {
+            this.Dto = dto;
+        }
+    }
+
+    #endregion
+}
 
 namespace axionpro.application.Features.OperationCmd.Handlers
 {
-    public class GetAllOperationQueryHandler : IRequestHandler<GetAllOperationCommand, ApiResponse<List<GetOperationResponseDTO>>>
+    /// <summary>
+    /// Handles the request for Get All Operation.
+    /// </summary>
+public class GetAllOperationQueryHandler : IRequestHandler<GetAllOperationCommand, ApiResponse<List<GetOperationResponseDTO>>>
     {
+        #region Fields
+
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetAllOperationQueryHandler> _logger;
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetAllOperationQueryHandler"/> class.
+        /// </summary>
 
         public GetAllOperationQueryHandler(IMapper mapper, IUnitOfWork unitOfWork, ILogger<GetAllOperationQueryHandler> logger)
         {
@@ -28,6 +70,16 @@ namespace axionpro.application.Features.OperationCmd.Handlers
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
+        #endregion
+
+        #region Handler
+
+        /// <summary>
+        /// Handles the request asynchronously.
+        /// </summary>
+        /// <param name="request">The request to process.</param>
+        /// <param name="cancellationToken">A token used to cancel the operation.</param>
+        /// <returns>The response produced by handling the request.</returns>
         public async Task<ApiResponse<List<GetOperationResponseDTO>>> Handle(GetAllOperationCommand request, CancellationToken cancellationToken)
         {
             try
@@ -67,5 +119,7 @@ namespace axionpro.application.Features.OperationCmd.Handlers
 
 
 
-    }
+    
+        #endregion
+}
 }

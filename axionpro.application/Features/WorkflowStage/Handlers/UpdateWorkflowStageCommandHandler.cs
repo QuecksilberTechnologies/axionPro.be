@@ -1,25 +1,74 @@
-﻿using AutoMapper;
-using axionpro.application.Constants;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles the request to Update Workflow Stage.
+// ================================================================
+
+using axionpro.application.DTOs.Leave;
 using axionpro.application.DTOs.WorkflowStage;
+using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
+using MediatR;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using AutoMapper;
+using axionpro.application.Constants;
 using axionpro.application.Features.WorkflowStage.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+
+namespace axionpro.application.Features.WorkflowStage.Commands
+{
+    #region Command
+
+    /// <summary>
+    /// Represents the request to Update Workflow Stage.
+    /// </summary>
+public class UpdateWorkflowStageCommand : IRequest<ApiResponse<bool>>
+    {
+        
+            public UpdateWorkflowStageRequestDTO DTO { get; set; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UpdateWorkflowStageCommand"/> class.
+        /// </summary>
+
+    public UpdateWorkflowStageCommand(UpdateWorkflowStageRequestDTO dTO)
+    {
+        this.DTO = dTO;
+    }
+
+}
+
+    #endregion
+}
 
 namespace axionpro.application.Features.WorkflowStage.Handlers
 {
-    public class UpdateWorkflowStageCommandHandler : IRequestHandler<UpdateWorkflowStageCommand, ApiResponse<bool>>
+    /// <summary>
+    /// Handles the request to Update Workflow Stage.
+    /// </summary>
+public class UpdateWorkflowStageCommandHandler : IRequestHandler<UpdateWorkflowStageCommand, ApiResponse<bool>>
     {
+        #region Fields
+
         private readonly IWorkflowStagesRepository _repository;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IStoreProcedureRepository _commonRepository;
         private readonly ILogger<UpdateWorkflowStageCommandHandler> _logger;
+        #endregion
+
+        #region Constructor
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UpdateWorkflowStageCommandHandler"/> class.
+        /// </summary>
+
 
         public UpdateWorkflowStageCommandHandler(
             IWorkflowStagesRepository repository,
@@ -34,6 +83,16 @@ namespace axionpro.application.Features.WorkflowStage.Handlers
             _commonRepository = commonRepository ?? throw new ArgumentNullException(nameof(commonRepository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+        #endregion
+
+        #region Handler
+        /// <summary>
+        /// Processes the supplied UpdateWorkflowStageCommand.
+        /// </summary>
+        /// <param name="request">The request to process.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The response produced for the request.</returns>
+
 
         public async Task<ApiResponse<bool>> Handle(UpdateWorkflowStageCommand request, CancellationToken cancellationToken)
         {
@@ -98,5 +157,7 @@ namespace axionpro.application.Features.WorkflowStage.Handlers
                 };
             }
         }
-    }
+    
+        #endregion
+}
 }
