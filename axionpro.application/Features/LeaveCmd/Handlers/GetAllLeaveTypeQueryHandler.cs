@@ -1,35 +1,94 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles the read-only request to retrieve all leave types.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.DTOs.Leave;
- 
 using axionpro.application.Features.LeaveCmd.Queries;
 using axionpro.application.Features.RoleCmd.Handlers;
- 
 using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
-
-using axionpro.domain.Entity; using MediatR;
+using axionpro.domain.Entity;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace axionpro.application.Features.LeaveCmd.Queries
+{
+    #region Query
+
+    /// <summary>
+    /// Represents the read-only request to retrieve leave types matching the supplied criteria.
+    /// </summary>
+    public class GetAllLeaveTypeQuery : IRequest<ApiResponse<List<GetLeaveTypResponseDTO>>>
+    {
+        /// <summary>
+        /// Gets or sets the criteria used to retrieve leave types.
+        /// </summary>
+        public GetLeaveTypeRequestDTO DTO { get; set; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetAllLeaveTypeQuery"/> class.
+        /// </summary>
+        /// <param name="dto">The criteria used to retrieve leave types.</param>
+        public GetAllLeaveTypeQuery(GetLeaveTypeRequestDTO dto)
+        {
+            this.DTO = dto;
+        }
+    }
+
+    #endregion
+}
 
 namespace axionpro.application.Features.LeaveCmd.Handlers
 {
-    public class GetAllLeaveRuleQueryHandler  : IRequestHandler<GetAllLeaveTypeQuery, ApiResponse<List<GetLeaveTypResponseDTO>>>
-    {
-    private readonly IMapper _mapper;
-    private readonly IUnitOfWork _unitOfWork;
-    private readonly ILogger<GetAllLeaveRuleQueryHandler> _logger;
+    #region Handler
 
-    public GetAllLeaveRuleQueryHandler(IMapper mapper, IUnitOfWork unitOfWork, ILogger<GetAllLeaveRuleQueryHandler> logger)
+    /// <summary>
+    /// Handles the read-only request to retrieve all leave types.
+    /// </summary>
+    public class GetAllLeaveRuleQueryHandler : IRequestHandler<GetAllLeaveTypeQuery, ApiResponse<List<GetLeaveTypResponseDTO>>>
     {
-        _mapper = mapper;
-        _unitOfWork = unitOfWork;
-        _logger = logger;
-    }
+        #region Fields
 
+        private readonly IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger<GetAllLeaveRuleQueryHandler> _logger;
+
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetAllLeaveRuleQueryHandler"/> class.
+        /// </summary>
+        /// <param name="mapper">The mapper used to convert leave-type data.</param>
+        /// <param name="unitOfWork">The unit of work used to retrieve leave types.</param>
+        /// <param name="logger">The logger used to record query results.</param>
+        public GetAllLeaveRuleQueryHandler(IMapper mapper, IUnitOfWork unitOfWork, ILogger<GetAllLeaveRuleQueryHandler> logger)
+        {
+            _mapper = mapper;
+            _unitOfWork = unitOfWork;
+            _logger = logger;
+        }
+
+        #endregion
+
+        #region Handler
+
+        /// <summary>
+        /// Retrieves leave types using the supplied query.
+        /// </summary>
+        /// <param name="request">The query containing the leave-type criteria.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>A response containing the matching leave types.</returns>
         public async Task<ApiResponse<List<GetLeaveTypResponseDTO>>> Handle(GetAllLeaveTypeQuery request, CancellationToken cancellationToken)
         {
             try
@@ -80,7 +139,8 @@ namespace axionpro.application.Features.LeaveCmd.Handlers
             }
         }
 
-
+        #endregion
     }
+
+    #endregion
 }
-    
