@@ -30,8 +30,6 @@ public class UnitOfWork : IUnitOfWork
     private readonly ILogger<UnitOfWork> _logger;
 
 
-
-    
     private IDbContextTransaction? _currentTransaction;
     private ICompilanceRuleRepository? _compilanceRuleRepository;
     private bool _disposed;
@@ -41,6 +39,9 @@ public class UnitOfWork : IUnitOfWork
 
     private  ITicketAttachmentRepository _ticketAttachmentRepository;
     private ITicketHistoryRepository _ticketHistoryRepository;
+    private IHostUserRepository _hostUserRepository;
+    private IHostRoleRepository _hostRoleRepository;
+    private IHostRolePermissionRepository _hostRolePermissionRepository;
 
     private IEmployeeManagerMappingRepository? _employeeManagerMappingRepository    ;
     private IEmployeeDependentInsuranceMappingRepository? _employeeDependentInsuranceMappingRepository;
@@ -248,6 +249,27 @@ public class UnitOfWork : IUnitOfWork
             _context,
             _mapper,
             _loggerFactory.CreateLogger<EmployeeLeaveRepository>(),
+            _passwordService,
+            _encriptionService);
+    public IHostUserRepository HostUserRepository =>
+        _hostUserRepository ??= new HostUserRepository(
+            _context,
+            _mapper,
+            _loggerFactory.CreateLogger<HostUserRepository>(),
+            _passwordService,
+            _encriptionService);
+    public IHostRoleRepository HostRoleRepository =>
+        _hostRoleRepository ??= new HostRoleRepository(
+            _context,
+            _mapper,
+            _loggerFactory.CreateLogger<HostRoleRepository>(),
+            _passwordService,
+            _encriptionService);
+    public IHostRolePermissionRepository HostRolePermissionRepository =>
+        _hostRolePermissionRepository ??= new HostRolePermissionRepository (
+            _context,
+            _mapper,
+            _loggerFactory.CreateLogger<HostRolePermissionRepository>(),
             _passwordService,
             _encriptionService);
 

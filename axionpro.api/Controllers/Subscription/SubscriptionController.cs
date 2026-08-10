@@ -1,8 +1,10 @@
 ﻿
+using axionpro.application.DTOs.Role;
 using axionpro.application.DTOs.SubscriptionModule;
 using axionpro.application.DTOs.Tenant;
- 
+using axionpro.application.DTOS.SubscriptionModule;
 using axionpro.application.Features.SubscriptionCmd.Commands;
+using axionpro.application.Features.SubscriptionCmd.Handlers;
 using axionpro.application.Interfaces.ILogger;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -54,6 +56,29 @@ namespace axionpro.api.Controllers.Subscription
 
             var query = new GetPlanModuleMappingCommand(planModuleMappingRequest);  //  Fix: No parameter needed in GetAllAssetQuery
             var result = await _mediator.Send(query);
+
+            return Ok(result);
+        }
+        /// <summary>
+        /// Creates a new subscription.
+        /// </summary>     
+        [HttpPost("add")]
+      
+        public async Task<IActionResult> CreateSubscription([FromBody] CreateSubscriptionRequestDTO createSubscriptionDTO)
+        {
+            _logger.LogInfo("Received request to create a new subscription: " + createSubscriptionDTO.ToString());
+            var command = new CreateSubscriptionPlanCommand(createSubscriptionDTO);
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+        [HttpPut("{id:long}")]
+        public async Task<IActionResult> UpdateSubscription( long id, [FromBody] UpdateSubscriptionRequestDTO request)
+        {
+            request.Id = id;
+
+            _logger.LogInfo("Update Subscription request received");
+
+            var result = await _mediator.Send(new UpdateSubscriptionPlanCommand(request));
 
             return Ok(result);
         }

@@ -8,7 +8,7 @@ namespace axionpro.application.DTOs.SubscriptionModule
 {
     public class SubscriptionPlanRequestDTO
     {
-        public long? TenantId { get; set; }
+       // public long? TenantId { get; set; }
         public string? PlanName { get; set; }              // Example: Basic, Pro, Premium
         public int? MaxUsers { get; set; }                // Optional: Maximum number of users allowed
         public decimal? PerDayPrice { get; set; }         // Optional: Price per day

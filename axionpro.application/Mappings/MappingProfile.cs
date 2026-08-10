@@ -34,6 +34,7 @@ using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.DTOS.Employee.Experience;
 using axionpro.application.DTOS.Gender;
+using axionpro.application.DTOS.Host;
 using axionpro.application.DTOS.InsurancePoliciesMapping;
 using axionpro.application.DTOS.InsurancePolicy;
 using axionpro.application.DTOS.Location;
@@ -42,6 +43,8 @@ using axionpro.application.DTOS.Module.ParentModule;
 using axionpro.application.DTOS.Module.SubModule;
 using axionpro.application.DTOS.PolicyTypeDocument;
 using axionpro.application.DTOS.Role;
+using axionpro.application.DTOS.SubscriptionModule;
+
 
 //using axionpro.application.DTOS.Module.ParentModule;
 using axionpro.application.DTOS.TicketDTO.Classification;
@@ -182,8 +185,16 @@ namespace axionpro.application.Mappings
             CreateMap<Asset, GetAssetRequestDTO>().ReverseMap();
 
 
-            CreateMap<SubscriptionPlanResponseDTO, SubscriptionPlan>().ReverseMap();
+            CreateMap<CreateHostUserRequestDTO, HostUser>().ReverseMap();
+            CreateMap<CreateHostUserResponseDTO, HostUser>().ReverseMap();
+            CreateMap<CreateHostRoleRequestDTO, HostRole>().ReverseMap();
+            CreateMap<CreateHostRoleResponseDTO, HostRole>().ReverseMap();
+   
 
+            CreateMap<SubscriptionPlanResponseDTO, SubscriptionPlan>().ReverseMap();
+            CreateMap<CreateSubscriptionRequestDTO, SubscriptionPlan>().ReverseMap();
+            CreateMap<SubscriptionActivePlanDTO, SubscriptionPlan>().ReverseMap(); 
+            CreateMap<UpdateSubscriptionRequestDTO, SubscriptionPlan>().ReverseMap(); 
 
 
             CreateMap<GetAssetResponseDTO, Asset>().ReverseMap();

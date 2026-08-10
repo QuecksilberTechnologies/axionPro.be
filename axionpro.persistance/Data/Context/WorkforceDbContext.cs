@@ -165,6 +165,11 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<ForgotPasswordOtpdetail> ForgotPasswordOtpdetails   { get; set; }
 
         public virtual DbSet<Gender> Genders { get; set; }
+        public virtual DbSet<HostRole> HostRoles { get; set; }
+
+        public virtual DbSet<HostRoleModuleAndPermission> HostRoleModuleAndPermissions { get; set; }
+
+        public virtual DbSet<HostUser> HostUsers { get; set; }
 
         public virtual DbSet<HolidayMaster> HolidayMasters { get; set; }
 
@@ -1751,8 +1756,77 @@ namespace axionpro.persistance.Data.Context
 
             entity.Property(e => e.GenderName).HasMaxLength(50);
         });
+            modelBuilder.Entity<HostRole>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("HostRole_pkey");
 
-        modelBuilder.Entity<HolidayMaster>(entity =>
+                entity.ToTable("HostRole", "axionpro");
+
+                entity.HasIndex(e => e.Name, "UQ_HostRole_Name").IsUnique();
+
+                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("now()");
+                entity.Property(e => e.Description).HasMaxLength(250);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.Name).HasMaxLength(100);
+            });
+
+            modelBuilder.Entity<HostRoleModuleAndPermission>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("HostRoleModuleAndPermission_pkey");
+
+                entity.ToTable("HostRoleModuleAndPermission", "axionpro");
+
+                entity.HasIndex(e => e.HostRoleId, "IX_HRMP_HostRoleId");
+
+                entity.HasIndex(e => e.ModuleId, "IX_HRMP_ModuleId");
+
+                entity.HasIndex(e => e.OperationId, "IX_HRMP_OperationId");
+
+                entity.HasIndex(e => new { e.HostRoleId, e.ModuleId, e.OperationId }, "UQ_HostRole_Module_Operation").IsUnique();
+
+                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("now()");
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+
+                entity.HasOne(d => d.HostRole).WithMany(p => p.HostRoleModuleAndPermission)
+                    .HasForeignKey(d => d.HostRoleId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_HRMP_HostRole");
+
+                entity.HasOne(d => d.Module).WithMany(p => p.HostRoleModuleAndPermission)
+                    .HasForeignKey(d => d.ModuleId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_HRMP_Module");
+
+                entity.HasOne(d => d.Operation).WithMany(p => p.HostRoleModuleAndPermission)
+                    .HasForeignKey(d => d.OperationId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_HRMP_Operation");
+            });
+
+            modelBuilder.Entity<HostUser>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("HostUser_pkey");
+
+                entity.ToTable("HostUser", "axionpro");
+
+                entity.HasIndex(e => e.LoginId, "IX_HostUser_LoginId");
+
+                entity.HasIndex(e => e.LoginId, "UQ_HostUser_LoginId").IsUnique();
+
+                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("now()");
+                entity.Property(e => e.Email).HasMaxLength(255);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.LoginId).HasMaxLength(255);
+                entity.Property(e => e.MobileNumber).HasMaxLength(20);
+                entity.Property(e => e.Name).HasMaxLength(150);
+
+                entity.HasOne(d => d.HostRole).WithMany(p => p.HostUser)
+                    .HasForeignKey(d => d.HostRoleId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_HostUser_HostRole");
+            });
+
+            modelBuilder.Entity<HolidayMaster>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__HolidayM__3214EC0743457A80");
 
@@ -2140,6 +2214,7 @@ namespace axionpro.persistance.Data.Context
             entity.Property(e => e.IsModuleDisplayInUi)
                 .HasDefaultValue(true)
                 .HasColumnName("IsModuleDisplayInUI");
+            entity.Property(e => e.ModuleScope).HasDefaultValue((short)1);
             entity.Property(e => e.ItemPriority).HasDefaultValue(0);
             entity.Property(e => e.ModuleCode).HasMaxLength(50);
             entity.Property(e => e.ModuleName).HasMaxLength(100);

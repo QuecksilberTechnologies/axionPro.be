@@ -26,6 +26,7 @@ public partial class Operation
     public string? IconImage { get; set; }
 
     public virtual ICollection<ModuleOperationMapping> ModuleOperationMapping { get; set; } = new List<ModuleOperationMapping>();
+    public virtual ICollection<HostRoleModuleAndPermission> HostRoleModuleAndPermission { get; set; } = new List<HostRoleModuleAndPermission>();
 
     public virtual ICollection<RoleModuleAndPermission> RoleModuleAndPermission { get; set; } = new List<RoleModuleAndPermission>();
 

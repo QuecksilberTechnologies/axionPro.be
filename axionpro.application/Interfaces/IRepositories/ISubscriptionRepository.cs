@@ -11,10 +11,10 @@ namespace axionpro.application.Interfaces.IRepositories
     public interface ISubscriptionRepository
     {
         // 🎯 Add new subscription plan
-        Task<int> AddSubscriptionPlanAsync(SubscriptionPlanRequestDTO dto);
+        Task<SubscriptionPlan> AddSubscriptionPlanAsync(SubscriptionPlan entity);
 
         // 🔄 Update existing subscription plan
-        Task<bool> UpdateSubscriptionPlanAsync(int id, SubscriptionPlanRequestDTO dto);
+        Task<SubscriptionPlan> UpdateSubscriptionPlanAsync(SubscriptionPlan entity);
 
         // 📋 Get all active subscription plans
         Task<List<SubscriptionActivePlanDTO>> GetAllPlansAsync();

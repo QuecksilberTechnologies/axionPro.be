@@ -36,6 +36,9 @@ namespace axionpro.application.Interfaces
         ITenantModuleConfigurationRepository TenantModuleConfigurationRepository { get; }
         ITenantEncryptionKeyRepository TenantEncryptionKeyRepository { get; }
         IHolidayCalandarRepository HolidayCalandarRepository { get; }
+        IHostUserRepository HostUserRepository { get; }
+        IHostRolePermissionRepository HostRolePermissionRepository { get; }
+        IHostRoleRepository HostRoleRepository { get; }
         IDepartmentRepository DepartmentRepository { get; }
         IStoreProcedureRepository StoreProcedureRepository { get; }
         ILocationRepository LocationRepository { get; }

@@ -87,6 +87,50 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 }
                 string? savedFullPath = null;  // 📂 File full path track karne ke liye
 
+                if (string.IsNullOrEmpty(request.DTO.LoginId) && string.IsNullOrEmpty(request.DTO.Password))
+                {
+                    _logger.LogWarning(" LoginId and Password is not null or empty.");
+                    return ApiResponse<LoginResponseDTO>.Fail(
+                        "LoginId and Password cann't be empty");
+                }
+
+
+                // ======================================================
+                // HOST USER CHECK
+                // ======================================================
+                #region Host User Check
+                var hostUser = await _unitOfWork.HostUserRepository
+                    .GetByLoginIdAsync(request.DTO.LoginId);
+
+                if (hostUser != null)
+                {
+                    // Host user mila
+                    // Yahan Tenant/Employee validation nahi chalegi
+
+                    if (!hostUser.IsActive || hostUser.IsSoftDeleted)
+                    {
+                        return ApiResponse<LoginResponseDTO>.Fail(
+                            "Host user is inactive.");
+                    }
+
+                    // Password verify
+                    if (!_passwordService.VerifyPassword(
+                            hostUser.PasswordHash,
+                            request.DTO.Password))
+                    {
+                        return ApiResponse<LoginResponseDTO>.Fail(
+                            ConstantValues.invalidCredential);
+                    }
+
+                    _logger.LogInformation(
+                        "Host user authenticated successfully for LoginId: {LoginId}",
+                        request.DTO.LoginId);
+
+                    // HOST LOGIN CONTINUES HERE
+                }
+                #endregion
+
+
                 // 🔐 Step 1: Validate if user exists
                 long empId = await _unitOfWork.StoreProcedureRepository.ValidateActiveUserLoginOnlyAsync(request.DTO.LoginId);
                 _logger.LogInformation("Validation result for LoginId {LoginId}: EmployeeId = {empId}", request.DTO.LoginId, empId);

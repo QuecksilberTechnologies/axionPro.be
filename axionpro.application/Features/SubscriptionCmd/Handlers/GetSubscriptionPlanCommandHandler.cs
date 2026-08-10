@@ -11,6 +11,18 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.SubscriptionCmd.Handlers
 {
+
+    public class GetSubscriptionPlanCommand : IRequest<ApiResponse<List<SubscriptionActivePlanDTO>>>
+    {
+
+        public SubscriptionPlanRequestDTO subscriptionPlanRequestDTO { get; set; }
+
+        public GetSubscriptionPlanCommand(SubscriptionPlanRequestDTO subscriptionPlanRequestDTO)
+        {
+            this.subscriptionPlanRequestDTO = subscriptionPlanRequestDTO;
+        }
+
+    }
     public class GetSubscriptionPlanCommandHandler : IRequestHandler<GetSubscriptionPlanCommand, ApiResponse<List<SubscriptionActivePlanDTO>>>
     {
         private readonly ISubscriptionRepository _subscriptionRepository;
@@ -34,25 +46,25 @@ namespace axionpro.application.Features.SubscriptionCmd.Handlers
                 if (request == null)
                 {
                     _logger.LogWarning("SubscriptionPlanRequestDTO is null.");
-                    return new ApiResponse<List<SubscriptionActivePlanDTO>>
+                    return new ApiResponse<List<SubscriptionActivePlanDTO>> 
                     {
                         IsSucceeded = false,
                         Message = "Request cannot be null.",
                         Data = null
                     };
                 }
-                request.subscriptionPlanRequestDTO.TenantId = 54;
+              //  request.subscriptionPlanRequestDTO.TenantId = 54;
 
-                if (request.subscriptionPlanRequestDTO.TenantId == 0 || request.subscriptionPlanRequestDTO.TenantId <= 0)
-                {
-                    _logger.LogWarning("Invalid TenantId: {TenantId}", request.subscriptionPlanRequestDTO.TenantId);
-                    return new ApiResponse<List<SubscriptionActivePlanDTO>>
-                    {
-                        IsSucceeded = false,
-                        Message = "TenantId is required and must be greater than 0.",
-                        Data = null
-                    };
-                }
+                //if (request.subscriptionPlanRequestDTO.TenantId == 0 || request.subscriptionPlanRequestDTO.TenantId <= 0)
+                //{
+                //    _logger.LogWarning("Invalid TenantId: {TenantId}", request.subscriptionPlanRequestDTO.TenantId);
+                //    return new ApiResponse<List<SubscriptionActivePlanDTO>>
+                //    {
+                //        IsSucceeded = false,
+                //        Message = "TenantId is required and must be greater than 0.",
+                //        Data = null
+                //    };
+                //}
 
              //   var subscriptions = _mapper.Map<SubscriptionPlan>(request.subscriptionPlanRequestDTO);
 

@@ -1,5 +1,6 @@
 ﻿using axionpro.application.DTOs.Tenant;
 using axionpro.application.DTOs.Verify;
+using axionpro.application.DTOS.Host;
 using axionpro.application.DTOS.Tenant;
 
 using axionpro.application.Features.RegistrationCmd.Handlers;
@@ -8,6 +9,7 @@ using axionpro.application.Features.TenantConfigurationCmd.Tenant.Commands;
 using axionpro.application.Features.TenantConfigurationCmd.Tenant.Handlers;
 using axionpro.application.Features.TenantConfigurationCmd.Tenant.Queries;
 using axionpro.application.Features.VerifyEmailCmd.Handlers;
+using axionpro.application.Features.HostCmd.Handler;
 using axionpro.application.Interfaces.ILogger;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -44,7 +46,18 @@ public class TenantController : ControllerBase
        
         return Ok(result);
     }
-    
+    [HttpPost("create-host-user")]
+
+
+    // [Authorize]
+    public async Task<IActionResult> CreateHostUser([FromBody] CreateHostUserRequestDTO tenantCreateRequestDTO)
+    {
+        _logger.LogInfo("Received request for register a new Tenant" + tenantCreateRequestDTO.ToString());
+        var command = new CreateHostUserCommand(tenantCreateRequestDTO);
+        var result = await _mediator.Send(command);
+
+        return Ok(result);
+    }
 
     [HttpGet("get-all-tenant-by-subscription-plan-Id")]
      

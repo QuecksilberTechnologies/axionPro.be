@@ -24,6 +24,7 @@ public partial class Module
     public bool IsModuleDisplayInUi { get; set; }
 
     public bool IsCommonMenu { get; set; }
+    public short ModuleScope { get; set; }
 
     public bool IsActive { get; set; }
 
@@ -46,6 +47,7 @@ public partial class Module
     public virtual ICollection<Module> InverseParentModule { get; set; } = new List<Module>();
 
     public virtual ICollection<ModuleOperationMapping> ModuleOperationMapping { get; set; } = new List<ModuleOperationMapping>();
+    public virtual ICollection<HostRoleModuleAndPermission> HostRoleModuleAndPermission { get; set; } = new List<HostRoleModuleAndPermission>();
 
     public virtual Module? ParentModule { get; set; }
 

@@ -29,8 +29,7 @@ namespace axionpro.application.DTOs.SubscriptionModule
 
         public bool? IsActive { get; set; }
         // ✅ Mapped Modules List
-        public List<ModuleResponseDTO> Modules { get; set; } = new()
-            ;
+        public List<ModuleResponseDTO> Modules { get; set; } = new() ;
 
 
 
