@@ -1,0 +1,162 @@
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Updates editable host-user details without changing credentials.
+// ================================================================
+
+using axionpro.application.DTOS.Host;
+using axionpro.application.Exceptions;
+using axionpro.application.Interfaces;
+using axionpro.application.Wrappers;
+using MediatR;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace axionpro.application.Features.HostCmd.Handler
+{
+    #region Command
+
+    /// <summary>
+    /// Represents the request to update editable host-user details.
+    /// </summary>
+    public class UpdateHostUserCommand
+        : IRequest<ApiResponse<UpdateHostUserResponseDTO>>
+    {
+        /// <summary>
+        /// Gets the host-user details to update.
+        /// </summary>
+        public UpdateHostUserRequestDTO? DTO { get; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UpdateHostUserCommand"/> class.
+        /// </summary>
+        /// <param name="dto">The host-user details to update.</param>
+        public UpdateHostUserCommand(UpdateHostUserRequestDTO? dto)
+        {
+            DTO = dto;
+        }
+    }
+
+    #endregion
+
+    #region Handler
+
+    /// <summary>
+    /// Handles updates to editable host-user details.
+    /// </summary>
+    public class UpdateHostUserCommandHandler
+        : IRequestHandler<
+            UpdateHostUserCommand,
+            ApiResponse<UpdateHostUserResponseDTO>>
+    {
+        #region Fields
+
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger<UpdateHostUserCommandHandler> _logger;
+
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UpdateHostUserCommandHandler"/> class.
+        /// </summary>
+        /// <param name="unitOfWork">The unit of work used to update the host user.</param>
+        /// <param name="logger">The logger used to record handler activity.</param>
+        public UpdateHostUserCommandHandler(
+            IUnitOfWork unitOfWork,
+            ILogger<UpdateHostUserCommandHandler> logger)
+        {
+            _unitOfWork = unitOfWork;
+            _logger = logger;
+        }
+
+        #endregion
+
+        #region Handler
+
+        /// <summary>
+        /// Updates the requested host user.
+        /// </summary>
+        /// <param name="request">The command containing the host-user details.</param>
+        /// <param name="cancellationToken">A token to observe while handling the command.</param>
+        /// <returns>A response containing the updated host-user details.</returns>
+        public async Task<ApiResponse<UpdateHostUserResponseDTO>> Handle(
+            UpdateHostUserCommand request,
+            CancellationToken cancellationToken)
+        {
+            if (request.DTO == null)
+            {
+                throw new ValidationErrorException(
+                    "Host user update details are required.");
+            }
+
+            var dto = request.DTO;
+
+            if (dto.Id <= 0)
+            {
+                throw new ValidationErrorException(
+                    "Host user Id must be greater than zero.");
+            }
+
+            var hostUser = await _unitOfWork.HostUserRepository
+                .GetByIdAsync(dto.Id);
+
+            if (hostUser == null)
+            {
+                throw new KeyNotFoundException("Host user not found.");
+            }
+
+            var existingLoginIdOwner = await _unitOfWork.HostUserRepository
+                .GetByLoginIdAsync(dto.LoginId);
+
+            if (existingLoginIdOwner != null &&
+                existingLoginIdOwner.Id != hostUser.Id)
+            {
+                throw new ApiException(
+                    "A host user with this LoginId already exists.",
+                    409);
+            }
+
+            hostUser.HostRoleId = dto.HostRoleId;
+            hostUser.Name = dto.Name;
+            hostUser.LoginId = dto.LoginId;
+            hostUser.Email = dto.Email;
+            hostUser.MobileNumber = dto.MobileNumber;
+            hostUser.IsActive = dto.IsActive;
+            hostUser.UpdatedDateTime = DateTime.UtcNow;
+
+            var updatedHostUser = await _unitOfWork.HostUserRepository
+                .UpdateAsync(hostUser);
+
+            _logger.LogInformation(
+                "Updated host user with Id {HostUserId}.",
+                updatedHostUser.Id);
+
+            var response = new UpdateHostUserResponseDTO
+            {
+                Id = updatedHostUser.Id,
+                HostRoleId = updatedHostUser.HostRoleId,
+                HostRoleName = updatedHostUser.HostRole?.Name,
+                Name = updatedHostUser.Name,
+                LoginId = updatedHostUser.LoginId,
+                Email = updatedHostUser.Email,
+                MobileNumber = updatedHostUser.MobileNumber,
+                IsActive = updatedHostUser.IsActive,
+                UpdatedDateTime = updatedHostUser.UpdatedDateTime
+            };
+
+            return ApiResponse<UpdateHostUserResponseDTO>.Success(
+                response,
+                "Host user updated successfully.");
+        }
+
+        #endregion
+    }
+
+    #endregion
+}
