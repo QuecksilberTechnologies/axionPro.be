@@ -13,15 +13,47 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks; 
 using axionpro.domain.Entity; 
 using MediatR;
 using axionpro.application.DTOs.UserLogin;
+using axionpro.application.DTOS.Host;
+
+// ============================================================================
+// Author      : Deepesh Gupta
+// Company     : Quecksilber Technologies
+// Role        : CEO
+// Purpose     : Defines persistence operations for application modules.
+// ============================================================================
 
 namespace axionpro.application.Interfaces.IRepositories
 {
     public interface IModuleRepository
     {
+        #region Host Module Queries
+
+        /// <summary>
+        /// Retrieves Host-scope modules, optionally filtered by their active state.
+        /// </summary>
+        /// <param name="isActive">When supplied, limits results to modules with the specified active state.</param>
+        /// <returns>A list of Host-scope module response models.</returns>
+        Task<List<GetHostModuleResponseDTO>> GetHostModulesAsync(bool? isActive);
+
+        /// <summary>
+        /// Retrieves one Host-scope module by identifier, optionally filtered by its active state.
+        /// </summary>
+        /// <param name="id">The module identifier.</param>
+        /// <param name="isActive">When supplied, limits the result to the specified active state.</param>
+        /// <param name="cancellationToken">A token to observe while executing the database query.</param>
+        /// <returns>The matching Host-scope module, or <see langword="null"/> when none exists.</returns>
+        Task<GetHostModuleResponseDTO?> GetHostModuleByIdAsync(
+            int id,
+            bool? isActive,
+            CancellationToken cancellationToken);
+
+        #endregion
+
         /// <summary>
         /// Ek module ko fetch karta hai by Id
         /// </summary>

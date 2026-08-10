@@ -127,22 +127,9 @@ namespace axionpro.persistance
              services.AddScoped<ITicketThreadRepository, TicketThreadRepository>();
              services.AddScoped<IThreadMessageRepository, ThreadMessageRepository>();
              services.AddScoped<ITicketHistoryRepository, TicketHistoryRepository>();
-
-
-
-             
-                 
-             
-             
-              
-            
-
-
-
-
-
-
-
+             services.AddScoped<IHostRolePermissionRepository, HostRolePermissionRepository>();
+             services.AddScoped<IHostRoleRepository, HostRoleRepository>();
+             services.AddScoped<IHostUserRepository, HostUserRepository>();
             services.AddScoped<IEmployeeBankRepository, EmployeeBankRepository>();
             services.AddScoped<IEmployeeContactRepository, EmployeeContactRepository>();
             services.AddScoped<IEmployeeIdentityRepository, EmployeeIdentityRepository>();
@@ -152,8 +139,7 @@ namespace axionpro.persistance
             services.AddScoped<IEmployeeDependentRepository, EmployeeDependentRepository>();
             services.AddScoped<IEmployeeLeaveRepository, EmployeeLeaveRepository>();
             services.AddScoped<TenantEncryptionKeyRepository, TenantEncryptionKeyRepository>();
-            services.AddScoped<IEmployeeCompletionRepository, EmployeeCompletionRepository>();
-           
+            services.AddScoped<IEmployeeCompletionRepository, EmployeeCompletionRepository>();           
 
 
 

@@ -1,9 +1,9 @@
-// ================================================================
-// Author  : Deepesh Gupta
-// Company : Quecksilber Technologies
-// Role    : CEO
-// Purpose : Provides HostUser, HostRole, and HostUser password-management API operations.
-// ================================================================
+// ============================================================================
+// Author      : Deepesh Gupta
+// Company     : Quecksilber Technologies
+// Role        : CEO
+// Purpose     : Provides Host user, role, password-management, and module API operations.
+// ============================================================================
 
 using axionpro.application.DTOS.Host;
 using axionpro.application.Features.HostCmd.Handler;
@@ -238,6 +238,45 @@ namespace axionpro.api.Controllers.Host
 
             var command = new DeleteHostRoleCommand(requestDTO);
             var result = await _mediator.Send(command);
+
+            return Ok(result);
+        }
+
+        #endregion
+
+        #region Host Module Queries
+
+        /// <summary>
+        /// Retrieves modules that belong to the Host application scope.
+        /// </summary>
+        /// <param name="isActive">When supplied, filters Host modules by their active state.</param>
+        /// <returns>An HTTP response containing the requested Host modules.</returns>
+        [HttpGet("get-host-modules")]
+        public async Task<IActionResult> GetHostModules([FromQuery] bool? isActive = null)
+        {
+            _logger.LogInfo($"Received request to get Host modules. IsActive: {isActive}");
+
+            var query = new GetHostModulesQuery(isActive);
+            var result = await _mediator.Send(query);
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Retrieves one module from the Host application scope by identifier.
+        /// </summary>
+        /// <param name="id">The module identifier.</param>
+        /// <param name="isActive">When supplied, filters the Host module by its active state.</param>
+        /// <returns>An HTTP response containing the requested Host module.</returns>
+        [HttpGet("get-host-module-by-id/{id:int}")]
+        public async Task<IActionResult> GetHostModuleById(
+            int id,
+            [FromQuery] bool? isActive = null)
+        {
+            _logger.LogInfo($"Received request to get Host module. Id: {id}, IsActive: {isActive}");
+
+            var query = new GetHostModuleByIdQuery(id, isActive);
+            var result = await _mediator.Send(query);
 
             return Ok(result);
         }

@@ -4,10 +4,26 @@ using axionpro.domain.Entity;
 using MediatR;
 using System.Runtime.ConstrainedExecution;
 
+// ============================================================================
+// Author      : Deepesh Gupta
+// Company     : Quecksilber Technologies
+// Role        : CEO
+// Purpose     : Defines shared application constants used across AxionPro.
+// ============================================================================
+
 namespace axionpro.application.Constants
 {
     public static class AppConstants
     {
+        #region Module Scopes
+
+        /// <summary>
+        /// Identifies modules that are available in the Host application scope.
+        /// </summary>
+        public const int HostModuleScope = 2;
+
+        #endregion
+
         public static readonly int DeviceTypeWeb = 1;
         public static readonly int DeviceTypeMobile = 2;
         public static readonly int DeviceTypeForAll = 3;

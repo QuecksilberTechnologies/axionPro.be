@@ -10,10 +10,22 @@ using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using axionpro.application.Constants;
+using axionpro.application.DTOS.Host;
 
+
+// ============================================================================
+// Author      : Deepesh Gupta
+// Company     : Quecksilber Technologies
+// Role        : CEO
+// Purpose     : Provides persistence operations for application modules.
+// ============================================================================
 
 namespace axionpro.persistance.Repositories
 {
+    /// <summary>
+    /// Provides persistence operations for application modules.
+    /// </summary>
     public class ModuleRepository : IModuleRepository
     {
         private readonly WorkforceDbContext? _context;
@@ -27,6 +39,125 @@ namespace axionpro.persistance.Repositories
             _mapper = mapper;
             
         }
+
+        #region Host Module Queries
+
+        /// <summary>
+        /// Retrieves Host-scope modules, optionally filtered by their active state.
+        /// </summary>
+        /// <param name="isActive">When supplied, limits results to modules with the specified active state.</param>
+        /// <returns>A projected list of Host-scope module response models.</returns>
+        public async Task<List<GetHostModuleResponseDTO>> GetHostModulesAsync(bool? isActive)
+        {
+            if (_context?.Modules == null)
+            {
+                _logger?.LogWarning("Unable to retrieve Host modules because the Module DbSet is unavailable.");
+                return new List<GetHostModuleResponseDTO>();
+            }
+
+            try
+            {
+                // Module has no IsSoftDeleted property, so only its supported scope and activity filters apply.
+                return await _context.Modules
+                    .AsNoTracking()
+                    .Where(x =>
+                        x.ModuleScope == AppConstants.HostModuleScope &&
+                        (!isActive.HasValue || x.IsActive == isActive.Value))
+                    .OrderBy(x => x.ItemPriority)
+                    .ThenBy(x => x.ModuleName)
+                    .Select(x => new GetHostModuleResponseDTO
+                    {
+                        Id = x.Id,
+                        TenantId = x.TenantId,
+                        ModuleCode = x.ModuleCode,
+                        ModuleName = x.ModuleName,
+                        DisplayName = x.DisplayName,
+                        Urlpath = x.Urlpath,
+                        ParentModuleId = x.ParentModuleId,
+                        IsLeafNode = x.IsLeafNode,
+                        IsModuleDisplayInUi = x.IsModuleDisplayInUi,
+                        IsCommonMenu = x.IsCommonMenu,
+                        ModuleScope = x.ModuleScope,
+                        IsActive = x.IsActive,
+                        ImageIconWeb = x.ImageIconWeb,
+                        ImageIconMobile = x.ImageIconMobile,
+                        ItemPriority = x.ItemPriority,
+                        Remark = x.Remark,
+                        AddedById = x.AddedById,
+                        AddedDateTime = x.AddedDateTime,
+                        UpdatedById = x.UpdatedById,
+                        UpdatedDateTime = x.UpdatedDateTime
+                    })
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error retrieving Host modules. IsActive: {IsActive}", isActive);
+                return new List<GetHostModuleResponseDTO>();
+            }
+        }
+
+        /// <summary>
+        /// Retrieves one Host-scope module by identifier, optionally filtered by its active state.
+        /// </summary>
+        /// <param name="id">The module identifier.</param>
+        /// <param name="isActive">When supplied, limits the result to the specified active state.</param>
+        /// <param name="cancellationToken">A token to observe while executing the database query.</param>
+        /// <returns>The matching Host-scope module, or <see langword="null"/> when none exists.</returns>
+        public async Task<GetHostModuleResponseDTO?> GetHostModuleByIdAsync(
+            int id,
+            bool? isActive,
+            CancellationToken cancellationToken)
+        {
+            if (_context?.Modules == null)
+            {
+                _logger?.LogWarning("Unable to retrieve Host module {ModuleId} because the Module DbSet is unavailable.", id);
+                return null;
+            }
+
+            try
+            {
+                // Module has no IsSoftDeleted property, so only its supported identifier, scope, and activity filters apply.
+                return await _context.Modules
+                    .AsNoTracking()
+                    .Where(x =>
+                        x.Id == id &&
+                        x.ModuleScope == AppConstants.HostModuleScope &&
+                        (!isActive.HasValue || x.IsActive == isActive.Value))
+                    .Select(x => new GetHostModuleResponseDTO
+                    {
+                        Id = x.Id,
+                        TenantId = x.TenantId,
+                        ModuleCode = x.ModuleCode,
+                        ModuleName = x.ModuleName,
+                        DisplayName = x.DisplayName,
+                        Urlpath = x.Urlpath,
+                        ParentModuleId = x.ParentModuleId,
+                        IsLeafNode = x.IsLeafNode,
+                        IsModuleDisplayInUi = x.IsModuleDisplayInUi,
+                        IsCommonMenu = x.IsCommonMenu,
+                        ModuleScope = x.ModuleScope,
+                        IsActive = x.IsActive,
+                        ImageIconWeb = x.ImageIconWeb,
+                        ImageIconMobile = x.ImageIconMobile,
+                        ItemPriority = x.ItemPriority,
+                        Remark = x.Remark,
+                        AddedById = x.AddedById,
+                        AddedDateTime = x.AddedDateTime,
+                        UpdatedById = x.UpdatedById,
+                        UpdatedDateTime = x.UpdatedDateTime
+                    })
+                    .FirstOrDefaultAsync(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error retrieving Host module {ModuleId}. IsActive: {IsActive}", id, isActive);
+                throw;
+            }
+        }
+
+        #endregion
+
         public async Task<Module?> GetModuleByIdAsync(long moduleId)
         {
             try
