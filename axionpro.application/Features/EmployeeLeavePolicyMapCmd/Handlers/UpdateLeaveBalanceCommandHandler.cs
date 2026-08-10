@@ -1,15 +1,64 @@
-﻿using AutoMapper;
+// ===============================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Updates employee leave balances.
+// ===============================================================
+
 using axionpro.application.DTOS.EmployeeLeavePolicyMap;
+using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
+using MediatR;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using AutoMapper;
 using axionpro.application.Features.EmployeeLeavePolicyMapCmd.Commands;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
 
+namespace axionpro.application.Features.EmployeeLeavePolicyMapCmd.Commands
+{
+    #region Command
+
+    /// <summary>
+    /// Represents the request to update an employee leave balance.
+    /// </summary>
+    public class UpdateLeaveBalanceCommand : IRequest<ApiResponse<GetLeaveBalanceToEmployeeResponseDTO>>
+    {
+        public UpdateLeaveBalanceToEmployeeRequestDTO DTO { get; set; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UpdateLeaveBalanceCommand"/> class.
+        /// </summary>
+        public UpdateLeaveBalanceCommand(UpdateLeaveBalanceToEmployeeRequestDTO updateLeaveBalanceToEmployeeRequest)
+        {
+            this.DTO = updateLeaveBalanceToEmployeeRequest;
+        }
+    }
+
+    #endregion
+}
+
+/// <summary>
+/// Handles the UpdateLeaveBalanceCommand request.
+/// </summary>
 public class UpdateLeaveBalanceCommandHandler : IRequestHandler<UpdateLeaveBalanceCommand, ApiResponse<GetLeaveBalanceToEmployeeResponseDTO>>
 {
+#region Fields
+
     private readonly IMapper _mapper;
     private readonly IUnitOfWork _unitOfWork;
+
+#endregion
+
+#region Constructor
+
+/// <summary>
+/// Initializes a new instance of the <see cref="UpdateLeaveBalanceCommandHandler"/> class.
+/// </summary>
    
 
     public UpdateLeaveBalanceCommandHandler(
@@ -21,6 +70,17 @@ public class UpdateLeaveBalanceCommandHandler : IRequestHandler<UpdateLeaveBalan
         _unitOfWork = unitOfWork;
        
     }
+
+#endregion
+
+#region Handler
+
+/// <summary>
+/// Handles the request asynchronously.
+/// </summary>
+/// <param name="request">The request to process.</param>
+/// <param name="cancellationToken">A token used to cancel the operation.</param>
+/// <returns>The response produced by handling the request.</returns>
 
     public async Task<ApiResponse<GetLeaveBalanceToEmployeeResponseDTO>> Handle(UpdateLeaveBalanceCommand request, CancellationToken cancellationToken)
     {
@@ -69,5 +129,6 @@ public class UpdateLeaveBalanceCommandHandler : IRequestHandler<UpdateLeaveBalan
 
 
 
-}
 
+#endregion
+}
