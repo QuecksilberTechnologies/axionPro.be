@@ -13,6 +13,11 @@ namespace axionpro.application.DTOS.Module.ParentModule
     public class UpdateParentModuleStatusRequestDTO
     {
         /// <summary>
+        /// Gets or sets the module scope used to locate the Header Module.
+        /// </summary>
+        public short ModuleScope { get; set; }
+
+        /// <summary>
         /// Gets or sets the target active state.
         /// </summary>
         public bool IsActive { get; set; }

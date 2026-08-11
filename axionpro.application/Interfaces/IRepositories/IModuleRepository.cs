@@ -93,29 +93,25 @@ namespace axionpro.application.Interfaces.IRepositories
      //   Task<List<GetSubModuleResponseDTO>> GetSubModuleAsync(GetCommonModuleRequestDTO Dto);
 
         /// <summary>
-        /// Retrieves one tenant-scoped Parent/Header Module by identifier.
+        /// Retrieves one scope-filtered Parent/Header Module by identifier.
         /// </summary>
         /// <param name="id">The requested module identifier.</param>
-        /// <param name="tenantId">The authenticated tenant identifier.</param>
-        /// <param name="moduleScope">The supported tenant module scope.</param>
+        /// <param name="moduleScope">The requested validated module scope.</param>
         /// <param name="cancellationToken">A token to observe while executing the query.</param>
         /// <returns>The matching response model, or <see langword="null"/> when it does not exist.</returns>
         Task<GetParentModuleResponseDTO?> GetParentModuleByIdAsync(
             int id,
-            long tenantId,
             short moduleScope,
             CancellationToken cancellationToken);
 
         /// <summary>
-        /// Retrieves tenant-scoped Parent/Header Modules, optionally filtered by active state.
+        /// Retrieves scope-filtered Parent/Header Modules, optionally filtered by active state.
         /// </summary>
-        /// <param name="tenantId">The authenticated tenant identifier.</param>
-        /// <param name="moduleScope">The supported tenant module scope.</param>
+        /// <param name="moduleScope">The requested validated module scope.</param>
         /// <param name="isActive">When supplied, limits results to the requested active state.</param>
         /// <param name="cancellationToken">A token to observe while executing the query.</param>
         /// <returns>The ordered Parent/Header Module list.</returns>
         Task<List<GetParentModuleResponseDTO>> GetParentModulesAsync(
-            long tenantId,
             short moduleScope,
             bool? isActive,
             CancellationToken cancellationToken);
@@ -137,16 +133,14 @@ namespace axionpro.application.Interfaces.IRepositories
             CancellationToken cancellationToken);
 
         /// <summary>
-        /// Retrieves a tracked Parent/Header Module for a guarded update operation.
+        /// Retrieves a tracked scope-filtered Parent/Header Module for a guarded update operation.
         /// </summary>
         /// <param name="id">The requested module identifier.</param>
-        /// <param name="tenantId">The authenticated tenant identifier.</param>
-        /// <param name="moduleScope">The supported tenant module scope.</param>
+        /// <param name="moduleScope">The requested validated module scope.</param>
         /// <param name="cancellationToken">A token to observe while executing the query.</param>
         /// <returns>The matching entity, or <see langword="null"/> when it does not exist.</returns>
         Task<Module?> GetParentModuleForUpdateAsync(
             int id,
-            long tenantId,
             short moduleScope,
             CancellationToken cancellationToken);
 
@@ -159,26 +153,108 @@ namespace axionpro.application.Interfaces.IRepositories
         Task<Module> UpdateParentModuleAsync(Module entity, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Determines whether a Header Module has active direct child modules.
+        /// Determines whether a Header Module has active direct child modules in the same scope.
         /// </summary>
         /// <param name="parentModuleId">The Header Module identifier.</param>
-        /// <param name="tenantId">The authenticated tenant identifier.</param>
-        /// <param name="moduleScope">The supported tenant module scope.</param>
+        /// <param name="moduleScope">The requested validated module scope.</param>
         /// <param name="cancellationToken">A token to observe while executing the query.</param>
         /// <returns><see langword="true"/> when an active direct child exists.</returns>
         Task<bool> HasChildrenAsync(
             int parentModuleId,
-            long tenantId,
             short moduleScope,
             CancellationToken cancellationToken);
+
+        #region SubModule CRUD
+
+        /// <summary>
+        /// Persists a validated direct child SubModule and returns the database-generated entity.
+        /// </summary>
+        /// <param name="entity">The direct child entity prepared by the application layer.</param>
+        /// <param name="cancellationToken">A token to observe while saving changes.</param>
+        /// <returns>The persisted direct child entity.</returns>
+        Task<Module> AddSubModuleAsync(Module entity, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Retrieves one Header Module validated for direct child operations in the requested scope.
+        /// </summary>
+        /// <param name="id">The Header Module identifier.</param>
+        /// <param name="moduleScope">The required module scope.</param>
+        /// <param name="cancellationToken">A token to observe while executing the query.</param>
+        /// <returns>The matching tracked Header Module, or <see langword="null"/> when it does not exist.</returns>
+        Task<Module?> GetParentModuleForSubModuleAsync(
+            int id,
+            short moduleScope,
+            CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Retrieves one direct child SubModule with a Header Module summary in the requested scope.
+        /// </summary>
+        /// <param name="id">The SubModule identifier.</param>
+        /// <param name="moduleScope">The required module scope.</param>
+        /// <param name="cancellationToken">A token to observe while executing the query.</param>
+        /// <returns>The matching response, or <see langword="null"/> when it does not exist.</returns>
+        Task<GetSubModuleResponseDTO?> GetSubModuleByIdAsync(
+            int id,
+            short moduleScope,
+            CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Retrieves direct child SubModules in a requested scope with parent summaries.
+        /// </summary>
+        /// <param name="moduleScope">The required module scope.</param>
+        /// <param name="parentModuleId">When supplied, limits results to this Header Module.</param>
+        /// <param name="isActive">When supplied, limits results to the specified active state.</param>
+        /// <param name="cancellationToken">A token to observe while executing the query.</param>
+        /// <returns>The ordered direct-child SubModule list.</returns>
+        Task<List<GetSubModuleResponseDTO>> GetSubModulesAsync(
+            short moduleScope,
+            int? parentModuleId,
+            bool? isActive,
+            CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Retrieves a tracked direct child SubModule for a guarded update operation.
+        /// </summary>
+        /// <param name="id">The SubModule identifier.</param>
+        /// <param name="moduleScope">The required module scope.</param>
+        /// <param name="cancellationToken">A token to observe while executing the query.</param>
+        /// <returns>The matching tracked direct child, or <see langword="null"/> when it does not exist.</returns>
+        Task<Module?> GetSubModuleForUpdateAsync(
+            int id,
+            short moduleScope,
+            CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Determines whether a direct child module code already exists in the same inherited tenant and scope.
+        /// </summary>
+        /// <param name="moduleCode">The module code to check.</param>
+        /// <param name="tenantId">The tenant identifier inherited from the Header Module.</param>
+        /// <param name="moduleScope">The required module scope.</param>
+        /// <param name="excludeModuleId">An existing SubModule identifier to exclude during update.</param>
+        /// <param name="cancellationToken">A token to observe while executing the query.</param>
+        /// <returns><see langword="true"/> when a conflicting direct child exists.</returns>
+        Task<bool> ExistsSubModuleCodeAsync(
+            string moduleCode,
+            long? tenantId,
+            short moduleScope,
+            int? excludeModuleId,
+            CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Saves changes made to a validated tracked direct child SubModule.
+        /// </summary>
+        /// <param name="entity">The validated direct child entity to update.</param>
+        /// <param name="cancellationToken">A token to observe while saving changes.</param>
+        /// <returns>The saved direct child entity.</returns>
+        Task<Module> UpdateSubModuleAsync(Module entity, CancellationToken cancellationToken);
+
+        #endregion
 
         Task<List<GetParentModuleResponseDTO>> GetSubParentModuleAsync(GetSubParentModulRequestDTO Dto);
         Task<List<GetCommonModuleResponseDTO>> GetCommonModuleAsync(GetCommonModuleRequestDTO Dto);
         Task<List<GetModuleChildInversResponseDTO>> GetAllOnlyModuleTreeAsync();
         Task<List<GetModuleChildInversResponseDTO>> GetAllModuleTreeAsync();
         #endregion
-        Task<Module> AddSubModuleAsync(Module module);
-
         /// <summary>
         /// Module ko update karta hai
         /// </summary>

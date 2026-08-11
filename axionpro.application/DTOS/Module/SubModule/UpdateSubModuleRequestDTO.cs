@@ -2,18 +2,22 @@
 // Author      : Deepesh Gupta
 // Company     : Quecksilber Technologies
 // Role        : CEO
-// Purpose     : Defines client-editable values for updating a Parent/Header Module.
+// Purpose     : Defines client-editable values for updating a direct SubModule.
 // ============================================================================
 
 using System.ComponentModel.DataAnnotations;
 
-namespace axionpro.application.DTOS.Module.ParentModule
+namespace axionpro.application.DTOS.Module.SubModule
 {
     /// <summary>
-    /// Captures the values that may change without altering Parent/Header Module ownership or hierarchy.
+    /// Captures the values that may change while preserving a SubModule's scope and server-controlled ownership.
     /// </summary>
-    public class UpdateParentModuleRequestDTO
+    public class UpdateSubModuleRequestDTO
     {
+        /// <summary>Gets or sets the direct target Header Module identifier.</summary>
+        [Range(1, int.MaxValue)]
+        public int ParentModuleId { get; set; }
+
         /// <summary>Gets or sets the module code.</summary>
         [MaxLength(50)]
         public string ModuleCode { get; set; } = string.Empty;
@@ -36,13 +40,11 @@ namespace axionpro.application.DTOS.Module.ParentModule
         /// <summary>Gets or sets whether the module represents the common menu.</summary>
         public bool IsCommonMenu { get; set; }
 
-        /// <summary>
-        /// Gets or sets the existing module scope used to locate the Header Module.
-        /// </summary>
+        /// <summary>Gets or sets the existing module scope used to locate the SubModule.</summary>
         /// <remarks>The scope is immutable during update.</remarks>
         public short ModuleScope { get; set; }
 
-        /// <summary>Gets or sets whether the module is active.</summary>
+        /// <summary>Gets or sets whether the SubModule is active.</summary>
         public bool IsActive { get; set; }
 
         /// <summary>Gets or sets the web icon path.</summary>

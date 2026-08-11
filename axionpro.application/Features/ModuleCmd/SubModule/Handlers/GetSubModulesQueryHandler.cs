@@ -2,72 +2,81 @@
 // Author      : Deepesh Gupta
 // Company     : Quecksilber Technologies
 // Role        : CEO
-// Purpose     : Retrieves a scope-filtered Parent/Header Module for Host users.
+// Purpose     : Retrieves direct SubModule lists for authenticated Host users.
 // ============================================================================
 
 using axionpro.application.Constants;
-using axionpro.application.DTOS.Module.ParentModule;
+using axionpro.application.DTOS.Module.SubModule;
 using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
+using axionpro.application.Features.ModuleCmd.SubModule.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
-namespace axionpro.application.Features.ModuleCmd.Parent.Commands
+namespace axionpro.application.Features.ModuleCmd.SubModule.Commands
 {
     #region Query
 
     /// <summary>
-    /// Represents a read-only request for one Parent/Header Module in a required scope.
+    /// Represents a read-only request for direct child SubModules in a required scope.
     /// </summary>
-    public class GetParentModuleByIdQuery : IRequest<ApiResponse<GetParentModuleResponseDTO>>
+    public class GetSubModulesQuery : IRequest<ApiResponse<List<GetSubModuleResponseDTO>>>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="GetParentModuleByIdQuery"/> class.
+        /// Initializes a new instance of the <see cref="GetSubModulesQuery"/> class.
         /// </summary>
-        /// <param name="id">The Header Module identifier.</param>
-        /// <param name="moduleScope">The requested module scope.</param>
-        public GetParentModuleByIdQuery(int id, short moduleScope)
+        /// <param name="moduleScope">The required module scope.</param>
+        /// <param name="parentModuleId">When supplied, filters direct children by Header Module identifier.</param>
+        /// <param name="isActive">When supplied, filters results by active state.</param>
+        public GetSubModulesQuery(short moduleScope, int? parentModuleId, bool? isActive)
         {
-            Id = id;
             ModuleScope = moduleScope;
+            ParentModuleId = parentModuleId;
+            IsActive = isActive;
         }
 
-        /// <summary>Gets the Header Module identifier.</summary>
-        public int Id { get; }
-
-        /// <summary>Gets the requested module scope.</summary>
+        /// <summary>Gets the required module scope.</summary>
         public short ModuleScope { get; }
+
+        /// <summary>Gets the optional Header Module filter.</summary>
+        public int? ParentModuleId { get; }
+
+        /// <summary>Gets the optional active-state filter.</summary>
+        public bool? IsActive { get; }
     }
 
     #endregion
+}
 
+namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
+{
     /// <summary>
-    /// Handles Host-authorized lookup of a Parent/Header Module within its requested scope.
+    /// Handles Host-authorized retrieval of direct child SubModule lists in one scope.
     /// </summary>
-    public class GetParentModuleByIdQueryHandler : IRequestHandler<GetParentModuleByIdQuery, ApiResponse<GetParentModuleResponseDTO>>
+    public class GetSubModulesQueryHandler : IRequestHandler<GetSubModulesQuery, ApiResponse<List<GetSubModuleResponseDTO>>>
     {
         #region Fields
 
         private readonly IUnitOfWork _unitOfWork;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ILogger<GetParentModuleByIdQueryHandler> _logger;
+        private readonly ILogger<GetSubModulesQueryHandler> _logger;
 
         #endregion
 
         #region Constructor
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GetParentModuleByIdQueryHandler"/> class.
+        /// Initializes a new instance of the <see cref="GetSubModulesQueryHandler"/> class.
         /// </summary>
         /// <param name="unitOfWork">Provides the existing Module repository.</param>
         /// <param name="httpContextAccessor">Provides the ASP.NET Core-authenticated principal.</param>
         /// <param name="logger">Records unexpected processing failures.</param>
-        public GetParentModuleByIdQueryHandler(
+        public GetSubModulesQueryHandler(
             IUnitOfWork unitOfWork,
             IHttpContextAccessor httpContextAccessor,
-            ILogger<GetParentModuleByIdQueryHandler> logger)
+            ILogger<GetSubModulesQueryHandler> logger)
         {
             _unitOfWork = unitOfWork;
             _httpContextAccessor = httpContextAccessor;
@@ -79,46 +88,46 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
         #region MediatR Handler
 
         /// <summary>
-        /// Retrieves a Header Module only when its identifier and requested scope both match.
+        /// Retrieves direct children in the requested scope with no N+1 parent lookup.
         /// </summary>
-        /// <param name="request">The read-only request.</param>
+        /// <param name="request">The read-only list request.</param>
         /// <param name="cancellationToken">A token used to cancel the operation.</param>
-        /// <returns>The matching Header Module response.</returns>
+        /// <returns>The ordered direct-child list, which may be empty.</returns>
         /// <exception cref="UnauthorizedAccessException">Thrown when the request does not have a valid Host principal.</exception>
-        /// <exception cref="KeyNotFoundException">Thrown when the scoped Header Module does not exist.</exception>
-        public async Task<ApiResponse<GetParentModuleResponseDTO>> Handle(
-            GetParentModuleByIdQuery request,
+        public async Task<ApiResponse<List<GetSubModuleResponseDTO>>> Handle(
+            GetSubModulesQuery request,
             CancellationToken cancellationToken)
         {
             GetAuthenticatedHostUserId();
 
-            if (request == null || request.Id <= 0)
+            if (request == null)
             {
-                return ApiResponse<GetParentModuleResponseDTO>.Fail("A valid Parent Module identifier is required.");
+                return ApiResponse<List<GetSubModuleResponseDTO>>.Fail("SubModule request data is required.");
             }
 
             if (!IsSupportedModuleScope(request.ModuleScope))
             {
-                return ApiResponse<GetParentModuleResponseDTO>.Fail("ModuleScope must be Tenant or Host scope.");
+                return ApiResponse<List<GetSubModuleResponseDTO>>.Fail("ModuleScope must be Tenant or Host scope.");
+            }
+
+            if (request.ParentModuleId.HasValue && request.ParentModuleId.Value <= 0)
+            {
+                return ApiResponse<List<GetSubModuleResponseDTO>>.Fail("ParentModuleId must be a positive identifier when supplied.");
             }
 
             try
             {
-                var module = await _unitOfWork.ModuleRepository.GetParentModuleByIdAsync(
-                    request.Id,
+                var modules = await _unitOfWork.ModuleRepository.GetSubModulesAsync(
                     request.ModuleScope,
+                    request.ParentModuleId,
+                    request.IsActive,
                     cancellationToken);
 
-                if (module == null)
-                {
-                    throw new KeyNotFoundException("Parent Module was not found in the requested ModuleScope.");
-                }
-
-                return ApiResponse<GetParentModuleResponseDTO>.Success(module, "Parent Module retrieved successfully.");
+                return ApiResponse<List<GetSubModuleResponseDTO>>.Success(modules, "SubModules retrieved successfully.");
             }
             catch (Exception exception)
             {
-                _logger.LogError(exception, "Unable to retrieve Parent Module {ModuleId} in ModuleScope {ModuleScope}.", request.Id, request.ModuleScope);
+                _logger.LogError(exception, "Unable to retrieve SubModules in ModuleScope {ModuleScope}.", request.ModuleScope);
                 throw;
             }
         }
@@ -143,7 +152,7 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
             var userType = principal.FindFirst(AppConstants.UserTypeClaim)?.Value;
             if (!string.Equals(userType, AppConstants.HostUserType, StringComparison.OrdinalIgnoreCase))
             {
-                throw new UnauthorizedAccessException("Only Host users can retrieve Parent Modules.");
+                throw new UnauthorizedAccessException("Only Host users can retrieve SubModules.");
             }
 
             var hostUserIdValue = principal.FindFirst(AppConstants.HostUserIdClaim)?.Value;

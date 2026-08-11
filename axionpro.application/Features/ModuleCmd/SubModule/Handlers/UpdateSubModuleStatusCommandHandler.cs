@@ -2,73 +2,77 @@
 // Author      : Deepesh Gupta
 // Company     : Quecksilber Technologies
 // Role        : CEO
-// Purpose     : Updates Parent/Header Module status for authenticated Host users.
+// Purpose     : Updates direct SubModule status for authenticated Host users.
 // ============================================================================
 
 using axionpro.application.Constants;
-using axionpro.application.DTOS.Module.ParentModule;
+using axionpro.application.DTOS.Module.SubModule;
 using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
+using axionpro.application.Features.ModuleCmd.SubModule.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
-namespace axionpro.application.Features.ModuleCmd.Parent.Commands
+namespace axionpro.application.Features.ModuleCmd.SubModule.Commands
 {
     #region Command
 
     /// <summary>
-    /// Represents the request to change a Parent/Header Module active state in a required scope.
+    /// Represents the request to change a direct SubModule active state in a required scope.
     /// </summary>
-    public class UpdateParentModuleStatusCommand : IRequest<ApiResponse<GetParentModuleResponseDTO>>
+    public class UpdateSubModuleStatusCommand : IRequest<ApiResponse<GetSubModuleResponseDTO>>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="UpdateParentModuleStatusCommand"/> class.
+        /// Initializes a new instance of the <see cref="UpdateSubModuleStatusCommand"/> class.
         /// </summary>
-        /// <param name="id">The Header Module identifier.</param>
+        /// <param name="id">The SubModule identifier.</param>
         /// <param name="dto">The target active state and required module scope.</param>
-        public UpdateParentModuleStatusCommand(int id, UpdateParentModuleStatusRequestDTO? dto)
+        public UpdateSubModuleStatusCommand(int id, UpdateSubModuleStatusRequestDTO? dto)
         {
             Id = id;
             DTO = dto;
         }
 
-        /// <summary>Gets the Header Module identifier.</summary>
+        /// <summary>Gets the SubModule identifier.</summary>
         public int Id { get; }
 
         /// <summary>Gets the target active state and required module scope.</summary>
-        public UpdateParentModuleStatusRequestDTO? DTO { get; }
+        public UpdateSubModuleStatusRequestDTO? DTO { get; }
     }
 
     #endregion
+}
 
+namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
+{
     /// <summary>
-    /// Handles Host-authorized non-destructive Parent/Header Module status changes.
+    /// Handles Host-authorized non-destructive direct SubModule status changes.
     /// </summary>
-    public class UpdateParentModuleStatusCommandHandler : IRequestHandler<UpdateParentModuleStatusCommand, ApiResponse<GetParentModuleResponseDTO>>
+    public class UpdateSubModuleStatusCommandHandler : IRequestHandler<UpdateSubModuleStatusCommand, ApiResponse<GetSubModuleResponseDTO>>
     {
         #region Fields
 
         private readonly IUnitOfWork _unitOfWork;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ILogger<UpdateParentModuleStatusCommandHandler> _logger;
+        private readonly ILogger<UpdateSubModuleStatusCommandHandler> _logger;
 
         #endregion
 
         #region Constructor
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="UpdateParentModuleStatusCommandHandler"/> class.
+        /// Initializes a new instance of the <see cref="UpdateSubModuleStatusCommandHandler"/> class.
         /// </summary>
         /// <param name="unitOfWork">Provides the existing Module repository.</param>
         /// <param name="httpContextAccessor">Provides the ASP.NET Core-authenticated principal.</param>
         /// <param name="logger">Records unexpected processing failures.</param>
-        public UpdateParentModuleStatusCommandHandler(
+        public UpdateSubModuleStatusCommandHandler(
             IUnitOfWork unitOfWork,
             IHttpContextAccessor httpContextAccessor,
-            ILogger<UpdateParentModuleStatusCommandHandler> logger)
+            ILogger<UpdateSubModuleStatusCommandHandler> logger)
         {
             _unitOfWork = unitOfWork;
             _httpContextAccessor = httpContextAccessor;
@@ -80,66 +84,72 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
         #region MediatR Handler
 
         /// <summary>
-        /// Changes a scoped Header Module state while preventing deactivation that would hide active direct children.
+        /// Changes a direct child status without cascading and only activates under an active Header Module.
         /// </summary>
         /// <param name="request">The status change request.</param>
         /// <param name="cancellationToken">A token used to cancel the operation.</param>
-        /// <returns>The Header Module response after a permitted status change.</returns>
+        /// <returns>The direct-child response after its status changes.</returns>
         /// <exception cref="UnauthorizedAccessException">Thrown when the request does not have a valid Host principal.</exception>
-        /// <exception cref="KeyNotFoundException">Thrown when the scoped Header Module does not exist.</exception>
-        public async Task<ApiResponse<GetParentModuleResponseDTO>> Handle(
-            UpdateParentModuleStatusCommand request,
+        /// <exception cref="KeyNotFoundException">Thrown when the scoped direct child or Header Module does not exist.</exception>
+        public async Task<ApiResponse<GetSubModuleResponseDTO>> Handle(
+            UpdateSubModuleStatusCommand request,
             CancellationToken cancellationToken)
         {
             var hostUserId = GetAuthenticatedHostUserId();
 
             if (request == null || request.Id <= 0 || request.DTO == null)
             {
-                return ApiResponse<GetParentModuleResponseDTO>.Fail("A valid Parent Module identifier and status are required.");
+                return ApiResponse<GetSubModuleResponseDTO>.Fail("A valid SubModule identifier and status are required.");
             }
 
             var dto = request.DTO;
             if (!IsSupportedModuleScope(dto.ModuleScope))
             {
-                return ApiResponse<GetParentModuleResponseDTO>.Fail("ModuleScope must be Tenant or Host scope.");
+                return ApiResponse<GetSubModuleResponseDTO>.Fail("ModuleScope must be Tenant or Host scope.");
             }
 
             try
             {
-                var entity = await _unitOfWork.ModuleRepository.GetParentModuleForUpdateAsync(
+                var entity = await _unitOfWork.ModuleRepository.GetSubModuleForUpdateAsync(
                     request.Id,
                     dto.ModuleScope,
                     cancellationToken);
 
                 if (entity == null)
                 {
+                    throw new KeyNotFoundException("SubModule was not found in the requested ModuleScope.");
+                }
+
+                var parentModule = await _unitOfWork.ModuleRepository.GetParentModuleForSubModuleAsync(
+                    entity.ParentModuleId!.Value,
+                    entity.ModuleScope,
+                    cancellationToken);
+
+                if (parentModule == null)
+                {
                     throw new KeyNotFoundException("Parent Module was not found in the requested ModuleScope.");
                 }
 
-                if (entity.IsActive && !dto.IsActive && await _unitOfWork.ModuleRepository.HasChildrenAsync(
-                    entity.Id,
-                    entity.ModuleScope,
-                    cancellationToken))
+                if (dto.IsActive && !parentModule.IsActive)
                 {
-                    return ApiResponse<GetParentModuleResponseDTO>.Fail(
-                        "Deactivate active child modules before deactivating this Parent Module.");
+                    return ApiResponse<GetSubModuleResponseDTO>.Fail("An active SubModule requires an active Parent Module.");
                 }
 
-                entity.ParentModuleId = null;
-                entity.IsLeafNode = false;
+                entity.ParentModuleId = parentModule.Id;
+                entity.IsLeafNode = true;
                 entity.IsActive = dto.IsActive;
                 entity.UpdatedById = hostUserId;
                 entity.UpdatedDateTime = DateTime.UtcNow;
 
-                var updated = await _unitOfWork.ModuleRepository.UpdateParentModuleAsync(entity, cancellationToken);
+                var updated = await _unitOfWork.ModuleRepository.UpdateSubModuleAsync(entity, cancellationToken);
 
-                return ApiResponse<GetParentModuleResponseDTO>.Success(
-                    ToResponse(updated),
-                    "Parent Module status updated successfully.");
+                return ApiResponse<GetSubModuleResponseDTO>.Success(
+                    ToResponse(updated, parentModule),
+                    "SubModule status updated successfully.");
             }
             catch (Exception exception)
             {
-                _logger.LogError(exception, "Unable to update Parent Module {ModuleId} status in ModuleScope {ModuleScope}.", request.Id, dto.ModuleScope);
+                _logger.LogError(exception, "Unable to update SubModule {ModuleId} status in ModuleScope {ModuleScope}.", request.Id, dto.ModuleScope);
                 throw;
             }
         }
@@ -164,7 +174,7 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
             var userType = principal.FindFirst(AppConstants.UserTypeClaim)?.Value;
             if (!string.Equals(userType, AppConstants.HostUserType, StringComparison.OrdinalIgnoreCase))
             {
-                throw new UnauthorizedAccessException("Only Host users can update Parent Modules.");
+                throw new UnauthorizedAccessException("Only Host users can update SubModules.");
             }
 
             var hostUserIdValue = principal.FindFirst(AppConstants.HostUserIdClaim)?.Value;
@@ -196,13 +206,14 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
         #region Private Methods
 
         /// <summary>
-        /// Maps a persisted Header Module to the CRUD response.
+        /// Maps a persisted direct child and its Header Module to the CRUD response.
         /// </summary>
-        /// <param name="module">The persisted Header Module.</param>
-        /// <returns>The response model.</returns>
-        private static GetParentModuleResponseDTO ToResponse(Module module)
+        /// <param name="module">The persisted direct child.</param>
+        /// <param name="parentModule">The validated Header Module.</param>
+        /// <returns>The direct-child response.</returns>
+        private static GetSubModuleResponseDTO ToResponse(Module module, Module parentModule)
         {
-            return new GetParentModuleResponseDTO
+            return new GetSubModuleResponseDTO
             {
                 Id = module.Id,
                 ModuleCode = module.ModuleCode,
@@ -222,7 +233,16 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
                 AddedById = module.AddedById,
                 AddedDateTime = module.AddedDateTime,
                 UpdatedById = module.UpdatedById,
-                UpdatedDateTime = module.UpdatedDateTime
+                UpdatedDateTime = module.UpdatedDateTime,
+                ParentModule = new ParentModuleSummaryDTO
+                {
+                    Id = parentModule.Id,
+                    ModuleCode = parentModule.ModuleCode,
+                    ModuleName = parentModule.ModuleName,
+                    DisplayName = parentModule.DisplayName,
+                    ModuleScope = parentModule.ModuleScope,
+                    IsActive = parentModule.IsActive
+                }
             };
         }
 

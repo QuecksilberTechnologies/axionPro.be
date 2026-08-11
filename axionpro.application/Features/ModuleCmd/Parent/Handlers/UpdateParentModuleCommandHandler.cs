@@ -2,25 +2,25 @@
 // Author      : Deepesh Gupta
 // Company     : Quecksilber Technologies
 // Role        : CEO
-// Purpose     : Defines and handles tenant Parent/Header Module updates.
+// Purpose     : Updates Parent/Header Modules for authenticated Host users.
 // ============================================================================
 
-using axionpro.application.Common.Models.Security;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.Module.ParentModule;
 using axionpro.application.Interfaces;
-using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 
 namespace axionpro.application.Features.ModuleCmd.Parent.Commands
 {
     #region Command
 
     /// <summary>
-    /// Represents the request to update the editable values of a Parent/Header Module.
+    /// Represents the request to update an existing Parent/Header Module.
     /// </summary>
     public class UpdateParentModuleCommand : IRequest<ApiResponse<GetParentModuleResponseDTO>>
     {
@@ -28,31 +28,31 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
         /// Initializes a new instance of the <see cref="UpdateParentModuleCommand"/> class.
         /// </summary>
         /// <param name="id">The Header Module identifier.</param>
-        /// <param name="requestDTO">The client-editable Header Module values.</param>
-        public UpdateParentModuleCommand(int id, UpdateParentModuleRequestDTO? requestDTO)
+        /// <param name="dto">The editable Header Module values and target scope.</param>
+        public UpdateParentModuleCommand(int id, UpdateParentModuleRequestDTO? dto)
         {
             Id = id;
-            RequestDTO = requestDTO;
+            DTO = dto;
         }
 
         /// <summary>Gets the Header Module identifier.</summary>
         public int Id { get; }
 
-        /// <summary>Gets the client-editable Header Module values.</summary>
-        public UpdateParentModuleRequestDTO? RequestDTO { get; }
+        /// <summary>Gets the editable Header Module values and target scope.</summary>
+        public UpdateParentModuleRequestDTO? DTO { get; }
     }
 
     #endregion
 
     /// <summary>
-    /// Handles updates while preserving Parent/Header Module tenant ownership, scope, and hierarchy.
+    /// Handles Host-authorized Parent/Header Module updates without changing their structural role or scope.
     /// </summary>
     public class UpdateParentModuleCommandHandler : IRequestHandler<UpdateParentModuleCommand, ApiResponse<GetParentModuleResponseDTO>>
     {
         #region Fields
 
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ICommonRequestService _commonRequestService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<UpdateParentModuleCommandHandler> _logger;
 
         #endregion
@@ -63,15 +63,15 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
         /// Initializes a new instance of the <see cref="UpdateParentModuleCommandHandler"/> class.
         /// </summary>
         /// <param name="unitOfWork">Provides the existing Module repository.</param>
-        /// <param name="commonRequestService">Validates the authenticated tenant and actor context.</param>
+        /// <param name="httpContextAccessor">Provides the ASP.NET Core-authenticated principal.</param>
         /// <param name="logger">Records unexpected processing failures.</param>
         public UpdateParentModuleCommandHandler(
             IUnitOfWork unitOfWork,
-            ICommonRequestService commonRequestService,
+            IHttpContextAccessor httpContextAccessor,
             ILogger<UpdateParentModuleCommandHandler> logger)
         {
             _unitOfWork = unitOfWork;
-            _commonRequestService = commonRequestService;
+            _httpContextAccessor = httpContextAccessor;
             _logger = logger;
         }
 
@@ -80,51 +80,52 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
         #region MediatR Handler
 
         /// <summary>
-        /// Updates only client-editable Header Module fields for the authenticated tenant.
+        /// Updates client-editable Header Module values within the requested existing scope.
         /// </summary>
         /// <param name="request">The update request.</param>
         /// <param name="cancellationToken">A token used to cancel the operation.</param>
         /// <returns>The updated Header Module response.</returns>
+        /// <exception cref="UnauthorizedAccessException">Thrown when the request does not have a valid Host principal.</exception>
+        /// <exception cref="KeyNotFoundException">Thrown when the scoped Header Module does not exist.</exception>
         public async Task<ApiResponse<GetParentModuleResponseDTO>> Handle(
             UpdateParentModuleCommand request,
             CancellationToken cancellationToken)
         {
-            if (request == null || request.Id <= 0 || request.RequestDTO == null)
+            var hostUserId = GetAuthenticatedHostUserId();
+
+            if (request == null || request.Id <= 0 || request.DTO == null)
             {
                 return ApiResponse<GetParentModuleResponseDTO>.Fail("A valid Parent Module identifier and data are required.");
             }
 
-            var context = await _commonRequestService.ValidateRequestAsync();
-            if (!context.Success)
-            {
-                return ApiResponse<GetParentModuleResponseDTO>.Fail(context.ErrorMessage);
-            }
-
-            var dto = request.RequestDTO;
+            var dto = request.DTO;
             if (string.IsNullOrWhiteSpace(dto.ModuleCode) || string.IsNullOrWhiteSpace(dto.ModuleName))
             {
                 return ApiResponse<GetParentModuleResponseDTO>.Fail("ModuleCode and ModuleName are required.");
             }
 
+            if (!IsSupportedModuleScope(dto.ModuleScope))
+            {
+                return ApiResponse<GetParentModuleResponseDTO>.Fail("ModuleScope must be Tenant or Host scope.");
+            }
+
             try
             {
-                var moduleScope = (short)AppConstants.TenantModuleScope;
                 var entity = await _unitOfWork.ModuleRepository.GetParentModuleForUpdateAsync(
                     request.Id,
-                    context.TenantId,
-                    moduleScope,
+                    dto.ModuleScope,
                     cancellationToken);
 
                 if (entity == null)
                 {
-                    return ApiResponse<GetParentModuleResponseDTO>.Fail("Parent Module was not found.");
+                    throw new KeyNotFoundException("Parent Module was not found in the requested ModuleScope.");
                 }
 
                 var moduleCode = dto.ModuleCode.Trim();
                 var duplicateExists = await _unitOfWork.ModuleRepository.ExistsParentModuleCodeAsync(
                     moduleCode,
-                    context.TenantId,
-                    moduleScope,
+                    entity.TenantId,
+                    entity.ModuleScope,
                     entity.Id,
                     cancellationToken);
 
@@ -135,8 +136,7 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
 
                 if (entity.IsActive && !dto.IsActive && await _unitOfWork.ModuleRepository.HasChildrenAsync(
                     entity.Id,
-                    context.TenantId,
-                    moduleScope,
+                    entity.ModuleScope,
                     cancellationToken))
                 {
                     return ApiResponse<GetParentModuleResponseDTO>.Fail(
@@ -156,9 +156,10 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
                 entity.ImageIconMobile = dto.ImageIconMobile?.Trim();
                 entity.ItemPriority = dto.ItemPriority;
                 entity.Remark = dto.Remark?.Trim();
-                entity.UpdatedById = GetActorId(context);
+                entity.UpdatedById = hostUserId;
                 entity.UpdatedDateTime = DateTime.UtcNow;
 
+                // ModuleScope and TenantId stay unchanged because moving an existing Header can invalidate children and permissions.
                 var updated = await _unitOfWork.ModuleRepository.UpdateParentModuleAsync(entity, cancellationToken);
 
                 return ApiResponse<GetParentModuleResponseDTO>.Success(
@@ -167,24 +168,61 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
             }
             catch (Exception exception)
             {
-                _logger.LogError(exception, "Unable to update Parent Module {ModuleId} for tenant {TenantId}.", request.Id, context.TenantId);
-                return ApiResponse<GetParentModuleResponseDTO>.Fail("Failed to update Parent Module.");
+                _logger.LogError(exception, "Unable to update Parent Module {ModuleId} in ModuleScope {ModuleScope}.", request.Id, dto.ModuleScope);
+                throw;
             }
         }
 
         #endregion
 
-        #region Parent Module Validation
+        #region Authentication
 
         /// <summary>
-        /// Returns the authenticated employee identifier used for audit fields.
+        /// Verifies that the ASP.NET Core-authenticated principal is a Host user and returns its actor identifier.
         /// </summary>
-        /// <param name="context">The validated request context.</param>
-        /// <returns>The authenticated employee identifier.</returns>
-        private static long GetActorId(CommonDecodedResult context)
+        /// <returns>The authenticated Host user identifier.</returns>
+        /// <exception cref="UnauthorizedAccessException">Thrown when the principal is missing, unauthenticated, non-Host, or lacks a valid Host user identifier.</exception>
+        private long GetAuthenticatedHostUserId()
         {
-            return context.UserEmployeeId > 0 ? context.UserEmployeeId : context.LoggedInEmployeeId;
+            var principal = _httpContextAccessor.HttpContext?.User;
+            if (principal?.Identity?.IsAuthenticated != true)
+            {
+                throw new UnauthorizedAccessException("An authenticated Host principal is required.");
+            }
+
+            var userType = principal.FindFirst(AppConstants.UserTypeClaim)?.Value;
+            if (!string.Equals(userType, AppConstants.HostUserType, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new UnauthorizedAccessException("Only Host users can update Parent Modules.");
+            }
+
+            var hostUserIdValue = principal.FindFirst(AppConstants.HostUserIdClaim)?.Value;
+            if (!long.TryParse(hostUserIdValue, out var hostUserId) || hostUserId <= 0)
+            {
+                throw new UnauthorizedAccessException("A valid HostUserId claim is required.");
+            }
+
+            return hostUserId;
         }
+
+        #endregion
+
+        #region Validation
+
+        /// <summary>
+        /// Determines whether the requested scope is one of the two supported application module scopes.
+        /// </summary>
+        /// <param name="moduleScope">The requested module scope.</param>
+        /// <returns><see langword="true"/> when the scope is supported.</returns>
+        private static bool IsSupportedModuleScope(short moduleScope)
+        {
+            return moduleScope == AppConstants.TenantModuleScope ||
+                   moduleScope == AppConstants.HostModuleScope;
+        }
+
+        #endregion
+
+        #region Private Methods
 
         /// <summary>
         /// Maps a persisted Header Module to the CRUD response.

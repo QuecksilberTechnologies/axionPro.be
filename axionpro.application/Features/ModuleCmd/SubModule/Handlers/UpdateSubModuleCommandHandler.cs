@@ -2,7 +2,7 @@
 // Author      : Deepesh Gupta
 // Company     : Quecksilber Technologies
 // Role        : CEO
-// Purpose     : Creates direct SubModules for authenticated Host users.
+// Purpose     : Updates direct SubModules for authenticated Host users.
 // ============================================================================
 
 using axionpro.application.Constants;
@@ -21,21 +21,26 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Commands
     #region Command
 
     /// <summary>
-    /// Represents the request to create a direct child SubModule.
+    /// Represents the request to update a direct child SubModule.
     /// </summary>
-    public class CreateSubModuleCommand : IRequest<ApiResponse<GetSubModuleResponseDTO>>
+    public class UpdateSubModuleCommand : IRequest<ApiResponse<GetSubModuleResponseDTO>>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="CreateSubModuleCommand"/> class.
+        /// Initializes a new instance of the <see cref="UpdateSubModuleCommand"/> class.
         /// </summary>
-        /// <param name="dto">The requested direct child Module values.</param>
-        public CreateSubModuleCommand(CreateSubModuleRequestDTO? dto)
+        /// <param name="id">The SubModule identifier.</param>
+        /// <param name="dto">The editable SubModule values and current scope.</param>
+        public UpdateSubModuleCommand(int id, UpdateSubModuleRequestDTO? dto)
         {
+            Id = id;
             DTO = dto;
         }
 
-        /// <summary>Gets the requested direct child Module values.</summary>
-        public CreateSubModuleRequestDTO? DTO { get; }
+        /// <summary>Gets the SubModule identifier.</summary>
+        public int Id { get; }
+
+        /// <summary>Gets the editable SubModule values and current scope.</summary>
+        public UpdateSubModuleRequestDTO? DTO { get; }
     }
 
     #endregion
@@ -44,30 +49,30 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Commands
 namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
 {
     /// <summary>
-    /// Handles Host-authorized creation of a direct child SubModule.
+    /// Handles Host-authorized direct SubModule updates without changing inherited tenant ownership or scope.
     /// </summary>
-    public class CreateSubModuleCommandHandler : IRequestHandler<CreateSubModuleCommand, ApiResponse<GetSubModuleResponseDTO>>
+    public class UpdateSubModuleCommandHandler : IRequestHandler<UpdateSubModuleCommand, ApiResponse<GetSubModuleResponseDTO>>
     {
         #region Fields
 
         private readonly IUnitOfWork _unitOfWork;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ILogger<CreateSubModuleCommandHandler> _logger;
+        private readonly ILogger<UpdateSubModuleCommandHandler> _logger;
 
         #endregion
 
         #region Constructor
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CreateSubModuleCommandHandler"/> class.
+        /// Initializes a new instance of the <see cref="UpdateSubModuleCommandHandler"/> class.
         /// </summary>
         /// <param name="unitOfWork">Provides the existing Module repository.</param>
         /// <param name="httpContextAccessor">Provides the ASP.NET Core-authenticated principal.</param>
         /// <param name="logger">Records unexpected processing failures.</param>
-        public CreateSubModuleCommandHandler(
+        public UpdateSubModuleCommandHandler(
             IUnitOfWork unitOfWork,
             IHttpContextAccessor httpContextAccessor,
-            ILogger<CreateSubModuleCommandHandler> logger)
+            ILogger<UpdateSubModuleCommandHandler> logger)
         {
             _unitOfWork = unitOfWork;
             _httpContextAccessor = httpContextAccessor;
@@ -79,22 +84,22 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
         #region MediatR Handler
 
         /// <summary>
-        /// Creates a direct child only under a compatible Header Module in the requested scope.
+        /// Updates editable direct-child values and permits a move only to a compatible Header Module.
         /// </summary>
-        /// <param name="request">The creation request.</param>
+        /// <param name="request">The update request.</param>
         /// <param name="cancellationToken">A token used to cancel the operation.</param>
-        /// <returns>The created direct child response.</returns>
+        /// <returns>The updated direct child response.</returns>
         /// <exception cref="UnauthorizedAccessException">Thrown when the request does not have a valid Host principal.</exception>
-        /// <exception cref="KeyNotFoundException">Thrown when the scoped Header Module does not exist.</exception>
+        /// <exception cref="KeyNotFoundException">Thrown when the scoped child or target Header Module does not exist.</exception>
         public async Task<ApiResponse<GetSubModuleResponseDTO>> Handle(
-            CreateSubModuleCommand request,
+            UpdateSubModuleCommand request,
             CancellationToken cancellationToken)
         {
             var hostUserId = GetAuthenticatedHostUserId();
 
-            if (request?.DTO == null || request.DTO.ParentModuleId <= 0)
+            if (request == null || request.Id <= 0 || request.DTO == null || request.DTO.ParentModuleId <= 0)
             {
-                return ApiResponse<GetSubModuleResponseDTO>.Fail("Valid SubModule data and a ParentModuleId are required.");
+                return ApiResponse<GetSubModuleResponseDTO>.Fail("A valid SubModule identifier, ParentModuleId, and data are required.");
             }
 
             var dto = request.DTO;
@@ -110,6 +115,16 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
 
             try
             {
+                var entity = await _unitOfWork.ModuleRepository.GetSubModuleForUpdateAsync(
+                    request.Id,
+                    dto.ModuleScope,
+                    cancellationToken);
+
+                if (entity == null)
+                {
+                    throw new KeyNotFoundException("SubModule was not found in the requested ModuleScope.");
+                }
+
                 var parentModule = await _unitOfWork.ModuleRepository.GetParentModuleForSubModuleAsync(
                     dto.ParentModuleId,
                     dto.ModuleScope,
@@ -120,6 +135,12 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
                     throw new KeyNotFoundException("Parent Module was not found in the requested ModuleScope.");
                 }
 
+                if (parentModule.TenantId != entity.TenantId)
+                {
+                    return ApiResponse<GetSubModuleResponseDTO>.Fail(
+                        "A SubModule can only move to a Parent Module with compatible tenant ownership.");
+                }
+
                 if (dto.IsActive && !parentModule.IsActive)
                 {
                     return ApiResponse<GetSubModuleResponseDTO>.Fail("An active SubModule requires an active Parent Module.");
@@ -128,9 +149,9 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
                 var moduleCode = dto.ModuleCode.Trim();
                 var duplicateExists = await _unitOfWork.ModuleRepository.ExistsSubModuleCodeAsync(
                     moduleCode,
-                    parentModule.TenantId,
-                    dto.ModuleScope,
-                    null,
+                    entity.TenantId,
+                    entity.ModuleScope,
+                    entity.Id,
                     cancellationToken);
 
                 if (duplicateExists)
@@ -138,47 +159,39 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
                     return ApiResponse<GetSubModuleResponseDTO>.Fail("A SubModule with this ModuleCode already exists.");
                 }
 
-                var entity = new Module
-                {
-                    TenantId = parentModule.TenantId,
-                    ModuleScope = dto.ModuleScope,
-                    ModuleCode = moduleCode,
-                    ModuleName = dto.ModuleName.Trim(),
-                    DisplayName = dto.DisplayName?.Trim(),
-                    Urlpath = dto.URLPath?.Trim(),
-                    ParentModuleId = parentModule.Id,
-                    IsLeafNode = true,
-                    IsModuleDisplayInUi = dto.IsModuleDisplayInUI,
-                    IsCommonMenu = dto.IsCommonMenu,
-                    IsActive = dto.IsActive,
-                    ImageIconWeb = dto.ImageIconWeb?.Trim(),
-                    ImageIconMobile = dto.ImageIconMobile?.Trim(),
-                    ItemPriority = dto.ItemPriority,
-                    Remark = dto.Remark?.Trim(),
-                    AddedById = hostUserId,
-                    AddedDateTime = DateTime.UtcNow
-                };
+                entity.ModuleCode = moduleCode;
+                entity.ModuleName = dto.ModuleName.Trim();
+                entity.DisplayName = dto.DisplayName?.Trim();
+                entity.Urlpath = dto.URLPath?.Trim();
+                entity.ParentModuleId = parentModule.Id;
+                entity.IsLeafNode = true;
+                entity.IsModuleDisplayInUi = dto.IsModuleDisplayInUI;
+                entity.IsCommonMenu = dto.IsCommonMenu;
+                entity.IsActive = dto.IsActive;
+                entity.ImageIconWeb = dto.ImageIconWeb?.Trim();
+                entity.ImageIconMobile = dto.ImageIconMobile?.Trim();
+                entity.ItemPriority = dto.ItemPriority;
+                entity.Remark = dto.Remark?.Trim();
+                entity.UpdatedById = hostUserId;
+                entity.UpdatedDateTime = DateTime.UtcNow;
 
-                var created = await _unitOfWork.ModuleRepository.AddSubModuleAsync(entity, cancellationToken);
+                // ModuleScope and TenantId remain immutable because they are inherited from the existing module design.
+                var updated = await _unitOfWork.ModuleRepository.UpdateSubModuleAsync(entity, cancellationToken);
 
                 return ApiResponse<GetSubModuleResponseDTO>.Success(
-                    ToResponse(created, parentModule),
-                    "SubModule created successfully.");
+                    ToResponse(updated, parentModule),
+                    "SubModule updated successfully.");
             }
             catch (Exception exception)
             {
-                _logger.LogError(
-                    exception,
-                    "Unable to create SubModule for ParentModuleId {ParentModuleId} and ModuleScope {ModuleScope}.",
-                    dto.ParentModuleId,
-                    dto.ModuleScope);
+                _logger.LogError(exception, "Unable to update SubModule {ModuleId} in ModuleScope {ModuleScope}.", request.Id, dto.ModuleScope);
                 throw;
             }
         }
 
         #endregion
 
-        #region Host Authorization
+        #region Authentication
 
         /// <summary>
         /// Verifies that the ASP.NET Core-authenticated principal is a Host user and returns its actor identifier.
@@ -196,7 +209,7 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
             var userType = principal.FindFirst(AppConstants.UserTypeClaim)?.Value;
             if (!string.Equals(userType, AppConstants.HostUserType, StringComparison.OrdinalIgnoreCase))
             {
-                throw new UnauthorizedAccessException("Only Host users can create SubModules.");
+                throw new UnauthorizedAccessException("Only Host users can update SubModules.");
             }
 
             var hostUserIdValue = principal.FindFirst(AppConstants.HostUserIdClaim)?.Value;

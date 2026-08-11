@@ -2,7 +2,7 @@
 // Author      : Deepesh Gupta
 // Company     : Quecksilber Technologies
 // Role        : CEO
-// Purpose     : Exposes the tenant Parent/Header Module CRUD endpoints.
+// Purpose     : Exposes Host-admin controlled Parent/Header Module CRUD endpoints.
 // ============================================================================
 
 using axionpro.application.DTOs.Module;
@@ -15,7 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace axionpro.api.Controllers.Module
 {
     /// <summary>
-    /// Coordinates HTTP requests for tenant Parent/Header Modules.
+    /// Coordinates Host-admin HTTP requests for Parent/Header Modules.
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
@@ -43,7 +43,7 @@ namespace axionpro.api.Controllers.Module
         #region Parent Module CRUD
 
         /// <summary>
-        /// Creates a new Header Module for the authenticated tenant.
+        /// Creates a new Header Module for the authenticated Host user.
         /// </summary>
         /// <param name="createModuleRequestDTO">The client-editable Header Module values.</param>
         /// <param name="cancellationToken">A token used to cancel the request.</param>
@@ -81,34 +81,40 @@ namespace axionpro.api.Controllers.Module
         }
 
         /// <summary>
-        /// Retrieves one Header Module owned by the authenticated tenant.
+        /// Retrieves one Header Module in the requested module scope.
         /// </summary>
         /// <param name="id">The Header Module identifier.</param>
+        /// <param name="moduleScope">The required module scope.</param>
         /// <param name="cancellationToken">A token used to cancel the request.</param>
         /// <returns>The matching Header Module response.</returns>
         [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetModuleById(int id, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetModuleById(
+            int id,
+            [FromQuery] short moduleScope,
+            CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(
-                new GetParentModuleByIdQuery(id),
+                new GetParentModuleByIdQuery(id, moduleScope),
                 cancellationToken);
 
             return Ok(result);
         }
 
         /// <summary>
-        /// Retrieves Header Modules owned by the authenticated tenant.
+        /// Retrieves Header Modules in the requested module scope.
         /// </summary>
+        /// <param name="moduleScope">The required module scope.</param>
         /// <param name="isActive">When supplied, filters modules by active state.</param>
         /// <param name="cancellationToken">A token used to cancel the request.</param>
         /// <returns>The ordered Header Module list.</returns>
         [HttpGet("list")]
         public async Task<IActionResult> GetModules(
+            [FromQuery] short moduleScope,
             [FromQuery] bool? isActive,
             CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(
-                new GetParentModulesQuery(isActive),
+                new GetParentModulesQuery(moduleScope, isActive),
                 cancellationToken);
 
             return Ok(result);

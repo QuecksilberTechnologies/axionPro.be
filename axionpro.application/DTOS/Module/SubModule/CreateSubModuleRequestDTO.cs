@@ -1,127 +1,104 @@
-﻿using System;
-using System.Collections.Generic;
+// ============================================================================
+// Author      : Deepesh Gupta
+// Company     : Quecksilber Technologies
+// Role        : CEO
+// Purpose     : Defines client-editable values for creating a direct SubModule.
+// ============================================================================
+
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOS.Module.SubModule
 {
     /// <summary>
-    /// Data Transfer Object used for creating or updating a Sub-Module within the system.
+    /// Captures the values a Host user may provide to create a direct child module.
     /// </summary>
+    /// <remarks>
+    /// Tenant ownership, actor, audit, identity, and child hierarchy flags are established by the server.
+    /// Legacy context fields remain only to preserve existing request compatibility and are ignored by SubModule CRUD.
+    /// </remarks>
     public class CreateSubModuleRequestDTO
     {
-        /// <summary>
-        /// Gets or sets the unique identifier of the sub-module.
-        /// </summary>
-        /// <remarks>
-        /// This field is optional and mainly used during update operations.
-        /// </remarks>
-        /// <example>10</example>
+        #region Legacy Compatibility Fields
 
-        /// <summary>
-        /// Gets or sets the ID of the employee who owns or creates the module.
-        /// </summary>
-        /// <example>101</example>
-        public required long EmployeeId { get; set; }
+        /// <summary>Gets or sets the legacy employee identifier supplied by older clients.</summary>
+        /// <remarks>The authenticated Host actor is authoritative; this value is ignored.</remarks>
+        [Obsolete("The authenticated Host actor determines the module audit user.")]
+        public long EmployeeId { get; set; }
 
-        /// <summary>
-        /// Gets or sets the ID of the tenant under which the module is created.
-        /// </summary>
-        /// <example>2001</example>
-        public required long TenantId { get; set; }
+        /// <summary>Gets or sets the legacy tenant identifier supplied by older clients.</summary>
+        /// <remarks>The parent Header Module determines tenant ownership; this value is ignored.</remarks>
+        [Obsolete("Tenant ownership is inherited from the selected Parent Module.")]
+        public long TenantId { get; set; }
 
-        /// <summary>
-        /// Gets or sets the role ID associated with the module.
-        /// </summary>
-        /// <example>3</example>
-        public required int RoleId { get; set; }
+        /// <summary>Gets or sets the legacy role identifier supplied by older clients.</summary>
+        /// <remarks>SubModule CRUD does not use a client-supplied role identifier.</remarks>
+        [Obsolete("Authorization is determined from the authenticated request context.")]
+        public int RoleId { get; set; }
 
-        /// <summary>
-        /// Gets or sets the unique code for the module.
-        /// </summary>
-        /// <remarks>Used for internal identification or linking modules.</remarks>
-        /// <example>MOD001</example>
-        public int? Id { get; set; }
+        /// <summary>Gets or sets the legacy leaf-node value supplied by older clients.</summary>
+        /// <remarks>Direct SubModules are always persisted as leaf nodes; this value is ignored.</remarks>
+        [Obsolete("SubModule hierarchy is established by the server.")]
+        public bool? IsLeafNode { get; set; }
 
-        public string? ModuleCode { get; set; }
+        /// <summary>Provides compatibility with the existing legacy UI-display property casing.</summary>
+        [Obsolete("Use IsModuleDisplayInUI.")]
+        public bool IsModuleDisplayInUi
+        {
+            get => IsModuleDisplayInUI;
+            set => IsModuleDisplayInUI = value;
+        }
 
-        /// <summary>
-        /// Gets or sets the name of the sub-module.
-        /// </summary>
-        /// <remarks>
-        /// The name is required and should not exceed 50 characters.
-        /// </remarks>
-        /// <example>Employee Management</example>
-        public string ModuleName { get; set; } = null!;
+        #endregion
 
-        /// <summary>
-        /// Gets or sets the display name of the sub-module for the UI.
-        /// </summary>
-        /// <example>Employee Records</example>
+        #region Editable Module Fields
+
+        /// <summary>Gets or sets the direct parent Header Module identifier.</summary>
+        [Range(1, int.MaxValue)]
+        public int ParentModuleId { get; set; }
+
+        /// <summary>Gets or sets the module code.</summary>
+        [MaxLength(50)]
+        public string ModuleCode { get; set; } = string.Empty;
+
+        /// <summary>Gets or sets the module name.</summary>
+        [MaxLength(100)]
+        public string ModuleName { get; set; } = string.Empty;
+
+        /// <summary>Gets or sets the UI display name.</summary>
+        [MaxLength(100)]
         public string? DisplayName { get; set; }
 
-        /// <summary>
-        /// Gets or sets the path or route of the sub-module in the application.
-        /// </summary>
-        /// <example>/employee/records</example>
+        /// <summary>Gets or sets the URL path used to open the module.</summary>
+        [MaxLength(500)]
         public string? URLPath { get; set; }
 
-        /// <summary>
-        /// Gets or sets the ID of the parent module under which this sub-module falls.
-        /// </summary>
-        /// <example>1</example>
-        public required int ParentModuleId { get; set; }
+        /// <summary>Gets or sets whether the module is shown in the UI.</summary>
+        public bool IsModuleDisplayInUI { get; set; }
 
-        /// <summary>
-        /// Indicates whether this module is a leaf node (i.e., has no children).
-        /// </summary>
-        /// <example>true</example>
-        public bool? IsLeafNode { get; set; } = true;
+        /// <summary>Gets or sets whether the direct child represents the common menu.</summary>
+        public bool IsCommonMenu { get; set; }
 
-        /// <summary>
-        /// Indicates whether this module should be displayed in the UI menu.
-        /// </summary>
-        /// <example>true</example>
-        public bool IsModuleDisplayInUi { get; set; } = true;
+        /// <summary>Gets or sets the required requested module scope.</summary>
+        public short ModuleScope { get; set; }
 
-        /// <summary>
-        /// Indicates whether this module is a common menu item shared across all roles.
-        /// </summary>
-        /// <example>false</example>
-        public bool IsCommonMenu { get; set; } = false;
-
-        /// <summary>
-        /// Indicates whether this module is active.
-        /// </summary>
-        /// <example>true</example>
+        /// <summary>Gets or sets whether the new child module is active.</summary>
         public bool IsActive { get; set; } = true;
 
-        /// <summary>
-        /// Gets or sets the web icon path for the module.
-        /// </summary>
-        /// <example>/images/icons/web/employee.png</example>
+        /// <summary>Gets or sets the web icon path.</summary>
+        [MaxLength(255)]
         public string? ImageIconWeb { get; set; }
 
-        /// <summary>
-        /// Gets or sets the mobile icon path for the module.
-        /// </summary>
-        /// <example>/images/icons/mobile/employee.png</example>
+        /// <summary>Gets or sets the mobile icon path.</summary>
+        [MaxLength(255)]
         public string? ImageIconMobile { get; set; }
 
-        /// <summary>
-        /// Gets or sets the item priority for display order.
-        /// </summary>
-        /// <example>2</example>
+        /// <summary>Gets or sets the display order.</summary>
         public int? ItemPriority { get; set; }
 
-        /// <summary>
-        /// Gets or sets any remarks or notes for this module.
-        /// </summary>
-        /// <example>Used for managing employee information.</example>
+        /// <summary>Gets or sets an optional operational remark.</summary>
+        [MaxLength(200)]
         public string? Remark { get; set; }
 
+        #endregion
     }
-
 }

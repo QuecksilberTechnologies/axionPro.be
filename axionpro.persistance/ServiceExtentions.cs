@@ -106,6 +106,7 @@ namespace axionpro.persistance
             services.AddScoped<ITenantSubscriptionRepository, TenantSubscriptionRepository>();
             services.AddScoped<IPlanModuleMappingRepository, PlanModuleMappingRepository>();
             services.AddScoped<IModuleRepository, ModuleRepository>();
+            
             services.AddScoped<ITenantModuleConfigurationRepository, TenantModuleConfigurationRepository>();
           
             services.AddScoped<ICommonServiceSyncRepository, CommonServiceSyncRepository>();
