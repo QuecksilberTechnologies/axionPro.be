@@ -1,106 +1,118 @@
-﻿using System;
-using System.Collections.Generic;
+// ============================================================================
+// Author      : Deepesh Gupta
+// Company     : Quecksilber Technologies
+// Role        : CEO
+// Purpose     : Defines client-editable values for creating a Parent/Header Module.
+// ============================================================================
+
+using System;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOS.Module.ParentModule
 {
     /// <summary>
-    /// Represents the request model used to create a new parent module in the system.
+    /// Captures the values a client may provide to create a Parent/Header Module.
     /// </summary>
     /// <remarks>
-    /// This API allows the creation of a new parent module by providing essential details like
-    /// employee, tenant, and role identifiers, along with display configurations for both web and mobile UI.
+    /// Tenant, actor, audit, identity, and hierarchy values are established by the server.
+    /// Legacy context fields remain only to avoid breaking existing request contracts.
     /// </remarks>
     public class CreateParentModuleRequestDTO
     {
-        /// <summary>
-        /// Gets or sets the ID of the employee who owns or creates the module.
-        /// </summary>
-        /// <example>101</example>
-        public required long EmployeeId { get; set; }
+        #region Legacy Compatibility Fields
 
         /// <summary>
-        /// Gets or sets the ID of the tenant under which the module is created.
+        /// Gets or sets the legacy employee identifier supplied by older clients.
         /// </summary>
-        /// <example>2001</example>
-        public required long TenantId { get; set; }
+        /// <remarks>The authenticated actor is authoritative; this value is ignored.</remarks>
+        [Obsolete("The authenticated actor determines the module audit user.")]
+        public long EmployeeId { get; set; }
 
         /// <summary>
-        /// Gets or sets the role ID associated with the module.
+        /// Gets or sets the target tenant identifier when a Host creates a Tenant-scope master module.
         /// </summary>
-        /// <example>3</example>
-        public required long RoleId { get; set; }
+        /// <remarks>A Host-scope module always ignores this value and is persisted without a tenant.</remarks>
+        public long TenantId { get; set; }
 
         /// <summary>
-        /// Gets or sets the name of the module.
+        /// Gets or sets the legacy role identifier supplied by older clients.
         /// </summary>
-        /// <remarks>
-        /// The name is required and should not exceed 50 characters.
-        /// </remarks>
-        /// <example>HR Management</example>
+        /// <remarks>Parent Module CRUD does not use a client-supplied role identifier.</remarks>
+        [Obsolete("Authorization is determined from the authenticated request context.")]
+        public long RoleId { get; set; }
+
+        #endregion
+
+        #region Editable Module Fields
+
+        /// <summary>
+        /// Gets or sets the unique code for the module within the authenticated tenant and scope.
+        /// </summary>
         [MaxLength(50)]
-        public required string ModuleName { get; set; }
+        public string ModuleCode { get; set; } = string.Empty;
 
         /// <summary>
-       
-        /// Gets or sets the display name of the module as it should appear in the UI.
+        /// Gets or sets the module name.
         /// </summary>
-      
-        /// <example>Human Resource</example>
-        public required string DisplayName { get; set; }
+        [MaxLength(100)]
+        public string ModuleName { get; set; } = string.Empty;
 
         /// <summary>
-       
-        /// Gets or sets the path-name of the module.
-         /// </summary>
-        /// <example>human-resource</example>
-       
-    
-        /// 
-        public required string URLPath { get; set; }
-
-        public bool IsModuleDisplayInUI { get; set; } = false;
-
-        /// <summary>
-        /// Indicates whether the module is currently active.
+        /// Gets or sets the UI display name.
         /// </summary>
-        /// <example>true</example>
-        public required bool IsActive { get; set; }
+        [MaxLength(100)]
+        public string? DisplayName { get; set; }
 
         /// <summary>
-        /// Gets or sets the web icon image URL or path for the module.
+        /// Gets or sets the URL path used to open the module.
         /// </summary>
-        /// <remarks>Maximum length is 200 characters.</remarks>
-        /// <example>/images/modules/hr_icon.png</example>
-        [MaxLength(200)]
+        [MaxLength(500)]
+        public string? URLPath { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether the module is shown in the UI.
+        /// </summary>
+        public bool IsModuleDisplayInUI { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether the Header Module represents the common menu.
+        /// </summary>
+        public bool IsCommonMenu { get; set; }
+
+        /// <summary>
+        /// Gets or sets the requested module scope, which is validated for an authenticated Host user.
+        /// </summary>
+        public short ModuleScope { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether the new module is active.
+        /// </summary>
+        public bool IsActive { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets the web icon path.
+        /// </summary>
+        [MaxLength(255)]
         public string? ImageIconWeb { get; set; }
 
         /// <summary>
-        /// Gets or sets the mobile icon image URL or path for the module.
+        /// Gets or sets the mobile icon path.
         /// </summary>
-        /// <remarks>Maximum length is 200 characters.</remarks>
-        /// <example>/images/modules/hr_icon_mobile.png</example>
-        [MaxLength(200)]
+        [MaxLength(255)]
         public string? ImageIconMobile { get; set; }
 
         /// <summary>
-        /// Gets or sets the display order or priority of the module in the menu.
+        /// Gets or sets the display order.
         /// </summary>
-        /// <example>1</example>
-        public required int ItemPriority { get; set; }
+        public int? ItemPriority { get; set; }
+
 
         /// <summary>
-        /// Gets or sets any remarks or notes associated with the module.
+        /// Gets or sets an optional operational remark.
         /// </summary>
-        /// <remarks>Maximum length is 500 characters.</remarks>
-        /// <example>This module manages all HR-related functionalities.</example>
-        [MaxLength(500)]
+        [MaxLength(200)]
         public string? Remark { get; set; }
 
+        #endregion
     }
-
-
 }

@@ -2217,7 +2217,10 @@ namespace axionpro.persistance.Data.Context
 
             entity.ToTable("Module", "axionpro");
 
-            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.Id).UseIdentityByDefaultColumn();
+
+            entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");            
+             
             entity.Property(e => e.DisplayName).HasMaxLength(100);
             entity.Property(e => e.ImageIconMobile).HasMaxLength(255);
             entity.Property(e => e.ImageIconWeb).HasMaxLength(255);

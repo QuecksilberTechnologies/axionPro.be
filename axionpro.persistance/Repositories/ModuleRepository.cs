@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.Host;
+using System.Linq.Expressions;
 
 
 // ============================================================================
@@ -361,100 +362,217 @@ namespace axionpro.persistance.Repositories
 
         #region ParentAdded
 
-        public async Task<List<GetParentModuleResponseDTO>> AddParentModuleAsync(CreateParentModuleRequestDTO module)
+        /// <summary>
+        /// Persists a validated Parent/Header Module and lets PostgreSQL generate its identity value.
+        /// </summary>
+        /// <param name="entity">The Header Module entity prepared by the application layer.</param>
+        /// <param name="cancellationToken">A token to observe while saving changes.</param>
+        /// <returns>The persisted entity, including its generated identifier.</returns>
+        public async Task<Module> AddParentModuleAsync(Module entity, CancellationToken cancellationToken)
         {
-            try
-            {
-                // ✅ Step 1: Validation
-                if (module == null)
-                {
-                    _logger.LogWarning("AddParentModuleAsync called with null module DTO.");
-                    return new List<GetParentModuleResponseDTO>(); // empty list
-                }
+            ArgumentNullException.ThrowIfNull(entity);
+            var context = _context ?? throw new InvalidOperationException("Module context is unavailable.");
 
-                if (string.IsNullOrWhiteSpace(module.ModuleName))
-                {
-                    _logger.LogWarning("Module name is missing in AddParentModuleAsync.");
-                    return new List<GetParentModuleResponseDTO>();
-                }
+            await context.Modules.AddAsync(entity, cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
 
-               
-
-                // ✅ Step 2: Check for duplicate name
-                bool isDuplicate = await _context.Modules
-                    .AnyAsync(m => m.ModuleName == module.ModuleName && m.IsActive);
-
-                if (isDuplicate)
-                {
-                    _logger.LogWarning("Duplicate module name found: {ModuleName}", module.ModuleName);
-                    return new List<GetParentModuleResponseDTO>(); // return empty if duplicate
-                }
-
-                // ✅ Step 3: Mapping DTO → Entity
-                var moduleEntity = _mapper.Map<Module>(module);
-
-                // ✅ Step 4: Assign default/system values
-                moduleEntity.IsLeafNode = false;
-                moduleEntity.AddedById = module.EmployeeId;
-                moduleEntity.AddedDateTime = DateTime.UtcNow;
-                moduleEntity.ParentModuleId = null;
-                moduleEntity.IsModuleDisplayInUi = module.IsModuleDisplayInUI;
-                moduleEntity.IsCommonMenu = false;
-                moduleEntity.IsActive = true;
-
-                // ✅ Step 5: Save to DB
-                await _context.Modules.AddAsync(moduleEntity);
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation("✅ New parent module '{ModuleName}' added successfully with ID {Id}", moduleEntity.ModuleName, moduleEntity.Id);
-                var moduleDTO = _mapper.Map<GetParentModuleRequestDTO>(module);
-                moduleDTO.EmployeeId = module.EmployeeId;             
-                // ✅ Step 6: Return updated list of parent modules
-                return await GetParentModuleAsync(moduleDTO);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error while adding parent module.");
-                return new List<GetParentModuleResponseDTO>(); // return empty in case of exception
-            }
+            return entity;
         }
 
-        public async Task<List<GetParentModuleResponseDTO>> GetParentModuleAsync(GetParentModuleRequestDTO module)
+        /// <summary>
+        /// Retrieves one tenant-scoped Parent/Header Module by identifier without tracking it.
+        /// </summary>
+        /// <param name="id">The requested module identifier.</param>
+        /// <param name="tenantId">The authenticated tenant identifier.</param>
+        /// <param name="moduleScope">The supported tenant module scope.</param>
+        /// <param name="cancellationToken">A token to observe while executing the query.</param>
+        /// <returns>The matching response model, or <see langword="null"/> when it is not accessible.</returns>
+        public async Task<GetParentModuleResponseDTO?> GetParentModuleByIdAsync(
+            int id,
+            long tenantId,
+            short moduleScope,
+            CancellationToken cancellationToken)
         {
-            try
-            {
-                if (module == null)
-                {
-                    _logger.LogWarning("GetAllParentModuleAsync called with null module entity.");
-                    return new List<GetParentModuleResponseDTO>();
-                }
+            var context = _context ?? throw new InvalidOperationException("Module context is unavailable.");
 
-              
-
-                if (_context.Modules == null)
-                {
-                    _logger.LogError("❌ DbSet<Module> is null in context.");
-                    return new List<GetParentModuleResponseDTO>();
-                }
-
-                // ✅ Fetch parent modules based on flags
-                var parentModules = await _context.Modules
-                    .Where(m => m.IsActive
-                             && m.IsLeafNode == false
-                             && m.IsModuleDisplayInUi == module.IsModuleDisplayInUi
-                             && m.ParentModuleId == null && m.IsCommonMenu == false)
-                    .OrderBy(m => m.ModuleName)
-                    .ToListAsync();
-
-                // ✅ Return mapped list
-                return _mapper.Map<List<GetParentModuleResponseDTO>>(parentModules);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error in GetAllParentModuleAsync.");
-                return new List<GetParentModuleResponseDTO>();
-            }
+            return await context.Modules
+                .AsNoTracking()
+                .Where(module =>
+                    module.Id == id &&
+                    module.TenantId == tenantId &&
+                    module.ModuleScope == moduleScope &&
+                    module.ParentModuleId == null &&
+                    module.IsLeafNode == false)
+                .Select(ParentModuleProjection)
+                .FirstOrDefaultAsync(cancellationToken);
         }
+
+        /// <summary>
+        /// Retrieves Parent/Header Modules for one tenant and module scope.
+        /// </summary>
+        /// <param name="tenantId">The authenticated tenant identifier.</param>
+        /// <param name="moduleScope">The supported tenant module scope.</param>
+        /// <param name="isActive">When supplied, limits the results to the requested active state.</param>
+        /// <param name="cancellationToken">A token to observe while executing the query.</param>
+        /// <returns>The ordered Parent/Header Module list.</returns>
+        public async Task<List<GetParentModuleResponseDTO>> GetParentModulesAsync(
+            long tenantId,
+            short moduleScope,
+            bool? isActive,
+            CancellationToken cancellationToken)
+        {
+            var context = _context ?? throw new InvalidOperationException("Module context is unavailable.");
+
+            var modules = context.Modules
+                .AsNoTracking()
+                .Where(module =>
+                    module.TenantId == tenantId &&
+                    module.ModuleScope == moduleScope &&
+                    module.ParentModuleId == null &&
+                    module.IsLeafNode == false);
+
+            if (isActive.HasValue)
+            {
+                modules = modules.Where(module => module.IsActive == isActive.Value);
+            }
+
+            return await modules
+                .OrderBy(module => module.ItemPriority)
+                .ThenBy(module => module.ModuleName)
+                .Select(ParentModuleProjection)
+                .ToListAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Checks whether another Parent/Header Module already uses the supplied code in the same tenant and scope.
+        /// </summary>
+        /// <param name="moduleCode">The module code to check.</param>
+        /// <param name="tenantId">The resolved tenant identifier, or <see langword="null"/> for Host scope.</param>
+        /// <param name="moduleScope">The supported tenant module scope.</param>
+        /// <param name="excludeModuleId">An existing module identifier to exclude during update.</param>
+        /// <param name="cancellationToken">A token to observe while executing the query.</param>
+        /// <returns><see langword="true"/> when a conflicting Header Module exists.</returns>
+        public async Task<bool> ExistsParentModuleCodeAsync(
+            string moduleCode,
+            long? tenantId,
+            short moduleScope,
+            int? excludeModuleId,
+            CancellationToken cancellationToken)
+        {
+            var context = _context ?? throw new InvalidOperationException("Module context is unavailable.");
+
+            return await context.Modules
+                .AsNoTracking()
+                .AnyAsync(module =>
+                    module.TenantId == tenantId &&
+                    module.ModuleScope == moduleScope &&
+                    module.ParentModuleId == null &&
+                    module.IsLeafNode == false &&
+                    module.ModuleCode == moduleCode &&
+                    (!excludeModuleId.HasValue || module.Id != excludeModuleId.Value),
+                    cancellationToken);
+        }
+
+        /// <summary>
+        /// Retrieves a tracked Parent/Header Module so a validated update can preserve ownership and hierarchy.
+        /// </summary>
+        /// <param name="id">The requested module identifier.</param>
+        /// <param name="tenantId">The authenticated tenant identifier.</param>
+        /// <param name="moduleScope">The supported tenant module scope.</param>
+        /// <param name="cancellationToken">A token to observe while executing the query.</param>
+        /// <returns>The matching entity, or <see langword="null"/> when it is not accessible.</returns>
+        public async Task<Module?> GetParentModuleForUpdateAsync(
+            int id,
+            long tenantId,
+            short moduleScope,
+            CancellationToken cancellationToken)
+        {
+            var context = _context ?? throw new InvalidOperationException("Module context is unavailable.");
+
+            return await context.Modules
+                .FirstOrDefaultAsync(module =>
+                    module.Id == id &&
+                    module.TenantId == tenantId &&
+                    module.ModuleScope == moduleScope &&
+                    module.ParentModuleId == null &&
+                    module.IsLeafNode == false,
+                    cancellationToken);
+        }
+
+        /// <summary>
+        /// Saves a validated Parent/Header Module update.
+        /// </summary>
+        /// <param name="entity">The tracked Header Module entity to save.</param>
+        /// <param name="cancellationToken">A token to observe while saving changes.</param>
+        /// <returns>The saved Header Module entity.</returns>
+        public async Task<Module> UpdateParentModuleAsync(Module entity, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(entity);
+            var context = _context ?? throw new InvalidOperationException("Module context is unavailable.");
+
+            context.Modules.Update(entity);
+            await context.SaveChangesAsync(cancellationToken);
+
+            return entity;
+        }
+
+        /// <summary>
+        /// Determines whether a Parent/Header Module has active direct children that would be left orphaned by deactivation.
+        /// </summary>
+        /// <param name="parentModuleId">The Header Module identifier.</param>
+        /// <param name="tenantId">The authenticated tenant identifier.</param>
+        /// <param name="moduleScope">The supported tenant module scope.</param>
+        /// <param name="cancellationToken">A token to observe while executing the query.</param>
+        /// <returns><see langword="true"/> when an active direct child exists.</returns>
+        public async Task<bool> HasChildrenAsync(
+            int parentModuleId,
+            long tenantId,
+            short moduleScope,
+            CancellationToken cancellationToken)
+        {
+            var context = _context ?? throw new InvalidOperationException("Module context is unavailable.");
+
+            return await context.Modules
+                .AsNoTracking()
+                .AnyAsync(module =>
+                    module.ParentModuleId == parentModuleId &&
+                    module.TenantId == tenantId &&
+                    module.ModuleScope == moduleScope &&
+                    module.IsLeafNode == true &&
+                    module.IsActive,
+                    cancellationToken);
+        }
+
+        #region Parent Module Projection
+
+        /// <summary>
+        /// Defines the server-translatable response projection used by Parent Module reads.
+        /// </summary>
+        private static readonly Expression<Func<Module, GetParentModuleResponseDTO>> ParentModuleProjection = module =>
+            new GetParentModuleResponseDTO
+            {
+                Id = module.Id,
+                ModuleCode = module.ModuleCode,
+                ModuleName = module.ModuleName,
+                DisplayName = module.DisplayName,
+                URLPath = module.Urlpath,
+                ParentModuleId = module.ParentModuleId,
+                IsLeafNode = module.IsLeafNode,
+                IsModuleDisplayInUI = module.IsModuleDisplayInUi,
+                IsCommonMenu = module.IsCommonMenu,
+                ModuleScope = module.ModuleScope,
+                IsActive = module.IsActive,
+                ImageIconWeb = module.ImageIconWeb,
+                ImageIconMobile = module.ImageIconMobile,
+                ItemPriority = module.ItemPriority,
+                Remark = module.Remark,
+                AddedById = module.AddedById,
+                AddedDateTime = module.AddedDateTime,
+                UpdatedById = module.UpdatedById,
+                UpdatedDateTime = module.UpdatedDateTime
+            };
+
+        #endregion
 
         public async Task<List<GetModuleChildInversResponseDTO>> GetSubParentModuleAsync(GetParentModuleRequestDTO module)
         {

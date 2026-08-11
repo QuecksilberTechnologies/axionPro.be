@@ -18,6 +18,11 @@ namespace axionpro.application.Constants
         #region Module Scopes
 
         /// <summary>
+        /// Identifies modules that are available in a tenant application scope.
+        /// </summary>
+        public const int TenantModuleScope = 1;
+
+        /// <summary>
         /// Identifies modules that are available in the Host application scope.
         /// </summary>
         public const int HostModuleScope = 2;

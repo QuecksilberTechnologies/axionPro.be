@@ -1,132 +1,158 @@
-﻿using axionpro.application.DTOs.Module;
-using axionpro.application.DTOS.AssetDTO.asset;
+// ============================================================================
+// Author      : Deepesh Gupta
+// Company     : Quecksilber Technologies
+// Role        : CEO
+// Purpose     : Exposes the tenant Parent/Header Module CRUD endpoints.
+// ============================================================================
+
+using axionpro.application.DTOs.Module;
 using axionpro.application.DTOS.Module.ManualModule;
 using axionpro.application.DTOS.Module.ParentModule;
 using axionpro.application.Features.ModuleCmd.Parent.Commands;
-using axionpro.application.Interfaces.ILogger;
-using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace axionpro.api.Controllers.Module
 {
     /// <summary>
-    /// Handles all module-related operations.
+    /// Coordinates HTTP requests for tenant Parent/Header Modules.
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class ParentModuleController : ControllerBase
     {
+        #region Fields
+
         private readonly IMediator _mediator;
-        private readonly ILoggerService _logger;
 
-        public ParentModuleController(IMediator mediator, ILoggerService logger)
-        {
-            _mediator = mediator;
-            _logger = logger;
-        }
+        #endregion
 
-        #region Create Module
+        #region Constructor
 
         /// <summary>
-        /// Creates a new main module.
+        /// Initializes a new instance of the <see cref="ParentModuleController"/> class.
         /// </summary>
-        [HttpPost("add")]       
-        
-        public async Task<IActionResult> AddModule([FromBody] CreateParentModuleRequestDTO? createModuleRequestDTO)
+        /// <param name="mediator">Dispatches Parent Module commands and queries.</param>
+        public ParentModuleController(IMediator mediator)
         {
-            
+            _mediator = mediator;
+        }
 
-            var command = new CreateParentModuleRequestCommand(createModuleRequestDTO);
-            var result = await _mediator.Send(command);          
+        #endregion
+
+        #region Parent Module CRUD
+
+        /// <summary>
+        /// Creates a new Header Module for the authenticated tenant.
+        /// </summary>
+        /// <param name="createModuleRequestDTO">The client-editable Header Module values.</param>
+        /// <param name="cancellationToken">A token used to cancel the request.</param>
+        /// <returns>The created Header Module response.</returns>
+        [HttpPost("add")]
+        public async Task<IActionResult> AddModule(
+            [FromBody] CreateParentModuleRequestDTO? createModuleRequestDTO,
+            CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(
+                new CreateParentModuleCommand(createModuleRequestDTO),
+                cancellationToken);
 
             return Ok(result);
         }
 
         /// <summary>
-        /// Creates a new sub-module.
+        /// Updates the editable values of an existing Header Module.
         /// </summary>
-        //[HttpPost("create-sub-module")]
-        //public async Task<IActionResult> AddSubModule([FromBody] Create? createSubModuleRequestDTO)
-        //{
-        //    if (createSubModuleRequestDTO == null)
-        //    {
-        //        _logger.LogWarn("Received null request for AddSubModule.");
-        //        return BadRequest(new { IsSucceeded = false, Message = "Invalid request. Sub-module data is required." });
-        //    }
-
-        //    var command = new CreateSubModuleCommand(createSubModuleRequestDTO);
-        //    var result = await _mediator.Send(command);
-
-        //    if (!result.IsSucceeded)
-        //    {
-        //        return Unauthorized(result);
-        //    }
-
-        //    return Ok(result);
-        //}
-
-        #endregion
-
-        #region Update Module
-
-        /// <summary>
-        /// Updates an existing main module.
-        /// </summary>
-        //[HttpPost("update-module")]
-        //public async Task<IActionResult> UpdateModule([FromBody] UpdateAssetRequestDTO updateAssetDTO)
-        //{
-        //    if (updateAssetDTO == null)
-        //    {
-        //        _logger.LogWarn("Received null request for UpdateModule.");
-        //        return BadRequest(new { IsSucceeded = false, Message = "Invalid request. Update data is required." });
-        //    }
-
-        //    // _logger.LogInfo("Received request to update module: {@UpdateAssetDTO}", updateAssetDTO);
-
-
-        //    var command = new UpdateAssetCommand(updateAssetDTO);
-        //    var result = await _mediator.Send(command);
-
-        //    return Ok(result);
-        //}
-
-        /// <summary>
-        /// Updates an existing sub-module.
-        /// </summary>
-        [HttpPost("update-sub-module")]       
-        
-        
-        //public async Task<IActionResult> UpdateSubModule([FromBody] UpdateAssetRequestDTO updateAssetDTO)
-        //{
-        //    if (updateAssetDTO == null)
-        //    {
-        //        _logger.LogWarn("Received null request for UpdateSubModule.");
-        //        return BadRequest(new { IsSucceeded = false, Message = "Invalid request. Update data is required." });
-        //    }
-
-        //    // _logger.LogInfo("Received request to update sub-module: {0}", updateAssetDTO.ToString());
-        //    var command = new UpdateAssetCommand(updateAssetDTO);
-        //    var result = await _mediator.Send(command);
-
-        //    return Ok(result);
-        //}
-
-        #endregion
-
-        #region Get Modules
-
-
-
-        /// <summary>
-        /// Get operational (leaf node) modules.
-        /// </summary>
-        [HttpPost("get-non-leafe")]      
-        public async Task<IActionResult> GetOperationalModule([FromBody] GetModuleChildInversRequestDTO? getModuleDDLRequestDTO)
+        /// <param name="id">The Header Module identifier.</param>
+        /// <param name="updateModuleRequestDTO">The editable Header Module values.</param>
+        /// <param name="cancellationToken">A token used to cancel the request.</param>
+        /// <returns>The updated Header Module response.</returns>
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> UpdateModule(
+            int id,
+            [FromBody] UpdateParentModuleRequestDTO? updateModuleRequestDTO,
+            CancellationToken cancellationToken)
         {
-           
-            var command = new GetModuleHeadersCommand(getModuleDDLRequestDTO);
-            var result = await _mediator.Send(command);
+            var result = await _mediator.Send(
+                new UpdateParentModuleCommand(id, updateModuleRequestDTO),
+                cancellationToken);
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Retrieves one Header Module owned by the authenticated tenant.
+        /// </summary>
+        /// <param name="id">The Header Module identifier.</param>
+        /// <param name="cancellationToken">A token used to cancel the request.</param>
+        /// <returns>The matching Header Module response.</returns>
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetModuleById(int id, CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(
+                new GetParentModuleByIdQuery(id),
+                cancellationToken);
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Retrieves Header Modules owned by the authenticated tenant.
+        /// </summary>
+        /// <param name="isActive">When supplied, filters modules by active state.</param>
+        /// <param name="cancellationToken">A token used to cancel the request.</param>
+        /// <returns>The ordered Header Module list.</returns>
+        [HttpGet("list")]
+        public async Task<IActionResult> GetModules(
+            [FromQuery] bool? isActive,
+            CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(
+                new GetParentModulesQuery(isActive),
+                cancellationToken);
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Changes the active state of an existing Header Module without deleting it.
+        /// </summary>
+        /// <param name="id">The Header Module identifier.</param>
+        /// <param name="statusRequestDTO">The required target active state.</param>
+        /// <param name="cancellationToken">A token used to cancel the request.</param>
+        /// <returns>The Header Module after its status changes.</returns>
+        [HttpPatch("{id:int}/status")]
+        public async Task<IActionResult> UpdateModuleStatus(
+            int id,
+            [FromBody] UpdateParentModuleStatusRequestDTO? statusRequestDTO,
+            CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(
+                new UpdateParentModuleStatusCommand(id, statusRequestDTO),
+                cancellationToken);
+
+            return Ok(result);
+        }
+
+        #endregion
+
+        #region Existing Compatibility Endpoint
+
+        /// <summary>
+        /// Retains the existing module-header tree endpoint for current callers.
+        /// </summary>
+        /// <param name="getModuleDDLRequestDTO">The legacy tree request values.</param>
+        /// <param name="cancellationToken">A token used to cancel the request.</param>
+        /// <returns>The existing non-leaf module tree response.</returns>
+        [HttpPost("get-non-leafe")]
+        public async Task<IActionResult> GetOperationalModule(
+            [FromBody] GetModuleChildInversRequestDTO? getModuleDDLRequestDTO,
+            CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(
+                new GetModuleHeadersCommand(getModuleDDLRequestDTO!),
+                cancellationToken);
+
             return Ok(result);
         }
 
