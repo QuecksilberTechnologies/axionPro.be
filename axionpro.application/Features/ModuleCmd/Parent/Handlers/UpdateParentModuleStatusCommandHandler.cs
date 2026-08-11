@@ -211,7 +211,7 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
                 URLPath = module.Urlpath,
                 ParentModuleId = module.ParentModuleId,
                 IsLeafNode = module.IsLeafNode,
-                IsModuleDisplayInUI = module.IsModuleDisplayInUi,
+                IsModuleDisplayInUI = module.IsModuleDisplayInUI,
                 IsCommonMenu = module.IsCommonMenu,
                 ModuleScope = module.ModuleScope,
                 IsActive = module.IsActive,

@@ -2225,7 +2225,7 @@ namespace axionpro.persistance.Data.Context
             entity.Property(e => e.ImageIconMobile).HasMaxLength(255);
             entity.Property(e => e.ImageIconWeb).HasMaxLength(255);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.IsModuleDisplayInUi)
+            entity.Property(e => e.IsModuleDisplayInUI)
                 .HasDefaultValue(true)
                 .HasColumnName("IsModuleDisplayInUI");
             entity.Property(e => e.ModuleScope).HasDefaultValue((short)1);

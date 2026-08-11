@@ -165,7 +165,7 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
                 entity.Urlpath = dto.URLPath?.Trim();
                 entity.ParentModuleId = parentModule.Id;
                 entity.IsLeafNode = true;
-                entity.IsModuleDisplayInUi = dto.IsModuleDisplayInUI;
+                entity.IsModuleDisplayInUI = dto.IsModuleDisplayInUI;
                 entity.IsCommonMenu = dto.IsCommonMenu;
                 entity.IsActive = dto.IsActive;
                 entity.ImageIconWeb = dto.ImageIconWeb?.Trim();
@@ -257,7 +257,7 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
                 URLPath = module.Urlpath,
                 ParentModuleId = module.ParentModuleId,
                 IsLeafNode = module.IsLeafNode,
-                IsModuleDisplayInUI = module.IsModuleDisplayInUi,
+                IsModuleDisplayInUI = module.IsModuleDisplayInUI,
                 IsCommonMenu = module.IsCommonMenu,
                 ModuleScope = module.ModuleScope,
                 IsActive = module.IsActive,

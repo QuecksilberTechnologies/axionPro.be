@@ -76,7 +76,7 @@ namespace axionpro.persistance.Repositories
                         Urlpath = x.Urlpath,
                         ParentModuleId = x.ParentModuleId,
                         IsLeafNode = x.IsLeafNode,
-                        IsModuleDisplayInUi = x.IsModuleDisplayInUi,
+                        IsModuleDisplayInUi = x.IsModuleDisplayInUI,
                         IsCommonMenu = x.IsCommonMenu,
                         ModuleScope = x.ModuleScope,
                         IsActive = x.IsActive,
@@ -135,7 +135,7 @@ namespace axionpro.persistance.Repositories
                         Urlpath = x.Urlpath,
                         ParentModuleId = x.ParentModuleId,
                         IsLeafNode = x.IsLeafNode,
-                        IsModuleDisplayInUi = x.IsModuleDisplayInUi,
+                        IsModuleDisplayInUi = x.IsModuleDisplayInUI,
                         IsCommonMenu = x.IsCommonMenu,
                         ModuleScope = x.ModuleScope,
                         IsActive = x.IsActive,
@@ -179,7 +179,7 @@ namespace axionpro.persistance.Repositories
             {
                
                 return await _context.Modules
-                    .FirstOrDefaultAsync(m => m.IsCommonMenu == true && m.IsModuleDisplayInUi == true && m.IsActive == true);
+                    .FirstOrDefaultAsync(m => m.IsCommonMenu == true && m.IsModuleDisplayInUI == true && m.IsActive == true);
             }
             catch (Exception ex)
             {
@@ -196,7 +196,7 @@ namespace axionpro.persistance.Repositories
                 // ✅ DbContext used only here
                 
                     allModules = await _context.Modules
-                        .Where(m => m.IsActive && m.IsModuleDisplayInUi)
+                        .Where(m => m.IsActive && m.IsModuleDisplayInUI)
                         .OrderBy(m => m.Id)
                         .ToListAsync();
                
@@ -546,7 +546,7 @@ namespace axionpro.persistance.Repositories
                 URLPath = module.Urlpath,
                 ParentModuleId = module.ParentModuleId,
                 IsLeafNode = module.IsLeafNode,
-                IsModuleDisplayInUI = module.IsModuleDisplayInUi,
+                IsModuleDisplayInUI = module.IsModuleDisplayInUI,
                 IsCommonMenu = module.IsCommonMenu,
                 ModuleScope = module.ModuleScope,
                 IsActive = module.IsActive,
@@ -577,7 +577,7 @@ namespace axionpro.persistance.Repositories
                 URLPath = module.Urlpath,
                 ParentModuleId = module.ParentModuleId,
                 IsLeafNode = module.IsLeafNode,
-                IsModuleDisplayInUI = module.IsModuleDisplayInUi,
+                IsModuleDisplayInUI = module.IsModuleDisplayInUI,
                 IsCommonMenu = module.IsCommonMenu,
                 ModuleScope = module.ModuleScope,
                 IsActive = module.IsActive,
@@ -788,7 +788,7 @@ namespace axionpro.persistance.Repositories
                 var parentModules = await _context.Modules
                     .Where(m => m.IsActive
                              && m.IsLeafNode == false
-                             && m.IsModuleDisplayInUi == module.IsModuleDisplayInUi
+                             && m.IsModuleDisplayInUI == module.IsModuleDisplayInUi
                              && m.ParentModuleId == null && m.IsCommonMenu == false)
                     .OrderBy(m => m.ModuleName)
                     .ToListAsync();
@@ -831,7 +831,7 @@ namespace axionpro.persistance.Repositories
                 var subModules = await _context.Modules
                     .Where(m => m.IsActive
                              && m.IsLeafNode == true
-                             && m.IsModuleDisplayInUi == module.IsModuleDisplayInUi
+                             && m.IsModuleDisplayInUI == module.IsModuleDisplayInUI
                              && m.IsCommonMenu == module.IsCommonMenu
                              && m.ParentModuleId == module.ParentModuleId)
                     .OrderBy(m => m.ItemPriority)
@@ -948,7 +948,7 @@ namespace axionpro.persistance.Repositories
                 moduleEntity.IsLeafNode = module.IsLeafNode;
                 moduleEntity.AddedById = module.EmployeeId;
                 moduleEntity.AddedDateTime = DateTime.UtcNow;
-                moduleEntity.IsModuleDisplayInUi = module.IsModuleDisplayInUi;
+                moduleEntity.IsModuleDisplayInUI = module.IsModuleDisplayInUI;
                 moduleEntity.IsCommonMenu = module.IsCommonMenu;
                 moduleEntity.IsActive = module.IsActive;
 

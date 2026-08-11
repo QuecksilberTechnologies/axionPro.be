@@ -21,7 +21,7 @@ public partial class Module
 
     public bool? IsLeafNode { get; set; }
 
-    public bool IsModuleDisplayInUi { get; set; }
+    public bool IsModuleDisplayInUI { get; set; }
 
     public bool IsCommonMenu { get; set; }
     public short ModuleScope { get; set; }
