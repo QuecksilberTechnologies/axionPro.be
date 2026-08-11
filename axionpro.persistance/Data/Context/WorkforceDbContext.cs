@@ -1,5 +1,6 @@
 ﻿using axionpro.application.DTOs.Module.NewFolder;
 
+using axionpro.application.Common.Enums;
 using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOS.RoleModulePermission;
 using axionpro.application.DTOS.StoreProcedures;
@@ -9,8 +10,18 @@ using axionpro.domain.Entity;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 
+// ============================================================================
+// Author      : Deepesh Gupta
+// Company     : Quecksilber Technologies
+// Role        : CEO
+// Purpose     : Configures the AxionPro PostgreSQL persistence model.
+// ============================================================================
+
 namespace axionpro.persistance.Data.Context
 {
+    /// <summary>
+    /// Represents the AxionPro database context and its entity mappings.
+    /// </summary>
     public class WorkforceDbContext : DbContext, IWorkforcedbContext
     {
 
@@ -2411,28 +2422,40 @@ namespace axionpro.persistance.Data.Context
                 .HasConstraintName("FK_PTIM_PolicyType");
         });
 
-        modelBuilder.Entity<RefreshToken>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__RefreshT__3214EC0731D02168");
+            modelBuilder.Entity<RefreshToken>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("PK__RefreshT__3214EC0731D02168");
 
-            entity.ToTable("RefreshToken", "axionpro");
+                entity.ToTable("RefreshToken", "axionpro");
 
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.CreatedByIp).HasMaxLength(50);
-            entity.Property(e => e.ExpiryDate).HasDefaultValueSql("(CURRENT_TIMESTAMP + '5 days'::interval)");
-            entity.Property(e => e.IsRevoked).HasDefaultValue(false);
-            entity.Property(e => e.LoginId).HasMaxLength(255);
-            entity.Property(e => e.ReplacedByToken).HasMaxLength(500);
-            entity.Property(e => e.RevokedByIp).HasMaxLength(50);
-            entity.Property(e => e.Token).HasMaxLength(500);
+                entity.HasIndex(e => e.HostUserId, "IX_RefreshToken_HostUserId");
 
-            entity.HasOne(d => d.Login).WithMany(p => p.RefreshToken)
-                .HasPrincipalKey(p => p.LoginId)
-                .HasForeignKey(d => d.LoginId)
-                .HasConstraintName("FK__RefreshTo__Login__7132C993");
-        });
+                entity.HasIndex(e => e.LoginCredentialId, "IX_RefreshToken_LoginCredentialId");
 
-        modelBuilder.Entity<ReportingType>(entity =>
+                entity.HasIndex(e => new { e.LoginId, e.UserType }, "IX_RefreshToken_LoginId_UserType");
+
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.CreatedByIp).HasMaxLength(50);
+                entity.Property(e => e.ExpiryDate).HasDefaultValueSql("(CURRENT_TIMESTAMP + '5 days'::interval)");
+                entity.Property(e => e.IsRevoked).HasDefaultValue(false);
+                entity.Property(e => e.LoginId).HasMaxLength(255);
+                entity.Property(e => e.ReplacedByToken).HasMaxLength(500);
+                entity.Property(e => e.RevokedByIp).HasMaxLength(50);
+                entity.Property(e => e.Token).HasMaxLength(500);
+                entity.Property(e => e.UserType).HasDefaultValue((short)LoginUserType.TenantEmployee);
+
+                entity.HasOne(d => d.HostUser).WithMany(p => p.RefreshToken)
+                    .HasForeignKey(d => d.HostUserId)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .HasConstraintName("FK_RefreshToken_HostUser");
+
+                entity.HasOne(d => d.LoginCredential).WithMany(p => p.RefreshToken)
+                    .HasForeignKey(d => d.LoginCredentialId)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .HasConstraintName("FK_RefreshToken_LoginCredential");
+            });
+
+            modelBuilder.Entity<ReportingType>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Reportin__3214EC0773736C22");
 

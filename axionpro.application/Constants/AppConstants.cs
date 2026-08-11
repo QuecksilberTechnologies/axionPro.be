@@ -24,6 +24,40 @@ namespace axionpro.application.Constants
 
         #endregion
 
+        #region Host Token Claims
+
+        /// <summary>
+        /// Identifies the Host-user identifier claim in a Host access token.
+        /// </summary>
+        public const string HostUserIdClaim = "HostUserId";
+
+        /// <summary>
+        /// Identifies the Host-role identifier claim in a Host access token.
+        /// </summary>
+        public const string HostRoleIdClaim = "HostRoleId";
+
+        /// <summary>
+        /// Identifies the Host login identifier claim in a Host access token.
+        /// </summary>
+        public const string LoginIdClaim = "LoginId";
+
+        /// <summary>
+        /// Identifies the application principal-type claim.
+        /// </summary>
+        public const string UserTypeClaim = "UserType";
+
+        /// <summary>
+        /// Identifies a Host principal in the application principal-type claim.
+        /// </summary>
+        public const string HostUserType = "Host";
+
+        /// <summary>
+        /// Identifies an access token in the token-purpose claim.
+        /// </summary>
+        public const string AccessTokenPurpose = "Access";
+
+        #endregion
+
         public static readonly int DeviceTypeWeb = 1;
         public static readonly int DeviceTypeMobile = 2;
         public static readonly int DeviceTypeForAll = 3;

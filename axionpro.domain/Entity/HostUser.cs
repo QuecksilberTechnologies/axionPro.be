@@ -36,4 +36,6 @@ public partial class HostUser
     public DateTime? DeletedDateTime { get; set; }
 
     public virtual HostRole HostRole { get; set; } = null!;
+
+    public virtual ICollection<RefreshToken> RefreshToken { get; set; } = new List<RefreshToken>();
 }

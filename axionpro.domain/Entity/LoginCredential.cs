@@ -1,6 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 
+// ============================================================================
+// Author      : Deepesh Gupta
+// Company     : Quecksilber Technologies
+// Role        : CEO
+// Purpose     : Represents Tenant Employee credentials independently of common refresh-token ownership.
+// ============================================================================
+
 namespace axionpro.domain.Entity;
 
 public partial class LoginCredential
@@ -52,6 +59,6 @@ public partial class LoginCredential
     public bool IsOnboard { get; set; }
 
     public virtual Employee Employee { get; set; } = null!;
-
     public virtual ICollection<RefreshToken> RefreshToken { get; set; } = new List<RefreshToken>();
+
 }

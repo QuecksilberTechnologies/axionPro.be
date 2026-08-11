@@ -8,12 +8,23 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
+// ============================================================================
+// Author      : Deepesh Gupta
+// Company     : Quecksilber Technologies
+// Role        : CEO
+// Purpose     : Defines Tenant and Host token-generation operations.
+// ============================================================================
+
 namespace axionpro.application.Interfaces.ITokenService
 {
     // ITokenService.cs (Application Layer)
+    /// <summary>
+    /// Defines access-token and refresh-token operations used by authentication flows.
+    /// </summary>
     public interface ITokenService
     {
            public Task <string> GenerateToken(GetTokenInfoDTO dto);
+           public Task<string> GenerateHostToken(HostTokenInfoDTO dto);
        
            bool ValidateToken(string token);
         public Task<string>  GenerateRefreshToken();

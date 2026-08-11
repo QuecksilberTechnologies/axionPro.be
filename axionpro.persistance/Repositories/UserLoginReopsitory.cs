@@ -15,6 +15,13 @@ using System.Reflection.Metadata;
 using System.Text;
 using axionpro.domain.Entity;
 
+// ============================================================================
+// Author      : Deepesh Gupta
+// Company     : Quecksilber Technologies
+// Role        : CEO
+// Purpose     : Persists and retrieves Tenant LoginCredential records.
+// ============================================================================
+
 namespace axionpro.persistance.Repositories
 {
     public class UserLoginReopsitory : IUserLoginReopsitory
@@ -55,6 +62,21 @@ namespace axionpro.persistance.Repositories
                 _logger.LogError(ex, "💥 Exception occurred while authenticating LoginId: {LoginId}", loginId);
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Retrieves an active, non-soft-deleted Tenant login credential by its primary key.
+        /// </summary>
+        /// <param name="loginCredentialId">The immutable Tenant credential identifier.</param>
+        /// <returns>The matching credential, or <see langword="null"/> when it is inactive, soft deleted, or missing.</returns>
+        public async Task<LoginCredential?> GetActiveByIdAsync(long loginCredentialId)
+        {
+            return await _context.LoginCredentials
+                .AsNoTracking()
+                .FirstOrDefaultAsync(credential =>
+                    credential.Id == loginCredentialId &&
+                    credential.IsActive &&
+                    credential.IsSoftDeleted != true);
         }
 
         public async Task<long> CreateUser(LoginCredential loginRequest)

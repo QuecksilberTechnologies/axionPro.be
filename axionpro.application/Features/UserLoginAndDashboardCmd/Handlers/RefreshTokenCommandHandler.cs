@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using axionpro.application.Common.Enums;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.Hash;
 using axionpro.application.Constants;
@@ -8,6 +9,7 @@ using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOs.Tenant;
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.DTOS.Employee.BaseEmployee;
+using axionpro.application.DTOS.Host;
 using axionpro.application.DTOS.Token;
 using axionpro.application.DTOS.Token.ems.application.DTOs.UserLogin;
 using axionpro.application.DTOS.UserRoles;
@@ -22,8 +24,18 @@ using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
+// ============================================================================
+// Author      : Deepesh Gupta
+// Company     : Quecksilber Technologies
+// Role        : CEO
+// Purpose     : Rotates common refresh tokens for Host users and Tenant Employees.
+// ============================================================================
+
 namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 {
+    /// <summary>
+    /// Represents a request to rotate a Host or Tenant refresh token.
+    /// </summary>
     public class RefreshTokenCommand : IRequest<ApiResponse<LoginResponseDTO>>
     {
         public RefreshTokenRequestDTO DTO { get; }
@@ -34,6 +46,9 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
         }
     }
 
+    /// <summary>
+    /// Handles owner-specific validation and access-token generation before shared refresh-token rotation.
+    /// </summary>
     public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, ApiResponse<LoginResponseDTO>>
     {
         private readonly IMapper _mapper;
@@ -86,7 +101,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 // =====================================================
                 var incomingHashedToken = HashHelper.Sha256(request.DTO.RefreshToken);
 
-                var oldToken = await _refreshTokenRepository.GetValidByHashedTokenAsync(incomingHashedToken);
+                var oldToken = await _refreshTokenRepository.GetByHashedTokenAsync(incomingHashedToken);
 
                 if (oldToken == null)
                 {
@@ -94,7 +109,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                     throw new UnauthorizedAccessException("Invalid refresh token.");
                 }
 
-                if (oldToken.IsRevoked.HasValue)
+                if (oldToken.IsRevoked == true)
                 {
                     _logger.LogWarning("Refresh token reuse detected. LoginId={LoginId}, IP={IP}",
                         oldToken.LoginId, request.DTO.IpAddress);
@@ -107,16 +122,52 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                         oldToken.LoginId, request.DTO.IpAddress);
                     throw new UnauthorizedAccessException("Refresh token expired.");
                 }
-                // =====================================================
-                // STEP 2: Fresh loginId from token row
-                // =====================================================
-                string loginId = oldToken.LoginId;
 
-                if (string.IsNullOrWhiteSpace(loginId))
+                if (!HasValidRefreshTokenOwner(oldToken))
                 {
-                    _logger.LogWarning("Refresh token has empty LoginId. TokenId={TokenId}", oldToken.Id);
-                    throw new UnauthorizedAccessException("Invalid refresh token data.");
+                    _logger.LogWarning(
+                        "Refresh token owner invariant failed. TokenId={TokenId}, UserType={UserType}, LoginCredentialId={LoginCredentialId}, HostUserId={HostUserId}",
+                        oldToken.Id,
+                        oldToken.UserType,
+                        oldToken.LoginCredentialId,
+                        oldToken.HostUserId);
+                    throw new UnauthorizedAccessException("Invalid refresh token owner.");
                 }
+
+                if (oldToken.UserType == (short)LoginUserType.Host)
+                {
+                    return await CreateHostRefreshResponseAsync(
+                        oldToken,
+                        request.DTO.IpAddress,
+                        cancellationToken);
+                }
+
+                if (oldToken.UserType != (short)LoginUserType.TenantEmployee)
+                {
+                    _logger.LogWarning(
+                        "Refresh token has an unsupported UserType. TokenId={TokenId}, UserType={UserType}",
+                        oldToken.Id,
+                        oldToken.UserType);
+                    throw new UnauthorizedAccessException("Invalid refresh token owner.");
+                }
+                // =====================================================
+                // STEP 2: Resolve the Tenant owner from the immutable foreign key.
+                // =====================================================
+                var tenantLoginCredential = await _unitOfWork.UserLoginRepository
+                    .GetActiveByIdAsync(oldToken.LoginCredentialId!.Value);
+
+                if (tenantLoginCredential == null ||
+                    string.IsNullOrWhiteSpace(tenantLoginCredential.LoginId) ||
+                    !string.Equals(tenantLoginCredential.LoginId, oldToken.LoginId, StringComparison.Ordinal))
+                {
+                    _logger.LogWarning(
+                        "Refresh token Tenant owner mismatch. TokenId={TokenId}, LoginCredentialId={LoginCredentialId}",
+                        oldToken.Id,
+                        oldToken.LoginCredentialId);
+                    throw new UnauthorizedAccessException("Invalid refresh token owner.");
+                }
+
+                string loginId = tenantLoginCredential.LoginId;
 
                 // =====================================================
                 // STEP 3: Validate active user fresh from DB
@@ -386,34 +437,15 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 // =====================================================
                 var token = await _tokenService.GenerateToken(getTokenInfoDTO);
 
-                var newRefreshToken = await _tokenService.GenerateRefreshToken();
-                var newHashedRefreshToken = HashHelper.Sha256(newRefreshToken);
+                var newRefreshToken = await RotateRefreshTokenAsync(
+                    oldToken,
+                    request.DTO.IpAddress,
+                    cancellationToken);
 
-                // =====================================================
-                // STEP 13: Rotate refresh token in transaction
-                // =====================================================
-                await _unitOfWork.BeginTransactionAsync();
-
-                await _refreshTokenRepository.UpdateReplacedByTokenAsync(oldToken.Id, newHashedRefreshToken);
-                await _refreshTokenRepository.RevokeAsync(oldToken.Id, request.DTO.IpAddress);
-
-                bool isInserted = await _refreshTokenRepository.InsertAsync(new RefreshToken
+                if (string.IsNullOrWhiteSpace(newRefreshToken))
                 {
-                    LoginId = loginId,
-                    Token = newHashedRefreshToken,
-                    ExpiryDate = DateTime.UtcNow.AddDays(7),
-                    CreatedAt = DateTime.UtcNow,
-                    CreatedByIp = request.DTO.IpAddress,
-                    IsRevoked = false
-                });
-
-                if (!isInserted)
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
                     return ApiResponse<LoginResponseDTO>.Fail("Unable to issue new refresh token.");
                 }
-
-                await _unitOfWork.CommitTransactionAsync();
 
                 // =====================================================
                 // STEP 14: Full login-style response
@@ -445,5 +477,190 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 throw;
             }
         }
+
+        #region Refresh Token Owner Validation
+
+        /// <summary>
+        /// Validates the mutually exclusive refresh-token owner foreign keys for the declared user type.
+        /// </summary>
+        /// <param name="token">The refresh token retrieved by its submitted-token hash.</param>
+        /// <returns><see langword="true"/> when the token has exactly one matching owner foreign key; otherwise, <see langword="false"/>.</returns>
+        private static bool HasValidRefreshTokenOwner(RefreshToken token)
+        {
+            return token.UserType switch
+            {
+                (short)LoginUserType.TenantEmployee =>
+                    token.LoginCredentialId.HasValue && !token.HostUserId.HasValue,
+                (short)LoginUserType.Host =>
+                    token.HostUserId.HasValue && !token.LoginCredentialId.HasValue,
+                _ => false
+            };
+        }
+
+        #endregion
+
+        #region Host Owner Validation
+
+        /// <summary>
+        /// Validates a Host refresh-token owner and creates a Host response before using the shared rotation block.
+        /// </summary>
+        /// <param name="oldToken">The common refresh-token row whose user type is Host.</param>
+        /// <param name="requestIpAddress">The client IP address associated with the request.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>A refreshed Host login response.</returns>
+        private async Task<ApiResponse<LoginResponseDTO>> CreateHostRefreshResponseAsync(
+            RefreshToken oldToken,
+            string? requestIpAddress,
+            CancellationToken cancellationToken)
+        {
+            var hostUser = await _unitOfWork.HostUserRepository.GetByIdAsync(oldToken.HostUserId!.Value);
+            if (hostUser == null ||
+                !hostUser.IsActive ||
+                hostUser.IsSoftDeleted ||
+                !string.Equals(hostUser.LoginId, oldToken.LoginId, StringComparison.Ordinal))
+            {
+                return ApiResponse<LoginResponseDTO>.Fail("Host user is inactive or does not match the refresh token owner.");
+            }
+
+            var hostRole = await _unitOfWork.HostRoleRepository.GetByIdAsync(hostUser.HostRoleId);
+            if (hostRole == null || !hostRole.IsActive || hostRole.IsSoftDeleted)
+            {
+                return ApiResponse<LoginResponseDTO>.Fail("Host role is inactive.");
+            }
+
+            var permissions = await _unitOfWork.HostRolePermissionRepository
+                .GetHostUserPermissionsAsync(hostUser.HostRoleId, cancellationToken);
+
+            var accessToken = await _tokenService.GenerateHostToken(new HostTokenInfoDTO
+            {
+                HostUserId = hostUser.Id,
+                HostRoleId = hostUser.HostRoleId,
+                LoginId = hostUser.LoginId,
+                Name = hostUser.Name,
+                Email = hostUser.Email
+            });
+
+            if (string.IsNullOrWhiteSpace(accessToken))
+            {
+                return ApiResponse<LoginResponseDTO>.Fail("Unable to issue Host access token.");
+            }
+
+            var refreshToken = await RotateRefreshTokenAsync(
+                oldToken,
+                requestIpAddress,
+                cancellationToken);
+
+            if (string.IsNullOrWhiteSpace(refreshToken))
+            {
+                return ApiResponse<LoginResponseDTO>.Fail("Unable to issue new refresh token.");
+            }
+
+            return ApiResponse<LoginResponseDTO>.Success(
+                CreateHostLoginResponse(hostUser, hostRole, permissions, accessToken, refreshToken),
+                "Token refreshed successfully.");
+        }
+
+        #endregion
+
+        #region Common Refresh Token Rotation
+
+        /// <summary>
+        /// Performs the single shared refresh-token rotation algorithm after the owner and access token have been validated.
+        /// </summary>
+        /// <param name="oldToken">The common refresh-token row to replace.</param>
+        /// <param name="requestIpAddress">The client IP address associated with token revocation and creation.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The new opaque refresh token, or <see langword="null"/> when the replacement cannot be persisted.</returns>
+        private async Task<string?> RotateRefreshTokenAsync(
+            RefreshToken oldToken,
+            string? requestIpAddress,
+            CancellationToken cancellationToken)
+        {
+            var refreshToken = await _tokenService.GenerateRefreshToken();
+            var hashedRefreshToken = HashHelper.Sha256(refreshToken);
+
+            await _unitOfWork.BeginTransactionAsync(cancellationToken);
+
+            await _refreshTokenRepository.UpdateReplacedByTokenAsync(oldToken.Id, hashedRefreshToken);
+            await _refreshTokenRepository.RevokeAsync(oldToken.Id, requestIpAddress);
+
+            var isInserted = await _refreshTokenRepository.InsertAsync(new RefreshToken
+            {
+                LoginId = oldToken.LoginId,
+                UserType = oldToken.UserType,
+                LoginCredentialId = oldToken.LoginCredentialId,
+                HostUserId = oldToken.HostUserId,
+                Token = hashedRefreshToken,
+                ExpiryDate = DateTime.UtcNow.AddDays(7),
+                CreatedAt = DateTime.UtcNow,
+                CreatedByIp = requestIpAddress,
+                IsRevoked = false
+            });
+
+            if (!isInserted)
+            {
+                await _unitOfWork.RollbackTransactionAsync(cancellationToken);
+                return null;
+            }
+
+            await _unitOfWork.CommitTransactionAsync(cancellationToken);
+            return refreshToken;
+        }
+
+        #endregion
+
+        #region Host Login Response
+
+        /// <summary>
+        /// Creates the additive login response returned when a Host token is issued or refreshed.
+        /// </summary>
+        /// <param name="hostUser">The active Host user.</param>
+        /// <param name="hostRole">The active Host role.</param>
+        /// <param name="permissions">The effective Host permissions.</param>
+        /// <param name="accessToken">The signed Host access token.</param>
+        /// <param name="refreshToken">The opaque Host refresh token returned to the client.</param>
+        /// <returns>The Host login response.</returns>
+        private LoginResponseDTO CreateHostLoginResponse(
+            HostUser hostUser,
+            HostRole hostRole,
+            List<HostUserPermissionResponseDTO> permissions,
+            string accessToken,
+            string refreshToken)
+        {
+            return new LoginResponseDTO
+            {
+                Success = ConstantValues.isSucceeded,
+                Token = accessToken,
+                AccessToken = accessToken,
+                RefreshToken = refreshToken,
+                TokenExpiry = _tokenService.GetExpiryFromToken(accessToken),
+                UserType = AppConstants.HostUserType,
+                HostUser = new GetHostUserResponseDTO
+                {
+                    Id = hostUser.Id,
+                    HostRoleId = hostUser.HostRoleId,
+                    HostRoleName = hostRole.Name,
+                    Name = hostUser.Name,
+                    LoginId = hostUser.LoginId,
+                    Email = hostUser.Email,
+                    MobileNumber = hostUser.MobileNumber,
+                    IsActive = hostUser.IsActive,
+                    AddedDateTime = hostUser.AddedDateTime,
+                    UpdatedDateTime = hostUser.UpdatedDateTime
+                },
+                HostRole = new GetHostRoleResponseDTO
+                {
+                    Id = hostRole.Id,
+                    Name = hostRole.Name,
+                    Description = hostRole.Description,
+                    IsActive = hostRole.IsActive,
+                    AddedDateTime = hostRole.AddedDateTime,
+                    UpdatedDateTime = hostRole.UpdatedDateTime
+                },
+                HostPermissions = permissions
+            };
+        }
+
+        #endregion
     }
 }

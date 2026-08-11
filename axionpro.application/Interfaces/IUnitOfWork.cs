@@ -2,8 +2,18 @@
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.domain.Entity;
 
+// ============================================================================
+// Author      : Deepesh Gupta
+// Company     : Quecksilber Technologies
+// Role        : CEO
+// Purpose     : Defines the repository and transaction boundary for application operations.
+// ============================================================================
+
 namespace axionpro.application.Interfaces
 {
+    /// <summary>
+    /// Defines the repositories and transaction operations available to application handlers.
+    /// </summary>
     public interface IUnitOfWork : IDisposable
     {
         IModuleRepository ModuleRepository { get; }

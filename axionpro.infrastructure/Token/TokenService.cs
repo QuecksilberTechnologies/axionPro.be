@@ -1,4 +1,5 @@
 ﻿using axionpro.application.Common.Helpers;
+using axionpro.application.Constants;
 using axionpro.application.DTOs.Employee;
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.DTOS.Token;
@@ -16,8 +17,18 @@ using System.Security.Cryptography;
 using System.Text;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Model;
 
+// ============================================================================
+// Author      : Deepesh Gupta
+// Company     : Quecksilber Technologies
+// Role        : CEO
+// Purpose     : Generates and validates Tenant and Host access tokens using shared signing infrastructure.
+// ============================================================================
+
 namespace axionpro.infrastructure.Token
 {
+    /// <summary>
+    /// Provides the existing Tenant token operations and dedicated Host access-token generation.
+    /// </summary>
     public class TokenService : ITokenService
     {
         private readonly IConfiguration _configuration;
@@ -31,27 +42,19 @@ namespace axionpro.infrastructure.Token
             _unitOfWork = _UOW ?? throw new ArgumentNullException(nameof(_UOW));
         }
 
-        // ✅ 1️⃣ Generate Token with Custom Claims
+        #region Tenant Access Token Generation
+
+        /// <summary>
+        /// Generates a Tenant Employee access token while preserving the established Tenant claim set.
+        /// </summary>
+        /// <param name="user">The Tenant Employee token information.</param>
+        /// <returns>The signed Tenant access token, or <see langword="null"/> when generation fails.</returns>
         public async Task<string> GenerateToken(GetTokenInfoDTO user)
         {
             try
             {
                 if (user == null)
                     throw new ArgumentNullException(nameof(user), "User object cannot be null.");
-
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var jwtKey = _configuration["JWTSettings:Secret"];
-
-                if (string.IsNullOrEmpty(jwtKey))
-                    throw new ArgumentNullException("JWTSettings:Secret", "JWT key cannot be null or empty.");
-
-                var key = Encoding.UTF8.GetBytes(jwtKey);
-                if (key.Length < 32)
-                    throw new ArgumentException("JWT key must be at least 32 bytes long for HMAC SHA-256.");
-
-                var issuer = _configuration["JWTSettings:Issuer"];
-                var audience = _configuration["JWTSettings:Audience"];
-                var tokenLifetime = TimeSpan.Parse(_configuration["JWTSettings:TokenLifetime"]);
 
                 // 🧩 Add all custom claims safely
                 var claims = new List<Claim>();
@@ -83,24 +86,13 @@ namespace axionpro.infrastructure.Token
                     _logger.LogWarning(innerEx, "Error creating claims for user {UserId}", user.UserId);
                 }
 
-                var tokenDescriptor = new SecurityTokenDescriptor
-                {
-                    Subject = new ClaimsIdentity(claims),
-                    Expires = DateTime.UtcNow.Add(tokenLifetime),
-                    Issuer = issuer,
-                    Audience = audience,
-                    SigningCredentials = new SigningCredentials(
-                        new SymmetricSecurityKey(key),
-                        SecurityAlgorithms.HmacSha256Signature
-                    )
-                };
-
-                var token = tokenHandler.CreateToken(tokenDescriptor);
-                var jwtToken = tokenHandler.WriteToken(token);
+                var jwtToken = await GenerateSignedAccessTokenAsync(
+                    claims,
+                    includeNotBefore: false);
 
                 _logger.LogInformation("Token generated successfully for UserId: {UserId}", user.UserId);
 
-                return await Task.FromResult(jwtToken);
+                return jwtToken;
             }
             catch (Exception ex)
             {
@@ -108,6 +100,63 @@ namespace axionpro.infrastructure.Token
                 return null;
             }
         }
+
+        #endregion
+
+        #region Host Access Token Generation
+
+        /// <summary>
+        /// Generates a Host access token without tenant employee claims.
+        /// </summary>
+        /// <param name="hostUser">The authenticated Host principal information.</param>
+        /// <returns>The signed Host access token, or an empty string when generation fails.</returns>
+        public async Task<string> GenerateHostToken(HostTokenInfoDTO hostUser)
+        {
+            try
+            {
+                if (hostUser == null)
+                {
+                    throw new ArgumentNullException(nameof(hostUser), "Host user object cannot be null.");
+                }
+
+                var claims = new List<Claim>
+                {
+                    new Claim(JwtRegisteredClaimNames.Sub, hostUser.HostUserId.ToString()),
+                    new Claim(AppConstants.HostUserIdClaim, hostUser.HostUserId.ToString()),
+                    new Claim(AppConstants.HostRoleIdClaim, hostUser.HostRoleId.ToString()),
+                    new Claim(AppConstants.LoginIdClaim, hostUser.LoginId),
+                    new Claim("Name", hostUser.Name),
+                    new Claim(AppConstants.UserTypeClaim, AppConstants.HostUserType),
+                    new Claim("TokenPurpose", AppConstants.AccessTokenPurpose),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                };
+
+                if (!string.IsNullOrWhiteSpace(hostUser.Email))
+                {
+                    claims.Add(new Claim(ClaimTypes.Email, hostUser.Email));
+                }
+
+                var jwtToken = await GenerateSignedAccessTokenAsync(
+                    claims,
+                    includeNotBefore: true);
+
+                _logger.LogInformation(
+                    "Host token generated successfully for HostUserId: {HostUserId}",
+                    hostUser.HostUserId);
+
+                return jwtToken;
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(
+                    exception,
+                    "Host token generation failed for HostUserId: {HostUserId}",
+                    hostUser?.HostUserId);
+                return string.Empty;
+            }
+        }
+
+        #endregion
 
         // ✅ 2️⃣ Validate Token
         public bool ValidateToken(string token)
@@ -303,6 +352,54 @@ namespace axionpro.infrastructure.Token
                 return null;
             }
         }
+
+        #region Private Methods
+
+        /// <summary>
+        /// Signs a JWT with the configured issuer, audience, lifetime, and HMAC-SHA256 credentials.
+        /// </summary>
+        /// <param name="claims">The already-approved claims for the token type being generated.</param>
+        /// <param name="includeNotBefore">Whether to include the standard not-before timestamp.</param>
+        /// <returns>The serialized signed JWT.</returns>
+        private Task<string> GenerateSignedAccessTokenAsync(
+            IEnumerable<Claim> claims,
+            bool includeNotBefore)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var jwtKey = _configuration["JWTSettings:Secret"];
+
+            if (string.IsNullOrEmpty(jwtKey))
+            {
+                throw new ArgumentNullException("JWTSettings:Secret", "JWT key cannot be null or empty.");
+            }
+
+            var key = Encoding.UTF8.GetBytes(jwtKey);
+            if (key.Length < 32)
+            {
+                throw new ArgumentException("JWT key must be at least 32 bytes long for HMAC SHA-256.");
+            }
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.UtcNow.Add(TimeSpan.Parse(_configuration["JWTSettings:TokenLifetime"])),
+                Issuer = _configuration["JWTSettings:Issuer"],
+                Audience = _configuration["JWTSettings:Audience"],
+                SigningCredentials = new SigningCredentials(
+                    new SymmetricSecurityKey(key),
+                    SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            if (includeNotBefore)
+            {
+                tokenDescriptor.NotBefore = DateTime.UtcNow;
+            }
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return Task.FromResult(tokenHandler.WriteToken(token));
+        }
+
+        #endregion
     }
 }
    

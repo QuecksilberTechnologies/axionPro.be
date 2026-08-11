@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using axionpro.application.Common.Enums;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.Hash;
 using axionpro.application.Constants;
@@ -8,6 +9,7 @@ using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOs.Tenant;
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.DTOS.Employee.BaseEmployee;
+using axionpro.application.DTOS.Host;
 using axionpro.application.DTOS.Token;
 using axionpro.application.DTOS.UserRoles;
 using axionpro.application.Interfaces;
@@ -26,8 +28,18 @@ using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
+// ============================================================================
+// Author      : Deepesh Gupta
+// Company     : Quecksilber Technologies
+// Role        : CEO
+// Purpose     : Authenticates Host users and Tenant Employees while preserving the existing Tenant login flow.
+// ============================================================================
+
 namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 {
+    /// <summary>
+    /// Represents a request to authenticate either a Host user or a Tenant Employee.
+    /// </summary>
     public class LoginCommand : IRequest<ApiResponse<LoginResponseDTO>>
     {
         public LoginRequestDTO DTO { get; set; }
@@ -42,6 +54,9 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 
     }
 
+    /// <summary>
+    /// Handles Host authentication first and delegates unchanged Tenant Employee login behavior when no Host user matches.
+    /// </summary>
     public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<LoginResponseDTO>>
     {
         private readonly IMapper _mapper;
@@ -95,39 +110,19 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 }
 
 
-                // ======================================================
-                // HOST USER CHECK
-                // ======================================================
-                #region Host User Check
+                #region Host Authentication
+
                 var hostUser = await _unitOfWork.HostUserRepository
                     .GetByLoginIdAsync(request.DTO.LoginId);
 
                 if (hostUser != null)
                 {
-                    // Host user mila
-                    // Yahan Tenant/Employee validation nahi chalegi
-
-                    if (!hostUser.IsActive || hostUser.IsSoftDeleted)
-                    {
-                        return ApiResponse<LoginResponseDTO>.Fail(
-                            "Host user is inactive.");
-                    }
-
-                    // Password verify
-                    if (!_passwordService.VerifyPassword(
-                            hostUser.PasswordHash,
-                            request.DTO.Password))
-                    {
-                        return ApiResponse<LoginResponseDTO>.Fail(
-                            ConstantValues.invalidCredential);
-                    }
-
-                    _logger.LogInformation(
-                        "Host user authenticated successfully for LoginId: {LoginId}",
-                        request.DTO.LoginId);
-
-                    // HOST LOGIN CONTINUES HERE
+                    return await HandleHostLoginAsync(
+                        hostUser,
+                        request.DTO,
+                        cancellationToken);
                 }
+
                 #endregion
 
 
@@ -473,9 +468,12 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 var refreshToken = await _tokenService.GenerateRefreshToken(); // PLAIN
                 var hashedRefreshToken = HashHelper.Sha256(refreshToken);      // HASHED 
          
-                bool isInserted = await _refreshTokenRepository.InsertAsync(new RefreshToken
+                bool isInserted = await _unitOfWork.RefreshTokenRepository.InsertAsync(new RefreshToken
                 {
                     LoginId = request.DTO.LoginId,
+                    UserType = (short)LoginUserType.TenantEmployee,
+                    LoginCredentialId = user.Id,
+                    HostUserId = null,
                     Token = hashedRefreshToken,
                     ExpiryDate = DateTime.UtcNow.AddDays(7),
                     CreatedAt = DateTime.UtcNow,
@@ -551,6 +549,134 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 };
             }
         }
+
+        #region Host Authentication
+
+        /// <summary>
+        /// Completes Host authentication and issues a Host access token with a common refresh token.
+        /// </summary>
+        /// <param name="hostUser">The Host user found by the Host-user repository.</param>
+        /// <param name="loginRequest">The submitted login request.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>A Host login response or a failure response when validation cannot complete.</returns>
+        private async Task<ApiResponse<LoginResponseDTO>> HandleHostLoginAsync(
+            HostUser hostUser,
+            LoginRequestDTO loginRequest,
+            CancellationToken cancellationToken)
+        {
+            if (!hostUser.IsActive || hostUser.IsSoftDeleted)
+            {
+                return ApiResponse<LoginResponseDTO>.Fail("Host user is inactive.");
+            }
+
+            if (!_passwordService.VerifyPassword(hostUser.PasswordHash, loginRequest.Password))
+            {
+                return ApiResponse<LoginResponseDTO>.Fail(ConstantValues.invalidCredential);
+            }
+
+            var hostRole = await _unitOfWork.HostRoleRepository.GetByIdAsync(hostUser.HostRoleId);
+            if (hostRole == null || !hostRole.IsActive || hostRole.IsSoftDeleted)
+            {
+                return ApiResponse<LoginResponseDTO>.Fail("Host role is inactive.");
+            }
+
+            var permissions = await _unitOfWork.HostRolePermissionRepository
+                .GetHostUserPermissionsAsync(hostUser.HostRoleId, cancellationToken);
+
+            var accessToken = await _tokenService.GenerateHostToken(new HostTokenInfoDTO
+            {
+                HostUserId = hostUser.Id,
+                HostRoleId = hostUser.HostRoleId,
+                LoginId = hostUser.LoginId,
+                Name = hostUser.Name,
+                Email = hostUser.Email
+            });
+
+            if (string.IsNullOrWhiteSpace(accessToken))
+            {
+                return ApiResponse<LoginResponseDTO>.Fail("Unable to issue Host access token.");
+            }
+
+            var refreshToken = await _tokenService.GenerateRefreshToken();
+            var isRefreshTokenStored = await _refreshTokenRepository.InsertAsync(
+                new RefreshToken
+                {
+                    LoginId = hostUser.LoginId,
+                    UserType = (short)LoginUserType.Host,
+                    LoginCredentialId = null,
+                    HostUserId = hostUser.Id,
+                    Token = HashHelper.Sha256(refreshToken),
+                    ExpiryDate = DateTime.UtcNow.AddDays(7),
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedByIp = ConstantValues.IP,
+                    IsRevoked = false
+                });
+
+            if (!isRefreshTokenStored)
+            {
+                return ApiResponse<LoginResponseDTO>.Fail("Unable to issue Host refresh token.");
+            }
+
+            _logger.LogInformation(
+                "Host user authenticated successfully for LoginId: {LoginId}",
+                hostUser.LoginId);
+
+            return ApiResponse<LoginResponseDTO>.Success(
+                CreateHostLoginResponse(hostUser, hostRole, permissions, accessToken, refreshToken),
+                "Login successful.");
+        }
+
+        /// <summary>
+        /// Creates the additive login response for an authenticated Host principal.
+        /// </summary>
+        /// <param name="hostUser">The authenticated Host user.</param>
+        /// <param name="hostRole">The active Host role assigned to the user.</param>
+        /// <param name="permissions">The effective permissions sourced from HostRoleModuleAndPermission.</param>
+        /// <param name="accessToken">The signed Host access token.</param>
+        /// <param name="refreshToken">The opaque Host refresh token returned to the client.</param>
+        /// <returns>The Host login response.</returns>
+        private LoginResponseDTO CreateHostLoginResponse(
+            HostUser hostUser,
+            HostRole hostRole,
+            List<HostUserPermissionResponseDTO> permissions,
+            string accessToken,
+            string refreshToken)
+        {
+            return new LoginResponseDTO
+            {
+                Success = ConstantValues.isSucceeded,
+                Token = accessToken,
+                AccessToken = accessToken,
+                RefreshToken = refreshToken,
+                TokenExpiry = _tokenService.GetExpiryFromToken(accessToken),
+                UserType = AppConstants.HostUserType,
+                HostUser = new GetHostUserResponseDTO
+                {
+                    Id = hostUser.Id,
+                    HostRoleId = hostUser.HostRoleId,
+                    HostRoleName = hostRole.Name,
+                    Name = hostUser.Name,
+                    LoginId = hostUser.LoginId,
+                    Email = hostUser.Email,
+                    MobileNumber = hostUser.MobileNumber,
+                    IsActive = hostUser.IsActive,
+                    AddedDateTime = hostUser.AddedDateTime,
+                    UpdatedDateTime = hostUser.UpdatedDateTime
+                },
+                HostRole = new GetHostRoleResponseDTO
+                {
+                    Id = hostRole.Id,
+                    Name = hostRole.Name,
+                    Description = hostRole.Description,
+                    IsActive = hostRole.IsActive,
+                    AddedDateTime = hostRole.AddedDateTime,
+                    UpdatedDateTime = hostRole.UpdatedDateTime
+                },
+                HostPermissions = permissions
+            };
+        }
+
+        #endregion
 
 
 

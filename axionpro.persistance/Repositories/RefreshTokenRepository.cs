@@ -1,18 +1,38 @@
-﻿using axionpro.application.Interfaces.ITokenService;
+// ============================================================================
+// Author      : Deepesh Gupta
+// Company     : Quecksilber Technologies
+// Role        : CEO
+// Purpose     : Persists common refresh tokens for Tenant Employees and Host users.
+// ============================================================================
 
+using axionpro.application.Interfaces.ITokenService;
+using axionpro.application.Common.Enums;
+using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
+    /// <summary>
+    /// Provides common hashed refresh-token persistence and rotation operations.
+    /// </summary>
     public class RefreshTokenRepository : IRefreshTokenRepository
     {
+        #region Fields
+
         private readonly WorkforceDbContext _context;
         private readonly ILogger<RefreshTokenRepository> _logger;
 
+        #endregion
 
+        #region Constructor
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RefreshTokenRepository"/> class.
+        /// </summary>
+        /// <param name="context">The database context used to persist refresh tokens.</param>
+        /// <param name="logger">The logger used to record persistence failures.</param>
         public RefreshTokenRepository(
             WorkforceDbContext context,
             ILogger<RefreshTokenRepository> logger)
@@ -20,110 +40,61 @@ namespace axionpro.persistance.Repositories
             _context = context;
             _logger = logger;
         }
-        //public async Task<bool> SaveOrUpdateRefreshToken(string loginId, string token, DateTime expiryDate, string createdByIp)
-        //{
-        //    try
-        //    {
-        //        _logger.LogInformation($"Saving/Updating refresh token for LoginId: {loginId}");
 
-        //        var statusParam = new SqlParameter("@Status", SqlDbType.Int) { Direction = ParameterDirection.Output };
-        //        var errorMsgParam = new SqlParameter("@ErrorMessage", SqlDbType.NVarChar, 4000) { Direction = ParameterDirection.Output };
+        #endregion
 
-        //        var result = await _context.Database.ExecuteSqlRawAsync(
-        //            "EXEC AxionPro.InsertOrUpdateRefreshToken @LoginId, @Token, @ExpiryDate, @CreatedByIp, @Status OUTPUT, @ErrorMessage OUTPUT",
-        //            new SqlParameter("@LoginId", loginId),
-        //            new SqlParameter("@Token", token),
-        //            new SqlParameter("@ExpiryDate", expiryDate),
-        //            new SqlParameter("@CreatedByIp", createdByIp),
-        //            statusParam,
-        //            errorMsgParam
-        //        );
+        #region Refresh Token Operations
 
-        //        int status = (int)statusParam.Value;
-        //        string errorMessage = errorMsgParam.Value as string;
-
-        //        if (status == 1)
-        //        {
-        //            _logger.LogInformation($"Refresh token successfully saved/updated for LoginId: {loginId}");
-        //            return true;
-        //        }
-        //        else
-        //        {
-        //            _logger.LogError($"Failed to save/update refresh token for LoginId: {loginId}. Error: {errorMessage}");
-        //            return false;
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError($"Exception in SaveOrUpdateRefreshToken for LoginId {loginId}: {ex.Message}");
-        //        return false;
-        //    }
-        //}
-
-        //    - Token reuse / attack chain detect karne ke liye
-        // =====================================================
-        public async Task UpdateReplacedByTokenAsync(
-            long refreshTokenId,
-            string replacedByHashedToken)
+        /// <inheritdoc />
+        public Task<RefreshToken?> GetByHashedTokenAsync(string hashedToken)
         {
-            try
-            {
-                var token = await _context.RefreshTokens
-                    .FirstOrDefaultAsync(t => t.Id == refreshTokenId);
-
-                if (token == null)
-                {
-                    _logger.LogWarning(
-                        "UpdateReplacedByTokenAsync: Token not found. Id={Id}",
-                        refreshTokenId);
-                    return;
-                }
-
-                // 🔥 YAHI ACTUAL UPDATE HOTA HAI
-                token.ReplacedByToken = replacedByHashedToken;
-
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(
-                    ex,
-                    "Error while updating ReplacedByToken. TokenId={Id}",
-                    refreshTokenId);
-                throw; // let handler decide what to do
-            }
-        }
-        public async Task<RefreshToken?> GetValidByHashedTokenAsync(string hashedToken)
-        {
-            return await _context.RefreshTokens
+            // Revoked and expired rows are intentionally returned so the handler can
+            // distinguish invalid input from reuse and expiration attempts.
+            return _context.RefreshTokens
                 .AsNoTracking()
-                .FirstOrDefaultAsync(t =>
-                    t.Token == hashedToken &&
-                    t.IsRevoked == false &&
-                    t.ExpiryDate > DateTime.UtcNow);
+                .Include(token => token.LoginCredential)
+                .Include(token => token.HostUser)
+                .FirstOrDefaultAsync(token => token.Token == hashedToken);
         }
 
+        /// <inheritdoc />
         public async Task<bool> InsertAsync(RefreshToken token)
         {
+            if (!HasValidOwner(token))
+            {
+                _logger.LogError(
+                    "Rejected refresh token with invalid owner invariant. LoginId={LoginId}, UserType={UserType}, LoginCredentialId={LoginCredentialId}, HostUserId={HostUserId}",
+                    token.LoginId,
+                    token.UserType,
+                    token.LoginCredentialId,
+                    token.HostUserId);
+                return false;
+            }
+
             try
             {
                 await _context.RefreshTokens.AddAsync(token);
-                var rows = await _context.SaveChangesAsync();
-
-                return rows > 0; // ✅ true = saved
+                return await _context.SaveChangesAsync() > 0;
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                _logger.LogError(ex, "Failed to insert refresh token");
+                _logger.LogError(
+                    exception,
+                    "Failed to insert refresh token for LoginId {LoginId} and UserType {UserType}.",
+                    token.LoginId,
+                    token.UserType);
                 return false;
             }
         }
 
-
+        /// <inheritdoc />
         public async Task RevokeAsync(long refreshTokenId, string? revokedByIp)
         {
             var token = await _context.RefreshTokens.FindAsync(refreshTokenId);
-            if (token == null) return;
+            if (token == null)
+            {
+                return;
+            }
 
             token.IsRevoked = true;
             token.RevokedAt = DateTime.UtcNow;
@@ -131,11 +102,48 @@ namespace axionpro.persistance.Repositories
 
             await _context.SaveChangesAsync();
         }
+
+        /// <inheritdoc />
+        public async Task UpdateReplacedByTokenAsync(
+            long refreshTokenId,
+            string replacedByHashedToken)
+        {
+            var token = await _context.RefreshTokens
+                .FirstOrDefaultAsync(item => item.Id == refreshTokenId);
+
+            if (token == null)
+            {
+                _logger.LogWarning(
+                    "Refresh token was not found while recording its replacement. TokenId={TokenId}",
+                    refreshTokenId);
+                return;
+            }
+
+            token.ReplacedByToken = replacedByHashedToken;
+            await _context.SaveChangesAsync();
+        }
+
+        #endregion
+
+        #region Owner Validation
+
+        /// <summary>
+        /// Determines whether a refresh token has exactly one valid owner foreign key for its declared user type.
+        /// </summary>
+        /// <param name="token">The refresh token to validate before persistence.</param>
+        /// <returns><see langword="true"/> when the owner fields satisfy the ownership invariant; otherwise, <see langword="false"/>.</returns>
+        private static bool HasValidOwner(RefreshToken token)
+        {
+            return token.UserType switch
+            {
+                (short)LoginUserType.TenantEmployee =>
+                    token.LoginCredentialId.HasValue && !token.HostUserId.HasValue,
+                (short)LoginUserType.Host =>
+                    token.HostUserId.HasValue && !token.LoginCredentialId.HasValue,
+                _ => false
+            };
+        }
+
+        #endregion
     }
 }
-
-
-
-
-
-

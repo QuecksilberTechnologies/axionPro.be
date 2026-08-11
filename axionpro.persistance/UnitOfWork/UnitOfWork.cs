@@ -14,6 +14,16 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
+// ============================================================================
+// Author      : Deepesh Gupta
+// Company     : Quecksilber Technologies
+// Role        : CEO
+// Purpose     : Coordinates repositories and transactions over the AxionPro persistence context.
+// ============================================================================
+
+/// <summary>
+/// Provides lazy repository construction and transaction coordination for application handlers.
+/// </summary>
 public class UnitOfWork : IUnitOfWork
 {
     private readonly WorkforceDbContext _context;
