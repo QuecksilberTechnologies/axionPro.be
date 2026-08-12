@@ -3,15 +3,15 @@ using axionpro.application.DTOs.Attendance;
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
-
+using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
@@ -135,9 +135,6 @@ namespace axionpro.persistance.Repositories
                 throw; // Re-throw exception after logging
             }
         }
-
-
-
 
     }
 }
