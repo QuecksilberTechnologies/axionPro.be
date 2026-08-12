@@ -51,8 +51,6 @@ namespace axionpro.api.Controllers.Attendance
             //return Ok(result);
             return null;
         }
-
-
         #region TIMMY HTTPS Test
 
         /// <summary>
@@ -65,49 +63,119 @@ namespace axionpro.api.Controllers.Attendance
         {
             try
             {
-                // IMPORTANT:
-                // Log immediately when the controller action is reached.
+                #region Request Diagnostics
+
                 Console.WriteLine("========================================");
                 Console.WriteLine("TIMMY TEST ENDPOINT HIT");
-                Console.WriteLine($"Time : {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}");
+                Console.WriteLine($"Time           : {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}");
+                Console.WriteLine($"Method         : {Request.Method}");
+                Console.WriteLine($"Path           : {Request.Path}");
+                Console.WriteLine($"Content-Type   : {Request.ContentType}");
+                Console.WriteLine($"Content-Length : {Request.ContentLength}");
+                Console.WriteLine($"QueryString    : {Request.QueryString}");
                 Console.WriteLine("========================================");
 
-                _logger.LogInfo("TIMMY TEST ENDPOINT HIT");
+                _logger.LogInfo(
+                    $"TIMMY TEST ENDPOINT HIT | Method: {Request.Method} | " +
+                    $"Path: {Request.Path} | Content-Type: {Request.ContentType} | " +
+                    $"Content-Length: {Request.ContentLength}");
+
+                #endregion
+
+
+                #region Read Raw Request
 
                 using var reader = new StreamReader(Request.Body);
                 var rawJson = await reader.ReadToEndAsync();
 
-                Console.WriteLine("TIMMY RAW REQUEST:");
+                Console.WriteLine("========================================");
+                Console.WriteLine("TIMMY RAW REQUEST RECEIVED");
                 Console.WriteLine(rawJson);
+                Console.WriteLine("========================================");
 
                 _logger.LogInfo(
                     "TIMMY RAW REQUEST RECEIVED : " + rawJson);
 
-                if (string.IsNullOrWhiteSpace(rawJson))
+                #endregion
+
+
+                var cloudTime = DateTime.UtcNow
+                    .ToString("yyyy-MM-dd HH:mm:ss");
+
+
+                #region Temporary Initial Registration ACK
+
+                /*
+                 * TEMPORARY TEST BEHAVIOUR:
+                 *
+                 * Vendor device currently reaches AxionPro over HTTPS,
+                 * but the initial request has been observed as an empty body
+                 * or "{}".
+                 *
+                 * During this connectivity test only, return the TIMMY
+                 * registration acknowledgement so we can verify whether the
+                 * physical device completes the registration handshake.
+                 *
+                 * REMOVE this fallback before production implementation.
+                 */
+
+                if (string.IsNullOrWhiteSpace(rawJson) ||
+                    rawJson.Trim() == "{}")
                 {
+                    Console.WriteLine("========================================");
+                    Console.WriteLine("TIMMY EMPTY INITIAL REQUEST RECEIVED");
+                    Console.WriteLine("RETURNING TEMPORARY REG ACK");
+                    Console.WriteLine("========================================");
+
+                    _logger.LogInfo(
+                        "TIMMY initial empty request received. " +
+                        "Returning temporary REG acknowledgement.");
+
                     return Ok(new
                     {
-                        result = false,
-                        reason = "Empty request body"
+                        ret = "reg",
+                        result = true,
+                        cloudtime = cloudTime,
+                        nosenduser = true
                     });
                 }
+
+                #endregion
+
+
+                #region Parse JSON
 
                 using var jsonDocument = JsonDocument.Parse(rawJson);
                 var root = jsonDocument.RootElement;
 
                 if (!root.TryGetProperty("cmd", out var cmdProperty))
                 {
+                    Console.WriteLine("========================================");
+                    Console.WriteLine("TIMMY CMD MISSING");
+                    Console.WriteLine($"RAW JSON : {rawJson}");
+                    Console.WriteLine("RETURNING TEMPORARY REG ACK");
+                    Console.WriteLine("========================================");
+
+                    _logger.LogInfo(
+                        "TIMMY cmd missing. Returning temporary REG acknowledgement. " +
+                        "Raw JSON: " + rawJson);
+
                     return Ok(new
                     {
-                        result = false,
-                        reason = "cmd not found"
+                        ret = "reg",
+                        result = true,
+                        cloudtime = cloudTime,
+                        nosenduser = true
                     });
                 }
 
-                var command = cmdProperty.GetString()?.ToLowerInvariant();
+                var command = cmdProperty
+                    .GetString()?
+                    .Trim()
+                    .ToLowerInvariant();
 
-                var cloudTime = DateTime.UtcNow
-                    .ToString("yyyy-MM-dd HH:mm:ss");
+                #endregion
+
 
                 #region Register
 
@@ -130,13 +198,12 @@ namespace axionpro.api.Controllers.Attendance
                         ret = "reg",
                         result = true,
                         cloudtime = cloudTime,
-
-                        // Follow TIMMY protocol example during initial handshake.
                         nosenduser = true
                     });
                 }
 
                 #endregion
+
 
                 #region Attendance
 
@@ -147,12 +214,14 @@ namespace axionpro.api.Controllers.Attendance
                         : null;
 
                     var count = root.TryGetProperty("count", out var countProperty)
-                        ? countProperty.GetInt32()
-                        : 0;
+                        && countProperty.TryGetInt32(out var parsedCount)
+                            ? parsedCount
+                            : 0;
 
                     var logIndex = root.TryGetProperty("logindex", out var logIndexProperty)
-                        ? logIndexProperty.GetInt32()
-                        : 0;
+                        && logIndexProperty.TryGetInt32(out var parsedLogIndex)
+                            ? parsedLogIndex
+                            : 0;
 
                     Console.WriteLine("========================================");
                     Console.WriteLine("TIMMY ATTENDANCE RECEIVED");
@@ -168,6 +237,10 @@ namespace axionpro.api.Controllers.Attendance
 
                     Console.WriteLine("========================================");
 
+                    _logger.LogInfo(
+                        $"TIMMY ATTENDANCE RECEIVED. " +
+                        $"SN: {sn}, Count: {count}, LogIndex: {logIndex}");
+
                     return Ok(new
                     {
                         ret = "sendlog",
@@ -182,6 +255,7 @@ namespace axionpro.api.Controllers.Attendance
 
                 #endregion
 
+
                 #region Heartbeat
 
                 if (command == "checklive")
@@ -190,8 +264,13 @@ namespace axionpro.api.Controllers.Attendance
                         ? snProperty.GetString()
                         : null;
 
-                    Console.WriteLine(
-                        $"TIMMY CHECKLIVE RECEIVED. SN : {sn}");
+                    Console.WriteLine("========================================");
+                    Console.WriteLine("TIMMY CHECKLIVE RECEIVED");
+                    Console.WriteLine($"SN : {sn}");
+                    Console.WriteLine("========================================");
+
+                    _logger.LogInfo(
+                        "TIMMY CHECKLIVE RECEIVED. SN : " + sn);
 
                     return Ok(new
                     {
@@ -203,20 +282,54 @@ namespace axionpro.api.Controllers.Attendance
 
                 #endregion
 
+
+                #region Unsupported Command
+
+                Console.WriteLine("========================================");
+                Console.WriteLine("TIMMY UNSUPPORTED COMMAND");
+                Console.WriteLine($"Command : {command}");
+                Console.WriteLine($"Raw JSON: {rawJson}");
+                Console.WriteLine("========================================");
+
+                _logger.LogInfo(
+                    $"TIMMY unsupported command received. " +
+                    $"Command: {command}. Raw JSON: {rawJson}");
+
                 return Ok(new
                 {
                     ret = command,
                     result = false,
                     reason = "Unsupported command"
                 });
+
+                #endregion
             }
-            catch (Exception ex)
+            catch (JsonException ex)
             {
-                Console.WriteLine("TIMMY TEST ERROR:");
+                Console.WriteLine("========================================");
+                Console.WriteLine("TIMMY INVALID JSON");
                 Console.WriteLine(ex);
+                Console.WriteLine("========================================");
 
                 _logger.LogError(
                     
+                    "Invalid JSON received from TIMMY biometric device.");
+
+                return Ok(new
+                {
+                    result = false,
+                    reason = "Invalid JSON"
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("========================================");
+                Console.WriteLine("TIMMY TEST ERROR");
+                Console.WriteLine(ex);
+                Console.WriteLine("========================================");
+
+                _logger.LogError(
+ 
                     "Error while processing TIMMY test request.");
 
                 return Ok(new
@@ -228,6 +341,7 @@ namespace axionpro.api.Controllers.Attendance
         }
 
         #endregion
+
 
     }
 }
