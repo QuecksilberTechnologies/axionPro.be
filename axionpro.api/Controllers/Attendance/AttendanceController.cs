@@ -55,7 +55,7 @@ namespace axionpro.api.Controllers.Attendance
 
         /// <summary>
         /// Temporary endpoint used only to verify direct HTTPS communication
-        /// from the TIMMY biometric device.
+        /// and biometric attendance payloads from the TIMMY biometric device.
         /// </summary>
         [AllowAnonymous]
         [HttpPost("timmy-test")]
@@ -108,13 +108,11 @@ namespace axionpro.api.Controllers.Attendance
                 /*
                  * TEMPORARY TEST BEHAVIOUR:
                  *
-                 * Vendor device currently reaches AxionPro over HTTPS,
-                 * but the initial request has been observed as an empty body
-                 * or "{}".
+                 * During initial testing the TIMMY device may send an empty
+                 * request or "{}" before registration is fully established.
                  *
-                 * During this connectivity test only, return the TIMMY
-                 * registration acknowledgement so we can verify whether the
-                 * physical device completes the registration handshake.
+                 * Return a temporary registration acknowledgement so that
+                 * HTTPS connectivity and the device handshake can be verified.
                  *
                  * REMOVE this fallback before production implementation.
                  */
@@ -213,33 +211,176 @@ namespace axionpro.api.Controllers.Attendance
                         ? snProperty.GetString()
                         : null;
 
-                    var count = root.TryGetProperty("count", out var countProperty)
+                    var count =
+                        root.TryGetProperty("count", out var countProperty)
                         && countProperty.TryGetInt32(out var parsedCount)
                             ? parsedCount
                             : 0;
 
-                    var logIndex = root.TryGetProperty("logindex", out var logIndexProperty)
+                    var logIndex =
+                        root.TryGetProperty("logindex", out var logIndexProperty)
                         && logIndexProperty.TryGetInt32(out var parsedLogIndex)
                             ? parsedLogIndex
                             : 0;
 
                     Console.WriteLine("========================================");
                     Console.WriteLine("TIMMY ATTENDANCE RECEIVED");
-                    Console.WriteLine($"SN       : {sn}");
-                    Console.WriteLine($"Count    : {count}");
-                    Console.WriteLine($"LogIndex : {logIndex}");
-
-                    if (root.TryGetProperty("record", out var recordProperty))
-                    {
-                        Console.WriteLine("Record:");
-                        Console.WriteLine(recordProperty.GetRawText());
-                    }
-
+                    Console.WriteLine($"Device SN : {sn}");
+                    Console.WriteLine($"Count     : {count}");
+                    Console.WriteLine($"LogIndex  : {logIndex}");
                     Console.WriteLine("========================================");
 
                     _logger.LogInfo(
-                        $"TIMMY ATTENDANCE RECEIVED. " +
-                        $"SN: {sn}, Count: {count}, LogIndex: {logIndex}");
+                        $"TIMMY ATTENDANCE RECEIVED | " +
+                        $"SN: {sn} | Count: {count} | LogIndex: {logIndex}");
+
+                    #region Attendance Records
+
+                    if (root.TryGetProperty("record", out var recordProperty) &&
+                        recordProperty.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var attendanceRecord in recordProperty.EnumerateArray())
+                        {
+                            var enrollId =
+                                attendanceRecord.TryGetProperty(
+                                    "enrollid",
+                                    out var enrollIdProperty)
+                                && enrollIdProperty.TryGetInt32(out var parsedEnrollId)
+                                    ? parsedEnrollId
+                                    : 0;
+
+                            var attendanceTime =
+                                attendanceRecord.TryGetProperty(
+                                    "time",
+                                    out var timeProperty)
+                                    ? timeProperty.GetString()
+                                    : null;
+
+                            var mode =
+                                attendanceRecord.TryGetProperty(
+                                    "mode",
+                                    out var modeProperty)
+                                && modeProperty.TryGetInt32(out var parsedMode)
+                                    ? parsedMode
+                                    : 0;
+
+                            var inOut =
+                                attendanceRecord.TryGetProperty(
+                                    "inout",
+                                    out var inOutProperty)
+                                && inOutProperty.TryGetInt32(out var parsedInOut)
+                                    ? parsedInOut
+                                    : 0;
+
+                            var eventCode =
+                                attendanceRecord.TryGetProperty(
+                                    "event",
+                                    out var eventProperty)
+                                && eventProperty.TryGetInt32(out var parsedEvent)
+                                    ? parsedEvent
+                                    : 0;
+
+                            var temperature =
+                                attendanceRecord.TryGetProperty(
+                                    "temp",
+                                    out var tempProperty)
+                                && tempProperty.TryGetDouble(out var parsedTemperature)
+                                    ? parsedTemperature
+                                    : (double?)null;
+
+                            var hasImage =
+                                attendanceRecord.TryGetProperty(
+                                    "image",
+                                    out var imageProperty)
+                                && !string.IsNullOrWhiteSpace(
+                                    imageProperty.GetString());
+
+                            var verificationType = mode switch
+                            {
+                                1 => "Fingerprint",
+                                2 => "Password",
+                                3 => "RFID Card",
+                                8 => "Face Recognition",
+                                _ => $"Unknown ({mode})"
+                            };
+
+                            var inOutText = inOut switch
+                            {
+                                0 => "IN",
+                                1 => "OUT",
+                                _ => $"Unknown ({inOut})"
+                            };
+
+                            Console.WriteLine("========================================");
+                            Console.WriteLine("TIMMY ATTENDANCE RECORD");
+                            Console.WriteLine($"Device SN          : {sn}");
+                            Console.WriteLine($"Enroll ID          : {enrollId}");
+                            Console.WriteLine($"Attendance Time    : {attendanceTime}");
+                            Console.WriteLine($"Mode               : {mode}");
+                            Console.WriteLine($"Verification Type  : {verificationType}");
+                            Console.WriteLine($"In/Out             : {inOutText}");
+                            Console.WriteLine($"Event              : {eventCode}");
+                            Console.WriteLine(
+                                $"Temperature        : {(temperature.HasValue ? temperature.Value.ToString() : "N/A")}");
+                            Console.WriteLine(
+                                $"Punch Image        : {(hasImage ? "YES" : "NO")}");
+
+                            switch (mode)
+                            {
+                                case 1:
+                                    Console.WriteLine(
+                                        "✅ FINGERPRINT ATTENDANCE DETECTED");
+                                    break;
+
+                                case 2:
+                                    Console.WriteLine(
+                                        "✅ PASSWORD ATTENDANCE DETECTED");
+                                    break;
+
+                                case 3:
+                                    Console.WriteLine(
+                                        "✅ RFID CARD ATTENDANCE DETECTED");
+                                    break;
+
+                                case 8:
+                                    Console.WriteLine(
+                                        "✅ FACE ATTENDANCE DETECTED");
+                                    break;
+
+                                default:
+                                    Console.WriteLine(
+                                        $"⚠ UNKNOWN VERIFICATION MODE : {mode}");
+                                    break;
+                            }
+
+                            Console.WriteLine("========================================");
+
+                            _logger.LogInfo(
+                                $"TIMMY ATTENDANCE RECORD | " +
+                                $"SN: {sn} | " +
+                                $"EnrollId: {enrollId} | " +
+                                $"Time: {attendanceTime} | " +
+                                $"Mode: {mode} | " +
+                                $"VerificationType: {verificationType} | " +
+                                $"InOut: {inOutText} | " +
+                                $"Event: {eventCode} | " +
+                                $"Temperature: {temperature} | " +
+                                $"HasImage: {hasImage}");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("========================================");
+                        Console.WriteLine("TIMMY SENDLOG RECEIVED WITHOUT RECORD ARRAY");
+                        Console.WriteLine($"RAW JSON : {rawJson}");
+                        Console.WriteLine("========================================");
+
+                        _logger.LogInfo(
+                            "TIMMY sendlog received without valid record array. " +
+                            "Raw JSON: " + rawJson);
+                    }
+
+                    #endregion
 
                     return Ok(new
                     {
@@ -287,8 +428,8 @@ namespace axionpro.api.Controllers.Attendance
 
                 Console.WriteLine("========================================");
                 Console.WriteLine("TIMMY UNSUPPORTED COMMAND");
-                Console.WriteLine($"Command : {command}");
-                Console.WriteLine($"Raw JSON: {rawJson}");
+                Console.WriteLine($"Command  : {command}");
+                Console.WriteLine($"Raw JSON : {rawJson}");
                 Console.WriteLine("========================================");
 
                 _logger.LogInfo(
@@ -329,7 +470,7 @@ namespace axionpro.api.Controllers.Attendance
                 Console.WriteLine("========================================");
 
                 _logger.LogError(
- 
+                   
                     "Error while processing TIMMY test request.");
 
                 return Ok(new
