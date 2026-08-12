@@ -53,204 +53,181 @@ namespace axionpro.api.Controllers.Attendance
         }
 
 
-        #region TIMMY HTTPS Connectivity Test
+        #region TIMMY HTTPS Test
 
         /// <summary>
-        /// Receives temporary, unauthenticated HTTPS requests from a TIMMY biometric device.
-        /// This action logs the device payload only; it does not process or persist attendance data.
+        /// Temporary endpoint used only to verify direct HTTPS communication
+        /// from the TIMMY biometric device.
         /// </summary>
-        /// <returns>A TIMMY protocol acknowledgement for supported test commands.</returns>
         [AllowAnonymous]
         [HttpPost("timmy-test")]
         public async Task<IActionResult> TimmyTest()
         {
-            string rawJson = string.Empty;
-
             try
             {
-                // Read and log the unmodified body so the vendor test can be verified end-to-end.
-                using var reader = new StreamReader(Request.Body);
-                rawJson = await reader.ReadToEndAsync();
+                // IMPORTANT:
+                // Log immediately when the controller action is reached.
+                Console.WriteLine("========================================");
+                Console.WriteLine("TIMMY TEST ENDPOINT HIT");
+                Console.WriteLine($"Time : {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}");
+                Console.WriteLine("========================================");
 
-                _logger.LogInfo($"TIMMY COMPLETE INCOMING JSON: {rawJson}");
-                Console.WriteLine("========================================");
-                Console.WriteLine("TIMMY DEVICE REQUEST RECEIVED");
+                _logger.LogInfo("TIMMY TEST ENDPOINT HIT");
+
+                using var reader = new StreamReader(Request.Body);
+                var rawJson = await reader.ReadToEndAsync();
+
+                Console.WriteLine("TIMMY RAW REQUEST:");
                 Console.WriteLine(rawJson);
-                Console.WriteLine("========================================");
+
+                _logger.LogInfo(
+                    "TIMMY RAW REQUEST RECEIVED : " + rawJson);
 
                 if (string.IsNullOrWhiteSpace(rawJson))
                 {
-                    const string emptyBodyMessage = "TIMMY request body is empty.";
-                    _logger.LogError(emptyBodyMessage);
-                    Console.WriteLine(emptyBodyMessage);
-
                     return Ok(new
                     {
                         result = false,
-                        reason = "Empty request body."
+                        reason = "Empty request body"
                     });
                 }
 
                 using var jsonDocument = JsonDocument.Parse(rawJson);
                 var root = jsonDocument.RootElement;
 
-                if (root.ValueKind != JsonValueKind.Object)
+                if (!root.TryGetProperty("cmd", out var cmdProperty))
                 {
-                    const string invalidPayloadMessage = "TIMMY request JSON must contain an object.";
-                    _logger.LogError(invalidPayloadMessage);
-                    Console.WriteLine(invalidPayloadMessage);
-
                     return Ok(new
                     {
                         result = false,
-                        reason = "Invalid JSON payload."
+                        reason = "cmd not found"
                     });
                 }
 
-                if (!root.TryGetProperty("cmd", out var commandProperty))
+                var command = cmdProperty.GetString()?.ToLowerInvariant();
+
+                var cloudTime = DateTime.UtcNow
+                    .ToString("yyyy-MM-dd HH:mm:ss");
+
+                #region Register
+
+                if (command == "reg")
                 {
-                    const string missingCommandMessage = "TIMMY request command is missing.";
-                    _logger.LogError($"{missingCommandMessage} Complete JSON: {rawJson}");
-                    Console.WriteLine(missingCommandMessage);
+                    var sn = root.TryGetProperty("sn", out var snProperty)
+                        ? snProperty.GetString()
+                        : null;
+
+                    Console.WriteLine("========================================");
+                    Console.WriteLine("TIMMY REG RECEIVED");
+                    Console.WriteLine($"SN : {sn}");
+                    Console.WriteLine("========================================");
+
+                    _logger.LogInfo(
+                        "TIMMY REG RECEIVED. SN : " + sn);
 
                     return Ok(new
                     {
-                        result = false,
-                        reason = "Command not found."
+                        ret = "reg",
+                        result = true,
+                        cloudtime = cloudTime,
+
+                        // Follow TIMMY protocol example during initial handshake.
+                        nosenduser = true
                     });
                 }
 
-                var command = commandProperty.ValueKind == JsonValueKind.String
-                    ? commandProperty.GetString()?.Trim().ToLowerInvariant()
-                    : commandProperty.ToString().Trim().ToLowerInvariant();
-                var cloudTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                #endregion
 
-                switch (command)
+                #region Attendance
+
+                if (command == "sendlog")
                 {
-                    case "reg":
+                    var sn = root.TryGetProperty("sn", out var snProperty)
+                        ? snProperty.GetString()
+                        : null;
+
+                    var count = root.TryGetProperty("count", out var countProperty)
+                        ? countProperty.GetInt32()
+                        : 0;
+
+                    var logIndex = root.TryGetProperty("logindex", out var logIndexProperty)
+                        ? logIndexProperty.GetInt32()
+                        : 0;
+
+                    Console.WriteLine("========================================");
+                    Console.WriteLine("TIMMY ATTENDANCE RECEIVED");
+                    Console.WriteLine($"SN       : {sn}");
+                    Console.WriteLine($"Count    : {count}");
+                    Console.WriteLine($"LogIndex : {logIndex}");
+
+                    if (root.TryGetProperty("record", out var recordProperty))
                     {
-                        var serialNumber = root.TryGetProperty("sn", out var snProperty)
-                            ? snProperty.ToString()
-                            : "Not provided";
-
-                        _logger.LogInfo($"TIMMY device registration request received. Device SN : {serialNumber}");
-                        Console.WriteLine($"TIMMY REGISTRATION RECEIVED | Device SN : {serialNumber}");
-
-                        return Ok(new
-                        {
-                            ret = "reg",
-                            result = true,
-                            cloudtime = cloudTime,
-                            nosenduser = false
-                        });
+                        Console.WriteLine("Record:");
+                        Console.WriteLine(recordProperty.GetRawText());
                     }
 
-                    case "sendlog":
+                    Console.WriteLine("========================================");
+
+                    return Ok(new
                     {
-                        var serialNumber = root.TryGetProperty("sn", out var snProperty)
-                            ? snProperty.ToString()
-                            : "Not provided";
-                        var count = root.TryGetProperty("count", out var countProperty)
-                            ? countProperty.ToString()
-                            : "Not provided";
-                        var logIndex = root.TryGetProperty("logindex", out var logIndexProperty)
-                            ? logIndexProperty.ToString()
-                            : "Not provided";
-                        var acknowledgementCount = int.TryParse(count, out var countValue)
-                            ? countValue
-                            : 0;
-                        var acknowledgementLogIndex = int.TryParse(logIndex, out var logIndexValue)
-                            ? logIndexValue
-                            : 0;
-                        var recordJson = root.TryGetProperty("record", out var recordProperty)
-                            ? recordProperty.GetRawText()
-                            : "Not provided";
-
-                        _logger.LogInfo("========================================");
-                        _logger.LogInfo("TIMMY ATTENDANCE RECEIVED");
-                        _logger.LogInfo($"Device SN : {serialNumber}");
-                        _logger.LogInfo($"Count     : {count}");
-                        _logger.LogInfo($"LogIndex  : {logIndex}");
-                        _logger.LogInfo($"Record    : {recordJson}");
-                        _logger.LogInfo("========================================");
-
-                        Console.WriteLine("========================================");
-                        Console.WriteLine("TIMMY ATTENDANCE RECEIVED");
-                        Console.WriteLine($"Device SN : {serialNumber}");
-                        Console.WriteLine($"Count     : {count}");
-                        Console.WriteLine($"LogIndex  : {logIndex}");
-                        Console.WriteLine($"Record    : {recordJson}");
-                        Console.WriteLine("========================================");
-
-                        // Intentionally log-only: do not map, call a repository, or save attendance data.
-                        return Ok(new
-                        {
-                            ret = "sendlog",
-                            result = true,
-                            count = acknowledgementCount,
-                            logindex = acknowledgementLogIndex,
-                            cloudtime = cloudTime,
-                            access = 1
-                        });
-                    }
-
-                    case "checklive":
-                    {
-                        var serialNumber = root.TryGetProperty("sn", out var snProperty)
-                            ? snProperty.ToString()
-                            : "Not provided";
-
-                        _logger.LogInfo($"TIMMY checklive request received. Device SN : {serialNumber}");
-                        Console.WriteLine($"TIMMY CHECKLIVE RECEIVED | Device SN : {serialNumber}");
-
-                        return Ok(new
-                        {
-                            ret = "checklive",
-                            result = true,
-                            cloudtime = cloudTime
-                        });
-                    }
-
-                    default:
-                    {
-                        _logger.LogWarn($"Unknown TIMMY command received: {command ?? "Not provided"}. Complete JSON: {rawJson}");
-                        Console.WriteLine($"UNKNOWN TIMMY COMMAND RECEIVED | Command: {command ?? "Not provided"}");
-
-                        return Ok(new
-                        {
-                            ret = command,
-                            result = false,
-                            reason = "Command not supported in test endpoint."
-                        });
-                    }
+                        ret = "sendlog",
+                        result = true,
+                        count,
+                        logindex = logIndex,
+                        cloudtime = cloudTime,
+                        access = 1,
+                        message = "OK"
+                    });
                 }
-            }
-            catch (JsonException exception)
-            {
-                _logger.LogError($"Malformed TIMMY JSON received. Complete body: {rawJson}. Exception: {exception}");
-                Console.WriteLine($"TIMMY TEST MALFORMED JSON ERROR: {exception}");
+
+                #endregion
+
+                #region Heartbeat
+
+                if (command == "checklive")
+                {
+                    var sn = root.TryGetProperty("sn", out var snProperty)
+                        ? snProperty.GetString()
+                        : null;
+
+                    Console.WriteLine(
+                        $"TIMMY CHECKLIVE RECEIVED. SN : {sn}");
+
+                    return Ok(new
+                    {
+                        ret = "checklive",
+                        result = true,
+                        cloudtime = cloudTime
+                    });
+                }
+
+                #endregion
 
                 return Ok(new
                 {
+                    ret = command,
                     result = false,
-                    reason = "Malformed JSON."
+                    reason = "Unsupported command"
                 });
             }
-            catch (Exception exception)
+            catch (Exception ex)
             {
-                _logger.LogError($"TIMMY test endpoint error. Complete body: {rawJson}. Exception: {exception}");
-                Console.WriteLine($"TIMMY TEST ERROR: {exception}");
+                Console.WriteLine("TIMMY TEST ERROR:");
+                Console.WriteLine(ex);
+
+                _logger.LogError(
+                    
+                    "Error while processing TIMMY test request.");
 
                 return Ok(new
                 {
                     result = false,
-                    reason = "Server error."
+                    reason = "Server error"
                 });
             }
         }
 
         #endregion
-
 
     }
 }
