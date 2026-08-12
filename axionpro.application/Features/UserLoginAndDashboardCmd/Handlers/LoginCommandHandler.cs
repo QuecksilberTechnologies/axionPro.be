@@ -617,12 +617,21 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 return ApiResponse<LoginResponseDTO>.Fail("Unable to issue Host refresh token.");
             }
 
+            var commonParent = await _unitOfWork.ModuleRepository.GetCommonMenuParentAsync();
+            List<ModuleDTO> commonItems = new();
+
+            if (commonParent != null)
+            {
+                commonItems = await _unitOfWork.ModuleRepository
+                    .GetCommonMenuTreeAsync(commonParent.Id);
+            }
+
             _logger.LogInformation(
                 "Host user authenticated successfully for LoginId: {LoginId}",
                 hostUser.LoginId);
 
             return ApiResponse<LoginResponseDTO>.Success(
-                CreateHostLoginResponse(hostUser, hostRole, permissions, accessToken, refreshToken),
+                CreateHostLoginResponse(hostUser, hostRole, permissions, accessToken, refreshToken, commonItems),
                 "Login successful.");
         }
 
@@ -634,13 +643,15 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
         /// <param name="permissions">The effective permissions sourced from HostRoleModuleAndPermission.</param>
         /// <param name="accessToken">The signed Host access token.</param>
         /// <param name="refreshToken">The opaque Host refresh token returned to the client.</param>
+        /// <param name="commonItems">The shared common-menu tree, or an empty list when no Common parent exists.</param>
         /// <returns>The Host login response.</returns>
         private LoginResponseDTO CreateHostLoginResponse(
             HostUser hostUser,
             HostRole hostRole,
             List<HostUserPermissionResponseDTO> permissions,
             string accessToken,
-            string refreshToken)
+            string refreshToken,
+            List<ModuleDTO> commonItems)
         {
             return new LoginResponseDTO
             {
@@ -672,7 +683,8 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                     AddedDateTime = hostRole.AddedDateTime,
                     UpdatedDateTime = hostRole.UpdatedDateTime
                 },
-                HostPermissions = permissions
+                HostPermissions = permissions,
+                CommonItems = commonItems
             };
         }
 
