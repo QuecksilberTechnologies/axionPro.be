@@ -10,6 +10,7 @@ using axionpro.application.DTOS.Host;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
+using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -81,6 +82,31 @@ namespace axionpro.persistance.Repositories
                     OperationName = permission.Operation.OperationName
                 })
                 .ToListAsync(cancellationToken);
+        }
+
+        /// <inheritdoc />
+        public Task<List<HostRoleModuleAndPermission>> GetByHostRoleIdAsync(
+            long hostRoleId,
+            CancellationToken cancellationToken = default)
+        {
+            return _context.HostRoleModuleAndPermissions
+                .Where(permission => permission.HostRoleId == hostRoleId)
+                .ToListAsync(cancellationToken);
+        }
+
+        /// <inheritdoc />
+        public async Task BulkInsertAsync(
+            List<HostRoleModuleAndPermission> permissions,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(permissions);
+
+            if (permissions.Count == 0)
+            {
+                return;
+            }
+
+            await _context.HostRoleModuleAndPermissions.AddRangeAsync(permissions, cancellationToken);
         }
 
         #endregion

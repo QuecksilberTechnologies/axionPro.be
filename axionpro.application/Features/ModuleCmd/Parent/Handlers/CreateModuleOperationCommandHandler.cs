@@ -2,15 +2,17 @@
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
-// Purpose : Defines and handles the request to update a ModuleOperation mapping.
+// Purpose : Defines and handles the request to create a ModuleOperation mapping.
 // ================================================================
 
 using AutoMapper;
 using axionpro.application.DTOs.Module;
+using axionpro.application.DTOs.ModuleOperation;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
 using MediatR;
 
 namespace axionpro.application.Features.ModuleCmd.Parent.Commands;
@@ -18,22 +20,21 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands;
 #region Command
 
 /// <summary>
-/// Represents the request to update a module-operation mapping.
+/// Represents the request to create a module-operation mapping.
 /// </summary>
-public class UpdateModuleOperationMappingByProductOwnerCommand
+public class CreateModuleOperationCommand
     : IRequest<ApiResponse<ModuleOperationMappingByProductOwnerResponseDTO>>
 {
     /// <summary>
-    /// Gets the mapping values to update.
+    /// Gets the mapping values to create.
     /// </summary>
-    public UpdateModuleOperationMappingByProductOwnerRequestDTO? DTO { get; }
+    public CreateModuleOperationRequestDTO? DTO { get; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="UpdateModuleOperationMappingByProductOwnerCommand"/> class.
+    /// Initializes a new instance of the <see cref="CreateModuleOperationCommand"/> class.
     /// </summary>
     /// <param name="dto">The client-editable mapping values.</param>
-    public UpdateModuleOperationMappingByProductOwnerCommand(
-        UpdateModuleOperationMappingByProductOwnerRequestDTO? dto)
+    public CreateModuleOperationCommand(CreateModuleOperationRequestDTO? dto)
     {
         DTO = dto;
     }
@@ -44,11 +45,11 @@ public class UpdateModuleOperationMappingByProductOwnerCommand
 #region Handler
 
 /// <summary>
-/// Handles Host-authorized updates to module-operation mappings.
+/// Handles Host-authorized creation of module-operation mappings.
 /// </summary>
-public class UpdateModuleOperationMappingByProductOwnerCommandHandler
+public class CreateModuleOperationCommandHandler
     : IRequestHandler<
-        UpdateModuleOperationMappingByProductOwnerCommand,
+        CreateModuleOperationCommand,
         ApiResponse<ModuleOperationMappingByProductOwnerResponseDTO>>
 {
     #region Fields
@@ -62,12 +63,12 @@ public class UpdateModuleOperationMappingByProductOwnerCommandHandler
     #region Constructor
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="UpdateModuleOperationMappingByProductOwnerCommandHandler"/> class.
+    /// Initializes a new instance of the <see cref="CreateModuleOperationCommandHandler"/> class.
     /// </summary>
     /// <param name="unitOfWork">Provides the existing module-operation mapping repository.</param>
-    /// <param name="mapper">Maps client-editable values into the existing entity.</param>
+    /// <param name="mapper">Maps client-editable values into the mapping entity.</param>
     /// <param name="commonRequestService">Validates the current Host user request.</param>
-    public UpdateModuleOperationMappingByProductOwnerCommandHandler(
+    public CreateModuleOperationCommandHandler(
         IUnitOfWork unitOfWork,
         IMapper mapper,
         ICommonRequestService commonRequestService)
@@ -82,13 +83,13 @@ public class UpdateModuleOperationMappingByProductOwnerCommandHandler
     #region Handle
 
     /// <summary>
-    /// Updates a mapping while preserving its create audit fields.
+    /// Creates a mapping and assigns its create audit values from the authenticated Host user.
     /// </summary>
-    /// <param name="request">The mapping update request.</param>
+    /// <param name="request">The mapping creation request.</param>
     /// <param name="cancellationToken">The token used to observe cancellation.</param>
-    /// <returns>The updated module-operation mapping.</returns>
+    /// <returns>The created module-operation mapping.</returns>
     public async Task<ApiResponse<ModuleOperationMappingByProductOwnerResponseDTO>> Handle(
-        UpdateModuleOperationMappingByProductOwnerCommand request,
+        CreateModuleOperationCommand request,
         CancellationToken cancellationToken)
     {
         var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
@@ -97,27 +98,24 @@ public class UpdateModuleOperationMappingByProductOwnerCommandHandler
         var dto = request?.DTO
             ?? throw new ValidationErrorException("Module operation mapping details are required.");
 
-        var mappingId = ResolveMappingId(dto);
-        ValidateMappingValues(mappingId, dto.ModuleId, dto.OperationId, dto.DataViewStructureId, dto.PageTypeId);
+        ValidateMappingValues(dto.ModuleId, dto.OperationId, dto.DataViewStructureId, dto.PageTypeId);
 
-        var existing = await _unitOfWork.ModuleRepository
-            .GetModuleOperationMappingByIdAsync(mappingId, cancellationToken)
-            ?? throw new ApiException("Module operation mapping not found.", 404);
+        var entity = _mapper.Map<ModuleOperationMapping>(dto);
+        entity.AddedById = hostUserId;
+        entity.AddedDateTime = DateTime.UtcNow;
+        entity.UpdatedById = null;
+        entity.UpdatedDateTime = null;
 
-        _mapper.Map(dto, existing);
-        existing.UpdatedById = hostUserId;
-        existing.UpdatedDateTime = DateTime.UtcNow;
-
-        var updated = await _unitOfWork.ModuleRepository
-            .UpdateModuleOperationMappingAsync(existing, cancellationToken);
+        var created = await _unitOfWork.ModuleRepository
+            .CreateModuleOperationMappingAsync(entity, cancellationToken);
 
         var responseEntity = await _unitOfWork.ModuleRepository
-            .GetModuleOperationMappingByIdAsync(updated.Id, cancellationToken)
-            ?? throw new ApiException("Module operation mapping not found.", 404);
+            .GetModuleOperationMappingByIdAsync(created.Id, cancellationToken)
+            ?? throw new ApiException("Module operation mapping was not created.", 500);
 
         return ApiResponse<ModuleOperationMappingByProductOwnerResponseDTO>.Success(
             _mapper.Map<ModuleOperationMappingByProductOwnerResponseDTO>(responseEntity),
-            "Module operation updated successfully.");
+            "Module operation created successfully.");
     }
 
     #endregion
@@ -125,40 +123,21 @@ public class UpdateModuleOperationMappingByProductOwnerCommandHandler
     #region Validation
 
     /// <summary>
-    /// Resolves the supported current or legacy mapping identifier.
-    /// </summary>
-    /// <param name="dto">The mapping update values.</param>
-    /// <returns>The mapping identifier.</returns>
-    /// <exception cref="ValidationErrorException">Thrown when the identifiers conflict or are invalid.</exception>
-    private static int ResolveMappingId(UpdateModuleOperationMappingByProductOwnerRequestDTO dto)
-    {
-        if (dto.Id > 0 && dto.ModuleOperationMappingId.HasValue &&
-            dto.ModuleOperationMappingId.Value != dto.Id)
-        {
-            throw new ValidationErrorException("Module operation mapping identifiers do not match.");
-        }
-
-        return dto.Id > 0 ? dto.Id : dto.ModuleOperationMappingId.GetValueOrDefault();
-    }
-
-    /// <summary>
     /// Validates mapping identifiers against the entity's required and optional key fields.
     /// </summary>
-    /// <param name="mappingId">The mapping identifier.</param>
     /// <param name="moduleId">The related module identifier.</param>
     /// <param name="operationId">The related operation identifier.</param>
     /// <param name="dataViewStructureId">The optional data-view structure identifier.</param>
     /// <param name="pageTypeId">The optional page-type identifier.</param>
     private static void ValidateMappingValues(
-        int mappingId,
         int moduleId,
         int operationId,
         int? dataViewStructureId,
         int? pageTypeId)
     {
-        if (mappingId <= 0 || moduleId <= 0 || operationId <= 0)
+        if (moduleId <= 0 || operationId <= 0)
         {
-            throw new ValidationErrorException("Valid mapping, module, and operation IDs are required.");
+            throw new ValidationErrorException("Valid module and operation IDs are required.");
         }
 
         if (dataViewStructureId is <= 0 || pageTypeId is <= 0)

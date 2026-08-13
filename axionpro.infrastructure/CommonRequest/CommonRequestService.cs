@@ -1,6 +1,7 @@
 ﻿using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Common.Models.Security;
+using axionpro.application.Constants;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -130,7 +131,68 @@ namespace axionpro.infrastructure.CommonRequest
                 return new CommonDecodedResult { Success = false, ErrorMessage = "Internal validation error." };
             }
         }
-   
+
+        #region HostUser Token Validation
+
+        /// <summary>
+        /// Validates that the current authenticated JWT represents an active Host user with an active Host role.
+        /// </summary>
+        /// <exception cref="UnauthorizedAccessException">Thrown when the current token, claims, Host user, or Host role are invalid.</exception>
+        public async Task<long> ValidateHostUserRequestAsync()
+        {
+            const string unauthorizedMessage = "A valid Host user token is required.";
+
+            var principal = _context.HttpContext?.User;
+            if (principal?.Identity?.IsAuthenticated != true)
+            {
+                throw new UnauthorizedAccessException(unauthorizedMessage);
+            }
+
+            var userType = principal.FindFirst(AppConstants.UserTypeClaim)?.Value;
+            if (!string.Equals(userType, AppConstants.HostUserType, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new UnauthorizedAccessException(unauthorizedMessage);
+            }
+
+            var tokenPurpose = principal.FindFirst("TokenPurpose")?.Value;
+            if (!string.Equals(tokenPurpose, AppConstants.AccessTokenPurpose, StringComparison.Ordinal))
+            {
+                throw new UnauthorizedAccessException(unauthorizedMessage);
+            }
+
+            var hostUserIdValue = principal.FindFirst(AppConstants.HostUserIdClaim)?.Value;
+            var hostRoleIdValue = principal.FindFirst(AppConstants.HostRoleIdClaim)?.Value;
+            var loginId = principal.FindFirst(AppConstants.LoginIdClaim)?.Value;
+
+            if (!long.TryParse(hostUserIdValue, out var hostUserId) ||
+                !long.TryParse(hostRoleIdValue, out var hostRoleId) ||
+                hostUserId <= 0 ||
+                hostRoleId <= 0 ||
+                string.IsNullOrWhiteSpace(loginId))
+            {
+                throw new UnauthorizedAccessException(unauthorizedMessage);
+            }
+
+            var hostUser = await _uow.HostUserRepository.GetByIdAsync(hostUserId);
+            if (hostUser == null ||
+                !hostUser.IsActive ||
+                hostUser.IsSoftDeleted ||
+                hostUser.HostRoleId != hostRoleId ||
+                !string.Equals(hostUser.LoginId, loginId, StringComparison.Ordinal))
+            {
+                throw new UnauthorizedAccessException(unauthorizedMessage);
+            }
+
+            var hostRole = await _uow.HostRoleRepository.GetByIdAsync(hostUser.HostRoleId);
+            if (hostRole == null || !hostRole.IsActive || hostRole.IsSoftDeleted)
+            {
+                throw new UnauthorizedAccessException(unauthorizedMessage);
+            }
+
+            return hostUser.Id;
+        }
+
+        #endregion
     
     }
 

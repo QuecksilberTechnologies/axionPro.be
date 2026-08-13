@@ -2,23 +2,24 @@
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
-// Purpose : Defines the response returned for a ModuleOperation mapping.
+// Purpose : Defines client-editable values for creating a ModuleOperation mapping.
 // ================================================================
 
-namespace axionpro.application.DTOs.Module;
+using System.ComponentModel.DataAnnotations;
+
+namespace axionpro.application.DTOs.ModuleOperation;
 
 /// <summary>
-/// Represents a module-operation mapping with related display values.
+/// Represents the client-editable values required to create one module-operation mapping.
 /// </summary>
-public class ModuleOperationMappingByProductOwnerResponseDTO
+public class CreateModuleOperationRequestDTO
 {
-    /// <summary>Gets or sets the mapping identifier.</summary>
-    public int Id { get; set; }
-
     /// <summary>Gets or sets the related module identifier.</summary>
+    [Required]
     public int ModuleId { get; set; }
 
     /// <summary>Gets or sets the related operation identifier.</summary>
+    [Required]
     public int OperationId { get; set; }
 
     /// <summary>Gets or sets the optional data-view structure identifier.</summary>
@@ -27,22 +28,12 @@ public class ModuleOperationMappingByProductOwnerResponseDTO
     /// <summary>Gets or sets the optional page-type identifier.</summary>
     public int? PageTypeId { get; set; }
 
-    /// <summary>Gets or sets the related module name.</summary>
-    public string? ModuleName { get; set; }
-
-    /// <summary>Gets or sets the related operation name.</summary>
-    public string? OperationName { get; set; }
-
-    /// <summary>Gets or sets the data-view display value.</summary>
-    public string? DataViewStructureDisplayOn { get; set; }
-
-    /// <summary>Gets or sets the page-type name.</summary>
-    public string? PageTypeName { get; set; }
-
     /// <summary>Gets or sets the optional page URL.</summary>
+    [MaxLength(255)]
     public string? PageURL { get; set; }
 
     /// <summary>Gets or sets the optional icon URL.</summary>
+    [MaxLength(255)]
     public string? IconURL { get; set; }
 
     /// <summary>Gets or sets whether the mapping is a common item.</summary>
@@ -55,20 +46,9 @@ public class ModuleOperationMappingByProductOwnerResponseDTO
     public int? Priority { get; set; }
 
     /// <summary>Gets or sets the optional remark.</summary>
+    [MaxLength(255)]
     public string? Remark { get; set; }
 
     /// <summary>Gets or sets whether the mapping is active.</summary>
     public bool? IsActive { get; set; }
-
-    /// <summary>Gets or sets the creating Host user identifier.</summary>
-    public long AddedById { get; set; }
-
-    /// <summary>Gets or sets the creation time.</summary>
-    public DateTime AddedDateTime { get; set; }
-
-    /// <summary>Gets or sets the last updating Host user identifier.</summary>
-    public long? UpdatedById { get; set; }
-
-    /// <summary>Gets or sets the last update time.</summary>
-    public DateTime? UpdatedDateTime { get; set; }
 }

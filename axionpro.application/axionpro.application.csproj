@@ -87,6 +87,9 @@
     <Folder Include="Features\LeaveCmd\NewFolder\" />
     <Folder Include="Features\NewFolder1\" />
     <Folder Include="Features\NewFolder2\" />
+    <Folder Include="Features\OperationCmd\NewFolder1\" />
+    <Folder Include="Features\OperationCmd\NewFolder\" />
+    <Folder Include="Features\OperationsMasterCmd\Handlers\" />
     <Folder Include="Features\PolicyTypeCmd\Commands\" />
     <Folder Include="Features\RegistrationCmd\Queries\" />
     <Folder Include="Features\ReportTypeCmd\NewFolder\" />

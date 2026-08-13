@@ -1088,6 +1088,121 @@ namespace axionpro.persistance.Repositories
             throw new NotImplementedException();
         }
 
+        #region ModuleOperation Mapping CRUD
+
+        /// <summary>
+        /// Persists a validated module-operation mapping.
+        /// </summary>
+        /// <param name="entity">The mapping entity to persist.</param>
+        /// <param name="cancellationToken">A token to observe while saving changes.</param>
+        /// <returns>The persisted mapping, including its generated identifier.</returns>
+        public async Task<ModuleOperationMapping> CreateModuleOperationMappingAsync(
+            ModuleOperationMapping entity,
+            CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(entity);
+            var context = _context ?? throw new InvalidOperationException("Module context is unavailable.");
+
+            await context.ModuleOperationMappings.AddAsync(entity, cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
+
+            return entity;
+        }
+
+        /// <summary>
+        /// Retrieves one module-operation mapping with its module configuration lookups.
+        /// </summary>
+        /// <param name="id">The mapping identifier.</param>
+        /// <param name="cancellationToken">A token to observe while querying.</param>
+        /// <returns>The matching mapping, or <see langword="null"/> when it does not exist.</returns>
+        public async Task<ModuleOperationMapping?> GetModuleOperationMappingByIdAsync(
+            int id,
+            CancellationToken cancellationToken)
+        {
+            var context = _context ?? throw new InvalidOperationException("Module context is unavailable.");
+
+            return await context.ModuleOperationMappings
+                .AsNoTracking()
+                .Include(item => item.Module)
+                .Include(item => item.Operation)
+                .Include(item => item.DataViewStructure)
+                .Include(item => item.PageType)
+                .FirstOrDefaultAsync(item => item.Id == id, cancellationToken);
+        }
+
+        /// <summary>
+        /// Retrieves all module-operation mappings with their module configuration lookups.
+        /// </summary>
+        /// <param name="cancellationToken">A token to observe while querying.</param>
+        /// <returns>The ordered module-operation mappings.</returns>
+        public async Task<List<ModuleOperationMapping>> GetAllModuleOperationMappingsAsync(
+            CancellationToken cancellationToken)
+        {
+            var context = _context ?? throw new InvalidOperationException("Module context is unavailable.");
+
+            return await context.ModuleOperationMappings
+                .AsNoTracking()
+                .Include(item => item.Module)
+                .Include(item => item.Operation)
+                .Include(item => item.DataViewStructure)
+                .Include(item => item.PageType)
+                .OrderBy(item => item.ModuleId)
+                .ThenBy(item => item.OperationId)
+                .ThenBy(item => item.Id)
+                .ToListAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Saves changes to a validated module-operation mapping.
+        /// </summary>
+        /// <param name="entity">The mapping entity to update.</param>
+        /// <param name="cancellationToken">A token to observe while saving changes.</param>
+        /// <returns>The updated mapping.</returns>
+        public async Task<ModuleOperationMapping> UpdateModuleOperationMappingAsync(
+            ModuleOperationMapping entity,
+            CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(entity);
+            var context = _context ?? throw new InvalidOperationException("Module context is unavailable.");
+
+            context.ModuleOperationMappings.Update(entity);
+            await context.SaveChangesAsync(cancellationToken);
+
+            return entity;
+        }
+
+        /// <summary>
+        /// Deactivates a module-operation mapping and records the acting Host user.
+        /// </summary>
+        /// <param name="id">The mapping identifier.</param>
+        /// <param name="hostUserId">The authenticated Host user identifier.</param>
+        /// <param name="cancellationToken">A token to observe while saving changes.</param>
+        /// <returns><see langword="true"/> when a mapping was deactivated; otherwise <see langword="false"/>.</returns>
+        public async Task<bool> DeactivateModuleOperationMappingAsync(
+            int id,
+            long hostUserId,
+            CancellationToken cancellationToken)
+        {
+            var context = _context ?? throw new InvalidOperationException("Module context is unavailable.");
+            var entity = await context.ModuleOperationMappings
+                .FirstOrDefaultAsync(item => item.Id == id, cancellationToken);
+
+            if (entity == null)
+            {
+                return false;
+            }
+
+            entity.IsActive = false;
+            entity.UpdatedById = hostUserId;
+            entity.UpdatedDateTime = DateTime.UtcNow;
+
+            await context.SaveChangesAsync(cancellationToken);
+
+            return true;
+        }
+
+        #endregion
+
         /// <summary>
         /// Persists a validated direct child SubModule and lets PostgreSQL generate its identity value.
         /// </summary>

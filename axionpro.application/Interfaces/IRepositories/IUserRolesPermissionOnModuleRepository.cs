@@ -26,11 +26,8 @@ namespace axionpro.application.Interfaces.IRepositories
         Task<List<RoleModuleAndPermission>> GetByRoleIdAsync(int roleId);
 
         Task BulkDeleteAsync(List<RoleModuleAndPermission> list);
-        // Save new mappings
-        Task<GetModuleOperationMappingResponseDTO> SaveModuleOperationMappingsAsync(GetModuleOperationMappingRequestDTO dto);
-        Task<ModuleOperationMapping> UpdateModuleOperationMappingsAsync(ModuleOperationMapping dto);
 
-        // Get mappings for a specific product owner/module
+        // Retained for the existing tenant-registration permission flow.
         Task<List<ModuleOperationMapping>> GetModuleOperationMappings(List<Module> modules);
 
 

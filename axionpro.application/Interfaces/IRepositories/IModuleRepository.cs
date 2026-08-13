@@ -64,6 +64,60 @@ namespace axionpro.application.Interfaces.IRepositories
 
         Task<Module?> GetModuleByIdAsync(long moduleId);
 
+        #region ModuleOperation Mapping CRUD
+
+        /// <summary>
+        /// Persists a validated module-operation mapping.
+        /// </summary>
+        /// <param name="entity">The mapping entity to persist.</param>
+        /// <param name="cancellationToken">A token to observe while saving changes.</param>
+        /// <returns>The persisted mapping, including its generated identifier.</returns>
+        Task<ModuleOperationMapping> CreateModuleOperationMappingAsync(
+            ModuleOperationMapping entity,
+            CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Retrieves one module-operation mapping with its module configuration lookups.
+        /// </summary>
+        /// <param name="id">The mapping identifier.</param>
+        /// <param name="cancellationToken">A token to observe while querying.</param>
+        /// <returns>The matching mapping, or <see langword="null"/> when it does not exist.</returns>
+        Task<ModuleOperationMapping?> GetModuleOperationMappingByIdAsync(
+            int id,
+            CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Retrieves all module-operation mappings with their module configuration lookups.
+        /// </summary>
+        /// <param name="cancellationToken">A token to observe while querying.</param>
+        /// <returns>The ordered module-operation mappings.</returns>
+        Task<List<ModuleOperationMapping>> GetAllModuleOperationMappingsAsync(
+            CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Saves changes to a validated module-operation mapping.
+        /// </summary>
+        /// <param name="entity">The mapping entity to update.</param>
+        /// <param name="cancellationToken">A token to observe while saving changes.</param>
+        /// <returns>The updated mapping.</returns>
+        Task<ModuleOperationMapping> UpdateModuleOperationMappingAsync(
+            ModuleOperationMapping entity,
+            CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Deactivates a module-operation mapping and records the acting Host user.
+        /// </summary>
+        /// <param name="id">The mapping identifier.</param>
+        /// <param name="hostUserId">The authenticated Host user identifier.</param>
+        /// <param name="cancellationToken">A token to observe while saving changes.</param>
+        /// <returns><see langword="true"/> when a mapping was deactivated; otherwise <see langword="false"/>.</returns>
+        Task<bool> DeactivateModuleOperationMappingAsync(
+            int id,
+            long hostUserId,
+            CancellationToken cancellationToken);
+
+        #endregion
+
         /// <summary>
         /// Sare modules laata hai (optionally filterable)
         /// </summary>

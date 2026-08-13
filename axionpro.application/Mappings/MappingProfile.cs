@@ -11,6 +11,7 @@ using axionpro.application.DTOs.Leave.LeaveRule;
 using axionpro.application.DTOs.Manager.ReportingType;
 using axionpro.application.DTOs.Module;
 using axionpro.application.DTOs.Module.NewFolder;
+using axionpro.application.DTOs.ModuleOperation;
 using axionpro.application.DTOs.Operation;
 using axionpro.application.DTOs.OrganizationHolidayCalendar;
 using axionpro.application.DTOs.PolicyType;
@@ -773,33 +774,39 @@ namespace axionpro.application.Mappings
             CreateMap<TenantSubscriptionPlanResponseDTO, TenantSubscription>().ReverseMap();
 
 
+            CreateMap<CreateModuleOperationRequestDTO, ModuleOperationMapping>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.PageUrl, opt => opt.MapFrom(src => src.PageURL))
+                .ForMember(dest => dest.IconUrl, opt => opt.MapFrom(src => src.IconURL))
+                .ForMember(dest => dest.AddedById, opt => opt.Ignore())
+                .ForMember(dest => dest.AddedDateTime, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedById, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedDateTime, opt => opt.Ignore())
+                .ForMember(dest => dest.Module, opt => opt.Ignore())
+                .ForMember(dest => dest.Operation, opt => opt.Ignore())
+                .ForMember(dest => dest.DataViewStructure, opt => opt.Ignore())
+                .ForMember(dest => dest.PageType, opt => opt.Ignore());
+
             CreateMap<UpdateModuleOperationMappingByProductOwnerRequestDTO, ModuleOperationMapping>()
-         .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.ModuleOperationMappingId))
-         .ForMember(dest => dest.PageUrl, opt => opt.MapFrom(src => src.PageURL))
-         .ForMember(dest => dest.IconUrl, opt => opt.MapFrom(src => src.IconURL))
-         .ForMember(dest => dest.IsCommonItem, opt => opt.MapFrom(src => src.IsCommonItem))
-         .ForMember(dest => dest.IsOperational, opt => opt.MapFrom(src => src.IsOperational))
-         .ForMember(dest => dest.Priority, opt => opt.MapFrom(src => src.Priority))
-         .ForMember(dest => dest.Remark, opt => opt.MapFrom(src => src.Remark))
-         .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
-         .ForMember(dest => dest.UpdatedById, opt => opt.MapFrom(src => src.ProductOwnerId));
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.PageUrl, opt => opt.MapFrom(src => src.PageURL))
+                .ForMember(dest => dest.IconUrl, opt => opt.MapFrom(src => src.IconURL))
+                .ForMember(dest => dest.AddedById, opt => opt.Ignore())
+                .ForMember(dest => dest.AddedDateTime, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedById, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedDateTime, opt => opt.Ignore())
+                .ForMember(dest => dest.Module, opt => opt.Ignore())
+                .ForMember(dest => dest.Operation, opt => opt.Ignore())
+                .ForMember(dest => dest.DataViewStructure, opt => opt.Ignore())
+                .ForMember(dest => dest.PageType, opt => opt.Ignore());
 
             CreateMap<ModuleOperationMapping, ModuleOperationMappingByProductOwnerResponseDTO>()
-    .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
-    .ForMember(dest => dest.ModuleId, opt => opt.MapFrom(src => src.ModuleId))
-    .ForMember(dest => dest.OperationIds, opt => opt.MapFrom(src => new List<int> { src.OperationId }))
-
-    .ForMember(dest => dest.PageURL, opt => opt.MapFrom(src => src.PageUrl))
-    .ForMember(dest => dest.IconURL, opt => opt.MapFrom(src => src.IconUrl))
-    .ForMember(dest => dest.IsCommonItem, opt => opt.MapFrom(src => src.IsCommonItem ?? false))
-    .ForMember(dest => dest.IsOperational, opt => opt.MapFrom(src => src.IsOperational ?? false))
-    .ForMember(dest => dest.Priority, opt => opt.MapFrom(src => src.Priority ?? 0))
-    .ForMember(dest => dest.Remark, opt => opt.MapFrom(src => src.Remark))
-    .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
-    .ForMember(dest => dest.AddedById, opt => opt.MapFrom(src => src.AddedById))
-    .ForMember(dest => dest.AddedDateTime, opt => opt.MapFrom(src => src.AddedDateTime))
-    .ForMember(dest => dest.UpdatedById, opt => opt.MapFrom(src => src.UpdatedById))
-    .ForMember(dest => dest.UpdatedDateTime, opt => opt.MapFrom(src => src.UpdatedDateTime));
+                .ForMember(dest => dest.PageURL, opt => opt.MapFrom(src => src.PageUrl))
+                .ForMember(dest => dest.IconURL, opt => opt.MapFrom(src => src.IconUrl))
+                .ForMember(dest => dest.ModuleName, opt => opt.MapFrom(src => src.Module != null ? src.Module.ModuleName : null))
+                .ForMember(dest => dest.OperationName, opt => opt.MapFrom(src => src.Operation.OperationName))
+                .ForMember(dest => dest.DataViewStructureDisplayOn, opt => opt.MapFrom(src => src.DataViewStructure != null ? src.DataViewStructure.DisplayOn : null))
+                .ForMember(dest => dest.PageTypeName, opt => opt.MapFrom(src => src.PageType != null ? src.PageType.PageTypeName : null));
 
 
 
