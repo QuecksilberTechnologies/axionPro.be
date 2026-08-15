@@ -1,149 +1,105 @@
-﻿// ================================================================
+// ================================================================
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
-// Purpose : Handles GetDesignationQueryHandler requests using authenticated tenant context.
+// Purpose : Retrieves tenant-scoped designation projections using trusted context.
 // ================================================================
 
-using AutoMapper;
-using axionpro.application.Common.Helpers;
-using axionpro.application.Common.Helpers.Converters;
-using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.DTOs.Designation;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IEncryptionService;
-using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
+using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Features.DesignationCmd.Handlers
 {
+    #region Query
+
+    /// <summary>
+    /// Represents a request to retrieve designations.
+    /// </summary>
     public class GetDesignationQuery : IRequest<ApiResponse<List<GetDesignationResponseDTO>>>
     {
-        public GetDesignationRequestDTO DTO { get; set; }
+        public GetDesignationRequestDTO DTO { get; }
 
+        /// <summary>
+        /// Initializes the listing query with client-supplied filters.
+        /// </summary>
         public GetDesignationQuery(GetDesignationRequestDTO dto)
         {
             DTO = dto;
         }
     }
 
-    /// <summary>
-    /// Handles authenticated tenant requests for this feature.
-    /// </summary>
-    public class GetDesignationQueryHandler :
-        IRequestHandler<GetDesignationQuery, ApiResponse<List<GetDesignationResponseDTO>>>
-    {
-        private readonly IMapper _mapper;
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly ILogger<GetDesignationQueryHandler> _logger;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IPermissionService _permissionService;
-        private readonly IConfiguration _config;
-        private readonly IIdEncoderService _idEncoderService;
-        private readonly ICommonRequestService _commonRequestService;
+    #endregion
 
+    #region Handler
+
+    /// <summary>
+    /// Handles designation listing requests for the authenticated tenant.
+    /// </summary>
+    public class GetDesignationQueryHandler : IRequestHandler<GetDesignationQuery, ApiResponse<List<GetDesignationResponseDTO>>>
+    {
+        #region Fields
+
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ICommonRequestService _commonRequestService;
+        private readonly ILogger<GetDesignationQueryHandler> _logger;
+
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Initializes the handler dependencies.
+        /// </summary>
         public GetDesignationQueryHandler(
             IUnitOfWork unitOfWork,
-            IMapper mapper,
-            IHttpContextAccessor httpContextAccessor,
-            ILogger<GetDesignationQueryHandler> logger,
-            IPermissionService permissionService,
-            IConfiguration config,
-            IIdEncoderService idEncoderService,
-            ICommonRequestService commonRequestService
-        )
+            ICommonRequestService commonRequestService,
+            ILogger<GetDesignationQueryHandler> logger)
         {
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
-            _httpContextAccessor = httpContextAccessor;
-            _logger = logger;
-            _permissionService = permissionService;
-            _config = config;
-            _idEncoderService = idEncoderService;
             _commonRequestService = commonRequestService;
+            _logger = logger;
         }
 
-        public async Task<ApiResponse<List<GetDesignationResponseDTO>>> Handle(GetDesignationQuery request, CancellationToken cancellationToken)
+        #endregion
+
+        #region Handle
+
+        /// <summary>
+        /// Retrieves paged designation projections without mutating the request DTO.
+        /// </summary>
+        public async Task<ApiResponse<List<GetDesignationResponseDTO>>> Handle(
+            GetDesignationQuery request,
+            CancellationToken cancellationToken)
         {
-            try
+            var validation = await _commonRequestService.ValidateRequestAsync();
+            if (!validation.Success)
+                return ApiResponse<List<GetDesignationResponseDTO>>.Fail(validation.ErrorMessage);
+
+            var response = await _unitOfWork.DesignationRepository.GetAsync(
+                request.DTO,
+                validation.TenantId,
+                cancellationToken);
+            var data = response.Data ?? new List<GetDesignationResponseDTO>();
+
+            _logger.LogInformation("Retrieved {Count} designations for TenantId: {TenantId}", data.Count, validation.TenantId);
+            return new ApiResponse<List<GetDesignationResponseDTO>>
             {
-                // 1️⃣ COMMON VALIDATION (Mandatory)
-                #region Tenant Request Validation
-                var validation = await _commonRequestService.ValidateRequestAsync();
-                #endregion
-
-                if (!validation.Success)
-                    return ApiResponse<List<GetDesignationResponseDTO>>.Fail(validation.ErrorMessage);
-
-                // Assign decoded values coming from CommonRequestService
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-
-                // Clean sorting fields
-                request.DTO.SortOrder = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortOrder);
-                request.DTO.SortBy = EncryptionSanitizer.CleanEncodedInput(request.DTO.SortBy);
-
-
-                // 2️⃣ CHECK PERMISSION
-                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(validation.Claims.RoleId));
-                if (!permissions.Contains("AddBankInfo"))
-                {
-                    // await _unitOfWork.RollbackTransactionAsync();
-                    //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
-                }
-                // 3️⃣ REPOSITORY CALL
-                var responseDTO = await _unitOfWork.DesignationRepository.GetAsync(request.DTO);
-
-                if (responseDTO.Data == null || !responseDTO.Data.Any())
-                {
-                    _logger.LogInformation("⚠️ No designation found for TenantId: {TenantId}",
-                        request.DTO.Prop.TenantId);
-
-                    return new ApiResponse<List<GetDesignationResponseDTO>>
-                    {
-                        IsSucceeded = false,
-                        Message = "No records found.",
-                        Data = new List<GetDesignationResponseDTO>(),
-                        PageNumber = request.DTO.PageNumber,
-                        PageSize = request.DTO.PageSize,
-                        TotalRecords = 0,
-                        TotalPages = 0
-                    };
-                }
-
-                // 4️⃣ SUCCESS RESPONSE
-                _logger.LogInformation("✅ {Count} designations retrieved successfully for TenantId: {TenantId}",
-                    responseDTO.TotalCount, request.DTO.Prop.TenantId);
-
-                return new ApiResponse<List<GetDesignationResponseDTO>>
-                {
-                    IsSucceeded = true,
-                    Message = "Designations retrieved successfully.",
-                    Data = responseDTO.Data,
-                    PageNumber = responseDTO.PageNumber,
-                    PageSize = responseDTO.PageSize,
-                    TotalRecords = responseDTO.TotalCount,
-                    TotalPages = responseDTO.TotalPages
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error fetching designations");
-
-                return ApiResponse<List<GetDesignationResponseDTO>>
-                    .Fail("An error occurred while fetching designations.");
-            }
+                IsSucceeded = true,
+                Message = data.Count == 0 ? "No records found." : "Designations retrieved successfully.",
+                Data = data,
+                PageNumber = response.PageNumber,
+                PageSize = response.PageSize,
+                TotalRecords = response.TotalCount,
+                TotalPages = response.TotalPages
+            };
         }
+
+        #endregion
     }
+
+    #endregion
 }

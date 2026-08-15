@@ -1,128 +1,109 @@
-﻿// ================================================================
+// ================================================================
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
-// Purpose : Handles GetDepartmentOptionQueryHandler requests using authenticated tenant context.
+// Purpose : Retrieves active department options using trusted tenant context.
 // ================================================================
 
-using AutoMapper;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Department;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IEncryptionService;
-using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using MediatR;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.DepartmentCmd.Handlers
 {
+    #region Query
+
+    /// <summary>
+    /// Represents a request to retrieve active department options.
+    /// </summary>
     public class GetDepartmentOptionQuery : IRequest<ApiResponse<List<GetDepartmentOptionResponse>>>
     {
-        public GetOptionRequestDTO OptionDTO { get; set; }
+        public GetOptionRequestDTO OptionDTO { get; }
 
+        /// <summary>
+        /// Initializes the option query.
+        /// </summary>
         public GetDepartmentOptionQuery(GetOptionRequestDTO optionDTO)
         {
             OptionDTO = optionDTO;
         }
     }
 
+    #endregion
+
+    #region Handler
+
     /// <summary>
-    /// Handles authenticated tenant requests for this feature.
+    /// Handles active department-option queries for the authenticated tenant.
     /// </summary>
     public class GetDepartmentOptionQueryHandler : IRequestHandler<GetDepartmentOptionQuery, ApiResponse<List<GetDepartmentOptionResponse>>>
     {
+        #region Fields
+
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ILogger<GetDepartmentOptionQueryHandler> _logger;
-        private readonly ITokenService _tokenService;
-        private readonly IPermissionService _permissionService;
-        private readonly IConfiguration _config;
-        private readonly IEncryptionService _encryptionService;
-        private readonly IIdEncoderService _idEncoderService;
         private readonly ICommonRequestService _commonRequestService;
+        private readonly ILogger<GetDepartmentOptionQueryHandler> _logger;
 
+        #endregion
 
+        #region Constructor
+
+        /// <summary>
+        /// Initializes the handler dependencies.
+        /// </summary>
         public GetDepartmentOptionQueryHandler(
             IUnitOfWork unitOfWork,
-            IMapper mapper,
-            IHttpContextAccessor httpContextAccessor,
-            ILogger<GetDepartmentOptionQueryHandler> logger,
-            ITokenService tokenService,
-            IPermissionService permissionService,
-            IConfiguration config,
-           IEncryptionService encryptionService, IIdEncoderService idEncoderService, ICommonRequestService commonRequestService)
+            ICommonRequestService commonRequestService,
+            ILogger<GetDepartmentOptionQueryHandler> logger)
         {
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
-            _httpContextAccessor = httpContextAccessor;
-            _logger = logger;
-            _tokenService = tokenService;
-            _permissionService = permissionService;
-            _config = config;
-            _encryptionService = encryptionService;
-            _idEncoderService = idEncoderService;
             _commonRequestService = commonRequestService;
+            _logger = logger;
         }
 
+        #endregion
 
-        public async Task<ApiResponse<List<GetDepartmentOptionResponse>>> Handle(GetDepartmentOptionQuery request, CancellationToken cancellationToken)
+        #region Handle
+
+        /// <summary>
+        /// Retrieves active options without using the request DTO as a trusted context container.
+        /// </summary>
+        public async Task<ApiResponse<List<GetDepartmentOptionResponse>>> Handle(
+            GetDepartmentOptionQuery request,
+            CancellationToken cancellationToken)
         {
-            try
+            var validation = await _commonRequestService.ValidateRequestAsync();
+            if (!validation.Success)
+                return ApiResponse<List<GetDepartmentOptionResponse>>.Fail(validation.ErrorMessage);
+
+            var departments = await _unitOfWork.DepartmentRepository.GetOptionAsync(
+                validation.TenantId,
+                cancellationToken);
+
+            var options = departments.Data?
+                .Where(option => option != null)
+                .Cast<GetDepartmentOptionResponse>()
+                .ToList() ?? new List<GetDepartmentOptionResponse>();
+
+            _logger.LogInformation(
+                "Retrieved {Count} department options for TenantId: {TenantId}",
+                options.Count,
+                validation.TenantId);
+
+            return new ApiResponse<List<GetDepartmentOptionResponse>>
             {
-                #region Tenant Request Validation
-                var validation = await _commonRequestService.ValidateRequestAsync();
-                #endregion
-
-                if (!validation.Success)
-                    return ApiResponse<List<GetDepartmentOptionResponse>>.Fail(validation.ErrorMessage);
-
-                // Assign decoded values coming from CommonRequestService
-                request.OptionDTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.OptionDTO.Prop.TenantId = validation.TenantId; 
-
-                var departments = await _unitOfWork.DepartmentRepository.GetOptionAsync(request.OptionDTO);
-
-                if (departments.Data == null || !departments.Data.Any())
-                {
-                    _logger.LogWarning("No departments found for tenant ID: {TenantId}", request.OptionDTO.Prop.TenantId);
-
-                    return new ApiResponse<List<GetDepartmentOptionResponse>>
-                    {
-                        IsSucceeded = false,
-                        Message = departments.Message,
-                        Data = new List<GetDepartmentOptionResponse>()
-                    };
-                }
-
-                _logger.LogInformation("Successfully retrieved {Count} departments for tenant {TenantId}.",
-                    departments.Data.Count, request.OptionDTO.Prop.TenantId);
-
-                return new ApiResponse<List<GetDepartmentOptionResponse>>
-                {
-                    IsSucceeded = true,
-                    Message = departments.Message,
-                    Data = departments.Data
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while fetching department options for request: {@Request}", request.OptionDTO);
-
-                return new ApiResponse<List<GetDepartmentOptionResponse>>
-                {
-                    IsSucceeded = false,
-                    Message = "Failed to fetch department options due to an internal error.",
-                    Data = new List<GetDepartmentOptionResponse>()
-                };
-            }
+                IsSucceeded = departments.IsSucceeded,
+                Message = departments.Message,
+                Data = options
+            };
         }
+
+        #endregion
     }
 
-
+    #endregion
 }

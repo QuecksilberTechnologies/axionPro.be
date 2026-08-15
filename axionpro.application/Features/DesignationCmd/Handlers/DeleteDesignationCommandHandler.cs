@@ -1,134 +1,102 @@
-﻿// ================================================================
+// ================================================================
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
-// Purpose : Handles DeleteDesignationQueryHandler requests using authenticated tenant context.
+// Purpose : Soft deletes tenant-scoped designations using trusted request context.
 // ================================================================
 
-using AutoMapper;
-using axionpro.application.Common.Helpers;
-using axionpro.application.Common.Helpers.axionpro.application.Configuration;
-using axionpro.application.Common.Helpers.Converters;
-using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.DTOs.Designation;
-using axionpro.application.Features.DepartmentCmd.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IEncryptionService;
-using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
+using MediatR;
 using Microsoft.Extensions.Logging;
+
 namespace axionpro.application.Features.DesignationCmd.Handlers
 {
+    #region Query
+
+    /// <summary>
+    /// Represents a request to soft delete a designation.
+    /// </summary>
     public class DeleteDesignationQuery : IRequest<ApiResponse<bool>>
     {
-        public DeleteDesignationRequestDTO DTO { get; set; }
+        public DeleteDesignationRequestDTO DTO { get; }
 
+        /// <summary>
+        /// Initializes the delete request.
+        /// </summary>
         public DeleteDesignationQuery(DeleteDesignationRequestDTO dto)
         {
             DTO = dto;
         }
     }
 
+    #endregion
+
+    #region Handler
+
     /// <summary>
-    /// Handler for soft deleting a designation.
+    /// Handles soft-deletion requests for designations owned by the authenticated tenant.
     /// </summary>
     public class DeleteDesignationQueryHandler : IRequestHandler<DeleteDesignationQuery, ApiResponse<bool>>
     {
+        #region Fields
+
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ICommonRequestService _commonRequestService;
         private readonly ILogger<DeleteDesignationQueryHandler> _logger;
-        private readonly ITokenService _tokenService;
-        private readonly IPermissionService _permissionService;
-        private readonly IConfiguration _config;
-        private readonly IEncryptionService _encryptionService;
-        private readonly IIdEncoderService _idEncoderService;
-        private readonly ICommonRequestService _commonRequestService ;
+
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Initializes the handler dependencies.
+        /// </summary>
         public DeleteDesignationQueryHandler(
             IUnitOfWork unitOfWork,
-            IMapper mapper,
-            IHttpContextAccessor httpContextAccessor,
-            ILogger<DeleteDesignationQueryHandler> logger,
-            ITokenService tokenService,
-            IPermissionService permissionService,
-            IConfiguration config,
-                IEncryptionService encryptionService, IIdEncoderService idEncoderService, ICommonRequestService commonRequestService)
+            ICommonRequestService commonRequestService,
+            ILogger<DeleteDesignationQueryHandler> logger)
         {
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
-            _httpContextAccessor = httpContextAccessor;
-            _logger = logger;
-            _tokenService = tokenService;
-            _permissionService = permissionService;
-            _config = config;
-            _encryptionService = encryptionService;
-            _idEncoderService = idEncoderService;
             _commonRequestService = commonRequestService;
+            _logger = logger;
         }
 
-        public async Task<ApiResponse<bool>> Handle(DeleteDesignationQuery request, CancellationToken cancellationToken)
+        #endregion
+
+        #region Handle
+
+        /// <summary>
+        /// Soft deletes a designation using trusted tenant and actor identifiers.
+        /// </summary>
+        public async Task<ApiResponse<bool>> Handle(
+            DeleteDesignationQuery request,
+            CancellationToken cancellationToken)
         {
-            try
-            {
-                // 🧩 STEP 1: Validate JWT Token
-                //  COMMON VALIDATION (Mandatory)
-                #region Tenant Request Validation
-                var validation = await _commonRequestService.ValidateRequestAsync();
-                #endregion
+            var validation = await _commonRequestService.ValidateRequestAsync();
+            if (!validation.Success)
+                return ApiResponse<bool>.Fail(validation.ErrorMessage);
 
-                if (!validation.Success)
-                    return ApiResponse<bool>.Fail(validation.ErrorMessage);
+            if (request.DTO.Id <= 0)
+                return ApiResponse<bool>.Fail("Invalid designation identifier.");
 
-                // Assign decoded values coming from CommonRequestService
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
+            var deleted = await _unitOfWork.DesignationRepository.DeleteDesignationAsync(
+                request.DTO.Id,
+                validation.TenantId,
+                validation.LoggedInEmployeeId,
+                cancellationToken);
 
+            if (!deleted)
+                return ApiResponse<bool>.Fail("Designation not found or could not be deleted.");
 
-                // ✅ Create  using repository
-                //var hasPermission = await _permissionService.HasAccessAsync(  validation.RoleId,"ModuleName",  "OperationName"  );
-
-                //if (!hasPermission)
-                //    throw new UnauthorizedAccessException("You do not have permission.");
-
-                _logger.LogInformation("🗑️ Attempting to delete RoleId: {RoleId} for TenantId: {TenantId}", request.DTO.Prop.TenantId, request.DTO.Prop.UserEmployeeId);
-
-                // 🧩 STEP 6: Repository call             
-
-                // 🧩 STEP 6: Call repository for delete
-                var isDeleted = await _unitOfWork.DesignationRepository.DeleteDesignationAsync(request.DTO);
-
-                if (isDeleted)
-                {
-                    _logger.LogInformation("✅ Designation deleted successfully. Id: {Id}, TenantId: {TenantId}",
-                        request.DTO.Id, request.DTO.Prop.UserEmployeeId);
-
-                    return ApiResponse<bool>.Success(true, "Designation deleted successfully.");
-                }
-
-                return new ApiResponse<bool>
-                {
-                    IsSucceeded = false,
-                    Message = "Designation not found or could not be deleted.",
-                    Data = false
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error while deleting designation Id: {Id}", request.DTO?.Id);
-                return new ApiResponse<bool>
-                {
-                    IsSucceeded = false,
-                    Message = "Failed to delete designation.",
-                    Data = false
-                };
-            }
+            _logger.LogInformation("Designation deleted. DesignationId: {DesignationId}", request.DTO.Id);
+            return ApiResponse<bool>.Success(true, "Designation deleted successfully.");
         }
 
-
+        #endregion
     }
+
+    #endregion
 }

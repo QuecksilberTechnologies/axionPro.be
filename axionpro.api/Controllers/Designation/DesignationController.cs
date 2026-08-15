@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOs.Department;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Exposes tenant-scoped department and designation endpoints.
+// ================================================================
+
+using axionpro.application.DTOs.Department;
 using axionpro.application.DTOs.Designation;
 using axionpro.application.DTOS.Designation;
 using axionpro.application.Features.DepartmentCmd.Handlers;
@@ -75,7 +82,7 @@ namespace axionpro.api.Controllers.Designation
         
         public async Task<IActionResult> getDesignation([FromQuery] GetDesignationOptionRequestDTO requestDTO)
         {
-            _logger.LogInfo($"Received request to get Designation : {requestDTO.UserEmployeeId}");
+            _logger.LogInfo($"Received request to get designation options for DepartmentId: {requestDTO.DepartmentId}");
 
             var command = new GetDesignationOptionQuery(requestDTO);
             var result = await _mediator.Send(command);

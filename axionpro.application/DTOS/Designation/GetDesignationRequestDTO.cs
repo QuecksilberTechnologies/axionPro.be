@@ -1,21 +1,21 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines client-supplied filters for designation listings.
+// ================================================================
+
 using axionpro.application.DTOS.Pagination;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOs.Designation
 {
+    /// <summary>
+    /// Represents filters and paging inputs for designation projections.
+    /// </summary>
     public class GetDesignationRequestDTO : BaseRequest
     {
-             
-        public int DepartmentId { get; set; }     
+        public int DepartmentId { get; set; }
         public string? DesignationName { get; set; }
         public bool? IsActive { get; set; }
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
-
-
     }
 }

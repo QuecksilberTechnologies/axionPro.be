@@ -1,21 +1,18 @@
-﻿using axionpro.application.DTOS.Common;
-using axionpro.application.DTOS.Pagination;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines client-supplied filters for designation options.
+// ================================================================
 
 namespace axionpro.application.DTOS.Designation
 {
+    /// <summary>
+    /// Represents filters for active designation options.
+    /// </summary>
     public class GetDesignationOptionRequestDTO
     {
-       
-        public required string UserEmployeeId { get; set; }
-        public  int DepartmentId { get; set; }       
+        public int DepartmentId { get; set; }
         public bool IsActive { get; set; } = true;
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
-
-
     }
 }

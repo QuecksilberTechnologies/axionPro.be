@@ -1,20 +1,17 @@
-﻿using axionpro.application.DTOS.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines a client request to soft delete a designation.
+// ================================================================
 
 namespace axionpro.application.DTOs.Designation
 {
+    /// <summary>
+    /// Represents the identifier of a designation to soft delete.
+    /// </summary>
     public class DeleteDesignationRequestDTO
     {
-
-        public required int Id { get; set; }      
-        public string? UserEmployeeId { get; set; }      
-       
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
-
-
+        public required int Id { get; set; }
     }
 }

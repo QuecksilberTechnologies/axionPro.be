@@ -38,7 +38,7 @@ namespace axionpro.api.Controllers.Attendance
         }
 
 
-        [HttpPost("markattendance")]
+        [HttpPost("mark-attendance")]
         public async Task<IActionResult> MarkAttendance([FromBody] AttendanceRequestDTO? attendanceRequestDTO)
         {
             //_logger.LogInfo("Received mark attendance request for user: {LoginId}" + attendanceRequestDTO.LoginId.ToString());

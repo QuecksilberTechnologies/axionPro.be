@@ -1,41 +1,50 @@
-﻿using AutoMapper;
-using axionpro.application.Common.Helpers.Converters;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Persists and projects tenant-scoped designation data.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.DTOs.Designation;
 using axionpro.application.DTOS.Designation;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Wrappers;
-
+using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
-using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Data; using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
-  
-    public   class DesignationRepository : IDesignationRepository
+    /// <summary>
+    /// Provides tenant-scoped persistence and projection operations for designations.
+    /// </summary>
+    public class DesignationRepository : IDesignationRepository
     {
         private readonly WorkforceDbContext _context;
-       
         private readonly IMapper _mapper;
         private readonly ILogger<DesignationRepository> _logger;
 
+        /// <summary>
+        /// Initializes repository dependencies.
+        /// </summary>
         public DesignationRepository(
             WorkforceDbContext context,
             ILogger<DesignationRepository> logger,
-            IMapper mapper
-          )
+            IMapper mapper)
         {
             _context = context;
-            this._logger = logger;
+            _logger = logger;
             _mapper = mapper;
-            
         }
-        
 
-        public async Task<int> AutoCreateDesignationAsync(List<Designation> designations,int departmentId)
+        #region Create
+
+        /// <summary>
+        /// Persists designation seed entities and returns the executive-office designation identifier.
+        /// </summary>
+        public async Task<int> AutoCreateDesignationAsync(List<Designation> designations, int departmentId)
         {
             try
             {
@@ -45,455 +54,284 @@ namespace axionpro.persistance.Repositories
                     return 0;
                 }
 
-                long tenantId = designations.First().TenantId;
-
-                _logger.LogInformation("Attempting to create {Count} Designation(s) for TenantId: {TenantId}", designations.Count, tenantId);
-
+                var tenantId = designations.First().TenantId;
                 await _context.Designations.AddRangeAsync(designations);
-                var result = await _context.SaveChangesAsync();
+                var savedCount = await _context.SaveChangesAsync();
 
-                if (result == designations.Count)
+                if (savedCount != designations.Count)
                 {
-                    _logger.LogInformation("Successfully created {Count} designations for TenantId: {TenantId}", result, tenantId);
-
-                    // Admin Designation ID return karo
-                    var adminDesignation = designations.FirstOrDefault(d => d.Department.TenantId == tenantId && d.Department.IsExecutiveOffice == true);
-                    if (adminDesignation != null)
-                    {
-                        return adminDesignation.Id; // Id will be populated after SaveChangesAsync
-                    }
-
-                    _logger.LogWarning("Admin designation not found in the inserted list.");
+                    _logger.LogWarning(
+                        "Designation seed count mismatch. Expected: {Expected}; saved: {Saved}.",
+                        designations.Count,
+                        savedCount);
                     return 0;
                 }
-                else
-                {
-                    _logger.LogWarning("Mismatch in inserted designation count. Expected: {Expected}, Inserted: {Inserted}", designations.Count, result);
-                    return 0;
-                }
+
+                return designations.FirstOrDefault(
+                    designation => designation.Department?.TenantId == tenantId &&
+                                   designation.Department.IsExecutiveOffice)?.Id ?? 0;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while creating designations.");
+                _logger.LogError(ex, "Error occurred while creating designation seeds.");
                 return 0;
             }
         }
 
-        
-        public async Task<bool> CheckDuplicateValueAsync(long tenantId, string value)
+        /// <summary>
+        /// Persists a designation entity after enforcing tenant and department constraints.
+        /// </summary>
+        public async Task<Designation?> CreateAsync(
+            Designation entity,
+            CancellationToken cancellationToken = default)
         {
-            try
+            ArgumentNullException.ThrowIfNull(entity);
+
+            var departmentExists = await _context.Departments.AnyAsync(
+                department => department.Id == entity.DepartmentId &&
+                              department.TenantId == entity.TenantId &&
+                              department.IsActive == true &&
+                              department.IsSoftDeleted != true,
+                cancellationToken);
+
+            if (!departmentExists)
             {
-               
-
-                // Check if duplicate value exists in Designation table (case-insensitive)
-                bool exists = await _context.Designations
-              .AnyAsync(d => d.TenantId == tenantId
-                          && d.IsSoftDeleted != true
-                          && d.DesignationName.ToLower() == value.Trim().ToLower());
-
-
-                return exists;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while checking duplicate Designation value '{Value}' .", value);
-                throw;
-            }
-        }
-
-        public async Task<PagedResponseDTO<GetDesignationResponseDTO>> CreateAsync(CreateDesignationRequestDTO dto)
-        {
-            var result = new PagedResponseDTO<GetDesignationResponseDTO>();
-
-            try
-            {
-                // 🧩 1️⃣ Validate input
-                if (dto == null)
-                {
-                    _logger.LogWarning("⚠️ CreateAsync called with null designation DTO.");
-                    throw new ArgumentNullException(nameof(dto), "Designation object cannot be null.");
-                }
-
-                // 🧩 2️⃣ Parse and validate DepartmentId
-               
-                
-
-                if (dto.DepartmentId <= 0)
-                    throw new ArgumentException("❌ Invalid DepartmentId provided.");
-
-              
-
-                // ✅ Check if department exists and is active
-                var departmentExists = await _context.Departments
-                    .AnyAsync(d => d.Id == dto.DepartmentId &&
-                                   d.TenantId == dto.Prop.TenantId &&
-                                   d.IsActive == true &&
-                                   d.IsSoftDeleted != true);
-
-                if (!departmentExists)
-                {
-                    _logger.LogWarning("⚠️ Department with Id {DepartmentId} not found or inactive for TenantId {TenantId}.", dto.DepartmentId, dto.Prop.TenantId);
-                    throw new InvalidOperationException($"Department with Id {dto.DepartmentId} does not exist or is inactive.");
-                }
-
-                // 🧩 3️⃣ Check duplicate designation name under same tenant
-                bool exists = await _context.Designations
-                    .AnyAsync(d =>
-                        d.TenantId == dto.Prop.TenantId &&
-                        d.DesignationName.ToLower() == dto.DesignationName.ToLower() &&
-                        d.IsSoftDeleted != true);
-
-                if (exists)
-                {
-                    _logger.LogWarning("⚠️ Designation '{Name}' already exists for TenantId {TenantId}.", dto.DesignationName, dto.Prop.TenantId);
-
-                    result.Data = new List<GetDesignationResponseDTO>();
-                    result.TotalCount = 0;
-                    result.PageNumber = 1;
-                    result.PageSize = 10;
-                    return result;
-                }
-
-                // 🧩 4️⃣ Map DTO → Entity
-                var entity = _mapper.Map<Designation>(dto);
-                entity.TenantId = dto.Prop.TenantId;
-                entity.DepartmentId = dto.DepartmentId;
-                entity.AddedById = dto.Prop.UserEmployeeId;
-                entity.AddedDateTime = DateTime.UtcNow;
-                entity.IsActive = true;
-                entity.IsSoftDeleted = false;
-
-                // 🧩 5️⃣ Insert & Save
-                await _context.Designations.AddAsync(entity);
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation("✅ Designation '{Name}' created successfully with Id: {Id}", dto.DesignationName, entity.Id);
-
-                // 🧩 6️⃣ Fetch latest 10 designations (with DepartmentName join)
-                var latestDesignations = await (
-                    from des in _context.Designations.AsNoTracking()
-                    join dep in _context.Departments.AsNoTracking()
-                        on des.DepartmentId equals dep.Id into deptGroup
-                    from dep in deptGroup.DefaultIfEmpty()
-                    where des.TenantId == dto.Prop.TenantId
-                          && (des.IsSoftDeleted == null || des.IsSoftDeleted == false)
-                          && (dep == null || (dep.IsSoftDeleted != true && dep.IsActive == true))
-                    orderby des.Id descending
-                    select new GetDesignationResponseDTO
-                    {
-                        Id = des.Id,
-                        DepartmentId = des.DepartmentId,
-                        DesignationName = des.DesignationName,
-                        DepartmentName = dep != null ? dep.DepartmentName : string.Empty,
-                        Description = des.Description,
-                        IsActive = des.IsActive
-                    })
-                    .Take(10)
-                    .ToListAsync();
-
-                // 🧩 7️⃣ Prepare paged response
-                result.Data = latestDesignations;
-                result.TotalCount = await _context.Designations.CountAsync(d =>
-                    d.TenantId == dto.Prop.TenantId && d.IsSoftDeleted != true);
-                result.PageNumber = 1;
-                result.PageSize = 10;
-                result.TotalPages = (int)Math.Ceiling((double)result.TotalCount / result.PageSize);
-                
-                return result;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error while creating designation for TenantId {TenantId}: {Message}", dto.Prop.TenantId, ex.Message);
-                throw new Exception("An error occurred while creating the designation.", ex);
-            }
-        }
-
-        public async Task<bool> DeleteDesignationAsync(DeleteDesignationRequestDTO dto)
-        {
-            try
-            {
-                // 🧩 1️⃣ Validate input
-               
-
-                
-
-                // 🧩 2️⃣ Fetch existing Designation
-                var existingEntity = await _context.Designations
-                    .FirstOrDefaultAsync(d => d.Id == dto.Id && (d.IsSoftDeleted != true));
-
-                if (existingEntity == null)
-                {
-                    _logger.LogWarning("⚠️ Designation not found for Id: {Id}", dto.Id);
-                    return false;
-                }
-
-                // 🧩 3️⃣ Perform soft delete
-                existingEntity.IsSoftDeleted = true;
-                existingEntity.IsActive = false;
-                existingEntity.SoftDeletedById = dto.Prop.UserEmployeeId;
-                existingEntity.SoftDeletedDateTime = DateTime.UtcNow;
-                existingEntity.Id = dto.Id;
-
-				_context.Designations.Update(existingEntity);
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation("✅ Designation Id: {Id} soft deleted successfully by EmployeeId: {EmpId}", dto.Id, dto.Prop.UserEmployeeId);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error while deleting designation Id: {Id}", dto?.Id);
-                throw new Exception("An error occurred while deleting the designation.", ex);
-            }
-        }
-
-
-        #region Get-Complete
-        public async Task<PagedResponseDTO<GetDesignationResponseDTO>> GetAsync(GetDesignationRequestDTO request)
-        {
-            var response = new PagedResponseDTO<GetDesignationResponseDTO>();
-
-            try
-            {
-                if (request == null)
-                {
-                    _logger.LogWarning("⚠️ GetAsync called with null request DTO.");
-                    return response;
-                }
-
-           
-
-
-
-                // ✅ Base query (join with Department)
-                var query =
-                    from des in _context.Designations
-                    join dep in _context.Departments
-                        on des.DepartmentId equals dep.Id into deptGroup
-                    from dept in deptGroup.DefaultIfEmpty()
-                    where des.TenantId == request.Prop.TenantId
-                          && des.IsSoftDeleted != true
-                          && (dept == null || (dept.IsSoftDeleted != true && dept.IsActive == true))
-                    select new
-                    {
-                        des,
-                        DepartmentName = dept != null ? dept.DepartmentName : string.Empty
-                    };
-
-
-                // ✅ Optional Filters
-                if (request.DepartmentId > 0)
-                    query = query.Where(x => x.des.DepartmentId == request.DepartmentId);
-
-                if (!string.IsNullOrWhiteSpace(request.DesignationName))
-                    query = query.Where(x => x.des.DesignationName.ToLower()
-                                 .Contains(request.DesignationName.ToLower()));
-
-                if (request.IsActive.HasValue)
-                    query = query.Where(x => x.des.IsActive == request.IsActive.Value);
-
-
-
-                // ✅ Sorting
-                query = request.SortBy?.ToLower() switch
-                {
-                    "designationname" => request.SortOrder?.ToLower() == "asc"
-                        ? query.OrderBy(x => x.des.DesignationName)
-                        : query.OrderByDescending(x => x.des.DesignationName),
-
-                    "departmentname" => request.SortOrder?.ToLower() == "asc"
-                        ? query.OrderBy(x => x.DepartmentName)
-                        : query.OrderByDescending(x => x.DepartmentName),
-
-                    _ => query.OrderByDescending(x => x.des.Id) // Default sort by Id descending
-                };
-
-                // ✅ Pagination
-                var totalRecords = await query.CountAsync();
-                var designations = await query
-                    .Skip((request.PageNumber - 1) * request.PageSize)
-                    .Take(request.PageSize)
-                    .ToListAsync();
-
-                // ✅ Mapping to DTO (manual mapping with DepartmentName)
-                var mappedList = designations.Select(x =>
-                {
-                    var dto = _mapper.Map<GetDesignationResponseDTO>(x.des);
-                    dto.DepartmentName = x.DepartmentName ?? string.Empty;
-                    return dto;
-                }).ToList();
-
-                response.Data = mappedList;
-                response.TotalCount = totalRecords;
-                response.PageNumber = request.PageNumber;
-                response.PageSize = request.PageSize;
-                response.TotalPages = (int)Math.Ceiling((double)totalRecords / request.PageSize);
-
-                _logger.LogInformation("✅ Retrieved {Count} designations for TenantId: {TenantId}", mappedList.Count, request.Prop.TenantId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error fetching designations for TenantId: {TenantId}", request.Prop.TenantId);
-                response.Data = new List<GetDesignationResponseDTO>();
+                _logger.LogWarning(
+                    "Department {DepartmentId} is unavailable for TenantId {TenantId}.",
+                    entity.DepartmentId,
+                    entity.TenantId);
+                return null;
             }
 
-            return response;
+            var exists = await _context.Designations.AnyAsync(
+                designation => designation.TenantId == entity.TenantId &&
+                               designation.DesignationName.ToLower() == entity.DesignationName.ToLower() &&
+                               designation.IsSoftDeleted != true,
+                cancellationToken);
+
+            if (exists)
+            {
+                _logger.LogWarning(
+                    "Designation {DesignationName} already exists for TenantId {TenantId}.",
+                    entity.DesignationName,
+                    entity.TenantId);
+                return null;
+            }
+
+            await _context.Designations.AddAsync(entity, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+            return entity;
         }
 
         #endregion
 
+        #region Update
 
-
-        public async Task<bool> UpdateDesignationAsync(UpdateDesignationRequestDTO dto)
+        /// <summary>
+        /// Gets a mutable designation entity after enforcing tenant ownership.
+        /// </summary>
+        public Task<Designation?> GetByIdForTenantAsync(
+            int id,
+            long tenantId,
+            CancellationToken cancellationToken = default)
         {
-            try
-            {
-                // 🧩 1️⃣ Validate Input
-                if (dto == null)
-                {
-                    _logger.LogWarning("⚠️ UpdateDesignationAsync called with null DTO.");
-                    throw new ArgumentNullException(nameof(dto), "UpdateDesignationRequestDTO cannot be null.");
-                }
-
-                int departmentId = SafeParser.TryParseInt(dto.DepartmentId);
-              
-
-                // 🧩 2️⃣ Fetch existing record
-                var existingEntity = await _context.Designations
-                    .FirstOrDefaultAsync(d => d.Id == dto.Id && (d.IsSoftDeleted != true));
-
-                if (existingEntity == null)
-                {
-                    _logger.LogWarning("❌ Designation not found for Id: {Id}", dto.Id);
-                    return false;
-                }
-
-                // 🧩 3️⃣ Update fields conditionally
-                existingEntity.DesignationName = dto.DesignationName?.Trim() ?? existingEntity.DesignationName;
-                existingEntity.Description = dto.Description?.Trim() ?? existingEntity.Description;
-                existingEntity.DepartmentId = departmentId > 0 ? departmentId : existingEntity.DepartmentId;
-
-                // ✅ IsActive sirf tab update ho jab dto.IsActive me value ho
-                if (dto.IsActive.HasValue)
-                    existingEntity.IsActive = dto.IsActive.Value;
-
-                existingEntity.UpdatedById = dto.Prop.UserEmployeeId;
-                existingEntity.UpdatedDateTime = DateTime.UtcNow;
-
-                // 🧩 4️⃣ Save Changes
-                _context.Designations.Update(existingEntity);
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation("✅ Designation '{Name}' (Id: {Id}) updated successfully by EmployeeId: {EmployeeId}",
-                    existingEntity.DesignationName, existingEntity.Id, dto.Prop.UserEmployeeId);
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error while updating designation Id: {Id}", dto?.Id);
-                throw new Exception("An error occurred while updating the designation.", ex);
-            }
+            return _context.Designations.FirstOrDefaultAsync(
+                designation => designation.Id == id &&
+                               designation.TenantId == tenantId &&
+                               designation.IsSoftDeleted != true,
+                cancellationToken);
         }
 
+        /// <summary>
+        /// Persists changes to a prepared designation entity.
+        /// </summary>
+        public async Task<bool> UpdateDesignationAsync(
+            Designation entity,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(entity);
 
+            var existing = await _context.Designations.FirstOrDefaultAsync(
+                designation => designation.Id == entity.Id &&
+                               designation.TenantId == entity.TenantId &&
+                               designation.IsSoftDeleted != true,
+                cancellationToken);
+
+            if (existing == null)
+                return false;
+
+            var departmentExists = await _context.Departments.AnyAsync(
+                department => department.Id == entity.DepartmentId &&
+                              department.TenantId == entity.TenantId &&
+                              department.IsActive == true &&
+                              department.IsSoftDeleted != true,
+                cancellationToken);
+
+            if (!departmentExists)
+                return false;
+
+            existing.DesignationName = entity.DesignationName;
+            existing.Description = entity.Description;
+            existing.DepartmentId = entity.DepartmentId;
+            existing.IsActive = entity.IsActive;
+            existing.UpdatedById = entity.UpdatedById;
+            existing.UpdatedDateTime = entity.UpdatedDateTime;
+
+            await _context.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+
+        #endregion
+
+        #region Delete
+
+        /// <summary>
+        /// Soft deletes a designation after enforcing tenant ownership.
+        /// </summary>
+        public async Task<bool> DeleteDesignationAsync(
+            int id,
+            long tenantId,
+            long employeeId,
+            CancellationToken cancellationToken = default)
+        {
+            var entity = await _context.Designations.FirstOrDefaultAsync(
+                designation => designation.Id == id &&
+                               designation.TenantId == tenantId &&
+                               designation.IsSoftDeleted != true,
+                cancellationToken);
+
+            if (entity == null)
+                return false;
+
+            entity.IsSoftDeleted = true;
+            entity.IsActive = false;
+            entity.SoftDeletedById = employeeId;
+            entity.SoftDeletedDateTime = DateTime.UtcNow;
+            await _context.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+
+        #endregion
+
+        #region Queries
+
+        /// <summary>
+        /// Determines whether a designation name already exists within a tenant.
+        /// </summary>
+        public Task<bool> CheckDuplicateValueAsync(long tenantId, string value)
+        {
+            return _context.Designations.AnyAsync(
+                designation => designation.TenantId == tenantId &&
+                               designation.IsSoftDeleted != true &&
+                               designation.DesignationName.ToLower() == value.Trim().ToLower());
+        }
+
+        /// <summary>
+        /// Gets paged designation projections for a trusted tenant.
+        /// </summary>
+        public async Task<PagedResponseDTO<GetDesignationResponseDTO>> GetAsync(
+            GetDesignationRequestDTO request,
+            long tenantId,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+
+            var query =
+                from designation in _context.Designations.AsNoTracking()
+                join department in _context.Departments.AsNoTracking()
+                    on designation.DepartmentId equals department.Id into departments
+                from department in departments.DefaultIfEmpty()
+                where designation.TenantId == tenantId &&
+                      designation.IsSoftDeleted != true &&
+                      (department == null || (department.IsSoftDeleted != true && department.IsActive == true))
+                select new
+                {
+                    Designation = designation,
+                    DepartmentName = department != null ? department.DepartmentName : string.Empty
+                };
+
+            if (request.DepartmentId > 0)
+                query = query.Where(item => item.Designation.DepartmentId == request.DepartmentId);
+            if (!string.IsNullOrWhiteSpace(request.DesignationName))
+                query = query.Where(item => item.Designation.DesignationName.ToLower().Contains(request.DesignationName.ToLower()));
+            if (request.IsActive.HasValue)
+                query = query.Where(item => item.Designation.IsActive == request.IsActive.Value);
+
+            query = request.SortBy?.ToLower() switch
+            {
+                "designationname" => request.SortOrder?.ToLower() == "asc"
+                    ? query.OrderBy(item => item.Designation.DesignationName)
+                    : query.OrderByDescending(item => item.Designation.DesignationName),
+                "departmentname" => request.SortOrder?.ToLower() == "asc"
+                    ? query.OrderBy(item => item.DepartmentName)
+                    : query.OrderByDescending(item => item.DepartmentName),
+                _ => query.OrderByDescending(item => item.Designation.Id)
+            };
+
+            var totalCount = await query.CountAsync(cancellationToken);
+            var pageNumber = request.PageNumber <= 0 ? 1 : request.PageNumber;
+            var pageSize = request.PageSize <= 0 ? 10 : request.PageSize;
+            var data = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(item => new GetDesignationResponseDTO
+                {
+                    Id = item.Designation.Id,
+                    DepartmentId = item.Designation.DepartmentId,
+                    DesignationName = item.Designation.DesignationName,
+                    DepartmentName = item.DepartmentName,
+                    Description = item.Designation.Description,
+                    IsActive = item.Designation.IsActive
+                })
+                .ToListAsync(cancellationToken);
+
+            return new PagedResponseDTO<GetDesignationResponseDTO>(data, totalCount, pageNumber, pageSize);
+        }
+
+        /// <summary>
+        /// Gets a designation projection by identifier.
+        /// </summary>
         public async Task<GetSingleDesignationResponseDTO?> GetByIdAsync(GetSingleDesignationRequestDTO dto)
         {
-            try
-            {
-                // 🧩 1️⃣ Validation
-                if (dto == null)
-                {
-                    _logger.LogWarning("⚠️ GetByIdAsync called with null DTO.");
-                    throw new ArgumentNullException(nameof(dto), "GetSingleDesignationRequestDTO cannot be null.");
-                }
+            ArgumentNullException.ThrowIfNull(dto);
 
-              
+            var designation = await _context.Designations
+                .AsNoTracking()
+                .FirstOrDefaultAsync(item => item.Id == dto.Id && item.IsSoftDeleted != true);
 
-                // 🧩 2️⃣ Record fetch
-                var designation = await _context.Designations
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(d =>
-                        d.Id == dto.Id &&
-                        
-                        (d.IsSoftDeleted!=true));
-
-                if (designation == null)
-                {
-                    _logger.LogWarning("❌ No Designation found for Id: {Id}", dto.Id);
-                    return null;
-                }
-
-                // 🧩 3️⃣ Mapping (Entity → DTO)
-                var response = _mapper.Map<GetSingleDesignationResponseDTO>(designation);
-
-                _logger.LogInformation("✅ Designation fetched successfully. Id: {Id}", dto.Id);
-                return response;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error while fetching Designation by Id {Id}", dto.Id);
-                throw new Exception("An error occurred while fetching designation details.", ex);
-            }
+            return designation == null
+                ? null
+                : _mapper.Map<GetSingleDesignationResponseDTO>(designation);
         }
 
-
-
-        public async Task<ApiResponse<List<GetDesignationOptionResponseDTO?>>> GetOptionAsync(GetDesignationOptionRequestDTO dto)
+        /// <summary>
+        /// Gets active designation options for a department within a trusted tenant.
+        /// </summary>
+        public Task<List<GetDesignationOptionResponseDTO>> GetOptionAsync(
+            int departmentId,
+            long tenantId,
+            CancellationToken cancellationToken = default)
         {
-            var response = new ApiResponse<List<GetDesignationOptionResponseDTO?>>();
+            var query = _context.Designations
+                .AsNoTracking()
+                .Where(designation => designation.TenantId == tenantId &&
+                                      designation.IsSoftDeleted != true &&
+                                      designation.IsActive == true);
 
-            try
-            {
-                
-                 
-                // ✅ Base Query
-                var query = _context.Designations
-                    .Where(x => x.TenantId == dto.Prop.TenantId && x.IsSoftDeleted != true && x.IsActive == true);
+            if (departmentId > 0)
+                query = query.Where(designation => designation.DepartmentId == departmentId);
 
-                // ✅ Conditional filter (apply only if departmentId > 0)
-                if (dto.DepartmentId > 0)
-                    query = query.Where(x => x.DepartmentId == dto.DepartmentId);
-
-                // ✅ Projection
-                var designations = await query
-                    .OrderBy(x => x.DesignationName)
-                    .Select(r => new GetDesignationOptionResponseDTO
-                    {
-                        Id = r.Id,
-                        DepartmentId = r.DepartmentId,
-                        DesignationName = r.DesignationName,
-                       // IsActive = r.IsActive
-                    })
-                    .AsNoTracking()
-                    .ToListAsync();
-
-                // ✅ Response setup
-                response.Data = designations;
-                response.Message = designations.Any()
-                    ? "✅ Designation options fetched successfully."
-                    : "⚠️ No designations found for this tenant.";
-
-                return response;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error fetching designation options for TenantId {TenantId}", dto.Prop.TenantId);
-
-                return new ApiResponse<List<GetDesignationOptionResponseDTO?>>
+            return query
+                .OrderBy(designation => designation.DesignationName)
+                .Select(designation => new GetDesignationOptionResponseDTO
                 {
-                    Message = "❌ An error occurred while fetching designation options.",
-                    Data = new List<GetDesignationOptionResponseDTO?>()
-                };
-            }
-        
-        
+                    Id = designation.Id,
+                    DepartmentId = designation.DepartmentId,
+                    DesignationName = designation.DesignationName
+                })
+                .ToListAsync(cancellationToken);
         }
 
-        
+        #endregion
     }
-
-
 }
- 

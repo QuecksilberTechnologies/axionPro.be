@@ -1,8 +1,8 @@
-﻿// ================================================================
+// ================================================================
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
-// Purpose : Handles CreateDesignationCommandHandler requests using authenticated tenant context.
+// Purpose : Creates tenant-scoped designations using trusted request context.
 // ================================================================
 
 using AutoMapper;
@@ -10,175 +10,112 @@ using axionpro.application.DTOs.Designation;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IEncryptionService;
-using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
 using MediatR;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.DesignationCmd.Handlers
 {
-
-
-    public class CreateDesignationCommand : IRequest<ApiResponse<List<GetDesignationResponseDTO>>>
-    {
-
-        public CreateDesignationRequestDTO DTO { get; set; }
-
-        public CreateDesignationCommand(CreateDesignationRequestDTO dto)
-        {
-            this.DTO = dto;
-        }
-
-    }
-
+    #region Command
 
     /// <summary>
-    /// Handles creation of a Designation.
+    /// Represents a request to create a designation.
+    /// </summary>
+    public class CreateDesignationCommand : IRequest<ApiResponse<List<GetDesignationResponseDTO>>>
+    {
+        public CreateDesignationRequestDTO DTO { get; }
+
+        /// <summary>
+        /// Initializes the create request with client-editable values.
+        /// </summary>
+        public CreateDesignationCommand(CreateDesignationRequestDTO dto)
+        {
+            DTO = dto;
+        }
+    }
+
+    #endregion
+
+    #region Handler
+
+    /// <summary>
+    /// Handles creation of designations for the authenticated tenant.
     /// </summary>
     public class CreateDesignationCommandHandler : IRequestHandler<CreateDesignationCommand, ApiResponse<List<GetDesignationResponseDTO>>>
     {
+        #region Fields
+
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ILogger<CreateDesignationCommandHandler> _logger;
-        private readonly ITokenService _tokenService;
-        private readonly IPermissionService _permissionService;
-        private readonly IConfiguration _config;
-        private readonly IEncryptionService _encryptionService;
-        private readonly IIdEncoderService _idEncoderService;
         private readonly ICommonRequestService _commonRequestService;
+        private readonly ILogger<CreateDesignationCommandHandler> _logger;
 
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Initializes the handler dependencies.
+        /// </summary>
         public CreateDesignationCommandHandler(
             IUnitOfWork unitOfWork,
             IMapper mapper,
-            IHttpContextAccessor httpContextAccessor,
-            ILogger<CreateDesignationCommandHandler> logger,
-            ITokenService tokenService,
-            IPermissionService permissionService,
-            IConfiguration config,
-                IEncryptionService encryptionService, IIdEncoderService idEncoderService, ICommonRequestService commonRequestService)
+            ICommonRequestService commonRequestService,
+            ILogger<CreateDesignationCommandHandler> logger)
         {
-
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _httpContextAccessor = httpContextAccessor;
-            _logger = logger;
-            _tokenService = tokenService;
-            _permissionService = permissionService;
-            _config = config;
-            _encryptionService = encryptionService;
-            _idEncoderService = idEncoderService;   
             _commonRequestService = commonRequestService;
+            _logger = logger;
         }
+
+        #endregion
+
+        #region Handle
+
+        /// <summary>
+        /// Creates a designation from client-editable values and trusted tenant audit context.
+        /// </summary>
         public async Task<ApiResponse<List<GetDesignationResponseDTO>>> Handle(
-   CreateDesignationCommand request,
-   CancellationToken cancellationToken)
+            CreateDesignationCommand request,
+            CancellationToken cancellationToken)
         {
-            try
-            {
-                _logger.LogInformation("Creating Designation");
+            var validation = await _commonRequestService.ValidateRequestAsync();
+            if (!validation.Success)
+                throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // ===============================
-                // 1️⃣ COMMON VALIDATION (AUTH + CONTEXT)
-                // ===============================
-                #region Tenant Request Validation
-                var validation = await _commonRequestService
-                    .ValidateRequestAsync();
-                #endregion
+            if (request.DTO.DepartmentId <= 0)
+                throw new ValidationErrorException("A valid department is required.");
 
-                if (!validation.Success)
-                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+            var designationName = request.DTO.DesignationName?.Trim();
+            if (string.IsNullOrWhiteSpace(designationName))
+                throw new ValidationErrorException("Designation name is required.");
 
-                // ===============================
-                // 2️⃣ NULL SAFETY
-                // ===============================
-                if (request?.DTO == null)
-                    throw new ValidationErrorException(
-                        "Invalid request.",
-                        new List<string> { "Request DTO is required." }
-                    );
+            if (await _unitOfWork.DesignationRepository.CheckDuplicateValueAsync(validation.TenantId, designationName))
+                throw new ApiException("This designation name already exists.", 409);
 
-                if (request.DTO.Prop == null)
-                    request.DTO.Prop = new();
+            // Map client-editable values to the domain entity.
+            var entity = _mapper.Map<Designation>(request.DTO);
+            entity.DesignationName = designationName;
+            entity.TenantId = validation.TenantId;
+            entity.AddedById = validation.LoggedInEmployeeId;
+            entity.AddedDateTime = DateTime.UtcNow;
+            entity.IsSoftDeleted = false;
 
-                // Assign values
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
+            // Persist the prepared domain entity.
+            var created = await _unitOfWork.DesignationRepository.CreateAsync(entity, cancellationToken);
+            if (created == null)
+                throw new ApiException("The selected department is unavailable or the designation already exists.", 409);
 
-                // ===============================
-                // 3️⃣ PERMISSION CHECK (RBAC FIXED)
-                // ===============================
-                //var hasPermission = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    "Designation",   // 🔹 Module
-                //    "Add"            // 🔹 Operation
-                //);
-
-                //if (!hasPermission)
-                //    throw new UnauthorizedAccessException(
-                //        "You do not have permission to create designation.");
-
-                // ===============================
-                // 4️⃣ BUSINESS VALIDATION
-                // ===============================
-                string? designationName = request.DTO.DesignationName?.Trim();
-
-                if (string.IsNullOrWhiteSpace(designationName))
-                    throw new ValidationErrorException(
-                        "Designation name is required.",
-                        new List<string> { "DesignationName cannot be empty." }
-                    );
-
-                request.DTO.DesignationName = designationName;
-
-                // ===============================
-                // 5️⃣ DUPLICATE CHECK (IMPORTANT)
-                // ===============================
-                bool isDuplicate = await _unitOfWork.DesignationRepository
-                    .CheckDuplicateValueAsync(validation.UserEmployeeId, designationName);
-
-                if (isDuplicate)
-                    throw new ApiException("This designation name already exists.", 409);
-
-                // ===============================
-                // 6️⃣ CREATE DESIGNATION
-                // ===============================
-                var responseDTO = await _unitOfWork.DesignationRepository
-                    .CreateAsync(request.DTO);
-
-                if (responseDTO == null || responseDTO.Data == null || !responseDTO.Data.Any())
-                    throw new ApiException("No designation was created.", 500);
-
-                // ===============================
-                // 7️⃣ COMMIT TRANSACTION (REQUIRED)
-                // ===============================
-                await _unitOfWork.CommitTransactionAsync();
-
-                // ===============================
-                // 8️⃣ SUCCESS RESPONSE
-                // ===============================
-                return new ApiResponse<List<GetDesignationResponseDTO>>
-                {
-                    IsSucceeded = true,
-                    Message = $"{responseDTO.TotalCount} record(s) created successfully.",
-                    PageNumber = responseDTO.PageNumber,
-                    PageSize = responseDTO.PageSize,
-                    TotalRecords = responseDTO.TotalCount,
-                    TotalPages = responseDTO.TotalPages,
-                    Data = responseDTO.Data
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while creating designation.");
-
-                // ❗ IMPORTANT: middleware handle karega
-                throw;
-            }
+            _logger.LogInformation("Designation created. DesignationId: {DesignationId}", created.Id);
+            return ApiResponse<List<GetDesignationResponseDTO>>.Success(
+                new List<GetDesignationResponseDTO> { _mapper.Map<GetDesignationResponseDTO>(created) },
+                "Designation created successfully.");
         }
+
+        #endregion
     }
+
+    #endregion
 }

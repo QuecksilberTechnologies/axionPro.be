@@ -1,22 +1,21 @@
-﻿using axionpro.application.DTOS.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines client-editable values for updating a designation.
+// ================================================================
 
 namespace axionpro.application.DTOs.Designation
 {
+    /// <summary>
+    /// Represents the client-editable values for an existing designation.
+    /// </summary>
     public class UpdateDesignationRequestDTO
     {
-
         public required int Id { get; set; }
-        public string? UserEmployeeId { get; set; }
         public int DepartmentId { get; set; }
         public string? DesignationName { get; set; }
         public string? Description { get; set; }
         public bool? IsActive { get; set; }
-     
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
     }
 }
