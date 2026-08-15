@@ -1,4 +1,11 @@
-﻿using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
+﻿// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Handles GetContactInfoQueryHandler requests using authenticated tenant context.
+// ================================================================
+
+using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.Exceptions;
@@ -24,6 +31,9 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
         }
 
     }
+    /// <summary>
+    /// Handles authenticated tenant requests for this feature.
+    /// </summary>
     public class GetContactInfoQueryHandler
     : IRequestHandler<GetContactInfoQuery, ApiResponse<List<GetContactResponseDTO>>>
     {
@@ -59,9 +69,10 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
                 // ===============================
                 // 1️⃣ VALIDATION
                 // ===============================
+                #region Tenant Request Validation
                 var validation =
-                    await _commonRequestService.ValidateRequestAsync(
-                        request.DTO?.UserEmployeeId);
+                    await _commonRequestService.ValidateRequestAsync();
+                #endregion
 
                 if (!validation.Success)
                     throw new UnauthorizedAccessException(validation.ErrorMessage);

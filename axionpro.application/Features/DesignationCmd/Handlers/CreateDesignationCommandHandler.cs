@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+﻿// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Handles CreateDesignationCommandHandler requests using authenticated tenant context.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.DTOs.Designation;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -78,8 +85,10 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                 // ===============================
                 // 1️⃣ COMMON VALIDATION (AUTH + CONTEXT)
                 // ===============================
+                #region Tenant Request Validation
                 var validation = await _commonRequestService
-                    .ValidateRequestAsync(request.DTO.UserEmployeeId);
+                    .ValidateRequestAsync();
+                #endregion
 
                 if (!validation.Success)
                     throw new UnauthorizedAccessException(validation.ErrorMessage);

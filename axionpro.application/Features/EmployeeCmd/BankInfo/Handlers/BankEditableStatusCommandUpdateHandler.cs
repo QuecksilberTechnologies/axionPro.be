@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+﻿// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Handles BankEditableStatusCommandUpdateHandler requests using authenticated tenant context.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Common;
 using axionpro.application.Exceptions;
@@ -26,6 +33,9 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
         }
     }
 
+    /// <summary>
+    /// Handles authenticated tenant requests for this feature.
+    /// </summary>
     public class BankEditableStatusCommandUpdateHandler
         : IRequestHandler<UpdateEditableStatusCommand, ApiResponse<bool>>
     {
@@ -73,8 +83,10 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 // ===============================
                 // 1️⃣ COMMON VALIDATION (AUTH + CONTEXT)
                 // ===============================
+                #region Tenant Request Validation
                 var validation = await _commonRequestService
-                    .ValidateRequestAsync(request.DTO.UserEmployeeId);
+                    .ValidateRequestAsync();
+                #endregion
 
                 if (!validation.Success)
                     throw new UnauthorizedAccessException(validation.ErrorMessage);

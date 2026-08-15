@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+﻿// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Handles GetRoleQueryHandler requests using authenticated tenant context.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.DTOs.Role;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
@@ -23,6 +30,9 @@ namespace axionpro.application.Features.RoleCmd.Handlers
         }
     }
 
+    /// <summary>
+    /// Handles authenticated tenant requests for this feature.
+    /// </summary>
     public class GetRoleQueryHandler : IRequestHandler<GetRoleQuery, ApiResponse<List<GetRoleResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -67,7 +77,9 @@ namespace axionpro.application.Features.RoleCmd.Handlers
             try
             {
                 //  COMMON VALIDATION (Mandatory)
-                var validation = await _commonRequestService.ValidateRequestAsync(request.DTO.UserEmployeeId);
+                #region Tenant Request Validation
+                var validation = await _commonRequestService.ValidateRequestAsync();
+                #endregion
 
                 if (!validation.Success)
                     return ApiResponse<List<GetRoleResponseDTO>>.Fail(validation.ErrorMessage);

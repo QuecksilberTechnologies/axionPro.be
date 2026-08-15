@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+﻿// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Handles UpdateLoginPasswordCommandHandler requests using authenticated tenant context.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.UserLogin;
@@ -31,6 +38,9 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 
 
     }
+    /// <summary>
+    /// Handles authenticated tenant requests for this feature.
+    /// </summary>
     public class UpdateLoginPasswordCommandHandler : IRequestHandler<UpdateLoginPasswordCommand, ApiResponse<UpdatePasswordResponseDTO>>
 {
         private readonly IUnitOfWork _unitOfWork;
@@ -78,7 +88,9 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 await _unitOfWork.BeginTransactionAsync();
                
                 // 1️ COMMON VALIDATION (Mandatory)
-                var validation = await _commonRequestService.ValidateRequestAsync(request.DTO.UserEmployeeId);
+                #region Tenant Request Validation
+                var validation = await _commonRequestService.ValidateRequestAsync();
+                #endregion
 
                 if (!validation.Success)
                     return ApiResponse<UpdatePasswordResponseDTO>.Fail(validation.ErrorMessage);

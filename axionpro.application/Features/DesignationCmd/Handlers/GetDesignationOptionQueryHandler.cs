@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+﻿// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Handles GetDesignationOptionQueryHandler requests using authenticated tenant context.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.Converters;
@@ -36,6 +43,9 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
         }
     }
 
+    /// <summary>
+    /// Handles authenticated tenant requests for this feature.
+    /// </summary>
     public class GetDesignationOptionQueryHandler : IRequestHandler<GetDesignationOptionQuery, ApiResponse<List<GetDesignationOptionResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -77,7 +87,9 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
         {
             try
             {
-                var validation = await _commonRequestService.ValidateRequestAsync(request.OptionDTO.UserEmployeeId);
+                #region Tenant Request Validation
+                var validation = await _commonRequestService.ValidateRequestAsync();
+                #endregion
 
                 if (!validation.Success)
                     return ApiResponse<List<GetDesignationOptionResponseDTO>>.Fail(validation.ErrorMessage);

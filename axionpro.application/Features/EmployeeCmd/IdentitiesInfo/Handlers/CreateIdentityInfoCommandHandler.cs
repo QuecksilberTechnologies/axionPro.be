@@ -1,4 +1,11 @@
-﻿using axionpro.application.Common.Helpers.RequestHelper;
+﻿// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Handles CreateEmployeeIdentityCommandHandler requests using authenticated tenant context.
+// ================================================================
+
+using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.Module;
 using axionpro.application.DTOS.Employee.Sensitive;
@@ -28,6 +35,9 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
         }
     }
 
+    /// <summary>
+    /// Handles authenticated tenant requests for this feature.
+    /// </summary>
     public class CreateEmployeeIdentityCommandHandler  : IRequestHandler<CreateIdentityInfoCommand, ApiResponse<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -66,8 +76,10 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
 
                 var first = request.DTO.Identities.First();
 
+                #region Tenant Request Validation
                 var validation =
-                    await _commonRequestService.ValidateRequestAsync(first.UserEmployeeId);
+                    await _commonRequestService.ValidateRequestAsync();
+                #endregion
 
                 if (!validation.Success)
                     throw new UnauthorizedAccessException(validation.ErrorMessage);

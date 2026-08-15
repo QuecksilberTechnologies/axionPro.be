@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+﻿// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Handles GetDepartmentOptionQueryHandler requests using authenticated tenant context.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Department;
 using axionpro.application.Interfaces;
@@ -24,6 +31,9 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
         }
     }
 
+    /// <summary>
+    /// Handles authenticated tenant requests for this feature.
+    /// </summary>
     public class GetDepartmentOptionQueryHandler : IRequestHandler<GetDepartmentOptionQuery, ApiResponse<List<GetDepartmentOptionResponse>>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -65,7 +75,9 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
         {
             try
             {
-                var validation = await _commonRequestService.ValidateRequestAsync(request.OptionDTO.UserEmployeeId);
+                #region Tenant Request Validation
+                var validation = await _commonRequestService.ValidateRequestAsync();
+                #endregion
 
                 if (!validation.Success)
                     return ApiResponse<List<GetDepartmentOptionResponse>>.Fail(validation.ErrorMessage);

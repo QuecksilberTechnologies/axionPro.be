@@ -1,4 +1,11 @@
-﻿using axionpro.application.Common.Helpers.Converters;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Provides shared tenant and Host request validation.
+// ================================================================
+
+using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Common.Models.Security;
 using axionpro.application.Constants;
@@ -33,7 +40,12 @@ namespace axionpro.infrastructure.CommonRequest
             _logger = logger;
         }
 
-        // No parameters
+        #region Tenant Request Validation
+
+        /// <summary>
+        /// Validates the current authenticated tenant request and resolves the trusted tenant, employee, and role context.
+        /// </summary>
+        /// <returns>The validated tenant request context.</returns>
         public async Task<CommonDecodedResult> ValidateRequestAsync()
         {
             try
@@ -79,58 +91,8 @@ namespace axionpro.infrastructure.CommonRequest
                 return new CommonDecodedResult { Success = false, ErrorMessage = "Internal validation error." };
             }
         }
-   
-        public async Task<CommonDecodedResult> ValidateRequestAsync(string encodedUserId)
-        {
-            try
-            {
-                var token = RequestCommonHelper.ExtractBearerToken(_context.HttpContext);
-                if (string.IsNullOrEmpty(token))
-                    return new CommonDecodedResult { Success = false, ErrorMessage = "Token missing." };
 
-                var claims = RequestCommonHelper.ValidateAndExtractClaims(token, _config);
-                if (claims == null)
-                    return new CommonDecodedResult { Success = false, ErrorMessage = "Token expired or invalid." };
-
-                long loggedInId = await _uow.StoreProcedureRepository.ValidateActiveUserLoginOnlyAsync(claims.UserId);
-                if (loggedInId < 1)
-                    return new CommonDecodedResult { Success = false, ErrorMessage = "Inactive user." };
-               
-              
-
-                var decoded = RequestCommonHelper.DecodeUserAndTenant(
-                    encodedUserId,
-                    claims.TenantId!,
-                    claims.TenantEncriptionKey!,
-                    _encoder
-                );
-
-
-                if (decoded.UserEmpId != loggedInId)
-                    return new CommonDecodedResult { Success = false, ErrorMessage = "User mismatch." };
-
-                if (decoded.TenantId <= 0 )
-                {
-                    _logger.LogWarning("❌ Tenant information missing .");
-                    return new CommonDecodedResult { Success = false, ErrorMessage = "TenantId not correct" };
-                }
-
-                return new CommonDecodedResult
-                {
-                    Success = true,
-                    LoggedInEmployeeId = loggedInId,
-                    UserEmployeeId = decoded.UserEmpId,
-                    TenantId = decoded.TenantId,
-                    RoleId = SafeParser.TryParseInt(claims.RoleId),                   
-                    Claims = claims
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "CommonRequestService Error");
-                return new CommonDecodedResult { Success = false, ErrorMessage = "Internal validation error." };
-            }
-        }
+        #endregion
 
         #region HostUser Token Validation
 

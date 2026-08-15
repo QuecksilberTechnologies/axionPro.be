@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.StoreProcedures.DashboardSummeries;
+﻿// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Handles GetEmployeesCountQueryHandler requests using authenticated tenant context.
+// ================================================================
+
+using axionpro.application.DTOS.StoreProcedures.DashboardSummeries;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
@@ -21,6 +28,9 @@ namespace axionpro.application.Features.StatsFeatures.EmployeesCmd.Handlers
             DTO = dTO;
         }
     }
+    /// <summary>
+    /// Handles authenticated tenant requests for this feature.
+    /// </summary>
     public class GetEmployeesCountQueryHandler: IRequestHandler<GetEmployeeCountsQuery, ApiResponse<EmployeeCountResponseStatsSp>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -54,8 +64,10 @@ namespace axionpro.application.Features.StatsFeatures.EmployeesCmd.Handlers
                 // ===============================
                 // 1️⃣ VALIDATION (AUTH)
                 // ===============================
+                #region Tenant Request Validation
                 var validation = await _commonRequestService
-                    .ValidateRequestAsync(request.DTO.UserEmployeeId);
+                    .ValidateRequestAsync();
+                #endregion
 
                 if (!validation.Success)
                     throw new UnauthorizedAccessException(validation.ErrorMessage);

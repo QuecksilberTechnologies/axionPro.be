@@ -1,4 +1,11 @@
-﻿using axionpro.application.Common.Helpers.RequestHelper;
+﻿// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the identity-update command and its legacy disabled flow.
+// ================================================================
+
+using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.Sensitive;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
@@ -12,6 +19,11 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
 {
+    #region Command
+
+    /// <summary>
+    /// Represents a request to update employee identity information.
+    /// </summary>
     public class UpdateIdentityInfoCommand : IRequest<ApiResponse<bool>>
     {
         public UpdateIdentityReqestDTO DTO { get; set; }
@@ -21,6 +33,8 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
             DTO = dto;
         }
     }
+
+    #endregion
 
     //public class UpdateIdentityInfoCommandHandler : IRequestHandler<UpdateIdentityInfoCommand, ApiResponse<bool>>
     //{
@@ -57,7 +71,7 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
         //        // 1️⃣ VALIDATION
         //        // =================================================
         //        var validation = await _commonRequestService
-        //            .ValidateRequestAsync(request.DTO.UserEmployeeId);
+        //            .ValidateRequestAsync();
 
         //        if (!validation.Success)
         //            return ApiResponse<bool>.Fail(validation.ErrorMessage);

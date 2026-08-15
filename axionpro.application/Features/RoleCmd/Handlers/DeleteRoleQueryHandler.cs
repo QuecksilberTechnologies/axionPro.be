@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+﻿// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Handles DeleteRoleQueryHandler requests using authenticated tenant context.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.DTOs.Role;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -24,6 +31,9 @@ namespace axionpro.application.Features.RoleCmd.Handlers
         }
     }
 
+    /// <summary>
+    /// Handles authenticated tenant requests for this feature.
+    /// </summary>
     public class DeleteRoleQueryHandler : IRequestHandler<DeleteRoleQuery, ApiResponse<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -70,8 +80,10 @@ namespace axionpro.application.Features.RoleCmd.Handlers
                 // ===============================
                 // 1️⃣ VALIDATION (AUTH)
                 // ===============================
+                #region Tenant Request Validation
                 var validation = await _commonRequestService
-                    .ValidateRequestAsync(request.DTO.UserEmployeeId);
+                    .ValidateRequestAsync();
+                #endregion
 
                 if (!validation.Success)
                     throw new UnauthorizedAccessException(validation.ErrorMessage);

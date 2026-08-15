@@ -15,17 +15,10 @@ namespace axionpro.application.Interfaces.ICommonRequest
     public interface ICommonRequestService
     {
         /// <summary>
-        /// Validates the current request and resolves the tenant-employee context.
+        /// Validates the current authenticated tenant request and resolves the trusted tenant, employee, and role context.
         /// </summary>
-        /// <returns>The decoded tenant-employee request context.</returns>
+        /// <returns>The validated tenant request context.</returns>
         Task<CommonDecodedResult> ValidateRequestAsync();
-
-        /// <summary>
-        /// Validates the current request and confirms the supplied encoded tenant user identifier.
-        /// </summary>
-        /// <param name="encodedUserId">The encoded tenant user identifier to validate.</param>
-        /// <returns>The decoded tenant-employee request context.</returns>
-        Task<CommonDecodedResult> ValidateRequestAsync(string encodedUserId);
 
         /// <summary>
         /// Validates that the current JWT belongs to an active Host user with an active Host role.

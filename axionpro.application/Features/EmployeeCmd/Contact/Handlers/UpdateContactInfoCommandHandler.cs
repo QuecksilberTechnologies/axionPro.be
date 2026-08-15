@@ -1,4 +1,11 @@
-﻿using axionpro.application.Common.Helpers.Converters;
+﻿// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Handles UpdateContactInfoCommandHandler requests using authenticated tenant context.
+// ================================================================
+
+using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOs.Module;
 using axionpro.application.DTOS.Employee.Contact;
@@ -21,6 +28,9 @@ public class UpdateEmployeeContactCommand : IRequest<ApiResponse<bool>>
        
        }
 
+/// <summary>
+/// Handles authenticated tenant requests for this feature.
+/// </summary>
 public class UpdateContactInfoCommandHandler
    : IRequestHandler<UpdateEmployeeContactCommand, ApiResponse<bool>>
 {
@@ -52,9 +62,10 @@ public class UpdateContactInfoCommandHandler
             // ===============================
             // 1️⃣ VALIDATION
             // ===============================
+            #region Tenant Request Validation
             var validation =
-                await _commonRequestService.ValidateRequestAsync(
-                    request.DTO?.UserEmployeeId);
+                await _commonRequestService.ValidateRequestAsync();
+            #endregion
 
             if (!validation.Success)
                 throw new UnauthorizedAccessException(validation.ErrorMessage);

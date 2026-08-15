@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+﻿// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Handles UpdateBankCommandHandler requests using authenticated tenant context.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.Employee.Bank;
@@ -28,6 +35,9 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
         }
 
     }
+    /// <summary>
+    /// Handles authenticated tenant requests for this feature.
+    /// </summary>
     public class UpdateBankCommandHandler : IRequestHandler<UpdateBankCommand, ApiResponse<bool>>
     {
 
@@ -82,8 +92,10 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 // ===============================
                 // 1️⃣ VALIDATION
                 // ===============================
+                #region Tenant Request Validation
                 var validation = await _commonRequestService
-                    .ValidateRequestAsync(request.DTO?.UserEmployeeId);
+                    .ValidateRequestAsync();
+                #endregion
 
                 if (!validation.Success)
                     throw new UnauthorizedAccessException(validation.ErrorMessage);

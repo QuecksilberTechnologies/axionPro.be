@@ -1,3 +1,10 @@
+﻿// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Handles CreateDepartmentCommandHandler requests using authenticated tenant context.
+// ================================================================
+
 using AutoMapper;
 using axionpro.application.DTOs.Department;
 using axionpro.application.Interfaces;
@@ -92,7 +99,9 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                 _logger.LogInformation("Creating Department ");
 
                 // Validate the authenticated tenant-user context and confirm the request identity.
-                var validation = await _commonRequestService.ValidateRequestAsync(request.DTO.UserEmployeeId);
+                #region Tenant Request Validation
+                var validation = await _commonRequestService.ValidateRequestAsync();
+                #endregion
 
                 if (!validation.Success)
                     return ApiResponse<List<GetDepartmentResponseDTO>>.Fail(validation.ErrorMessage ?? "Unauthorized request.");
