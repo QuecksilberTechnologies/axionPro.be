@@ -7,6 +7,9 @@ using axionpro.domain.Entity;
 
 namespace axionpro.application.Interfaces.IRepositories
 {
+    /// <summary>
+    /// Defines persistence operations for departments.
+    /// </summary>
     public interface IDepartmentRepository
     {
         Task<GetSingleDepartmentResponseDTO?> GetByIdAsync(
@@ -23,8 +26,14 @@ namespace axionpro.application.Interfaces.IRepositories
             int id,
             CancellationToken cancellationToken = default);
 
-        Task<PagedResponseDTO<GetDepartmentResponseDTO>> CreateAsync(
-            CreateDepartmentRequestDTO dto,
+        /// <summary>
+        /// Creates a department using the supplied domain entity.
+        /// </summary>
+        /// <param name="entity">The department entity to persist.</param>
+        /// <param name="cancellationToken">A token used to cancel the operation.</param>
+        /// <returns>The created entity, or <see langword="null"/> when a duplicate department exists.</returns>
+        Task<Department?> CreateAsync(
+            Department entity,
             CancellationToken cancellationToken = default);
 
         Task<PagedResponseDTO<GetDepartmentResponseDTO>> GetAsync(

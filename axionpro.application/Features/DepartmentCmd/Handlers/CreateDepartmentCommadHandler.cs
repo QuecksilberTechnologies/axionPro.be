@@ -1,180 +1,157 @@
-﻿using AutoMapper;
-using axionpro.application.Common.Helpers;
-using axionpro.application.Common.Helpers.axionpro.application.Configuration;
-using axionpro.application.Common.Helpers.Converters;
-using axionpro.application.Common.Helpers.EncryptionHelper;
-using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
+using AutoMapper;
 using axionpro.application.DTOs.Department;
-using axionpro.application.DTOs.Designation;
-using axionpro.application.DTOS.Common;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
-
-using axionpro.domain.Entity; using MediatR;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
+using axionpro.domain.Entity;
+using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.DepartmentCmd.Handlers
 {
+    #region Command
+
+    /// <summary>
+    /// Represents a request to create a department.
+    /// </summary>
     public class CreateDepartmentCommand : IRequest<ApiResponse<List<GetDepartmentResponseDTO>>>
     {
+        /// <summary>
+        /// Gets the client-supplied department data.
+        /// </summary>
         public CreateDepartmentRequestDTO DTO { get; set; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CreateDepartmentCommand"/> class.
+        /// </summary>
+        /// <param name="dto">The client-supplied department data.</param>
         public CreateDepartmentCommand(CreateDepartmentRequestDTO dto)
         {
             DTO = dto;
         }
     }
 
+    #endregion
+
+    #region Handler
+
+    /// <summary>
+    /// Handles department creation requests.
+    /// </summary>
     public class CreateDepartmentCommandHandler : IRequestHandler<CreateDepartmentCommand, ApiResponse<List<GetDepartmentResponseDTO>>>
     {
+        #region Fields
+
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<CreateDepartmentCommandHandler> _logger;
-        private readonly ITokenService _tokenService;
         private readonly IPermissionService _permissionService;
-        private readonly IConfiguration _config;
-        private readonly IEncryptionService _encryptionService;
-        private readonly IIdEncoderService _idEncoderService;
+        private readonly ICommonRequestService _commonRequestService;
 
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CreateDepartmentCommandHandler"/> class.
+        /// </summary>
+        /// <param name="unitOfWork">The unit of work used for persistence.</param>
+        /// <param name="mapper">The object mapper.</param>
+        /// <param name="logger">The logger.</param>
+        /// <param name="permissionService">The permission service.</param>
+        /// <param name="commonRequestService">The shared authenticated-request validation service.</param>
         public CreateDepartmentCommandHandler(
             IUnitOfWork unitOfWork,
             IMapper mapper,
-            IHttpContextAccessor httpContextAccessor,
             ILogger<CreateDepartmentCommandHandler> logger,
-            ITokenService tokenService,
             IPermissionService permissionService,
-            IConfiguration config,
-            IEncryptionService encryptionService, IIdEncoderService idEncoderService)
+            ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _httpContextAccessor = httpContextAccessor;
             _logger = logger;
-            _tokenService = tokenService;
             _permissionService = permissionService;
-            _config = config;
-            _encryptionService = encryptionService;
-            _idEncoderService = idEncoderService;
+            _commonRequestService = commonRequestService;
         }
 
+        #endregion
+
+        #region Handle
+
+        /// <summary>
+        /// Creates a department from the supplied command.
+        /// </summary>
+        /// <param name="request">The create-department command.</param>
+        /// <param name="cancellationToken">A token used to cancel the operation.</param>
+        /// <returns>The API response containing the created department.</returns>
         public async Task<ApiResponse<List<GetDepartmentResponseDTO>>> Handle(CreateDepartmentCommand request, CancellationToken cancellationToken)
         {
             try
             {
-
                 _logger.LogInformation("Creating Department ");
 
-                // ===============================
-                // 1️⃣ COMMON VALIDATION (AUTH + CONTEXT)
-                // ===============================
-              
-                // 🧩 STEP 1: Validate JWT Token
-                var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
-                    .ToString()?.Replace("Bearer ", "");
+                // Validate the authenticated tenant-user context and confirm the request identity.
+                var validation = await _commonRequestService.ValidateRequestAsync(request.DTO.UserEmployeeId);
 
-                if (request.DTO.Prop == null)
-                {
-                    request.DTO.Prop = new ExtraPropRequestDTO();
-                }
-                if (string.IsNullOrEmpty(bearerToken))
-                    return ApiResponse<List<GetDepartmentResponseDTO>>.Fail("Unauthorized: Token not found.");
+                if (!validation.Success)
+                    return ApiResponse<List<GetDepartmentResponseDTO>>.Fail(validation.ErrorMessage ?? "Unauthorized request.");
 
-                var secretKey = TokenKeyHelper.GetJwtSecret(_config);
-                var tokenClaims = TokenClaimHelper.ExtractClaims(bearerToken, secretKey);
+                // Resolve trusted tenant and employee identifiers from the validated context.
+                long userEmployeeId = validation.LoggedInEmployeeId;
+                long tenantId = validation.TenantId;
 
-                if (tokenClaims == null || tokenClaims.IsExpired)
-                    return ApiResponse<List<GetDepartmentResponseDTO>>.Fail("Invalid or expired token.");
-
-                // 🧩 STEP 2: Validate Active User
-                long loggedInEmpId = await _unitOfWork.StoreProcedureRepository.ValidateActiveUserLoginOnlyAsync(tokenClaims.UserId);
-                if (loggedInEmpId < 1)
-                {
-                    _logger.LogWarning("❌ Invalid or inactive user. LoginId: {LoginId}", tokenClaims.UserId);
-                    return ApiResponse<List<GetDepartmentResponseDTO>>.Fail("Unauthorized or inactive user.");
-                }
-
-                // 🧩 STEP 3: Decrypt Tenant and Employee
-                string tenantKey = tokenClaims.TenantEncriptionKey ?? string.Empty;
-
-                if (string.IsNullOrEmpty(request.DTO.UserEmployeeId) || string.IsNullOrEmpty(tenantKey))
-                {
-                    _logger.LogWarning("❌ Missing tenantKey or UserEmployeeId.");
-                    return ApiResponse<List<GetDepartmentResponseDTO>>.Fail("User invalid.");
-                }
-
-                string finalKey = EncryptionSanitizer.SuperSanitize(tenantKey);
-                string UserEmpId = EncryptionSanitizer.CleanEncodedInput(request.DTO.UserEmployeeId);
-                request.DTO.Prop.UserEmployeeId = _idEncoderService.DecodeId_long(UserEmpId, finalKey);
-                request.DTO.Prop.TenantId = _idEncoderService.DecodeId_long(tokenClaims.TenantId, finalKey);
-                
-
-
-                // 🧩 STEP 4: Validate all employee references
-
-
-                if (request.DTO.Prop.UserEmployeeId <= 0 || request.DTO.Prop.TenantId <= 0)
-                {
-                    _logger.LogWarning("❌ Tenant or employee information missing in token/request.");
-                    return ApiResponse<List<GetDepartmentResponseDTO>>.Fail("Tenant or employee information missing.");
-                }
-
-                if (!(request.DTO.Prop.UserEmployeeId == loggedInEmpId))
-                {
-                    _logger.LogWarning(
-                        "❌ EmployeeId mismatch. RequestEmpId: {ReqEmp}, LoggedEmpId: {LoggedEmp}",
-                          request.DTO.Prop.UserEmployeeId, loggedInEmpId
-                    );
-
-                    return ApiResponse<List<GetDepartmentResponseDTO>>.Fail("Unauthorized: Employee mismatch.");
-                }
-                
-                var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
+                // Preserve the existing permission lookup behavior.
+                var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
                 if (!permissions.Contains("AddBankInfo"))
                 {
                     //  await _unitOfWork.RollbackTransactionAsync();
                     //return ApiResponse<List<GetBankResponseDTO>>.Fail("You do not have permission to add bank info.");
                 }
-                // 🧩 STEP 4: Call Repository to get data
 
-
-                // 🧩 STEP 5: Validate Department Name
+                // Validate the client-supplied department name.
                 string? departmentName = request.DTO.DepartmentName?.Trim();
-             
+
                 if (string.IsNullOrWhiteSpace(departmentName))
                 {
                     return ApiResponse<List<GetDepartmentResponseDTO>>.Fail("Department name should not be empty or whitespace.");
                 }
 
-                // 🧩 STEP 6: Create Department
-                var responseDTO = await _unitOfWork.DepartmentRepository.CreateAsync(request.DTO);
+                // Map client-supplied department data to the domain entity.
+                var department = _mapper.Map<Department>(request.DTO);
 
-                // 🧩 STEP 7: Validate Response
-                if (responseDTO.Data == null || !responseDTO.Data.Any())
+                // Apply server-controlled tenant, audit, and default values before persistence.
+                department.TenantId = tenantId;
+                department.AddedById = userEmployeeId;
+                department.AddedDateTime = DateTime.UtcNow;
+                department.IsActive = true;
+                department.IsSoftDeleted = false;
+                department.IsExecutiveOffice = false;
+
+                // Persist the entity through the department repository.
+                var createdDepartment = await _unitOfWork.DepartmentRepository.CreateAsync(department, cancellationToken);
+
+                if (createdDepartment == null)
                 {
-                    _logger.LogWarning("❌ Department creation failed or empty result. TenantId: {TenantId}", request.DTO.Prop.UserEmployeeId);
+                    _logger.LogWarning("❌ Department creation failed or empty result. TenantId: {TenantId}", tenantId);
                     return ApiResponse<List<GetDepartmentResponseDTO>>.Fail("No department was created. Please try again.");
                 }
 
-                // 🧩 STEP 8: Commit Transaction
+                // Preserve the existing transaction completion behavior.
                 await _unitOfWork.CommitTransactionAsync();
 
-                // ✅ STEP 9: Return Success
+                // Convert the persisted entity to the API response shape.
+                var responseDTO = _mapper.Map<GetDepartmentResponseDTO>(createdDepartment);
+
                 return new ApiResponse<List<GetDepartmentResponseDTO>>
                 {
                     IsSucceeded = true,
-                    Message = $"{responseDTO.TotalCount} department(s) created successfully.",
-                    PageNumber = responseDTO.PageNumber,
-                    PageSize = responseDTO.PageSize,
-                    TotalRecords = responseDTO.TotalCount,
-                    TotalPages = responseDTO.TotalPages,
-                    Data = responseDTO.Data
+                    Message = "1 department(s) created successfully.",
+                    PageNumber = 1,
+                    PageSize = 1,
+                    TotalRecords = 1,
+                    TotalPages = 1,
+                    Data = new List<GetDepartmentResponseDTO> { responseDTO }
                 };
             }
             catch (Exception ex)
@@ -183,7 +160,9 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                 return ApiResponse<List<GetDepartmentResponseDTO>>.Fail("Failed to create department(s) due to an internal error.");
             }
         }
-    
-    
+
+        #endregion
     }
+
+    #endregion
 }

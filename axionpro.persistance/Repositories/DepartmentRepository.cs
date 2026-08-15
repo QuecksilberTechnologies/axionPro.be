@@ -13,6 +13,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.persistance.Repositories
 {
+    /// <summary>
+    /// Provides persistence operations for departments.
+    /// </summary>
     public class DepartmentRepository : IDepartmentRepository
     {
         private readonly WorkforceDbContext _context;
@@ -138,27 +141,30 @@ namespace axionpro.persistance.Repositories
             return response;
         }
 
-        public async Task<PagedResponseDTO<GetDepartmentResponseDTO>> CreateAsync(
-            CreateDepartmentRequestDTO dto,
+        #region Create Department
+
+        /// <summary>
+        /// Creates a department using the supplied domain entity.
+        /// </summary>
+        /// <param name="entity">The department entity to persist.</param>
+        /// <param name="cancellationToken">A token used to cancel the operation.</param>
+        /// <returns>The created entity, or <see langword="null"/> when a duplicate department exists.</returns>
+        public async Task<Department?> CreateAsync(
+            Department entity,
             CancellationToken cancellationToken = default)
         {
-            var result = new PagedResponseDTO<GetDepartmentResponseDTO>();
-
             try
             {
-                const int pageNumber = 1;
-                const int pageSize = 10;
-
-                if (dto == null)
+                if (entity == null)
                 {
-                    _logger.LogWarning("CreateAsync called with null Department DTO.");
-                    throw new ArgumentNullException(nameof(dto), "Department object cannot be null.");
+                    _logger.LogWarning("CreateAsync called with a null Department entity.");
+                    throw new ArgumentNullException(nameof(entity), "Department entity cannot be null.");
                 }
 
                 bool exists = await _context.Departments
                     .AnyAsync(d =>
-                        d.TenantId == dto.Prop.TenantId &&
-                        d.DepartmentName.ToLower() == dto.DepartmentName.ToLower() &&
+                        d.TenantId == entity.TenantId &&
+                        d.DepartmentName.ToLower() == entity.DepartmentName.ToLower() &&
                         d.IsSoftDeleted != true,
                         cancellationToken);
 
@@ -166,66 +172,31 @@ namespace axionpro.persistance.Repositories
                 {
                     _logger.LogWarning(
                         "Department '{Name}' already exists for TenantId {TenantId}.",
-                        dto.DepartmentName,
-                        dto.Prop.TenantId);
+                        entity.DepartmentName,
+                        entity.TenantId);
 
-                    result.Data = new List<GetDepartmentResponseDTO>();
-                    result.TotalCount = 0;
-                    result.PageNumber = pageNumber;
-                    result.PageSize = pageSize;
-                    result.TotalPages = 0;
-                    return result;
+                    return null;
                 }
 
-                var entity = _mapper.Map<Department>(dto);
-                entity.TenantId = dto.Prop.TenantId;
-                entity.AddedById = dto.Prop.UserEmployeeId;
-                entity.AddedDateTime = DateTime.UtcNow;
-                entity.IsActive = true;
-                entity.IsSoftDeleted = false;
-                entity.IsExecutiveOffice = false;
-
                 await _context.Departments.AddAsync(entity, cancellationToken);
-
-                // NOTE:
-                // For independent CRUD screens this is okay for now.
-                // For transaction-controlled flows like tenant creation, do not use CreateAsync.
                 await _context.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation(
                     "Department '{Name}' created successfully with Id: {Id} for TenantId: {TenantId}",
-                    dto.DepartmentName,
+                    entity.DepartmentName,
                     entity.Id,
-                    dto.Prop.TenantId);
+                    entity.TenantId);
 
-                var query = _context.Departments
-                    .AsNoTracking()
-                    .Where(d => d.TenantId == dto.Prop.TenantId && d.IsSoftDeleted != true)
-                    .OrderByDescending(d => d.Id);
-
-                int totalCount = await query.CountAsync(cancellationToken);
-
-                var pagedData = await query
-                    .Skip((pageNumber - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToListAsync(cancellationToken);
-
-                var mappedData = _mapper.Map<List<GetDepartmentResponseDTO>>(pagedData);
-
-                result.Data = mappedData;
-                result.TotalCount = totalCount;
-                result.PageNumber = pageNumber;
-                result.PageSize = pageSize;
-                result.TotalPages = (int)Math.Ceiling((double)totalCount / pageSize);
-
-                return result;
+                return entity;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while creating department for TenantId {TenantId}", dto?.Prop?.TenantId);
+                _logger.LogError(ex, "Error while creating department for TenantId {TenantId}", entity?.TenantId);
                 throw;
             }
         }
+
+        #endregion
 
         public async Task<bool> UpdateAsync(
             UpdateDepartmentRequestDTO requestDTO,

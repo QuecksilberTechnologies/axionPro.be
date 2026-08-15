@@ -1,26 +1,33 @@
-﻿using axionpro.application.DTOS.Common;
-using axionpro.application.DTOS.Pagination;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
-
 namespace axionpro.application.DTOs.Department
 {
+    /// <summary>
+    /// Represents client-supplied data used to create a department.
+    /// </summary>
     public class CreateDepartmentRequestDTO
     {
-
-
+        /// <summary>
+        /// Gets or sets the encoded identifier of the employee creating the department.
+        /// </summary>
         public required string UserEmployeeId { get; set; }
-        public string DepartmentName { get; set; } = null!;   
-        public string? Description { get; set; }          
-        public bool IsActive { get; set; } = true;  
-        public string? Remark { get; set; }  
 
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
+        /// <summary>
+        /// Gets or sets the department name.
+        /// </summary>
+        public string DepartmentName { get; set; } = null!;
 
-  
+        /// <summary>
+        /// Gets or sets an optional department description.
+        /// </summary>
+        public string? Description { get; set; }
+
+        /// <summary>
+        /// Gets or sets the requested active status.
+        /// </summary>
+        public bool IsActive { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets an optional remark for the department.
+        /// </summary>
+        public string? Remark { get; set; }
     }
-
 }
