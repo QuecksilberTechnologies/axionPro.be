@@ -13,8 +13,6 @@ using axionpro.application.DTOS.Pagination;
 using axionpro.application.DTOS.Role;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Wrappers;
-
 using axionpro.persistance.Data.Context;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -625,11 +623,14 @@ public class RoleRepository : IRoleRepository
         return response;
     }
 
-    #region Option-Complete
-    public async Task<ApiResponse<List<GetRoleOptionResponseDTO?>>> GetOptionAsync(GetRoleOptionRequestDTO dto)
+    #region Option Queries
+    /// <summary>
+    /// Projects role options for the trusted tenant without constructing an API response.
+    /// </summary>
+    /// <param name="dto">The role option query criteria.</param>
+    /// <returns>The matching role option projections.</returns>
+    public async Task<List<GetRoleOptionResponseDTO>> GetOptionAsync(GetRoleOptionRequestDTO dto)
     {
-        var response = new ApiResponse<List<GetRoleOptionResponseDTO?>>();
-
         try
         {   
              
@@ -642,7 +643,7 @@ public class RoleRepository : IRoleRepository
                 query = query.Where(x => x.RoleType == dto.RoleType);
 
             // ✅ Projection
-            var roles = await query
+            return await query
                 .OrderBy(x => x.RoleName)
                 .Select(r => new GetRoleOptionResponseDTO
                 {
@@ -655,23 +656,11 @@ public class RoleRepository : IRoleRepository
                 .AsNoTracking()
                 .ToListAsync();
 
-            // ✅ Response setup
-            response.Data = roles;
-            response.Message = roles.Any()
-                ? "✅ Role options fetched successfully."
-                : "⚠️ No roles found for this tenant.";
-
-            return response;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Error fetching role options for TenantId {TenantId}", dto.Prop.TenantId);
-
-            return new ApiResponse<List<GetRoleOptionResponseDTO?>>
-            {
-                Message = "❌ An error occurred while fetching role options.",
-                Data = new List<GetRoleOptionResponseDTO?>()
-            };
+            _logger.LogError(ex, "Error fetching role options for tenant {TenantId}.", dto.Prop.TenantId);
+            throw;
         }
     }
 

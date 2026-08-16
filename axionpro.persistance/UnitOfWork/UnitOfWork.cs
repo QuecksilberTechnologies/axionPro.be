@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates repositories and transactions over the AxionPro persistence context.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICacheService;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -13,13 +20,6 @@ using axionpro.persistance.Repositories;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-
-// ================================================================
-// Author  : Deepesh Gupta
-// Company : Quecksilber Technologies
-// Role    : CEO
-// Purpose : Coordinates repositories and transactions over the AxionPro persistence context.
-// ================================================================
 
 /// <summary>
 /// Provides lazy repository construction and transaction coordination for application handlers.
@@ -294,18 +294,15 @@ public class UnitOfWork : IUnitOfWork
     public IInsuranceRepository InsuranceRepository =>
         _insuranceRepository ??= new InsuranceRepository(
             _context,
-            _mapper,
-            _loggerFactory.CreateLogger<InsuranceRepository>(),
-            _passwordService,
-            _encriptionService);
+            _loggerFactory.CreateLogger<InsuranceRepository>());
 
    
 
     public IGenderRepository GenderRepository =>
-        _genderRepository ??= new GenderRepository(_context, _loggerFactory.CreateLogger<GenderRepository>(), _mapper);
+        _genderRepository ??= new GenderRepository(_context, _loggerFactory.CreateLogger<GenderRepository>());
 
     public ILocationRepository LocationRepository =>
-        _locationRepository ??= new LocationRepository(_context, _loggerFactory.CreateLogger<LocationRepository>(), _mapper);
+        _locationRepository ??= new LocationRepository(_context, _loggerFactory.CreateLogger<LocationRepository>());
 
     public IHolidayCalandarRepository HolidayCalandarRepository =>
         _holidayCalandarRepository ??= new HolidayCalandarRepository(_context, _loggerFactory.CreateLogger<HolidayCalandarRepository>());

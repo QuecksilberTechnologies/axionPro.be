@@ -1,143 +1,116 @@
-﻿// ================================================================
+// ================================================================
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
-// Purpose : Handles GetRoleOptionQueryHandler requests using authenticated tenant context.
+// Purpose : Handles authenticated requests for tenant role option projections.
 // ================================================================
 
-using AutoMapper;
+using axionpro.application.Constants;
 using axionpro.application.DTOS.Role;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IEncryptionService;
-using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using MediatR;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.RoleCmd.Handlers
 {
+    #region Query
+
+    /// <summary>
+    /// Represents a request for role options in the authenticated tenant context.
+    /// </summary>
     public class GetRoleOptionQuery : IRequest<ApiResponse<List<GetRoleOptionResponseDTO>>>
     {
-        public GetRoleOptionRequestDTO OptionDTO { get; set; }
+        public GetRoleOptionRequestDTO OptionDTO { get; set; } = default!;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetRoleOptionQuery"/> class.
+        /// </summary>
+        /// <param name="optionDTO">The role option query criteria.</param>
         public GetRoleOptionQuery(GetRoleOptionRequestDTO optionDTO)
         {
             OptionDTO = optionDTO;
         }
     }
 
+    #endregion
+
+    #region Handler
+
     /// <summary>
-    /// Handles authenticated tenant requests for this feature.
+    /// Handles authenticated tenant requests for role option projections.
     /// </summary>
     public class GetRoleOptionQueryHandler : IRequestHandler<GetRoleOptionQuery, ApiResponse<List<GetRoleOptionResponseDTO>>>
     {
+        #region Fields
+
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ILogger<GetRoleOptionQueryHandler> _logger;
-        private readonly ITokenService _tokenService;
-        private readonly IPermissionService _permissionService;
-        private readonly IConfiguration _config;
-        private readonly IIdEncoderService _idEncoderService;
-        private readonly IEncryptionService _encryptionService;
         private readonly ICommonRequestService _commonRequestService;
+        private readonly ILogger<GetRoleOptionQueryHandler> _logger;
 
+        #endregion
 
+        #region Constructor
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetRoleOptionQueryHandler"/> class.
+        /// </summary>
+        /// <param name="unitOfWork">The persistence unit of work.</param>
+        /// <param name="commonRequestService">The authenticated request validator.</param>
+        /// <param name="logger">The diagnostic logger.</param>
         public GetRoleOptionQueryHandler(
             IUnitOfWork unitOfWork,
-            IMapper mapper,
-            IHttpContextAccessor httpContextAccessor,
-            ILogger<GetRoleOptionQueryHandler> logger,
-            ITokenService tokenService,
-            IPermissionService permissionService,
-            IConfiguration config,
             ICommonRequestService commonRequestService,
-            IEncryptionService encryptionService, IIdEncoderService idEncoderService)
+            ILogger<GetRoleOptionQueryHandler> logger)
         {
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
-            _httpContextAccessor = httpContextAccessor;
-            _logger = logger;
-            _tokenService = tokenService;
-            _permissionService = permissionService;
-            _config = config;
-            _encryptionService = encryptionService;
-            _idEncoderService = idEncoderService;
             _commonRequestService = commonRequestService;
+            _logger = logger;
         }
 
+        #endregion
+
+        #region Handle
+
+        /// <summary>
+        /// Retrieves tenant role options and constructs the successful API response.
+        /// </summary>
         public async Task<ApiResponse<List<GetRoleOptionResponseDTO>>> Handle(
-     GetRoleOptionQuery request,
-     CancellationToken cancellationToken)
+            GetRoleOptionQuery request,
+            CancellationToken cancellationToken)
         {
-            try
+            var validation = await _commonRequestService.ValidateRequestAsync();
+            if (!validation.Success)
             {
-                _logger.LogInformation("🔹 GetRoleOption started");
-
-                // ===============================
-                // 1️⃣ VALIDATION (AUTH)
-                // ===============================
-                #region Tenant Request Validation
-                var validation = await _commonRequestService
-                    .ValidateRequestAsync();
-                #endregion
-
-                if (!validation.Success)
-                    throw new UnauthorizedAccessException(validation.ErrorMessage);
-                // ===============================
-                // 2️⃣ PERMISSION CHECK (RBAC)
-                // ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.Role,
-                //    Operations.Delete);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("Access denied.");
-
-                // ===============================
-                // 2️⃣ NULL SAFETY
-                // ===============================
-                if (request?.OptionDTO == null)
-                    throw new ValidationErrorException("Invalid request data.");
-
-                request.OptionDTO.Prop ??= new();
-
-                request.OptionDTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.OptionDTO.Prop.TenantId = validation.TenantId;
-
-                // ===============================
-                // 3️⃣ FETCH DATA
-                // ===============================
-                var response = await _unitOfWork.RoleRepository
-                    .GetOptionAsync(request.OptionDTO);
-
-                var data = response?.Data ?? new List<GetRoleOptionResponseDTO>();
-
-                _logger.LogInformation(
-                    "✅ Retrieved {Count} role options for TenantId {TenantId}",
-                    data.Count,
-                    validation.TenantId);
-
-                // ===============================
-                // 4️⃣ SUCCESS (EMPTY ALLOWED ✅)
-                // ===============================
-                return ApiResponse<List<GetRoleOptionResponseDTO>>
-                    .Success(data, "Role options fetched successfully.");
+                throw new UnauthorizedAccessException(validation.ErrorMessage);
             }
-            catch (Exception ex)
+
+            if (request?.OptionDTO == null)
             {
-                _logger.LogError(ex, "❌ GetRoleOption failed");
-
-                throw; // ✅ CRITICAL
+                throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
             }
+
+            request.OptionDTO.Prop ??= new();
+            request.OptionDTO.Prop.UserEmployeeId = validation.UserEmployeeId;
+            request.OptionDTO.Prop.TenantId = validation.TenantId;
+
+            var roles = await _unitOfWork.RoleRepository.GetOptionAsync(request.OptionDTO);
+
+            _logger.LogInformation(
+                "Retrieved {Count} role options for tenant {TenantId}.",
+                roles.Count,
+                validation.TenantId);
+
+            // Build the application response in the handler layer.
+            return ApiResponse<List<GetRoleOptionResponseDTO>>.Success(
+                roles,
+                AppConstants.SuccessMessages.RoleOptionsRetrieved);
         }
 
+        #endregion
     }
 
+    #endregion
 }

@@ -8,12 +8,10 @@
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
-using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
 using axionpro.application.Features.EmployeeCmd.UpdateStatus.Handler;
 using axionpro.application.Features.EmployeeCmd.UpdateVerification.Handler;
 using axionpro.application.Interfaces.ILogger;
-using axionpro.application.Wrappers;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -163,11 +161,9 @@ namespace axionpro.api.Controllers.Employee
                 var query = new GetEmployeeProfileStatusQuery(employeeId);
                 var result = await _mediator.Send(query);
 
-                var response = ApiResponse<List<CompletionSectionDTO>>
-                    .Response(result.Sections, "Fetched successfully");
                 _logger.LogInfo("Employee percentage fetched successfully.");
 
-                return Ok(response);   // ✔ Correct return
+                return Ok(result);
            
            
         }

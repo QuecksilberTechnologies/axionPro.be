@@ -2,92 +2,125 @@
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
-// Purpose : Defines the shared API response envelope for successful responses and middleware errors.
+// Purpose : Defines the standardized application response envelope for successful responses and middleware-generated errors.
 // ================================================================
 
 using System.Text.Json.Serialization;
 
 namespace axionpro.application.Wrappers
 {
+    /// <summary>
+    /// Represents the standardized application response envelope returned by handlers and error middleware.
+    /// </summary>
+    /// <typeparam name="T">The response payload type.</typeparam>
     public class ApiResponse<T>
     {
-        public ApiResponse() { }
+        #region Constructors
 
-        public ApiResponse(
-            T data,
-            string? message = null,
-            bool isSucceeded = true,
-            int? pageNumber = null,
-            int? pageSize = null,
-            int? totalRecords = null,
-            int? totalPages = null)
+        /// <summary>
+        /// Initializes an empty response envelope for middleware and legacy object-initializer callers.
+        /// </summary>
+        public ApiResponse()
         {
-            IsSucceeded = isSucceeded;
-            Message = message ?? string.Empty;
-            Data = data;
-            PageNumber = pageNumber;
-            PageSize = pageSize;
-            TotalRecords = totalRecords;
-            TotalPages = totalPages;
-            Errors = new List<string>();
         }
 
+        #endregion
+
+        #region Core Response Properties
+
+        /// <summary>
+        /// Gets or sets whether the request completed successfully.
+        /// </summary>
         public bool IsSucceeded { get; set; }
+
+        /// <summary>
+        /// Gets or sets the application-level response message.
+        /// </summary>
         public string Message { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the response payload.
+        /// </summary>
+        public T Data { get; set; } = default!;
+
+        #endregion
+
+        #region Error Metadata
+
+        /// <summary>
+        /// Gets or sets the validation or application error details written by centralized middleware.
+        /// </summary>
         public List<string> Errors { get; set; } = new();
 
         /// <summary>
-        /// Gets or sets the stable application error code for middleware-generated failures.
+        /// Gets or sets the stable application error code written by centralized middleware.
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? ErrorCode { get; set; }
 
-        public T Data { get; set; }
+        #endregion
 
-        // ❗ Sections ab GET me show nahi hoga
-        // [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-        public T Sections { get; set; }
+        #region Pagination Metadata
 
-        
-
-        // ✅ Pagination (optional)
+        /// <summary>
+        /// Gets or sets the current page number when the payload is paged.
+        /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? PageNumber { get; set; }
 
+        /// <summary>
+        /// Gets or sets the page size when the payload is paged.
+        /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? PageSize { get; set; }
 
+        /// <summary>
+        /// Gets or sets the total number of records when the payload is paged.
+        /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? TotalRecords { get; set; }
 
+        /// <summary>
+        /// Gets or sets the total number of pages when the payload is paged.
+        /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? TotalPages { get; set; }
 
-        // ❗ Optional flags — hide when null
+        #endregion
+
+        #region Optional Response Metadata
+
+        /// <summary>
+        /// Gets or sets whether a module-specific primary record was marked.
+        /// Retained for response compatibility pending the dedicated paging and response redesign.
+        /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public bool? IsPrimaryMarked { get; set; }
 
+        /// <summary>
+        /// Gets or sets whether a module-specific document set has been uploaded.
+        /// Retained for response compatibility pending the dedicated paging and response redesign.
+        /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public bool? HasAllDocUploaded { get; set; }
 
+        /// <summary>
+        /// Gets or sets a module-specific completion percentage.
+        /// Retained for response compatibility pending the dedicated paging and response redesign.
+        /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public double? CompletionPercentage { get; set; }
 
+        #endregion
 
-        // ❌ Fail Response
-        public static ApiResponse<T> Fail(string message, List<string>? errors = null)
-        {
-            return new ApiResponse<T>
-            {
-                IsSucceeded = false,
-                Message = message,
-                Data = default!,
-                Errors = errors ?? new List<string> { message }
-            };
-        }
+        #region Success Factories
 
-        // ✅ Success Response
+        /// <summary>
+        /// Creates a successful application response containing the supplied data.
+        /// </summary>
+        /// <param name="data">The response payload.</param>
+        /// <param name="message">The application-level success message.</param>
+        /// <returns>A successful API response.</returns>
         public static ApiResponse<T> Success(T data, string message = "")
         {
             return new ApiResponse<T>
@@ -98,47 +131,9 @@ namespace axionpro.application.Wrappers
             };
         }
 
-        public static ApiResponse<T> UpdatedSuccess(string message = "")
-        {
-            return new ApiResponse<T>
-            {
-                IsSucceeded = true,
-                Message = message,
-                
-            };
-        }
-
-        public static ApiResponse<T> UpdatedFail( string message = "")
-        {
-            return new ApiResponse<T>
-            {
-                IsSucceeded = false,
-                Message = message,
-              
-            };
-        }
-        // ❗ Section-only response (cleaned)
-        public static ApiResponse<T> Response(T section, string message = "")
-        {
-            return new ApiResponse<T>
-            {
-                IsSucceeded = true,
-                Message = message,
-                Sections = section
-            };
-        }
-
-        public static ApiResponse<T> Fail(T section, string message = "")
-        {
-            return new ApiResponse<T>
-            {
-                IsSucceeded = false,
-                Message = message,
-                Sections = section
-            };
-        }
-
-        // ✅ Success with Pagination
+        /// <summary>
+        /// Creates a successful paginated application response.
+        /// </summary>
         public static ApiResponse<T> SuccessPaginated(
             T data,
             int pageNumber,
@@ -159,7 +154,9 @@ namespace axionpro.application.Wrappers
             };
         }
 
-        // ✅ Success with Pagination + Completion Info
+        /// <summary>
+        /// Creates a successful paginated response with document-completion metadata.
+        /// </summary>
         public static ApiResponse<T> SuccessPaginatedPercentage(
             T Data,
             int PageNumber,
@@ -184,42 +181,17 @@ namespace axionpro.application.Wrappers
             };
         }
 
-        // ✅ Success with Primary Mark
-        public static ApiResponse<T> SuccessPaginatedPercentageMarkPrimary(
-            T data,
-            int pageNumber,
-            int pageSize,
-            int totalRecords,
-            int totalPages,
-            string message = "",
-            bool? hasUploadedAll = null,
-            double? completionPercentage = null,
-            bool? isPrimaryMarked = null)
-        {
-            return new ApiResponse<T>
-            {
-                IsSucceeded = true,
-                Message = message,
-                Data = data,
-                PageNumber = pageNumber,
-                PageSize = pageSize,
-                TotalRecords = totalRecords,
-                TotalPages = totalPages,
-                HasAllDocUploaded = hasUploadedAll,
-                CompletionPercentage = completionPercentage,
-                IsPrimaryMarked = isPrimaryMarked
-            };
-        }
-
+        /// <summary>
+        /// Creates a successful paginated response with document-upload metadata.
+        /// </summary>
         public static ApiResponse<T> SuccessPaginatedOnly(
-          T Data,
-          int PageNumber,
-          int PageSize,
-          int TotalRecords,
-          int TotalPages,
-          string Message = "",
-          bool? HasUploadedAll = null
-         )
+            T Data,
+            int PageNumber,
+            int PageSize,
+            int TotalRecords,
+            int TotalPages,
+            string Message = "",
+            bool? HasUploadedAll = null)
         {
             return new ApiResponse<T>
             {
@@ -231,9 +203,9 @@ namespace axionpro.application.Wrappers
                 TotalRecords = TotalRecords,
                 TotalPages = TotalPages,
                 HasAllDocUploaded = HasUploadedAll
-                
             };
         }
-       
+
+        #endregion
     }
 }

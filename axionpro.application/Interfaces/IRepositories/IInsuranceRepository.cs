@@ -1,44 +1,66 @@
-﻿using axionpro.application.DTOS.InsurancePolicy;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines persistence operations for insurance policies and insurance query projections.
+// ================================================================
+
+using axionpro.application.DTOS.InsurancePolicy;
 using axionpro.application.DTOS.Pagination;
-using axionpro.application.Wrappers;
-using axionpro.domain.Entity; 
-using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using axionpro.domain.Entity;
 using static axionpro.application.DTOS.InsurancePolicy.GetAlllnsurancePolicyResponseDTO;
+
 namespace axionpro.application.Interfaces.IRepositories
 {
+    /// <summary>
+    /// Defines persistence operations for insurance policy data and query projections.
+    /// </summary>
     public interface IInsuranceRepository
     {
-
-        // 🔹 CREATE
+        /// <summary>
+        /// Persists an insurance policy and returns its projected data.
+        /// </summary>
         Task<GetInsurancePolicyResponseDTO?> AddAsync(InsurancePolicy policy);
 
-        // 🔹 GET (By Id)
-        Task<InsurancePolicy?> GetByIdAsync( int insurancePolicyId,    long tenantId, bool isActive);
+        /// <summary>
+        /// Gets an insurance policy for the trusted tenant scope.
+        /// </summary>
+        Task<InsurancePolicy?> GetByIdAsync(int insurancePolicyId, long tenantId, bool isActive);
 
-        // 🔹 GET LIST (Grid / Listing)
-        Task<PagedResponseDTO<GetInsurancePolicyResponseDTO>> GetListAsync(  GetInsurancePolicyRequestDTO request  );
+        /// <summary>
+        /// Gets a paged insurance policy projection result.
+        /// </summary>
+        Task<PagedResponseDTO<GetInsurancePolicyResponseDTO>> GetListAsync(GetInsurancePolicyRequestDTO request);
 
+        /// <summary>
+        /// Gets available insurance-policy option projections.
+        /// </summary>
         Task<List<GetAlllnsurancePolicyResponseDTO>> GetAllListAsync(int policyId, bool isActive);
-        Task<ApiResponse<List<GetAlllnsurancePolicyWithDetailsResponseDTO>>> GetAllPolicyListWithConsumedDetailsAsync(long employeeId, int policyId, bool isActive);
-         
-      
-        // 🔹 UPDATE
+
+        /// <summary>
+        /// Gets insurance-policy projections enriched with an employee's consumption details.
+        /// </summary>
+        Task<List<GetAlllnsurancePolicyWithDetailsResponseDTO>> GetAllPolicyListWithConsumedDetailsAsync(
+            long employeeId,
+            int policyId,
+            bool isActive);
+
+        /// <summary>
+        /// Persists an updated insurance policy.
+        /// </summary>
         Task<bool> UpdateAsync(InsurancePolicy policy);
 
-        // 🔹 SOFT DELETE
+        /// <summary>
+        /// Soft deletes an insurance policy.
+        /// </summary>
         Task<bool> SoftDeleteAsync(InsurancePolicy policyType);
-       
 
-        // 🔹 EXISTS (Validation use)
+        /// <summary>
+        /// Determines whether an insurance-policy name exists for a tenant.
+        /// </summary>
         Task<bool> ExistsAsync(
             string insurancePolicyName,
             long tenantId,
             CancellationToken cancellationToken);
     }
-
 }

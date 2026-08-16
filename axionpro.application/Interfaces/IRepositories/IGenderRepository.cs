@@ -1,19 +1,27 @@
-﻿using axionpro.application.DTOS.Common;
-using axionpro.application.DTOS.Department;
-using axionpro.application.DTOS.Gender;
-using axionpro.application.Wrappers;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines persistence operations for gender data and option projections.
+// ================================================================
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+using axionpro.application.DTOS.Common;
+using axionpro.application.DTOS.Gender;
+using axionpro.domain.Entity;
 
 namespace axionpro.application.Interfaces.IRepositories
 {
-    public interface  IGenderRepository
+    /// <summary>
+    /// Defines persistence operations for gender data and option projections.
+    /// </summary>
+    public interface IGenderRepository
     {
-        Task<ApiResponse<List<GetGenderOptionResponseDTO?>>> GetOptionAsync(GetOptionRequestDTO dto);
+        /// <summary>
+        /// Gets available gender options as query data.
+        /// </summary>
+        /// <param name="dto">The option query criteria.</param>
+        /// <returns>The available gender option projections.</returns>
+        Task<List<GetGenderOptionResponseDTO>> GetOptionAsync(GetOptionRequestDTO dto);
 
         Task<Gender> GetByIdAsync(long id);
         Task<IEnumerable<Gender>> GetAllAsync();

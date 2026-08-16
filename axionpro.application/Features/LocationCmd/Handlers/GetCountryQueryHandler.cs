@@ -1,89 +1,94 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Handles requests for active country option projections.
+// ================================================================
+
+using axionpro.application.Constants;
 using axionpro.application.DTOS.Location;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; 
-using axionpro.domain.Entity; 
-using MediatR;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; 
+
 namespace axionpro.application.Features.LocationCmd.Handlers
 {
+    #region Query
+
+    /// <summary>
+    /// Represents a request for active country options.
+    /// </summary>
     public class GetCountryQuery : IRequest<ApiResponse<List<GetCountryOptionResponseDTO>>>
     {
-        public GetCountryOptionRequestDTO DTO { get; set; }
+        public GetCountryOptionRequestDTO DTO { get; set; } = default!;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetCountryQuery"/> class.
+        /// </summary>
         public GetCountryQuery(GetCountryOptionRequestDTO dto)
         {
             DTO = dto;
         }
     }
 
+    #endregion
+
+    #region Handler
+
+    /// <summary>
+    /// Handles requests for active country option projections.
+    /// </summary>
     public class GetCountryQueryHandler : IRequestHandler<GetCountryQuery, ApiResponse<List<GetCountryOptionResponseDTO>>>
     {
-        private readonly IMapper _mapper;
+        #region Fields
+
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetCountryQueryHandler> _logger;
 
-        public GetCountryQueryHandler(IMapper mapper, IUnitOfWork unitOfWork, ILogger<GetCountryQueryHandler> logger)
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetCountryQueryHandler"/> class.
+        /// </summary>
+        public GetCountryQueryHandler(
+            IUnitOfWork unitOfWork,
+            ILogger<GetCountryQueryHandler> logger)
         {
-            _mapper = mapper;
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
+
+        #endregion
+
+        #region Handle
+
+        /// <summary>
+        /// Retrieves country option data and constructs the successful API response.
+        /// </summary>
         public async Task<ApiResponse<List<GetCountryOptionResponseDTO>>> Handle(
-       GetCountryQuery request,
-       CancellationToken cancellationToken)
+            GetCountryQuery request,
+            CancellationToken cancellationToken)
         {
-            try
+            if (request?.DTO == null || !request.DTO.TodaysDate.HasValue)
             {
-                _logger.LogInformation("🔹 GetCountry started (Open API)");
-
-                // ===============================
-                // 1️⃣ NULL SAFETY
-                // ===============================
-                if (request?.DTO == null)
-                    throw new ValidationErrorException("Invalid request data.");
-
-                // ===============================
-                // 2️⃣ INPUT VALIDATION
-                // ===============================
-                if (!request.DTO.TodaysDate.HasValue)
-                    throw new ValidationErrorException("Today's date is required.");
-
-                var date = request.DTO.TodaysDate.Value.Date;
-
-                _logger.LogInformation("Fetching countries for date: {Date}", date);
-
-                // ===============================
-                // 3️⃣ FETCH DATA
-                // ===============================
-                var result = await _unitOfWork
-                    .LocationRepository
-                    .GetCountryOptionAsync(request.DTO);
-
-                var data = result?.Data ?? new List<GetCountryOptionResponseDTO>();
-
-                _logger.LogInformation("✅ Retrieved {Count} countries", data.Count);
-
-                // ===============================
-                // 4️⃣ SUCCESS (EMPTY ALLOWED ✅)
-                // ===============================
-                return ApiResponse<List<GetCountryOptionResponseDTO>>
-                    .Success(data, "Countries fetched successfully.");
+                throw new ValidationErrorException(AppConstants.ErrorMessages.RequiredDataMissing);
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error in GetCountry");
 
-                throw; // ✅ CRITICAL
-            }
+            var countries = await _unitOfWork.LocationRepository.GetCountryOptionAsync(request.DTO);
+            _logger.LogInformation("Retrieved {Count} country options.", countries.Count);
+
+            // Build the application response in the handler layer.
+            return ApiResponse<List<GetCountryOptionResponseDTO>>.Success(
+                countries,
+                AppConstants.SuccessMessages.CountriesRetrieved);
         }
+
+        #endregion
     }
+
+    #endregion
 }

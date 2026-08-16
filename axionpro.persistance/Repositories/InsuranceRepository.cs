@@ -5,13 +5,9 @@
 // Purpose : Persists insurance policy data without constructing API errors.
 // ================================================================
 
-using AutoMapper;
 using axionpro.application.DTOS.InsurancePolicy;
 using axionpro.application.DTOS.Pagination;
-using axionpro.application.Interfaces.IEncryptionService;
-using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
-using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
@@ -27,11 +23,7 @@ namespace axionpro.persistance.Repositories
 
         public InsuranceRepository(
             WorkforceDbContext context,
-            IMapper mapper,
-            ILogger<InsuranceRepository> logger,
-           
-            IPasswordService passwordService,
-            IEncryptionService encryptionService)
+            ILogger<InsuranceRepository> logger)
         {
             _context = context;
             _logger = logger;
@@ -190,67 +182,55 @@ namespace axionpro.persistance.Repositories
                 throw;
             }
         }
-        public async Task<ApiResponse<List<GetAlllnsurancePolicyWithDetailsResponseDTO>>>
- GetAllPolicyListWithConsumedDetailsAsync(long employeeId, int policyTypeId, bool isActive)
+        /// <summary>
+        /// Projects insurance policies with employee consumption details without constructing an API response.
+        /// </summary>
+        public async Task<List<GetAlllnsurancePolicyWithDetailsResponseDTO>>
+            GetAllPolicyListWithConsumedDetailsAsync(long employeeId, int policyTypeId, bool isActive)
         {
             try
             {
-                var policies = await _context.InsurancePolicies
+                var employeeEnrollments = _context.EmployeePolicyEnrollment
                     .AsNoTracking()
-                    .Where(x =>
-                        x.PolicyTypeId == policyTypeId &&
-                        x.IsActive == isActive &&
-                        !x.IsSoftDeleted)
-                    .OrderBy(x => x.InsurancePolicyName)
-                    .ToListAsync();
+                    .Where(enrollment =>
+                        enrollment.EmployeeId == employeeId &&
+                        !enrollment.IsSoftDeleted);
 
-                if (!policies.Any())
-                {
-                    return ApiResponse<List<GetAlllnsurancePolicyWithDetailsResponseDTO>>
-                        .Success(new List<GetAlllnsurancePolicyWithDetailsResponseDTO>(), "No policies found.");
-                }
+                var consumedDependentMappings = _context.EmployeePolicyDependentMapping
+                    .AsNoTracking()
+                    .Where(mapping =>
+                        mapping.IsActive &&
+                        !mapping.IsSoftDeleted &&
+                        mapping.IsCovered);
 
-                var enrollments = await _context.EmployeePolicyEnrollment
-                    .Where(x => x.EmployeeId == employeeId && !x.IsSoftDeleted)
-                    .ToListAsync();
-
-                var enrollmentIds = enrollments.Select(x => x.Id).ToList();
-
-                var dependentMappings = await _context.EmployeePolicyDependentMapping
-                    .Where(x =>
-                        enrollmentIds.Contains(x.EmployeePolicyEnrollmentId) &&
-                        x.IsActive &&
-                        !x.IsSoftDeleted)
-                    .ToListAsync();
-
-                var result = policies.Select(policy =>
-                {
-                    var enrollment = enrollments
-                        .FirstOrDefault(e => e.InsurancePolicyId == policy.Id);
-
-                    var mappings = dependentMappings
-                        .Where(m => m.EmployeePolicyEnrollmentId == (enrollment != null ? enrollment.Id : 0))
-                        .ToList();
-
-                    var coveredCount = mappings.Count(m => m.IsCovered);
-
-                    return new GetAlllnsurancePolicyWithDetailsResponseDTO
+                // Project the multi-table query directly to the response model.
+                return await (
+                    from policy in _context.InsurancePolicies.AsNoTracking()
+                    where policy.PolicyTypeId == policyTypeId &&
+                          policy.IsActive == isActive &&
+                          !policy.IsSoftDeleted
+                    let isEmployeeConsumed = employeeEnrollments
+                        .Any(enrollment => enrollment.InsurancePolicyId == policy.Id)
+                    let consumedDependentCount = consumedDependentMappings
+                        .Count(mapping => employeeEnrollments.Any(enrollment =>
+                            enrollment.Id == mapping.EmployeePolicyEnrollmentId &&
+                            enrollment.InsurancePolicyId == policy.Id))
+                    orderby policy.InsurancePolicyName
+                    select new GetAlllnsurancePolicyWithDetailsResponseDTO
                     {
                         InsurancePolicyId = policy.Id,
                         PolicyTypeId = policy.PolicyTypeId,
                         InsurancePolicyName = policy.InsurancePolicyName,
-                        IsEmployeeConsumed = enrollment != null,
-                        IsDependentConsumed = coveredCount > 0,
-                        ConsumedDependentCount = coveredCount
-                    };
-                }).ToList();
+                        IsEmployeeConsumed = isEmployeeConsumed,
+                        IsDependentConsumed = consumedDependentCount > 0,
+                        ConsumedDependentCount = consumedDependentCount
+                    })
+                    .ToListAsync();
 
-                return ApiResponse<List<GetAlllnsurancePolicyWithDetailsResponseDTO>>
-                    .Success(result, "Success");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Repository error");
+                _logger.LogError(ex, "Repository error while fetching consumed insurance policies.");
                 throw;
             }
         }

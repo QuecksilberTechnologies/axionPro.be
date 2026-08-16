@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Handles requests for active state option projections.
+// ================================================================
+
+using axionpro.application.Constants;
 using axionpro.application.DTOS.Location;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -8,79 +15,88 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.LocationCmd.Handlers
 {
+    #region Query
+
+    /// <summary>
+    /// Represents a request for active state options.
+    /// </summary>
     public class GetStateQuery : IRequest<ApiResponse<List<GetStateOptionResponseDTO>>>
     {
         public GetStateOptionRequestDTO? DTO { get; set; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetStateQuery"/> class.
+        /// </summary>
         public GetStateQuery(GetStateOptionRequestDTO dto)
         {
             DTO = dto;
         }
     }
 
+    #endregion
+
+    #region Handler
+
+    /// <summary>
+    /// Handles requests for active state option projections.
+    /// </summary>
     public class GetStateQueryHandler : IRequestHandler<GetStateQuery, ApiResponse<List<GetStateOptionResponseDTO>>>
     {
-        private readonly IMapper _mapper;
+        #region Fields
+
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetStateQueryHandler> _logger;
 
-        public GetStateQueryHandler(IMapper mapper, IUnitOfWork unitOfWork, ILogger<GetStateQueryHandler> logger)
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetStateQueryHandler"/> class.
+        /// </summary>
+        public GetStateQueryHandler(
+            IUnitOfWork unitOfWork,
+            ILogger<GetStateQueryHandler> logger)
         {
-            _mapper = mapper;
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
+
+        #endregion
+
+        #region Handle
+
+        /// <summary>
+        /// Retrieves state option data and constructs the successful API response.
+        /// </summary>
         public async Task<ApiResponse<List<GetStateOptionResponseDTO>>> Handle(
-    GetStateQuery request,
-    CancellationToken cancellationToken)
+            GetStateQuery request,
+            CancellationToken cancellationToken)
         {
-            try
+            if (request?.DTO == null || !request.DTO.TodaysDate.HasValue)
             {
-                _logger.LogInformation("🔹 GetState started (Open API)");
-
-                // ===============================
-                // 1️⃣ NULL SAFETY
-                // ===============================
-                if (request?.DTO == null)
-                    throw new ValidationErrorException("Invalid request data.");
-
-                // ===============================
-                // 2️⃣ INPUT VALIDATION
-                // ===============================
-                if (!request.DTO.TodaysDate.HasValue)
-                    throw new ValidationErrorException("Today's date is required.");
-
-                if (request.DTO.CountryId <= 0)
-                    throw new ValidationErrorException("CountryId is required to fetch states.");
-
-                // ===============================
-                // 3️⃣ FETCH DATA
-                // ===============================
-                var result = await _unitOfWork
-                    .LocationRepository
-                    .GetStateOptionAsync(request.DTO);
-
-                var data = result?.Data ?? new List<GetStateOptionResponseDTO>();
-
-                _logger.LogInformation(
-                    "✅ Retrieved {Count} states for CountryId {CountryId}",
-                    data.Count,
-                    request.DTO.CountryId);
-
-                // ===============================
-                // 4️⃣ SUCCESS (EMPTY ALLOWED ✅)
-                // ===============================
-                return ApiResponse<List<GetStateOptionResponseDTO>>
-                    .Success(data, "States fetched successfully.");
+                throw new ValidationErrorException(AppConstants.ErrorMessages.RequiredDataMissing);
             }
-            catch (Exception ex)
+
+            if (request.DTO.CountryId <= 0)
             {
-                _logger.LogError(ex, "❌ Error in GetState");
-
-                throw; // ✅ CRITICAL
+                throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
             }
+
+            var states = await _unitOfWork.LocationRepository.GetStateOptionAsync(request.DTO);
+            _logger.LogInformation(
+                "Retrieved {Count} state options for country {CountryId}.",
+                states.Count,
+                request.DTO.CountryId);
+
+            // Build the application response in the handler layer.
+            return ApiResponse<List<GetStateOptionResponseDTO>>.Success(
+                states,
+                AppConstants.SuccessMessages.StatesRetrieved);
         }
 
-
+        #endregion
     }
+
+    #endregion
 }

@@ -1,15 +1,10 @@
-﻿using axionpro.application.Interfaces;
-
-using axionpro.domain.Entity;
-using MediatR;
-using System.Runtime.ConstrainedExecution;
-
 // ================================================================
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
 // Purpose : Defines shared application constants and standardized error values.
 // ================================================================
+using System;
 
 namespace axionpro.application.Constants
 {
@@ -51,6 +46,27 @@ namespace axionpro.application.Constants
         }
 
         #endregion
+
+        #region Success Messages
+
+        /// <summary>
+        /// Defines success messages for response-boundary handlers.
+        /// </summary>
+        public static class SuccessMessages
+        {
+            public const string GenderOptionsRetrieved = "Gender options fetched successfully.";
+            public const string RoleOptionsRetrieved = "Role options fetched successfully.";
+            public const string CountriesRetrieved = "Countries fetched successfully.";
+            public const string StatesRetrieved = "States fetched successfully.";
+            public const string DistrictsRetrieved = "Districts fetched successfully.";
+            public const string ConsumedInsurancePoliciesRetrieved = "Insurance policies fetched successfully.";
+            public const string WorkflowStageDeleted = "Workflow stage deleted successfully.";
+            public const string EmployeeTypesRetrieved = "Employee types fetched successfully.";
+            public const string MenuDisplayStructureRetrieved = "Menu display structure fetched successfully.";
+        }
+
+        #endregion
+
         #region Module Scopes
 
         /// <summary>

@@ -1,21 +1,39 @@
-﻿using axionpro.application.DTOS.Common;
-using axionpro.application.DTOS.Gender;
-using axionpro.application.DTOS.Location;
-using axionpro.application.Wrappers;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines persistence operations for location data and option projections.
+// ================================================================
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+using axionpro.application.DTOS.Location;
+using axionpro.domain.Entity;
 
 namespace axionpro.application.Interfaces.IRepositories
 {
+    /// <summary>
+    /// Defines persistence operations for location data and option projections.
+    /// </summary>
     public interface ILocationRepository
     {
-        Task<ApiResponse<List<GetCountryOptionResponseDTO?>>> GetCountryOptionAsync(GetCountryOptionRequestDTO dto);
-        Task<ApiResponse<List<GetDistrictOptionResponseDTO?>>> GetDistrictOptionAsync(GetDistrictOptionRequestDTO dto);
-        Task<ApiResponse<List<GetStateOptionResponseDTO?>>> GetStateOptionAsync(GetStateOptionRequestDTO dto);
+        /// <summary>
+        /// Gets active country option projections.
+        /// </summary>
+        Task<List<GetCountryOptionResponseDTO>> GetCountryOptionAsync(GetCountryOptionRequestDTO dto);
+
+        /// <summary>
+        /// Gets active state option projections for a country.
+        /// </summary>
+        Task<List<GetStateOptionResponseDTO>> GetStateOptionAsync(GetStateOptionRequestDTO dto);
+
+        /// <summary>
+        /// Gets active district option projections for a state.
+        /// </summary>
+        Task<List<GetDistrictOptionResponseDTO>> GetDistrictOptionAsync(GetDistrictOptionRequestDTO dto);
+
+        /// <summary>
+        /// Determines whether an active state exists for the supplied identifier.
+        /// </summary>
+        Task<bool> IsActiveStateAsync(int stateId);
 
         Task<List<Country>> GetAllAsync();
         Task<Country> GetByIdAsync(int id);

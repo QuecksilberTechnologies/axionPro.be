@@ -9,7 +9,6 @@ using axionpro.application.DTOs.Role;
 using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.DTOS.Role;
-using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 
 namespace axionpro.application.Interfaces.IRepositories
@@ -20,7 +19,13 @@ namespace axionpro.application.Interfaces.IRepositories
     public interface IRoleRepository
     {
         Task<GetSingleRoleResponseDTO?> GetByIdAsync1(GetSingleRoleRequestDTO dto);
-        Task<ApiResponse<List<GetRoleOptionResponseDTO?>>> GetOptionAsync(GetRoleOptionRequestDTO dto);
+
+        /// <summary>
+        /// Gets role option projections for the trusted tenant context.
+        /// </summary>
+        /// <param name="dto">The role option query criteria.</param>
+        /// <returns>The matching role option projections.</returns>
+        Task<List<GetRoleOptionResponseDTO>> GetOptionAsync(GetRoleOptionRequestDTO dto);
 
         /// <summary>
         /// Soft deletes a tenant role using trusted tenant and actor identifiers.

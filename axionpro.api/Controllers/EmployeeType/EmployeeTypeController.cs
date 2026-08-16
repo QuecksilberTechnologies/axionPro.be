@@ -1,133 +1,110 @@
-﻿using axionpro.application.DTOs.EmployeeType;
-using axionpro.application.DTOs.Leave;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Exposes employee-type endpoints and delegates application operations to handlers.
+// ================================================================
+
+using axionpro.application.Constants;
+using axionpro.application.DTOs.EmployeeType;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.EmployeeType;
 using axionpro.application.Features.EmployeeTypeCmd.Handlers;
-using axionpro.application.Features.LeaveCmd.Commands;
-using axionpro.application.Features.LeaveCmd.Queries;
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace axionpro.api.Controllers.EmployeeType
 {
+    /// <summary>
+    /// Exposes employee-type endpoints.
+    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     public class EmployeeTypeController : ControllerBase
     {
-        private readonly IMediator _mediator;
-        private readonly ILogger<EmployeeTypeController> _logger;  // 🔹 Microsoft ILogger उपयोग करें
+        #region Fields
 
-        public EmployeeTypeController(IMediator mediator, ILogger<EmployeeTypeController> logger)
+        private readonly IMediator _mediator;
+        private readonly ILogger<EmployeeTypeController> _logger;
+
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EmployeeTypeController"/> class.
+        /// </summary>
+        public EmployeeTypeController(
+            IMediator mediator,
+            ILogger<EmployeeTypeController> logger)
         {
             _mediator = mediator;
             _logger = logger;
         }
 
-        //[HttpPost("get")]
-        //public async Task<IActionResult> CreateLeaveType([FromBody] CreateLeaveTypeDTO createLeaveTypeDTO)
-        //{
-        //    if (createLeaveTypeDTO == null)
-        //    {
-        //        _logger.LogWarning("Received null request for creating leave type.");  // ✅ अब सही है
-        //        return BadRequest(new { success = false, message = "Invalid request" });
-        //    }
+        #endregion
 
-        //    _logger.LogInformation($"Received request to create a new leave type: {createLeaveTypeDTO.LeaveName}");
+        #region Queries
 
-        //    var command = new CreateLeaveTypeCommand(createLeaveTypeDTO);
-        //    var result = await _mediator.Send(command);
-
-        //    if (!result.IsSucceeded)
-        //    {
-        //        return BadRequest(result);
-        //    }
-
-        //    return Ok(result);
-        //}
         /// <summary>
-        /// Returns list of all Employee Types.
+        /// Gets the currently configured employee-type display data.
         /// </summary>
-
-        [HttpGet("get")]   
-        public async Task<IActionResult> GetAllEmployeeType([FromQuery] application.DTOS.Employee.Type.GetEmployeeTypeRequestDTO requestDto)
+        [HttpGet("get")]
+        public IActionResult GetAllEmployeeType(
+            [FromQuery] application.DTOS.Employee.Type.GetEmployeeTypeRequestDTO requestDto)
         {
-            
-                _logger.LogInformation("Fetching all employee types.");
+            _logger.LogInformation("Fetching all employee types.");
 
-                var employeeTypes = new List<GetEmployeeTypeResponseDTO>
+            var employeeTypes = new List<GetEmployeeTypeResponseDTO>
+            {
+                new()
                 {
-                    new() { Id = 1, TypeName = "Full-Time", Description = "Permanent employee with all benefits", IsActive = true },
-                    new() { Id = 2, TypeName = "Contract", Description = "Contract-based employee", IsActive = true },
-                    new() { Id = 3, TypeName = "Intern", Description = "Internship employee", IsActive = true },
-                    new() { Id = 4, TypeName = "Freelancer", Description = "External resource", IsActive = false }
-                };
+                    Id = 1,
+                    TypeName = "Full-Time",
+                    Description = "Permanent employee with all benefits",
+                    IsActive = true
+                },
+                new()
+                {
+                    Id = 2,
+                    TypeName = "Contract",
+                    Description = "Contract-based employee",
+                    IsActive = true
+                },
+                new()
+                {
+                    Id = 3,
+                    TypeName = "Intern",
+                    Description = "Internship employee",
+                    IsActive = true
+                },
+                new()
+                {
+                    Id = 4,
+                    TypeName = "Freelancer",
+                    Description = "External resource",
+                    IsActive = false
+                }
+            };
 
-                var response = new ApiResponse<List<application.DTOs.EmployeeType.GetEmployeeTypeResponseDTO>>(employeeTypes, "Employee types fetched successfully.", true);
-                return Ok(response);
-         
-           
+            return Ok(ApiResponse<List<GetEmployeeTypeResponseDTO>>.Success(
+                employeeTypes,
+                AppConstants.SuccessMessages.EmployeeTypesRetrieved));
         }
+
+        /// <summary>
+        /// Gets employee-type options through the application query handler.
+        /// </summary>
         [HttpGet("option")]
         public async Task<IActionResult> GetAllEmployeeType([FromQuery] GetOptionRequestDTO requestDTO)
         {
-       
-            
+            _logger.LogInformation("Fetching employee-type options.");
 
-            _logger.LogInformation("Fetching all leave types...");
-
-            var query = new GetEmployeeTypeOptionQuery(requestDTO);
-            var result = await _mediator.Send(query);
-
-           
-
+            var result = await _mediator.Send(new GetEmployeeTypeOptionQuery(requestDTO));
             return Ok(result);
         }
-        //[HttpPost("update-leavetype")]
-        //// [Authorize]
-        //public async Task<IActionResult> UpdateLeave([FromBody] UpdateLeaveTypeDTO updateLeaveTypeDTO)
-        //{
-        //    _logger.LogInformation("Received request for update a leave" + updateLeaveTypeDTO.ToString());
-        //    var command = new UpdateLeaveTypeCommand(updateLeaveTypeDTO);
-        //    var result = await _mediator.Send(command);
-        //    if (!result.IsSucceeded)
-        //    {
-        //        return Ok(result);
-        //    }
-        //    return Ok(result);
-        //}
-        //[HttpPost("delete-leavetype")]
-        //// [Authorize]
-        //public async Task<IActionResult> DeleteLeave([FromBody] DeleteLeaveRequestDTO request)
-        //{
-        //    if (request == null)
-        //    {
-        //        _logger.LogWarning("DeleteLeave request is null.");
-        //        return BadRequest(new ApiResponse<bool>
-        //        {
-        //            IsSucceeded = false,
-        //            Message = "Invalid request data.",
-        //            Data = false
-        //        });
-        //    }
 
-        //    _logger.LogInformation("Received request to delete LeaveType Id: {Id} by UserId: {UserId}", request.Id, request.UserId);
-
-        //    var command = new DeleteLeaveTypeCommand(request);
-        //    var result = await _mediator.Send(command);
-
-        //    if (!result.IsSucceeded)
-        //    {
-        //        _logger.LogWarning("Failed to delete LeaveType Id: {Id}", request.Id);
-        //        return BadRequest(result);
-        //    }
-
-        //    _logger.LogInformation("Successfully deleted LeaveType Id: {Id}", request.Id);
-        //    return Ok(result);
-        //}
-
-
-
+        #endregion
     }
-
 }
