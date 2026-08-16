@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Creates tenant-owned assets and optional asset images.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.AssetDTO.asset;
@@ -6,44 +13,54 @@ using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IFileStorage;
-using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
-
 using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
+namespace axionpro.application.Features.AssetFeatures.Assets.Handlers;
+
+#region Command
+
+/// <summary>Represents the request to create an asset.</summary>
 public class AddAssetCommand : IRequest<ApiResponse<GetAssetResponseDTO>>
 {
-    public AddAssetRequestDTO DTO { get; }
+    /// <summary>Initializes a new instance of the <see cref="AddAssetCommand"/> class.</summary>
+    public AddAssetCommand(AddAssetRequestDTO dto) => DTO = dto;
 
-    public AddAssetCommand(AddAssetRequestDTO dto)
-    {
-        DTO = dto;
-    }
+    /// <summary>Gets the client-supplied asset values.</summary>
+    public AddAssetRequestDTO DTO { get; }
 }
 
+#endregion
 
-public class AddAssetCommandHandler
-   : IRequestHandler<AddAssetCommand, ApiResponse<GetAssetResponseDTO>>
+#region Handler
+
+/// <summary>Handles creation of tenant-owned assets.</summary>
+public class AddAssetCommandHandler : IRequestHandler<AddAssetCommand, ApiResponse<GetAssetResponseDTO>>
 {
+    #region Fields
+
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly ILogger<AddAssetCommandHandler> _logger;
     private readonly IFileStorageService _fileStorageService;
     private readonly ICommonRequestService _commonRequestService;
-    private readonly IPermissionService _permissionService;
-    private readonly IConfiguration configuration;
-     
+    private readonly IConfiguration _configuration;
+
+    #endregion
+
+    #region Constructor
+
+    /// <summary>Initializes a new instance of the <see cref="AddAssetCommandHandler"/> class.</summary>
     public AddAssetCommandHandler(
         IUnitOfWork unitOfWork,
         IMapper mapper,
         ILogger<AddAssetCommandHandler> logger,
         IFileStorageService fileStorageService,
         ICommonRequestService commonRequestService,
-        IPermissionService permissionService,
         IConfiguration configuration)
     {
         _unitOfWork = unitOfWork;
@@ -51,120 +68,74 @@ public class AddAssetCommandHandler
         _logger = logger;
         _fileStorageService = fileStorageService;
         _commonRequestService = commonRequestService;
-        _permissionService = permissionService;
-        this.configuration = configuration;
+        _configuration = configuration;
     }
 
-    public async Task<ApiResponse<GetAssetResponseDTO>> Handle(
-    AddAssetCommand request,
-    CancellationToken ct)
+    #endregion
+
+    #region Handle
+
+    /// <inheritdoc />
+    public async Task<ApiResponse<GetAssetResponseDTO>> Handle(AddAssetCommand request, CancellationToken cancellationToken)
     {
-        // 🔹 Transaction start
-        await _unitOfWork.BeginTransactionAsync();
-        // 🔹 Track uploaded file (VERY IMPORTANT for rollback cleanup)
         string? uploadedFileKey = null;
+        await _unitOfWork.BeginTransactionAsync();
+
         try
         {
-            // ===============================
-            // 1️⃣ COMMON VALIDATION (AUTH + CONTEXT)
-            // ===============================
-            var validation = await _commonRequestService.ValidateRequestAsync();
-
-            // ❌ Pehle: return Fail
-            // ✅ Ab: throw (middleware handle karega)
-            if (!validation.Success)
-                throw new UnauthorizedAccessException(validation.ErrorMessage);
-
-            // ===============================
-            // 2️⃣ NULL SAFETY (IMPORTANT)
-            // ===============================
-            if (request?.DTO == null)
+            if (request.DTO is null)
+            {
                 throw new ValidationErrorException("Invalid request data.");
+            }
 
-            if (request.DTO.Prop == null)
-                request.DTO.Prop = new();
+            // Resolve the trusted tenant-user context.
+            var validation = await _commonRequestService.ValidateRequestAsync();
+            if (!validation.Success)
+            {
+                throw new UnauthorizedAccessException(validation.ErrorMessage);
+            }
 
-            // Assign context values
-            request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-            request.DTO.Prop.TenantId = validation.TenantId;
-
-            // ===============================
-            // 3️⃣ DTO → ENTITY (AutoMapper)
-            // ===============================
+            // Map client-editable values and apply server-controlled context.
             var asset = _mapper.Map<Asset>(request.DTO);
-
-            // System fields
             asset.TenantId = validation.TenantId;
-            asset.AddedById = validation.UserEmployeeId;
+            asset.AddedById = validation.LoggedInEmployeeId;
             asset.AddedDateTime = DateTime.UtcNow;
             asset.IsActive = true;
             asset.IsSoftDeleted = false;
-            asset.UpdatedDateTime = null; 
-            asset.DeletedDateTime = null;           
-            asset.PurchaseDate = request.DTO.PurchaseDate.HasValue? DateTime.SpecifyKind(request.DTO.PurchaseDate.Value, DateTimeKind.Utc)  : null;
-            asset.WarrantyExpiryDate = request.DTO.WarrantyExpiryDate.HasValue   ? DateTime.SpecifyKind(request.DTO.WarrantyExpiryDate.Value, DateTimeKind.Utc) : null;
+            asset.UpdatedDateTime = null;
+            asset.DeletedDateTime = null;
 
-            // ===============================
-            // 4️⃣ VALIDATE FOREIGN KEYS
-            // ===============================
-            var assetStatus = await _unitOfWork.AssetStatusRepository
-                .GetByIdAsync(asset.AssetStatusId);
-
-            if (assetStatus == null)
-                throw new ValidationErrorException("Invalid AssetStatusId.");
-
-            // ===============================
-            // 5️⃣ IMAGE UPLOAD (SAFE BLOCK)
-            // ===============================
-            string? assetImagePath = null;
-
-            if (request.DTO.AssetImageFile != null &&
-                request.DTO.AssetImageFile.Length > 0)
+            var assetStatus = await _unitOfWork.AssetStatusRepository.GetByIdForTenantAsync(
+                asset.AssetStatusId,
+                validation.TenantId,
+                cancellationToken);
+            if (assetStatus is null)
             {
-                try
-                {
-                    string cleanName =
-                        EncryptionSanitizer.CleanEncodedInput(
-                            request.DTO.AssetName ?? "asset")
-                        .ToLower()
-                        .Replace(" ", "_");
-
-                    string fileName =
-                        $"asset-{cleanName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
-
-                    string folderPath =
-                        $"{ConstantValues.TenantFolder}-{validation.TenantId}/{ConstantValues.AssetsFolder}";
-
-                      uploadedFileKey = await _fileStorageService.UploadFileAsync(
-                        request.DTO.AssetImageFile,
-                        folderPath,
-                        fileName);
-
-                    if (!string.IsNullOrWhiteSpace(uploadedFileKey))
-                        assetImagePath = uploadedFileKey;
-                }
-                catch (Exception ex)
-                {
-                    // ⚠️ Image failure should NOT break main flow
-                    _logger.LogError(ex, "Asset image upload failed");
-                }
+                throw new ValidationErrorException("Invalid AssetStatusId.");
             }
 
-            // ===============================
-            // 6️⃣ SAVE DATA
-            // ===============================
-            var insertedAsset = await _unitOfWork.AssetRepository
-                .AddAsync(asset, assetImagePath);
+            string? assetImagePath = null;
+            if (request.DTO.AssetImageFile is { Length: > 0 })
+            {
+                var cleanName = EncryptionSanitizer.CleanEncodedInput(request.DTO.AssetName ?? "asset")
+                    .ToLowerInvariant()
+                    .Replace(" ", "_");
+                var fileName = $"asset-{cleanName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
+                var folderPath = $"{ConstantValues.TenantFolder}-{validation.TenantId}/{ConstantValues.AssetsFolder}";
+                uploadedFileKey = await _fileStorageService.UploadFileAsync(
+                    request.DTO.AssetImageFile,
+                    folderPath,
+                    fileName);
+                assetImagePath = uploadedFileKey;
+            }
 
-            // ❌ Pehle: return Fail
-            // ✅ Ab: throw (middleware handle karega)
-            if (insertedAsset == null)
+            var insertedAsset = await _unitOfWork.AssetRepository.AddAsync(asset, assetImagePath!);
+            if (insertedAsset is null)
+            {
                 throw new ApiException("Asset creation failed.", 500);
+            }
 
-            // ===============================
-            // 7️⃣ QR GENERATION
-            // ===============================
-            var qrPayload = new
+            var qrJson = JsonConvert.SerializeObject(new
             {
                 insertedAsset.AssetId,
                 insertedAsset.AssetName,
@@ -179,53 +150,38 @@ public class AddAssetCommandHandler
                 insertedAsset.WarrantyExpiryDate,
                 insertedAsset.IsRepairable,
                 insertedAsset.IsAssigned
-            };
+            });
+            await _unitOfWork.AssetRepository.UpdateQrCodeAsync(insertedAsset.AssetId, qrJson);
 
-            string qrJson = JsonConvert.SerializeObject(qrPayload);
-
-            await _unitOfWork.AssetRepository
-                .UpdateQrCodeAsync(insertedAsset.AssetId, qrJson);
-
-            // ===============================
-            // 8️⃣ FINAL RESPONSE BUILD
-            // ===============================
-            string baseUrl =
-                configuration["FileSettings:BaseUrl"] ?? string.Empty;
-
-            insertedAsset.AssetImagePath =
-                string.IsNullOrEmpty(insertedAsset.AssetImagePath)
+            var baseUrl = _configuration["FileSettings:BaseUrl"] ?? string.Empty;
+            insertedAsset.AssetImagePath = string.IsNullOrEmpty(insertedAsset.AssetImagePath)
                 ? null
                 : $"{baseUrl}{insertedAsset.AssetImagePath}";
 
-            // ===============================
-            // 9️⃣ COMMIT TRANSACTION
-            // ===============================
             await _unitOfWork.CommitTransactionAsync();
-
-            return ApiResponse<GetAssetResponseDTO>
-                .Success(insertedAsset, "Asset created successfully.");
+            return ApiResponse<GetAssetResponseDTO>.Success(insertedAsset, "Asset created successfully.");
         }
         catch (Exception ex)
         {
-            // 🔁 Rollback ALWAYS on error
             await _unitOfWork.RollbackTransactionAsync();
-
-            _logger.LogError(ex, "AddAsset failed");
             if (!string.IsNullOrEmpty(uploadedFileKey))
             {
                 try
                 {
                     await _fileStorageService.DeleteFileAsync(uploadedFileKey);
-                    _logger.LogWarning("Rollback: Uploaded image deleted from storage.");
                 }
-                catch (Exception deleteEx)
+                catch (Exception deleteException)
                 {
-                    _logger.LogError(deleteEx, "Failed to delete uploaded image after rollback.");
+                    _logger.LogError(deleteException, "Failed to delete the rolled-back asset image.");
                 }
             }
 
-            // ❗ IMPORTANT: throw (middleware handle karega)
+            _logger.LogError(ex, "Asset creation failed.");
             throw;
         }
     }
+
+    #endregion
 }
+
+#endregion

@@ -1,155 +1,125 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Creates tenant-owned asset statuses from authenticated requests.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.DTOS.AssetDTO.status;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; using MediatR; 
+using axionpro.domain.Entity;
+using MediatR;
 
-using Microsoft.Extensions.Logging;
+namespace axionpro.application.Features.AssetFeatures.Status.Handlers;
 
-namespace axionpro.application.Features.AssetFeatures.Status.Handlers
+#region Command
+
+/// <summary>
+/// Represents the request to create an asset status.
+/// </summary>
+public class AddStatusCommand : IRequest<ApiResponse<GetStatusResponseDTO>>
 {
-   
-      public class AddStatusCommand : IRequest<ApiResponse<GetStatusResponseDTO>>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AddStatusCommand"/> class.
+    /// </summary>
+    public AddStatusCommand(CreateStatusRequestDTO dto)
     {
-        public CreateStatusRequestDTO DTO { get; set; }
-
-        public AddStatusCommand(CreateStatusRequestDTO dTO)
-        {
-            this.DTO = dTO;
-        }
-
-    }
-    public class AddStatusCommandHandler
-     : IRequestHandler<AddStatusCommand, ApiResponse<GetStatusResponseDTO>>
-    {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        private readonly ILogger<AddStatusCommandHandler> _logger;
-        private readonly ICommonRequestService _commonRequestService;
-        private readonly IPermissionService _permissionService;
-
-        public AddStatusCommandHandler(
-            IUnitOfWork unitOfWork,
-            IMapper mapper,
-            ILogger<AddStatusCommandHandler> logger,
-            ICommonRequestService commonRequestService,
-            IPermissionService permissionService)
-        {
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
-            _logger = logger;
-            _commonRequestService = commonRequestService;
-            _permissionService = permissionService;
-        }
-
-        public async Task<ApiResponse<GetStatusResponseDTO>> Handle(
-    AddStatusCommand request,
-    CancellationToken cancellationToken)
-        {
-            try
-            {
-                _logger.LogInformation("Creating Asset Status");
-
-                // ===============================
-                // 1️⃣ COMMON VALIDATION (AUTH + CONTEXT)
-                // ===============================
-                var validation = await _commonRequestService.ValidateRequestAsync();
-
-                // ❌ Old: return Fail
-                // ✅ New: throw
-                if (!validation.Success)
-                    throw new UnauthorizedAccessException(validation.ErrorMessage);
-
-                // ===============================
-                // 2️⃣ NULL SAFETY
-                // ===============================
-                if (request?.DTO == null)
-                    throw new ValidationErrorException(
-                        "Invalid request data.",
-                        new List<string> { "Request DTO is required." }
-                    );
-
-                if (request.DTO.Prop == null)
-                    request.DTO.Prop = new();
-
-                // Inject values
-                request.DTO.Prop.TenantId = validation.TenantId;
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-
-                // ===============================
-                // 3️⃣ BUSINESS VALIDATION
-                // ===============================
-                if (string.IsNullOrWhiteSpace(request.DTO.StatusName))
-                    throw new ValidationErrorException(
-                        "StatusName is required.",
-                        new List<string> { "StatusName cannot be empty." }
-                    );
-
-                if (string.IsNullOrWhiteSpace(request.DTO.ColorKey))
-                    throw new ValidationErrorException(
-                        "ColorKey is required.",
-                        new List<string> { "ColorKey cannot be empty." }
-                    );
-
-                // ===============================
-                // 4️⃣ PERMISSION CHECK (RBAC)
-                // ===============================
-                //var hasPermission = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    "AssetStatus",   // 🔹 Module
-                //    "Add"            // 🔹 Operation
-                //);
-
-                //if (!hasPermission)
-                //    throw new UnauthorizedAccessException(
-                //        "You do not have permission to create asset status.");
-
-                // ===============================
-                // 5️⃣ MAP DTO → ENTITY
-                // ===============================
-                var entity = _mapper.Map<AssetStatus>(request.DTO);
-
-                entity.TenantId = validation.TenantId;
-                entity.IsActive = true;
-                entity.IsSoftDeleted = false;
-                entity.AddedById = validation.UserEmployeeId;
-                entity.AddedDateTime = DateTime.UtcNow;
-
-                // ===============================
-                // 6️⃣ SAVE (NO EXPLICIT TRANSACTION NEEDED)
-                // ===============================
-                await _unitOfWork.AssetStatusRepository.AddAsync(entity);
-                await _unitOfWork.CommitAsync(); // ✔ required (save changes)
-
-                _logger.LogInformation(
-                    "Asset Status created successfully. Id: {Id}, TenantId: {TenantId}",
-                    entity.Id,
-                    validation.TenantId
-                );
-
-                // ===============================
-                // 7️⃣ MAP ENTITY → RESPONSE DTO
-                // ===============================
-                var response = _mapper.Map<GetStatusResponseDTO>(entity);
-
-                return ApiResponse<GetStatusResponseDTO>
-                    .Success(response, "Asset Status created successfully.");
-            }
-            catch (Exception ex)
-            {
-                // ❗ IMPORTANT: middleware handle karega
-                _logger.LogError(
-                    ex,
-                    "Error while creating Asset Status. TenantId: {TenantId}",
-                    request?.DTO?.Prop?.TenantId
-                );
-
-                throw;
-            }
-        }
+        DTO = dto;
     }
 
+    /// <summary>
+    /// Gets the client-supplied asset status values.
+    /// </summary>
+    public CreateStatusRequestDTO DTO { get; }
 }
+
+#endregion
+
+#region Handler
+
+/// <summary>
+/// Handles creation of tenant-owned asset statuses.
+/// </summary>
+public class AddStatusCommandHandler : IRequestHandler<AddStatusCommand, ApiResponse<GetStatusResponseDTO>>
+{
+    #region Fields
+
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
+    private readonly ICommonRequestService _commonRequestService;
+
+    #endregion
+
+    #region Constructor
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AddStatusCommandHandler"/> class.
+    /// </summary>
+    public AddStatusCommandHandler(
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        ICommonRequestService commonRequestService)
+    {
+        _unitOfWork = unitOfWork;
+        _mapper = mapper;
+        _commonRequestService = commonRequestService;
+    }
+
+    #endregion
+
+    #region Handle
+
+    /// <inheritdoc />
+    public async Task<ApiResponse<GetStatusResponseDTO>> Handle(
+        AddStatusCommand request,
+        CancellationToken cancellationToken)
+    {
+        if (request.DTO is null)
+        {
+            throw new ValidationErrorException(
+                "Invalid request data.",
+                new List<string> { "Request DTO is required." });
+        }
+
+        if (string.IsNullOrWhiteSpace(request.DTO.StatusName)
+            || string.IsNullOrWhiteSpace(request.DTO.ColorKey))
+        {
+            throw new ValidationErrorException(
+                "StatusName and ColorKey are required.",
+                new List<string> { "StatusName and ColorKey cannot be empty." });
+        }
+
+        // Resolve the trusted tenant-user context.
+        var validation = await _commonRequestService.ValidateRequestAsync();
+        if (!validation.Success)
+        {
+            throw new UnauthorizedAccessException(validation.ErrorMessage);
+        }
+
+        // Map client-editable values and apply server-controlled context.
+        var entity = _mapper.Map<AssetStatus>(request.DTO);
+        entity.TenantId = validation.TenantId;
+        entity.IsActive = true;
+        entity.IsSoftDeleted = false;
+        entity.AddedById = validation.LoggedInEmployeeId;
+        entity.AddedDateTime = DateTime.UtcNow;
+
+        var createdEntity = await _unitOfWork.AssetStatusRepository.CreateAsync(entity, cancellationToken);
+        if (createdEntity is null)
+        {
+            throw new ApiException("Failed to create asset status.", 500);
+        }
+
+        return ApiResponse<GetStatusResponseDTO>.Success(
+            _mapper.Map<GetStatusResponseDTO>(createdEntity),
+            "Asset Status created successfully.");
+    }
+
+    #endregion
+}
+
+#endregion

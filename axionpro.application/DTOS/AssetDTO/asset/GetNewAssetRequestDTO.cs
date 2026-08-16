@@ -1,13 +1,16 @@
-﻿using axionpro.application.DTOS.Common;
-using System;
-using System.Collections.Generic;
-using System.Text;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines filters for retrieving newly created assets.
+// ================================================================
 
-namespace axionpro.application.DTOS.AssetDTO.asset
+namespace axionpro.application.DTOS.AssetDTO.asset;
+
+/// <summary>
+/// Represents the client filter for newly created assets.
+/// </summary>
+public class GetNewAssetRequestDTO
 {
-    public class GetNewAssetRequestDTO
-    {
-        public bool IsUnread { get; set; } = true; // Default to true to fetch only new/unread assets
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO(); // Include extra properties if needed
-    }
+    public bool IsUnread { get; set; } = true;
 }

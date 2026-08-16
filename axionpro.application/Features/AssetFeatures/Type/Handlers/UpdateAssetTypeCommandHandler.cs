@@ -1,135 +1,134 @@
-﻿using axionpro.application.DTOS.AssetDTO.type;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Updates tenant-owned asset types from authenticated requests.
+// ================================================================
+
+using AutoMapper;
+using axionpro.application.DTOS.AssetDTO.type;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace axionpro.application.Features.AssetFeatures.Type.Handlers
+namespace axionpro.application.Features.AssetFeatures.Type.Handlers;
+
+#region Command
+
+/// <summary>
+/// Represents the request to update an asset type.
+/// </summary>
+public class UpdateAssetTypeCommand : IRequest<ApiResponse<bool>>
 {
-    public class UpdateAssetTypeCommand : IRequest<ApiResponse<bool>>
-    {
-        public UpdateTypeRequestDTO DTO { get; set; }
-
-        public UpdateAssetTypeCommand(UpdateTypeRequestDTO dTO)
-        {
-            DTO = dTO;
-        }
-
-    }
     /// <summary>
-    /// Handles update of Asset Type (IDEAL PATTERN)
-    /// Repo decides existence & update result
+    /// Initializes a new instance of the <see cref="UpdateAssetTypeCommand"/> class.
     /// </summary>
-    public class UpdateAssetTypeCommandHandler
-        : IRequestHandler<UpdateAssetTypeCommand, ApiResponse<bool>>
+    /// <param name="dto">The client-supplied update values.</param>
+    public UpdateAssetTypeCommand(UpdateTypeRequestDTO dto)
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly ILogger<UpdateAssetTypeCommandHandler> _logger;
-        private readonly ICommonRequestService _commonRequestService;
-        private readonly IPermissionService _permissionService;
-
-        public UpdateAssetTypeCommandHandler(
-            IUnitOfWork unitOfWork,
-            ILogger<UpdateAssetTypeCommandHandler> logger,
-            ICommonRequestService commonRequestService,
-            IPermissionService permissionService)
-        {
-            _unitOfWork = unitOfWork;
-            _logger = logger;
-            _commonRequestService = commonRequestService;
-            _permissionService = permissionService;
-        }
-
-        public async Task<ApiResponse<bool>> Handle(
-     UpdateAssetTypeCommand request,
-     CancellationToken cancellationToken)
-        {
-            try
-            {
-                _logger.LogInformation("Updating Asset Type");
-
-                // ===============================
-                // 1️⃣ COMMON VALIDATION (AUTH + CONTEXT)
-                // ===============================
-                var validation = await _commonRequestService.ValidateRequestAsync();
-
-                // ❌ Old: return Fail
-                // ✅ New: throw
-                if (!validation.Success)
-                    throw new UnauthorizedAccessException(validation.ErrorMessage);
-
-                // ===============================
-                // 2️⃣ NULL SAFETY + INPUT VALIDATION
-                // ===============================
-                if (request?.DTO == null || request.DTO.Id <= 0)
-                    throw new ValidationErrorException(
-                        "Invalid Asset Type Id.",
-                        new List<string> { "Type Id must be greater than 0." }
-                    );
-
-                if (string.IsNullOrWhiteSpace(request.DTO.TypeName))
-                    throw new ValidationErrorException(
-                        "Type Name is required.",
-                        new List<string> { "TypeName cannot be empty." }
-                    );
-
-                if (request.DTO.Prop == null)
-                    request.DTO.Prop = new();
-
-                // Inject values
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-
-                // ===============================
-                // 3️⃣ PERMISSION CHECK (RBAC)
-                // ===============================
-                //var hasPermission = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    "AssetType",   // 🔹 Module
-                //    "Update"       // 🔹 Operation
-                //);
-
-                //if (!hasPermission)
-                //    throw new UnauthorizedAccessException(
-                //        "You do not have permission to update asset type.");
-
-                // ===============================
-                // 4️⃣ UPDATE (REPOSITORY)
-                // ===============================
-                bool updated = await _unitOfWork.AssetTypeRepository
-                    .UpdateAsync(request.DTO);
-
-                if (!updated)
-                    throw new ApiException(
-                        "Asset Type not found or update failed.",
-                        404
-                    );
-
-                // ===============================
-                // 5️⃣ SUCCESS LOG
-                // ===============================
-                _logger.LogInformation(
-                    "Asset Type updated successfully | TypeId={Id} | TenantId={TenantId}",
-                    request.DTO.Id,
-                    request.DTO.Prop.TenantId);
-
-                return ApiResponse<bool>
-                    .Success(true, "Asset Type updated successfully.");
-            }
-            catch (Exception ex)
-            {
-                // ❗ IMPORTANT: middleware handle karega
-                _logger.LogError(
-                    ex,
-                    "Update Asset Type failed | TypeId={Id}",
-                    request?.DTO?.Id);
-
-                throw;
-            }
-        }
-
+        DTO = dto;
     }
+
+    /// <summary>
+    /// Gets the client-supplied update values.
+    /// </summary>
+    public UpdateTypeRequestDTO DTO { get; }
 }
+
+#endregion
+
+#region Handler
+
+/// <summary>
+/// Handles updates to tenant-owned asset types.
+/// </summary>
+public class UpdateAssetTypeCommandHandler : IRequestHandler<UpdateAssetTypeCommand, ApiResponse<bool>>
+{
+    #region Fields
+
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
+    private readonly ILogger<UpdateAssetTypeCommandHandler> _logger;
+    private readonly ICommonRequestService _commonRequestService;
+
+    #endregion
+
+    #region Constructor
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UpdateAssetTypeCommandHandler"/> class.
+    /// </summary>
+    public UpdateAssetTypeCommandHandler(
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        ILogger<UpdateAssetTypeCommandHandler> logger,
+        ICommonRequestService commonRequestService)
+    {
+        _unitOfWork = unitOfWork;
+        _mapper = mapper;
+        _logger = logger;
+        _commonRequestService = commonRequestService;
+    }
+
+    #endregion
+
+    #region Handle
+
+    /// <inheritdoc />
+    public async Task<ApiResponse<bool>> Handle(
+        UpdateAssetTypeCommand request,
+        CancellationToken cancellationToken)
+    {
+        if (request.DTO is null || request.DTO.Id <= 0)
+        {
+            throw new ValidationErrorException(
+                "Invalid Asset Type Id.",
+                new List<string> { "Type Id must be greater than 0." });
+        }
+
+        if (string.IsNullOrWhiteSpace(request.DTO.TypeName))
+        {
+            throw new ValidationErrorException(
+                "Type Name is required.",
+                new List<string> { "TypeName cannot be empty." });
+        }
+
+        // Resolve the trusted tenant-user context.
+        var validation = await _commonRequestService.ValidateRequestAsync();
+        if (!validation.Success)
+        {
+            throw new UnauthorizedAccessException(validation.ErrorMessage);
+        }
+
+        // Load the tenant-owned entity before applying client changes.
+        var entity = await _unitOfWork.AssetTypeRepository.GetByIdForTenantAsync(
+            request.DTO.Id,
+            validation.TenantId,
+            cancellationToken);
+        if (entity is null)
+        {
+            throw new ApiException("Asset Type not found or update failed.", 404);
+        }
+
+        // Map client-editable values and apply the server-controlled audit values.
+        _mapper.Map(request.DTO, entity);
+        entity.UpdatedById = validation.LoggedInEmployeeId;
+        entity.UpdatedDateTime = DateTime.UtcNow;
+
+        var updated = await _unitOfWork.AssetTypeRepository.UpdateAsync(entity, cancellationToken);
+        if (!updated)
+        {
+            _logger.LogWarning("No changes were saved for Asset Type {AssetTypeId}.", entity.Id);
+            throw new ApiException("Asset Type not found or update failed.", 404);
+        }
+
+        return ApiResponse<bool>.Success(true, "Asset Type updated successfully.");
+    }
+
+    #endregion
+}
+
+#endregion

@@ -14,12 +14,12 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-// ============================================================================
-// Author      : Deepesh Gupta
-// Company     : Quecksilber Technologies
-// Role        : CEO
-// Purpose     : Coordinates repositories and transactions over the AxionPro persistence context.
-// ============================================================================
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates repositories and transactions over the AxionPro persistence context.
+// ================================================================
 
 /// <summary>
 /// Provides lazy repository construction and transaction coordination for application handlers.
@@ -389,10 +389,10 @@ public class UnitOfWork : IUnitOfWork
         _reportingTypeRepository ??= new ReportingTypeRepository(_context, _loggerFactory.CreateLogger<ReportingTypeRepository>(), _mapper);
 
     public IAssetStatusRepository AssetStatusRepository =>
-        _assetStatusRepository ??= new AssetStatusRepository(_context, _loggerFactory.CreateLogger<AssetStatusRepository>(), _mapper);
+        _assetStatusRepository ??= new AssetStatusRepository(_context, _loggerFactory.CreateLogger<AssetStatusRepository>());
 
     public IAssetCategoryRepository AssetCategoryRepository =>
-        _assetCategoryRepository ??= new AssetCategoryRepository(_context, _loggerFactory.CreateLogger<AssetCategoryRepository>(), _mapper);
+        _assetCategoryRepository ??= new AssetCategoryRepository(_context, _loggerFactory.CreateLogger<AssetCategoryRepository>());
 
     public ITenantEmailConfigRepository TenantEmailConfigRepository =>
         _tenantEmailConfigRepository ??= new TenantEmailConfigRepository(_context, _loggerFactory.CreateLogger<TenantEmailConfigRepository>());
@@ -418,7 +418,7 @@ public class UnitOfWork : IUnitOfWork
     _ticketRepository ??= new TicketGenrationRepository(_context, _loggerFactory.CreateLogger<TicketGenrationRepository>(), _mapper);
    
     public IAssetTypeRepository AssetTypeRepository =>
-        _assetTypeRepository ??= new AssetTypeRepository(_context, _loggerFactory.CreateLogger<AssetTypeRepository>(), _mapper);
+        _assetTypeRepository ??= new AssetTypeRepository(_context, _loggerFactory.CreateLogger<AssetTypeRepository>());
 
     public ITicketHeaderRepository TicketHeaderRepository =>
         _ticketHeaderRepository ??= new TicketHeaderRepository(_context, _loggerFactory.CreateLogger<TicketHeaderRepository>(), _mapper);

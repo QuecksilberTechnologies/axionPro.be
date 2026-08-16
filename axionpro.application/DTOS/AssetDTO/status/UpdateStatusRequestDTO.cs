@@ -1,24 +1,39 @@
-﻿using axionpro.application.DTOS.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines client input for updating an asset status.
+// ================================================================
 
-namespace axionpro.application.DTOS.AssetDTO.status
+namespace axionpro.application.DTOS.AssetDTO.status;
+
+/// <summary>
+/// Represents the client-editable values for an asset status update.
+/// </summary>
+public class UpdateStatusRequestDTO
 {
-    public class UpdateStatusRequestDTO
-    {
-        
-            public int Id { get; set; }            
-            public string? StatusName { get; set; }
-             public string? ColorKey { get; set; } 
-               public string? Description { get; set; }
-             public bool? IsActive { get; set; }
+    /// <summary>
+    /// Gets or sets the asset status identifier.
+    /// </summary>
+    public int Id { get; set; }
 
-          public ExtraPropRequestDTO Prop = new ExtraPropRequestDTO();
+    /// <summary>
+    /// Gets or sets an optional replacement status name.
+    /// </summary>
+    public string? StatusName { get; set; }
 
+    /// <summary>
+    /// Gets or sets an optional replacement display color key.
+    /// </summary>
+    public string? ColorKey { get; set; }
 
+    /// <summary>
+    /// Gets or sets an optional replacement description.
+    /// </summary>
+    public string? Description { get; set; }
 
-    }
+    /// <summary>
+    /// Gets or sets an optional active-state value.
+    /// </summary>
+    public bool? IsActive { get; set; }
 }

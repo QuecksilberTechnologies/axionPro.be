@@ -1,151 +1,113 @@
-﻿// ================================================================
+// ================================================================
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
-// Purpose : Handles UpdateRoleCommandHandler requests using authenticated tenant context.
+// Purpose : Updates tenant roles using trusted request context.
 // ================================================================
 
-using AutoMapper;
 using axionpro.application.DTOs.Role;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IEncryptionService;
-using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using MediatR;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.RoleCmd.Handlers
 {
+    #region Command
+
+    /// <summary>
+    /// Represents a request to update a tenant role.
+    /// </summary>
     public class UpdateRoleCommand : IRequest<ApiResponse<bool>>
     {
-        public UpdateRoleRequestDTO DTO { get; set; }
+        public UpdateRoleRequestDTO DTO { get; }
 
+        /// <summary>
+        /// Initializes the update request.
+        /// </summary>
         public UpdateRoleCommand(UpdateRoleRequestDTO dto)
         {
             DTO = dto;
         }
     }
 
+    #endregion
+
+    #region Handler
+
     /// <summary>
-    /// Handles authenticated tenant requests for this feature.
+    /// Handles role updates for the authenticated tenant.
     /// </summary>
     public class UpdateRoleCommandHandler : IRequestHandler<UpdateRoleCommand, ApiResponse<bool>>
     {
+        #region Fields
+
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ICommonRequestService _commonRequestService;
         private readonly ILogger<UpdateRoleCommandHandler> _logger;
-        private readonly ITokenService _tokenService;
-        private readonly IPermissionService _permissionService;
-        private readonly IConfiguration _config;
-        private readonly IEncryptionService _encryptionService;
-        private readonly IIdEncoderService _idEncoderService; // IIdEncoderService idEncoderService
-        ICommonRequestService _commonRequestService;
 
-      
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Initializes the handler dependencies.
+        /// </summary>
         public UpdateRoleCommandHandler(
-               
             IUnitOfWork unitOfWork,
-            IMapper mapper,
-            IHttpContextAccessor httpContextAccessor,
-            ILogger<UpdateRoleCommandHandler> logger,
-            ITokenService tokenService,
-            IPermissionService permissionService,
-            IConfiguration config,
-            IIdEncoderService idEncoderService, ICommonRequestService commonRequestService)
-
-            {
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
-            _httpContextAccessor = httpContextAccessor;
-            _logger = logger;
-            _tokenService = tokenService;
-            _permissionService = permissionService;
-            _config = config;
-           
-            _idEncoderService = idEncoderService;
-            _commonRequestService = commonRequestService;
-        }
-
-        public async Task<ApiResponse<bool>> Handle(
-      UpdateRoleCommand request,
-      CancellationToken cancellationToken)
+            ICommonRequestService commonRequestService,
+            ILogger<UpdateRoleCommandHandler> logger)
         {
-            try
-            {
-                _logger.LogInformation("🔹 UpdateRole started");
-
-                // ===============================
-                // 1️⃣ VALIDATION (AUTH)
-                // ===============================
-                #region Tenant Request Validation
-                var validation = await _commonRequestService
-                    .ValidateRequestAsync();
-                #endregion
-
-                if (!validation.Success)
-                    throw new UnauthorizedAccessException(validation.ErrorMessage);
-
-                // ===============================
-                // 2️⃣ PERMISSION CHECK (🔥 YOUR RULE)
-                // ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.Role,
-                //    Operations.Update);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("Access denied.");
-
-                // ===============================
-                // 3️⃣ NULL SAFETY
-                // ===============================
-                if (request?.DTO == null || request.DTO.Id <= 0)
-                    throw new ValidationErrorException("Invalid Role Id.");
-
-                request.DTO.Prop ??= new();
-
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-
-                // ===============================
-                // 4️⃣ FIELD VALIDATION
-                // ===============================
-                if (string.IsNullOrWhiteSpace(request.DTO.RoleName))
-                    throw new ValidationErrorException("Role name cannot be empty.");
-
-                request.DTO.RoleName = request.DTO.RoleName.Trim();
-
-                // ===============================
-                // 5️⃣ UPDATE
-                // ===============================
-                var updated = await _unitOfWork.RoleRepository.UpdateAsync(request.DTO);
-
-                if (!updated)
-                    throw new ApiException("Role not found or no changes detected.", 404);
-
-                _logger.LogInformation(
-                    "✅ Role updated successfully. RoleId {RoleId}, UpdatedBy {EmpId}",
-                    request.DTO.Id,
-                    validation.UserEmployeeId);
-
-                // ===============================
-                // 6️⃣ SUCCESS
-                // ===============================
-                return ApiResponse<bool>
-                    .Success(true, "Role updated successfully.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ UpdateRole failed");
-
-                throw; // ✅ CRITICAL
-            }
+            _unitOfWork = unitOfWork;
+            _commonRequestService = commonRequestService;
+            _logger = logger;
         }
+
+        #endregion
+
+        #region Handle
+
+        /// <summary>
+        /// Updates client-editable role values while preserving tenant and creation audit fields.
+        /// </summary>
+        public async Task<ApiResponse<bool>> Handle(
+            UpdateRoleCommand request,
+            CancellationToken cancellationToken)
+        {
+            var validation = await _commonRequestService.ValidateRequestAsync();
+            if (!validation.Success)
+                throw new UnauthorizedAccessException(validation.ErrorMessage);
+
+            if (request.DTO.Id <= 0 || string.IsNullOrWhiteSpace(request.DTO.RoleName))
+                throw new ValidationErrorException("A valid role identifier and name are required.");
+
+            var entity = await _unitOfWork.RoleRepository.GetByIdForTenantAsync(
+                request.DTO.Id,
+                validation.TenantId,
+                cancellationToken);
+            if (entity == null)
+                throw new ApiException("Role not found.", 404);
+
+            entity.RoleName = request.DTO.RoleName.Trim();
+            entity.RoleType = request.DTO.RoleType;
+            entity.Remark = request.DTO.Remark;
+            if (request.DTO.IsActive.HasValue)
+                entity.IsActive = request.DTO.IsActive.Value;
+            entity.UpdatedById = validation.LoggedInEmployeeId;
+            entity.UpdatedDateTime = DateTime.UtcNow;
+
+            var updated = await _unitOfWork.RoleRepository.UpdateAsync(entity, cancellationToken);
+            if (!updated)
+                throw new ApiException("Role was not updated.", 409);
+
+            _logger.LogInformation("Role updated. RoleId: {RoleId}", entity.Id);
+            return ApiResponse<bool>.Success(true, "Role updated successfully.");
+        }
+
+        #endregion
     }
+
+    #endregion
 }

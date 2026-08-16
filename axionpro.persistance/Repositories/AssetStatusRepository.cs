@@ -1,325 +1,174 @@
-﻿using AutoMapper;
-using axionpro.application.Constants;
-using axionpro.application.DTOS.AssetDTO.status;
-using axionpro.application.Interfaces.IRepositories;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Persists and retrieves tenant-owned asset statuses.
+// ================================================================
 
+using axionpro.application.DTOS.AssetDTO.status;
+using axionpro.application.DTOS.Pagination;
+using axionpro.application.Interfaces.IRepositories;
+using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using axionpro.domain.Entity;
-using axionpro.application.DTOS.Pagination;
 
-namespace axionpro.persistance.Repositories
+namespace axionpro.persistance.Repositories;
+
+/// <summary>
+/// Provides database operations for asset statuses.
+/// </summary>
+public class AssetStatusRepository : IAssetStatusRepository
 {
+    private readonly WorkforceDbContext _context;
+    private readonly ILogger<AssetStatusRepository> _logger;
+
     /// <summary>
-    /// Repository for managing AssetStatus entity operations
-    /// (Add, Update, Delete, GetAll) for Tenant context.
+    /// Initializes a new instance of the <see cref="AssetStatusRepository"/> class.
     /// </summary>
-    public class AssetStatusRepository : IAssetStatusRepository
+    public AssetStatusRepository(
+        WorkforceDbContext context,
+        ILogger<AssetStatusRepository> logger)
     {
-        private readonly WorkforceDbContext _context;
-       
-        private readonly IMapper _mapper;
-        private readonly ILogger<AssetStatusRepository> _logger;
-
-        public AssetStatusRepository(
-            WorkforceDbContext context,
-            ILogger<AssetStatusRepository> logger,
-            IMapper mapper
-           )
-        {
-            _context = context;
-            _logger = logger;
-            _mapper = mapper;
-            
-        }
-
-        #region AssetStatus CRUD
-
-        /// <summary>
-        /// Adds a new AssetStatus record for a tenant.
-        /// </summary>
-        public async Task<GetStatusResponseDTO?> AddAsync(AssetStatus assetStatus)
-        {
-            if (assetStatus == null)
-            {
-                _logger.LogWarning("AddAsync called with null AddStatusRequestDTO.");
-                return null;
-            }
-
-            try
-            {                 
-
-                await _context.AssetStatuses.AddAsync(assetStatus);
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation(
-                    "AssetStatus added successfully. TenantId: {TenantId}, StatusName: {StatusName}",
-                    assetStatus.TenantId, assetStatus.StatusName);
-
-                return _mapper.Map<GetStatusResponseDTO>(assetStatus);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while adding AssetStatus for TenantId: {TenantId}", assetStatus.TenantId);
-                throw;
-            }
-        }
-         
-
-        /// <summary>
-        /// Soft deletes an AssetStatus record.
-        /// </summary>
-        public async Task<bool> DeleteAsync(DeleteStatusReqestDTO requestDTO)
-        {
-           
-            if (requestDTO == null)
-            {
-                _logger.LogWarning("DeleteAsync called with null DeleteStatusRequestDTO.");
-                return false;
-            }
-
-            try
-            {
-                var existingStatus = await _context.AssetStatuses
-                    .FirstOrDefaultAsync(x =>
-                        x.Id == requestDTO.Id &&
-                        x.TenantId == requestDTO.Prop.TenantId &&
-                        x.IsSoftDeleted !=true);
-
-                if (existingStatus == null)
-                {
-                    _logger.LogWarning(
-                        "AssetStatus not found or already deleted. Id: {Id}, TenantId: {TenantId}",
-                        requestDTO.Id, requestDTO.Prop.TenantId);
-                    return false;
-                }
-
-                // Soft delete
-                existingStatus.IsSoftDeleted = true;
-                existingStatus.IsActive = false;
-                existingStatus.SoftDeletedById = requestDTO.Prop.EmployeeId;
-                existingStatus.DeletedDateTime = DateTime.UtcNow;
-                existingStatus.UpdatedById = requestDTO.Prop.EmployeeId;
-                existingStatus.UpdatedDateTime = DateTime.UtcNow; ;
-
-                this._context.AssetStatuses.Update(existingStatus);
-                await this._context.SaveChangesAsync();
-
-                _logger.LogInformation(
-                    "AssetStatus soft deleted successfully. Id: {Id}, TenantId: {TenantId}",
-                    requestDTO.Id, requestDTO.Prop.TenantId);
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while soft deleting AssetStatus Id: {Id}", requestDTO.Id);
-                throw;
-            }
-        }
-
-
-        /// <summary>
-        /// Retrieves all AssetStatus records for a tenant with optional isActive filter.
-        /// </summary>
-        ///   public 
-        public async Task<PagedResponseDTO<GetStatusResponseDTO>> GetAllAsync(GetStatusRequestDTO? dto)
-        {
-            try
-            {
-                // ✅ 1️⃣ VALIDATION
-                if (dto == null)
-                {
-                    _logger.LogWarning("GetAllAsync called with null DTO.");
-                    return new PagedResponseDTO<GetStatusResponseDTO>();
-                }
-
-                if (dto.Prop?.TenantId <= 0)
-                {
-                    _logger.LogWarning("Invalid TenantId: {TenantId}", dto?.Prop?.TenantId);
-                    return new PagedResponseDTO<GetStatusResponseDTO>();
-                }
-
-                // ✅ 2️⃣ DEFAULT PAGINATION
-                int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
-                int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
-
-                // ✅ 3️⃣ BASE QUERY
-                IQueryable<AssetStatus> query = _context.AssetStatuses
-                    .AsNoTracking()
-                    .Where(a => a.IsSoftDeleted != true &&
-                                a.TenantId == dto.Prop.TenantId);
-
-                // 🔹 FILTER: IsActive
-                if (dto.IsActive)
-                    query = query.Where(a => a.IsActive == dto.IsActive && a.IsSoftDeleted !=true);
-
-                // 🔹 FILTER: Id
-                if (dto.Id > 0)
-                    query = query.Where(a => a.Id == dto.Id);
-
-                // ✅ 4️⃣ TOTAL COUNT
-                int totalCount = await query.CountAsync();
-
-                if (totalCount == 0)
-                {
-                    _logger.LogWarning(
-                        "No AssetStatus records found for TenantId: {TenantId}",
-                        dto.Prop.TenantId);
-
-                    return new PagedResponseDTO<GetStatusResponseDTO>(
-                        new List<GetStatusResponseDTO>(),
-                        0,
-                        pageNumber,
-                        pageSize
-                    );
-                }
-
-                // ✅ 5️⃣ SORTING
-                query = query.OrderByDescending(a => a.AddedDateTime);
-
-                // ✅ 6️⃣ PAGINATION + PROJECTION
-                var data = await query
-                    .Skip((pageNumber - 1) * pageSize)
-                    .Take(pageSize)
-                    .Select(a => new GetStatusResponseDTO
-                    {
-                        Id = a.Id,
-                        StatusName = a.StatusName,
-                        Description = a.Description,
-                        IsActive = a.IsActive ?? false,
-                        ColorKey = a.ColorKey
-                         
-                    })
-                    .ToListAsync();
-
-                // ✅ 7️⃣ RESPONSE
-                var response = new PagedResponseDTO<GetStatusResponseDTO>(
-                    data,
-                    totalCount,
-                    pageNumber,
-                    pageSize
-                );
-
-                _logger.LogInformation(
-                    "Fetched {Count} AssetStatus records (Page: {PageNumber}, Size: {PageSize}) for TenantId: {TenantId}",
-                    data.Count,
-                    pageNumber,
-                    pageSize,
-                    dto.Prop.TenantId);
-
-                return response;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                    "Error occurred while fetching AssetStatus records for TenantId: {TenantId}",
-                    dto?.Prop?.TenantId);
-
-                return new PagedResponseDTO<GetStatusResponseDTO>();
-            }
-        }
-
-
-        public async Task<AssetStatus?> GetByIdAsync(int? id)
-        {
-            try
-            {
-                _logger.LogInformation(
-                    "Fetching AssetStatus with Id={AssetStatusId}", id);
-
-                var assetStatus = await _context.AssetStatuses
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(a =>
-                        a.Id == id &&
-                        a.IsSoftDeleted != true);
-
-                return assetStatus;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                    "❌ Error occurred while fetching AssetStatus with Id={AssetStatusId}",
-                    id);
-
-                throw;
-            }
-        }
-
-
-        public async Task<bool> UpdateAsync(UpdateStatusRequestDTO assetStatus)
-        {
-          
-            if (assetStatus == null || assetStatus.Prop.TenantId <= 0 || assetStatus.Id <= 0)
-            {
-                _logger.LogWarning("UpdateAssetStatusByTenantAsync called with invalid input. TenantId: {TenantId}, Id: {Id}",
-                    assetStatus?.Prop.TenantId, assetStatus?.Id);
-                // Return a default instance to satisfy non-nullable contract
-                return false;
-            }
-
-            try
-            {
-                var existingStatus = await _context.AssetStatuses
-                    .FirstOrDefaultAsync(x =>
-                        x.Id == assetStatus.Id &&
-                        x.TenantId == assetStatus.Prop.TenantId &&
-                        x.IsSoftDeleted !=true);
-
-                if (existingStatus == null)
-                {
-                    _logger.LogWarning("AssetStatus not found. Id: {Id}, TenantId: {TenantId}",
-                        assetStatus.Id, assetStatus.Prop.TenantId);
-                    // Return a default instance to satisfy non-nullable contract
-                    return false;
-                }
-
-                existingStatus.StatusName = assetStatus.StatusName ?? existingStatus.StatusName;
-                existingStatus.Description = assetStatus.Description ?? existingStatus.Description;
-                existingStatus.ColorKey = assetStatus.ColorKey ?? existingStatus.ColorKey;
-                // Update IsActive only if value provided
-                if (assetStatus.IsActive.HasValue)
-                {
-                    existingStatus.IsActive = assetStatus.IsActive.Value;
-                }
-                existingStatus.UpdatedById = assetStatus.Prop.EmployeeId;
-                existingStatus.UpdatedDateTime = DateTime.UtcNow;
-
-                this._context.AssetStatuses.Update(existingStatus);
-               var change= await _context.SaveChangesAsync();
-                 if(change > 0)
-                 {
-                    return true;
-                 }
-                 else
-                 {
-                    return false;
-                }   
-                
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while updating AssetStatus Id: {Id}, TenantId: {TenantId}",
-                    assetStatus.Id, assetStatus.Prop.TenantId);
-                throw;
-            }
-        }
-
-
-        /// <summary>
-        /// Retrieves AssetStatus records mapped to GetStatusResponseDTO for tenant.
-        /// </summary>
-
-
-
-
-
-
-
-        #endregion
+        _context = context;
+        _logger = logger;
     }
+
+    #region Create
+
+    /// <inheritdoc />
+    public async Task<AssetStatus?> CreateAsync(
+        AssetStatus entity,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+        await _context.AssetStatuses.AddAsync(entity, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Asset Status {AssetStatusId} was created for tenant {TenantId}.",
+            entity.Id,
+            entity.TenantId);
+        return entity;
+    }
+
+    #endregion
+
+    #region Update
+
+    /// <inheritdoc />
+    public async Task<bool> UpdateAsync(AssetStatus entity, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+
+        var affected = await _context.SaveChangesAsync(cancellationToken);
+        if (affected > 0)
+        {
+            _logger.LogInformation(
+                "Asset Status {AssetStatusId} was updated for tenant {TenantId}.",
+                entity.Id,
+                entity.TenantId);
+            return true;
+        }
+
+        return false;
+    }
+
+    #endregion
+
+    #region Delete
+
+    /// <inheritdoc />
+    public async Task<bool> DeleteAsync(
+        int id,
+        long tenantId,
+        long employeeId,
+        CancellationToken cancellationToken = default)
+    {
+        var entity = await GetByIdForTenantAsync(id, tenantId, cancellationToken);
+        if (entity is null)
+        {
+            return false;
+        }
+
+        entity.IsSoftDeleted = true;
+        entity.IsActive = false;
+        entity.SoftDeletedById = employeeId;
+        entity.DeletedDateTime = DateTime.UtcNow;
+        entity.UpdatedById = employeeId;
+        entity.UpdatedDateTime = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    #endregion
+
+    #region Queries
+
+    /// <inheritdoc />
+    public async Task<AssetStatus?> GetByIdForTenantAsync(
+        int id,
+        long tenantId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.AssetStatuses.FirstOrDefaultAsync(
+            status => status.Id == id
+                && status.TenantId == tenantId
+                && status.IsSoftDeleted != true,
+            cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<AssetStatus?> GetByIdAsync(int? id)
+    {
+        return await _context.AssetStatuses
+            .AsNoTracking()
+            .FirstOrDefaultAsync(status => status.Id == id && status.IsSoftDeleted != true);
+    }
+
+    /// <inheritdoc />
+    public async Task<PagedResponseDTO<GetStatusResponseDTO>> GetAllAsync(
+        long tenantId,
+        GetStatusRequestDTO dto,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(dto);
+
+        var pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
+        var pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
+
+        IQueryable<AssetStatus> query = _context.AssetStatuses
+            .AsNoTracking()
+            .Where(status => status.TenantId == tenantId && status.IsSoftDeleted != true);
+
+        if (dto.IsActive)
+        {
+            query = query.Where(status => status.IsActive == true);
+        }
+
+        if (dto.Id > 0)
+        {
+            query = query.Where(status => status.Id == dto.Id);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+        var data = await query
+            .OrderByDescending(status => status.AddedDateTime)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(status => new GetStatusResponseDTO
+            {
+                Id = status.Id,
+                StatusName = status.StatusName,
+                Description = status.Description,
+                IsActive = status.IsActive ?? false,
+                ColorKey = status.ColorKey
+            })
+            .ToListAsync(cancellationToken);
+
+        return new PagedResponseDTO<GetStatusResponseDTO>(data, totalCount, pageNumber, pageSize);
+    }
+
+    #endregion
 }

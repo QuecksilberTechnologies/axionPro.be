@@ -1,22 +1,17 @@
-﻿using axionpro.application.DTOS.Common;
-using axionpro.application.DTOS.Pagination;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines a request to soft delete a tenant role.
+// ================================================================
 
 namespace axionpro.application.DTOs.Role
 {
+    /// <summary>
+    /// Represents the identifier of a tenant role to soft delete.
+    /// </summary>
     public class DeleteRoleRequestDTO
     {
-
-
-        public required int Id { get; set; } // यूज़र ID जिसने ऐड किया
-
-        public required string UserEmployeeId { get; set; }
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
-
-
+        public required int Id { get; set; }
     }
 }

@@ -1,132 +1,107 @@
-﻿using axionpro.application.DTOS.AssetDTO.category;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Updates tenant-owned asset categories from authenticated requests.
+// ================================================================
+
+using AutoMapper;
+using axionpro.application.DTOS.AssetDTO.category;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity; 
 using MediatR;
-using Microsoft.Extensions.Logging;
 
-namespace axionpro.application.Features.AssetFeatures.Category.Handlers
+namespace axionpro.application.Features.AssetFeatures.Category.Handlers;
+
+#region Command
+
+/// <summary>Represents the request to update an asset category.</summary>
+public class UpdateCategoryCommand : IRequest<ApiResponse<bool>>
 {
-    public class UpdateCategoryCommand
-        : IRequest<ApiResponse<bool>>
-    {
-        public UpdateCategoryReqestDTO DTO { get; set; }
+    /// <summary>Initializes a new instance of the <see cref="UpdateCategoryCommand"/> class.</summary>
+    public UpdateCategoryCommand(UpdateCategoryReqestDTO dto) => DTO = dto;
 
-        public UpdateCategoryCommand(UpdateCategoryReqestDTO dto)
-        {
-            DTO = dto;
-        }
-    }
-
-    /// <summary>
-    /// Handles update of Asset Category (IDEAL PATTERN – BOOL RESPONSE)
-    /// </summary>
-    public class UpdateCategoryCommandHandler
-        : IRequestHandler<UpdateCategoryCommand, ApiResponse<bool>>
-    {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly ILogger<UpdateCategoryCommandHandler> _logger;
-        private readonly ICommonRequestService _commonRequestService;
-        private readonly IPermissionService _permissionService;
-
-        public UpdateCategoryCommandHandler(
-            IUnitOfWork unitOfWork,
-            ILogger<UpdateCategoryCommandHandler> logger,
-            ICommonRequestService commonRequestService,
-            IPermissionService permissionService)
-        {
-            _unitOfWork = unitOfWork;
-            _logger = logger;
-            _commonRequestService = commonRequestService;
-            _permissionService = permissionService;
-        }
-
-        public async Task<ApiResponse<bool>> Handle(
-      UpdateCategoryCommand request,
-      CancellationToken cancellationToken)
-        {
-            try
-            {
-                _logger.LogInformation("Updating Asset Category");
-
-                // ===============================
-                // 1️⃣ COMMON VALIDATION (AUTH + CONTEXT)
-                // ===============================
-                var validation = await _commonRequestService.ValidateRequestAsync();
-
-                // ❌ Old: return Fail
-                // ✅ New: throw (middleware handle karega)
-                if (!validation.Success)
-                    throw new UnauthorizedAccessException(validation.ErrorMessage);
-
-                // ===============================
-                // 2️⃣ NULL SAFETY + INPUT VALIDATION
-                // ===============================
-                if (request?.DTO == null || request.DTO.Id <= 0)
-                    throw new ValidationErrorException(
-                        "Invalid Category Id.",
-                        new List<string> { "Category Id must be greater than 0." }
-                    );
-
-                if (string.IsNullOrWhiteSpace(request.DTO.CategoryName))
-                    throw new ValidationErrorException(
-                        "Category name cannot be empty.",
-                        new List<string> { "CategoryName is required." }
-                    );
-
-                if (request.DTO.Prop == null)
-                    request.DTO.Prop = new();
-
-                // Assign values
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-
-                // ===============================
-                // 3️⃣ PERMISSION CHECK (RBAC)
-                // ===============================
-                //var hasPermission = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    "AssetCategory",   // 🔹 Module
-                //    "Update"           // 🔹 Operation
-                //);
-
-                //if (!hasPermission)
-                //    throw new UnauthorizedAccessException(
-                //        "You do not have permission to update asset category.");
-
-                // ===============================
-                // 4️⃣ UPDATE RECORD
-                // ===============================
-                bool updated = await _unitOfWork.AssetCategoryRepository
-                    .UpdateAsync(request.DTO);
-
-                if (!updated)
-                    throw new ApiException(
-                        "Category not found or update failed.",
-                        404
-                    );
-
-                // ===============================
-                // 5️⃣ SUCCESS LOG
-                // ===============================
-                _logger.LogInformation(
-                    "Asset Category updated successfully. CategoryId: {Id}, TenantId: {TenantId}",
-                    request.DTO.Id,
-                    request.DTO.Prop.TenantId);
-
-                return ApiResponse<bool>
-                    .Success(true, "Asset Category updated successfully.");
-            }
-            catch (Exception ex)
-            {
-                // ❗ IMPORTANT: middleware handle karega
-                _logger.LogError(ex, "Update Asset Category failed");
-
-                throw;
-            }
-        }
-    }
+    /// <summary>Gets the client-supplied update values.</summary>
+    public UpdateCategoryReqestDTO DTO { get; }
 }
+
+#endregion
+
+#region Handler
+
+/// <summary>Handles updates to tenant-owned asset categories.</summary>
+public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryCommand, ApiResponse<bool>>
+{
+    #region Fields
+
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
+    private readonly ICommonRequestService _commonRequestService;
+
+    #endregion
+
+    #region Constructor
+
+    /// <summary>Initializes a new instance of the <see cref="UpdateCategoryCommandHandler"/> class.</summary>
+    public UpdateCategoryCommandHandler(
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        ICommonRequestService commonRequestService)
+    {
+        _unitOfWork = unitOfWork;
+        _mapper = mapper;
+        _commonRequestService = commonRequestService;
+    }
+
+    #endregion
+
+    #region Handle
+
+    /// <inheritdoc />
+    public async Task<ApiResponse<bool>> Handle(
+        UpdateCategoryCommand request,
+        CancellationToken cancellationToken)
+    {
+        if (request.DTO is null || request.DTO.Id <= 0 || string.IsNullOrWhiteSpace(request.DTO.CategoryName))
+        {
+            throw new ValidationErrorException(
+                "A valid category identifier and name are required.",
+                new List<string> { "Id must be greater than zero and CategoryName cannot be empty." });
+        }
+
+        // Resolve the trusted tenant-user context.
+        var validation = await _commonRequestService.ValidateRequestAsync();
+        if (!validation.Success)
+        {
+            throw new UnauthorizedAccessException(validation.ErrorMessage);
+        }
+
+        // Load the tenant-owned entity before applying client changes.
+        var entity = await _unitOfWork.AssetCategoryRepository.GetByIdForTenantAsync(
+            request.DTO.Id,
+            validation.TenantId,
+            cancellationToken);
+        if (entity is null)
+        {
+            throw new ApiException("Category not found or update failed.", 404);
+        }
+
+        _mapper.Map(request.DTO, entity);
+        entity.UpdatedById = validation.LoggedInEmployeeId;
+        entity.UpdatedDateTime = DateTime.UtcNow;
+
+        var updated = await _unitOfWork.AssetCategoryRepository.UpdateAsync(entity, cancellationToken);
+        if (!updated)
+        {
+            throw new ApiException("Category not found or update failed.", 404);
+        }
+
+        return ApiResponse<bool>.Success(true, "Asset Category updated successfully.");
+    }
+
+    #endregion
+}
+
+#endregion

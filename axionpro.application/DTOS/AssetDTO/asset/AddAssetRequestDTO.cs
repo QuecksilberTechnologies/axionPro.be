@@ -1,58 +1,52 @@
-﻿using axionpro.application.DTOS.Common;
-using axionpro.application.DTOS.Pagination;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines client input for creating an asset.
+// ================================================================
+
 using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
-namespace axionpro.application.DTOS.AssetDTO.asset
+namespace axionpro.application.DTOS.AssetDTO.asset;
+
+/// <summary>
+/// Represents the client-editable values required to create an asset.
+/// </summary>
+public class AddAssetRequestDTO
 {
+    public string? AssetName { get; set; }
+    public int AssetTypeId { get; set; }
+    public string? Company { get; set; }
+    public long CategoryId { get; set; }
+    public string? ModelNo { get; set; }
+    public string? Size { get; set; }
+    public string? Weight { get; set; }
+    public string? Color { get; set; }
+    public bool IsRepairable { get; set; }
+    public decimal Price { get; set; }
+    public string? SerialNumber { get; set; }
+    public string? Barcode { get; set; }
 
+    private DateTime? _purchaseDate;
 
-    public class AddAssetRequestDTO 
+    public DateTime? PurchaseDate
     {
-                          
-        public string? AssetName { get; set; }
-        public int AssetTypeId { get; set; }
-        public string? Company { get; set; }
-        public long CategoryId { get; set; } = 0;
-        public string? ModelNo { get; set; }
-        public string? Size { get; set; }
-        public string? Weight { get; set; }
-        public string? Color { get; set; }
-        public bool IsRepairable { get; set; }
-        public decimal Price { get; set; }
-        public string? SerialNumber { get; set; }
-        public string? Barcode { get; set; }
-        // 🔥 ISO SAFE Date Handling
-        private DateTime? _purchaseDate;
-        public DateTime? PurchaseDate
-        {
-            get => _purchaseDate;
-            set => _purchaseDate = value.HasValue
-                ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc)
-                : null;
-        }
-
-        private DateTime? _warrantyExpiryDate;
-        public DateTime? WarrantyExpiryDate
-        {
-            get => _warrantyExpiryDate;
-            set => _warrantyExpiryDate = value.HasValue
-                ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc)
-                : null;
-        }
-
-        public int AssetImageType { get; set; } = 1;       
-        public string? AssetImagePath { get; set; }       
-        public int AssetStatusId { get; set; }
-        public bool IsAssigned { get; set; }
-        public bool IsActive { get; set; }
-        public IFormFile? AssetImageFile { get; set; }
-        public ExtraPropRequestDTO? Prop { get; set; } = new ExtraPropRequestDTO();
-
+        get => _purchaseDate;
+        set => _purchaseDate = value.HasValue ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc) : null;
     }
 
+    private DateTime? _warrantyExpiryDate;
+
+    public DateTime? WarrantyExpiryDate
+    {
+        get => _warrantyExpiryDate;
+        set => _warrantyExpiryDate = value.HasValue ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc) : null;
+    }
+
+    public int AssetImageType { get; set; } = 1;
+    public string? AssetImagePath { get; set; }
+    public int AssetStatusId { get; set; }
+    public bool IsAssigned { get; set; }
+    public bool IsActive { get; set; }
+    public IFormFile? AssetImageFile { get; set; }
 }

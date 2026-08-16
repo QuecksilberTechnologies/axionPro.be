@@ -1,133 +1,106 @@
-﻿using axionpro.application.DTOS.AssetDTO.status;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Soft-deletes tenant-owned asset statuses from authenticated requests.
+// ================================================================
+
+using axionpro.application.DTOS.AssetDTO.status;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
 using MediatR;
-using Microsoft.Extensions.Logging;
 
-namespace axionpro.application.Features.AssetFeatures.Status.Handlers
+namespace axionpro.application.Features.AssetFeatures.Status.Handlers;
+
+#region Command
+
+/// <summary>
+/// Represents the request to delete an asset status.
+/// </summary>
+public class DeleteStatusCommand : IRequest<ApiResponse<bool>>
 {
-    public class DeleteStatusCommand : IRequest<ApiResponse<bool>>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DeleteStatusCommand"/> class.
+    /// </summary>
+    public DeleteStatusCommand(DeleteStatusReqestDTO dto)
     {
-        public DeleteStatusReqestDTO? DTO { get; set; }
-
-        public DeleteStatusCommand(DeleteStatusReqestDTO deleteAssetStatusRequest)
-        {
-            this.DTO = deleteAssetStatusRequest;
-        }
-    }
-        public class DeleteStatusCommandHandler : IRequestHandler<DeleteStatusCommand, ApiResponse<bool>>
-     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly ILogger<DeleteStatusCommandHandler> _logger;
-        private readonly ICommonRequestService _commonRequestService;
-        private readonly IPermissionService _permissionService;
-
-        public DeleteStatusCommandHandler(
-            IUnitOfWork unitOfWork,
-            ILogger<DeleteStatusCommandHandler> logger,
-            ICommonRequestService commonRequestService,
-            IPermissionService permissionService)
-        {
-            _unitOfWork = unitOfWork;
-            _logger = logger;
-            _commonRequestService = commonRequestService;
-            _permissionService = permissionService;
-        }
-
-
-        public async Task<ApiResponse<bool>> Handle(
-     DeleteStatusCommand request,
-     CancellationToken cancellationToken)
-        {
-            try
-            {
-                _logger.LogInformation("Deleting Asset Status");
-
-                // ===============================
-                // 1️⃣ COMMON VALIDATION (AUTH + CONTEXT)
-                // ===============================
-                var validation = await _commonRequestService.ValidateRequestAsync();
-
-                // ❌ Old: return Fail
-                // ✅ New: throw
-                if (!validation.Success)
-                    throw new UnauthorizedAccessException(validation.ErrorMessage);
-
-                // ===============================
-                // 2️⃣ NULL SAFETY + INPUT VALIDATION
-                // ===============================
-                if (request?.DTO == null || request.DTO.Id <= 0)
-                    throw new ValidationErrorException(
-                        "Invalid Status Id.",
-                        new List<string> { "Status Id must be greater than 0." }
-                    );
-
-                if (request.DTO.Prop == null)
-                    request.DTO.Prop = new();
-
-                // Inject values
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-
-                // ===============================
-                // 3️⃣ PERMISSION CHECK (RBAC)
-                // ===============================
-                //var hasPermission = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    "AssetStatus",   // 🔹 Module
-                //    "Delete"         // 🔹 Operation
-                //);
-
-                //if (!hasPermission)
-                //    throw new UnauthorizedAccessException(
-                //        "You do not have permission to delete asset status.");
-
-                // ===============================
-                // 4️⃣ DELETE (REPOSITORY)
-                // ===============================
-                bool isDeleted = await _unitOfWork.AssetStatusRepository
-                    .DeleteAsync(request.DTO);
-
-                if (!isDeleted)
-                {
-                    _logger.LogWarning(
-                        "AssetStatus delete failed. Record not found. Id: {Id}, TenantId: {TenantId}",
-                        request.DTO.Id,
-                        request.DTO.Prop.TenantId);
-
-                    throw new ApiException(
-                        "Delete failed. Record not found or already deleted.",
-                        404
-                    );
-                }
-
-                // ===============================
-                // 5️⃣ SUCCESS LOG
-                // ===============================
-                _logger.LogInformation(
-                    "AssetStatus deleted successfully. Id: {Id}, TenantId: {TenantId}",
-                    request.DTO.Id,
-                    request.DTO.Prop.TenantId);
-
-                return ApiResponse<bool>
-                    .Success(true, "Asset Status deleted successfully.");
-            }
-            catch (Exception ex)
-            {
-                // ❗ IMPORTANT: middleware handle karega
-                _logger.LogError(
-                    ex,
-                    "Error occurred while deleting Asset Status. TenantId: {TenantId}, Id: {Id}",
-                    request?.DTO?.Prop?.TenantId,
-                    request?.DTO?.Id);
-
-                throw;
-            }
-        }
-
+        DTO = dto;
     }
 
+    /// <summary>
+    /// Gets the asset status selected for deletion.
+    /// </summary>
+    public DeleteStatusReqestDTO DTO { get; }
 }
+
+#endregion
+
+#region Handler
+
+/// <summary>
+/// Handles soft deletion of tenant-owned asset statuses.
+/// </summary>
+public class DeleteStatusCommandHandler : IRequestHandler<DeleteStatusCommand, ApiResponse<bool>>
+{
+    #region Fields
+
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ICommonRequestService _commonRequestService;
+
+    #endregion
+
+    #region Constructor
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DeleteStatusCommandHandler"/> class.
+    /// </summary>
+    public DeleteStatusCommandHandler(
+        IUnitOfWork unitOfWork,
+        ICommonRequestService commonRequestService)
+    {
+        _unitOfWork = unitOfWork;
+        _commonRequestService = commonRequestService;
+    }
+
+    #endregion
+
+    #region Handle
+
+    /// <inheritdoc />
+    public async Task<ApiResponse<bool>> Handle(
+        DeleteStatusCommand request,
+        CancellationToken cancellationToken)
+    {
+        if (request.DTO is null || request.DTO.Id <= 0)
+        {
+            throw new ValidationErrorException(
+                "Invalid Status Id.",
+                new List<string> { "Status Id must be greater than 0." });
+        }
+
+        // Resolve the trusted tenant-user context.
+        var validation = await _commonRequestService.ValidateRequestAsync();
+        if (!validation.Success)
+        {
+            throw new UnauthorizedAccessException(validation.ErrorMessage);
+        }
+
+        var deleted = await _unitOfWork.AssetStatusRepository.DeleteAsync(
+            request.DTO.Id,
+            validation.TenantId,
+            validation.LoggedInEmployeeId,
+            cancellationToken);
+        if (!deleted)
+        {
+            throw new ApiException("Delete failed. Record not found or already deleted.", 404);
+        }
+
+        return ApiResponse<bool>.Success(true, "Asset Status deleted successfully.");
+    }
+
+    #endregion
+}
+
+#endregion

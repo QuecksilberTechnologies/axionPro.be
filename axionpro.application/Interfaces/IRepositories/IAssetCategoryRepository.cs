@@ -1,26 +1,59 @@
-﻿using axionpro.application.DTOS.AssetDTO.category;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines persistence operations for tenant-owned asset categories.
+// ================================================================
+
+using axionpro.application.DTOS.AssetDTO.category;
 using axionpro.application.DTOS.Pagination;
-using axionpro.domain.Entity; 
-using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; 
-namespace axionpro.application.Interfaces.IRepositories
+using axionpro.domain.Entity;
+
+namespace axionpro.application.Interfaces.IRepositories;
+
+/// <summary>
+/// Defines persistence operations for asset categories.
+/// </summary>
+public interface IAssetCategoryRepository
 {
-    public interface IAssetCategoryRepository
-    {
+    #region Queries
 
-      
+    /// <summary>Retrieves asset categories for a trusted tenant and client filters.</summary>
+    Task<PagedResponseDTO<GetCategoryResponseDTO>> GetAllAsync(
+        long tenantId,
+        GetCategoryReqestDTO dto,
+        CancellationToken cancellationToken = default);
 
-        #region AssetCategory        
-        Task<PagedResponseDTO<GetCategoryResponseDTO>> GetAllAsync(GetCategoryReqestDTO? dto);
-        Task<GetCategoryResponseDTO> AddAsync(AddCategoryReqestDTO? dtO);
-        Task<bool> UpdateAsync(UpdateCategoryReqestDTO? dtO);
-        Task<bool> DeleteAsync(DeleteCategoryReqestDTO dtO);
+    /// <summary>Retrieves an active, non-deleted asset category owned by a tenant.</summary>
+    Task<AssetCategory?> GetByIdForTenantAsync(
+        long id,
+        long tenantId,
+        CancellationToken cancellationToken = default);
 
-      
-        #endregion
-    }
+    #endregion
+
+    #region Create
+
+    /// <summary>Persists a fully prepared asset category entity.</summary>
+    Task<AssetCategory?> CreateAsync(AssetCategory entity, CancellationToken cancellationToken = default);
+
+    #endregion
+
+    #region Update
+
+    /// <summary>Persists changes to a tenant-owned asset category entity.</summary>
+    Task<bool> UpdateAsync(AssetCategory entity, CancellationToken cancellationToken = default);
+
+    #endregion
+
+    #region Delete
+
+    /// <summary>Soft-deletes an asset category owned by a tenant.</summary>
+    Task<bool> DeleteAsync(
+        long id,
+        long tenantId,
+        long employeeId,
+        CancellationToken cancellationToken = default);
+
+    #endregion
 }

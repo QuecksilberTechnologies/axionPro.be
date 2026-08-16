@@ -1,22 +1,19 @@
-﻿using axionpro.application.DTOS.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines client input for deleting an asset status.
+// ================================================================
 
-namespace axionpro.application.DTOS.AssetDTO.status
+namespace axionpro.application.DTOS.AssetDTO.status;
+
+/// <summary>
+/// Represents the asset status selected for deletion.
+/// </summary>
+public class DeleteStatusReqestDTO
 {
-    public class DeleteStatusReqestDTO
-    {
-          public int  Id { get; set; }
-       
-          public ExtraPropRequestDTO Prop = new ExtraPropRequestDTO();
-
-
-
-
-
-
-    }
+    /// <summary>
+    /// Gets or sets the asset status identifier.
+    /// </summary>
+    public int Id { get; set; }
 }

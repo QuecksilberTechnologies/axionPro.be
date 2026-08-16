@@ -1,33 +1,26 @@
-﻿using axionpro.application.DTOS.Common;
-using axionpro.application.DTOS.Pagination;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines client filters for retrieving asset statuses.
+// ================================================================
 
-namespace axionpro.application.DTOS.AssetDTO.status
+using axionpro.application.DTOS.Pagination;
+
+namespace axionpro.application.DTOS.AssetDTO.status;
+
+/// <summary>
+/// Represents client-supplied filters for retrieving asset statuses.
+/// </summary>
+public class GetStatusRequestDTO : BaseRequest
 {
+    /// <summary>
+    /// Gets or sets an optional asset status identifier filter.
+    /// </summary>
+    public long Id { get; set; }
 
     /// <summary>
-    /// post-request to fetch all asset status
+    /// Gets or sets whether only active statuses are requested.
     /// </summary>
-    public class GetStatusRequestDTO : BaseRequest
-    {
-         
-           
-        public long Id { get; set; }        
-        public bool  IsActive { get; set; }
-       
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
-
-
-
-
-
-
-
-
-    }
+    public bool IsActive { get; set; }
 }

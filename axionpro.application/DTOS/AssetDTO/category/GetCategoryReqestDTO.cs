@@ -1,18 +1,22 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines client filters for retrieving asset categories.
+// ================================================================
+
 using axionpro.application.DTOS.Pagination;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
-namespace axionpro.application.DTOS.AssetDTO.category
+namespace axionpro.application.DTOS.AssetDTO.category;
+
+/// <summary>
+/// Represents the client-supplied filters for retrieving asset categories.
+/// </summary>
+public class GetCategoryReqestDTO : BaseRequest
 {
-    public class GetCategoryReqestDTO : BaseRequest
-    {
-        public int Id { get; set; }        
-        public bool? IsActive { get; set; }
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
+    /// <summary>Gets or sets an optional asset category identifier filter.</summary>
+    public int Id { get; set; }
 
-    }
+    /// <summary>Gets or sets an optional active-state filter.</summary>
+    public bool? IsActive { get; set; }
 }

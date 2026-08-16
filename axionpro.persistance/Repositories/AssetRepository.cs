@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Persists and retrieves tenant-owned assets and their images.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.AssetDTO.asset;
 using axionpro.application.DTOS.Pagination;
@@ -313,12 +320,15 @@ namespace axionpro.persistance.Repositories
                 throw;
             }
         }
-        public async Task<PagedResponseDTO<GetAssetResponseDTO>> GetAssetsByFilterAsync(GetAssetRequestDTO asset)
+        public async Task<PagedResponseDTO<GetAssetResponseDTO>> GetAssetsByFilterAsync(
+            long tenantId,
+            GetAssetRequestDTO asset,
+            CancellationToken cancellationToken = default)
         {
             try
             {
                 // ✅ Null-safe fallback
-                if (asset == null || asset.Prop == null)
+                if (asset == null)
                 {
                     _logger.LogWarning("⚠️ GetAssetsByFilterAsync called with null filter");
 
@@ -332,7 +342,7 @@ namespace axionpro.persistance.Repositories
 
                 IQueryable<Asset> query = _context.Assets
                     .AsNoTracking()
-                    .Where(a => a.TenantId == asset.Prop.TenantId &&
+                    .Where(a => a.TenantId == tenantId &&
                                 (a.IsSoftDeleted == false || a.IsSoftDeleted == null));
 
                 // 🔹 Filters
@@ -357,7 +367,7 @@ namespace axionpro.persistance.Repositories
                     query = query.Where(a => a.IsAssigned == asset.IsAssigned);
 
                 // 🔥 TOTAL COUNT (before pagination)
-                var totalCount = await query.CountAsync();
+                var totalCount = await query.CountAsync(cancellationToken);
 
                 // 🔥 PAGINATION
                 var pageNumber = asset.PageNumber <= 0 ? 1 : asset.PageNumber;
@@ -411,7 +421,7 @@ namespace axionpro.persistance.Repositories
                             .Select(i => i.AssetImagePath)
                             .FirstOrDefault()
                     })
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken);
 
                 // ✅ FINAL RESPONSE
                 return new PagedResponseDTO<GetAssetResponseDTO>(
@@ -428,45 +438,62 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<bool> DeleteAssetAsync(DeleteAssetReqestDTO asset)
+        public async Task<Asset?> GetSingleRecordForTenantAsync(
+            long id,
+            long tenantId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.Assets.FirstOrDefaultAsync(
+                asset => asset.Id == id
+                    && asset.TenantId == tenantId
+                    && asset.IsSoftDeleted != true,
+                cancellationToken);
+        }
+
+        public async Task<bool> DeleteAssetAsync(
+            long id,
+            long tenantId,
+            long employeeId,
+            CancellationToken cancellationToken = default)
         {
             try
             {
                 // 1️⃣ Fetch Existing Asset Entity
                 var existingAsset = await _context.Assets
                     .FirstOrDefaultAsync(a =>
-                        a.Id == asset.Id &&
+                        a.Id == id &&
+                        a.TenantId == tenantId &&
                         a.IsSoftDeleted != true);
 
                 if (existingAsset == null)
                 {
-                    _logger.LogWarning("⚠ Asset not found for Id={Id}", asset.Id);
+                    _logger.LogWarning("⚠ Asset not found for Id={Id}", id);
                     return false;
                 }
 
                 // 2️⃣ Soft Delete Asset (ENTITY)
                 existingAsset.IsSoftDeleted = true;
                 existingAsset.IsActive = false;
-                existingAsset.SoftDeletedById = asset.Prop.UserEmployeeId;
+                existingAsset.SoftDeletedById = employeeId;
                 existingAsset.DeletedDateTime = DateTime.UtcNow;
 
                 // 3️⃣ Fetch ALL Asset Images and Soft Delete
                 var assetImages = await _context.AssetImages
-                    .Where(i => i.AssetId == asset.Id && i.IsSoftDeleted != true)
-                    .ToListAsync();
+                    .Where(i => i.AssetId == id && i.IsSoftDeleted != true)
+                    .ToListAsync(cancellationToken);
 
                 foreach (var img in assetImages)
                 {
                     img.IsSoftDeleted = true;
                     img.IsActive = false;
-                    img.SoftDeletedById = asset.Prop.UserEmployeeId;
+                    img.SoftDeletedById = employeeId;
                     img.DeletedDateTime = DateTime.UtcNow;
                 }
 
                 // 4️⃣ Save All at Once
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellationToken);
 
-                _logger.LogInformation("✅ Asset & Image soft-delete completed | AssetId={Id}", asset.Id);
+                _logger.LogInformation("✅ Asset & Image soft-delete completed | AssetId={Id}", id);
 
                 return true;
             }

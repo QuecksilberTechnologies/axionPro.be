@@ -1,139 +1,130 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Creates tenant-owned asset types from authenticated requests.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.DTOS.AssetDTO.type;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace axionpro.application.Features.AssetFeatures.Type.Handlers
+namespace axionpro.application.Features.AssetFeatures.Type.Handlers;
+
+#region Command
+
+/// <summary>
+/// Represents the request to create an asset type.
+/// </summary>
+public class AddTypeCommand : IRequest<ApiResponse<List<GetTypeResponseDTO>>>
 {
-    public class AddTypeCommand : IRequest<ApiResponse<List<GetTypeResponseDTO>>>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AddTypeCommand"/> class.
+    /// </summary>
+    /// <param name="dto">The client-supplied asset type values.</param>
+    public AddTypeCommand(AddTypeRequestDTO dto)
     {
-        public AddTypeRequestDTO DTO { get; set; }
-
-        public AddTypeCommand(AddTypeRequestDTO dto)
-        {
-            DTO = dto;
-        }
+        DTO = dto;
     }
-    public class AddTypeCommandHandler : IRequestHandler<AddTypeCommand, ApiResponse<List<GetTypeResponseDTO>>>
-    {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        private readonly ILogger<AddTypeCommandHandler> _logger;
-        private readonly ICommonRequestService _commonRequestService;
-        private readonly IPermissionService _permissionService;
 
-        public AddTypeCommandHandler(
-            IUnitOfWork unitOfWork,
-            IMapper mapper,
-            ILogger<AddTypeCommandHandler> logger,
-            ICommonRequestService commonRequestService,
-            IPermissionService permissionService)
-        {
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
-            _logger = logger;
-            _commonRequestService = commonRequestService;
-            _permissionService = permissionService;
-        }
-        public async Task<ApiResponse<List<GetTypeResponseDTO>>> Handle(
-      AddTypeCommand request,
-      CancellationToken cancellationToken)
-        {
-            try
-            {
-                _logger.LogInformation("Adding Asset Type: {TypeName}", request?.DTO?.TypeName);
-
-                // ===============================
-                // 1️⃣ COMMON VALIDATION (AUTH + CONTEXT)
-                // ===============================
-                var validation = await _commonRequestService.ValidateRequestAsync();
-
-                // ❌ Old: return Fail
-                // ✅ New: throw
-                if (!validation.Success)
-                    throw new UnauthorizedAccessException(validation.ErrorMessage);
-
-                // ===============================
-                // 2️⃣ NULL SAFETY
-                // ===============================
-                if (request?.DTO == null)
-                    throw new ValidationErrorException(
-                        "Invalid request data.",
-                        new List<string> { "Request DTO is required." }
-                    );
-
-                if (request.DTO.Prop == null)
-                    request.DTO.Prop = new();
-
-                // Inject values
-                request.DTO.Prop.TenantId = validation.TenantId;
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-
-                // ===============================
-                // 3️⃣ BUSINESS VALIDATION
-                // ===============================
-                if (string.IsNullOrWhiteSpace(request.DTO.TypeName))
-                    throw new ValidationErrorException(
-                        "Type Name is required.",
-                        new List<string> { "TypeName cannot be empty." }
-                    );
-
-                // ===============================
-                // 4️⃣ PERMISSION CHECK (RBAC)
-                // ===============================
-                //var hasPermission = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    "AssetType",   // 🔹 Module
-                //    "Add"          // 🔹 Operation
-                //);
-
-                //if (!hasPermission)
-                //    throw new UnauthorizedAccessException(
-                //        "You do not have permission to add asset type.");
-
-                // ===============================
-                // 5️⃣ SAVE (NO TRANSACTION NEEDED)
-                // ===============================
-                var addedList = await _unitOfWork.AssetTypeRepository
-                    .AddAsync(request.DTO);
-
-                if (addedList == null || addedList.Count == 0)
-                {
-                    _logger.LogWarning(
-                        "Asset type insertion failed for TypeName: {TypeName}",
-                        request.DTO.TypeName);
-
-                    throw new ApiException("Failed to add asset type.", 500);
-                }
-
-                // ===============================
-                // 6️⃣ SUCCESS LOG
-                // ===============================
-                _logger.LogInformation(
-                    "Successfully added asset type: {TypeName}",
-                    request.DTO.TypeName);
-
-                // ===============================
-                // 7️⃣ SUCCESS RESPONSE
-                // ===============================
-                return ApiResponse<List<GetTypeResponseDTO>>
-                    .Success(addedList, "Asset Type added successfully.");
-            }
-            catch (Exception ex)
-            {
-                // ❗ IMPORTANT: middleware handle karega
-                _logger.LogError(
-                    ex,
-                    "An unexpected error occurred while adding asset type: {TypeName}",
-                    request?.DTO?.TypeName);
-
-                throw;
-            }
-        }
-    }
+    /// <summary>
+    /// Gets the client-supplied asset type values.
+    /// </summary>
+    public AddTypeRequestDTO DTO { get; }
 }
+
+#endregion
+
+#region Handler
+
+/// <summary>
+/// Handles creation of tenant-owned asset types.
+/// </summary>
+public class AddTypeCommandHandler : IRequestHandler<AddTypeCommand, ApiResponse<List<GetTypeResponseDTO>>>
+{
+    #region Fields
+
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
+    private readonly ILogger<AddTypeCommandHandler> _logger;
+    private readonly ICommonRequestService _commonRequestService;
+
+    #endregion
+
+    #region Constructor
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AddTypeCommandHandler"/> class.
+    /// </summary>
+    public AddTypeCommandHandler(
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        ILogger<AddTypeCommandHandler> logger,
+        ICommonRequestService commonRequestService)
+    {
+        _unitOfWork = unitOfWork;
+        _mapper = mapper;
+        _logger = logger;
+        _commonRequestService = commonRequestService;
+    }
+
+    #endregion
+
+    #region Handle
+
+    /// <inheritdoc />
+    public async Task<ApiResponse<List<GetTypeResponseDTO>>> Handle(
+        AddTypeCommand request,
+        CancellationToken cancellationToken)
+    {
+        if (request.DTO is null)
+        {
+            throw new ValidationErrorException(
+                "Invalid request data.",
+                new List<string> { "Request DTO is required." });
+        }
+
+        if (string.IsNullOrWhiteSpace(request.DTO.TypeName))
+        {
+            throw new ValidationErrorException(
+                "Type Name is required.",
+                new List<string> { "TypeName cannot be empty." });
+        }
+
+        // Resolve the trusted tenant-user context.
+        var validation = await _commonRequestService.ValidateRequestAsync();
+        if (!validation.Success)
+        {
+            throw new UnauthorizedAccessException(validation.ErrorMessage);
+        }
+
+        // Map client-editable values and apply server-controlled context.
+        var entity = _mapper.Map<AssetType>(request.DTO);
+        entity.TenantId = validation.TenantId;
+        entity.AddedById = validation.LoggedInEmployeeId;
+        entity.AddedDateTime = DateTime.UtcNow;
+        entity.IsSoftDeleted = false;
+
+        var createdEntity = await _unitOfWork.AssetTypeRepository.CreateAsync(entity, cancellationToken);
+        if (createdEntity is null)
+        {
+            _logger.LogWarning("Asset type creation returned no entity for tenant {TenantId}.", validation.TenantId);
+            throw new ApiException("Failed to add asset type.", 500);
+        }
+
+        var response = _mapper.Map<GetTypeResponseDTO>(createdEntity);
+        return ApiResponse<List<GetTypeResponseDTO>>.Success(
+            new List<GetTypeResponseDTO> { response },
+            "Asset Type added successfully.");
+    }
+
+    #endregion
+}
+
+#endregion

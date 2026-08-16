@@ -1,20 +1,34 @@
-﻿using axionpro.application.DTOS.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines client input for creating an asset type.
+// ================================================================
 
-namespace axionpro.application.DTOS.AssetDTO.type
+namespace axionpro.application.DTOS.AssetDTO.type;
+
+/// <summary>
+/// Represents the client-editable values required to create an asset type.
+/// </summary>
+public class AddTypeRequestDTO
 {
-    public class AddTypeRequestDTO
-    {
-        
-       
-        public required long AssetCategoryId { get; set; }
-        public required string TypeName { get; set; }
-        public string? Description { get; set; }
-        public required bool IsActive { get; set; }
-        public ExtraPropRequestDTO Prop = new ExtraPropRequestDTO();
-    }
+    /// <summary>
+    /// Gets or sets the asset category associated with the type.
+    /// </summary>
+    public required long AssetCategoryId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the asset type name.
+    /// </summary>
+    public required string TypeName { get; set; }
+
+    /// <summary>
+    /// Gets or sets an optional description.
+    /// </summary>
+    public string? Description { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether the type is active.
+    /// </summary>
+    public required bool IsActive { get; set; }
 }

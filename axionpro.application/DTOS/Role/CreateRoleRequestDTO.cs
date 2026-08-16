@@ -1,28 +1,20 @@
-﻿using axionpro.application.DTOS.Common;
-using axionpro.application.DTOS.Pagination;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines client-editable values for creating a tenant role.
+// ================================================================
 
 namespace axionpro.application.DTOs.Role
 {
-    public class CreateRoleRequestDTO 
+    /// <summary>
+    /// Represents client-supplied values for a new tenant role.
+    /// </summary>
+    public class CreateRoleRequestDTO
     {
-        public required string UserEmployeeId { get; set; }
-       
-        public string RoleName { get; set; } = string.Empty; // Default value        
-       
-        public int RoleType { get; set; }       
-        public string? Remark { get; set; } // Nullable
-        public bool IsActive { get; set; } = false; // Default false
-   
-        public ExtraPropRequestDTO? Prop { get; set; } = new ExtraPropRequestDTO();
-
-
-
-
-
+        public string RoleName { get; set; } = string.Empty;
+        public int RoleType { get; set; }
+        public string? Remark { get; set; }
+        public bool IsActive { get; set; }
     }
 }

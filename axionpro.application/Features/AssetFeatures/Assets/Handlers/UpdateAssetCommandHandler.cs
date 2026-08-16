@@ -1,4 +1,10 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Updates tenant-owned assets and optional asset images.
+// ================================================================
+
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.AssetDTO.asset;
@@ -6,214 +12,173 @@ using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IFileStorage;
-using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
-using axionpro.domain.Entity;
 using MediatR;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
+namespace axionpro.application.Features.AssetFeatures.Assets.Handlers;
 
-namespace axionpro.application.Features.AssetFeatures.Assets.Handlers
+#region Command
+
+/// <summary>Represents the request to update an asset.</summary>
+public class UpdateAssetCommand : IRequest<ApiResponse<GetAssetResponseDTO>>
 {
-    public class UpdateAssetCommand : IRequest<ApiResponse<GetAssetResponseDTO>>
-    {
-        public UpdateAssetRequestDTO DTO { get; }
+    /// <summary>Initializes a new instance of the <see cref="UpdateAssetCommand"/> class.</summary>
+    public UpdateAssetCommand(UpdateAssetRequestDTO dto) => DTO = dto;
 
-        public UpdateAssetCommand(UpdateAssetRequestDTO dto)
-        {
-            DTO = dto;
-        }
-    }
-
-
-    /// <summary>
-    /// Handles Asset Update (IDEAL PATTERN)
-    /// </summary>
-    public class UpdateAssetCommandHandler
-      : IRequestHandler<UpdateAssetCommand, ApiResponse<GetAssetResponseDTO>>
-    {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        private readonly ILogger<UpdateAssetCommandHandler> _logger;
-        private readonly IFileStorageService _fileStorageService;
-        private readonly ICommonRequestService _commonRequestService;
-        private readonly IPermissionService _permissionService;
-        private readonly IConfiguration _config;
-
-        public UpdateAssetCommandHandler(
-            IUnitOfWork unitOfWork,
-            IMapper mapper,
-            ILogger<UpdateAssetCommandHandler> logger,
-            IFileStorageService fileStorageService,
-            ICommonRequestService commonRequestService,
-            IPermissionService permissionService,
-            IConfiguration config)
-        {
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
-            _logger = logger;
-            _fileStorageService = fileStorageService;
-            _commonRequestService = commonRequestService;
-            _permissionService = permissionService;
-            _config = config;
-        }
-
-        public async Task<ApiResponse<GetAssetResponseDTO>> Handle(
-      UpdateAssetCommand request,
-      CancellationToken cancellationToken)
-        {
-            string? uploadedFileKey = null;
-
-            await _unitOfWork.BeginTransactionAsync();
-
-            try
-            {
-                // ===============================
-                // 1️⃣ VALIDATION
-                // ===============================
-                var validation = await _commonRequestService.ValidateRequestAsync();
-
-                if (!validation.Success)
-                    throw new UnauthorizedAccessException(validation.ErrorMessage);
-
-                if (request?.DTO == null || request.DTO.Id <= 0)
-                    throw new ValidationErrorException(
-                        "Invalid request.",
-                        new List<string> { "Asset Id is required." });
-
-                request.DTO.Prop ??= new();
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-
-                // ===============================
-                // 2️⃣ FETCH EXISTING
-                // ===============================
-                var existingAsset = await _unitOfWork.AssetRepository
-                    .GetSingleRecordAsync(request.DTO.Id, true);
-
-                if (existingAsset == null)
-                    throw new KeyNotFoundException("Asset not found.");
-
-                // ===============================
-                // 3️⃣ UPDATE FIELDS (SAFE)
-                // ===============================
-                existingAsset.AssetName = request.DTO.AssetName ?? existingAsset.AssetName;
-                existingAsset.AssetTypeId = request.DTO.AssetTypeId;
-                existingAsset.Company = request.DTO.Company ?? existingAsset.Company;
-                existingAsset.ModelNo = request.DTO.ModelNo ?? existingAsset.ModelNo;
-                existingAsset.Size = request.DTO.Size ?? existingAsset.Size;
-                existingAsset.Weight = request.DTO.Weight ?? existingAsset.Weight;
-                existingAsset.Color = request.DTO.Color ?? existingAsset.Color;
-
-                existingAsset.IsRepairable = request.DTO.IsRepairable;
-                existingAsset.Price = request.DTO.Price;
-                existingAsset.SerialNumber = request.DTO.SerialNumber ?? existingAsset.SerialNumber;
-                existingAsset.Barcode = request.DTO.Barcode ?? existingAsset.Barcode;
-
-                existingAsset.AssetStatusId = request.DTO.AssetStatusId;
-                existingAsset.IsAssigned = request.DTO.IsAssigned;
-                existingAsset.IsActive = request.DTO.IsActive;
-
-                existingAsset.PurchaseDate = request.DTO.PurchaseDate;
-                existingAsset.WarrantyExpiryDate = request.DTO.WarrantyExpiryDate;
-
-                existingAsset.UpdatedById = validation.UserEmployeeId;
-                existingAsset.UpdatedDateTime = DateTime.UtcNow;
-
-                // ===============================
-                // 4️⃣ QR CODE UPDATE
-                // ===============================
-                existingAsset.Qrcode = JsonConvert.SerializeObject(new
-                {
-                    existingAsset.Id,
-                    existingAsset.AssetName,
-                    existingAsset.AssetTypeId,
-                    existingAsset.Company,
-                    existingAsset.ModelNo,
-                    existingAsset.SerialNumber,
-                    existingAsset.Barcode,
-                    existingAsset.AssetStatusId,
-                    StatusName = existingAsset.AssetStatus?.StatusName,
-                    existingAsset.IsAssigned,
-                    existingAsset.PurchaseDate,
-                    existingAsset.WarrantyExpiryDate,
-                    existingAsset.IsRepairable
-                });
-
-                // ===============================
-                // 5️⃣ IMAGE UPLOAD
-                // ===============================
-                string? assetImagePath = null;
-
-                if (request.DTO.AssetImageFile != null &&
-                    request.DTO.AssetImageFile.Length > 0)
-                {
-                    try
-                    {
-                        string cleanName = EncryptionSanitizer
-                            .CleanEncodedInput(request.DTO.AssetName ?? "asset")
-                            .ToLower()
-                            .Replace(" ", "_");
-
-                        string fileName = $"asset-{cleanName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
-
-                        string folderPath =
-                            $"{ConstantValues.TenantFolder}-{validation.TenantId}/{ConstantValues.AssetsFolder}";
-
-                        uploadedFileKey = await _fileStorageService.UploadFileAsync(
-                            request.DTO.AssetImageFile,
-                            folderPath,
-                            fileName);
-
-                        assetImagePath = uploadedFileKey;
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Asset image upload failed");
-                    }
-                }
-
-                // ===============================
-                // 6️⃣ DB UPDATE
-                // ===============================
-                var updatedAsset = await _unitOfWork.AssetRepository
-                    .UpdateAsync(existingAsset, assetImagePath);
-
-                if (updatedAsset == null)
-                    throw new ApiException("Asset update failed.", 500);
-
-                // ===============================
-                // 7️⃣ COMMIT
-                // ===============================
-                await _unitOfWork.CommitTransactionAsync();
-
-                return ApiResponse<GetAssetResponseDTO>
-                    .Success(updatedAsset, "Asset updated successfully.");
-            }
-            catch (Exception ex)
-            {
-                await _unitOfWork.RollbackTransactionAsync();
-
-                if (!string.IsNullOrEmpty(uploadedFileKey))
-                {
-                    try
-                    {
-                        await _fileStorageService.DeleteFileAsync(uploadedFileKey);
-                        _logger.LogWarning("Rollback: Uploaded image deleted.");
-                    }
-                    catch (Exception deleteEx)
-                    {
-                        _logger.LogError(deleteEx, "Image delete failed after rollback.");
-                    }
-                }
-
-                _logger.LogError(ex, "UpdateAsset failed");
-                throw;
-            }
-        }
-    }
-
-
+    /// <summary>Gets the client-supplied asset update values.</summary>
+    public UpdateAssetRequestDTO DTO { get; }
 }
+
+#endregion
+
+#region Handler
+
+/// <summary>Handles updates to tenant-owned assets.</summary>
+public class UpdateAssetCommandHandler : IRequestHandler<UpdateAssetCommand, ApiResponse<GetAssetResponseDTO>>
+{
+    #region Fields
+
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<UpdateAssetCommandHandler> _logger;
+    private readonly IFileStorageService _fileStorageService;
+    private readonly ICommonRequestService _commonRequestService;
+
+    #endregion
+
+    #region Constructor
+
+    /// <summary>Initializes a new instance of the <see cref="UpdateAssetCommandHandler"/> class.</summary>
+    public UpdateAssetCommandHandler(
+        IUnitOfWork unitOfWork,
+        ILogger<UpdateAssetCommandHandler> logger,
+        IFileStorageService fileStorageService,
+        ICommonRequestService commonRequestService)
+    {
+        _unitOfWork = unitOfWork;
+        _logger = logger;
+        _fileStorageService = fileStorageService;
+        _commonRequestService = commonRequestService;
+    }
+
+    #endregion
+
+    #region Handle
+
+    /// <inheritdoc />
+    public async Task<ApiResponse<GetAssetResponseDTO>> Handle(
+        UpdateAssetCommand request,
+        CancellationToken cancellationToken)
+    {
+        string? uploadedFileKey = null;
+        await _unitOfWork.BeginTransactionAsync();
+
+        try
+        {
+            if (request.DTO is null || request.DTO.Id <= 0)
+            {
+                throw new ValidationErrorException(
+                    "Invalid request.",
+                    new List<string> { "Asset Id is required." });
+            }
+
+            // Resolve the trusted tenant-user context.
+            var validation = await _commonRequestService.ValidateRequestAsync();
+            if (!validation.Success)
+            {
+                throw new UnauthorizedAccessException(validation.ErrorMessage);
+            }
+
+            // Load the tenant-owned entity before applying client changes.
+            var asset = await _unitOfWork.AssetRepository.GetSingleRecordForTenantAsync(
+                request.DTO.Id,
+                validation.TenantId,
+                cancellationToken);
+            if (asset is null)
+            {
+                throw new KeyNotFoundException("Asset not found.");
+            }
+
+            asset.AssetName = request.DTO.AssetName ?? asset.AssetName;
+            asset.AssetTypeId = request.DTO.AssetTypeId;
+            asset.Company = request.DTO.Company ?? asset.Company;
+            asset.ModelNo = request.DTO.ModelNo ?? asset.ModelNo;
+            asset.Size = request.DTO.Size ?? asset.Size;
+            asset.Weight = request.DTO.Weight ?? asset.Weight;
+            asset.Color = request.DTO.Color ?? asset.Color;
+            asset.IsRepairable = request.DTO.IsRepairable;
+            asset.Price = request.DTO.Price;
+            asset.SerialNumber = request.DTO.SerialNumber ?? asset.SerialNumber;
+            asset.Barcode = request.DTO.Barcode ?? asset.Barcode;
+            asset.AssetStatusId = request.DTO.AssetStatusId;
+            asset.IsAssigned = request.DTO.IsAssigned;
+            asset.IsActive = request.DTO.IsActive;
+            asset.PurchaseDate = request.DTO.PurchaseDate;
+            asset.WarrantyExpiryDate = request.DTO.WarrantyExpiryDate;
+            asset.UpdatedById = validation.LoggedInEmployeeId;
+            asset.UpdatedDateTime = DateTime.UtcNow;
+            asset.Qrcode = JsonConvert.SerializeObject(new
+            {
+                asset.Id,
+                asset.AssetName,
+                asset.AssetTypeId,
+                asset.Company,
+                asset.ModelNo,
+                asset.SerialNumber,
+                asset.Barcode,
+                asset.AssetStatusId,
+                asset.IsAssigned,
+                asset.PurchaseDate,
+                asset.WarrantyExpiryDate,
+                asset.IsRepairable
+            });
+
+            string? assetImagePath = null;
+            if (request.DTO.AssetImageFile is { Length: > 0 })
+            {
+                var cleanName = EncryptionSanitizer.CleanEncodedInput(request.DTO.AssetName ?? "asset")
+                    .ToLowerInvariant()
+                    .Replace(" ", "_");
+                var fileName = $"asset-{cleanName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
+                var folderPath = $"{ConstantValues.TenantFolder}-{validation.TenantId}/{ConstantValues.AssetsFolder}";
+                uploadedFileKey = await _fileStorageService.UploadFileAsync(
+                    request.DTO.AssetImageFile,
+                    folderPath,
+                    fileName);
+                assetImagePath = uploadedFileKey;
+            }
+
+            var updatedAsset = await _unitOfWork.AssetRepository.UpdateAsync(asset, assetImagePath);
+            if (updatedAsset is null)
+            {
+                throw new ApiException("Asset update failed.", 500);
+            }
+
+            await _unitOfWork.CommitTransactionAsync();
+            return ApiResponse<GetAssetResponseDTO>.Success(updatedAsset, "Asset updated successfully.");
+        }
+        catch (Exception ex)
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            if (!string.IsNullOrEmpty(uploadedFileKey))
+            {
+                try
+                {
+                    await _fileStorageService.DeleteFileAsync(uploadedFileKey);
+                }
+                catch (Exception deleteException)
+                {
+                    _logger.LogError(deleteException, "Failed to delete the rolled-back asset image.");
+                }
+            }
+
+            _logger.LogError(ex, "Asset update failed.");
+            throw;
+        }
+    }
+
+    #endregion
+}
+
+#endregion

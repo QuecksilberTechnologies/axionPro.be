@@ -1,143 +1,102 @@
-﻿// ================================================================
+// ================================================================
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
-// Purpose : Handles DeleteRoleQueryHandler requests using authenticated tenant context.
+// Purpose : Soft deletes tenant roles using trusted request context.
 // ================================================================
 
-using AutoMapper;
 using axionpro.application.DTOs.Role;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IEncryptionService;
-using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using MediatR;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.RoleCmd.Handlers
 {
+    #region Query
+
+    /// <summary>
+    /// Represents a request to soft delete a tenant role.
+    /// </summary>
     public class DeleteRoleQuery : IRequest<ApiResponse<bool>>
     {
-        public DeleteRoleRequestDTO DTO { get; set; }
+        public DeleteRoleRequestDTO DTO { get; }
 
+        /// <summary>
+        /// Initializes the delete request.
+        /// </summary>
         public DeleteRoleQuery(DeleteRoleRequestDTO dto)
         {
             DTO = dto;
         }
     }
 
+    #endregion
+
+    #region Handler
+
     /// <summary>
-    /// Handles authenticated tenant requests for this feature.
+    /// Handles role deletion requests for the authenticated tenant.
     /// </summary>
     public class DeleteRoleQueryHandler : IRequestHandler<DeleteRoleQuery, ApiResponse<bool>>
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ILogger<DeleteRoleQueryHandler> _logger;
-        private readonly ITokenService _tokenService;
-        private readonly IConfiguration _config;
-        private readonly IEncryptionService _encryptionService;
-        private readonly IPermissionService _permissionService;
-        private readonly IIdEncoderService _idEncoderService;
-        private readonly ICommonRequestService _commonRequestService;
+        #region Fields
 
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ICommonRequestService _commonRequestService;
+        private readonly ILogger<DeleteRoleQueryHandler> _logger;
+
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Initializes the handler dependencies.
+        /// </summary>
         public DeleteRoleQueryHandler(
             IUnitOfWork unitOfWork,
-            IMapper mapper,
-            IHttpContextAccessor httpContextAccessor,
-            ILogger<DeleteRoleQueryHandler> logger,
-            ITokenService tokenService,
-            IPermissionService permissionService,
-            IConfiguration config,
-            IEncryptionService encryptionService, IIdEncoderService idEncoderService, ICommonRequestService commonRequestService)
+            ICommonRequestService commonRequestService,
+            ILogger<DeleteRoleQueryHandler> logger)
         {
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
-            _httpContextAccessor = httpContextAccessor;
-            _logger = logger;
-            _tokenService = tokenService;
-            _permissionService = permissionService;
-            _config = config;
-            _encryptionService = encryptionService;
-            _idEncoderService = idEncoderService;
             _commonRequestService = commonRequestService;
+            _logger = logger;
         }
 
+        #endregion
+
+        #region Handle
+
+        /// <summary>
+        /// Soft deletes a role using trusted tenant and actor identifiers.
+        /// </summary>
         public async Task<ApiResponse<bool>> Handle(
-      DeleteRoleQuery request,
-      CancellationToken cancellationToken)
+            DeleteRoleQuery request,
+            CancellationToken cancellationToken)
         {
-            try
-            {
-                _logger.LogInformation("🔹 DeleteRole started");
+            var validation = await _commonRequestService.ValidateRequestAsync();
+            if (!validation.Success)
+                throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // ===============================
-                // 1️⃣ VALIDATION (AUTH)
-                // ===============================
-                #region Tenant Request Validation
-                var validation = await _commonRequestService
-                    .ValidateRequestAsync();
-                #endregion
+            if (request.DTO.Id <= 0)
+                throw new ValidationErrorException("Invalid role identifier.");
 
-                if (!validation.Success)
-                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+            var deleted = await _unitOfWork.RoleRepository.DeleteAsync(
+                request.DTO.Id,
+                validation.TenantId,
+                validation.LoggedInEmployeeId,
+                cancellationToken);
+            if (!deleted)
+                throw new ApiException("Role not found or already deleted.", 404);
 
-                // ===============================
-                // 2️⃣ PERMISSION CHECK (RBAC)
-                // ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.Role,
-                //    Operations.Delete);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("Access denied.");
-
-                // ===============================
-                // 3️⃣ NULL SAFETY
-                // ===============================
-                if (request?.DTO == null || request.DTO.Id <= 0)
-                    throw new ValidationErrorException("Invalid RoleId.");
-
-                request.DTO.Prop ??= new();
-
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-
-                _logger.LogInformation(
-                    "🗑️ Deleting RoleId: {RoleId}, TenantId: {TenantId}",
-                    request.DTO.Id,
-                    validation.TenantId);
-
-                // ===============================
-                // 4️⃣ DELETE
-                // ===============================
-                var deleted = await _unitOfWork.RoleRepository
-                    .DeleteAsync(request.DTO, validation.UserEmployeeId, request.DTO.Id);
-
-                if (!deleted)
-                    throw new ApiException("Role not found or already deleted.", 404);
-
-                _logger.LogInformation("✅ Role deleted successfully");
-
-                // ===============================
-                // 5️⃣ SUCCESS
-                // ===============================
-                return ApiResponse<bool>
-                    .Success(true, "Role deleted successfully.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ DeleteRole failed");
-
-                throw; // ✅ CRITICAL
-            }
+            _logger.LogInformation("Role deleted. RoleId: {RoleId}", request.DTO.Id);
+            return ApiResponse<bool>.Success(true, "Role deleted successfully.");
         }
+
+        #endregion
     }
+
+    #endregion
 }

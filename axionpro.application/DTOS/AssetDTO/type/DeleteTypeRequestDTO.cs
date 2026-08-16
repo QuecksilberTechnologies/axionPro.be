@@ -1,17 +1,19 @@
-﻿using axionpro.application.DTOS.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines client input for deleting an asset type.
+// ================================================================
 
-namespace axionpro.application.DTOS.AssetDTO.type
+namespace axionpro.application.DTOS.AssetDTO.type;
+
+/// <summary>
+/// Represents the asset type selected for deletion.
+/// </summary>
+public class DeleteTypeRequestDTO
 {
-    public class DeleteTypeRequestDTO
-    {
-        public long Id { get; set; }
-       
-        public ExtraPropRequestDTO Prop = new ExtraPropRequestDTO();
-
-    }
+    /// <summary>
+    /// Gets or sets the asset type identifier.
+    /// </summary>
+    public long Id { get; set; }
 }

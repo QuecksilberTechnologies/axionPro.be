@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Configures application DTO-to-domain mapping rules.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.DTOs.Client;
 using axionpro.application.DTOs.Department;
 using axionpro.application.DTOs.Designation;
@@ -77,11 +84,54 @@ namespace axionpro.application.Mappings
         {
 
 
-            CreateMap<AddAssetRequestDTO, Asset>().ReverseMap();
+            CreateMap<AddAssetRequestDTO, Asset>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.TenantId, opt => opt.Ignore())
+                .ForMember(dest => dest.IsActive, opt => opt.Ignore())
+                .ForMember(dest => dest.IsSoftDeleted, opt => opt.Ignore())
+                .ForMember(dest => dest.SoftDeletedById, opt => opt.Ignore())
+                .ForMember(dest => dest.AddedById, opt => opt.Ignore())
+                .ForMember(dest => dest.AddedDateTime, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedById, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedDateTime, opt => opt.Ignore())
+                .ForMember(dest => dest.DeletedDateTime, opt => opt.Ignore())
+                .ForMember(dest => dest.Qrcode, opt => opt.Ignore())
+                .ForMember(dest => dest.AssetAssignment, opt => opt.Ignore())
+                .ForMember(dest => dest.AssetImage, opt => opt.Ignore())
+                .ForMember(dest => dest.AssetStatus, opt => opt.Ignore())
+                .ForMember(dest => dest.AssetType, opt => opt.Ignore());
 
             CreateMap<AssetCategory, GetCategoryResponseDTO>().ReverseMap();
             CreateMap<AssetStatus, GetStatusResponseDTO>().ReverseMap();
             CreateMap<AssetCategory, GetCategoryResponseDTO>().ReverseMap();
+
+            CreateMap<AddCategoryReqestDTO, AssetCategory>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.TenantId, opt => opt.Ignore())
+                .ForMember(dest => dest.IsActive, opt => opt.Ignore())
+                .ForMember(dest => dest.IsSoftDeleted, opt => opt.Ignore())
+                .ForMember(dest => dest.AddedById, opt => opt.Ignore())
+                .ForMember(dest => dest.AddedDateTime, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedById, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedDateTime, opt => opt.Ignore())
+                .ForMember(dest => dest.SoftDeletedById, opt => opt.Ignore())
+                .ForMember(dest => dest.SoftDeletedDateTime, opt => opt.Ignore())
+                .ForMember(dest => dest.AssetType, opt => opt.Ignore())
+                .ForMember(dest => dest.Tenant, opt => opt.Ignore());
+
+            CreateMap<UpdateCategoryReqestDTO, AssetCategory>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.TenantId, opt => opt.Ignore())
+                .ForMember(dest => dest.AddedById, opt => opt.Ignore())
+                .ForMember(dest => dest.AddedDateTime, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedById, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedDateTime, opt => opt.Ignore())
+                .ForMember(dest => dest.SoftDeletedById, opt => opt.Ignore())
+                .ForMember(dest => dest.SoftDeletedDateTime, opt => opt.Ignore())
+                .ForMember(dest => dest.IsSoftDeleted, opt => opt.Ignore())
+                .ForMember(dest => dest.AssetType, opt => opt.Ignore())
+                .ForMember(dest => dest.Tenant, opt => opt.Ignore())
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
 
             CreateMap<Gender, GetGenderResponseDTO>().ReverseMap();
@@ -151,7 +201,16 @@ namespace axionpro.application.Mappings
             //    .ForMember(dest => dest.Id, opt => opt.Ignore())
             //    .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
-            CreateMap<AssetType, AddTypeRequestDTO>().ReverseMap();
+            CreateMap<AddTypeRequestDTO, AssetType>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.TenantId, opt => opt.Ignore())
+                .ForMember(dest => dest.AddedById, opt => opt.Ignore())
+                .ForMember(dest => dest.AddedDateTime, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedById, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedDateTime, opt => opt.Ignore())
+                .ForMember(dest => dest.SoftDeletedById, opt => opt.Ignore())
+                .ForMember(dest => dest.DeletedDateTime, opt => opt.Ignore())
+                .ForMember(dest => dest.IsSoftDeleted, opt => opt.Ignore());
 
             //CreateMap<GetTypeResponseDTO, AssetType>()
             //    .ForMember(dest => dest.AssetCategoryId, opt => opt.MapFrom(src => src.AssetCategoryId))
@@ -162,20 +221,20 @@ namespace axionpro.application.Mappings
             // Update Mapping (DTO ↔ Entity)
             // -------------------------
             CreateMap<UpdateTypeRequestDTO, AssetType>()
-                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null)); // Id included for update
-
-            CreateMap<AssetType, UpdateTypeRequestDTO>()
-                .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.AssetCategoryId, opt => opt.MapFrom(src => src.CategoryId))
+                .ForMember(dest => dest.TenantId, opt => opt.Ignore())
+                .ForMember(dest => dest.AddedById, opt => opt.Ignore())
+                .ForMember(dest => dest.AddedDateTime, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedById, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedDateTime, opt => opt.Ignore())
+                .ForMember(dest => dest.SoftDeletedById, opt => opt.Ignore())
+                .ForMember(dest => dest.DeletedDateTime, opt => opt.Ignore())
+                .ForMember(dest => dest.IsSoftDeleted, opt => opt.Ignore())
                 .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
             // -------------------------
             // Delete Mapping (DTO ↔ Entity)
             // -------------------------
-            CreateMap<DeleteTypeRequestDTO, AssetType>()
-                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null)); // Id required for delete
-
-            CreateMap<AssetType, DeleteTypeRequestDTO>()
-                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
             CreateMap<Asset, GetAssetResponseDTO>();
             //.ForMember(dest => dest.WarrantyExpiryDate,
@@ -183,7 +242,6 @@ namespace axionpro.application.Mappings
             //                                       ? DateOnly.FromDateTime(src.WarrantyExpiryDate.Value)
             //                                       : default));
 
-            CreateMap<Asset, GetAssetRequestDTO>().ReverseMap();
 
 
             CreateMap<CreateHostUserRequestDTO, HostUser>().ReverseMap();
@@ -201,14 +259,7 @@ namespace axionpro.application.Mappings
             CreateMap<GetAssetResponseDTO, Asset>().ReverseMap();
 
 
-            CreateMap<UpdateAssetRequestDTO, Asset>().ReverseMap();
 
-            CreateMap<DeleteAssetReqestDTO, Asset>().ReverseMap();
-
-            CreateMap<AssetStatus, GetStatusRequestDTO>().ReverseMap();
-
-            CreateMap<GetStatusResponseDTO, AssetStatus>().ReverseMap();
-            CreateMap<GetStatusResponseDTO, UpdateStatusRequestDTO>().ReverseMap();
 
 
 
@@ -219,12 +270,28 @@ namespace axionpro.application.Mappings
 
 
 
-            CreateMap<AssetStatus, CreateStatusRequestDTO>().ReverseMap();
-            CreateMap<AssetStatus, UpdateStatusRequestDTO>().ReverseMap();
-            CreateMap<UpdateStatusRequestDTO, AssetStatus>().ReverseMap();
+            CreateMap<CreateStatusRequestDTO, AssetStatus>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.TenantId, opt => opt.Ignore())
+                .ForMember(dest => dest.IsActive, opt => opt.Ignore())
+                .ForMember(dest => dest.IsSoftDeleted, opt => opt.Ignore())
+                .ForMember(dest => dest.AddedById, opt => opt.Ignore())
+                .ForMember(dest => dest.AddedDateTime, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedById, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedDateTime, opt => opt.Ignore())
+                .ForMember(dest => dest.SoftDeletedById, opt => opt.Ignore())
+                .ForMember(dest => dest.DeletedDateTime, opt => opt.Ignore());
 
-
-            CreateMap<AssetStatus, DeleteStatusReqestDTO>().ReverseMap();
+            CreateMap<UpdateStatusRequestDTO, AssetStatus>()
+                .ForMember(dest => dest.TenantId, opt => opt.Ignore())
+                .ForMember(dest => dest.AddedById, opt => opt.Ignore())
+                .ForMember(dest => dest.AddedDateTime, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedById, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedDateTime, opt => opt.Ignore())
+                .ForMember(dest => dest.SoftDeletedById, opt => opt.Ignore())
+                .ForMember(dest => dest.DeletedDateTime, opt => opt.Ignore())
+                .ForMember(dest => dest.IsSoftDeleted, opt => opt.Ignore())
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
 
 
 
@@ -334,11 +401,9 @@ namespace axionpro.application.Mappings
             CreateMap<Role, GetTicketTypeResponseDTO>().ReverseMap();
 
 
-            CreateMap<CreateRoleRequestDTO, Role>()
-                  .ForMember(dest => dest.AddedById, opt => opt.MapFrom(src => src.UserEmployeeId)); // Example
-
-            CreateMap<UpdateRoleRequestDTO, Role>()
-                .ForMember(dest => dest.UpdatedById, opt => opt.MapFrom(src => src.UserEmployeeId));
+            // Audit fields are set from trusted request context in the handlers.
+            CreateMap<CreateRoleRequestDTO, Role>();
+            CreateMap<UpdateRoleRequestDTO, Role>();
 
 
             // Role Entity to GetAllRoleDTO Mapping

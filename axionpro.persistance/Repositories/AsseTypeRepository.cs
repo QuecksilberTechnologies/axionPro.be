@@ -1,375 +1,215 @@
-﻿using AutoMapper;
-using axionpro.application.DTOS.AssetDTO.type;
-using axionpro.application.Interfaces.IRepositories;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Persists and retrieves tenant-owned asset types.
+// ================================================================
 
+using axionpro.application.DTOS.AssetDTO.type;
+using axionpro.application.DTOS.Pagination;
+using axionpro.application.Interfaces.IRepositories;
+using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Linq;
-using axionpro.domain.Entity;
-using axionpro.application.DTOS.Pagination;
 
-namespace axionpro.persistance.Repositories
+namespace axionpro.persistance.Repositories;
+
+/// <summary>
+/// Provides database operations for asset types.
+/// </summary>
+public class AssetTypeRepository : IAssetTypeRepository
 {
+    private readonly WorkforceDbContext _context;
+    private readonly ILogger<AssetTypeRepository> _logger;
 
-    public class AssetTypeRepository : IAssetTypeRepository
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AssetTypeRepository"/> class.
+    /// </summary>
+    /// <param name="context">The workforce database context.</param>
+    /// <param name="logger">The repository logger.</param>
+    public AssetTypeRepository(
+        WorkforceDbContext context,
+        ILogger<AssetTypeRepository> logger)
     {
-        private readonly WorkforceDbContext _context;
-       
-        private readonly IMapper _mapper;
-        private readonly ILogger<AssetTypeRepository> _logger;
-
-        public AssetTypeRepository(
-            WorkforceDbContext context,
-            ILogger<AssetTypeRepository> logger,
-            IMapper mapper
-           )
-        {
-            _context = context;
-            _logger = logger;
-            _mapper = mapper;
-            
-        }
-        public async Task<List<GetTypeResponseDTO>> AddAsync(AddTypeRequestDTO? dto)
-        {
-            try
-            {
-                              
-
-                if (string.IsNullOrWhiteSpace(dto.TypeName))
-                {
-                    _logger.LogWarning("Asset Type name is missing for TenantId: {TenantId}", dto.Prop.TenantId);
-                    throw new ArgumentException("TypeName is required.");
-                }
-                _logger.LogInformation("Adding new Asset Type '{TypeName}' for TenantId: {TenantId}", dto.TypeName, dto.Prop.TenantId);
-
-                // ✅ Step 2: Duplicate check
-                var existingType = await _context.AssetTypes
-                    .FirstOrDefaultAsync(t =>
-                        t.TenantId == dto.Prop.TenantId &&
-                        t.TypeName.ToLower() == dto.TypeName.ToLower() &&
-                        (t.IsSoftDeleted == null || t.IsSoftDeleted == false));
-
-                if (existingType != null)
-                {
-                    _logger.LogWarning("Duplicate Asset Type detected for TenantId: {TenantId}, TypeName: {TypeName}",
-                        dto.Prop.TenantId, dto.TypeName);
-
-                    throw new InvalidOperationException($"Asset Type '{dto.TypeName}' already exists for this tenant.");
-                }
-                // ✅ Entity creation (DB ONLY)
-                var entity = new AssetType
-                {
-                    TenantId = dto.Prop.TenantId,
-                    AssetCategoryId = dto.AssetCategoryId,
-                    TypeName = dto.TypeName,
-                    Description = dto.Description?.Trim(),
-                    IsActive = dto.IsActive,
-                    IsSoftDeleted = false,
-                    AddedById = dto.Prop.UserEmployeeId,
-                    AddedDateTime = DateTime.UtcNow
-                };
-
-
-               
-                 
-
-                // ✅ Step 4: Insert into DB
-                await _context.AssetTypes.AddAsync(entity);
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation("✅ Asset Type added successfully with Id: {Id}", entity.Id);
-
-                // ✅ Step 5: Return all active types (for the same Tenant)
-                var allTypes = await _context.AssetTypes
-                    .Where(x => x.TenantId == dto.Prop.TenantId && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
-                    .OrderByDescending(x => x.Id)
-                    .ToListAsync();
-
-                return _mapper.Map<List<GetTypeResponseDTO>>(allTypes);
-            }
-            catch (ArgumentNullException ex)
-            {
-                _logger.LogWarning(ex, "Null DTO received while adding Asset Type.");
-                throw;
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogWarning(ex, "Validation error in AddAsync for Asset Type.");
-                throw;
-            }
-            catch (InvalidOperationException ex)
-            {
-                _logger.LogWarning(ex, "Duplicate Asset Type detected while adding.");
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error occurred while adding Asset Type for TenantId: {TenantId}", dto?.Prop.TenantId);
-                throw new Exception("An unexpected error occurred while adding Asset Type.", ex);
-            }
-        }
-
-
-        public async Task<bool> DeleteAsync(DeleteTypeRequestDTO dto)
-        {
-            try
-            {
-                // ✅ Step 1: Validation
-                if (dto == null)
-                {
-                    _logger.LogWarning("DeleteAsync called with null DTO.");
-                    throw new ArgumentNullException(nameof(dto), "Request cannot be null.");
-                }
-
-                if (dto.Id <= 0)
-                {
-                    _logger.LogWarning("Invalid Asset Type Id provided for deletion: {Id}", dto.Id);
-                    throw new ArgumentException("Valid Asset Type Id is required for deletion.");
-                }
-
-                
-
-                // ✅ Step 2: Fetch record from DB
-                var existingType = await _context.AssetTypes
-                    .FirstOrDefaultAsync(x => x.Id == dto.Id && (x.IsSoftDeleted == null || x.IsSoftDeleted == false));
-
-                if (existingType == null)
-                {
-                    _logger.LogWarning("Attempted to delete non-existing Asset Type with Id: {Id}", dto.Id);
-                    throw new KeyNotFoundException($"Asset Type with Id {dto.Id} not found.");
-                }
-
-                _logger.LogInformation("Deleting Asset Type with Id: {Id}, Name: {Name}", existingType.Id, existingType.TypeName);
-
-                // ✅ Step 3: Soft delete (mark as deleted instead of removing)
-                existingType.IsSoftDeleted = true;
-                existingType.IsActive = false;
-                existingType.SoftDeletedById = dto.Prop.EmployeeId;
-                existingType.DeletedDateTime = DateTime.UtcNow;
-
-                // ✅ Step 4: Save changes
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation("✅ Asset Type with Id: {Id} deleted successfully.", dto.Id);
-                return true;
-            }
-            catch (ArgumentNullException ex)
-            {
-                _logger.LogWarning(ex, "Null DTO passed to DeleteAsync.");
-                throw;
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogWarning(ex, "Validation failed in DeleteAsync for Asset Type.");
-                throw;
-            }
-            catch (KeyNotFoundException ex)
-            {
-                _logger.LogWarning(ex, "Asset Type not found while attempting delete.");
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error occurred while deleting Asset Type with Id: {Id}", dto?.Id);
-                throw new Exception("An unexpected error occurred while deleting Asset Type.", ex);
-            }
-        }
-
-        public async Task<PagedResponseDTO<GetTypeResponseDTO>> GetAllAsync(GetTypeRequestDTO? dto)
-        {
-            try
-            {
-                _logger.LogInformation("Fetching Asset Types with applied filters...");
-
-                // ✅ 1️⃣ VALIDATION
-                if (dto == null)
-                {
-                    _logger.LogWarning("GetAllAsync called with null DTO.");
-                    return new PagedResponseDTO<GetTypeResponseDTO>();
-                }
-
-                if (dto.Prop?.TenantId <= 0)
-                {
-                    _logger.LogWarning("Invalid TenantId: {TenantId}", dto?.Prop?.TenantId);
-                    return new PagedResponseDTO<GetTypeResponseDTO>();
-                }
-
-                // ✅ 2️⃣ DEFAULT PAGINATION
-                int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
-                int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
-
-                // ✅ 3️⃣ BASE QUERY (No Include needed 🔥)
-                IQueryable<AssetType> query = _context.AssetTypes
-                    .AsNoTracking()
-                    .Where(x => x.IsSoftDeleted != true && x.TenantId == dto.Prop.TenantId);
-
-                // 🔹 FILTERS
-                if (dto.TypeId.HasValue && dto.TypeId > 0)
-                    query = query.Where(x => x.Id == dto.TypeId.Value);
-
-                if (dto.CategoryId.HasValue && dto.CategoryId > 0)
-                    query = query.Where(x => x.AssetCategoryId == dto.CategoryId.Value);
-
-                if (dto.IsActive.HasValue)
-                    query = query.Where(x => x.IsActive == dto.IsActive.Value);
-
-                // ✅ 4️⃣ TOTAL COUNT
-                int totalCount = await query.CountAsync();
-
-                if (totalCount == 0)
-                {
-                    _logger.LogWarning(
-                        "No Asset Types found (TenantId: {TenantId})",
-                        dto.Prop.TenantId);
-
-                    return new PagedResponseDTO<GetTypeResponseDTO>(
-                        new List<GetTypeResponseDTO>(),
-                        0,
-                        pageNumber,
-                        pageSize
-                    );
-                }
-
-                // ✅ 5️⃣ SORTING
-                query = dto.SortOrder?.ToLower() == "asc"
-                    ? query.OrderBy(x => x.Id)
-                    : query.OrderByDescending(x => x.AddedDateTime);
-
-                // ✅ 6️⃣ PAGINATION + PROJECTION
-                var result = await query
-                    .Skip((pageNumber - 1) * pageSize)
-                    .Take(pageSize)
-                    .Select(x => new GetTypeResponseDTO
-                    {
-                        Id = x.Id,
-                        TenantId = x.TenantId,
-                        AssetCategoryId = x.AssetCategoryId,
-                        CategoryName = x.AssetCategory != null ? x.AssetCategory.CategoryName : null,
-                        TypeName = x.TypeName,
-                        Description = x.Description,
-                        IsActive = x.IsActive ?? false,
-                        AddedById = x.AddedById,
-                        AddedDateTime = x.AddedDateTime,
-                        UpdatedById = x.UpdatedById,
-                        UpdatedDateTime = x.UpdatedDateTime
-                    })
-                    .ToListAsync();
-
-                // ✅ 7️⃣ RESPONSE
-                var response = new PagedResponseDTO<GetTypeResponseDTO>(
-                    result,
-                    totalCount,
-                    pageNumber,
-                    pageSize
-                );
-
-                _logger.LogInformation(
-                    "Fetched {Count} Asset Types (Page: {PageNumber}, Size: {PageSize}) for TenantId: {TenantId}",
-                    result.Count,
-                    pageNumber,
-                    pageSize,
-                    dto.Prop.TenantId);
-
-                return response;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                    "Error occurred while fetching Asset Types for TenantId: {TenantId}",
-                    dto?.Prop?.TenantId);
-
-                throw;
-            }
-        }
-        public async Task<bool> UpdateAsync(UpdateTypeRequestDTO? dto)
-        {
-           // await using var _context = await _contextFactory.CreateDbContextAsync();
-
-            try
-            {
-                // Step 1️⃣: Validate input
-                if (dto == null)
-                {
-                    _logger.LogWarning("UpdateAsync called with null DTO.");
-                    throw new ArgumentNullException(nameof(dto), "Update request cannot be null.");
-                }
-
-                if (dto.Id <= 0)
-                {
-                    _logger.LogWarning("Invalid Type Id ({Id}) provided in UpdateAsync.", dto.Id);
-                    throw new ArgumentException("Type Id must be greater than zero.");
-                }
-
-                _logger.LogInformation("Attempting to update Asset Type with Id: {Id}", dto.Id);
-
-                // Step 2️⃣: Fetch the existing entity
-                var existingType = await _context.AssetTypes
-                    .FirstOrDefaultAsync(x => x.Id == dto.Id && (x.IsSoftDeleted == null || x.IsSoftDeleted == false));
-
-                if (existingType == null)
-                {
-                    _logger.LogWarning("Asset Type with Id {Id} not found or is deleted.", dto.Id);
-                    throw new KeyNotFoundException($"Asset Type with Id {dto.Id} not found.");
-                }
-
-                // Step 3️⃣: Conditional field updates
-                existingType.AssetCategoryId = dto.CategoryId > 0 ? dto.CategoryId : existingType.AssetCategoryId;
-                existingType.TypeName = !string.IsNullOrWhiteSpace(dto.TypeName) ? dto.TypeName : existingType.TypeName;
-                existingType.Description = !string.IsNullOrWhiteSpace(dto.Description) ? dto.Description : existingType.Description;
-
-                if (dto.IsActive.HasValue)
-                {
-                    existingType.IsActive = dto.IsActive.Value;
-                }
-
-                existingType.UpdatedById = dto.Prop.EmployeeId;
-                existingType.UpdatedDateTime = DateTime.UtcNow;
-
-                // Step 4️⃣: Save changes within transaction
-                using var transaction = await _context.Database.BeginTransactionAsync();
-                _context.AssetTypes.Update(existingType);
-
-                var result = await _context.SaveChangesAsync();
-                if (result > 0)
-                {
-                    await transaction.CommitAsync();
-                    _logger.LogInformation("Asset Type with Id {Id} updated successfully.", dto.Id);
-                    return true;
-                }
-
-                _logger.LogWarning("No rows affected during Asset Type update for Id {Id}.", dto.Id);
-                return false;
-            }
-            catch (ArgumentNullException ex)
-            {
-                _logger.LogError(ex, "Null DTO passed to UpdateAsync.");
-                throw;
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogError(ex, "Invalid Id or arguments provided for Asset Type update.");
-                throw;
-            }
-            catch (KeyNotFoundException ex)
-            {
-                _logger.LogError(ex, "Asset Type not found for Id: {Id}", dto?.Id);
-                throw;
-            }
-            catch (InvalidOperationException ex)
-            {
-                _logger.LogError(ex, "Validation failed for Asset Type update. {Message}", ex.Message);
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error occurred while updating Asset Type with Id: {Id}", dto?.Id);
-                throw new Exception("An unexpected error occurred while updating Asset Type.", ex);
-            }
-        }
-
-
+        _context = context;
+        _logger = logger;
     }
+
+    #region Create
+
+    /// <inheritdoc />
+    public async Task<AssetType?> CreateAsync(AssetType entity, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+
+        if (string.IsNullOrWhiteSpace(entity.TypeName))
+        {
+            throw new ArgumentException("TypeName is required.", nameof(entity));
+        }
+
+        var duplicateExists = await _context.AssetTypes.AnyAsync(
+            type => type.TenantId == entity.TenantId
+                && type.TypeName.ToLower() == entity.TypeName.ToLower()
+                && !type.IsSoftDeleted,
+            cancellationToken);
+
+        if (duplicateExists)
+        {
+            throw new InvalidOperationException(
+                $"Asset Type '{entity.TypeName}' already exists for this tenant.");
+        }
+
+        await _context.AssetTypes.AddAsync(entity, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Asset Type {AssetTypeId} was created for tenant {TenantId}.",
+            entity.Id,
+            entity.TenantId);
+
+        return entity;
+    }
+
+    #endregion
+
+    #region Update
+
+    /// <inheritdoc />
+    public async Task<bool> UpdateAsync(AssetType entity, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+
+        var affected = await _context.SaveChangesAsync(cancellationToken);
+
+        if (affected > 0)
+        {
+            _logger.LogInformation(
+                "Asset Type {AssetTypeId} was updated for tenant {TenantId}.",
+                entity.Id,
+                entity.TenantId);
+            return true;
+        }
+
+        _logger.LogInformation(
+            "No changes were detected for Asset Type {AssetTypeId}.",
+            entity.Id);
+        return false;
+    }
+
+    #endregion
+
+    #region Delete
+
+    /// <inheritdoc />
+    public async Task<bool> DeleteAsync(
+        long id,
+        long tenantId,
+        long employeeId,
+        CancellationToken cancellationToken = default)
+    {
+        var entity = await GetByIdForTenantAsync(id, tenantId, cancellationToken);
+
+        if (entity is null)
+        {
+            return false;
+        }
+
+        entity.IsSoftDeleted = true;
+        entity.IsActive = false;
+        entity.SoftDeletedById = employeeId;
+        entity.DeletedDateTime = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Asset Type {AssetTypeId} was soft-deleted for tenant {TenantId}.",
+            id,
+            tenantId);
+
+        return true;
+    }
+
+    #endregion
+
+    #region Queries
+
+    /// <inheritdoc />
+    public async Task<AssetType?> GetByIdForTenantAsync(
+        long id,
+        long tenantId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.AssetTypes.FirstOrDefaultAsync(
+            type => type.Id == id
+                && type.TenantId == tenantId
+                && !type.IsSoftDeleted,
+            cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<PagedResponseDTO<GetTypeResponseDTO>> GetAllAsync(
+        long tenantId,
+        GetTypeRequestDTO dto,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(dto);
+
+        var pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
+        var pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
+
+        IQueryable<AssetType> query = _context.AssetTypes
+            .AsNoTracking()
+            .Where(type => type.TenantId == tenantId && !type.IsSoftDeleted);
+
+        if (dto.TypeId is > 0)
+        {
+            query = query.Where(type => type.Id == dto.TypeId.Value);
+        }
+
+        if (dto.CategoryId is > 0)
+        {
+            query = query.Where(type => type.AssetCategoryId == dto.CategoryId.Value);
+        }
+
+        if (dto.IsActive.HasValue)
+        {
+            query = query.Where(type => type.IsActive == dto.IsActive.Value);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        query = dto.SortOrder?.ToLowerInvariant() == "asc"
+            ? query.OrderBy(type => type.Id)
+            : query.OrderByDescending(type => type.AddedDateTime);
+
+        var data = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(type => new GetTypeResponseDTO
+            {
+                Id = type.Id,
+                TenantId = type.TenantId,
+                AssetCategoryId = type.AssetCategoryId,
+                CategoryName = type.AssetCategory != null
+                    ? type.AssetCategory.CategoryName
+                    : null,
+                TypeName = type.TypeName,
+                Description = type.Description,
+                IsActive = type.IsActive ?? false,
+                AddedById = type.AddedById,
+                AddedDateTime = type.AddedDateTime,
+                UpdatedById = type.UpdatedById,
+                UpdatedDateTime = type.UpdatedDateTime
+            })
+            .ToListAsync(cancellationToken);
+
+        return new PagedResponseDTO<GetTypeResponseDTO>(
+            data,
+            totalCount,
+            pageNumber,
+            pageSize);
+    }
+
+    #endregion
 }

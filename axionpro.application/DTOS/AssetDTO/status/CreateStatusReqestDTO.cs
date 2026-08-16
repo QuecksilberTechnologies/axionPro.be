@@ -1,22 +1,29 @@
-﻿using axionpro.application.DTOS.Common;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines client input for creating an asset status.
+// ================================================================
 
-namespace axionpro.application.DTOS.AssetDTO.status
+namespace axionpro.application.DTOS.AssetDTO.status;
+
+/// <summary>
+/// Represents the client-editable values required to create an asset status.
+/// </summary>
+public class CreateStatusRequestDTO
 {
-    public class CreateStatusRequestDTO
-    {
-       
-   
-        public string StatusName { get; set; } = null!;
-        public string? ColorKey { get; set; } = null!;
-        public string? Description { get; set; }
-      
-        public ExtraPropRequestDTO Prop  = new ExtraPropRequestDTO();
+    /// <summary>
+    /// Gets or sets the asset status name.
+    /// </summary>
+    public string StatusName { get; set; } = null!;
 
-    }
+    /// <summary>
+    /// Gets or sets the display color key.
+    /// </summary>
+    public string? ColorKey { get; set; }
+
+    /// <summary>
+    /// Gets or sets an optional description.
+    /// </summary>
+    public string? Description { get; set; }
 }

@@ -1,23 +1,17 @@
-﻿using axionpro.application.DTOS.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines client input for deleting an asset category.
+// ================================================================
 
-namespace axionpro.application.DTOS.AssetDTO.category
+namespace axionpro.application.DTOS.AssetDTO.category;
+
+/// <summary>
+/// Represents the asset category selected for deletion.
+/// </summary>
+public class DeleteCategoryReqestDTO
 {
-    public class DeleteCategoryReqestDTO
-{
-          public long  Id { get; set; }
-
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
-
-
-
-
-
-
-
-    }
+    /// <summary>Gets or sets the asset category identifier.</summary>
+    public long Id { get; set; }
 }

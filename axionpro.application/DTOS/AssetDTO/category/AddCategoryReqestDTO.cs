@@ -1,26 +1,26 @@
-﻿using axionpro.application.DTOS.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines client input for creating an asset category.
+// ================================================================
 
-namespace axionpro.application.DTOS.AssetDTO.category
+namespace axionpro.application.DTOS.AssetDTO.category;
+
+/// <summary>
+/// Represents the client-editable values required to create an asset category.
+/// </summary>
+public class AddCategoryReqestDTO
 {
-    public class AddCategoryReqestDTO
-    {
+    /// <summary>Gets or sets the category name.</summary>
+    public string CategoryName { get; set; } = null!;
 
-     
-        public string CategoryName { get; set; } = null!;
+    /// <summary>Gets or sets an optional category remark.</summary>
+    public string? Remark { get; set; }
 
-        public string? Remark { get; set; }
+    /// <summary>Gets or sets whether the category is active.</summary>
+    public bool IsActive { get; set; }
 
-        public bool IsActive { get; set; }
-        public bool HasMultipleUser { get; set; } =false;
-
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
-
-
-
-    }
+    /// <summary>Gets or sets whether category assets can have multiple users.</summary>
+    public bool HasMultipleUser { get; set; }
 }

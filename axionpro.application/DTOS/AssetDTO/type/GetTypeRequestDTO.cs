@@ -1,40 +1,31 @@
-﻿using axionpro.application.DTOS.Common;
-using axionpro.application.DTOS.Pagination;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines client filters for retrieving asset types.
+// ================================================================
 
-namespace axionpro.application.DTOS.AssetDTO.type
+using axionpro.application.DTOS.Pagination;
+
+namespace axionpro.application.DTOS.AssetDTO.type;
+
+/// <summary>
+/// Represents the client-supplied filters for retrieving asset types.
+/// </summary>
+public class GetTypeRequestDTO : BaseRequest
 {
     /// <summary>
-    /// Represents the data transfer object used to retrieve or filter Asset Types.
+    /// Gets or sets an optional asset type identifier filter.
     /// </summary>
-    public class GetTypeRequestDTO : BaseRequest
-    {
-       
-      
-        /// <summary>
-        /// If provided, the data will be filtered by the specified TypeId.
-        /// Use this to fetch a specific Asset Type record.
-        /// </summary>
-        public  int? TypeId { get; set; }
+    public int? TypeId { get; set; }
 
-        /// <summary>
-        /// If provided, the data will be filtered by the specified CategoryId.
-        /// Use this to retrieve all Asset Types within a specific category.
-        /// </summary>
-        public long? CategoryId { get; set; }
+    /// <summary>
+    /// Gets or sets an optional asset category identifier filter.
+    /// </summary>
+    public long? CategoryId { get; set; }
 
-        /// <summary>
-        /// Indicates whether to fetch active records.
-        /// If true, only active records will be retrieved.
-        /// This field is mandatory.
-        /// </summary>
-        public bool? IsActive { get; set; }
-
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
-    }
-
+    /// <summary>
+    /// Gets or sets an optional active-state filter.
+    /// </summary>
+    public bool? IsActive { get; set; }
 }

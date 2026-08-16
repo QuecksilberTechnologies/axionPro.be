@@ -1,8 +1,8 @@
-﻿// ================================================================
+// ================================================================
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
-// Purpose : Handles CreateRoleCommandHandler requests using authenticated tenant context.
+// Purpose : Creates tenant roles using trusted request context.
 // ================================================================
 
 using AutoMapper;
@@ -10,149 +10,106 @@ using axionpro.application.DTOs.Role;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IEncryptionService;
-using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
 using MediatR;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.RoleCmd.Handlers
 {
+    #region Command
+
+    /// <summary>
+    /// Represents a request to create a tenant role.
+    /// </summary>
     public class CreateRoleCommand : IRequest<ApiResponse<List<GetRoleResponseDTO>>>
     {
-        public CreateRoleRequestDTO DTO { get; set; }
+        public CreateRoleRequestDTO DTO { get; }
 
+        /// <summary>
+        /// Initializes the create request.
+        /// </summary>
         public CreateRoleCommand(CreateRoleRequestDTO dto)
         {
             DTO = dto;
         }
     }
 
+    #endregion
+
+    #region Handler
+
     /// <summary>
-    /// Handles authenticated tenant requests for this feature.
+    /// Handles tenant-role creation for the authenticated tenant.
     /// </summary>
     public class CreateRoleCommandHandler : IRequestHandler<CreateRoleCommand, ApiResponse<List<GetRoleResponseDTO>>>
     {
+        #region Fields
+
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ICommonRequestService _commonRequestService;
         private readonly ILogger<CreateRoleCommandHandler> _logger;
-        private readonly ITokenService _tokenService;
-        private readonly IPermissionService _permissionService;
-        private readonly IConfiguration _config;
-        private readonly IEncryptionService _encryptionService;
-        private readonly  IIdEncoderService _idEncoderService;
-        ICommonRequestService _commonRequestService;
 
+        #endregion
 
+        #region Constructor
 
+        /// <summary>
+        /// Initializes the handler dependencies.
+        /// </summary>
         public CreateRoleCommandHandler(
             IUnitOfWork unitOfWork,
             IMapper mapper,
-            IHttpContextAccessor httpContextAccessor,
-            ILogger<CreateRoleCommandHandler> logger,
-            ITokenService tokenService,
-            IPermissionService permissionService,
-            IConfiguration config,
-             IEncryptionService encryptionService, IIdEncoderService idEncoderService, ICommonRequestService commonRequestService)
+            ICommonRequestService commonRequestService,
+            ILogger<CreateRoleCommandHandler> logger)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _httpContextAccessor = httpContextAccessor;
-            _logger = logger;
-            _tokenService = tokenService;
-            _permissionService = permissionService;
-            _config = config;
-            _encryptionService = encryptionService;
-            _idEncoderService = idEncoderService;
             _commonRequestService = commonRequestService;
+            _logger = logger;
         }
 
+        #endregion
 
+        #region Handle
+
+        /// <summary>
+        /// Creates a role from client-editable values and trusted tenant audit context.
+        /// </summary>
         public async Task<ApiResponse<List<GetRoleResponseDTO>>> Handle(
-        CreateRoleCommand request,
-        CancellationToken cancellationToken)
+            CreateRoleCommand request,
+            CancellationToken cancellationToken)
         {
-            try
-            {
-                _logger.LogInformation("🔹 CreateRole started");
+            var validation = await _commonRequestService.ValidateRequestAsync();
+            if (!validation.Success)
+                throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // ===============================
-                // 1️⃣ VALIDATION (AUTH)
-                // ===============================
-                #region Tenant Request Validation
-                var validation = await _commonRequestService
-                    .ValidateRequestAsync();
-                #endregion
+            var roleName = request.DTO.RoleName?.Trim();
+            if (string.IsNullOrWhiteSpace(roleName))
+                throw new ValidationErrorException("Role name cannot be empty.");
 
-                if (!validation.Success)
-                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+            // Map client-editable fields to the domain entity.
+            var entity = _mapper.Map<Role>(request.DTO);
+            entity.RoleName = roleName;
+            entity.TenantId = validation.TenantId;
+            entity.AddedById = validation.LoggedInEmployeeId;
+            entity.AddedDateTime = DateTime.UtcNow;
+            entity.IsSystemDefault = false;
+            entity.IsSoftDeleted = false;
 
-                // ===============================
-                // 2️⃣ PERMISSION CHECK (RBAC)
-                // ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.Role,
-                //    Operations.Add);
+            var created = await _unitOfWork.RoleRepository.CreateAsync(entity, cancellationToken);
+            if (created == null)
+                throw new ApiException("This role already exists for the tenant.", 409);
 
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("Access denied.");
-
-                // ===============================
-                // 3️⃣ NULL SAFETY
-                // ===============================
-                if (request?.DTO == null)
-                    throw new ValidationErrorException("Invalid request data.");
-
-                request.DTO.Prop ??= new();
-
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-
-                // ===============================
-                // 4️⃣ VALIDATE ROLE NAME
-                // ===============================
-                string? roleName = request.DTO.RoleName?.Trim();
-
-                if (string.IsNullOrWhiteSpace(roleName))
-                    throw new ValidationErrorException("Role name cannot be empty.");
-
-                // ===============================
-                // 5️⃣ CREATE ROLE
-                // ===============================
-                var result = await _unitOfWork.RoleRepository.CreateAsync(request.DTO);
-
-                if (result == null || result.Data == null)
-                    throw new ApiException("Role creation failed.", 500);
-
-                var data = result.Data ?? new List<GetRoleResponseDTO>();
-
-                _logger.LogInformation("✅ Created {Count} role(s)", data.Count);
-
-                // ===============================
-                // 6️⃣ SUCCESS (EMPTY ALLOWED ✅)
-                // ===============================
-                return ApiResponse<List<GetRoleResponseDTO>>
-                    .SuccessPaginated(
-                        data: data,
-                        pageNumber: result.PageNumber,
-                        pageSize: result.PageSize,
-                        totalRecords: result.TotalCount,
-                        totalPages: result.TotalPages,
-                        message: "Role(s) created successfully."
-                    );
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ CreateRole failed");
-
-                throw; // ✅ CRITICAL
-            }
+            _logger.LogInformation("Role created. RoleId: {RoleId}", created.Id);
+            return ApiResponse<List<GetRoleResponseDTO>>.Success(
+                new List<GetRoleResponseDTO> { _mapper.Map<GetRoleResponseDTO>(created) },
+                "Role created successfully.");
         }
 
+        #endregion
     }
+
+    #endregion
 }
