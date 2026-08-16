@@ -77,17 +77,19 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
         {
             var validation = await _commonRequestService.ValidateRequestAsync();
             if (!validation.Success)
-                return ApiResponse<bool>.Fail(validation.ErrorMessage);
+                throw new UnauthorizedAccessException(validation.ErrorMessage);
 
             if (request.DTO.Id <= 0)
-                return ApiResponse<bool>.Fail("Invalid designation identifier.");
+                throw new axionpro.application.Exceptions.ValidationErrorException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.InvalidIdentifier);
 
             var entity = await _unitOfWork.DesignationRepository.GetByIdForTenantAsync(
                 request.DTO.Id,
                 validation.TenantId,
                 cancellationToken);
             if (entity == null)
-                return ApiResponse<bool>.Fail("Designation not found.");
+                throw new axionpro.application.Exceptions.NotFoundException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.ResourceNotFound);
 
             if (!string.IsNullOrWhiteSpace(request.DTO.DesignationName))
                 entity.DesignationName = request.DTO.DesignationName.Trim();
@@ -103,7 +105,8 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
 
             var updated = await _unitOfWork.DesignationRepository.UpdateDesignationAsync(entity, cancellationToken);
             if (!updated)
-                return ApiResponse<bool>.Fail("Designation update failed.");
+                throw new axionpro.application.Exceptions.ConflictException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.ResourceConflict);
 
             _logger.LogInformation("Designation updated. DesignationId: {DesignationId}", entity.Id);
             return ApiResponse<bool>.Success(true, "Designation updated successfully.");

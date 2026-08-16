@@ -148,7 +148,7 @@ namespace axionpro.persistance.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching departments.");
-                response.Data = new List<GetDepartmentResponseDTO>();
+                throw;
             }
 
             return response;
@@ -280,7 +280,7 @@ namespace axionpro.persistance.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while updating department with Id: {Id}", entity?.Id);
-                return false;
+                throw;
             }
         }
 
@@ -326,7 +326,7 @@ namespace axionpro.persistance.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while deleting department. Id: {Id}", id);
-                return false;
+                throw;
             }
         }
 
@@ -348,7 +348,7 @@ namespace axionpro.persistance.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while checking existence of department. Id: {Id}", id);
-                return false;
+                throw;
             }
         }
 
@@ -399,12 +399,10 @@ namespace axionpro.persistance.Repositories
         /// <summary>
         /// Gets active department options for a trusted tenant.
         /// </summary>
-        public async Task<ApiResponse<List<GetDepartmentOptionResponse?>>> GetOptionAsync(
+        public async Task<List<GetDepartmentOptionResponse>> GetOptionAsync(
             long tenantId,
             CancellationToken cancellationToken = default)
         {
-            var response = new ApiResponse<List<GetDepartmentOptionResponse?>>();
-
             try
             {
                 var departments = await _context.Departments
@@ -421,22 +419,13 @@ namespace axionpro.persistance.Repositories
                     })
                     .ToListAsync(cancellationToken);
 
-                response.Data = departments;
-                response.Message = departments.Any()
-                    ? "Department options fetched successfully."
-                    : "No department found for this tenant.";
-
-                return response;
+                return departments;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching department options.");
 
-                return new ApiResponse<List<GetDepartmentOptionResponse?>>
-                {
-                    Message = "An error occurred while fetching department options.",
-                    Data = new List<GetDepartmentOptionResponse?>()
-                };
+                throw;
             }
         }
 

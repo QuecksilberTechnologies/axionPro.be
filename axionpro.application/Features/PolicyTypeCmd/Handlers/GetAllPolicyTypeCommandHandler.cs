@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOs.PolicyType;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Retrieves policy types while delegating failures to middleware.
+// ================================================================
+
+using axionpro.application.DTOs.PolicyType;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IPermission;
@@ -87,7 +94,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                         request.DTO.IsActive,request.DTO.PolicyTypeEnumVal
                     );
 
-                var data = result?.Data ?? new List<GetAllPolicyTypeResponseDTO>();
+                var data = result ?? new List<GetAllPolicyTypeResponseDTO>();
 
                 _logger.LogInformation("✅ Retrieved {Count} policy types", data.Count);
 

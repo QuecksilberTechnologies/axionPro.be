@@ -104,7 +104,8 @@ public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordComman
                 {
                     _logger.LogWarning("User validation failed for LoginId: {LoginId}", request.dTO.LoginId);
                     await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<ForgotPasswordResponseDTO>.Fail("User is not authenticated or authorized to perform this action.");
+                    throw new UnauthorizedAccessException(
+                        axionpro.application.Constants.AppConstants.ErrorMessages.Unauthorized);
                 }
                 long userId = await _unitOfWork.StoreProcedureRepository.ValidateActiveUserCrendentialOnlyAsync(request.dTO.LoginId);                
 
@@ -147,7 +148,8 @@ public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordComman
                 {
                     _logger.LogWarning("Employee info not found for EmployeeId: {empId}", empId);
                     await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<ForgotPasswordResponseDTO>.Fail("Employee information not found.");
+                    throw new axionpro.application.Exceptions.NotFoundException(
+                        axionpro.application.Constants.AppConstants.ErrorMessages.ResourceNotFound);
                 }
 
                 string Otp = OtpHelper.Generate6CharAlphanumericOtp();
@@ -163,7 +165,7 @@ public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordComman
                 if (emailTemplate == null)
                 {
                     _logger.LogError("Email template 'FORGOT_PASSWORD' not found.");
-                    return ApiResponse<ForgotPasswordResponseDTO>.Fail("Failed to send OTP email: template missing.");
+                    throw new InvalidOperationException("The OTP email template is not configured.");
                 }
 
                 // 🧩 Placeholder Dictionary
@@ -189,7 +191,7 @@ public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordComman
                 if (!isSent)
                 {
                     _logger.LogWarning("OTP email send failed to {Email}", request.dTO.LoginId);
-                    return ApiResponse<ForgotPasswordResponseDTO>.Fail("OTP email sending failed.");
+                    throw new InvalidOperationException("The OTP email could not be sent.");
                 }
                 //   string body = EmailTemplateRenderer.RenderBody(emailTemplate.Body ?? "", placeholders);
                 //   string subject = EmailTemplateRenderer.RenderBody(emailTemplate.Subject ?? "", placeholders);
@@ -234,7 +236,7 @@ public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordComman
                 _logger.LogError(ex, "An error occurred in ForgotPassword Handler.");
                 await _unitOfWork.RollbackTransactionAsync();
 
-                return ApiResponse<ForgotPasswordResponseDTO>.Fail("An error occurred while processing the OTP request. Please try again later.");
+                throw;
             }
         }
 

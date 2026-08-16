@@ -77,7 +77,7 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
         {
             var validation = await _commonRequestService.ValidateRequestAsync();
             if (!validation.Success)
-                return ApiResponse<List<GetDepartmentResponseDTO>>.Fail(validation.ErrorMessage);
+                throw new UnauthorizedAccessException(validation.ErrorMessage);
 
             var response = await _unitOfWork.DepartmentRepository.GetAsync(
                 request.DTO,

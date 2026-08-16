@@ -1,11 +1,12 @@
-// ============================================================================
-// Author      : Deepesh Gupta
-// Company     : Quecksilber Technologies
-// Role        : CEO
-// Purpose     : Updates Parent/Header Module status for authenticated Host users.
-// ============================================================================
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Updates Parent/Header Module status for authenticated Host users.
+// ================================================================
 
 using axionpro.application.Constants;
+using axionpro.application.Exceptions;
 using axionpro.application.DTOS.Module.ParentModule;
 using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
@@ -95,13 +96,13 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
 
             if (request == null || request.Id <= 0 || request.DTO == null)
             {
-                return ApiResponse<GetParentModuleResponseDTO>.Fail("A valid Parent Module identifier and status are required.");
+                throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
             }
 
             var dto = request.DTO;
             if (!IsSupportedModuleScope(dto.ModuleScope))
             {
-                return ApiResponse<GetParentModuleResponseDTO>.Fail("ModuleScope must be Tenant or Host scope.");
+                throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
             }
 
             try
@@ -121,8 +122,7 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
                     entity.ModuleScope,
                     cancellationToken))
                 {
-                    return ApiResponse<GetParentModuleResponseDTO>.Fail(
-                        "Deactivate active child modules before deactivating this Parent Module.");
+                    throw new ConflictException(AppConstants.ErrorMessages.ResourceConflict);
                 }
 
                 entity.ParentModuleId = null;

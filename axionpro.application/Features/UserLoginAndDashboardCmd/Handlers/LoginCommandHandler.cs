@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Authenticates tenant and Host users through centralized error handling.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Common.Enums;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.Hash;
@@ -97,7 +104,8 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 if (string.IsNullOrEmpty(request.DTO.LoginId) && string.IsNullOrEmpty(request.DTO.Password))
                 {
                     _logger.LogWarning(" LoginId and Password is not null or empty.");
-                    return ApiResponse<LoginResponseDTO>.Fail("LoginId and Password cann't be empty");
+                    throw new axionpro.application.Exceptions.ValidationErrorException(
+                        axionpro.application.Constants.AppConstants.ErrorMessages.InvalidRequest);
 
                 }
                 string? savedFullPath = null;  // 📂 File full path track karne ke liye
@@ -105,8 +113,8 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 if (string.IsNullOrEmpty(request.DTO.LoginId) && string.IsNullOrEmpty(request.DTO.Password))
                 {
                     _logger.LogWarning(" LoginId and Password is not null or empty.");
-                    return ApiResponse<LoginResponseDTO>.Fail(
-                        "LoginId and Password cann't be empty");
+                    throw new axionpro.application.Exceptions.ValidationErrorException(
+                        axionpro.application.Constants.AppConstants.ErrorMessages.InvalidRequest);
                 }
 
 
@@ -134,7 +142,8 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 {
                     _logger.LogWarning("User validation failed for LoginId: {LoginId}", request.DTO.LoginId);
                    // await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<LoginResponseDTO>.Fail("User is not authenticated or authorized to perform this action.");
+                    throw new UnauthorizedAccessException(
+                        axionpro.application.Constants.AppConstants.ErrorMessages.Unauthorized);
                 }
                              
 
@@ -156,13 +165,13 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 
                 if (user == null || string.IsNullOrWhiteSpace(user.Password))
                 {
-                    return ApiResponse<LoginResponseDTO>.Fail(ConstantValues.invalidCredential);
+                    throw new UnauthorizedAccessException(ConstantValues.invalidCredential);
                 }
 
                 // 🔑 Verify password
                 if (!_passwordService.VerifyPassword(user.Password, loginRequest.Password))
                 {
-                    return ApiResponse<LoginResponseDTO>.Fail(ConstantValues.invalidCredential);
+                    throw new UnauthorizedAccessException(ConstantValues.invalidCredential);
                 }
                 
                 //if (!passwordMatch)
@@ -566,18 +575,20 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
         {
             if (!hostUser.IsActive || hostUser.IsSoftDeleted)
             {
-                return ApiResponse<LoginResponseDTO>.Fail("Host user is inactive.");
+                throw new UnauthorizedAccessException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.Unauthorized);
             }
 
             if (!_passwordService.VerifyPassword(hostUser.PasswordHash, loginRequest.Password))
             {
-                return ApiResponse<LoginResponseDTO>.Fail(ConstantValues.invalidCredential);
+                throw new UnauthorizedAccessException(ConstantValues.invalidCredential);
             }
 
             var hostRole = await _unitOfWork.HostRoleRepository.GetByIdAsync(hostUser.HostRoleId);
             if (hostRole == null || !hostRole.IsActive || hostRole.IsSoftDeleted)
             {
-                return ApiResponse<LoginResponseDTO>.Fail("Host role is inactive.");
+                throw new UnauthorizedAccessException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.Unauthorized);
             }
 
             var permissions = await _unitOfWork.HostRolePermissionRepository
@@ -594,7 +605,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 
             if (string.IsNullOrWhiteSpace(accessToken))
             {
-                return ApiResponse<LoginResponseDTO>.Fail("Unable to issue Host access token.");
+                throw new InvalidOperationException("The Host access token could not be issued.");
             }
 
             var refreshToken = await _tokenService.GenerateRefreshToken();
@@ -614,7 +625,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 
             if (!isRefreshTokenStored)
             {
-                return ApiResponse<LoginResponseDTO>.Fail("Unable to issue Host refresh token.");
+                throw new InvalidOperationException("The Host refresh token could not be issued.");
             }
 
             var commonParent = await _unitOfWork.ModuleRepository.GetCommonMenuParentAsync();

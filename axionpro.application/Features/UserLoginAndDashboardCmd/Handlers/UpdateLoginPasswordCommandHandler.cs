@@ -93,7 +93,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 #endregion
 
                 if (!validation.Success)
-                    return ApiResponse<UpdatePasswordResponseDTO>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
                 // Assign decoded values coming from CommonRequestService
                  request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
@@ -108,13 +108,13 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 
                 if (user == null || string.IsNullOrWhiteSpace(user.Password))
                 {
-                    return ApiResponse<UpdatePasswordResponseDTO>.Fail(ConstantValues.invalidCredential);
+                    throw new UnauthorizedAccessException(ConstantValues.invalidCredential);
                 }
 
                 // 🔑 Verify password
                 if (!_passwordService.VerifyPassword(user.Password, request.DTO.OldPassword))
                 {
-                    return ApiResponse<UpdatePasswordResponseDTO>.Fail("Old password not corrected");
+                    throw new UnauthorizedAccessException(ConstantValues.invalidCredential);
                 }
 
                 // Inside Handle() method 
@@ -141,7 +141,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 if (!isUpdated)
                 {
                     await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<UpdatePasswordResponseDTO>.Fail("Password could not be updated.");
+                    throw new InvalidOperationException("The password update did not complete.");
                 }
 
                 // ✅ COMMIT HERE

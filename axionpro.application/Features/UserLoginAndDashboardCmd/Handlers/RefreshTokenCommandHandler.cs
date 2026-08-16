@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Refreshes tenant and Host tokens through centralized error handling.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Common.Enums;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.Hash;
@@ -93,7 +100,8 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
             {
                 if (request?.DTO == null || string.IsNullOrWhiteSpace(request.DTO.RefreshToken))
                 {
-                    return ApiResponse<LoginResponseDTO>.Fail("Refresh token is required.");
+                    throw new axionpro.application.Exceptions.ValidationErrorException(
+                        axionpro.application.Constants.AppConstants.ErrorMessages.InvalidRequest);
                 }
 
                 // =====================================================
@@ -179,7 +187,8 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 if (empId < 1)
                 {
                     _logger.LogWarning("User validation failed during refresh for LoginId: {LoginId}", loginId);
-                    return ApiResponse<LoginResponseDTO>.Fail("User is not authenticated or authorized to perform this action.");
+                    throw new UnauthorizedAccessException(
+                        axionpro.application.Constants.AppConstants.ErrorMessages.Unauthorized);
                 }
 
                 // =====================================================
@@ -230,7 +239,8 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 if (userRoles == null || userRoles.Count == 0)
                 {
                     _logger.LogWarning("No roles found during refresh for LoginId: {LoginId}", loginId);
-                    return ApiResponse<LoginResponseDTO>.Fail("No active role found for this user.");
+                    throw new axionpro.application.Exceptions.NotFoundException(
+                        axionpro.application.Constants.AppConstants.ErrorMessages.ResourceNotFound);
                 }
 
                 var roleInfo = userRoles.FirstOrDefault(x => x.IsPrimaryRole == true);
@@ -238,7 +248,8 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 if (roleInfo == null || roleInfo.Role == null)
                 {
                     _logger.LogWarning("Primary role missing during refresh for LoginId: {LoginId}", loginId);
-                    return ApiResponse<LoginResponseDTO>.Fail("Primary role not found for this user.");
+                    throw new axionpro.application.Exceptions.NotFoundException(
+                        axionpro.application.Constants.AppConstants.ErrorMessages.ResourceNotFound);
                 }
 
                 List<UserRoleDTO>? userRoleDTOs = null;
@@ -268,7 +279,8 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 var parent = await _unitOfWork.ModuleRepository.GetCommonMenuParentAsync();
                 if (parent == null)
                 {
-                    return ApiResponse<LoginResponseDTO>.Fail("Common menu parent not found.");
+                    throw new axionpro.application.Exceptions.NotFoundException(
+                        axionpro.application.Constants.AppConstants.ErrorMessages.ResourceNotFound);
                 }
 
                 List<ModuleDTO> CommonItems = await _unitOfWork.ModuleRepository.GetCommonMenuTreeAsync(parent.Id);
@@ -444,7 +456,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 
                 if (string.IsNullOrWhiteSpace(newRefreshToken))
                 {
-                    return ApiResponse<LoginResponseDTO>.Fail("Unable to issue new refresh token.");
+                    throw new InvalidOperationException("The refresh token could not be issued.");
                 }
 
                 // =====================================================
@@ -519,13 +531,15 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 hostUser.IsSoftDeleted ||
                 !string.Equals(hostUser.LoginId, oldToken.LoginId, StringComparison.Ordinal))
             {
-                return ApiResponse<LoginResponseDTO>.Fail("Host user is inactive or does not match the refresh token owner.");
+                throw new UnauthorizedAccessException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.Unauthorized);
             }
 
             var hostRole = await _unitOfWork.HostRoleRepository.GetByIdAsync(hostUser.HostRoleId);
             if (hostRole == null || !hostRole.IsActive || hostRole.IsSoftDeleted)
             {
-                return ApiResponse<LoginResponseDTO>.Fail("Host role is inactive.");
+                throw new UnauthorizedAccessException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.Unauthorized);
             }
 
             var permissions = await _unitOfWork.HostRolePermissionRepository
@@ -542,7 +556,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 
             if (string.IsNullOrWhiteSpace(accessToken))
             {
-                return ApiResponse<LoginResponseDTO>.Fail("Unable to issue Host access token.");
+                throw new InvalidOperationException("The Host access token could not be issued.");
             }
 
             var refreshToken = await RotateRefreshTokenAsync(
@@ -552,7 +566,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 
             if (string.IsNullOrWhiteSpace(refreshToken))
             {
-                return ApiResponse<LoginResponseDTO>.Fail("Unable to issue new refresh token.");
+                throw new InvalidOperationException("The refresh token could not be issued.");
             }
 
             return ApiResponse<LoginResponseDTO>.Success(

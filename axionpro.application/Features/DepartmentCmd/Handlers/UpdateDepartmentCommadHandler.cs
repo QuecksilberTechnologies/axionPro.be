@@ -77,13 +77,15 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
         {
             var validation = await _commonRequestService.ValidateRequestAsync();
             if (!validation.Success)
-                return ApiResponse<bool>.Fail(validation.ErrorMessage);
+                throw new UnauthorizedAccessException(validation.ErrorMessage);
 
             if (request.DTO.Id <= 0)
-                return ApiResponse<bool>.Fail("Invalid department identifier.");
+                throw new axionpro.application.Exceptions.ValidationErrorException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.InvalidIdentifier);
 
             if (string.IsNullOrWhiteSpace(request.DTO.DepartmentName))
-                return ApiResponse<bool>.Fail("Department name should not be empty or whitespace.");
+                throw new axionpro.application.Exceptions.ValidationErrorException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.InvalidRequest);
 
             // Load the existing tenant-owned entity to retain immutable and omitted values.
             var department = await _unitOfWork.DepartmentRepository.GetByIdForTenantAsync(
@@ -92,7 +94,8 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                 cancellationToken);
 
             if (department == null)
-                return ApiResponse<bool>.Fail("Department not found.");
+                throw new axionpro.application.Exceptions.NotFoundException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.ResourceNotFound);
 
             // Apply client-editable fields and server-controlled audit values.
             department.DepartmentName = request.DTO.DepartmentName.Trim();
@@ -111,7 +114,8 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
             if (!isUpdated)
             {
                 _logger.LogWarning("Department update failed. DepartmentId: {DepartmentId}", request.DTO.Id);
-                return ApiResponse<bool>.Fail("No department was updated. Possibly not found or protected.");
+                throw new axionpro.application.Exceptions.ConflictException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.ResourceConflict);
             }
 
             _logger.LogInformation("Department updated successfully. DepartmentId: {DepartmentId}", request.DTO.Id);

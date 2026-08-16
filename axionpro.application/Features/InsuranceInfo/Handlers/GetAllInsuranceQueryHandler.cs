@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.InsurancePolicy;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Retrieves insurance policies while delegating failures to middleware.
+// ================================================================
+
+using axionpro.application.DTOS.InsurancePolicy;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
@@ -78,7 +85,7 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                 var result = await _unitOfWork.InsuranceRepository
                     .GetAllListAsync(request.DTO.PolicyId, request.DTO.IsActive);
 
-                var data = result?.Data ?? new List<GetAlllnsurancePolicyResponseDTO>();
+                var data = result ?? new List<GetAlllnsurancePolicyResponseDTO>();
 
                 _logger.LogInformation("✅ Retrieved {Count} insurance policies", data.Count);
 

@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Persists insurance policy data without constructing API errors.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.DTOS.InsurancePolicy;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -143,7 +150,7 @@ namespace axionpro.persistance.Repositories
         }
 
 
-        public async Task<ApiResponse<List<GetAlllnsurancePolicyResponseDTO>>> GetAllListAsync(
+        public async Task<List<GetAlllnsurancePolicyResponseDTO>> GetAllListAsync(
    int policyId,
    bool isActive)
         {
@@ -167,13 +174,11 @@ namespace axionpro.persistance.Repositories
                 // ❌ No data found → UI ko error chahiye
                 if (list == null || !list.Any())
                 {
-                    return ApiResponse<List<GetAlllnsurancePolicyResponseDTO>>
-                        .Fail("No insurance policies found.");
+                    return list;
                 }
 
                 // ✅ Success
-                return ApiResponse<List<GetAlllnsurancePolicyResponseDTO>>
-                    .Success(list, "Insurance policies fetched successfully.");
+                return list;
             }
             catch (Exception ex)
             {
@@ -182,8 +187,7 @@ namespace axionpro.persistance.Repositories
                     "Error while fetching InsurancePolicy DDL. PolicyTypeId: {PolicyTypeId}",
                     policyId);
 
-                return ApiResponse<List<GetAlllnsurancePolicyResponseDTO>>
-                    .Fail("An unexpected error occurred while fetching insurance policies.");
+                throw;
             }
         }
         public async Task<ApiResponse<List<GetAlllnsurancePolicyWithDetailsResponseDTO>>>

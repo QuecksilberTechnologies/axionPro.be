@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOs.Department;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Exposes department endpoints and delegates application errors to middleware.
+// ================================================================
+
+using axionpro.application.DTOs.Department;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Department;
 using axionpro.application.Features.DepartmentCmd.Handlers;
@@ -60,7 +67,8 @@ namespace axionpro.api.Controllers.Department
             if (createDto == null)
             {
                 _logger.LogInfo("CreateDepartmentAsync received a null DTO.");
-                return BadRequest("Department data cannot be null.");
+                throw new axionpro.application.Exceptions.ValidationErrorException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.InvalidRequest);
             }
 
             _logger.LogInfo($"Creating new department: {createDto.DepartmentName}");
@@ -85,7 +93,8 @@ namespace axionpro.api.Controllers.Department
             if (updateDto == null)
             {
                 _logger.LogInfo("UpdateDepartmentAsync received a null DTO.");
-                return BadRequest("Invalid request. Department data is required.");
+                throw new axionpro.application.Exceptions.ValidationErrorException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.InvalidRequest);
             }
 
             _logger.LogInfo($"Updating department Id: {updateDto.Id}");
@@ -122,7 +131,8 @@ namespace axionpro.api.Controllers.Department
             if (deleteDto == null)
             {
                 _logger.LogInfo("DeleteDepartmentAsync received a null DTO.");
-                return BadRequest("Delete request cannot be null.");
+                throw new axionpro.application.Exceptions.ValidationErrorException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.InvalidRequest);
             }
 
             _logger.LogInfo($"Deleting department Id: {deleteDto.Id}");

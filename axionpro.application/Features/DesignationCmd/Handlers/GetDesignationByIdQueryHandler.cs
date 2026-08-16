@@ -1,82 +1,111 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Retrieves a single designation through centralized error handling.
+// ================================================================
+
 using axionpro.application.DTOs.Designation;
 using axionpro.application.DTOS.Designation;
 using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
-
-using axionpro.domain.Entity; using MediatR;
+using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.DesignationCmd.Handlers
 {
+    #region Query
+
+    /// <summary>
+    /// Represents a request to retrieve one designation by identifier.
+    /// </summary>
     public class GetDesignationByIdQuery : IRequest<ApiResponse<GetSingleDesignationResponseDTO>>
     {
-        public GetSingleDesignationRequestDTO Dto { get; set; }
+        /// <summary>
+        /// Gets the designation identifier request.
+        /// </summary>
+        public GetSingleDesignationRequestDTO Dto { get; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetDesignationByIdQuery"/> class.
+        /// </summary>
+        /// <param name="dto">The designation identifier request.</param>
         public GetDesignationByIdQuery(GetSingleDesignationRequestDTO dto)
         {
             Dto = dto;
         }
     }
 
+    #endregion
+
+    #region Handler
+
+    /// <summary>
+    /// Handles retrieval of a single designation.
+    /// </summary>
     public class GetDesignationByIdQueryHandler : IRequestHandler<GetDesignationByIdQuery, ApiResponse<GetSingleDesignationResponseDTO>>
     {
-        private readonly IMapper _mapper;
+        #region Fields
+
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetDesignationByIdQueryHandler> _logger;
 
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetDesignationByIdQueryHandler"/> class.
+        /// </summary>
+        /// <param name="unitOfWork">The unit of work used to access persistence.</param>
+        /// <param name="logger">The logger used for contextual success and not-found diagnostics.</param>
         public GetDesignationByIdQueryHandler(
-            IMapper mapper,
             IUnitOfWork unitOfWork,
             ILogger<GetDesignationByIdQueryHandler> logger)
         {
-            _mapper = mapper;
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
 
-        public async Task<ApiResponse<GetSingleDesignationResponseDTO>> Handle(GetDesignationByIdQuery request, CancellationToken cancellationToken)
+        #endregion
+
+        #region Handle
+
+        /// <summary>
+        /// Retrieves the requested designation or delegates its error response to middleware.
+        /// </summary>
+        /// <param name="request">The single-designation query.</param>
+        /// <param name="cancellationToken">A token used to cancel the operation.</param>
+        /// <returns>The successful designation response.</returns>
+        public async Task<ApiResponse<GetSingleDesignationResponseDTO>> Handle(
+            GetDesignationByIdQuery request,
+            CancellationToken cancellationToken)
         {
-            try
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (request?.Dto == null || request.Dto.Id <= 0)
             {
-                var designation = await _unitOfWork.DesignationRepository.GetByIdAsync(request.Dto);
-
-                if (designation == null)
-                {
-                    _logger.LogWarning("❌ No designation found with the given ID: {DesignationId}", request.Dto.Id);
-
-                    return new ApiResponse<GetSingleDesignationResponseDTO>
-                    {
-                        IsSucceeded = false,
-                        Message = "Designation not found.",
-                        Data = null
-                    };
-                }
-
-                _logger.LogInformation("✅ Successfully retrieved designation with ID: {DesignationId}", request.Dto.Id);
-
-                return new ApiResponse<GetSingleDesignationResponseDTO>
-                {
-                    IsSucceeded = true,
-                    Message = "Designation fetched successfully.",
-                    Data = designation
-                };
+                throw new axionpro.application.Exceptions.ValidationErrorException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.InvalidIdentifier);
             }
-            catch (Exception ex)
+
+            var designation = await _unitOfWork.DesignationRepository.GetByIdAsync(request.Dto);
+
+            if (designation == null)
             {
-                _logger.LogError(ex, "💥 Error while fetching designation with ID: {DesignationId}", request.Dto.Id);
-
-                return new ApiResponse<GetSingleDesignationResponseDTO>
-                {
-                    IsSucceeded = false,
-                    Message = "Failed to fetch designation due to an internal error.",
-                    Data = null
-                };
+                _logger.LogWarning("No designation found with the given ID: {DesignationId}", request.Dto.Id);
+                throw new axionpro.application.Exceptions.NotFoundException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.ResourceNotFound);
             }
+
+            _logger.LogInformation("Successfully retrieved designation with ID: {DesignationId}", request.Dto.Id);
+            return ApiResponse<GetSingleDesignationResponseDTO>.Success(
+                designation,
+                "Designation fetched successfully.");
         }
-    
-    
+
+        #endregion
     }
 
-
+    #endregion
 }

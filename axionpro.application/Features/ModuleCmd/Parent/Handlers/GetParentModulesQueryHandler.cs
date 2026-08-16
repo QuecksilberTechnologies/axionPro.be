@@ -1,11 +1,12 @@
-// ============================================================================
-// Author      : Deepesh Gupta
-// Company     : Quecksilber Technologies
-// Role        : CEO
-// Purpose     : Retrieves scope-filtered Parent/Header Module lists for Host users.
-// ============================================================================
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Retrieves scope-filtered Parent/Header Module lists for Host users.
+// ================================================================
 
 using axionpro.application.Constants;
+using axionpro.application.Exceptions;
 using axionpro.application.DTOS.Module.ParentModule;
 using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
@@ -93,12 +94,12 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
 
             if (request == null)
             {
-                return ApiResponse<List<GetParentModuleResponseDTO>>.Fail("Parent Module request data is required.");
+                throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
             }
 
             if (!IsSupportedModuleScope(request.ModuleScope))
             {
-                return ApiResponse<List<GetParentModuleResponseDTO>>.Fail("ModuleScope must be Tenant or Host scope.");
+                throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
             }
 
             try

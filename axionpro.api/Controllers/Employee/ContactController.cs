@@ -42,8 +42,8 @@ namespace axionpro.api.Controllers.Employee
                 if (Dto == null)
                 {
                     _logger.LogInfo($"Invalid IMEI: {Dto}");
-                    var invalidResponse = ApiResponse<bool>.Fail("Invalid IMEI number. It must be 15 digits numeric value.");
-                    return BadRequest(invalidResponse);
+                    throw new axionpro.application.Exceptions.ValidationErrorException(
+                        axionpro.application.Constants.AppConstants.ErrorMessages.InvalidRequest);
                 }
 
                 _logger.LogInfo("Creating new empolyee contact process started.");

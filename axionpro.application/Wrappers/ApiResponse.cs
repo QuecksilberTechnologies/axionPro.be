@@ -1,4 +1,11 @@
-﻿using System.Text.Json.Serialization;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the shared API response envelope for successful responses and middleware errors.
+// ================================================================
+
+using System.Text.Json.Serialization;
 
 namespace axionpro.application.Wrappers
 {
@@ -28,6 +35,12 @@ namespace axionpro.application.Wrappers
         public bool IsSucceeded { get; set; }
         public string Message { get; set; } = string.Empty;
         public List<string> Errors { get; set; } = new();
+
+        /// <summary>
+        /// Gets or sets the stable application error code for middleware-generated failures.
+        /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? ErrorCode { get; set; }
 
         public T Data { get; set; }
 

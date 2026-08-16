@@ -1,15 +1,37 @@
-﻿using axionpro.application.Exceptions;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Handles centralized, standardized application exception responses.
+// ================================================================
+
+using axionpro.application.Constants;
+using axionpro.application.Exceptions;
 using axionpro.application.Wrappers;
 using System.Net;
 using System.Text.Json;
 
 namespace axionpro.api.Middlewares
 {
+    /// <summary>
+    /// Converts expected application exceptions and unexpected failures into one safe API error contract.
+    /// </summary>
     public class ErrorHandlerMiddleware
     {
+        #region Fields
+
         private readonly RequestDelegate _next;
         private readonly ILogger<ErrorHandlerMiddleware> _logger;
 
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ErrorHandlerMiddleware"/> class.
+        /// </summary>
+        /// <param name="next">The next middleware in the request pipeline.</param>
+        /// <param name="logger">The logger used for unexpected application failures.</param>
         public ErrorHandlerMiddleware(
             RequestDelegate next,
             ILogger<ErrorHandlerMiddleware> logger)
@@ -18,6 +40,14 @@ namespace axionpro.api.Middlewares
             _logger = logger;
         }
 
+        #endregion
+
+        #region Exception Mapping
+
+        /// <summary>
+        /// Invokes the next middleware and serializes mapped exceptions when a request fails.
+        /// </summary>
+        /// <param name="context">The active HTTP context.</param>
         public async Task InvokeAsync(HttpContext context)
         {
             try
@@ -30,68 +60,95 @@ namespace axionpro.api.Middlewares
 
                 await _next(context);
             }
-
             catch (UnauthorizedAccessException ex)
             {
-                await HandleExceptionAsync(context, 401, ex.Message);
+                await HandleExceptionAsync(
+                    context,
+                    HttpStatusCode.Unauthorized,
+                    AppConstants.ErrorCodes.Unauthorized,
+                    ex.Message);
             }
-
             catch (ValidationErrorException ex)
             {
-                await HandleExceptionAsync(context, 400, ex.Message, ex.Errors);
+                await HandleExceptionAsync(
+                    context,
+                    HttpStatusCode.BadRequest,
+                    ex.ErrorCode,
+                    ex.Message,
+                    ex.Errors);
             }
-
             catch (ApiException ex)
             {
-                await HandleExceptionAsync(context, ex.StatusCode, ex.Message);
+                await HandleExceptionAsync(
+                    context,
+                    (HttpStatusCode)ex.StatusCode,
+                    ex.ErrorCode,
+                    ex.Message);
             }
-
             catch (KeyNotFoundException ex)
             {
-                await HandleExceptionAsync(context, 404, ex.Message);
+                _logger.LogWarning(ex, "A requested resource was not found.");
+                await HandleExceptionAsync(
+                    context,
+                    HttpStatusCode.NotFound,
+                    AppConstants.ErrorCodes.NotFound,
+                    AppConstants.ErrorMessages.ResourceNotFound);
             }
-
             catch (NullReferenceException ex)
             {
                 _logger.LogError(ex, "Null reference error");
-
                 await HandleExceptionAsync(
                     context,
-                    500,
-                    "Required data is missing"
-                );
+                    HttpStatusCode.InternalServerError,
+                    AppConstants.ErrorCodes.InternalServerError,
+                    AppConstants.ErrorMessages.RequiredDataMissing);
             }
-
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unhandled exception");
-
                 await HandleExceptionAsync(
                     context,
-                    500,
-                    "Something went wrong. Please try again."
-                );
+                    HttpStatusCode.InternalServerError,
+                    AppConstants.ErrorCodes.InternalServerError,
+                    AppConstants.ErrorMessages.InternalServerError);
             }
         }
+
+        #endregion
+
+        #region Error Response
+
+        /// <summary>
+        /// Writes the standardized application error envelope to the response.
+        /// </summary>
+        /// <param name="context">The active HTTP context.</param>
+        /// <param name="statusCode">The HTTP status for the error.</param>
+        /// <param name="errorCode">The stable application error code.</param>
+        /// <param name="message">The safe public error message.</param>
+        /// <param name="errors">Optional validation details.</param>
         private static async Task HandleExceptionAsync(
             HttpContext context,
-            int statusCode,
+            HttpStatusCode statusCode,
+            string errorCode,
             string message,
             List<string>? errors = null)
         {
             context.Response.ContentType = "application/json";
-            context.Response.StatusCode = statusCode;
+            context.Response.StatusCode = (int)statusCode;
 
             var response = new ApiResponse<object>
             {
                 IsSucceeded = false,
+                ErrorCode = errorCode,
                 Message = message,
-                Data = null,
+                Data = null!,
                 Errors = errors ?? new List<string>()
             };
 
             var result = JsonSerializer.Serialize(response);
             await context.Response.WriteAsync(result);
         }
+
+        #endregion
     }
 }

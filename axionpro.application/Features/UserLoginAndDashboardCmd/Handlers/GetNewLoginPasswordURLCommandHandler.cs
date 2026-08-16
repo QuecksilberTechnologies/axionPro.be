@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Creates password-reset links and delegates failures to middleware.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.DTOS.Employee.BaseEmployee;
@@ -84,8 +91,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 var validation = await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
-                    return ApiResponse<GetNewPasswordLinkResponseDTO>
-                        .Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
                 long empId = await _unitOfWork.StoreProcedureRepository.ValidateActiveUserLoginOnlyAsync(request.DTO.UserLoginId);
                 _logger.LogInformation("Validation result for LoginId {LoginId}: EmployeeId = {empId}", request.DTO.UserLoginId, empId);
 
@@ -93,7 +99,8 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 {
                     _logger.LogWarning("User validation failed for UserLoginId: {LoginId}", request.DTO.UserLoginId);
                     // await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<GetNewPasswordLinkResponseDTO>.Fail("User is not authenticated or authorized to perform this action.");
+                    throw new UnauthorizedAccessException(
+                        axionpro.application.Constants.AppConstants.ErrorMessages.Unauthorized);
                 }
 
                 // 2️⃣ Get employee
@@ -101,7 +108,8 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                     await _unitOfWork.Employees.GetSingleRecordAsync(empId, true);
 
                 if (emp == null)
-                    return ApiResponse<GetNewPasswordLinkResponseDTO>.Fail("Employee not found.");
+                    throw new axionpro.application.Exceptions.NotFoundException(
+                        axionpro.application.Constants.AppConstants.ErrorMessages.ResourceNotFound);
 
                 // 3️⃣ Encode IDs
                 string encryptedEmployeeId =
@@ -144,8 +152,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
             {
                 _logger.LogError(ex, "Error while generating password reset URL");
 
-                return ApiResponse<GetNewPasswordLinkResponseDTO>
-                    .Fail("Failed to generate password reset link.");
+                throw;
             }
         }
     }

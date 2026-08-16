@@ -1,11 +1,12 @@
-// ============================================================================
-// Author      : Deepesh Gupta
-// Company     : Quecksilber Technologies
-// Role        : CEO
-// Purpose     : Updates direct SubModule status for authenticated Host users.
-// ============================================================================
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Updates direct SubModule status for authenticated Host users.
+// ================================================================
 
 using axionpro.application.Constants;
+using axionpro.application.Exceptions;
 using axionpro.application.DTOS.Module.SubModule;
 using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
@@ -99,13 +100,13 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
 
             if (request == null || request.Id <= 0 || request.DTO == null)
             {
-                return ApiResponse<GetSubModuleResponseDTO>.Fail("A valid SubModule identifier and status are required.");
+                throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
             }
 
             var dto = request.DTO;
             if (!IsSupportedModuleScope(dto.ModuleScope))
             {
-                return ApiResponse<GetSubModuleResponseDTO>.Fail("ModuleScope must be Tenant or Host scope.");
+                throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
             }
 
             try
@@ -132,7 +133,7 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
 
                 if (dto.IsActive && !parentModule.IsActive)
                 {
-                    return ApiResponse<GetSubModuleResponseDTO>.Fail("An active SubModule requires an active Parent Module.");
+                    throw new ConflictException(AppConstants.ErrorMessages.ResourceConflict);
                 }
 
                 entity.ParentModuleId = parentModule.Id;

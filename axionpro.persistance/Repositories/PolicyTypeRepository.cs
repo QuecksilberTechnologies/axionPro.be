@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Persists policy type data without constructing API errors.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.DTOs.PolicyType;
 using axionpro.application.DTOS.PolicyTypeDocument;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -211,7 +218,7 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<ApiResponse<List<GetAllPolicyTypeResponseDTO>>> GetAllPolicyTypesAsync(long tenantId, bool isActive, int enumval)
+        public async Task<List<GetAllPolicyTypeResponseDTO>> GetAllPolicyTypesAsync(long tenantId, bool isActive, int enumval)
         {
             try
             {
@@ -246,15 +253,13 @@ namespace axionpro.persistance.Repositories
                 // --------------------------------------------------
                 if (!list.Any())
                 {
-                    return ApiResponse<List<GetAllPolicyTypeResponseDTO>>
-                        .Fail("No policy types found.");
+                    return list;
                 }
 
                 // --------------------------------------------------
                 // 5️⃣ Success
                 // --------------------------------------------------
-                return ApiResponse<List<GetAllPolicyTypeResponseDTO>>
-                    .Success(list, "Policy types loaded successfully.");
+                return list;
             }
             catch (Exception ex)
             {
@@ -266,8 +271,7 @@ namespace axionpro.persistance.Repositories
                 // --------------------------------------------------
                 // 6️⃣ Hard failure
                 // --------------------------------------------------
-                return ApiResponse<List<GetAllPolicyTypeResponseDTO>>
-                    .Fail("Failed to load policy types.");
+                throw;
             }
         }
 

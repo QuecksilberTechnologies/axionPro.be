@@ -8,7 +8,6 @@
 using axionpro.application.DTOs.Department;
 using axionpro.application.DTOS.Department;
 using axionpro.application.DTOS.Pagination;
-using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 
 namespace axionpro.application.Interfaces.IRepositories
@@ -28,7 +27,7 @@ namespace axionpro.application.Interfaces.IRepositories
         /// <summary>
         /// Gets active department options for a trusted tenant.
         /// </summary>
-        Task<ApiResponse<List<GetDepartmentOptionResponse?>>> GetOptionAsync(
+        Task<List<GetDepartmentOptionResponse>> GetOptionAsync(
             long tenantId,
             CancellationToken cancellationToken = default);
 

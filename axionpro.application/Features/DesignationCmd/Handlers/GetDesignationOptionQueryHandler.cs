@@ -77,7 +77,7 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
         {
             var validation = await _commonRequestService.ValidateRequestAsync();
             if (!validation.Success)
-                return ApiResponse<List<GetDesignationOptionResponseDTO>>.Fail(validation.ErrorMessage);
+                throw new UnauthorizedAccessException(validation.ErrorMessage);
 
             var options = await _unitOfWork.DesignationRepository.GetOptionAsync(
                 request.OptionDTO.DepartmentId,

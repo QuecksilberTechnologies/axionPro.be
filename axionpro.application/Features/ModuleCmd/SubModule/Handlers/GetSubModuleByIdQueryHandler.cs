@@ -1,11 +1,12 @@
-// ============================================================================
-// Author      : Deepesh Gupta
-// Company     : Quecksilber Technologies
-// Role        : CEO
-// Purpose     : Retrieves a direct SubModule for authenticated Host users.
-// ============================================================================
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Retrieves a direct SubModule for authenticated Host users.
+// ================================================================
 
 using axionpro.application.Constants;
+using axionpro.application.Exceptions;
 using axionpro.application.DTOS.Module.SubModule;
 using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
@@ -98,12 +99,12 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
 
             if (request == null || request.Id <= 0)
             {
-                return ApiResponse<GetSubModuleResponseDTO>.Fail("A valid SubModule identifier is required.");
+                throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
             }
 
             if (!IsSupportedModuleScope(request.ModuleScope))
             {
-                return ApiResponse<GetSubModuleResponseDTO>.Fail("ModuleScope must be Tenant or Host scope.");
+                throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
             }
 
             try

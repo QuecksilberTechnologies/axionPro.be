@@ -4,17 +4,53 @@ using axionpro.domain.Entity;
 using MediatR;
 using System.Runtime.ConstrainedExecution;
 
-// ============================================================================
-// Author      : Deepesh Gupta
-// Company     : Quecksilber Technologies
-// Role        : CEO
-// Purpose     : Defines shared application constants used across AxionPro.
-// ============================================================================
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines shared application constants and standardized error values.
+// ================================================================
 
 namespace axionpro.application.Constants
 {
     public static class AppConstants
     {
+        #region Error Codes
+
+        /// <summary>
+        /// Defines stable application error codes emitted by the exception middleware.
+        /// </summary>
+        public static class ErrorCodes
+        {
+            public const string Validation = "VALIDATION_ERROR";
+            public const string Unauthorized = "UNAUTHORIZED";
+            public const string Forbidden = "FORBIDDEN";
+            public const string NotFound = "NOT_FOUND";
+            public const string Conflict = "CONFLICT";
+            public const string InternalServerError = "INTERNAL_SERVER_ERROR";
+        }
+
+        #endregion
+
+        #region Error Messages
+
+        /// <summary>
+        /// Defines reusable public messages for standardized application errors.
+        /// </summary>
+        public static class ErrorMessages
+        {
+            public const string InvalidRequest = "The request is invalid.";
+            public const string InvalidIdentifier = "A valid identifier is required.";
+            public const string Unauthorized = "The request is not authenticated.";
+            public const string PermissionDenied = "You do not have permission to perform this action.";
+            public const string ResourceNotFound = "The requested resource was not found.";
+            public const string ResourceConflict = "The request conflicts with the current resource state.";
+            public const string InternalServerError = "Something went wrong. Please try again.";
+            public const string RequiredDataMissing = "Required data is missing.";
+            public const string ValidationFailed = "The request failed validation.";
+        }
+
+        #endregion
         #region Module Scopes
 
         /// <summary>

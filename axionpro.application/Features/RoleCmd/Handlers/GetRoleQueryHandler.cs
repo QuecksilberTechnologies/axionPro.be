@@ -82,7 +82,7 @@ namespace axionpro.application.Features.RoleCmd.Handlers
                 #endregion
 
                 if (!validation.Success)
-                    return ApiResponse<List<GetRoleResponseDTO>>.Fail(validation.ErrorMessage);
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
 
                 // Assign decoded values coming from CommonRequestService
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
@@ -142,7 +142,7 @@ namespace axionpro.application.Features.RoleCmd.Handlers
             {
                 // 🧩 STEP 8: Error Handling
                 _logger.LogError(ex, "❌ Error occurred while retrieving roles.");
-                return ApiResponse<List<GetRoleResponseDTO>>.Fail("Error occurred while retrieving roles.");
+                throw;
             }
         }
 

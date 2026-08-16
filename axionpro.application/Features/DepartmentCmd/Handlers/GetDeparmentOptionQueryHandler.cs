@@ -78,13 +78,13 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
         {
             var validation = await _commonRequestService.ValidateRequestAsync();
             if (!validation.Success)
-                return ApiResponse<List<GetDepartmentOptionResponse>>.Fail(validation.ErrorMessage);
+                throw new UnauthorizedAccessException(validation.ErrorMessage);
 
             var departments = await _unitOfWork.DepartmentRepository.GetOptionAsync(
                 validation.TenantId,
                 cancellationToken);
 
-            var options = departments.Data?
+            var options = departments
                 .Where(option => option != null)
                 .Cast<GetDepartmentOptionResponse>()
                 .ToList() ?? new List<GetDepartmentOptionResponse>();
@@ -96,8 +96,10 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
 
             return new ApiResponse<List<GetDepartmentOptionResponse>>
             {
-                IsSucceeded = departments.IsSucceeded,
-                Message = departments.Message,
+                IsSucceeded = true,
+                Message = options.Count == 0
+                    ? "No departments found for this tenant."
+                    : "Department options fetched successfully.",
                 Data = options
             };
         }

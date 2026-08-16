@@ -1,4 +1,10 @@
-﻿
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Exposes employee endpoints and delegates application errors to middleware.
+// ================================================================
+
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
@@ -49,8 +55,8 @@ namespace axionpro.api.Controllers.Employee
                 if (employeeCreateDto == null)
                 {
                     _logger.LogInfo($"Invalid IMEI: {employeeCreateDto}");
-                    var invalidResponse = ApiResponse<bool>.Fail("Invalid IMEI number. It must be 15 digits numeric value.");
-                    return BadRequest(invalidResponse);
+                    throw new axionpro.application.Exceptions.ValidationErrorException(
+                        axionpro.application.Constants.AppConstants.ErrorMessages.InvalidRequest);
                 }
 
                 _logger.LogInfo("Creating new employee process started.");
@@ -104,7 +110,8 @@ namespace axionpro.api.Controllers.Employee
         public async Task<IActionResult> UpdateSectionStatusBulk([FromBody] UpdateEditStatusRequestDTO_ dto)
         {
             if (dto == null)
-                return BadRequest(ApiResponse<bool>.Fail("Invalid or empty request."));
+                throw new axionpro.application.Exceptions.ValidationErrorException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.InvalidRequest);
 
             var command = new UpdateEditableStatusCommand(dto);
             var result = await _mediator.Send(command);
@@ -147,7 +154,8 @@ namespace axionpro.api.Controllers.Employee
                 if (string.IsNullOrWhiteSpace(employeeId))
                 {
                     _logger.LogInfo("Invalid EmployeeId received.");
-                    return BadRequest(ApiResponse<bool>.Fail("Invalid EmployeeId."));
+                    throw new axionpro.application.Exceptions.ValidationErrorException(
+                        axionpro.application.Constants.AppConstants.ErrorMessages.InvalidIdentifier);
                 }
 
                 _logger.LogInfo("Fetching employee completion percentage...");

@@ -103,7 +103,8 @@ public class ValidateOtpCommandHandler : IRequestHandler<ValidateOtpCommand, Api
                 {
                     _logger.LogWarning("User validation failed for LoginId: {LoginId}", request.dTO.LoginId);
                     await _unitOfWork.RollbackTransactionAsync();
-                    return ApiResponse<bool>.Fail("User is not authenticated or authorized to perform this action.");
+                    throw new UnauthorizedAccessException(
+                        axionpro.application.Constants.AppConstants.ErrorMessages.Unauthorized);
                 }
 
                 long userId = await _unitOfWork.StoreProcedureRepository.ValidateActiveUserCrendentialOnlyAsync(request.dTO.LoginId);
@@ -114,18 +115,21 @@ public class ValidateOtpCommandHandler : IRequestHandler<ValidateOtpCommand, Api
 
                 if (existingOtpEntry == null)
                 {
-                    return ApiResponse<bool>.Fail("No OTP found or it has expired.");
+                    throw new axionpro.application.Exceptions.ValidationErrorException(
+                        axionpro.application.Constants.AppConstants.ErrorMessages.InvalidRequest);
                 }
 
                 // 🔄 Step 3: Validate OTP and Expiry
                 if (existingOtpEntry.Otp != request.dTO.OTP)
                 {
-                    return ApiResponse<bool>.Fail("Invalid OTP entered.");
+                    throw new axionpro.application.Exceptions.ValidationErrorException(
+                        axionpro.application.Constants.AppConstants.ErrorMessages.InvalidRequest);
                 }
 
                 if (existingOtpEntry.OtpexpireDateTime <= DateTime.Now)
                 {
-                    return ApiResponse<bool>.Fail("OTP has expired. Please request a new one.");
+                    throw new axionpro.application.Exceptions.ValidationErrorException(
+                        axionpro.application.Constants.AppConstants.ErrorMessages.InvalidRequest);
                 }
 
                 existingOtpEntry.IsUsed = false;
@@ -136,7 +140,7 @@ public class ValidateOtpCommandHandler : IRequestHandler<ValidateOtpCommand, Api
                 if(isOtpUpdated)
 
                 return ApiResponse<bool>.Success(true);
-                return ApiResponse<bool>.Fail("Something went wrong while verifying the OTP.");
+                throw new InvalidOperationException("The OTP validation state could not be persisted.");
 
             }
             catch (Exception ex)
@@ -144,7 +148,7 @@ public class ValidateOtpCommandHandler : IRequestHandler<ValidateOtpCommand, Api
                 _logger.LogError(ex, "An error occurred in ValidateOtpCommand Handler.");
                 await _unitOfWork.RollbackTransactionAsync();
 
-                return ApiResponse<bool>.Fail("Something went wrong while verifying the OTP.");
+                throw;
             }
         }
 

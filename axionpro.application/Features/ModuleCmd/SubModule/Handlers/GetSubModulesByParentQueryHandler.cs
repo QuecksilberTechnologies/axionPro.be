@@ -1,11 +1,12 @@
-// ============================================================================
-// Author      : Deepesh Gupta
-// Company     : Quecksilber Technologies
-// Role        : CEO
-// Purpose     : Retrieves direct children of a Header Module for Host users.
-// ============================================================================
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Retrieves direct children of a Header Module for Host users.
+// ================================================================
 
 using axionpro.application.Constants;
+using axionpro.application.Exceptions;
 using axionpro.application.DTOS.Module.SubModule;
 using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
@@ -103,12 +104,12 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
 
             if (request == null || request.ParentModuleId <= 0)
             {
-                return ApiResponse<List<GetSubModuleResponseDTO>>.Fail("A valid ParentModuleId is required.");
+                throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
             }
 
             if (!IsSupportedModuleScope(request.ModuleScope))
             {
-                return ApiResponse<List<GetSubModuleResponseDTO>>.Fail("ModuleScope must be Tenant or Host scope.");
+                throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
             }
 
             try

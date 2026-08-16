@@ -77,10 +77,11 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
         {
             var validation = await _commonRequestService.ValidateRequestAsync();
             if (!validation.Success)
-                return ApiResponse<bool>.Fail(validation.ErrorMessage);
+                throw new UnauthorizedAccessException(validation.ErrorMessage);
 
             if (request.DTO.Id <= 0)
-                return ApiResponse<bool>.Fail("Invalid designation identifier.");
+                throw new axionpro.application.Exceptions.ValidationErrorException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.InvalidIdentifier);
 
             var deleted = await _unitOfWork.DesignationRepository.DeleteDesignationAsync(
                 request.DTO.Id,
@@ -89,7 +90,8 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                 cancellationToken);
 
             if (!deleted)
-                return ApiResponse<bool>.Fail("Designation not found or could not be deleted.");
+                throw new axionpro.application.Exceptions.NotFoundException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.ResourceNotFound);
 
             _logger.LogInformation("Designation deleted. DesignationId: {DesignationId}", request.DTO.Id);
             return ApiResponse<bool>.Success(true, "Designation deleted successfully.");

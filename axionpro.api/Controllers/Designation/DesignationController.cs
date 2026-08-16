@@ -104,7 +104,8 @@ namespace axionpro.api.Controllers.Designation
             if (dTO == null)
             {
                 _logger.LogInfo("Received null request for creating designation.");
-                return BadRequest(new { success = false, message = "Invalid request" });
+                throw new axionpro.application.Exceptions.ValidationErrorException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.InvalidRequest);
             }
 
             _logger.LogInfo($"Received request to create a new designation: {dTO.DesignationName}");
@@ -127,7 +128,8 @@ namespace axionpro.api.Controllers.Designation
             if (dTO == null)
             {
                 _logger.LogInfo("Received null request.");
-                return BadRequest(new { success = false, message = "Invalid request" });
+                throw new axionpro.application.Exceptions.ValidationErrorException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.InvalidRequest);
             }
 
             _logger.LogInfo($"Received request to delete designation");

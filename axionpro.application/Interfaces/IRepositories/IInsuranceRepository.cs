@@ -23,7 +23,7 @@ namespace axionpro.application.Interfaces.IRepositories
         // 🔹 GET LIST (Grid / Listing)
         Task<PagedResponseDTO<GetInsurancePolicyResponseDTO>> GetListAsync(  GetInsurancePolicyRequestDTO request  );
 
-        Task<ApiResponse<List<GetAlllnsurancePolicyResponseDTO>>> GetAllListAsync(int policyId, bool isActive);
+        Task<List<GetAlllnsurancePolicyResponseDTO>> GetAllListAsync(int policyId, bool isActive);
         Task<ApiResponse<List<GetAlllnsurancePolicyWithDetailsResponseDTO>>> GetAllPolicyListWithConsumedDetailsAsync(long employeeId, int policyId, bool isActive);
          
       

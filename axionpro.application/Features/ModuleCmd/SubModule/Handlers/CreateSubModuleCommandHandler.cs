@@ -1,11 +1,12 @@
-// ============================================================================
-// Author      : Deepesh Gupta
-// Company     : Quecksilber Technologies
-// Role        : CEO
-// Purpose     : Creates direct SubModules for authenticated Host users.
-// ============================================================================
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Creates direct SubModules for authenticated Host users.
+// ================================================================
 
 using axionpro.application.Constants;
+using axionpro.application.Exceptions;
 using axionpro.application.DTOS.Module.SubModule;
 using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
@@ -94,18 +95,18 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
 
             if (request?.DTO == null || request.DTO.ParentModuleId <= 0)
             {
-                return ApiResponse<GetSubModuleResponseDTO>.Fail("Valid SubModule data and a ParentModuleId are required.");
+                throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
             }
 
             var dto = request.DTO;
             if (string.IsNullOrWhiteSpace(dto.ModuleCode) || string.IsNullOrWhiteSpace(dto.ModuleName))
             {
-                return ApiResponse<GetSubModuleResponseDTO>.Fail("ModuleCode and ModuleName are required.");
+                throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
             }
 
             if (!IsSupportedModuleScope(dto.ModuleScope))
             {
-                return ApiResponse<GetSubModuleResponseDTO>.Fail("ModuleScope must be Tenant or Host scope.");
+                throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
             }
 
             try
@@ -122,7 +123,7 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
 
                 if (dto.IsActive && !parentModule.IsActive)
                 {
-                    return ApiResponse<GetSubModuleResponseDTO>.Fail("An active SubModule requires an active Parent Module.");
+                    throw new ConflictException(AppConstants.ErrorMessages.ResourceConflict);
                 }
 
                 var moduleCode = dto.ModuleCode.Trim();
@@ -135,7 +136,7 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
 
                 if (duplicateExists)
                 {
-                    return ApiResponse<GetSubModuleResponseDTO>.Fail("A SubModule with this ModuleCode already exists.");
+                    throw new ConflictException(AppConstants.ErrorMessages.ResourceConflict);
                 }
 
                 var entity = new Module

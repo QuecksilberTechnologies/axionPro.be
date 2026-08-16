@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Resets login passwords and delegates failures to middleware.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Constants;
@@ -85,19 +92,19 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
             //
             // 1️⃣ Validation
             if (string.IsNullOrWhiteSpace(dto.Token))
-                return ApiResponse<UpdatePasswordResponseDTO>
-                    .Fail("Token is required.");
+                throw new axionpro.application.Exceptions.ValidationErrorException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.InvalidRequest);
 
             if (dto.NewPassword != dto.ConfirmPassword)
-                return ApiResponse<UpdatePasswordResponseDTO>
-                    .Fail("Password and confirm password do not match.");
+                throw new axionpro.application.Exceptions.ValidationErrorException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.InvalidRequest);
 
              
             var claims = RequestCommonHelper.ValidateAndExtractClaims(dto.Token, _config);
 
             if (claims == null)
-                return ApiResponse<UpdatePasswordResponseDTO>
-                    .Fail("Invalid or expired token.");
+                throw new UnauthorizedAccessException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.Unauthorized);
 
       
 
@@ -105,8 +112,8 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
             
 
             if (tokenPurpose != ConstantValues.SetPassword)
-                return ApiResponse<UpdatePasswordResponseDTO>
-                    .Fail("Invalid token purpose.");
+                throw new UnauthorizedAccessException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.Unauthorized);
 
 
             // 3️⃣ Decode EmployeeId
@@ -122,8 +129,8 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 await _unitOfWork.UserLoginRepository.GetEmployeeIdByUserLogin(claims.Email.Trim());
 
             if (loginCredential == null)
-                return ApiResponse<UpdatePasswordResponseDTO>
-                    .Fail("Login account not found.");
+                throw new axionpro.application.Exceptions.NotFoundException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.ResourceNotFound);
             // Inside Handle() method 
             if (loginCredential.IsPasswordChangeRequired == false || loginCredential.HasFirstLogin==false)
             {
@@ -153,7 +160,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
             if (!isUpdated)
             {
                 await _unitOfWork.RollbackTransactionAsync();
-                return ApiResponse<UpdatePasswordResponseDTO>.Fail("Password could not be updated.");
+                throw new InvalidOperationException("The password update did not complete.");
             }
 
 

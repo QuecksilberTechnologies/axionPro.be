@@ -86,14 +86,17 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                 throw new UnauthorizedAccessException(validation.ErrorMessage);
 
             if (request.DTO.DepartmentId <= 0)
-                throw new ValidationErrorException("A valid department is required.");
+                throw new ValidationErrorException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.InvalidIdentifier);
 
             var designationName = request.DTO.DesignationName?.Trim();
             if (string.IsNullOrWhiteSpace(designationName))
-                throw new ValidationErrorException("Designation name is required.");
+                throw new ValidationErrorException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.InvalidRequest);
 
             if (await _unitOfWork.DesignationRepository.CheckDuplicateValueAsync(validation.TenantId, designationName))
-                throw new ApiException("This designation name already exists.", 409);
+                throw new ConflictException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.ResourceConflict);
 
             // Map client-editable values to the domain entity.
             var entity = _mapper.Map<Designation>(request.DTO);
@@ -106,7 +109,8 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
             // Persist the prepared domain entity.
             var created = await _unitOfWork.DesignationRepository.CreateAsync(entity, cancellationToken);
             if (created == null)
-                throw new ApiException("The selected department is unavailable or the designation already exists.", 409);
+                throw new ConflictException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.ResourceConflict);
 
             _logger.LogInformation("Designation created. DesignationId: {DesignationId}", created.Id);
             return ApiResponse<List<GetDesignationResponseDTO>>.Success(

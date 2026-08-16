@@ -1,11 +1,12 @@
-// ============================================================================
-// Author      : Deepesh Gupta
-// Company     : Quecksilber Technologies
-// Role        : CEO
-// Purpose     : Updates Parent/Header Modules for authenticated Host users.
-// ============================================================================
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Updates Parent/Header Modules for authenticated Host users.
+// ================================================================
 
 using axionpro.application.Constants;
+using axionpro.application.Exceptions;
 using axionpro.application.DTOS.Module.ParentModule;
 using axionpro.application.Interfaces;
 using axionpro.application.Wrappers;
@@ -95,18 +96,18 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
 
             if (request == null || request.Id <= 0 || request.DTO == null)
             {
-                return ApiResponse<GetParentModuleResponseDTO>.Fail("A valid Parent Module identifier and data are required.");
+                throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
             }
 
             var dto = request.DTO;
             if (string.IsNullOrWhiteSpace(dto.ModuleCode) || string.IsNullOrWhiteSpace(dto.ModuleName))
             {
-                return ApiResponse<GetParentModuleResponseDTO>.Fail("ModuleCode and ModuleName are required.");
+                throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
             }
 
             if (!IsSupportedModuleScope(dto.ModuleScope))
             {
-                return ApiResponse<GetParentModuleResponseDTO>.Fail("ModuleScope must be Tenant or Host scope.");
+                throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
             }
 
             try
@@ -131,7 +132,7 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
 
                 if (duplicateExists)
                 {
-                    return ApiResponse<GetParentModuleResponseDTO>.Fail("A Parent Module with this ModuleCode already exists.");
+                    throw new ConflictException(AppConstants.ErrorMessages.ResourceConflict);
                 }
 
                 if (entity.IsActive && !dto.IsActive && await _unitOfWork.ModuleRepository.HasChildrenAsync(
@@ -139,8 +140,7 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
                     entity.ModuleScope,
                     cancellationToken))
                 {
-                    return ApiResponse<GetParentModuleResponseDTO>.Fail(
-                        "Deactivate active child modules before deactivating this Parent Module.");
+                    throw new ConflictException(AppConstants.ErrorMessages.ResourceConflict);
                 }
 
                 entity.ModuleCode = moduleCode;

@@ -1,4 +1,11 @@
-﻿using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Retrieves dependent information and delegates failures to middleware.
+// ================================================================
+
+using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.Interfaces;
@@ -64,8 +71,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                     await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
-                    return ApiResponse<List<GetDependentResponseDTO>>
-                        .Fail(validation.ErrorMessage);
+                throw new UnauthorizedAccessException(validation.ErrorMessage);
 
                 // 🔓 STEP 2: Assign decoded props
                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
@@ -143,9 +149,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                     "Error occurred while fetching Dependent info for EmployeeId: {EmployeeId}",
                     request.DTO?.EmployeeId);
 
-                return ApiResponse<List<GetDependentResponseDTO>>
-                    .Fail("Failed to fetch dependent info.",
-                          new List<string> { ex.Message });
+                throw;
             }
         }
     }

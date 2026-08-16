@@ -1,22 +1,46 @@
-﻿using FluentValidation.Results;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines validation failures for centralized error responses.
+// ================================================================
+
+using axionpro.application.Constants;
 
 namespace axionpro.application.Exceptions
 {
+    /// <summary>
+    /// Represents an expected validation failure and its structured error details.
+    /// </summary>
     public class ValidationErrorException : Exception
     {
+        /// <summary>
+        /// Gets the stable error code for a validation failure.
+        /// </summary>
+        public string ErrorCode => AppConstants.ErrorCodes.Validation;
+
+        /// <summary>
+        /// Gets the validation details to serialize in the standard error response.
+        /// </summary>
         public List<string> Errors { get; }
 
-        public ValidationErrorException(string message) : base(message)
+        /// <summary>
+        /// Initializes a validation error containing one validation message.
+        /// </summary>
+        /// <param name="message">The validation message.</param>
+        public ValidationErrorException(string message)
+            : base(message)
         {
             Errors = new List<string> { message };
         }
 
-        public ValidationErrorException(string message, List<string> errors) : base(message)
+        /// <summary>
+        /// Initializes a validation error containing structured validation details.
+        /// </summary>
+        /// <param name="message">The summary validation message.</param>
+        /// <param name="errors">The individual validation errors.</param>
+        public ValidationErrorException(string message, List<string> errors)
+            : base(message)
         {
             Errors = errors;
         }

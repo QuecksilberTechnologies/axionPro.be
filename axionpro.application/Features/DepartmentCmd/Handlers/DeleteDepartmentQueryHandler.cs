@@ -81,10 +81,11 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
         {
             var validation = await _commonRequestService.ValidateRequestAsync();
             if (!validation.Success)
-                return ApiResponse<bool>.Fail(validation.ErrorMessage);
+                throw new UnauthorizedAccessException(validation.ErrorMessage);
 
             if (request.DTO.Id <= 0)
-                return ApiResponse<bool>.Fail("Invalid department identifier.");
+                throw new axionpro.application.Exceptions.ValidationErrorException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.InvalidIdentifier);
 
             // Retain the existing permission lookup without changing authorization behavior.
             var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
@@ -100,7 +101,8 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
             if (!isDeleted)
             {
                 _logger.LogWarning("Department deletion failed. DepartmentId: {DepartmentId}", request.DTO.Id);
-                return ApiResponse<bool>.Fail("Department not found or could not be deleted.");
+                throw new axionpro.application.Exceptions.NotFoundException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.ResourceNotFound);
             }
 
             return ApiResponse<bool>.Success(true, "Department deleted successfully.");
