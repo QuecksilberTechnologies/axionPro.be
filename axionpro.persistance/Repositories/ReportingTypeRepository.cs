@@ -20,6 +20,9 @@ using System.Linq;
 
 namespace axionpro.persistance.Repositories
 {
+    /// <summary>
+    /// Provides persistence operations for ReportingType records.
+    /// </summary>
     public class ReportingTypeRepository : IReportingTypeRepository
     {
         #region Fields

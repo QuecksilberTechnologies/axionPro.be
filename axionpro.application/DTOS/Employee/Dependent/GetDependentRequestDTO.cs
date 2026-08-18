@@ -15,6 +15,9 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOS.Employee.Dependent
 {
+    /// <summary>
+    /// Represents the GetDependentRequestDTO data transfer model.
+    /// </summary>
     public class GetDependentRequestDTO : BaseRequest
     {
 

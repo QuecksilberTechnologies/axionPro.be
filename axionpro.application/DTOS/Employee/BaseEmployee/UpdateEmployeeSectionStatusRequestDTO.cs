@@ -16,6 +16,9 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
 {
 
     
+    /// <summary>
+    /// Represents the UpdateEmployeeSectionStatusRequestDTO data transfer model.
+    /// </summary>
     public class UpdateEmployeeSectionStatusRequestDTO
     {
        
@@ -26,6 +29,9 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         public List<SectionStatusDTO>? Sections { get; set; }
     }
 
+    /// <summary>
+    /// Represents the SectionStatusDTO data transfer model.
+    /// </summary>
     public class SectionStatusDTO
     {
         public required int TabInfoType { get; set; } // "education", "bank", "experience"

@@ -15,6 +15,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.TickeAllCmd.TicketHeader.Handlers
 {
+    /// <summary>
+    /// Represents the GetHeaderByClassifyIdQuery application component.
+    /// </summary>
     public class GetHeaderByClassifyIdQuery : IRequest<ApiResponse<List<GetHeaderResponseDTO>>>
     {
         public GetTicketHeaderByClassifyIdRequestDTO Request { get; set; }
@@ -25,6 +28,9 @@ namespace axionpro.application.Features.TickeAllCmd.TicketHeader.Handlers
         }
     }
 
+    /// <summary>
+    /// Handles GetHeaderByClassifyIdQuery requests.
+    /// </summary>
     public class GetHeaderByClassifyIdQueryHandler
         : IRequestHandler<GetHeaderByClassifyIdQuery, ApiResponse<List<GetHeaderResponseDTO>>>
     {

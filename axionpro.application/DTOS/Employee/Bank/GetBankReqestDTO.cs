@@ -16,6 +16,9 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOS.Employee.Bank
 {
+    /// <summary>
+    /// Represents the GetBankReqestDTO data transfer model.
+    /// </summary>
     public class GetBankReqestDTO: BaseRequest
     {
 

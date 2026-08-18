@@ -19,6 +19,9 @@ using System.Linq;
 
 namespace axionpro.persistance.Repositories
 {
+    /// <summary>
+    /// Provides persistence operations for TicketHeader records.
+    /// </summary>
     public class TicketHeaderRepository : ITicketHeaderRepository
     {
         private readonly WorkforceDbContext _context;

@@ -16,6 +16,9 @@ using MediatR;
 
 namespace axionpro.application.DTOS.TicketDTO.Creation
 {
+    /// <summary>
+    /// Represents the CreateTicketRequestDTO data transfer model.
+    /// </summary>
     public class CreateTicketRequestDTO
     {
         public int TicketClassificationId { get; set; }

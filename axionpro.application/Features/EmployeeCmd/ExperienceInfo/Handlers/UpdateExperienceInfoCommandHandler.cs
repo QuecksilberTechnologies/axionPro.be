@@ -24,6 +24,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
 {
+    /// <summary>
+    /// Represents the UpdateExperienceInfoCommand application component.
+    /// </summary>
     public class UpdateExperienceInfoCommand : IRequest<ApiResponse<bool>>
     {
         public UpdateExperienceRequestDTO DTO { get; set; }
@@ -34,6 +37,9 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
         }
 
     }
+    /// <summary>
+    /// Handles UpdateExperienceInfoCommand requests.
+    /// </summary>
     public class UpdateExperienceInfoCommandHandler
        : IRequestHandler<UpdateExperienceInfoCommand, ApiResponse<bool>>
     {

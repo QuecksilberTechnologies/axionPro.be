@@ -15,6 +15,9 @@ using System.Text;
 using System.Threading.Tasks; 
 namespace axionpro.application.DTOs.UserLogin
 {
+    /// <summary>
+    /// Represents the SetNewPasswordLinkRequestDTO data transfer model.
+    /// </summary>
     public class SetNewPasswordLinkRequestDTO 
     {
          

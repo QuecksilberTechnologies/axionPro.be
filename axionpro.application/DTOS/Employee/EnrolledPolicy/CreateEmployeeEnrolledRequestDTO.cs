@@ -13,6 +13,9 @@ using System.Text;
 
 namespace axionpro.application.DTOS.Employee.EnrolledPolicy
 {
+    /// <summary>
+    /// Represents the CreateEmployeeEnrolledRequestDTO data transfer model.
+    /// </summary>
     public  class CreateEmployeeEnrolledRequestDTO
     {
 
@@ -34,6 +37,9 @@ namespace axionpro.application.DTOS.Employee.EnrolledPolicy
 
             // 🔹 COMMON PROPS (CLEAN ARCHITECTURE)
         }
+    /// <summary>
+    /// Represents the CreateEmployeeDependentRequestPolicyDTO data transfer model.
+    /// </summary>
     public class CreateEmployeeDependentRequestPolicyDTO
     {
         public   long DependentId { get; set; }  

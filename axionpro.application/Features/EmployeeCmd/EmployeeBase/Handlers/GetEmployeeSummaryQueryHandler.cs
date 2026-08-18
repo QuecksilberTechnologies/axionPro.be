@@ -21,6 +21,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
+    /// <summary>
+    /// Represents the GetEmployeeSummaryQuery application component.
+    /// </summary>
     public class GetEmployeeSummaryQuery : IRequest<ApiResponse<SummaryEmployeeInfo>>
     {
         public GetEmployeeSummaryRequestDTO DTO { get; }
@@ -31,6 +34,9 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         }
         
     }
+    /// <summary>
+    /// Handles GetEmployeeSummaryQuery requests.
+    /// </summary>
     public class GetEmployeeSummaryQueryHandler
        : IRequestHandler<GetEmployeeSummaryQuery, ApiResponse<SummaryEmployeeInfo>>
     {

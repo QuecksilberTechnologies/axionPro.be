@@ -25,6 +25,9 @@ using System.Security.Principal;
 
 namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 {
+    /// <summary>
+    /// Represents the UpdateEducationInfoCommand application component.
+    /// </summary>
     public class UpdateEducationInfoCommand : IRequest<ApiResponse<bool>>
     {
         public UpdateEducationRequestDTO DTO { get; set; }
@@ -32,6 +35,9 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
     }
 
 
+    /// <summary>
+    /// Handles UpdateEducationInfoCommand requests.
+    /// </summary>
     public class UpdateEducationInfoCommandHandler : IRequestHandler<UpdateEducationInfoCommand, ApiResponse<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;

@@ -16,6 +16,9 @@ using MediatR;
 
 namespace axionpro.application.DTOS.TicketDTO.Classification
 {
+    /// <summary>
+    /// Represents the UpdateClassificationRequestDTO data transfer model.
+    /// </summary>
     public class UpdateClassificationRequestDTO
     {
   

@@ -15,6 +15,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.InsuranceInfo.Handlers
 {
+    /// <summary>
+    /// Represents the GetPolicyInsuranceRequestCommand application component.
+    /// </summary>
     public class GetPolicyInsuranceRequestCommand : IRequest<ApiResponse<List<GetPolicyTypeInsuranceMappingResponseDTO>>>
     {
         public GetPolicyTypeInsuranceMappingRequestDTO DTO { get; }    
@@ -25,6 +28,9 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
            
         }
     }
+    /// <summary>
+    /// Handles GetPolicyTypeInsuranceMappingQuery requests.
+    /// </summary>
     public class GetPolicyTypeInsuranceMappingQueryHandler  : IRequestHandler<GetPolicyInsuranceRequestCommand, ApiResponse<List<GetPolicyTypeInsuranceMappingResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;

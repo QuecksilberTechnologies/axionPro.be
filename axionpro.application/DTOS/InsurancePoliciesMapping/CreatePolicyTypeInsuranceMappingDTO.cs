@@ -14,6 +14,9 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOS.InsurancePoliciesMapping
 {
+    /// <summary>
+    /// Represents the CreatePolicyTypeInsuranceMappingRequetDTO data transfer model.
+    /// </summary>
     public class CreatePolicyTypeInsuranceMappingRequetDTO
     {       
         public int InsurancePolicyId { get; set; }

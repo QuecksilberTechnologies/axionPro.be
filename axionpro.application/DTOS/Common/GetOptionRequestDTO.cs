@@ -13,6 +13,9 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOS.Common
 {
+   /// <summary>
+   /// Represents the GetOptionRequestDTO data transfer model.
+   /// </summary>
    public class GetOptionRequestDTO
     {
         public string? UserEmployeeId { get; set; }  

@@ -62,6 +62,9 @@ namespace axionpro.application.DTOS.StoreProcedures.DashboardSummeries
         public int OnLeaveCount { get; set; }
     }
 
+    /// <summary>
+    /// Represents the EmployeeCountRequestStatsSp application component.
+    /// </summary>
     public class EmployeeCountRequestStatsSp
     {
 

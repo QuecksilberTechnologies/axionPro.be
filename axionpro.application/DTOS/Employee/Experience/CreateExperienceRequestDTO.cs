@@ -17,6 +17,9 @@ namespace axionpro.application.DTOS.Employee.Experience
     //  CREATE EXPERIENCE REQUEST DTO
     // =====================================================================
     
+    /// <summary>
+    /// Represents the CreateExperienceRequestDTO data transfer model.
+    /// </summary>
     public class CreateExperienceRequestDTO
     {
         public required string EmployeeId { get; set; }
@@ -67,6 +70,9 @@ namespace axionpro.application.DTOS.Employee.Experience
     // =====================================================================
     //  PAYSLIP UPLOAD DTO
     // =====================================================================
+    /// <summary>
+    /// Represents the CreateExperienceDocumentDTO data transfer model.
+    /// </summary>
     public class CreateExperienceDocumentDTO
     {
         public int DocumentType { get; set; }   // ENUM use hoga

@@ -20,12 +20,18 @@ namespace axionpro.application.DTOS.Employee.Sensitive
 {
 
 
+    /// <summary>
+    /// Represents the CreateEmployeeIdentityRequestDTO data transfer model.
+    /// </summary>
     public class CreateEmployeeIdentityRequestDTO
     {
         public List<CreateIdentityRequest> Identities { get; set; }
             = new List<CreateIdentityRequest>();
     }
 
+    /// <summary>
+    /// Represents the CreateIdentityRequest application component.
+    /// </summary>
     public class CreateIdentityRequest
     {
 

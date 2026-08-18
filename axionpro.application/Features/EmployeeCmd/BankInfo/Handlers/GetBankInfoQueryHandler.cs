@@ -24,6 +24,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 {
+    /// <summary>
+    /// Represents the GetBankInfoQuery application component.
+    /// </summary>
     public class GetBankInfoQuery : IRequest<ApiResponse<List<GetBankResponseDTO>>>
     {
         public GetBankReqestDTO DTO { get; set; }

@@ -17,6 +17,9 @@ using Microsoft.Extensions.Logging;
 namespace axionpro.application.Features.ReportTypeCmd.Handlers
 {
     // ✅ Command
+    /// <summary>
+    /// Represents the CreateReportingTypeCommand application component.
+    /// </summary>
     public class CreateReportingTypeCommand : IRequest<ApiResponse<GetReportingTypeResponseDTO>>
     {
         public CreateReportingTypeRequestDTO DTO { get; set; }
@@ -28,6 +31,9 @@ namespace axionpro.application.Features.ReportTypeCmd.Handlers
     }
 
     // ✅ Handler
+    /// <summary>
+    /// Handles CreateReportingTypeCommand requests.
+    /// </summary>
     public class CreateReportingTypeCommandHandler
         : IRequestHandler<CreateReportingTypeCommand, ApiResponse<GetReportingTypeResponseDTO>>
     {

@@ -15,6 +15,9 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOS.InsurancePolicy
 {
+    /// <summary>
+    /// Represents the GetInsurancePolicyRequestDTO data transfer model.
+    /// </summary>
     public class GetInsurancePolicyRequestDTO : BaseRequest
     {
         public int? InsurancePolicyId { get; set; }

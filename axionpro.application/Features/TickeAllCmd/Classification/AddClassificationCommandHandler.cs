@@ -16,6 +16,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.TickeAllCmd.Classification; 
 
+/// <summary>
+/// Represents the AddClassificationCommand application component.
+/// </summary>
 public class AddClassificationCommand : IRequest<ApiResponse<GetClassificationResponseDTO>>
 {
     public AddClassificationRequestDTO DTO { get; set; }
@@ -26,6 +29,9 @@ public class AddClassificationCommand : IRequest<ApiResponse<GetClassificationRe
     }
 
 }
+/// <summary>
+/// Handles AddClassificationCommand requests.
+/// </summary>
 public class AddClassificationCommandHandler : IRequestHandler<AddClassificationCommand, ApiResponse<GetClassificationResponseDTO>>
 {
     private readonly IMapper _mapper;

@@ -13,6 +13,9 @@ using System.Text;
 
 namespace axionpro.application.DTOS.TicketDTO.Ticket
 {
+    /// <summary>
+    /// Represents the CreateTicketRequestDTO data transfer model.
+    /// </summary>
     public class CreateTicketRequestDTO
     {
         // 🔹 Classification (UI se)

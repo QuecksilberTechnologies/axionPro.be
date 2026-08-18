@@ -14,6 +14,9 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOS.UserLogin
 {
+    /// <summary>
+    /// Represents the UpdatePasswordRequestDTO data transfer model.
+    /// </summary>
     public class UpdatePasswordRequestDTO
     {      
         public required string LoginId { get; set; }          // User's login ID

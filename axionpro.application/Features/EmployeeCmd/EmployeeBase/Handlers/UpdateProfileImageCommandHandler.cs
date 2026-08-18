@@ -23,12 +23,18 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
+    /// <summary>
+    /// Represents the UpdateProfileImageCommand application component.
+    /// </summary>
     public class UpdateProfileImageCommand : IRequest<ApiResponse<bool>>
     {
         public UpdateEmployeeImageRequestDTO DTO { get; set; }
         public UpdateProfileImageCommand(UpdateEmployeeImageRequestDTO dto) => DTO = dto;
     }
 
+    /// <summary>
+    /// Handles UpdateIdentityInfoCommand requests.
+    /// </summary>
     public class UpdateIdentityInfoCommandHandler
         : IRequestHandler<UpdateProfileImageCommand, ApiResponse<bool>>
     {

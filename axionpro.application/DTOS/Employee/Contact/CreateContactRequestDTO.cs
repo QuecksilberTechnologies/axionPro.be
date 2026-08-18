@@ -16,6 +16,9 @@ using static axionpro.application.Constants.ConstantValues;
 
 namespace axionpro.application.DTOS.Employee.Contact
 {
+    /// <summary>
+    /// Represents the CreateContactRequestDTO data transfer model.
+    /// </summary>
     public class CreateContactRequestDTO
     {
               

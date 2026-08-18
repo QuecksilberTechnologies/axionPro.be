@@ -17,6 +17,9 @@ using System.Text;
 using System.Threading.Tasks; 
 namespace axionpro.application.DTOS.Employee.Experience
 {
+    /// <summary>
+    /// Represents the GetExperienceRequestDTO data transfer model.
+    /// </summary>
     public class GetExperienceRequestDTO : BaseRequest
     {
         // 🔹 Required (encoded)

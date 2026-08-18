@@ -19,6 +19,9 @@ using Microsoft.Extensions.Logging;
 namespace axionpro.persistance.Repositories
 {
 
+    /// <summary>
+    /// Provides persistence operations for TicketType records.
+    /// </summary>
     public class TicketTypeRepository : ITicketTypeRepository
     {
         #region Fields

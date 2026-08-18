@@ -17,6 +17,9 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 namespace axionpro.application.DTOS.Employee.BaseEmployee
 {
  
+    /// <summary>
+    /// Represents the GetEmployeeImageRequestDTO data transfer model.
+    /// </summary>
     public class GetEmployeeImageRequestDTO 
     {
 

@@ -14,6 +14,9 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOS.Common
 {
+    /// <summary>
+    /// Represents the UpdateVerificationStatusRequestDTO data transfer model.
+    /// </summary>
     public class UpdateVerificationStatusRequestDTO
     {
         [Required]
@@ -26,6 +29,9 @@ namespace axionpro.application.DTOS.Common
         public bool IsVerified { get; set; }
 
     }
+    /// <summary>
+    /// Represents the UpdateVerificationStatusRequestDTO_ application component.
+    /// </summary>
     public class UpdateVerificationStatusRequestDTO_
     {
         [Required]

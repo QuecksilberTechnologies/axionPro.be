@@ -13,6 +13,9 @@ using System.Text;
 namespace axionpro.application.DTOS.Compliances.ComplianceRule
 {
 
+    /// <summary>
+    /// Represents the CreateComplianceRuleRequestDTO data transfer model.
+    /// </summary>
     public class CreateComplianceRuleRequestDTO
     {
          

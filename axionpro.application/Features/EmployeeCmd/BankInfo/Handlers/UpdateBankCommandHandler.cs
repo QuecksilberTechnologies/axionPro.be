@@ -25,6 +25,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 {
+    /// <summary>
+    /// Represents the UpdateBankCommand application component.
+    /// </summary>
     public class UpdateBankCommand : IRequest<ApiResponse<bool>>
     {
         public UpdateBankReqestDTO DTO { get; set; }

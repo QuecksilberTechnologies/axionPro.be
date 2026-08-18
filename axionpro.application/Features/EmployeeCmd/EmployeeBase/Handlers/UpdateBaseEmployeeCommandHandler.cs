@@ -24,6 +24,9 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
 
 
+    /// <summary>
+    /// Represents the UpdateEmployeeCommand application component.
+    /// </summary>
     public class UpdateEmployeeCommand : IRequest<ApiResponse<bool>>
     {
         public UpdateEmployeeRequestDTO DTO { get; set; }
@@ -34,6 +37,9 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         }
 
     }
+    /// <summary>
+    /// Handles UpdateBaseEmployeeCommand requests.
+    /// </summary>
     public class UpdateBaseEmployeeCommandHandler : IRequestHandler<UpdateEmployeeCommand, ApiResponse<bool>>
     {
         private readonly IBaseEmployeeRepository _employeeRepository;

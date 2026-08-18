@@ -16,6 +16,9 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Interfaces.IRepositories
 {
+    /// <summary>
+    /// Defines the contract for PolicyTypeInsuranceMappingRepository.
+    /// </summary>
     public interface IPolicyTypeInsuranceMappingRepository
     {
 

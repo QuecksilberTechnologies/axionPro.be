@@ -22,6 +22,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
+    /// <summary>
+    /// Represents the DeleteEmployeeQuery application component.
+    /// </summary>
     public class DeleteEmployeeQuery : IRequest<ApiResponse<bool>>
     {
       public DeleteBaseEmployeeRequestDTO DTO;
@@ -31,6 +34,9 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             DTO = dto;
         }
     }
+    /// <summary>
+    /// Handles DeleteBaseEmployeeInfoQuery requests.
+    /// </summary>
     public class DeleteBaseEmployeeInfoQueryHandler : IRequestHandler<DeleteEmployeeQuery, ApiResponse<bool>>
     {
         private readonly IBaseEmployeeRepository _employeeRepository;

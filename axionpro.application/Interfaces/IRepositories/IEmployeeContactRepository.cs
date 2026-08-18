@@ -26,6 +26,9 @@ using System.Collections.Generic;
 
 namespace axionpro.application.Interfaces.IRepositories;
 
+/// <summary>
+/// Defines the contract for EmployeeContactRepository.
+/// </summary>
 public interface IEmployeeContactRepository
 {
 

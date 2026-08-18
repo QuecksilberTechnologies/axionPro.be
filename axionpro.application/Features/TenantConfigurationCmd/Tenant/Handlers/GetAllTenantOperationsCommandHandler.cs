@@ -19,6 +19,9 @@ using Microsoft.Extensions.Logging;
 namespace axionpro.application.Features.TenantConfigurationCmd.Tenant.Handlers
 {
     // ✅ FIXED COMMAND
+    /// <summary>
+    /// Represents the GetAllTenantOperationsCommand application component.
+    /// </summary>
     public class GetAllTenantOperationsCommand : IRequest<ApiResponse<TenantEnabledOperationsResponseDTO>>
     {
         public TenantEnabledOperationsRequestDTO Request { get; set; }
@@ -30,6 +33,9 @@ namespace axionpro.application.Features.TenantConfigurationCmd.Tenant.Handlers
     }
 
     // ✅ FIXED HANDLER
+    /// <summary>
+    /// Handles GetAllTenantOperationsCommand requests.
+    /// </summary>
     public class GetAllTenantOperationsCommandHandler
         : IRequestHandler<GetAllTenantOperationsCommand, ApiResponse<TenantEnabledOperationsResponseDTO>>
     {

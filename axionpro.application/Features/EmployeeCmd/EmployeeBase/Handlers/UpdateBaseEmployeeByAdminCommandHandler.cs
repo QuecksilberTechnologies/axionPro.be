@@ -20,6 +20,9 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
 
 
+    /// <summary>
+    /// Represents the UpdateBaseEmployeeByAdminCommand application component.
+    /// </summary>
     public class UpdateBaseEmployeeByAdminCommand
        : IRequest<ApiResponse<bool>>
     {
@@ -31,6 +34,9 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         }
     }
 
+    /// <summary>
+    /// Handles UpdateBaseEmployeeByAdminCommand requests.
+    /// </summary>
     public class UpdateBaseEmployeeByAdminCommandHandler
         : IRequestHandler<UpdateBaseEmployeeByAdminCommand, ApiResponse<bool>>
     {

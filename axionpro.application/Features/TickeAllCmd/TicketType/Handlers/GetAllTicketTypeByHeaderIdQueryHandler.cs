@@ -17,6 +17,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
 {
+    /// <summary>
+    /// Represents the GetAllTicketTypeByHeaderIdQuery application component.
+    /// </summary>
     public class GetAllTicketTypeByHeaderIdQuery : IRequest<ApiResponse<List<GetTicketTypeResponseDTO>>>
     {
         public GetTicketTypeByHeaderIdRequestDTO Request { get; set; }
@@ -26,6 +29,9 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
             Request = request;
         }
     }
+    /// <summary>
+    /// Handles GetAllTicketTypeByHeaderIdQuery requests.
+    /// </summary>
     public class GetAllTicketTypeByHeaderIdQueryHandler
      : IRequestHandler<GetAllTicketTypeByHeaderIdQuery, ApiResponse<List<GetTicketTypeResponseDTO>>>
     {

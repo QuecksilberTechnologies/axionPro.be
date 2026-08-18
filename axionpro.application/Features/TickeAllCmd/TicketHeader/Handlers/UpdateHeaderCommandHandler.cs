@@ -16,6 +16,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.TickeAllCmd.TicketHeader.Handlers
 {
+    /// <summary>
+    /// Represents the UpdateHeaderCommand application component.
+    /// </summary>
     public class UpdateHeaderCommand : IRequest<ApiResponse<GetHeaderResponseDTO>>
     {
         public UpdateHeaderRequestDTO DTO { get; set; }
@@ -26,6 +29,9 @@ namespace axionpro.application.Features.TickeAllCmd.TicketHeader.Handlers
         }
     }
 
+    /// <summary>
+    /// Handles UpdateHeaderCommand requests.
+    /// </summary>
     public class UpdateHeaderCommandHandler
         : IRequestHandler<UpdateHeaderCommand, ApiResponse<GetHeaderResponseDTO>>
     {

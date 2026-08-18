@@ -17,6 +17,9 @@ using axionpro.application.DTOS.Common;
 
 namespace axionpro.application.DTOs.Manager.ReportingType
 {
+    /// <summary>
+    /// Represents the GetReportingTypeRequestDTO data transfer model.
+    /// </summary>
     public class GetReportingTypeRequestDTO: BaseRequest
     {
         

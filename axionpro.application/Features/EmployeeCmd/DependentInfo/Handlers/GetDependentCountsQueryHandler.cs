@@ -20,6 +20,9 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
     // ======================================================
     // 🔹 COMMAND
     // ======================================================
+    /// <summary>
+    /// Represents the GetDependentCountsQuery application component.
+    /// </summary>
     public class GetDependentCountsQuery
         : IRequest<ApiResponse<GetDependentsDetailResponseDTO>>
     {
@@ -34,6 +37,9 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
     // ======================================================
     // 🔹 HANDLER
     // ======================================================
+    /// <summary>
+    /// Handles GetDependentCountsQuery requests.
+    /// </summary>
     public class GetDependentCountsQueryHandler
         : IRequestHandler<GetDependentCountsQuery, ApiResponse<GetDependentsDetailResponseDTO>>
     {

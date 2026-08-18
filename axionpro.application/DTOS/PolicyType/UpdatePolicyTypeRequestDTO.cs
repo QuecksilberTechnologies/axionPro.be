@@ -15,6 +15,9 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOs.PolicyType
 {
+    /// <summary>
+    /// Represents the UpdatePolicyTypeRequestDTO data transfer model.
+    /// </summary>
     public class UpdatePolicyTypeRequestDTO
     {
         public int Id { get; set; }

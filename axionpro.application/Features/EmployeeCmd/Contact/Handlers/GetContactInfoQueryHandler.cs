@@ -1,4 +1,4 @@
-﻿// ================================================================
+// ================================================================
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
@@ -21,6 +21,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
 {
+    /// <summary>
+    /// Represents the GetContactInfoQuery application component.
+    /// </summary>
     public class GetContactInfoQuery : IRequest<ApiResponse<List<GetContactResponseDTO>>>
     {
         public GetContactRequestDTO DTO { get; set; }

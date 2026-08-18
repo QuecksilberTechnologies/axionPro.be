@@ -19,6 +19,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
+    /// <summary>
+    /// Represents the ActivateAllEmployeeQuery application component.
+    /// </summary>
     public class ActivateAllEmployeeQuery : IRequest<ApiResponse<bool>>
     {
       public ActivateAllEmployeeRequestDTO DTO;

@@ -12,6 +12,9 @@ using System.Text;
 
 namespace axionpro.application.DTOS.InsurancePoliciesMapping
 {
+    /// <summary>
+    /// Represents the GetInsuranceForEmployeeDDLRequestDTO data transfer model.
+    /// </summary>
     public class GetInsuranceForEmployeeDDLRequestDTO
     {
 

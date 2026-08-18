@@ -15,6 +15,9 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOS.Common
 {
+    /// <summary>
+    /// Represents the UpdateEditStatusRequestDTO data transfer model.
+    /// </summary>
     public class UpdateEditStatusRequestDTO
     {
         [Required]
@@ -27,6 +30,9 @@ namespace axionpro.application.DTOS.Common
         public bool IsEditable { get; set; }
     }
 
+    /// <summary>
+    /// Represents the UpdateEditStatusRequestDTO_ application component.
+    /// </summary>
     public class UpdateEditStatusRequestDTO_
     {
         [Required]

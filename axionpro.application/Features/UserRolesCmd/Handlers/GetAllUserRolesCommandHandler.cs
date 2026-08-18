@@ -21,6 +21,9 @@ namespace axionpro.application.Features.UserRolesCmd.Handlers
     // ===============================
     // COMMAND
     // ===============================
+    /// <summary>
+    /// Represents the GetAllUserRolesCommand application component.
+    /// </summary>
     public class GetAllUserRolesCommand : IRequest<ApiResponse<List<UserRoleDTO>>>
     {
         public GetUserRoleRequestDTO DTO { get; set; }
@@ -34,6 +37,9 @@ namespace axionpro.application.Features.UserRolesCmd.Handlers
     // ===============================
     // HANDLER
     // ===============================
+    /// <summary>
+    /// Handles GetAllUserRolesCommand requests.
+    /// </summary>
     public class GetAllUserRolesCommandHandler
     : IRequestHandler<GetAllUserRolesCommand, ApiResponse<List<UserRoleDTO>>>
     {

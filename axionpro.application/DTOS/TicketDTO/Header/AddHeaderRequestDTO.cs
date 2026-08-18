@@ -16,6 +16,9 @@ using MediatR;
 
 namespace axionpro.application.DTOS.TicketDTO.Header
 {
+    /// <summary>
+    /// Represents the AddHeaderRequestDTO data transfer model.
+    /// </summary>
     public class AddHeaderRequestDTO
     {
 

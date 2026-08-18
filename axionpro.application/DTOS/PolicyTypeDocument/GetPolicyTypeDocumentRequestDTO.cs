@@ -17,6 +17,9 @@ using MediatR;
 
 namespace axionpro.application.DTOS.PolicyTypeDocument
 {
+    /// <summary>
+    /// Represents the GetPolicyTypeDocumentRequestDTO data transfer model.
+    /// </summary>
     public class GetPolicyTypeDocumentRequestDTO : BaseRequest
     {
         // 🔐 Common decoded props (TenantId, UserEmployeeId etc.)

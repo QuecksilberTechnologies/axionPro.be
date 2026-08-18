@@ -24,6 +24,9 @@ using System.Reflection;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
+    /// <summary>
+    /// Represents the CreateEmployeeImageCommand application component.
+    /// </summary>
     public class CreateEmployeeImageCommand : IRequest<ApiResponse<GetEmployeeImageReponseDTO>>
     {
         public CreateEmployeeImageRequestDTO DTO { get; set; }
@@ -34,6 +37,9 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         }
     }
 
+    /// <summary>
+    /// Handles CreateEmployeeImageCommand requests.
+    /// </summary>
     public class CreateEmployeeImageCommandHandler
       : IRequestHandler<CreateEmployeeImageCommand, ApiResponse<GetEmployeeImageReponseDTO>>
     {

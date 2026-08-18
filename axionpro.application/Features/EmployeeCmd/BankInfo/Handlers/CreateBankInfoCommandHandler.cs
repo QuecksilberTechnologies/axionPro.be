@@ -33,6 +33,9 @@ using System.Text.RegularExpressions;
 
 namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 {
+    /// <summary>
+    /// Represents the CreateBankInfoCommand application component.
+    /// </summary>
     public class CreateBankInfoCommand : IRequest<ApiResponse<List<GetBankResponseDTO>>>
     {
         public CreateBankRequestDTO DTO { get; set; }
@@ -42,6 +45,9 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
             DTO = dTO;
         }
     }
+    /// <summary>
+    /// Handles CreateBankInfoCommand requests.
+    /// </summary>
     public class CreateBankInfoCommandHandler: IRequestHandler<CreateBankInfoCommand, ApiResponse<List<GetBankResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;

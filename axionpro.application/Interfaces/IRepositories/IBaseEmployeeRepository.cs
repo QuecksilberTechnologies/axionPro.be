@@ -23,6 +23,9 @@ using System.Collections.Generic;
 
 namespace axionpro.application.Interfaces.IRepositories;
 
+/// <summary>
+/// Defines the contract for BaseEmployeeRepository.
+/// </summary>
 public interface IBaseEmployeeRepository
 {
     #region Employee-Base-info

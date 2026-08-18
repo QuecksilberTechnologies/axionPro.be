@@ -25,6 +25,9 @@ namespace axionpro.application.Features.EmployeeCmd.UpdateStatus.Handler
 {
 
 
+    /// <summary>
+    /// Represents the UpdateEditableStatusCommand application component.
+    /// </summary>
     public class UpdateEditableStatusCommand
        : IRequest<ApiResponse<bool>>
     {
@@ -36,6 +39,9 @@ namespace axionpro.application.Features.EmployeeCmd.UpdateStatus.Handler
         }
     }
 
+    /// <summary>
+    /// Handles UpdateEditStatusCommand requests.
+    /// </summary>
     public class UpdateEditStatusCommandHandler
         : IRequestHandler<UpdateEditableStatusCommand, ApiResponse<bool>>
     {

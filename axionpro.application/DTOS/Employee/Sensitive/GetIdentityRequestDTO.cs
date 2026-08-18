@@ -16,6 +16,9 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOS.Employee.Sensitive
 {
+    /// <summary>
+    /// Represents the GetIdentityRequestDTO data transfer model.
+    /// </summary>
     public class GetIdentityRequestDTO 
     {
              

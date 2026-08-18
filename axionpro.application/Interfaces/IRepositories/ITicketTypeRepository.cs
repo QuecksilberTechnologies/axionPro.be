@@ -19,6 +19,9 @@ using System.Threading.Tasks;
 
 namespace axionpro.application.Interfaces.IRepositories
 {
+    /// <summary>
+    /// Defines the contract for TicketTypeRepository.
+    /// </summary>
     public interface ITicketTypeRepository
     {
 

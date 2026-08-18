@@ -17,6 +17,9 @@ using axionpro.application.DTOS.Pagination;
 
 namespace axionpro.application.Interfaces.IRepositories
 {
+    /// <summary>
+    /// Defines the contract for ReportingTypeRepository.
+    /// </summary>
     public interface IReportingTypeRepository
     {
         public Task<ReportingType?> AddAsync(ReportingType entity);

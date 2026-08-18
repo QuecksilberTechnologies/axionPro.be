@@ -21,6 +21,9 @@ namespace axionpro.application.Features.TickeAllCmd.Classification
     // ===============================
     // COMMAND
     // ===============================
+    /// <summary>
+    /// Represents the GetAllClassificationCommand application component.
+    /// </summary>
     public class GetAllClassificationCommand
       : IRequest<ApiResponse<List<GetClassificationResponseDTO>>>
     {
@@ -35,6 +38,9 @@ namespace axionpro.application.Features.TickeAllCmd.Classification
     // ===============================
     // HANDLER (MASTER PATTERN)
     // ===============================
+    /// <summary>
+    /// Handles GetAllClassificationCommand requests.
+    /// </summary>
     public class GetAllClassificationCommandHandler
      : IRequestHandler<GetAllClassificationCommand, ApiResponse<List<GetClassificationResponseDTO>>>
     {

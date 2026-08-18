@@ -20,6 +20,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
+    /// <summary>
+    /// Represents the GetEmployeeImageQuery application component.
+    /// </summary>
     public class GetEmployeeImageQuery : IRequest<ApiResponse<GetEmployeeImageReponseDTO>>
     {
         public GetEmployeeImageRequestDTO DTO { get; }
@@ -31,6 +34,9 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
     }
 
 
+    /// <summary>
+    /// Handles GetEmployeeImageQuery requests.
+    /// </summary>
     public class GetEmployeeImageQueryHandler
      : IRequestHandler<GetEmployeeImageQuery, ApiResponse<GetEmployeeImageReponseDTO>>
     {

@@ -16,6 +16,9 @@ using MediatR;
 
 namespace axionpro.application.DTOS.UserRoles 
 {
+    /// <summary>
+    /// Represents the UserRoleDTO data transfer model.
+    /// </summary>
     public class UserRoleDTO
     {  
        
@@ -29,6 +32,9 @@ namespace axionpro.application.DTOS.UserRoles
     
        
     } 
+   /// <summary>
+   /// Represents the UserRoleListDTO data transfer model.
+   /// </summary>
    public class UserRoleListDTO 
     {
         public required string EmployeeId { get; set; } 

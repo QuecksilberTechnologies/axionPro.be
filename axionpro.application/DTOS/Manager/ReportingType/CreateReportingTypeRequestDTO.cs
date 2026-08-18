@@ -16,6 +16,9 @@ using MediatR;
 
 namespace axionpro.application.DTOs.Manager.ReportingType
 {
+    /// <summary>
+    /// Represents the CreateReportingTypeRequestDTO data transfer model.
+    /// </summary>
     public class CreateReportingTypeRequestDTO
     {
         

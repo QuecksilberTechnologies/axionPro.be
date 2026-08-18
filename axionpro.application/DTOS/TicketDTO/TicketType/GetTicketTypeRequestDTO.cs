@@ -17,6 +17,9 @@ using MediatR;
 
 namespace axionpro.application.DTOS.TicketDTO.TicketType
 {
+    /// <summary>
+    /// Represents the GetTicketTypeRequestDTO data transfer model.
+    /// </summary>
     public class GetTicketTypeRequestDTO:BaseRequest
     {
 

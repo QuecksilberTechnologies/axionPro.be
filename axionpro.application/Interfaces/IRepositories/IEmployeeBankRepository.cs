@@ -24,6 +24,9 @@ using System.Collections.Generic;
 
 namespace axionpro.application.Interfaces.IRepositories;
 
+/// <summary>
+/// Defines the contract for EmployeeBankRepository.
+/// </summary>
 public interface IEmployeeBankRepository
 {
 

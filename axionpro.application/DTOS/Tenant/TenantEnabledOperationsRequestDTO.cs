@@ -16,6 +16,9 @@ using MediatR;
 
 namespace axionpro.application.DTOs.Tenant
 {
+    /// <summary>
+    /// Represents the TenantEnabledOperationsRequestDTO data transfer model.
+    /// </summary>
     public class TenantEnabledOperationsRequestDTO
     {
        public required bool IsActive { get; set; }

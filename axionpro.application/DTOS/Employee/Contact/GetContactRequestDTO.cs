@@ -10,6 +10,9 @@ using axionpro.application.DTOS.Pagination;
 
 namespace axionpro.application.DTOS.Employee.Contact
 {
+    /// <summary>
+    /// Represents the GetContactRequestDTO data transfer model.
+    /// </summary>
     public class GetContactRequestDTO : BaseRequest
     {
           

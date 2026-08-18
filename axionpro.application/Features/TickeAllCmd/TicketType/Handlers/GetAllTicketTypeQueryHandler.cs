@@ -20,6 +20,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
 {
+    /// <summary>
+    /// Represents the GetAllTicketTypeQuery application component.
+    /// </summary>
     public class GetAllTicketTypeQuery
         : IRequest<ApiResponse<List<GetTicketTypeResponseDTO>>>
     {
@@ -30,6 +33,9 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
             DTO = dto;
         }
     }
+    /// <summary>
+    /// Handles GetAllTicketTypeQuery requests.
+    /// </summary>
     public class GetAllTicketTypeQueryHandler: IRequestHandler<GetAllTicketTypeQuery, ApiResponse<List<GetTicketTypeResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;

@@ -11,6 +11,9 @@ using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 namespace axionpro.application.Interfaces.IRepositories;
 
+/// <summary>
+/// Defines the contract for EmployeeExperienceRepository.
+/// </summary>
 public interface IEmployeeExperienceRepository
 {
     // 🔹 CREATE

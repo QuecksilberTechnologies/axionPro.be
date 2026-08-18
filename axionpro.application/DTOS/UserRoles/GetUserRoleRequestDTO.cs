@@ -12,6 +12,9 @@ using System.Text;
 
 namespace axionpro.application.DTOS.UserRoles
 {
+    /// <summary>
+    /// Represents the GetUserRoleRequestDTO data transfer model.
+    /// </summary>
     public class GetUserRoleRequestDTO
     {
         public required string EmployeeId { get; set; }

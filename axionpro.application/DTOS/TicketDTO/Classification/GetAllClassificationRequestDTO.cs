@@ -17,6 +17,9 @@ using axionpro.application.DTOS.Common;
 
 namespace axionpro.application.DTOS.TicketDTO.Classification
 {
+    /// <summary>
+    /// Represents the GetAllClassificationRequestDTO data transfer model.
+    /// </summary>
     public class GetAllClassificationRequestDTO : BaseRequest
     {
 
@@ -25,6 +28,9 @@ namespace axionpro.application.DTOS.TicketDTO.Classification
 
 
     }
+    /// <summary>
+    /// Represents the DDLClassificationRequestDTO data transfer model.
+    /// </summary>
     public class DDLClassificationRequestDTO 
     {
     public required bool  IsActive { get; set; } = true;

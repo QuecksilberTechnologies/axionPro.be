@@ -21,6 +21,9 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Model;
 namespace axionpro.application.Interfaces.IRepositories
 {
 
+    /// <summary>
+    /// Defines the contract for TicketHeaderRepository.
+    /// </summary>
     public interface ITicketHeaderRepository
     {
         /// <summary>

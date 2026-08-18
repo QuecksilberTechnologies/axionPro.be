@@ -23,6 +23,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.PolicyTypeCmd.Handlers
 {
+    /// <summary>
+    /// Represents the CreatePolicyTypeCommand application component.
+    /// </summary>
     public class CreatePolicyTypeCommand : IRequest<ApiResponse<GetPolicyTypeResponseDTO>>
     {
         public CreatePolicyTypeRequestDTO DTO { get; set; }
@@ -33,6 +36,9 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
         }
 
     }
+    /// <summary>
+    /// Handles CreatePolicyTypeCommand requests.
+    /// </summary>
     public class CreatePolicyTypeCommandHandler
      : IRequestHandler<CreatePolicyTypeCommand, ApiResponse<GetPolicyTypeResponseDTO>>
     {

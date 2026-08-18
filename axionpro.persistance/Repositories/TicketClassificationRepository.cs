@@ -21,6 +21,9 @@ using axionpro.application.DTOS.Pagination;
 
 namespace axionpro.persistance.Repositories
 {
+    /// <summary>
+    /// Provides persistence operations for TicketClassification records.
+    /// </summary>
     public class TicketClassificationRepository : ITicketClassificationRepository
     {
         private readonly WorkforceDbContext _context;
@@ -121,6 +124,9 @@ namespace axionpro.persistance.Repositories
         }
 
         //  GET ALL
+        /// <summary>
+        /// Represents the BaseRequest application component.
+        /// </summary>
         public class BaseRequest
         {
             public int PageNumber { get; set; }

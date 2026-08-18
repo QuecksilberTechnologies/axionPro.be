@@ -25,6 +25,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 {
+    /// <summary>
+    /// Represents the GetEducationInfoQuery application component.
+    /// </summary>
     public class GetEducationInfoQuery : IRequest<ApiResponse<List<GetEducationResponseDTO>>>
     {
         public GetEducationRequestDTO DTO { get; set; }
@@ -34,6 +37,9 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
             DTO = dTO;
         }
     }
+    /// <summary>
+    /// Handles GetEducationInfoQuery requests.
+    /// </summary>
     public class GetEducationInfoQueryHandler : IRequestHandler<GetEducationInfoQuery, ApiResponse<List<GetEducationResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;

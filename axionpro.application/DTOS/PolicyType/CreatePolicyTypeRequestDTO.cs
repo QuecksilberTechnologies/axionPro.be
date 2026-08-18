@@ -11,6 +11,9 @@ using Microsoft.AspNetCore.Http;
 
 namespace axionpro.application.DTOs.PolicyType
 {
+    /// <summary>
+    /// Represents the CreatePolicyTypeRequestDTO data transfer model.
+    /// </summary>
     public class CreatePolicyTypeRequestDTO
     {
       

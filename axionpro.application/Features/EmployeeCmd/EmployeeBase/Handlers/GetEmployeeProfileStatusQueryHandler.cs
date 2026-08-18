@@ -19,6 +19,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
+/// <summary>
+/// Represents the GetEmployeeProfileStatusQuery application component.
+/// </summary>
 public class GetEmployeeProfileStatusQuery
     : IRequest<ApiResponse<List<CompletionSectionDTO>>>
 {
@@ -30,6 +33,9 @@ public class GetEmployeeProfileStatusQuery
     }
 }
 
+/// <summary>
+/// Handles GetEmployeeProfileStatusQuery requests.
+/// </summary>
 public class GetEmployeeProfileStatusQueryHandler
     : IRequestHandler<GetEmployeeProfileStatusQuery, ApiResponse<List<CompletionSectionDTO>>>
 {

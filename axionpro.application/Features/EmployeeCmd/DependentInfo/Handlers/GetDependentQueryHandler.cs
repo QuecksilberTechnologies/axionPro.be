@@ -20,6 +20,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
 {
+    /// <summary>
+    /// Represents the GetDependentInfoQuery application component.
+    /// </summary>
     public class GetDependentInfoQuery : IRequest<ApiResponse<List<GetDependentResponseDTO>>>
     {
         public GetDependentRequestDTO DTO { get; set; }
@@ -30,6 +33,9 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
         }
 
     }
+    /// <summary>
+    /// Handles GetDependentInfoQuery requests.
+    /// </summary>
     public class GetDependentInfoQueryHandler
    : IRequestHandler<GetDependentInfoQuery, ApiResponse<List<GetDependentResponseDTO>>>
     {

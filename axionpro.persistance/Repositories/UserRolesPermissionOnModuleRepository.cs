@@ -21,6 +21,9 @@ using Microsoft.Extensions.Logging;
 namespace axionpro.persistance.Repositories
 {
 
+    /// <summary>
+    /// Provides persistence operations for UserRolesPermissionOnModule records.
+    /// </summary>
     public class UserRolesPermissionOnModuleRepository : IUserRolesPermissionOnModuleRepository
     {
         private readonly WorkforceDbContext? _context;

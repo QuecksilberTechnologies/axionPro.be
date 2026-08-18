@@ -17,6 +17,9 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.Interfaces.IRepositories
 {
+   /// <summary>
+   /// Defines the contract for TenantModuleConfigurationRepository.
+   /// </summary>
    public interface  ITenantModuleConfigurationRepository
     {
         Task  CreateByDefaultEnabledModulesAsync(long TenantId, List<TenantEnabledModule> moduleEntities, List<TenantEnabledOperation> operationEntities);

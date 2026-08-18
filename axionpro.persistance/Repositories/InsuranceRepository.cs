@@ -16,6 +16,9 @@ using static axionpro.application.DTOS.InsurancePolicy.GetAlllnsurancePolicyResp
 
 namespace axionpro.persistance.Repositories
 {
+    /// <summary>
+    /// Provides persistence operations for Insurance records.
+    /// </summary>
     public class InsuranceRepository : IInsuranceRepository
     {
         private readonly WorkforceDbContext _context;

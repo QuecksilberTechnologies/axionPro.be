@@ -23,6 +23,9 @@ using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
+    /// <summary>
+    /// Provides persistence operations for PolicyTypeInsuranceMapping records.
+    /// </summary>
     public class PolicyTypeInsuranceMappingRepository : IPolicyTypeInsuranceMappingRepository
     {
         private readonly WorkforceDbContext _context;

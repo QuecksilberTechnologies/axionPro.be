@@ -24,6 +24,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
+    /// <summary>
+    /// Represents the GetBaseEmployeeInfoQuery application component.
+    /// </summary>
     public class GetBaseEmployeeInfoQuery : IRequest<ApiResponse<List<GetBaseEmployeeResponseDTO>>>
     {
         public GetBaseEmployeeRequestDTO DTO { get; }

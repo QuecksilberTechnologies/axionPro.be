@@ -1,4 +1,4 @@
-﻿// ================================================================
+// ================================================================
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
@@ -25,6 +25,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 {
+    /// <summary>
+    /// Represents the UpdateLoginPasswordCommand application component.
+    /// </summary>
     public class UpdateLoginPasswordCommand : IRequest<ApiResponse<UpdatePasswordResponseDTO>>
     {
         public UpdatePasswordRequestDTO? DTO { get; set; }

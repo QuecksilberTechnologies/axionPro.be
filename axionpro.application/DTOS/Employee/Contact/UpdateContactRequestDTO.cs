@@ -15,6 +15,9 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOS.Employee.Contact
 {
+    /// <summary>
+    /// Represents the UpdateContactRequestDTO data transfer model.
+    /// </summary>
     public class UpdateContactRequestDTO
     {
 

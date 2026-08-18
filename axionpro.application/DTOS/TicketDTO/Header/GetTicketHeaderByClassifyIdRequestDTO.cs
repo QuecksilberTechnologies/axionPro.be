@@ -16,6 +16,9 @@ using System.Text;
 using System.Threading.Tasks;
 namespace axionpro.application.DTOS.TicketDTO.Header
 {
+    /// <summary>
+    /// Represents the GetTicketHeaderByClassifyIdRequestDTO data transfer model.
+    /// </summary>
     public class GetTicketHeaderByClassifyIdRequestDTO
     {
    

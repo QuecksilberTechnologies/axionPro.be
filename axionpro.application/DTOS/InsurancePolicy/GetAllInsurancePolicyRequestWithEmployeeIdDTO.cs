@@ -12,6 +12,9 @@ using System.Text;
 
 namespace axionpro.application.DTOS.InsurancePolicy
 {
+    /// <summary>
+    /// Represents the GetAllInsurancePolicyRequestWithEmployeeIdDTO data transfer model.
+    /// </summary>
     public class GetAllInsurancePolicyRequestWithEmployeeIdDTO
     {
         public required string EmployeeId { get; set; }

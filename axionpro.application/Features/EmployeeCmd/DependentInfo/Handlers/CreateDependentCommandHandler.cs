@@ -27,6 +27,9 @@ using System.Reflection;
 
 namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
 {
+    /// <summary>
+    /// Represents the CreateDependentCommand application component.
+    /// </summary>
     public class CreateDependentCommand : IRequest<ApiResponse<List<GetDependentResponseDTO>>>
     {
         public CreateDependentRequestDTO DTO { get; set; }
@@ -38,6 +41,9 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
 
     }
 
+    /// <summary>
+    /// Handles CreateDependentCommand requests.
+    /// </summary>
     public class CreateDependentCommandHandler
     : IRequestHandler<CreateDependentCommand, ApiResponse<List<GetDependentResponseDTO>>>
     {

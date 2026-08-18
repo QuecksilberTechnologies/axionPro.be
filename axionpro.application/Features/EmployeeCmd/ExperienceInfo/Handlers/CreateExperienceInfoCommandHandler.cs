@@ -23,6 +23,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
 {
+    /// <summary>
+    /// Represents the CreateExperienceInfoCommand application component.
+    /// </summary>
     public class CreateExperienceInfoCommand : IRequest<ApiResponse<GetEmployeeExperienceResponseDTO>>
     {
         public CreateExperienceRequestDTO DTO { get; set; }
@@ -33,6 +36,9 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
         }
     }
 
+    /// <summary>
+    /// Handles CreateExperienceInfoCommand requests.
+    /// </summary>
     public class CreateExperienceInfoCommandHandler
      : IRequestHandler<CreateExperienceInfoCommand, ApiResponse<GetEmployeeExperienceResponseDTO>>
     {

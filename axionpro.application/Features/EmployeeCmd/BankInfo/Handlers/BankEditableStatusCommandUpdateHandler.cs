@@ -22,6 +22,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 {
+    /// <summary>
+    /// Represents the UpdateEditableStatusCommand application component.
+    /// </summary>
     public class UpdateEditableStatusCommand
       : IRequest<ApiResponse<bool>>
     {

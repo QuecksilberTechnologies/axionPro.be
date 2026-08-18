@@ -22,6 +22,9 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
     // ============================
     // COMMAND
     // ============================
+    /// <summary>
+    /// Represents the UpdateSectionBulkCommand application component.
+    /// </summary>
     public class UpdateSectionBulkCommand
         : IRequest<ApiResponse<bool>>
     {
@@ -36,6 +39,9 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
     // ============================
     // HANDLER
     // ============================
+    /// <summary>
+    /// Handles UpdateSectionBulkCommand requests.
+    /// </summary>
     public class UpdateSectionBulkCommandHandler
         : IRequestHandler<UpdateSectionBulkCommand, ApiResponse<bool>>
     {

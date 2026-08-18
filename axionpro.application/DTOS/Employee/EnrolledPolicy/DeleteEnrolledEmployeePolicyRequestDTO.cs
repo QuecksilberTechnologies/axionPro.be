@@ -12,6 +12,9 @@ using System.Text;
 
 namespace axionpro.application.DTOS.Employee.EnrolledPolicy
 {
+    /// <summary>
+    /// Represents the DeleteEnrolledEmployeePolicyRequestDTO data transfer model.
+    /// </summary>
     public class DeleteEnrolledEmployeePolicyRequestDTO
     {
         public   string? EmployeeId { get; set; } = string.Empty;

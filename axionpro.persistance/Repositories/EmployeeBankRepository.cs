@@ -22,6 +22,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.persistance.Repositories
 {
+    /// <summary>
+    /// Provides persistence operations for EmployeeBank records.
+    /// </summary>
     public class EmployeeBankRepository : IEmployeeBankRepository
     {
         private readonly WorkforceDbContext _context;

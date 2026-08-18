@@ -23,6 +23,9 @@ namespace axionpro.application.Features.EmployeeCmd.UpdateVerification.Handler
     // COMMAND
     // ============================
 
+    /// <summary>
+    /// Represents the UpdateVerificationStatusCommand application component.
+    /// </summary>
     public class UpdateVerificationStatusCommand
         : IRequest<ApiResponse<bool>>
     {
@@ -37,6 +40,9 @@ namespace axionpro.application.Features.EmployeeCmd.UpdateVerification.Handler
     // ============================
     // HANDLER
     // ============================
+    /// <summary>
+    /// Handles UpdateVerificationStatusCommand requests.
+    /// </summary>
     public class UpdateVerificationStatusCommandHandler
         : IRequestHandler<UpdateVerificationStatusCommand, ApiResponse<bool>>
     {

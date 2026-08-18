@@ -20,6 +20,9 @@ using System.Text.Json;
 
 namespace axionpro.application.Features.ComplianceCmd
 {
+    /// <summary>
+    /// Represents the CreateComplianceRuleCommand application component.
+    /// </summary>
     public class CreateComplianceRuleCommand
         : IRequest<ApiResponse<GetComplianceRuleResponseDTO>>
     {
@@ -31,6 +34,9 @@ namespace axionpro.application.Features.ComplianceCmd
         }
     }
 
+    /// <summary>
+    /// Handles CreateComplianceRuleCommand requests.
+    /// </summary>
     public class CreateComplianceRuleCommandHandler
         : IRequestHandler<CreateComplianceRuleCommand, ApiResponse<GetComplianceRuleResponseDTO>>
     {

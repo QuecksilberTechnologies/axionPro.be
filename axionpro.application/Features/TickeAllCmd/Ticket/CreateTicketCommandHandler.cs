@@ -19,6 +19,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.TickeAllCmd.Ticket;
 
+/// <summary>
+/// Represents the CreateTicketCommand application component.
+/// </summary>
 public class CreateTicketCommand : IRequest<ApiResponse<GetTicketResponseDTO>>
 {
     public CreateTicketRequestDTO DTO { get; set; }
@@ -29,6 +32,9 @@ public class CreateTicketCommand : IRequest<ApiResponse<GetTicketResponseDTO>>
     }
 }
 
+/// <summary>
+/// Handles CreateTicketCommand requests.
+/// </summary>
 public class CreateTicketCommandHandler
 : IRequestHandler<CreateTicketCommand, ApiResponse<GetTicketResponseDTO>>
 {

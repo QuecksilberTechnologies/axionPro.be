@@ -14,6 +14,9 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOS.Employee.BaseEmployee
 {
+    /// <summary>
+    /// Represents the ActivateAllEmployeeRequestDTO data transfer model.
+    /// </summary>
     public class ActivateAllEmployeeRequestDTO
     {
         public string? UserEmployeeId { get; set; }

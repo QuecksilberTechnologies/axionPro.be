@@ -24,6 +24,9 @@ using Microsoft.Extensions.Logging;
 namespace axionpro.persistance.Repositories
 {
 
+    /// <summary>
+    /// Provides persistence operations for EmployeeEducation records.
+    /// </summary>
     public class EmployeeEducationRepository : IEmployeeEducationRepository
     {
         private readonly WorkforceDbContext _context;

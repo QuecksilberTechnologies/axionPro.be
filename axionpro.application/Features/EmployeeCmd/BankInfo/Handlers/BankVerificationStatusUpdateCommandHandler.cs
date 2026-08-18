@@ -23,6 +23,9 @@ using Microsoft.Extensions.Logging;
 namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 {
 
+    /// <summary>
+    /// Represents the UpdateVerificationStatusCommand application component.
+    /// </summary>
     public class UpdateVerificationStatusCommand
        : IRequest<ApiResponse<bool>>
     {

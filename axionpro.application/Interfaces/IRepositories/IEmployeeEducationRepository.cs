@@ -15,6 +15,9 @@ using axionpro.domain.Entity;
 
 namespace axionpro.application.Interfaces.IRepositories;
 
+/// <summary>
+/// Defines the contract for EmployeeEducationRepository.
+/// </summary>
 public interface IEmployeeEducationRepository
 {
 

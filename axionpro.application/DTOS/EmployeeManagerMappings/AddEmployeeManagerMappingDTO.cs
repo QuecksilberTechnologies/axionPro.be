@@ -12,6 +12,9 @@ using System.Text;
 
 namespace axionpro.application.DTOS.EmployeeManagerMappings
 {
+    /// <summary>
+    /// Represents the AddEmployeeManagerMappingDTO data transfer model.
+    /// </summary>
     public class AddEmployeeManagerMappingDTO
     {
         public long EmployeeId { get; set; }

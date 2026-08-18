@@ -22,6 +22,9 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
     // =====================================================
     // QUERY
     // =====================================================
+    /// <summary>
+    /// Represents the GetEmployeeProfileSummaryQuery application component.
+    /// </summary>
     public class GetEmployeeProfileSummaryQuery
         : IRequest<ApiResponse<EmployeeProfileSummaryInfo>>
     {
@@ -36,6 +39,9 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
     // =====================================================
     // HANDLER
     // =====================================================
+    /// <summary>
+    /// Handles GetEmployeeProfileSummaryQuery requests.
+    /// </summary>
     public class GetEmployeeProfileSummaryQueryHandler
         : IRequestHandler<GetEmployeeProfileSummaryQuery, ApiResponse<EmployeeProfileSummaryInfo>>
     {

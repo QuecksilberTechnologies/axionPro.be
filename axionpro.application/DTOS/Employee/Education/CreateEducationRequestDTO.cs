@@ -16,6 +16,9 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOS.Employee.Education
 {
+    /// <summary>
+    /// Represents the CreateEducationRequestDTO data transfer model.
+    /// </summary>
     public class CreateEducationRequestDTO
     {
        

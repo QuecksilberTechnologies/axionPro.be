@@ -15,6 +15,9 @@ using System.Text;
 using System.Threading.Tasks; 
 namespace axionpro.application.DTOS.TicketDTO.TicketType
 {
+    /// <summary>
+    /// Represents the UpdateTicketTypeRequestDTO data transfer model.
+    /// </summary>
     public class UpdateTicketTypeRequestDTO
     {
         public long Id { get; set; }             // Existing TicketType Id

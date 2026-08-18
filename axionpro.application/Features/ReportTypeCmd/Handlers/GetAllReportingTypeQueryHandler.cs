@@ -14,6 +14,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.ReportTypeCmd.Handlers
 {
+    /// <summary>
+    /// Represents the GetAllReportingTypeQuery application component.
+    /// </summary>
     public class GetAllReportingTypeQuery
         : IRequest<ApiResponse<List<GetReportingTypeResponseDTO>>>
     {
@@ -25,6 +28,9 @@ namespace axionpro.application.Features.ReportTypeCmd.Handlers
         }
     }
 
+    /// <summary>
+    /// Handles GetAllReportingTypeQuery requests.
+    /// </summary>
     public class GetAllReportingTypeQueryHandler
         : IRequestHandler<GetAllReportingTypeQuery, ApiResponse<List<GetReportingTypeResponseDTO>>>
     {

@@ -26,6 +26,9 @@ using System.Reflection;
 
 namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
 {
+    /// <summary>
+    /// Represents the CreateContactInfoCommand application component.
+    /// </summary>
     public class CreateContactInfoCommand : IRequest<ApiResponse<List<GetContactResponseDTO>>>
     {
         public CreateContactRequestDTO DTO { get; set; }
@@ -35,6 +38,9 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
             DTO = dTO;
         }
     }
+    /// <summary>
+    /// Handles CreateContactInfoCommand requests.
+    /// </summary>
     public class CreateContactInfoCommandHandler
       : IRequestHandler<CreateContactInfoCommand, ApiResponse<List<GetContactResponseDTO>>>
     {

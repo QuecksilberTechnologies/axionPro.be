@@ -18,6 +18,9 @@ namespace axionpro.application.DTOS.Employee.Experience
     // =====================================================================
     //  EXPERIENCE   DTO
     // =====================================================================
+    /// <summary>
+    /// Represents the UpdateExperienceRequestDTO data transfer model.
+    /// </summary>
     public class UpdateExperienceRequestDTO
     {
         // 🔥 IMPORTANT
@@ -79,6 +82,9 @@ namespace axionpro.application.DTOS.Employee.Experience
     // =====================================================================
     //  PAYSLIP UPLOAD DTO
     // =====================================================================
+    /// <summary>
+    /// Represents the UpdateExperienceDocumentDTO data transfer model.
+    /// </summary>
     public class UpdateExperienceDocumentDTO
     {
         // 🔥 IMPORTANT

@@ -20,6 +20,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.persistance.Repositories
 {
+    /// <summary>
+    /// Provides persistence operations for EmployeeContact records.
+    /// </summary>
     public class EmployeeContactRepository : IEmployeeContactRepository
     {
         private readonly WorkforceDbContext _context;

@@ -17,6 +17,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers;
 
+/// <summary>
+/// Represents the GetExperienceInfoQuery application component.
+/// </summary>
 public class GetExperienceInfoQuery
     : IRequest<ApiResponse<List<GetEmployeeExperienceResponseDTO>>>
 {
@@ -28,6 +31,9 @@ public class GetExperienceInfoQuery
     }
 }
 
+/// <summary>
+/// Handles GetExperienceInfoQuery requests.
+/// </summary>
 public class GetExperienceInfoQueryHandler
     : IRequestHandler<GetExperienceInfoQuery, ApiResponse<List<GetEmployeeExperienceResponseDTO>>>
 {

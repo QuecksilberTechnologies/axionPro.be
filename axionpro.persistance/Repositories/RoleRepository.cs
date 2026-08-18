@@ -21,6 +21,9 @@ using System.Data; using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories;
 
+/// <summary>
+/// Provides persistence operations for Role records.
+/// </summary>
 public class RoleRepository : IRoleRepository
 {
 

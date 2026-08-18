@@ -27,6 +27,9 @@ using System.Reflection;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
+    /// <summary>
+    /// Represents the CreateBaseEmployeeInfoCommand application component.
+    /// </summary>
     public class CreateBaseEmployeeInfoCommand : IRequest<ApiResponse<GetBaseEmployeeResponseDTO>>
     {
         public CreateBaseEmployeeRequestDTO DTO { get; set; }
@@ -37,6 +40,9 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
         }
     }
 
+    /// <summary>
+    /// Handles CreateBaseEmployeeInfoCommand requests.
+    /// </summary>
     public class CreateBaseEmployeeInfoCommandHandler
    : IRequestHandler<CreateBaseEmployeeInfoCommand, ApiResponse<GetBaseEmployeeResponseDTO>>
     {
