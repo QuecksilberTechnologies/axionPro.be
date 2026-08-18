@@ -23,6 +23,9 @@ using axionpro.domain.Entity;
 
 namespace axionpro.persistance.Repositories
 {
+
+    #region Persistence Operations
+
     /// <summary>
     /// Provides persistence operations for PolicyTypeInsuranceMapping records.
     /// </summary>
@@ -31,16 +34,16 @@ namespace axionpro.persistance.Repositories
         private readonly WorkforceDbContext _context;
         private readonly IMapper _mapper;
         private readonly ILogger<PolicyTypeInsuranceMappingRepository> _logger;
-       
+
         private readonly IPasswordService _passwordService;
         private readonly IEncryptionService _encryptionService;
-        public PolicyTypeInsuranceMappingRepository(WorkforceDbContext context, IMapper mapper, ILogger<PolicyTypeInsuranceMappingRepository> logger,  
+        public PolicyTypeInsuranceMappingRepository(WorkforceDbContext context, IMapper mapper, ILogger<PolicyTypeInsuranceMappingRepository> logger,
             IPasswordService passwordService, IEncryptionService encryptionService)
         {
             this._context = context;
             this._mapper = mapper;
             this._logger = logger;
-            
+
             _passwordService = passwordService;
             _encryptionService = encryptionService;
 
@@ -50,7 +53,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-               
+
                 await _context.PolicyTypeInsuranceMappings.AddAsync(entity);
                 await _context.SaveChangesAsync();
 
@@ -82,7 +85,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-               
+
 
                 return await _context.PolicyTypeInsuranceMappings
                     .AsNoTracking()
@@ -105,7 +108,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-               
+
 
                 return await _context.PolicyTypeInsuranceMappings
                     .AsNoTracking()
@@ -127,7 +130,7 @@ namespace axionpro.persistance.Repositories
 
         public async Task<List<GetPolicyTypeInsuranceMappingResponseDTO>> GetMapInsuranceDDLForEmployeeMappingAsync(long tenantId, bool isActive, bool isSoftDeleted)
         {
-             
+
                 try
                 {
                     var query =
@@ -140,18 +143,18 @@ namespace axionpro.persistance.Repositories
                             on mapping.InsurancePolicyId equals ip.Id
 
                         where
-                            // 🔹 TENANT
+                            //  TENANT
                             mapping.TenantId == tenantId &&
 
-                            // 🔥 MAPPING FILTER
+                            //  MAPPING FILTER
                             mapping.IsActive == true &&
                             mapping.IsSoftDeleted != true &&
 
-                            // 🔥 POLICY TYPE FILTER
+                            //  POLICY TYPE FILTER
                             pt.IsActive == true &&
                             pt.IsSoftDelete != true &&
 
-                            // 🔥 INSURANCE FILTER
+                            //  INSURANCE FILTER
                             ip.IsActive == true &&
                             ip.IsSoftDeleted != true
 
@@ -193,21 +196,21 @@ namespace axionpro.persistance.Repositories
                     join ip in _context.InsurancePolicies.AsNoTracking()
                         on map.InsurancePolicyId equals ip.Id
 
-                    // 🔥 LEFT JOIN DOCUMENT
+                    //  LEFT JOIN DOCUMENT
                     join doc in _context.InsurancePolicyDocuments.AsNoTracking()
                         .Where(d => d.IsActive == true && d.IsSoftDeleted != true)
                         on ip.Id equals doc.InsurancePolicyId into docJoin
                     from doc in docJoin.DefaultIfEmpty()
 
                     where
-                        // 🔹 POLICY FILTER
+                        //  POLICY FILTER
                         map.PolicyTypeId == policyId &&
 
-                        // 🔹 MAPPING FILTER
+                        //  MAPPING FILTER
                         map.IsActive == isActive &&
                         (map.IsSoftDeleted == false || map.IsSoftDeleted == null) &&
 
-                        // 🔥🔥 FIX: INSURANCE FILTER (MISSING THA)
+                        //  FIX: INSURANCE FILTER (MISSING THA)
                         ip.IsActive == true &&
                         (ip.IsSoftDeleted == false || ip.IsSoftDeleted == null)
 
@@ -223,14 +226,14 @@ namespace axionpro.persistance.Repositories
                         InsuranceTypeName = ip.InsurancePolicyName ?? string.Empty,
 
                         FileName = doc != null ? doc.FileName : string.Empty,
-                        FilePath = doc != null ? doc.FilePath : string.Empty,                      
+                        FilePath = doc != null ? doc.FilePath : string.Empty,
 
                         Description = ip.Description,
                         IsActive = map.IsActive,
                         MaxChildAllowed = ip.MaxChildAllowed,
                         MaxSpouseAllowed = ip.MaxSpouseAllowed,
                         InLawsAllowed = ip.InLawsAllowed,
-                        ParentsAllowed = ip.ParentsAllowed, 
+                        ParentsAllowed = ip.ParentsAllowed,
 
                     };
 
@@ -260,25 +263,25 @@ namespace axionpro.persistance.Repositories
                     join policyType in _context.PolicyTypes.AsNoTracking()
                         on mapping.PolicyTypeId equals policyType.Id
 
-                    // 🔥 LEFT JOIN (Insurance optional)
+                    //  LEFT JOIN (Insurance optional)
                     join insurance in _context.InsurancePolicies.AsNoTracking()
                         on mapping.InsurancePolicyId equals insurance.Id
                         into insuranceGroup
                     from insurance in insuranceGroup.DefaultIfEmpty()
 
                     where
-                        // 🔹 TENANT
+                        //  TENANT
                         mapping.TenantId == tenantId &&
 
-                        // 🔹 MAPPING FILTER
+                        //  MAPPING FILTER
                         mapping.IsActive == request.IsActive &&
                         (mapping.IsSoftDeleted == false || mapping.IsSoftDeleted == null) &&
 
-                        // 🔥 POLICY TYPE FILTER
+                        //  POLICY TYPE FILTER
                         policyType.IsActive == true &&
                         (policyType.IsSoftDelete == false || policyType.IsSoftDelete == null) &&
 
-                        // 🔥 INSURANCE FILTER (LEFT JOIN SAFE)
+                        //  INSURANCE FILTER (LEFT JOIN SAFE)
                         (
                             insurance == null ||
                             (
@@ -310,7 +313,7 @@ namespace axionpro.persistance.Repositories
                     };
 
                 // ===============================
-                // 🔹 OPTIONAL FILTERS
+                //  OPTIONAL FILTERS
                 // ===============================
                 if (request.PolicyTypeId.HasValue)
                     query = query.Where(x => x.PolicyTypeId == request.PolicyTypeId.Value);
@@ -322,12 +325,12 @@ namespace axionpro.persistance.Repositories
                     query = query.Where(x => x.IsActive == request.IsActive.Value);
 
                 // ===============================
-                // 🔹 COUNT
+                //  COUNT
                 // ===============================
                 var totalCount = await query.CountAsync();
 
                 // ===============================
-                // 🔹 SORTING
+                //  SORTING
                 // ===============================
                 var sortOrder = request.SortOrder?.ToLower() ?? "desc";
 
@@ -336,7 +339,7 @@ namespace axionpro.persistance.Repositories
                     : query.OrderByDescending(x => x.InsurancePolicyName);
 
                 // ===============================
-                // 🔹 PAGINATION
+                //  PAGINATION
                 // ===============================
                 var pageNumber = request.PageNumber > 0 ? request.PageNumber : 1;
                 var pageSize = request.PageSize > 0 ? request.PageSize : 10;
@@ -347,7 +350,7 @@ namespace axionpro.persistance.Repositories
                     .ToListAsync();
 
                 // ===============================
-                // 🔹 RESPONSE
+                //  RESPONSE
                 // ===============================
                 return new PagedResponseDTO<GetPolicyTypeInsuranceMappingResponseDTO>(
                     items,
@@ -405,4 +408,6 @@ namespace axionpro.persistance.Repositories
         }
 
     }
+
+    #endregion
 }

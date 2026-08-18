@@ -28,7 +28,7 @@ namespace axionpro.persistance.Repositories
         private readonly WorkforceDbContext _context;
         private readonly ILogger<TicketTypeRepository> _logger;
         private readonly IMapper _mapper;
-      
+
         #endregion
 
 
@@ -40,7 +40,7 @@ namespace axionpro.persistance.Repositories
             this._context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-  
+
         }
 
 
@@ -54,7 +54,7 @@ namespace axionpro.persistance.Repositories
         /// responsible role and primary responsible employee (based on IsPrimary = true).
         /// </summary>
         /// <param name="dTO">
-        /// The request DTO containing tenant-specific filters such as <see cref="GetTicketTypeRequestDTO.TenantId"/> 
+        /// The request DTO containing tenant-specific filters such as <see cref="GetTicketTypeRequestDTO.TenantId"/>
         /// and <see cref="GetTicketTypeRequestDTO.IsActive"/>.
         /// </param>
         /// <returns>
@@ -105,7 +105,7 @@ namespace axionpro.persistance.Repositories
 
                         ApprovalId = t.ApprovalRoleId,
                         ApprovalRoleName = ar != null ? ar.RoleName : null,
-                        // 🔥 FIX YEH HAI
+                        //  FIX YEH HAI
                         ClassificationId = th != null ? th.TicketClassificationId : 0,
 
                         IsApprovalRequired = t.IsApprovalRequired,
@@ -179,9 +179,9 @@ namespace axionpro.persistance.Repositories
                 // ===============================
                 // 2️⃣ OPTIONAL FILTER
                 // ===============================
-               
+
                     query = query.Where(t => t.IsActive == isActive);
-                
+
 
                 // ===============================
                 // 3️⃣ PROJECTION (DDL)
@@ -306,7 +306,7 @@ namespace axionpro.persistance.Repositories
                 if (entity == null)
                     throw new ValidationErrorException("TicketType not found.");
 
-                // 🔥 SOFT DELETE
+                //  SOFT DELETE
                 entity.IsSoftDeleted = true;
                 entity.IsActive = false;
                 entity.SoftDeletedById = employeeId;
@@ -345,7 +345,7 @@ namespace axionpro.persistance.Repositories
                     return new List<GetTicketTypeRoleResponseDTO>();
                 }
 
-               
+
                 // 1️⃣ Flattened query: TicketType → ResponsibleRole → UserRole → Employee
                 var flatData =
                     from ticketType in _context.TicketTypes.AsNoTracking()
@@ -367,7 +367,7 @@ namespace axionpro.persistance.Repositories
                         EmployeeId = emp.Id,
                         EmployeeName = emp.FirstName + " " + emp.LastName,
                         EmployeeEmail = emp.OfficialEmail,
-                       
+
                     };
 
                 // 2️⃣ Group by TicketType to consolidate multiple employees
@@ -387,7 +387,7 @@ namespace axionpro.persistance.Repositories
                         Description = g.Key.Description,
                         ResponsibleRoleId = g.Key.ResponsibleRoleId,
                         ResponsibleRoleName = g.Key.ResponsibleRoleName,
-                        
+
                         Employees = g.Select(e => new EmployeeMinInfoDTO
                         {
                             Id = e.EmployeeId,

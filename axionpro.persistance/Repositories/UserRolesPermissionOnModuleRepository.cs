@@ -21,6 +21,9 @@ using Microsoft.Extensions.Logging;
 namespace axionpro.persistance.Repositories
 {
 
+    #region Persistence Operations
+
+
     /// <summary>
     /// Provides persistence operations for UserRolesPermissionOnModule records.
     /// </summary>
@@ -48,7 +51,7 @@ namespace axionpro.persistance.Repositories
                 await _context.RoleModuleAndPermissions.AddRangeAsync(insertRoleModulePermissionsRequest);
 
                 // Final save to the database
-                return await _context.SaveChangesAsync(); // 👈 returns number of inserted rows
+                return await _context.SaveChangesAsync(); //  returns number of inserted rows
             }
             catch (Exception ex)
             {
@@ -70,7 +73,7 @@ namespace axionpro.persistance.Repositories
                         ModuleId = x.ModuleId,
                         ModuleName = x.Module.ModuleName,
                         ParentModuleId = x.Module.ParentModuleId,
-                        // 🔥 NEW FIELD
+                        //  NEW FIELD
                         ParentModuleName = x.Module.ParentModule != null ? x.Module.ParentModule.ModuleName : null,
                         OperationId = x.OperationId,
                         OperationName = x.Operation.OperationName,
@@ -134,14 +137,14 @@ namespace axionpro.persistance.Repositories
                 // ===============================
                 await _context.RoleModuleAndPermissions.AddRangeAsync(rolePermissions);
 
-                // ⚠️ SaveChanges yahan nahi (UnitOfWork handle karega)
+                // ️ SaveChanges yahan nahi (UnitOfWork handle karega)
                 // await _context.SaveChangesAsync();
-
-                _logger?.LogInformation("✅ Bulk insert prepared. Count: {Count}", rolePermissions.Count); 
 
                 _logger?.LogInformation("✅ Bulk insert prepared. Count: {Count}", rolePermissions.Count);
 
-                return rolePermissions.Count; // 🔥 CORRECT
+                _logger?.LogInformation("✅ Bulk insert prepared. Count: {Count}", rolePermissions.Count);
+
+                return rolePermissions.Count; //  CORRECT
             }
             catch (Exception ex)
             {
@@ -164,7 +167,7 @@ namespace axionpro.persistance.Repositories
                 //var result = await (from rmp in _context.RoleModuleAndPermissions
                 //                    join submd in _context.ProjectSubModuleDetails on rmp.SubModuleId equals submd.Id
                 //                    join pmd in _context.ProjectModuleDetails on submd.ModuleId equals pmd.Id
-                //                    join op in _context.Operations on rmp.OperationId equals op.Id                                    
+                //                    join op in _context.Operations on rmp.OperationId equals op.Id
                 //                    select new UserRolesPermissionOnModuleDTO
                 //                    {
                 //                        Id = rmp.Id, // RoleModuleAndPermission Id
@@ -193,7 +196,7 @@ namespace axionpro.persistance.Repositories
                 throw; // Re-throw the exception after logging
             }
         }
-    
+
 
      //yeh function sirf enabled module or operation laata hai , login mei bhi used
         public async Task<List<TenantEnabledModule>> GetAllTenantEnabledModulesWithOperationsAsync(long? tenantId)
@@ -204,7 +207,7 @@ namespace axionpro.persistance.Repositories
                     .Where(m => m.TenantId == tenantId && m.IsEnabled)
                     .Include(m => m.Module)
                         .ThenInclude(mod => mod.ModuleOperationMapping
-                            .Where(mop => mop.IsActive == true)) // ✅ filtered include EF Core 5+
+                            .Where(mop => mop.IsActive == true)) //  filtered include EF Core 5+
                     .ToListAsync();
 
                 return modules;
@@ -222,20 +225,20 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                // 🟢 Step 1: Get all enabled modules
+                //  Step 1: Get all enabled modules
                 var tenantModules = await _context.TenantEnabledModules
                     .Where(t => t.TenantId == tenantId)
                     .Include(t => t.Module)
                     .ThenInclude(m => m.ParentModule)
                     .ToListAsync();
 
-                // 🟢 Step 2: Get all enabled operations
+                //  Step 2: Get all enabled operations
                 var tenantOperations = await _context.TenantEnabledOperations
                     .Where(op => op.TenantId == tenantId && op.IsEnabled)
                     .Include(op => op.Operation)
                     .ToListAsync();
 
-                // 🧠 Step 3: Map manually in memory
+                //  Step 3: Map manually in memory
                 var modules = tenantModules.Select(t => new EnabledModuleActiveDTO
                 {
                     Id = t.Module.Id,
@@ -275,7 +278,7 @@ namespace axionpro.persistance.Repositories
             {
                 foreach (var module in request.Modules)
                 {
-                    // ✅ Step 1: Update TenantEnabledModule table
+                    //  Step 1: Update TenantEnabledModule table
                     await _context.Database.ExecuteSqlRawAsync(
                         @"UPDATE [AxionPro].[TenantEnabledModule]
                         SET IsEnabled = {0}, UpdatedDateTime = GETUTCDATE()
@@ -285,7 +288,7 @@ namespace axionpro.persistance.Repositories
 
                     if (module.IsEnabled == false)
                     {
-                        // ✅ Step 2: If module is disabled, disable all its operations
+                        //  Step 2: If module is disabled, disable all its operations
                         await _context.Database.ExecuteSqlRawAsync(
                             @"UPDATE [AxionPro].[TenantEnabledOperation]
                               SET IsEnabled = 0, IsOperationUsed = 0, UpdatedDateTime = GETUTCDATE()
@@ -295,7 +298,7 @@ namespace axionpro.persistance.Repositories
                     }
                     else
                     {
-                        // ✅ Step 3: If module is enabled, update only selected operations
+                        //  Step 3: If module is enabled, update only selected operations
                         foreach (var operation in module.Operations)
                         {
                             await _context.Database.ExecuteSqlRawAsync(
@@ -348,7 +351,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                // 🧱 Step 0: Create DbContext
+                //  Step 0: Create DbContext
                 //   await using var context = await _contextFactory.CreateDbContextAsync();
 
                 // ---------------------
@@ -397,10 +400,10 @@ namespace axionpro.persistance.Repositories
                 // -------------------------------------------------------
                 if (dto.ModuleId > 0 && dto.ParentModuleId > 0)
                 {
-                    // 🔹 Step 4.1: dono me se badi value nikaal lo
+                    //  Step 4.1: dono me se badi value nikaal lo
                     int selectedModuleId = Math.Max(dto.ModuleId ?? 0, dto.ParentModuleId ?? 0);
 
-                    // 🔹 Step 4.2: check karo kya ye module tenant ke enabled list me hai
+                    //  Step 4.2: check karo kya ye module tenant ke enabled list me hai
                     bool isModuleEnabled = tenantEnabledModuleIds.Contains(selectedModuleId);
                     if (!isModuleEnabled)
                     {
@@ -408,7 +411,7 @@ namespace axionpro.persistance.Repositories
                         return null;
                     }
 
-                    // 🔹 Step 4.3: ab Module table se uske saare child modules (Nth level tak) nikaalo
+                    //  Step 4.3: ab Module table se uske saare child modules (Nth level tak) nikaalo
                     // Recursive fetching karenge — manually loop se karenge
                     var allModules = await _context.Modules
                         .Select(m => new { m.Id, m.ModuleName, m.ParentModuleId, m.IsLeafNode })
@@ -431,7 +434,7 @@ namespace axionpro.persistance.Repositories
                     }
                     while (newAdded);
 
-                    // 🔹 Step 4.4: sirf leaf node wale modules filter kar lo
+                    //  Step 4.4: sirf leaf node wale modules filter kar lo
                     var leafModules = allModules
                         .Where(m => childModuleIds.Contains(m.Id) && m.IsLeafNode == true)
                         .ToList();
@@ -442,7 +445,7 @@ namespace axionpro.persistance.Repositories
                         return new List<GetModuleOperationRolePermissionsResponseDTO>();
                     }
 
-                    // 🔹 Step 4.5: ab un leaf modules ke liye operations nikaalo
+                    //  Step 4.5: ab un leaf modules ke liye operations nikaalo
                     var operationsData = await (
                         from teo in _context.TenantEnabledOperations
                         join op in _context.Operations on teo.OperationId equals op.Id
@@ -465,8 +468,8 @@ namespace axionpro.persistance.Repositories
                         return new List<GetModuleOperationRolePermissionsResponseDTO>();
                     }
 
-                    // 🔹 Step 4.6: DTO me map kar lo
-                    // 🔹 Step 4.6: Ab RoleModuleAndPermission table ke saath left join karenge
+                    //  Step 4.6: DTO me map kar lo
+                    //  Step 4.6: Ab RoleModuleAndPermission table ke saath left join karenge
                     var rolePermissions = await (
                         from rp in _context.RoleModuleAndPermissions
                         where rp.RoleId == dto.RoleId
@@ -480,7 +483,7 @@ namespace axionpro.persistance.Repositories
                         }
                     ).ToListAsync();
 
-                    // 🔹 Step 4.7: Ab operationsData ko left join karte hain RolePermission ke saath
+                    //  Step 4.7: Ab operationsData ko left join karte hain RolePermission ke saath
                     var response = leafModules
                         .GroupJoin(operationsData,
                             m => m.Id,
@@ -545,7 +548,7 @@ namespace axionpro.persistance.Repositories
                     return new List<GetModuleOperationRolePermissionsResponseDTO>();
                 }
 
-                // ✅ Step 6: Group & map to DTO
+                //  Step 6: Group & map to DTO
                 var modulesDefault = operationDataDefault
                     .GroupBy(x => new { x.Id, x.ModuleName, x.ParentModuleId, x.IsLeafNode })
                     .Select(g => new GetModuleOperationRolePermissionsResponseDTO
@@ -565,7 +568,7 @@ namespace axionpro.persistance.Repositories
                     })
                     .ToList();
 
-                // ✅ Step 7: Hierarchy build karna
+                //  Step 7: Hierarchy build karna
                 var moduleDict = modulesDefault.ToDictionary(m => m.ModuleId);
                 List<GetModuleOperationRolePermissionsResponseDTO> rootModules = new();
 
@@ -597,10 +600,10 @@ namespace axionpro.persistance.Repositories
                 _logger.LogInformation("🔹 Fetching permissions for RoleId: {RoleId}", roleId);
 
                 var data = await _context.RoleModuleAndPermissions
-                    .AsNoTracking() // 🔥 performance
+                    .AsNoTracking() //  performance
                     .Where(x =>
                         x.RoleId == roleId &&
-                        x.IsActive ==true && 
+                        x.IsActive ==true &&
                         (x.IsSoftDeleted != true))
                     .ToListAsync();
 
@@ -628,7 +631,7 @@ namespace axionpro.persistance.Repositories
                 _logger.LogInformation("🔹 Bulk delete started. Count: {Count}", list.Count);
 
                 // ===============================
-                // OPTION 1: HARD DELETE (FASTEST 🔥)
+                // OPTION 1: HARD DELETE (FASTEST )
                 // ===============================
                 _context.RoleModuleAndPermissions.RemoveRange(list);
 
@@ -660,5 +663,7 @@ namespace axionpro.persistance.Repositories
 
 
 
+
+    #endregion
 }
 

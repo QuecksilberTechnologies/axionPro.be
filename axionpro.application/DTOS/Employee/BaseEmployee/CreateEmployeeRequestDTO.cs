@@ -17,14 +17,14 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
     /// <summary>
     /// Employee create request
     /// </summary>
-    public class CreateBaseEmployeeRequestDTO 
+    public class CreateBaseEmployeeRequestDTO
 
-    {     
+    {
 
-       
- 
+
+
         public int? EmployeeDocumentId { get; set; }
-       
+
         [Required]
         [MaxLength(100)]
         public required string FirstName { get; set; }
@@ -61,15 +61,15 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         [EmailAddress]
         public required string OfficialEmail { get; set; }
 
-        // 🔻 Optional Fields
+        //  Optional Fields
         [MaxLength(100)]
         public string? MiddleName { get; set; }
 
         public DateTime? DateOfOnBoarding { get; set; }
- 
+
         public int RoleId { get; set; }
 
-        
+
         public int? ReferalId { get; set; }
 
 

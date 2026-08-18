@@ -16,6 +16,9 @@ using static axionpro.application.DTOS.InsurancePolicy.GetAlllnsurancePolicyResp
 
 namespace axionpro.persistance.Repositories
 {
+
+    #region Persistence Operations
+
     /// <summary>
     /// Provides persistence operations for Insurance records.
     /// </summary>
@@ -32,7 +35,7 @@ namespace axionpro.persistance.Repositories
             _logger = logger;
         }
 
-        // 🔹 CREATE
+        //  CREATE
         public async Task<GetInsurancePolicyResponseDTO?> AddAsync(InsurancePolicy policy)
         {
             try
@@ -48,7 +51,7 @@ namespace axionpro.persistance.Repositories
                     {
                         // Identity
                         InsurancePolicyId = x.Id,
-                       
+
 
                         // Policy Type
                         PolicyTypeId = x.PolicyTypeId,
@@ -88,7 +91,7 @@ namespace axionpro.persistance.Repositories
                         Description = x.Description,
 
                         // Audit
-                       
+
                     })
                     .FirstOrDefaultAsync();
 
@@ -113,7 +116,7 @@ namespace axionpro.persistance.Repositories
         }
 
 
-        // 🔹 EXISTS (Name + Tenant)
+        //  EXISTS (Name + Tenant)
         public async Task<bool> ExistsAsync(
             string insurancePolicyName,
             long tenantId,
@@ -127,7 +130,7 @@ namespace axionpro.persistance.Repositories
                     cancellationToken);
         }
 
-        // 🔹 GET BY ID
+        //  GET BY ID
         public async Task<InsurancePolicy?> GetByIdAsync(
        int insurancePolicyId,
        long tenantId,
@@ -154,10 +157,10 @@ namespace axionpro.persistance.Repositories
                 var list = await _context.InsurancePolicies
                     .AsNoTracking()
                     .Where(x =>
-                        x.PolicyTypeId == policyId &&   // 🔗 PolicyType ke under
-                        x.IsActive == isActive &&       // 🔘 Active / Inactive
-                        !x.IsSoftDeleted)               // ❌ Soft deleted ignore
-                    .OrderBy(x => x.InsurancePolicyName) // ✅ DDL friendly order
+                        x.PolicyTypeId == policyId &&   //  PolicyType ke under
+                        x.IsActive == isActive &&       //  Active / Inactive
+                        !x.IsSoftDeleted)               //  Soft deleted ignore
+                    .OrderBy(x => x.InsurancePolicyName) //  DDL friendly order
                     .Select(x => new GetAlllnsurancePolicyResponseDTO
                     {
                         InsurancePolicyId = x.Id,
@@ -166,13 +169,13 @@ namespace axionpro.persistance.Repositories
                     })
                     .ToListAsync();
 
-                // ❌ No data found → UI ko error chahiye
+                //  No data found → UI ko error chahiye
                 if (list == null || !list.Any())
                 {
                     return list;
                 }
 
-                // ✅ Success
+                //  Success
                 return list;
             }
             catch (Exception ex)
@@ -241,22 +244,22 @@ namespace axionpro.persistance.Repositories
 
 
 
-        // 🔹 GET LIST (Grid)
+        //  GET LIST (Grid)
         public async Task<PagedResponseDTO<GetInsurancePolicyResponseDTO>> GetListAsync(
          long tenantId,
          GetInsurancePolicyRequestDTO request)
         {
-            // 🔹 Defaults (Handler ke baad safety)
+            //  Defaults (Handler ke baad safety)
             int pageNumber = request.PageNumber > 0 ? request.PageNumber : 1;
             int pageSize = request.PageSize > 0 ? request.PageSize : 10;
             string sortOrder = string.IsNullOrWhiteSpace(request.SortOrder)
                 ? "desc"
                 : request.SortOrder.ToLower();
 
-            // 🔹 IsActive resolve (DTO based)
+            //  IsActive resolve (DTO based)
             bool isActive = request.IsActive ?? true;
 
-            // 🔹 Base query
+            //  Base query
             var query = _context.InsurancePolicies
                 .AsNoTracking()
                 .Include(x => x.PolicyType)
@@ -266,7 +269,7 @@ namespace axionpro.persistance.Repositories
                     !x.IsSoftDeleted &&
                     x.IsActive == isActive);
 
-            // 🔍 FILTERS (ONLY WHAT DTO HAS)
+            //  FILTERS (ONLY WHAT DTO HAS)
 
             if (request.InsurancePolicyId.HasValue)
                 query = query.Where(x => x.Id == request.InsurancePolicyId.Value);
@@ -318,15 +321,15 @@ namespace axionpro.persistance.Repositories
             if (request.EndDate.HasValue)
                 query = query.Where(x => x.EndDate <= request.EndDate.Value);
 
-            // 🔃 SORTING
+            //  SORTING
             query = sortOrder == "asc"
                 ? query.OrderBy(x => x.AddedDateTime)
                 : query.OrderByDescending(x => x.AddedDateTime);
 
-            // 📊 TOTAL COUNT
+            //  TOTAL COUNT
             int totalCount = await query.CountAsync();
 
-            // 📄 PAGINATION + PROJECTION
+            //  PAGINATION + PROJECTION
             var items = await query
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
@@ -381,7 +384,7 @@ namespace axionpro.persistance.Repositories
 
 
 
-        // 🔹 UPDATE
+        //  UPDATE
         public async Task<bool> UpdateAsync(InsurancePolicy policy)
         {
             try
@@ -414,7 +417,7 @@ namespace axionpro.persistance.Repositories
         }
 
 
-        // 🔹 SOFT DELETE
+        //  SOFT DELETE
         public async Task<bool> SoftDeleteAsync(InsurancePolicy insurancePolicy)
         {
             _context.InsurancePolicies.Update(insurancePolicy);
@@ -424,4 +427,6 @@ namespace axionpro.persistance.Repositories
         }
     }
 
+
+    #endregion
 }

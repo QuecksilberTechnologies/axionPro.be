@@ -19,6 +19,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
+
+    #region Query
+
     // =====================================================
     // QUERY
     // =====================================================
@@ -42,7 +45,11 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
     /// <summary>
     /// Handles GetEmployeeProfileSummaryQuery requests.
     /// </summary>
-    public class GetEmployeeProfileSummaryQueryHandler
+        #endregion
+
+    #region Handler
+
+public class GetEmployeeProfileSummaryQueryHandler
         : IRequestHandler<GetEmployeeProfileSummaryQuery, ApiResponse<EmployeeProfileSummaryInfo>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -101,7 +108,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     throw new ValidationErrorException("Invalid EmployeeId.");
 
                 // ===============================
-                // 4️⃣ PERMISSION (YOUR PATTERN ✅)
+                // 4️⃣ PERMISSION (YOUR PATTERN )
                 // ===============================
                 //var hasAccess = await _permissionService.HasAccessAsync(
                 //    validation.RoleId,
@@ -154,8 +161,9 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     "Error fetching employee profile summary | EmployeeId: {EmployeeId}",
                     request.DTO?.EmployeeId);
 
-                throw; // 🚨 MUST
+                throw; //  MUST
             }
         }
     }
+    #endregion
 }

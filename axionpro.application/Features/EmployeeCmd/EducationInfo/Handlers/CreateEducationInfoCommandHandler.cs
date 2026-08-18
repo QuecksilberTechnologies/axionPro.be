@@ -27,6 +27,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 {
+
+    #region Command
+
     /// <summary>
     /// Represents the CreateEducationInfoCommand application component.
     /// </summary>
@@ -43,7 +46,11 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
     /// <summary>
     /// Handles CreateEducationInfoCommand requests.
     /// </summary>
-    public class CreateEducationInfoCommandHandler : IRequestHandler<CreateEducationInfoCommand, ApiResponse<List<GetEducationResponseDTO>>>
+        #endregion
+
+    #region Handler
+
+public class CreateEducationInfoCommandHandler : IRequestHandler<CreateEducationInfoCommand, ApiResponse<List<GetEducationResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -119,7 +126,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                     throw new ValidationErrorException("Invalid EmployeeId.");
 
                 // ===============================
-                // 3️⃣ PERMISSION (YOUR FIXED PATTERN ✅)
+                // 3️⃣ PERMISSION (YOUR FIXED PATTERN )
                 // ===============================
                 //var hasAccess = await _permissionService.HasAccessAsync(
                 //    validation.RoleId,
@@ -229,7 +236,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 
                 _logger.LogError(ex, "Error creating education");
 
-                // 🧹 FILE CLEANUP (S3)
+                //  FILE CLEANUP (S3)
                 if (!string.IsNullOrEmpty(uploadedFileKey))
                 {
                     try
@@ -242,9 +249,10 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                     }
                 }
 
-                throw; // 🚨 MUST
+                throw; //  MUST
             }
         }
 
     }
+    #endregion
 }

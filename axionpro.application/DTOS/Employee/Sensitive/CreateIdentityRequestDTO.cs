@@ -37,29 +37,29 @@ namespace axionpro.application.DTOS.Employee.Sensitive
 
 
 
-        // 🔹 Core Identity Info
+        //  Core Identity Info
         public required string UserEmployeeId { get; set; }
         public required string EmployeeId { get; set; }
         public int IdentityCategoryDocumentId { get; set; }
         public required string IdentityValue { get; set; } = string.Empty;
-        public required  string DocumnetCode  { get; set; } 
+        public required  string DocumnetCode  { get; set; }
 
-        // 🔹 Document Info
+        //  Document Info
         public IFormFile? IdentityDocumentFile { get; set; }
-        // 🔹 Validity
+        //  Validity
         public DateOnly? EffectiveFrom { get; set; }
         public DateOnly? EffectiveTo { get; set; }
 
-        // 🔹 Audit Fields
+        //  Audit Fields
         // public string? DocumentFileName { get; set; }
         //public string? DocumentFilePath { get; set; }
 
-        // 🔹 Verification Info
+        //  Verification Info
         //  public bool IsVerified { get; set; } = false;
         //  public long? InfoVerifiedById { get; set; }
         //  public DateTime? InfoVerifiedDateTime { get; set; }
 
-        // 🔹 Permissions / Flags
+        //  Permissions / Flags
         //  public bool IsEditAllowed { get; set; } = true;
         //  public bool HasIdentityUploaded { get; set; } = false;
         //   public bool IsActive { get; set; } = true;

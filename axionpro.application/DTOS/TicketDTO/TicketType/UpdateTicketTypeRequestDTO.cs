@@ -6,13 +6,13 @@
 // ================================================================
 
 using axionpro.application.DTOS.Common;
-using axionpro.domain.Entity; 
+using axionpro.domain.Entity;
 using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks; 
+using System.Threading.Tasks;
 namespace axionpro.application.DTOS.TicketDTO.TicketType
 {
     /// <summary>
@@ -27,10 +27,10 @@ namespace axionpro.application.DTOS.TicketDTO.TicketType
 
         public string? Description { get; set; }
 
-        // 🔹 Responsible Execution
+        //  Responsible Execution
         public int ResponsibleRoleId { get; set; }
 
-        // 🔥 Approval Engine
+        //  Approval Engine
         public bool IsApprovalRequired { get; set; }
 
         public int? ApprovalRoleId { get; set; }
@@ -38,13 +38,13 @@ namespace axionpro.application.DTOS.TicketDTO.TicketType
 
         public bool AutoApproveIfSameRole { get; set; }
 
-        // 🔥 SLA
+        //  SLA
         public int? SLAHours { get; set; }
 
-        // 🔹 Extra Config
+        //  Extra Config
         public bool IsActiveForAllUsers { get; set; } = true;
 
-        // 🔹 Common Request (Tumhare pattern ke hisaab se)
+        //  Common Request (Tumhare pattern ke hisaab se)
 
     }
 

@@ -19,7 +19,7 @@ namespace axionpro.application.DTOS.Employee.Sensitive
     /// Represents the UpdateIdentityReqestDTO data transfer model.
     /// </summary>
     public class UpdateIdentityReqestDTO
-    { 
+    {
 
             public required long Id { get; set; }
             public required string UserEmployeeId { get; set; }
@@ -41,9 +41,9 @@ namespace axionpro.application.DTOS.Employee.Sensitive
             public IFormFile? PanDocFile { get; set; }
             public IFormFile? PassportDocFile { get; set; }
 
-            // 🔹 Flags
+            //  Flags
 
 
         }
-   
+
 }

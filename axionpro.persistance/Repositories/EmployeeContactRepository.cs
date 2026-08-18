@@ -20,6 +20,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.persistance.Repositories
 {
+
+    #region Persistence Operations
+
     /// <summary>
     /// Provides persistence operations for EmployeeContact records.
     /// </summary>
@@ -28,7 +31,7 @@ namespace axionpro.persistance.Repositories
         private readonly WorkforceDbContext _context;
         private readonly IMapper _mapper;
         private readonly ILogger<EmployeeContactRepository> _logger;
-       
+
         private readonly IPasswordService _passwordService;
         private readonly IEncryptionService _encryptionService;
         public EmployeeContactRepository(WorkforceDbContext context, IMapper mapper, ILogger<EmployeeContactRepository> logger,
@@ -37,7 +40,7 @@ namespace axionpro.persistance.Repositories
             this._context = context;
             this._mapper = mapper;
             this._logger = logger;
-            
+
             _passwordService = passwordService;
             _encryptionService = encryptionService;
 
@@ -47,14 +50,14 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                // ✅ 1️⃣ Validation
+                //  1️⃣ Validation
                 if (entity == null)
                     throw new ArgumentNullException(nameof(entity));
 
                 if (entity.EmployeeId <= 0)
                     throw new ArgumentException("Invalid EmployeeId");
 
-                // 🔐 2️⃣ SINGLE PRIMARY RULE (VERY IMPORTANT)
+                //  2️⃣ SINGLE PRIMARY RULE (VERY IMPORTANT)
                 if (entity.IsPrimary == true)
                 {
                     var existingPrimaryContacts = await _context.EmployeeContacts
@@ -76,12 +79,12 @@ namespace axionpro.persistance.Repositories
                     }
                 }
 
-                // ✅ 3️⃣ Insert new contact
+                //  3️⃣ Insert new contact
                 await _context.EmployeeContacts.AddAsync(entity);
                 await _context.SaveChangesAsync();
 
-                // ✅ 4️⃣ Fetch list with LEFT JOINs
-                // ✅ 4️⃣ Fetch list with LEFT JOINs
+                //  4️⃣ Fetch list with LEFT JOINs
+                //  4️⃣ Fetch list with LEFT JOINs
                 var query =
                     from c in _context.EmployeeContacts.AsNoTracking()
 
@@ -102,7 +105,7 @@ namespace axionpro.persistance.Repositories
 
                     where c.EmployeeId == entity.EmployeeId
                           && c.IsSoftDeleted != true
-                    // ❌ IsActive filter hata diya
+                    //  IsActive filter hata diya
 
                     orderby c.Id descending
 
@@ -136,7 +139,7 @@ namespace axionpro.persistance.Repositories
                         Remark = c.Remark,
                         Description = c.Description,
 
-                        // ✅ Completion %
+                        //  Completion %
                         CompletionPercentage = CompletionCalculatorHelper.ContactPropCalculate(
                                  new GetContactResponseDTO
                                          {
@@ -157,7 +160,7 @@ namespace axionpro.persistance.Repositories
                     };
 
 
-                // ✅ Pagination (same filter)
+                //  Pagination (same filter)
                 var totalRecords = await _context.EmployeeContacts
                     .AsNoTracking()
                     .Where(x =>
@@ -191,27 +194,27 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                // 🔒 SAFETY
+                //  SAFETY
                 if (dto == null || employeeId <= 0)
                     throw new Exception("Invalid EmployeeId.");
- 
 
-                // 🔹 QUERY (NULL SAFE LEFT JOINS)
+
+                //  QUERY (NULL SAFE LEFT JOINS)
                 var records = await
                 (
                     from c in _context.EmployeeContacts.AsNoTracking()
 
-                        // ✅ COUNTRY LEFT JOIN (NULL SAFE)
+                        //  COUNTRY LEFT JOIN (NULL SAFE)
                     join country in _context.Countries
                         on c.CountryId equals (int?)country.Id into countryJoin
                     from country in countryJoin.DefaultIfEmpty()
 
-                        // ✅ STATE LEFT JOIN
+                        //  STATE LEFT JOIN
                     join state in _context.States
                         on c.StateId equals (int?)state.Id into stateJoin
                     from state in stateJoin.DefaultIfEmpty()
 
-                        // ✅ DISTRICT LEFT JOIN (0 / NULL SAFE)
+                        //  DISTRICT LEFT JOIN (0 / NULL SAFE)
                     join district in _context.Districts
                         on c.DistrictId equals (int?)district.Id into districtJoin
                     from district in districtJoin.DefaultIfEmpty()
@@ -220,11 +223,11 @@ namespace axionpro.persistance.Repositories
                         c.EmployeeId == employeeId &&
                         (c.IsSoftDeleted == false || c.IsSoftDeleted == null)
 
-                    orderby c.Id descending   // ✅ LATEST FIRST
+                    orderby c.Id descending   //  LATEST FIRST
 
                     select new GetContactResponseDTO
                     {
-                        Id = c.Id,                // ✅ STRING
+                        Id = c.Id,                //  STRING
                         EmployeeId = c.EmployeeId.ToString(),
 
                         ContactName = c.ContactName ?? string.Empty,
@@ -275,16 +278,16 @@ namespace axionpro.persistance.Repositories
                         ? CompletionCalculatorHelper.ContactPropCalculate(item)
                         : CompletionCalculatorHelper.ContactPropCalculate_NoPrimary(item);
                 }
- 
+
 
                 // =========================================================
-                // 🔹 UI Average Completion (ALWAYS show average)
+                //  UI Average Completion (ALWAYS show average)
                 // =========================================================
                 double uiAverageCompletion = records.Any()
                     ? Math.Round(records.Average(x => x.CompletionPercentage), 0)
                     : 0;
- 
- 
+
+
                 return new PagedResponseDTO<GetContactResponseDTO>
                 {
                     Data = records,
@@ -308,9 +311,9 @@ namespace axionpro.persistance.Repositories
         }
 
 
-       
 
-      
+
+
         public Task<PagedResponseDTO<GetContactResponseDTO>> AutoCreatedAsync(EmployeeContact entity)
         {
             throw new NotImplementedException();
@@ -331,7 +334,7 @@ namespace axionpro.persistance.Repositories
                     return true;
                 }
 
-                // 🚧 No Row Updated means something unexpected (maybe no actual new values)
+                //  No Row Updated means something unexpected (maybe no actual new values)
                 _logger.LogWarning("⚠ No changes detected | ContactId: {Id}", employeeContact.Id);
                 return false;
             }
@@ -356,7 +359,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                // 🔥 SINGLE PRIMARY RULE (Repository level safety)
+                //  SINGLE PRIMARY RULE (Repository level safety)
                 if (employeeContact.IsPrimary == true)
                 {
                     var existingPrimaries = await _context.EmployeeContacts
@@ -378,7 +381,7 @@ namespace axionpro.persistance.Repositories
                     }
                 }
 
-                // ✅ Update current contact
+                //  Update current contact
                 _context.EmployeeContacts.Update(employeeContact);
 
                 int affectedRows = await _context.SaveChangesAsync();
@@ -460,4 +463,6 @@ namespace axionpro.persistance.Repositories
 
 
     }
+
+    #endregion
 }

@@ -25,6 +25,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 {
+
+    #region Query
+
     /// <summary>
     /// Represents the GetEducationInfoQuery application component.
     /// </summary>
@@ -40,7 +43,11 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
     /// <summary>
     /// Handles GetEducationInfoQuery requests.
     /// </summary>
-    public class GetEducationInfoQueryHandler : IRequestHandler<GetEducationInfoQuery, ApiResponse<List<GetEducationResponseDTO>>>
+        #endregion
+
+    #region Handler
+
+public class GetEducationInfoQueryHandler : IRequestHandler<GetEducationInfoQuery, ApiResponse<List<GetEducationResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -113,7 +120,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                     throw new ValidationErrorException("Invalid EmployeeId.");
 
                 // ===============================
-                // 3️⃣ PERMISSION (YOUR FIXED PATTERN ✅)
+                // 3️⃣ PERMISSION (YOUR FIXED PATTERN )
                 // ===============================
                 //var hasAccess = await _permissionService.HasAccessAsync(
                 //    validation.RoleId,
@@ -169,9 +176,10 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                     "Error fetching education | EmployeeId: {EmployeeId}",
                     request.DTO?.UserEmployeeId);
 
-                throw; // 🚨 MUST
+                throw; //  MUST
             }
         }
 
     }
+    #endregion
 }

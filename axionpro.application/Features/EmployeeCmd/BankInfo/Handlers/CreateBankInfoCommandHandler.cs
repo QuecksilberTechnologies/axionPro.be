@@ -33,6 +33,9 @@ using System.Text.RegularExpressions;
 
 namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 {
+
+    #region Command
+
     /// <summary>
     /// Represents the CreateBankInfoCommand application component.
     /// </summary>
@@ -48,7 +51,11 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
     /// <summary>
     /// Handles CreateBankInfoCommand requests.
     /// </summary>
-    public class CreateBankInfoCommandHandler: IRequestHandler<CreateBankInfoCommand, ApiResponse<List<GetBankResponseDTO>>>
+        #endregion
+
+    #region Handler
+
+public class CreateBankInfoCommandHandler: IRequestHandler<CreateBankInfoCommand, ApiResponse<List<GetBankResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -208,9 +215,9 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                     _idEncoderService,
                     validation.Claims.TenantEncriptionKey,
                     _config, _fileStorageService);
-                 
+
                 // ===============================
-                // 🔟 COMMIT
+                //  COMMIT
                 // ===============================
                 await _unitOfWork.CommitTransactionAsync();
 
@@ -221,13 +228,13 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
             catch (Exception ex)
             {
                 // ===============================
-                // 🔁 ROLLBACK
+                //  ROLLBACK
                 // ===============================
                 await _unitOfWork.RollbackTransactionAsync();
 
                 _logger.LogError(ex, "Error adding bank info");
 
-                // 🧹 FILE CLEANUP
+                //  FILE CLEANUP
                 if (!string.IsNullOrEmpty(uploadedFileKey))
                 {
                     try
@@ -240,9 +247,10 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                     }
                 }
 
-                throw; // 🚨 MUST
+                throw; //  MUST
             }
         }
 
     }
+    #endregion
 }

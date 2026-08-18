@@ -18,6 +18,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.TickeAllCmd.Classification
 {
+
+    #region Command
+
     // ===============================
     // COMMAND
     // ===============================
@@ -41,7 +44,11 @@ namespace axionpro.application.Features.TickeAllCmd.Classification
     /// <summary>
     /// Handles GetAllClassificationCommand requests.
     /// </summary>
-    public class GetAllClassificationCommandHandler
+        #endregion
+
+    #region Handler
+
+public class GetAllClassificationCommandHandler
      : IRequestHandler<GetAllClassificationCommand, ApiResponse<List<GetClassificationResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -113,7 +120,7 @@ namespace axionpro.application.Features.TickeAllCmd.Classification
                         Message: result.Data.Any()
                             ? "Classifications retrieved successfully."
                             : "No classifications found."
-                      
+
                     );
             }
             catch (Exception ex)
@@ -126,4 +133,5 @@ namespace axionpro.application.Features.TickeAllCmd.Classification
     }
 
 
+    #endregion
 }

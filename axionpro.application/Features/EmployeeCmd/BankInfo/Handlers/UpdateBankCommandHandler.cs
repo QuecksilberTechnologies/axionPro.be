@@ -25,6 +25,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 {
+
+    #region Command
+
     /// <summary>
     /// Represents the UpdateBankCommand application component.
     /// </summary>
@@ -41,7 +44,11 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
     /// <summary>
     /// Handles authenticated tenant requests for this feature.
     /// </summary>
-    public class UpdateBankCommandHandler : IRequestHandler<UpdateBankCommand, ApiResponse<bool>>
+        #endregion
+
+    #region Handler
+
+public class UpdateBankCommandHandler : IRequestHandler<UpdateBankCommand, ApiResponse<bool>>
     {
 
         private readonly IUnitOfWork _unitOfWork;
@@ -230,7 +237,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                     throw new ApiException("Failed to update bank info.", 500);
 
                 // ===============================
-                // 🔟 COMMIT
+                //  COMMIT
                 // ===============================
                 await _unitOfWork.CommitTransactionAsync();
 
@@ -244,7 +251,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 
                 _logger.LogError(ex, "Error updating bank info");
 
-                // 🧹 FILE CLEANUP
+                //  FILE CLEANUP
                 if (!string.IsNullOrEmpty(uploadedFileKey))
                 {
                     try
@@ -257,9 +264,10 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                     }
                 }
 
-                throw; // 🚨 MUST
+                throw; //  MUST
             }
         }
     }
 
+    #endregion
 }

@@ -24,6 +24,9 @@ using Microsoft.Extensions.Logging;
 namespace axionpro.persistance.Repositories
 {
 
+    #region Persistence Operations
+
+
     /// <summary>
     /// Provides persistence operations for EmployeeEducation records.
     /// </summary>
@@ -32,7 +35,7 @@ namespace axionpro.persistance.Repositories
         private readonly WorkforceDbContext _context;
         private readonly IMapper _mapper;
         private readonly ILogger<EmployeeEducationRepository> _logger;
-       
+
         private readonly IPasswordService _passwordService;
         private readonly IEncryptionService _encryptionService;
         IFileStorageService _fileStorageService;
@@ -43,7 +46,7 @@ namespace axionpro.persistance.Repositories
             this._context = context;
             this._mapper = mapper;
             this._logger = logger;
-            // 
+            //
             _passwordService = passwordService;
             _encryptionService = encryptionService;
             _fileStorageService = fileStorageService;
@@ -55,18 +58,18 @@ namespace axionpro.persistance.Repositories
             {
                // await using var _context = await _contextFactory.CreateDbContextAsync();
 
-                // ✅ 1️⃣ Validation
+                //  1️⃣ Validation
                 if (entity == null)
                     throw new ArgumentNullException(nameof(entity), "Dependent info entity cannot be null.");
 
                 if (entity.EmployeeId <= 0)
                     throw new ArgumentException("Invalid EmployeeId provided.");
 
-                // ✅ 2️⃣ Record insert karo
+                //  2️⃣ Record insert karo
                 await _context.EmployeeEducations.AddAsync(entity);
                 await _context.SaveChangesAsync();
 
-                // ✅ 3️⃣ Fetch updated list (latest record ke sath)
+                //  3️⃣ Fetch updated list (latest record ke sath)
                 var query = _context.EmployeeEducations
                     .AsNoTracking()
                     .Where(x => x.EmployeeId == entity.EmployeeId && x.IsSoftDeleted != true)
@@ -74,19 +77,19 @@ namespace axionpro.persistance.Repositories
 
                 var totalRecords = await query.CountAsync();
 
-                // ✅ 4️⃣ Fetch paginated data
+                //  4️⃣ Fetch paginated data
                 var records = await query.Take(10).ToListAsync();
 
-                // ✅ 5️⃣ Map to DTOs
+                //  5️⃣ Map to DTOs
                 var responseData = _mapper.Map<List<GetEducationResponseDTO>>(records);
 
-                // ✅ 6️⃣ Prepare PagedResponse
+                //  6️⃣ Prepare PagedResponse
                 return  new PagedResponseDTO<GetEducationResponseDTO>
                 {
                     Data = responseData,
                     TotalCount = totalRecords,
                     PageNumber = 1,
-                    PageSize = 10,                        
+                    PageSize = 10,
                 };
             }
             catch (Exception ex)
@@ -187,7 +190,7 @@ namespace axionpro.persistance.Repositories
                         ReasonOfEducationGap = edu.ReasonOfEducationGap,
                         StartDate = edu.StartDate,
                         EndDate = edu.EndDate,
-                        // 🔥 FIXED
+                        //  FIXED
                        // FilePath = !string.IsNullOrEmpty(edu.FilePath) ? _fileStorageService.GetFileUrl(edu.FilePath)  : null,
                          FilePath = edu.FilePath  ,
                         FileType = edu.FileType?? 0,
@@ -197,8 +200,8 @@ namespace axionpro.persistance.Repositories
                         IsInfoVerified = edu.IsInfoVerified,
                         InfoVerifiedById = edu.InfoVerifiedById?.ToString(),
                         HasEducationDocUploded = edu.HasEducationDocUploded,
-                        
-                      
+
+
                     };
 
                     // -----------------
@@ -354,13 +357,15 @@ namespace axionpro.persistance.Repositories
 
 
 
+
+    #endregion
 }
 
 
 
 
- 
- 
+
+
 
 
 

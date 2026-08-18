@@ -21,10 +21,10 @@ namespace axionpro.application.DTOS.Employee.Contact
     /// </summary>
     public class CreateContactRequestDTO
     {
-              
+
         public string EmployeeId { get; set; } = string.Empty;
 
-        // 🔹 Contact Info
+        //  Contact Info
         public string? ContactName { get; set; }          // e.g. Personal, Work, Emergency
         public ContactTypeEnum ContactType { get; set; }
         // e.g. Personal, Work, Emergency
@@ -34,7 +34,7 @@ namespace axionpro.application.DTOS.Employee.Contact
         public string? Email { get; set; }
         public bool IsPrimary { get; set; } = false;
 
-        // 🔹 Address Info
+        //  Address Info
         public int? CountryId { get; set; }
         public int? StateId { get; set; }
         public int? DistrictId { get; set; }
@@ -42,13 +42,13 @@ namespace axionpro.application.DTOS.Employee.Contact
         public string? LandMark { get; set; }
         public string? Street { get; set; }
         public string? Address { get; set; }
-       
 
-        // 🔹 Optional/Metadata
+
+        //  Optional/Metadata
         public string? Remark { get; set; }
         public string? Description { get; set; }
 
- 
-         
+
+
     }
 }

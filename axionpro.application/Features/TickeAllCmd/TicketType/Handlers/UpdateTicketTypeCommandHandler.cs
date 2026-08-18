@@ -19,6 +19,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
 {
+
+    #region Command
+
     /// <summary>
     /// Represents the UpdateTicketTypeCommand application component.
     /// </summary>
@@ -34,7 +37,11 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
     /// <summary>
     /// Handles UpdateTicketTypeCommand requests.
     /// </summary>
-    public class UpdateTicketTypeCommandHandler
+        #endregion
+
+    #region Handler
+
+public class UpdateTicketTypeCommandHandler
      : IRequestHandler<UpdateTicketTypeCommand, ApiResponse<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -93,7 +100,7 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
 
                 if (dto.IsApprovalRequired && dto.ApprovalRoleId == null)
                     throw new ValidationErrorException("ApprovalRoleId is required.");
- 
+
 
                 if (dto.SLAHours != null && dto.SLAHours <= 0)
                     throw new ValidationErrorException("SLAHours must be greater than 0.");
@@ -109,7 +116,7 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
                     throw new ValidationErrorException("Invalid TicketHeaderId.");
 
 
-                // 🔥 Responsible Role check
+                //  Responsible Role check
                 var responsibleRoleRequest = new GetSingleRoleRequestDTO
                 {
                     Id = dto.ResponsibleRoleId
@@ -122,7 +129,7 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
                     throw new ValidationErrorException("Invalid ResponsibleRoleId.");
 
 
-                // 🔥 Approval Role check
+                //  Approval Role check
                 if (dto.IsApprovalRequired)
                 {
                     var approvalRoleRequest = new GetSingleRoleRequestDTO
@@ -137,7 +144,7 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
                         throw new ValidationErrorException("Invalid ApprovalRoleId.");
                 }
 
-                // 🔥 Is Attachment requirement check
+                //  Is Attachment requirement check
                 if (dto.IsAttachmentRequired)
                 {
                     var attachmentRequest  = new GetSingleRoleRequestDTO
@@ -182,4 +189,5 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
             }
         }
     }
+    #endregion
 }

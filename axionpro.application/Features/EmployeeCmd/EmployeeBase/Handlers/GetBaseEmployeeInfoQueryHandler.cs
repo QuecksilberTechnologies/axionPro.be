@@ -24,6 +24,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
+
+    #region Query
+
     /// <summary>
     /// Represents the GetBaseEmployeeInfoQuery application component.
     /// </summary>
@@ -39,7 +42,11 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
     /// <summary>
     /// Handles authenticated tenant requests for this feature.
     /// </summary>
-    public class GetBaseEmployeeInfoQueryHandler : IRequestHandler<GetBaseEmployeeInfoQuery, ApiResponse<List<GetBaseEmployeeResponseDTO>>>
+        #endregion
+
+    #region Handler
+
+public class GetBaseEmployeeInfoQueryHandler : IRequestHandler<GetBaseEmployeeInfoQuery, ApiResponse<List<GetBaseEmployeeResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -107,7 +114,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     throw new ValidationErrorException("Invalid EmployeeId.");
 
                 // ===============================
-                // 3️⃣ PERMISSION (YOUR PATTERN ✅)
+                // 3️⃣ PERMISSION (YOUR PATTERN )
                 // ===============================
                 //var hasAccess = await _permissionService.HasAccessAsync(
                 //    validation.RoleId,
@@ -172,8 +179,9 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     "Error fetching employee info | EmployeeId: {EmployeeId}",
                     request.DTO?.EmployeeId);
 
-                throw; // 🚨 MUST
+                throw; //  MUST
             }
         }
     }
+    #endregion
 }

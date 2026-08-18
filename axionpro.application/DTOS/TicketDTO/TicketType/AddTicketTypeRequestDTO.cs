@@ -6,13 +6,13 @@
 // ================================================================
 
 using axionpro.application.DTOS.Common;
-using axionpro.domain.Entity; 
+using axionpro.domain.Entity;
 using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks; 
+using System.Threading.Tasks;
 namespace axionpro.application.DTOS.TicketDTO.TicketType
 {
     /// <summary>
@@ -20,32 +20,32 @@ namespace axionpro.application.DTOS.TicketDTO.TicketType
     /// </summary>
     public class AddTicketTypeRequestDTO
     {
-        // 🔹 Basic Info
+        //  Basic Info
         public string TicketTypeName { get; set; } = null!;
 
         public long TicketHeaderId { get; set; }
 
         public string? Description { get; set; }
 
-        // 🔹 Responsible Execution
+        //  Responsible Execution
         public int ResponsibleRoleId { get; set; }
 
-        // 🔥 Approval Engine
+        //  Approval Engine
         public bool IsApprovalRequired { get; set; } = false;
 
         public int? ApprovalRoleId { get; set; }
 
         public bool AutoApproveIfSameRole { get; set; }
 
-        // 🔥 SLA
+        //  SLA
         public int? SLAHours { get; set; }
 
-        // 🔥 Attachment Rule
+        //  Attachment Rule
         public bool IsAttachmentRequired { get; set; }
 
-        // 🔹 Extra Config
+        //  Extra Config
         public bool IsActiveForAllUsers { get; set; } = true;
 
-        // 🔹 Common Request
+        //  Common Request
     }
 }

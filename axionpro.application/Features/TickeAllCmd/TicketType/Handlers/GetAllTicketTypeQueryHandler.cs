@@ -20,6 +20,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
 {
+
+    #region Query
+
     /// <summary>
     /// Represents the GetAllTicketTypeQuery application component.
     /// </summary>
@@ -36,7 +39,11 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
     /// <summary>
     /// Handles GetAllTicketTypeQuery requests.
     /// </summary>
-    public class GetAllTicketTypeQueryHandler: IRequestHandler<GetAllTicketTypeQuery, ApiResponse<List<GetTicketTypeResponseDTO>>>
+        #endregion
+
+    #region Handler
+
+public class GetAllTicketTypeQueryHandler: IRequestHandler<GetAllTicketTypeQuery, ApiResponse<List<GetTicketTypeResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetAllTicketTypeQueryHandler> _logger;
@@ -80,7 +87,7 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
                     throw new ValidationErrorException("Invalid request data.");
 
                 // ===============================
-                // 4️⃣ DEFAULT PAGINATION (IMPORTANT 🔥)
+                // 4️⃣ DEFAULT PAGINATION (IMPORTANT )
                 // ===============================
                 request.DTO.PageNumber = request.DTO.PageNumber <= 0 ? 1 : request.DTO.PageNumber;
                 request.DTO.PageSize = request.DTO.PageSize <= 0 ? 10 : request.DTO.PageSize;
@@ -95,7 +102,7 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
                     throw new ApiException("Failed to fetch TicketTypes.", 500);
 
                 // ===============================
-                // 6️⃣ RETURN (YOUR PATTERN 🔥)
+                // 6️⃣ RETURN (YOUR PATTERN )
                 // ===============================
                 return ApiResponse<List<GetTicketTypeResponseDTO>>
                     .SuccessPaginatedOnly(
@@ -115,5 +122,6 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
         }
     }
 
+    #endregion
 }
 

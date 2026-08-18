@@ -17,8 +17,11 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
 {
+
+    #region Query
+
     // ======================================================
-    // 🔹 COMMAND
+    //  COMMAND
     // ======================================================
     /// <summary>
     /// Represents the GetDependentCountsQuery application component.
@@ -35,12 +38,16 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
     }
 
     // ======================================================
-    // 🔹 HANDLER
+    //  HANDLER
     // ======================================================
     /// <summary>
     /// Handles GetDependentCountsQuery requests.
     /// </summary>
-    public class GetDependentCountsQueryHandler
+        #endregion
+
+    #region Handler
+
+public class GetDependentCountsQueryHandler
         : IRequestHandler<GetDependentCountsQuery, ApiResponse<GetDependentsDetailResponseDTO>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -75,7 +82,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                 _logger.LogInformation("🔹 GetDependentCounts started");
 
                 // ===============================
-                // 🔐 STEP 1: COMMON VALIDATION
+                //  STEP 1: COMMON VALIDATION
                 // ===============================
                 var validation = await _commonRequestService.ValidateRequestAsync();
 
@@ -83,12 +90,12 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                     throw new UnauthorizedAccessException(validation.ErrorMessage);
 
                 // ===============================
-                // 🔓 STEP 2: DECODE EMPLOYEE ID
+                //  STEP 2: DECODE EMPLOYEE ID
                 // ===============================
 
 
                 // ===============================
-                // 🔑 STEP 3: PERMISSION CHECK (OPTIONAL)
+                //  STEP 3: PERMISSION CHECK (OPTIONAL)
                 // ===============================
                 // bool hasAccess = await _permissionService.HasAccessAsync(
                 //     validation.RoleId,
@@ -99,7 +106,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                 //     throw new UnauthorizedAccessException("Access denied.");
 
                 // ===============================
-                // 📦 STEP 4: REPOSITORY CALL
+                //  STEP 4: REPOSITORY CALL
                 // ===============================
                 var result = await _unitOfWork
                     .EmployeeDependentRepository
@@ -109,14 +116,14 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                     result = new GetDependentsDetailResponseDTO();
 
                 // ===============================
-                // ✅ STEP 5: COMMIT
+                //  STEP 5: COMMIT
                 // ===============================
                 await _unitOfWork.CommitTransactionAsync();
 
                 _logger.LogInformation("✅ GetDependentCounts success");
 
                 // ===============================
-                // 📤 STEP 6: RESPONSE
+                //  STEP 6: RESPONSE
                 // ===============================
                 return ApiResponse<GetDependentsDetailResponseDTO>
                     .Success(result, "Dependent details fetched successfully.");
@@ -130,8 +137,9 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                     "❌ Error while fetching dependent details. EmployeeId: {EmployeeId}",
                     request.DTO?.EmployeeId);
 
-                throw; // 🔥 As per your architecture rules
+                throw; //  As per your architecture rules
             }
         }
     }
+    #endregion
 }

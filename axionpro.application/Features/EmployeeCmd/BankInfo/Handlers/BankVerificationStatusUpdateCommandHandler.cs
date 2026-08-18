@@ -23,6 +23,9 @@ using Microsoft.Extensions.Logging;
 namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 {
 
+    #region Command
+
+
     /// <summary>
     /// Represents the UpdateVerificationStatusCommand application component.
     /// </summary>
@@ -40,7 +43,11 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
     /// <summary>
     /// Handles authenticated tenant requests for this feature.
     /// </summary>
-    public class BankVerificationStatusUpdateCommandHandler
+        #endregion
+
+    #region Handler
+
+public class BankVerificationStatusUpdateCommandHandler
         : IRequestHandler<UpdateVerificationStatusCommand, ApiResponse<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -125,8 +132,8 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 // ===============================
                 //var hasPermission = await _permissionService.HasAccessAsync(
                 //    validation.RoleId,
-                //    "EmployeeBank",   // 🔹 Module (confirm if needed)
-                //    "Update"          // 🔹 Operation
+                //    "EmployeeBank",   //  Module (confirm if needed)
+                //    "Update"          //  Operation
                 //);
 
                 //if (!hasPermission)
@@ -182,12 +189,13 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
             {
                 _logger.LogError(ex, "Verification update error");
 
-                // ❗ IMPORTANT: middleware handle karega
+                //  IMPORTANT: middleware handle karega
                 throw;
             }
         }
 
 
     }
+    #endregion
 }
 

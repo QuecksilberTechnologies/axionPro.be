@@ -16,7 +16,7 @@ namespace axionpro.application.DTOS.Employee.Experience
     // =====================================================================
     //  CREATE EXPERIENCE REQUEST DTO
     // =====================================================================
-    
+
     /// <summary>
     /// Represents the CreateExperienceRequestDTO data transfer model.
     /// </summary>
@@ -24,7 +24,7 @@ namespace axionpro.application.DTOS.Employee.Experience
     {
         public required string EmployeeId { get; set; }
         public decimal? Ctc { get; set; }
-        // 🔹 Job Info
+        //  Job Info
         public string? CompanyName { get; set; }
         public string? Designation { get; set; }
         public string? EmployeeIdOfCompany { get; set; }
@@ -35,18 +35,18 @@ namespace axionpro.application.DTOS.Employee.Experience
         public int? Experience { get; set; }
         public bool IsWFH { get; set; } = false;
 
-        // 🔹 Location
+        //  Location
         public int? WorkingCountryId { get; set; }
         public int? WorkingStateId { get; set; }
         public int? WorkingDistrictId { get; set; }
 
         public bool IsForeignExperience { get; set; } = false;
 
-        // 🔹 Exit
+        //  Exit
         public string? ReasonForLeaving { get; set; }
         public string? Remark { get; set; }
 
-        // 🔹 Reporting
+        //  Reporting
         public string? ColleagueName { get; set; }
         public string? ColleagueDesignation { get; set; }
         public string? ColleagueContactNumber { get; set; }
@@ -56,14 +56,14 @@ namespace axionpro.application.DTOS.Employee.Experience
 
         public string? VerificationEmail { get; set; }
 
-        // 🔹 Gap
+        //  Gap
         public bool IsAnyGap { get; set; } = false;
         public string? ReasonOfGap { get; set; }
 
         public DateTime? GapYearFrom { get; set; }
         public DateTime? GapYearTo { get; set; }
 
-        // 🔹 Documents (🔥 Important)
+        //  Documents ( Important)
         public List<CreateExperienceDocumentDTO>? Documents { get; set; }
     }
 

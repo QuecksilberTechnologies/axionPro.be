@@ -24,6 +24,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
 {
+
+    #region Command
+
     /// <summary>
     /// Represents the UpdateExperienceInfoCommand application component.
     /// </summary>
@@ -40,7 +43,11 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
     /// <summary>
     /// Handles UpdateExperienceInfoCommand requests.
     /// </summary>
-    public class UpdateExperienceInfoCommandHandler
+        #endregion
+
+    #region Handler
+
+public class UpdateExperienceInfoCommandHandler
        : IRequestHandler<UpdateExperienceInfoCommand, ApiResponse<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -178,7 +185,7 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                 if (request.DTO.GapYearTo.HasValue)
                     existing.GapYearTo = request.DTO.GapYearTo;
 
-                // 🔹 Audit
+                //  Audit
                 existing.UpdatedById = validation.UserEmployeeId;
                 existing.UpdatedDateTime = DateTime.UtcNow;
 
@@ -207,4 +214,5 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
         }
     }
 
+    #endregion
 }

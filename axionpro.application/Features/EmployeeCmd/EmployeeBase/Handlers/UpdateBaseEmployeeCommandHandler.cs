@@ -23,6 +23,9 @@ using Microsoft.Extensions.Logging;
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
 
+    #region Command
+
+
 
     /// <summary>
     /// Represents the UpdateEmployeeCommand application component.
@@ -40,7 +43,11 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
     /// <summary>
     /// Handles UpdateBaseEmployeeCommand requests.
     /// </summary>
-    public class UpdateBaseEmployeeCommandHandler : IRequestHandler<UpdateEmployeeCommand, ApiResponse<bool>>
+        #endregion
+
+    #region Handler
+
+public class UpdateBaseEmployeeCommandHandler : IRequestHandler<UpdateEmployeeCommand, ApiResponse<bool>>
     {
         private readonly IBaseEmployeeRepository _employeeRepository;
         private readonly IUnitOfWork _unitOfWork;
@@ -70,10 +77,10 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             _config = config;
             _httpContextAccessor = httpContextAccessor;
             _encryptionService = encryptionService;
-            _idEncoderService = idEncoderService; 
+            _idEncoderService = idEncoderService;
             _commonRequestService = commonRequestService;
             _permissionService = permissionService;
-            
+
         }
 
         public async Task<ApiResponse<bool>> Handle(
@@ -203,7 +210,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 
                 _logger.LogError(ex, "Error updating employee");
 
-                throw; // 🚨 MUST
+                throw; //  MUST
             }
         }
 
@@ -272,7 +279,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
     //    {
     //        try
     //        {
-    //            // 🧱 Step 1: Validate JWT Token
+    //            //  Step 1: Validate JWT Token
     //            var bearerToken = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString()?.Replace("Bearer ", "");
     //            if (string.IsNullOrEmpty(bearerToken))
     //                return ApiResponse<bool>.Fail("Unauthorized: Token not found.");
@@ -291,7 +298,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
     //                return ApiResponse<bool>.Fail("User is not authorized to perform this action.");
     //            }
 
-    //            // 🧱 Step 2: Permission Check
+    //            //  Step 2: Permission Check
     //            var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
     //            if (!permissions.Contains("EditEmployeeInfo"))
     //            {
@@ -303,7 +310,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
     //            var tenantKey = tokenClaims.TenantEncriptionKey;
 
 
-    //            // 🧱 Step 4: Validate DTO Input
+    //            //  Step 4: Validate DTO Input
     //            if (DTO == null)
     //                return ApiResponse<bool>.Fail("Invalid request: DTO cannot be null.");
 
@@ -322,16 +329,16 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
     //            if (string.IsNullOrWhiteSpace(DTO.FieldName))
     //                return ApiResponse<bool>.Fail("Field name is required.");
 
-    //            // 🧱 Step 3: Fetch Employee Record
+    //            //  Step 3: Fetch Employee Record
     //            var employee = await _employeeRepository.GetSingleRecordAsync(DTO._EmployeeId, true);
     //            if (employee == null)
     //                return ApiResponse<bool>.Fail("Employee not found.");
 
-    //            // 🧱 Step 4: Generate FieldWithAccess DTO (for read-only check)
+    //            //  Step 4: Generate FieldWithAccess DTO (for read-only check)
     //            var editableDto = _mapper.Map<EmployeeInfoEditableFieldsDTO>(employee);
     //            var accessDto = EmployeeBasicInfoMapperHelper.ConvertToAccessResponseDTO(editableDto);
 
-    //            // 🧱 Step 5: Reflection to find requested field
+    //            //  Step 5: Reflection to find requested field
     //            var accessProp = typeof(GetBaseAccessEmployeeResponseDTO)
     //                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
     //                .FirstOrDefault(p => string.Equals(p.Name, DTO.FieldName, StringComparison.OrdinalIgnoreCase));
@@ -346,7 +353,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
     //            if (isReadOnly)
     //                return ApiResponse<bool>.Fail($"Field '{DTO.FieldName}' is read-only and cannot be updated.");
 
-    //            // 🧱 Step 6: Find actual property in Employee entity
+    //            //  Step 6: Find actual property in Employee entity
     //            var employeeProp = typeof(Employee)
     //                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
     //                .FirstOrDefault(p => string.Equals(p.Name, DTO.FieldName, StringComparison.OrdinalIgnoreCase));
@@ -354,19 +361,19 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
     //            if (employeeProp == null || !employeeProp.CanWrite)
     //                return ApiResponse<bool>.Fail($"Property '{DTO.FieldName}' is not valid or not writable.");
 
-    //            // 🧱 Step 7: Safe type conversion
+    //            //  Step 7: Safe type conversion
     //            if (!TryConvertObjectToValue.TryConvertValue(DTO.FieldValue, employeeProp.PropertyType, out object? convertedValue))
     //            {
     //                _logger.LogWarning("Conversion failed for property '{Field}' with value '{Value}'", DTO.FieldName, DTO.FieldValue);
     //                return ApiResponse<bool>.Fail($"Value conversion failed for property '{DTO.FieldName}'.");
     //            }
 
-    //            // 🧱 Step 8: Apply update
+    //            //  Step 8: Apply update
     //            employeeProp.SetValue(employee, convertedValue);
     //          //  employee.UpdatedById = DTO.EmployeeId;
     //          //  employee.UpdatedDateTime = DateTime.UtcNow;
 
-    //            // 🧱 Step 9: Commit update
+    //            //  Step 9: Commit update
     //            var updateStatus = await _unitOfWork.Employees.UpdateEmployeeFieldAsync(
     //                employee.Id, DTO.EntityName, DTO.FieldName, convertedValue, DTO._EmployeeId);
 
@@ -383,4 +390,5 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
     //    }
     //}
 
+    #endregion
 }

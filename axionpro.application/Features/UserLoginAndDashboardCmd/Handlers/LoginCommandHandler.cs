@@ -44,6 +44,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 {
+
+    #region Command
+
     /// <summary>
     /// Represents a request to authenticate either a Host user or a Tenant Employee.
     /// </summary>
@@ -64,7 +67,11 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
     /// <summary>
     /// Handles Host authentication first and delegates unchanged Tenant Employee login behavior when no Host user matches.
     /// </summary>
-    public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<LoginResponseDTO>>
+        #endregion
+
+    #region Handler
+
+public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<LoginResponseDTO>>
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
@@ -90,7 +97,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
             _iCommonRepository = iCommonRepository;
             _passwordService = passwordService;
             _configuration = configuration;
-            _encryptionService = encryptionService; // 👈 same name use karo
+            _encryptionService = encryptionService; //  same name use karo
             _idEncoderService = idEncoderService;
             _commonRequestService = commonRequestService;
        _fileStorageService = fileStorageService;
@@ -108,7 +115,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                         axionpro.application.Constants.AppConstants.ErrorMessages.InvalidRequest);
 
                 }
-                string? savedFullPath = null;  // 📂 File full path track karne ke liye
+                string? savedFullPath = null;  //  File full path track karne ke liye
 
                 if (string.IsNullOrEmpty(request.DTO.LoginId) && string.IsNullOrEmpty(request.DTO.Password))
                 {
@@ -134,7 +141,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 #endregion
 
 
-                // 🔐 Step 1: Validate if user exists
+                //  Step 1: Validate if user exists
                 long empId = await _unitOfWork.StoreProcedureRepository.ValidateActiveUserLoginOnlyAsync(request.DTO.LoginId);
                 _logger.LogInformation("Validation result for LoginId {LoginId}: EmployeeId = {empId}", request.DTO.LoginId, empId);
 
@@ -145,7 +152,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                     throw new UnauthorizedAccessException(
                         axionpro.application.Constants.AppConstants.ErrorMessages.Unauthorized);
                 }
-                             
+
 
 
                 var loginRequest = new LoginRequestDTO
@@ -157,10 +164,10 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                     LoginDevice = request.DTO.LoginDevice,
                     MacAddress = request.DTO.MacAddress,
                     Latitude = request.DTO.Latitude,
-                    Longitude = request.DTO.Longitude,  
+                    Longitude = request.DTO.Longitude,
                 };
-               
-                // 🔐 Authenticate user
+
+                //  Authenticate user
                 var user = await _unitOfWork.UserLoginRepository.AuthenticateUser(loginRequest.LoginId);
 
                 if (user == null || string.IsNullOrWhiteSpace(user.Password))
@@ -168,15 +175,15 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                     throw new UnauthorizedAccessException(ConstantValues.invalidCredential);
                 }
 
-                // 🔑 Verify password
+                //  Verify password
                 if (!_passwordService.VerifyPassword(user.Password, loginRequest.Password))
                 {
                     throw new UnauthorizedAccessException(ConstantValues.invalidCredential);
                 }
-                
+
                 //if (!passwordMatch)
                 //{
-                //    _logger.LogWarning("🚫 Login failed: Incorrect password for LoginId: {LoginId}", loginRequest.LoginId);
+                //    _logger.LogWarning(" Login failed: Incorrect password for LoginId: {LoginId}", loginRequest.LoginId);
                 //    return null;
                 //}
 
@@ -187,11 +194,11 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 bool? IsPasswordChange = user.IsPasswordChangeRequired;
 
 
-                // 👨‍💼 Step 5: Fetch Employee Info
+                // ‍ Step 5: Fetch Employee Info
                 // var employee = await _unitOfWork.Employees.GetEmployeeInfoForLoginByIdAsync(empId);
                 GetMinimalEmployeeResponseDTO empMinimalResponse = await _unitOfWork.Employees.GetSingleRecordAsync(empId,true);
                 TenantSubscriptionPlanRequestDTO dto = new TenantSubscriptionPlanRequestDTO();
-                
+
 
 
                 if (empMinimalResponse == null)
@@ -211,7 +218,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 var subscriptionInfo = await _unitOfWork.TenantSubscriptionRepository
                      .GetValidateTenantPlan(dto);
 
-                // ✅ Check if subscription info exists and EndDate > today
+                //  Check if subscription info exists and EndDate > today
                 if (subscriptionInfo == null ||
                              !subscriptionInfo.SubscriptionEndDate.HasValue ||
                              subscriptionInfo.SubscriptionEndDate.Value.Date < DateTime.Today)
@@ -228,7 +235,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 }
                 // Get Active true and Isdeleted false employee
 
-                // 👥 Step 6: Fetch all roles
+                //  Step 6: Fetch all roles
                 var userRoles = await _unitOfWork.UserRoleRepository.GetEmployeeRolesWithDetailsByIdAsync(empId, empMinimalResponse.TenantId);
                 var roleInfo = userRoles.FirstOrDefault(x => x.IsPrimaryRole == true);
 
@@ -261,43 +268,43 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                         _logger.LogWarning("No roles found for LoginId {LoginId}", loginRequest.LoginId);
 
 
-                    // 🧠 Step 7: Map roles to DTOs
+                    //  Step 7: Map roles to DTOs
                       userRoleDTOs = _mapper.Map<List<UserRoleDTO>>(userRoles);
-                    // ✅ Find & separate primary role
+                    //  Find & separate primary role
                         primaryRole = userRoleDTOs.FirstOrDefault(ur => ur.IsPrimaryRole && ur.IsActive);
 
                     if (primaryRole != null)
                         userRoleDTOs.Remove(primaryRole); // Remove primary from list
 
-                    // 🎯 Extract secondary role IDs
+                    //  Extract secondary role IDs
                     List<int> secondaryRoleIds = userRoleDTOs?.Where(ur => ur.RoleId > 0).Select(ur => ur.RoleId).Distinct().ToList()?? new List<int>();
 
 
                     string secondaryRolesCsv = secondaryRoleIds.Any()
                         ? string.Join(",", secondaryRoleIds)
                         : "NULL";
-                    // 🧾 Step 8: Map Employee Info
-                 
+                    //  Step 8: Map Employee Info
+
                 }
 
-                
+
               //  employeeInfo.EmployeeTypeId = empInfo.EmployeeTypeId;
 
 
                 // Getting Tenant Enabled module list
 
 
-                // 🧩 Step 9: Load Common Itaxionpro
+                //  Step 9: Load Common Itaxionpro
                 //  var commonItaxionpro = await _unitOfWork.CommonRepository.GetCommonItemAsync();
 
-                // ✅ Step 1: Get CommonMenuParent first (wait until it completes)
+                //  Step 1: Get CommonMenuParent first (wait until it completes)
                 var parent = await _unitOfWork.ModuleRepository.GetCommonMenuParentAsync();
                 if (parent == null) return null;
 
-                // ✅ Step 2: ONLY AFTER FIRST IS DONE, call second method
+                //  Step 2: ONLY AFTER FIRST IS DONE, call second method
                 List<ModuleDTO> CommonItems = await _unitOfWork.ModuleRepository.GetCommonMenuTreeAsync(parent.Id);
 
-                // ✅ Step 3: THEN call RolePermissions API
+                //  Step 3: THEN call RolePermissions API
                 var requestDto = new GetActiveRoleModuleOperationsRequestDTO
                 {
                     RoleIds = allRoleIdsCsv,
@@ -305,7 +312,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 };
 
 
-                
+
 
 
                 var rolePermissions = await _unitOfWork.StoreProcedureRepository.GetActiveRoleModuleOperationsAsync(requestDto);
@@ -314,14 +321,14 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 
 
                 var grouped = rolePermissions
-             .GroupBy(m => new { m.MainModuleId, m.MainModuleName }) // 🔷 Group by Main Module
+             .GroupBy(m => new { m.MainModuleId, m.MainModuleName }) //  Group by Main Module
              .Select(main => new MainModuleDto
              {
                  MainModuleId = main.Key.MainModuleId,
                  MainModuleName = main.Key.MainModuleName,
 
                  SubModules = main
-                     .GroupBy(sm => new { sm.ParentModuleId, sm.SubModuleName }) // 🔷 Sub Module Group
+                     .GroupBy(sm => new { sm.ParentModuleId, sm.SubModuleName }) //  Sub Module Group
                      .Select(sub => new SubModuleDto
                      {
                          SubModuleId = sub.Key.ParentModuleId,
@@ -335,9 +342,9 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                                  mod.DisplayName,
                                  mod.ImageIconWeb,
                                  mod.ImageIconMobile,
-                                                       // ✅ Newly Added
-                                 mod.URLPath,                  // ✅ From ModuleOperationMapping
-                                                 // ✅ From ModuleOperationMapping
+                                                       //  Newly Added
+                                 mod.URLPath,                  //  From ModuleOperationMapping
+                                                 //  From ModuleOperationMapping
                                  mod.DataViewStructureId,
                                  mod.DisplayOn
                              })
@@ -348,9 +355,9 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                                  DisplayName = mod.Key.DisplayName,
                                  ImageIconWeb = mod.Key.ImageIconWeb,
                                  ImageIconMobile = mod.Key.ImageIconMobile,
-                                 SubModuleURL = mod.Key.URLPath,              // ✅
-                                                       // ✅
-                                                  
+                                 SubModuleURL = mod.Key.URLPath,              //
+                                                       //
+
                                  DataViewStructureId = mod.Key.DataViewStructureId,
                                  DisplayOn = mod.Key.DisplayOn,
 
@@ -364,13 +371,13 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                      }).ToList()
              }).ToList();
                 var TenantEnabledModulesWithOperationData = await _unitOfWork.UserRolesPermissionOnModuleRepository.GetAllTenantEnabledModulesWithOperationsAsync(empMinimalResponse.TenantId);
-                // ✅ Step 1: Safe TenantId extraction
-                
+                //  Step 1: Safe TenantId extraction
+
                 long tempTenantId = empMinimalResponse?.TenantId ?? 0;
                 long tempEmployeeId = empMinimalResponse?.Id ?? 0;
                 string convertedTenantId = tempTenantId.ToString();
 
-                // ✅ Step 2: Get encryption key
+                //  Step 2: Get encryption key
                 var tenantEncryptionKey = await _unitOfWork.TenantEncryptionKeyRepository
                     .GetActiveKeyByTenantIdAsync(tempTenantId);
 
@@ -384,8 +391,8 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 string finalKey = EncryptionSanitizer.SuperSanitize(tenantEncryptionKey.EncryptionKey);
                 string encriptedEmployeeId = _idEncoderService.EncodeId_long(tempEmployeeId, finalKey);
                 string encriptedTenantId = _idEncoderService.EncodeId_long(tempTenantId, finalKey);
-                // ✅ Decrypt same encrypted string             
-          
+                //  Decrypt same encrypted string
+
                // string? ProfileImagePath = $"{_configuration["FileSettings:BaseUrl"] ?? string.Empty}{await _unitOfWork.Employees.ProfileImage(empId) ?? null}";
                 string? profileKey = await _unitOfWork.Employees.ProfileImage(empId);
 
@@ -399,7 +406,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 
                 GetEmployeeLoginInfoResponseDTO? employeeInfo = _mapper.Map<GetEmployeeLoginInfoResponseDTO>(empMinimalResponse);
                 employeeInfo.IsPasswordChangeRequired = IsPasswordChange;
-                employeeInfo.UserPrimaryRole = primaryRole;                 
+                employeeInfo.UserPrimaryRole = primaryRole;
                 employeeInfo.RoleTypeId = roleInfo.Role.RoleType;
                 employeeInfo.RoleTypeName = roleInfo.Role.RoleName;
                 employeeInfo.EmployeeId = encriptedEmployeeId.Trim();
@@ -413,18 +420,18 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                     RoleType = roleInfo.Role.RoleType,
                     IsActive = true
                 };
-                 
-                // ✅ Get role list (filtered by roleId)
+
+                //  Get role list (filtered by roleId)
                 var roleTypeList = await _unitOfWork.RoleRepository.GetAsync(
                     dto.TenantId,
                     getRoleRequestDTO);
 
-                // ✅ Select specific role
+                //  Select specific role
                 var roleType = roleTypeList.Data.FirstOrDefault(r => r.Id == employeeInfo.UserPrimaryRole.RoleId && r.IsActive == true);
-                 
-                // ✅ Get tenant info (await lagana mat bhoolna)
 
-                // ✅ Assign tenant name
+                //  Get tenant info (await lagana mat bhoolna)
+
+                //  Assign tenant name
 
                 if(dto.TenantId==0)
                 {
@@ -439,11 +446,11 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 
 
 
-                // ✅ Step 4: Prepare employee info 
+                //  Step 4: Prepare employee info
                 employeeInfo.TenantName = tenant?.CompanyName ?? string.Empty;
 
-                    
-                // ✅ Step 5: Prepare token info DTO
+
+                //  Step 5: Prepare token info DTO
                 GetTokenInfoDTO getTokenInfoDTO = new GetTokenInfoDTO()
                 {
                      TenantEncriptionKey = finalKey,
@@ -455,24 +462,24 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                     RoleTypeName = employeeInfo.RoleTypeName ?? "",
                     EmployeeTypeId =  employeeInfo.EmployeeTypeId.ToString()??"0",
                     GenderId = empMinimalResponse.GenderId.ToString(),
-                    GenderName = empMinimalResponse.GenderName,                  
+                    GenderName = empMinimalResponse.GenderName,
                     Email = request.DTO.LoginId ,
                     FullName = empMinimalResponse.FirstName + ("-" + empMinimalResponse.LastName) ?? " Unknown",
                     Expiry = DateTime.UtcNow.AddMinutes(15),
                     TokenPurpose = ConstantValues.Auth.ToString(),
-                    
-                   
+
+
                 };
 
                 #region 🎫 Token Generation
-                
-                // 🔐 Step 3: Generate tokens
+
+                //  Step 3: Generate tokens
                 var token = await _tokenService.GenerateToken(getTokenInfoDTO);
 
 
                 var refreshToken = await _tokenService.GenerateRefreshToken(); // PLAIN
-                var hashedRefreshToken = HashHelper.Sha256(refreshToken);      // HASHED 
-         
+                var hashedRefreshToken = HashHelper.Sha256(refreshToken);      // HASHED
+
                 bool isInserted = await _unitOfWork.RefreshTokenRepository.InsertAsync(new RefreshToken
                 {
                     LoginId = request.DTO.LoginId,
@@ -492,7 +499,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 
                 #endregion
 
-                // 🔄 Step 4: Update login audit
+                //  Step 4: Update login audit
                 if (isInserted!= false)
                     {
                     _logger.LogInformation("RefreshToken inserted successfully for LoginId: {LoginId}", loginRequest.LoginId);
@@ -514,11 +521,11 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 else
                     _logger.LogWarning("Failed to update LoginCredential for LoginId: {LoginId}", loginRequest.LoginId);
 
-                // 🔐 Step 10: Fetch Permissions
+                //  Step 10: Fetch Permissions
 
                 //  var permissionList = new List<List<RoleModulePermission>> { rolePermissions };
 
-                // 🚀 Step 11: Final Response Object
+                //  Step 11: Final Response Object
                 var loginResponse = new LoginResponseDTO
                 {
                     Token = token,
@@ -531,12 +538,12 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 };
 
 
-            
 
-                // ✅ Final Return
+
+                //  Final Return
                 return ApiResponse<LoginResponseDTO>.Success(loginResponse, "Login successful.");
 
-                
+
 
               //  return new ApiResponse<LoginResponseDTO>(loginResponse, ConstantValues.successMessage, ConstantValues.isSucceeded);
             }
@@ -544,7 +551,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
             {
                 _logger.LogError(ex, "An error occurred in LoginCommandHandler.Handle method.");
 
-               // await _unitOfWork.RollbackTransactionAsync();  // ✅ Rollback Transaction in case of error
+               // await _unitOfWork.RollbackTransactionAsync();  //  Rollback Transaction in case of error
 
                 return new ApiResponse<LoginResponseDTO>
                 {
@@ -701,4 +708,5 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 
     }
 
+    #endregion
 }

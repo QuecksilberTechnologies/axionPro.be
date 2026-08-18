@@ -10,7 +10,7 @@ using axionpro.application.DTOs.Manager.ReportingType;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
- 
+
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -40,7 +40,7 @@ namespace axionpro.persistance.Repositories
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            
+
         }
 
         #endregion
@@ -134,7 +134,7 @@ namespace axionpro.persistance.Repositories
                     .Take(pageSize)
                     .Select(x => new GetReportingTypeResponseDTO
                     {
-                        Id = x.Id, // ✅ tumhara rule (encoded id)
+                        Id = x.Id, //  tumhara rule (encoded id)
                         TypeName = x.TypeName,
                         Description = x.Description,
                         IsActive = x.IsActive,
@@ -173,7 +173,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-               
+
                 var entity = await _context.ReportingTypes.FirstOrDefaultAsync(x => x.Id == id && x.IsSoftDeleted != true && x.IsActive == true);
                 if (entity == null)
                     return null;
@@ -193,7 +193,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-               
+
                 var existing = await _context.ReportingTypes.FirstOrDefaultAsync(x => x.Id == dto.Id && x.IsSoftDeleted!=true && x.IsActive ==true);
                 if (existing == null)
                     throw new Exception("Reporting type not found.");
@@ -230,7 +230,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                
+
                 var existing = await _context.ReportingTypes.FirstOrDefaultAsync(x => x.Id == id && x.IsSoftDeleted != true && x.IsActive == true);
                 if (existing == null)
                     throw new Exception("Reporting type not found.");

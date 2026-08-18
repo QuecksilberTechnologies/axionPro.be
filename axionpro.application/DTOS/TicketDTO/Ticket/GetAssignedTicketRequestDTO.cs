@@ -13,7 +13,7 @@ using System.Text;
 
 namespace axionpro.application.DTOS.TicketDTO.Ticket
 {
-   
+
         /// <summary>
         /// Represents the GetAssignedTicketRequestDTO data transfer model.
         /// </summary>
@@ -21,9 +21,9 @@ namespace axionpro.application.DTOS.TicketDTO.Ticket
         {
         public required int  Status { get; set; }   // optional (Open, Pending etc.)
 
-        // 🔥 Login user info (CommonRequestService se aayega)
+        //  Login user info (CommonRequestService se aayega)
 
-            // 🔥 Filter
+            //  Filter
         }
-     
+
 }

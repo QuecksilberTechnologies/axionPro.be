@@ -27,6 +27,9 @@ using System.Reflection;
 
 namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
 {
+
+    #region Command
+
     /// <summary>
     /// Represents the CreateDependentCommand application component.
     /// </summary>
@@ -44,7 +47,11 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
     /// <summary>
     /// Handles CreateDependentCommand requests.
     /// </summary>
-    public class CreateDependentCommandHandler
+        #endregion
+
+    #region Handler
+
+public class CreateDependentCommandHandler
     : IRequestHandler<CreateDependentCommand, ApiResponse<List<GetDependentResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -221,7 +228,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
 
                 _logger.LogError(ex, "Error creating dependent");
 
-                // 🧹 FILE CLEANUP (CRITICAL 🚨)
+                //  FILE CLEANUP (CRITICAL )
                 if (!string.IsNullOrEmpty(uploadedFileKey))
                 {
                     try
@@ -234,12 +241,13 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                     }
                 }
 
-                throw; // 🚨 MUST
+                throw; //  MUST
             }
         }
     }
 
 
+    #endregion
 }
 
 

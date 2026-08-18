@@ -20,6 +20,9 @@ using System.Text.Json;
 
 namespace axionpro.application.Features.ComplianceCmd
 {
+
+    #region Command
+
     /// <summary>
     /// Represents the CreateComplianceRuleCommand application component.
     /// </summary>
@@ -37,7 +40,11 @@ namespace axionpro.application.Features.ComplianceCmd
     /// <summary>
     /// Handles CreateComplianceRuleCommand requests.
     /// </summary>
-    public class CreateComplianceRuleCommandHandler
+        #endregion
+
+    #region Handler
+
+public class CreateComplianceRuleCommandHandler
         : IRequestHandler<CreateComplianceRuleCommand, ApiResponse<GetComplianceRuleResponseDTO>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -96,7 +103,7 @@ namespace axionpro.application.Features.ComplianceCmd
                 // ===============================
                 await _unitOfWork.BeginTransactionAsync();
 
-                // 🔥 CLOSE OLD RULE (VERSIONING)
+                //  CLOSE OLD RULE (VERSIONING)
                 var existingRule = await _unitOfWork.CompilanceRuleRepository
                     .GetRuleAsync(
                         dto.ComplianceTypeId,
@@ -110,11 +117,11 @@ namespace axionpro.application.Features.ComplianceCmd
                     existingRule.EffectiveTo = dto.EffectiveFrom.AddDays(-1);
                     existingRule.UpdatedDateTime = DateTime.UtcNow;
                     existingRule.UpdatedById = validation.LoggedInEmployeeId;
-                  
+
                     await _unitOfWork.CompilanceRuleRepository.UpdateAsync(existingRule);
                 }
 
-                // 🔥 CREATE NEW RULE
+                //  CREATE NEW RULE
                 var entity = new ComplianceRule
                 {
                     ComplianceTypeId = dto.ComplianceTypeId,
@@ -160,7 +167,7 @@ namespace axionpro.application.Features.ComplianceCmd
                     Priority = entity.Priority ?? 0,
                     EffectiveFrom = entity.EffectiveFrom,
                     EffectiveTo = entity.EffectiveTo
-                  
+
                 };
 
                 return ApiResponse<GetComplianceRuleResponseDTO>
@@ -175,5 +182,6 @@ namespace axionpro.application.Features.ComplianceCmd
             }
         }
     }
+    #endregion
 }
 

@@ -15,23 +15,30 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.InsuranceInfo.Handlers
 {
+
+    #region Query
+
     /// <summary>
     /// Represents the GetPolicyInsuranceRequestCommand application component.
     /// </summary>
     public class GetPolicyInsuranceRequestCommand : IRequest<ApiResponse<List<GetPolicyTypeInsuranceMappingResponseDTO>>>
     {
-        public GetPolicyTypeInsuranceMappingRequestDTO DTO { get; }    
+        public GetPolicyTypeInsuranceMappingRequestDTO DTO { get; }
 
         public GetPolicyInsuranceRequestCommand(GetPolicyTypeInsuranceMappingRequestDTO dto)
         {
             DTO = dto;
-           
+
         }
     }
     /// <summary>
     /// Handles GetPolicyTypeInsuranceMappingQuery requests.
     /// </summary>
-    public class GetPolicyTypeInsuranceMappingQueryHandler  : IRequestHandler<GetPolicyInsuranceRequestCommand, ApiResponse<List<GetPolicyTypeInsuranceMappingResponseDTO>>>
+        #endregion
+
+    #region Handler
+
+public class GetPolicyTypeInsuranceMappingQueryHandler  : IRequestHandler<GetPolicyInsuranceRequestCommand, ApiResponse<List<GetPolicyTypeInsuranceMappingResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetPolicyTypeInsuranceMappingQueryHandler> _logger;
@@ -101,7 +108,7 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                 _logger.LogInformation("✅ Retrieved {Count} mapping records", data.Count);
 
                 // ===============================
-                // 6️⃣ SUCCESS (EMPTY ALLOWED ✅)
+                // 6️⃣ SUCCESS (EMPTY ALLOWED )
                 // ===============================
                 return ApiResponse<List<GetPolicyTypeInsuranceMappingResponseDTO>>
                     .SuccessPaginatedPercentage(
@@ -118,11 +125,12 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                     ex,
                     "❌ Error in GetPolicyInsuranceMapping");
 
-                throw; // ✅ CRITICAL
+                throw; //  CRITICAL
             }
         }
     }
 
 
 
+    #endregion
 }

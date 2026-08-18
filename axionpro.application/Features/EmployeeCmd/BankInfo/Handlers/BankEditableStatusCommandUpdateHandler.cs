@@ -22,6 +22,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 {
+
+    #region Command
+
     /// <summary>
     /// Represents the UpdateEditableStatusCommand application component.
     /// </summary>
@@ -39,7 +42,11 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
     /// <summary>
     /// Handles authenticated tenant requests for this feature.
     /// </summary>
-    public class BankEditableStatusCommandUpdateHandler
+        #endregion
+
+    #region Handler
+
+public class BankEditableStatusCommandUpdateHandler
         : IRequestHandler<UpdateEditableStatusCommand, ApiResponse<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -122,8 +129,8 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 // ===============================
                 //var hasPermission = await _permissionService.HasAccessAsync(
                 //    validation.RoleId,
-                //    "EmployeeBank",   // 🔹 Module (adjust if needed)
-                //    "Update"          // 🔹 Operation
+                //    "EmployeeBank",   //  Module (adjust if needed)
+                //    "Update"          //  Operation
                 //);
 
                 //if (!hasPermission)
@@ -179,11 +186,12 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
             {
                 _logger.LogError(ex, "Editable update error");
 
-                // ❗ IMPORTANT: middleware handle karega
+                //  IMPORTANT: middleware handle karega
                 throw;
             }
         }
 
 
     }
+    #endregion
 }

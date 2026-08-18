@@ -19,6 +19,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.UpdateVerification.Handler
 {
+
+    #region Command
+
     // ============================
     // COMMAND
     // ============================
@@ -43,7 +46,11 @@ namespace axionpro.application.Features.EmployeeCmd.UpdateVerification.Handler
     /// <summary>
     /// Handles UpdateVerificationStatusCommand requests.
     /// </summary>
-    public class UpdateVerificationStatusCommandHandler
+        #endregion
+
+    #region Handler
+
+public class UpdateVerificationStatusCommandHandler
         : IRequestHandler<UpdateVerificationStatusCommand, ApiResponse<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -101,7 +108,7 @@ namespace axionpro.application.Features.EmployeeCmd.UpdateVerification.Handler
                     throw new ValidationErrorException("Invalid section type.");
 
                 // ===============================
-                // 4️⃣ PERMISSION (CRITICAL 🚨)
+                // 4️⃣ PERMISSION (CRITICAL )
                 // ===============================
                 //var hasAccess = await _permissionService.HasAccessAsync(
                 //    validation.RoleId,
@@ -155,10 +162,11 @@ namespace axionpro.application.Features.EmployeeCmd.UpdateVerification.Handler
             {
                 _logger.LogError(ex, "Verification update error");
 
-                throw; // 🚨 MUST
+                throw; //  MUST
             }
         }
     }
 
+    #endregion
 }
 

@@ -14,7 +14,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace axionpro.application.DTOS.Employee.Experience
 {
-   
+
     // =====================================================================
     //  EXPERIENCE   DTO
     // =====================================================================
@@ -23,7 +23,7 @@ namespace axionpro.application.DTOS.Employee.Experience
     /// </summary>
     public class UpdateExperienceRequestDTO
     {
-        // 🔥 IMPORTANT
+        //  IMPORTANT
         [Required]
         public string UserEmployeeId { get; set; } = string.Empty;
 
@@ -32,10 +32,10 @@ namespace axionpro.application.DTOS.Employee.Experience
         public long Id { get; set; } // null = NEW, value = UPDATE
 
 
-        // 🔹 Parent Fields
+        //  Parent Fields
         public decimal? Ctc { get; set; }
 
-        // 🔹 Job Info
+        //  Job Info
         public string? CompanyName { get; set; }
         public string? Designation { get; set; }
         public string? EmployeeIdOfCompany { get; set; }
@@ -46,18 +46,18 @@ namespace axionpro.application.DTOS.Employee.Experience
         public int? Experience { get; set; }
         public bool IsWFH { get; set; }
 
-        // 🔹 Location
+        //  Location
         public int? WorkingCountryId { get; set; }
         public int? WorkingStateId { get; set; }
         public int? WorkingDistrictId { get; set; }
 
         public bool IsForeignExperience { get; set; }
 
-        // 🔹 Exit
+        //  Exit
         public string? ReasonForLeaving { get; set; }
         public string? Remark { get; set; }
 
-        // 🔹 Reporting
+        //  Reporting
         public string? ColleagueName { get; set; }
         public string? ColleagueDesignation { get; set; }
         public string? ColleagueContactNumber { get; set; }
@@ -67,7 +67,7 @@ namespace axionpro.application.DTOS.Employee.Experience
 
         public string? VerificationEmail { get; set; }
 
-        // 🔹 Gap
+        //  Gap
         public bool IsAnyGap { get; set; }
         public string? ReasonOfGap { get; set; }
 
@@ -75,7 +75,7 @@ namespace axionpro.application.DTOS.Employee.Experience
         public DateTime? GapYearTo { get; set; }
 
 
-        // 🔹 Documents
+        //  Documents
         public List<UpdateExperienceDocumentDTO>? Documents { get; set; }
     }
 
@@ -87,7 +87,7 @@ namespace axionpro.application.DTOS.Employee.Experience
     /// </summary>
     public class UpdateExperienceDocumentDTO
     {
-        // 🔥 IMPORTANT
+        //  IMPORTANT
         public long? Id { get; set; } // null = NEW, value = UPDATE
         public IFormFile? File { get; set; }
 

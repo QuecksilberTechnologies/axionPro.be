@@ -22,6 +22,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.persistance.Repositories
 {
+
+    #region Persistence Operations
+
     /// <summary>
     /// Provides persistence operations for EmployeeBank records.
     /// </summary>
@@ -30,11 +33,11 @@ namespace axionpro.persistance.Repositories
         private readonly WorkforceDbContext _context;
         private readonly IMapper _mapper;
         private readonly ILogger<EmployeeBankRepository> _logger;
-       
+
         private readonly IPasswordService _passwordService;
         private readonly IEncryptionService _encryptionService;
         IFileStorageService _fileStorageService;
-        public EmployeeBankRepository(WorkforceDbContext context, IMapper mapper, ILogger<EmployeeBankRepository> logger, 
+        public EmployeeBankRepository(WorkforceDbContext context, IMapper mapper, ILogger<EmployeeBankRepository> logger,
             IPasswordService passwordService, IEncryptionService encryptionService, IFileStorageService fileStorageService)
         {
             this._context = context;
@@ -124,18 +127,18 @@ namespace axionpro.persistance.Repositories
                         .All(x => x.HasChequeDocUploaded);
 
                 // =========================================================
-                // 🔹 UI Average Completion (ALWAYS show average)
+                //  UI Average Completion (ALWAYS show average)
                 // =========================================================
                 double uiAverageCompletion = records.Any()
                     ? Math.Round(records.Average(x => x.CompletionPercentage), 0)
                     : 0;
 
                 // =========================================================
-                // 🔹 Final Completion (Business Rule Applied)
+                //  Final Completion (Business Rule Applied)
                 // =========================================================
                 double finalCompletionPercentage = uiAverageCompletion;
 
-                // 🔥 HARD BUSINESS RULE
+                //  HARD BUSINESS RULE
                 // No primary ⇒ section invalid
                 if (!hasAtLeastOnePrimary)
                 {
@@ -154,7 +157,7 @@ namespace axionpro.persistance.Repositories
                     PageSize = pageSize,
                     TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
 
-                    // 🔥 IMPORTANT (same as GetInfo)
+                    //  IMPORTANT (same as GetInfo)
                     CompletionPercentage = uiAverageCompletion,
                     HasUploadedAll = hasUploadedAllDocs
                 };
@@ -209,7 +212,7 @@ namespace axionpro.persistance.Repositories
         }
 
 
-      
+
         public async Task<bool> DeleteAsync(EmployeeBankDetail employeeBankDetail)
         {
             try
@@ -310,7 +313,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                
+
                 // =========================================================
                 // 1️⃣ Pagination & Sorting
                 // =========================================================
@@ -392,7 +395,7 @@ namespace axionpro.persistance.Repositories
                         IsInfoVerified = x.IsInfoVerified,
                         IsEditAllowed = x.IsEditAllowed,
                         HasChequeDocUploaded = x.HasChequeDocUploaded,
-                        // 🔥 Correct FilePath handling
+                        //  Correct FilePath handling
                         FilePath =  x.FilePath ,
                         UPIId = x.Upiid   }).ToListAsync();
 
@@ -427,20 +430,20 @@ namespace axionpro.persistance.Repositories
                     records
                         .Where(x => x.IsPrimaryAccount)
                         .All(x => x.HasChequeDocUploaded);
- 
+
                 // =========================================================
-                // 🔹 UI Average Completion (ALWAYS show average)
+                //  UI Average Completion (ALWAYS show average)
                 // =========================================================
                 double uiAverageCompletion = records.Any()
                     ? Math.Round(records.Average(x => x.CompletionPercentage), 0)
                     : 0;
 
                 // =========================================================
-                // 🔹 Final Completion (Business Rule Applied)
+                //  Final Completion (Business Rule Applied)
                 // =========================================================
                 double finalCompletionPercentage = uiAverageCompletion;
 
-                // 🔥 HARD BUSINESS RULE
+                //  HARD BUSINESS RULE
                 // No primary ⇒ section invalid
                 if (!hasAtLeastOnePrimary)
                 {
@@ -460,8 +463,8 @@ namespace axionpro.persistance.Repositories
                     PageSize = pageSize,
                     TotalPages = (int)Math.Ceiling((double)totalCount / pageSize),
 
-                    // 👇 UI ko yeh dikhao (progress bar)
-                    CompletionPercentage = uiAverageCompletion,             
+                    //  UI ko yeh dikhao (progress bar)
+                    CompletionPercentage = uiAverageCompletion,
 
                     HasUploadedAll = hasUploadedAllDocs
                 };
@@ -527,17 +530,19 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        
-         
-         
 
 
-       
 
 
-       
 
 
-      
+
+
+
+
+
+
     }
+
+    #endregion
 }

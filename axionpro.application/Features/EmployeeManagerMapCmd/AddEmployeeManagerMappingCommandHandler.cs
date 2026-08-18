@@ -81,7 +81,7 @@ namespace axionpro.application.Features.EmployeeManagerMapCmd
     //            // ===============================
     //            await _unitOfWork.BeginTransactionAsync();
 
-    //            // 🔥 CLOSE OLD RULE (VERSIONING)
+    //            //  CLOSE OLD RULE (VERSIONING)
     //            var existingRule = await _unitOfWork.ComplianceRuleRepository
     //                .GetApplicableRuleAsync(
     //                    dto.ComplianceTypeId,
@@ -99,7 +99,7 @@ namespace axionpro.application.Features.EmployeeManagerMapCmd
     //                await _unitOfWork.ComplianceRuleRepository.UpdateAsync(existingRule);
     //            }
 
-    //            // 🔥 CREATE NEW RULE
+    //            //  CREATE NEW RULE
     //            var entity = new ComplianceRule
     //            {
     //                ComplianceTypeId = dto.ComplianceTypeId,

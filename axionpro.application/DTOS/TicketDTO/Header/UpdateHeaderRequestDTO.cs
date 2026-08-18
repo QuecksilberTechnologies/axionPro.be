@@ -11,7 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using axionpro.application.DTOS.Common;
-using axionpro.domain.Entity; 
+using axionpro.domain.Entity;
 using MediatR;
 
 namespace axionpro.application.DTOS.TicketDTO.Header
@@ -22,7 +22,7 @@ namespace axionpro.application.DTOS.TicketDTO.Header
     public class UpdateHeaderRequestDTO
     {
 
-        public long Id { get; set; }  // 🔐 encoded string (as per your rule)
+        public long Id { get; set; }  //  encoded string (as per your rule)
 
         public string HeaderName { get; set; } = null!;
 

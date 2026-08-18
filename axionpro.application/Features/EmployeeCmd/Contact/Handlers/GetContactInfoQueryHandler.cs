@@ -21,6 +21,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
 {
+
+    #region Query
+
     /// <summary>
     /// Represents the GetContactInfoQuery application component.
     /// </summary>
@@ -37,7 +40,11 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
     /// <summary>
     /// Handles authenticated tenant requests for this feature.
     /// </summary>
-    public class GetContactInfoQueryHandler
+        #endregion
+
+    #region Handler
+
+public class GetContactInfoQueryHandler
     : IRequestHandler<GetContactInfoQuery, ApiResponse<List<GetContactResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -60,7 +67,7 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
             _commonRequestService = commonRequestService;
         }
 
-       
+
         public async Task<ApiResponse<List<GetContactResponseDTO>>> Handle(
         GetContactInfoQuery request,
         CancellationToken cancellationToken)
@@ -147,10 +154,11 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
                     "Error fetching contact info | EmployeeId: {EmployeeId}",
                     request.DTO?.EmployeeId);
 
-                throw; // 🚨 MUST
+                throw; //  MUST
             }
         }
     }
 
 
+    #endregion
 }

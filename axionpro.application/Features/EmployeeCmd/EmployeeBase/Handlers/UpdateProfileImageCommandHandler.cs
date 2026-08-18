@@ -23,6 +23,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
+
+    #region Command
+
     /// <summary>
     /// Represents the UpdateProfileImageCommand application component.
     /// </summary>
@@ -35,7 +38,11 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
     /// <summary>
     /// Handles UpdateIdentityInfoCommand requests.
     /// </summary>
-    public class UpdateIdentityInfoCommandHandler
+        #endregion
+
+    #region Handler
+
+public class UpdateIdentityInfoCommandHandler
         : IRequestHandler<UpdateProfileImageCommand, ApiResponse<bool>>
     {
         private readonly IBaseEmployeeRepository _employeeRepository;
@@ -129,7 +136,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     $"{ConstantValues.ProfileFolder}";
 
                 // ======================================================
-                // 🔴 CASE 1: DEACTIVATE (DELETE IMAGE)
+                //  CASE 1: DEACTIVATE (DELETE IMAGE)
                 // ======================================================
                 if (!request.DTO.IsActive)
                 {
@@ -157,7 +164,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 }
 
                 // ======================================================
-                // 🟢 CASE 2: UPDATE / REPLACE IMAGE
+                //  CASE 2: UPDATE / REPLACE IMAGE
                 // ======================================================
                 if (request.DTO.ProfileImage != null &&
                     request.DTO.ProfileImage.Length > 0)
@@ -209,7 +216,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 
                 _logger.LogError(ex, "UpdateProfileImage failed");
 
-                // 🧹 FILE CLEANUP (CRITICAL 🚨)
+                //  FILE CLEANUP (CRITICAL )
                 if (!string.IsNullOrEmpty(uploadedFileKey))
                 {
                     try
@@ -222,10 +229,11 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     }
                 }
 
-                throw; // 🚨 MUST
+                throw; //  MUST
             }
         }
     }
 
 
+    #endregion
 }

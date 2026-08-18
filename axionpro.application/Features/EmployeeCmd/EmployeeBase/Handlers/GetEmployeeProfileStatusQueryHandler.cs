@@ -19,6 +19,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
+#region Query
+
+
 /// <summary>
 /// Represents the GetEmployeeProfileStatusQuery application component.
 /// </summary>
@@ -36,6 +39,10 @@ public class GetEmployeeProfileStatusQuery
 /// <summary>
 /// Handles GetEmployeeProfileStatusQuery requests.
 /// </summary>
+#endregion
+
+#region Handler
+
 public class GetEmployeeProfileStatusQueryHandler
     : IRequestHandler<GetEmployeeProfileStatusQuery, ApiResponse<List<CompletionSectionDTO>>>
 {
@@ -95,7 +102,7 @@ public class GetEmployeeProfileStatusQueryHandler
                 throw new ValidationErrorException("Invalid EmployeeId.");
 
             // ===============================
-            // 4️⃣ PERMISSION (YOUR PATTERN ✅)
+            // 4️⃣ PERMISSION (YOUR PATTERN )
             // ===============================
             //var hasAccess = await _permissionService.HasAccessAsync(
             //    validation.RoleId,
@@ -134,7 +141,9 @@ public class GetEmployeeProfileStatusQueryHandler
                 "Error fetching profile completion | EmployeeId: {EmployeeId}",
                 request.EmployeeId);
 
-            throw; // 🚨 MUST
+            throw; //  MUST
         }
     }
 }
+
+#endregion

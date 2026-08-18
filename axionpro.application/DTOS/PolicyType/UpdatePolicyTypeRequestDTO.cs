@@ -26,7 +26,7 @@ namespace axionpro.application.DTOs.PolicyType
         public required string PolicyName { get; set; }
         public int PolicyTypeEnumVal { get; set; }
 
-        // 🔥 MULTIPLE EMPLOYEE TYPES
+        //  MULTIPLE EMPLOYEE TYPES
         public required List<int> EmployeeTypeIds { get; set; } = new();
 
         public IFormFile? FormFile { get; set; }

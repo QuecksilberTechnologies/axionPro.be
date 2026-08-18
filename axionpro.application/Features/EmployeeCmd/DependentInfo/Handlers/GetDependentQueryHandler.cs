@@ -20,6 +20,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
 {
+
+    #region Query
+
     /// <summary>
     /// Represents the GetDependentInfoQuery application component.
     /// </summary>
@@ -36,7 +39,11 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
     /// <summary>
     /// Handles GetDependentInfoQuery requests.
     /// </summary>
-    public class GetDependentInfoQueryHandler
+        #endregion
+
+    #region Handler
+
+public class GetDependentInfoQueryHandler
    : IRequestHandler<GetDependentInfoQuery, ApiResponse<List<GetDependentResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -72,20 +79,20 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
             {
                 await _unitOfWork.BeginTransactionAsync();
 
-                // 🔐 STEP 1: COMMON VALIDATION (SAME AS CONTACT)
+                //  STEP 1: COMMON VALIDATION (SAME AS CONTACT)
                 var validation =
                     await _commonRequestService.ValidateRequestAsync();
 
                 if (!validation.Success)
                 throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // 🔓 STEP 2: Assign decoded props
+                //  STEP 2: Assign decoded props
                 var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
                     request.DTO.EmployeeId,
                     validation.Claims.TenantEncriptionKey,
                     _idEncoderService);
 
-                // 🔑 STEP 3: Permission check
+                //  STEP 3: Permission check
                 //var hasAccess = await _permissionService.HasAccessAsync(
                 //    validation.RoleId,
                 //    Modules.Employee,
@@ -95,7 +102,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                 //    throw new UnauthorizedAccessException("No permission to add dependent.");
 
 
-                // 📦 STEP 4: Repository call
+                //  STEP 4: Repository call
                 var result =
                     await _unitOfWork.EmployeeDependentRepository
                         .GetInfo(employeeId, request.DTO);
@@ -116,7 +123,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                       );
                 }
 
-                // 🔐 STEP 5: Projection + Encryption + FilePath + Completion %
+                //  STEP 5: Projection + Encryption + FilePath + Completion %
                 var responseDTO =
                     ProjectionHelper.ToGetDependentResponseDTOs(
                         result.Data,
@@ -127,7 +134,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
 
                 await _unitOfWork.CommitTransactionAsync();
 
-                // 📤 STEP 6: Response (same style as Contact)
+                //  STEP 6: Response (same style as Contact)
                 return ApiResponse<List<GetDependentResponseDTO>>
                     .SuccessPaginatedPercentage(
                         Data: responseDTO,
@@ -157,4 +164,5 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
     }
 
 
+    #endregion
 }

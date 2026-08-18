@@ -22,14 +22,14 @@ namespace axionpro.application.DTOS.PolicyTypeDocument
     /// </summary>
     public class GetPolicyTypeDocumentRequestDTO : BaseRequest
     {
-        // 🔐 Common decoded props (TenantId, UserEmployeeId etc.)
+        //  Common decoded props (TenantId, UserEmployeeId etc.)
 
-        // 🔍 Filters
+        //  Filters
         public long? Id { get; set; }
         public int? PolicyTypeId { get; set; }
         public string? DocumentTitle { get; set; }
         public bool? IsActive { get; set; }
 
-       
+
     }
 }

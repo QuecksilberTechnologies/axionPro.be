@@ -15,9 +15,12 @@ using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.Extensions.Logging;
- 
+
 
 namespace axionpro.application.Features.TickeAllCmd.Ticket;
+
+#region Command
+
 
 /// <summary>
 /// Represents the CreateTicketCommand application component.
@@ -35,6 +38,10 @@ public class CreateTicketCommand : IRequest<ApiResponse<GetTicketResponseDTO>>
 /// <summary>
 /// Handles CreateTicketCommand requests.
 /// </summary>
+#endregion
+
+#region Handler
+
 public class CreateTicketCommandHandler
 : IRequestHandler<CreateTicketCommand, ApiResponse<GetTicketResponseDTO>>
 {
@@ -92,7 +99,7 @@ public class CreateTicketCommandHandler
             if (ticketType.IsApprovalRequired)
             {
                 status = (int)TicketStatus.PendingApproval;
-                assignedRoleId = ticketType.ApprovalId; // ✅ FIXED
+                assignedRoleId = ticketType.ApprovalId; //  FIXED
                 isApproved = false;
             }
             else
@@ -169,7 +176,7 @@ public class CreateTicketCommandHandler
                 IsSoftDeleted = false
             });
 
-         
+
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitTransactionAsync();
             // ===============================
@@ -211,3 +218,5 @@ public class CreateTicketCommandHandler
         }
     }
 }
+
+#endregion

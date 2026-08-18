@@ -40,6 +40,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 {
+
+    #region Command
+
     /// <summary>
     /// Represents a request to rotate a Host or Tenant refresh token.
     /// </summary>
@@ -56,7 +59,11 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
     /// <summary>
     /// Handles owner-specific validation and access-token generation before shared refresh-token rotation.
     /// </summary>
-    public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, ApiResponse<LoginResponseDTO>>
+        #endregion
+
+    #region Handler
+
+public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, ApiResponse<LoginResponseDTO>>
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
@@ -483,7 +490,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 {
                 }
 
-                _logger.LogError(ex, "Error while refreshing token.");                          
+                _logger.LogError(ex, "Error while refreshing token.");
                 throw;
             }
         }
@@ -675,4 +682,5 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 
         #endregion
     }
+    #endregion
 }

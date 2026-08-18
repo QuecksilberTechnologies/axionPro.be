@@ -21,6 +21,9 @@ using axionpro.application.DTOS.Pagination;
 
 namespace axionpro.persistance.Repositories
 {
+
+    #region Persistence Operations
+
     /// <summary>
     /// Provides persistence operations for TicketClassification records.
     /// </summary>
@@ -332,4 +335,6 @@ namespace axionpro.persistance.Repositories
             }
         }
     }
+
+    #endregion
 }

@@ -15,25 +15,32 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.InsuranceInfo.Handlers
 {
+
+    #region Query
+
     /// <summary>
     /// Represents the GetInsuranceQuery application component.
     /// </summary>
-    public class GetInsuranceQuery  : IRequest<ApiResponse<List<GetInsurancePolicyResponseDTO>>> 
+    public class GetInsuranceQuery  : IRequest<ApiResponse<List<GetInsurancePolicyResponseDTO>>>
         {
         public GetInsurancePolicyRequestDTO DTO { get; }
 
-    
+
 
         public GetInsuranceQuery(GetInsurancePolicyRequestDTO dto)
         {
             DTO = dto;
-           
+
         }
     }
     /// <summary>
     /// Handles GetInsuranceListQuery requests.
     /// </summary>
-    public class GetInsuranceListQueryHandler
+        #endregion
+
+    #region Handler
+
+public class GetInsuranceListQueryHandler
       : IRequestHandler<
           GetInsuranceQuery,
           ApiResponse<List<GetInsurancePolicyResponseDTO>>>
@@ -110,7 +117,7 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                     data.Count);
 
                 // ===============================
-                // 6️⃣ SUCCESS (EMPTY ALLOWED ✅)
+                // 6️⃣ SUCCESS (EMPTY ALLOWED )
                 // ===============================
                 return ApiResponse<List<GetInsurancePolicyResponseDTO>>
                     .SuccessPaginatedPercentage(
@@ -128,11 +135,12 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                     ex,
                     "❌ Error in GetInsurance");
 
-                throw; // ✅ CRITICAL
+                throw; //  CRITICAL
             }
         }
     }
 
 
 
+    #endregion
 }

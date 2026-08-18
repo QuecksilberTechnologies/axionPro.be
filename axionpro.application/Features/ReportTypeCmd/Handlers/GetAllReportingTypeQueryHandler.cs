@@ -14,6 +14,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.ReportTypeCmd.Handlers
 {
+
+    #region Query
+
     /// <summary>
     /// Represents the GetAllReportingTypeQuery application component.
     /// </summary>
@@ -31,7 +34,11 @@ namespace axionpro.application.Features.ReportTypeCmd.Handlers
     /// <summary>
     /// Handles GetAllReportingTypeQuery requests.
     /// </summary>
-    public class GetAllReportingTypeQueryHandler
+        #endregion
+
+    #region Handler
+
+public class GetAllReportingTypeQueryHandler
         : IRequestHandler<GetAllReportingTypeQuery, ApiResponse<List<GetReportingTypeResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -108,8 +115,9 @@ namespace axionpro.application.Features.ReportTypeCmd.Handlers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in GetAllReportingType");
-                throw; // ✅ middleware handle karega
+                throw; //  middleware handle karega
             }
         }
     }
+    #endregion
 }

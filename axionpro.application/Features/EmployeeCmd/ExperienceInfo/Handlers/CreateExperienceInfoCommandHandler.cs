@@ -23,6 +23,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
 {
+
+    #region Command
+
     /// <summary>
     /// Represents the CreateExperienceInfoCommand application component.
     /// </summary>
@@ -39,7 +42,11 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
     /// <summary>
     /// Handles CreateExperienceInfoCommand requests.
     /// </summary>
-    public class CreateExperienceInfoCommandHandler
+        #endregion
+
+    #region Handler
+
+public class CreateExperienceInfoCommandHandler
      : IRequestHandler<CreateExperienceInfoCommand, ApiResponse<GetEmployeeExperienceResponseDTO>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -98,7 +105,7 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                 // ===============================
                 // 5️⃣ FILE UPLOAD
                 // ===============================
-              
+
 
                 // ===============================
                 // 3️⃣ CREATE EXPERIENCE
@@ -150,13 +157,13 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
 
 
 
- 
+
                 // ===============================
-                // 4️⃣ DOCUMENTS (UPLOAD LIKE EDUCATION 🔥)
+                // 4️⃣ DOCUMENTS (UPLOAD LIKE EDUCATION )
                 // ===============================
                 if (request.DTO.Documents != null)
                 {
-                    // ✅ Filter only valid files (IMPORTANT)
+                    //  Filter only valid files (IMPORTANT)
                     var validDocs = request.DTO.Documents
                         .Where(d => d.File != null && d.File.Length > 0)
                         .ToList();
@@ -169,24 +176,24 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                         {
                             try
                             {
-                                // ✅ STEP 1: Copy file to memory (fix stream issue)
+                                //  STEP 1: Copy file to memory (fix stream issue)
                                 using var memoryStream = new MemoryStream();
                                 await docDto.File!.CopyToAsync(memoryStream);
                                 memoryStream.Position = 0;
 
-                                // ✅ STEP 2: Generate unique filename
+                                //  STEP 2: Generate unique filename
                                 var fileName = $"experience-{employeeId}-{Guid.NewGuid()}";
 
-                                // ✅ STEP 3: Folder path
+                                //  STEP 3: Folder path
                                 string folderPath =
                                     $"{ConstantValues.TenantFolder}-{validation.TenantId}/" +
                                     $"{ConstantValues.EmployeeFolder}/{employeeId}/" +
                                     $"{ConstantValues.ExperienceFolder}";
 
-                                // ✅ STEP 4: File extension
+                                //  STEP 4: File extension
                                 var extension = Path.GetExtension(docDto.File.FileName);
 
-                                // ✅ STEP 5: Upload
+                                //  STEP 5: Upload
                                 var docPath = await _fileStorageService.UploadMultiFileAsync(
                                     memoryStream,
                                     folderPath,
@@ -194,13 +201,13 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                                     docDto.File.ContentType,
                                     extension);
 
-                                // ✅ STEP 6: Validate upload
+                                //  STEP 6: Validate upload
                                 if (string.IsNullOrWhiteSpace(docPath))
                                     throw new ApiException("File upload failed.", 500);
 
                                 uploadedFiles.Add(docPath);
 
-                                // ✅ STEP 7: Save entity
+                                //  STEP 7: Save entity
                                 exp.EmployeeExperienceDocument.Add(new EmployeeExperienceDocument
                                 {
                                     DocumentType = docDto.DocumentType,
@@ -228,7 +235,7 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                 await _unitOfWork.EmployeeExperienceRepository.AddAsync(exp);
 
                 // ===============================
-                // SAVE (ONLY HERE 🔥)
+                // SAVE (ONLY HERE )
                 // ===============================
                 var rows = await   _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -277,8 +284,8 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                     IsEditAllowed = exp.IsEditAllowed,
                     IsInfoVerified = exp.IsInfoVerified,
 
-                    // ✅ 🔥 DOCUMENT LIST  
-                   
+                    //   DOCUMENT LIST
+
                     Documents = exp.EmployeeExperienceDocument != null
                         ? exp.EmployeeExperienceDocument.Select(d => new GetEmployeeExperienceDocumentDTO
                         {
@@ -311,7 +318,7 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
 
                 await _unitOfWork.RollbackTransactionAsync();
 
-                // 🔥 FILE ROLLBACK
+                //  FILE ROLLBACK
 
                 foreach (var file in uploadedFiles)
                 {
@@ -322,8 +329,9 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                 throw;
             }
         }
-      
+
     }
 
 
+    #endregion
 }

@@ -28,7 +28,7 @@ public class RoleRepository : IRoleRepository
 {
 
     private readonly WorkforceDbContext _context;
-   
+
     private readonly IMapper _mapper;
     private readonly ILogger<RoleRepository> _logger;
     private readonly IEncryptionService _encryptionService;
@@ -37,13 +37,13 @@ public class RoleRepository : IRoleRepository
  WorkforceDbContext context,
  ILogger<RoleRepository> logger,
  IMapper mapper,
- 
+
  IEncryptionService encryptionService)
     {
         _context = context;
         _logger = logger;
         _mapper = mapper;
-        
+
         _encryptionService = encryptionService;
     }
 
@@ -116,7 +116,7 @@ public class RoleRepository : IRoleRepository
     /// <returns>
     /// A list of <see cref="GetRoleResponseDTO"/> representing all active roles for the tenant.
     /// </returns>
-    /// 
+    ///
 
 
 
@@ -250,7 +250,7 @@ public class RoleRepository : IRoleRepository
             return false;
         }
     }
- 
+
 
     #region Update
 
@@ -282,7 +282,7 @@ public class RoleRepository : IRoleRepository
 
         try
         {
-            
+
             var existingRole = await _context.Roles
                 .FirstOrDefaultAsync(
                     role => role.Id == entity.Id &&
@@ -298,7 +298,7 @@ public class RoleRepository : IRoleRepository
 
             bool isModified = false;
 
-            // 🔹 RoleName
+            //  RoleName
             if (!string.IsNullOrWhiteSpace(entity.RoleName) &&
                 entity.RoleName.Trim() != existingRole.RoleName)
             {
@@ -306,21 +306,21 @@ public class RoleRepository : IRoleRepository
                 isModified = true;
             }
 
-            // 🔹 RoleType
+            //  RoleType
             if (entity.RoleType != existingRole.RoleType)
             {
                 existingRole.RoleType = entity.RoleType;
                 isModified = true;
             }
 
-            // 🔹 Remark
+            //  Remark
             if (entity.Remark != existingRole.Remark)
             {
                 existingRole.Remark = entity.Remark;
                 isModified = true;
             }
 
-            // 🔹 IsActive
+            //  IsActive
             if (entity.IsActive != existingRole.IsActive)
             {
                 existingRole.IsActive = entity.IsActive;
@@ -328,7 +328,7 @@ public class RoleRepository : IRoleRepository
             }
 
 
-            // 🔥🔥 NEW — Update audit fields only when something changes
+            //  NEW — Update audit fields only when something changes
             if (isModified)
             {
                 existingRole.UpdatedById = entity.UpdatedById;
@@ -375,10 +375,10 @@ public class RoleRepository : IRoleRepository
                 return null;
             }
 
-          
+
             _logger.LogInformation("🔍 Fetching role details for RoleId: {RoleId}, TenantId:", dto.Id);
 
-            // ✅ Fetch Role by Id with Tenant check and SoftDelete filter
+            //  Fetch Role by Id with Tenant check and SoftDelete filter
             var role = await _context.Roles
                 .Where(r =>
                     r.Id == dto.Id &&
@@ -391,7 +391,7 @@ public class RoleRepository : IRoleRepository
                 return null;
             }
 
-            // ✅ Map entity to response DTO
+            //  Map entity to response DTO
             var mappedRole = _mapper.Map<GetSingleRoleResponseDTO>(role);
 
             _logger.LogInformation("✅ Successfully retrieved role details for RoleId: {RoleId}", dto.Id);
@@ -421,9 +421,9 @@ public class RoleRepository : IRoleRepository
     {
         try
         {
-            
-            
-            // 🧩 Step 3️⃣ - Fetch Role
+
+
+            //  Step 3️⃣ - Fetch Role
             var role = await _context.Roles
                 .FirstOrDefaultAsync(
                     role => role.Id == id &&
@@ -437,7 +437,7 @@ public class RoleRepository : IRoleRepository
                 return false;
             }
 
-            // 🧩 Step 4️⃣ - Apply Soft Delete
+            //  Step 4️⃣ - Apply Soft Delete
             role.IsSoftDeleted = true;
             role.IsActive = false;
             role.SoftDeletedById = employeeId;
@@ -445,10 +445,10 @@ public class RoleRepository : IRoleRepository
             role.UpdatedById = employeeId;
             role.UpdatedDateTime = DateTime.UtcNow;
 
-            // 🧩 Step 5️⃣ - Update Entity
+            //  Step 5️⃣ - Update Entity
             _context.Roles.Update(role);
 
-            // 🧩 Step 6️⃣ - Commit Changes
+            //  Step 6️⃣ - Commit Changes
             var result = await _context.SaveChangesAsync();
 
             if (result > 0)
@@ -484,7 +484,7 @@ public class RoleRepository : IRoleRepository
                 return null;
             }
 
-            // ✅ Duplicate check
+            //  Duplicate check
             bool isDuplicate = await _context.Roles
                 .AnyAsync(
                     role => role.RoleName.ToLower() == entity.RoleName.ToLower() &&
@@ -517,7 +517,7 @@ public class RoleRepository : IRoleRepository
     {
         try
         {
-            
+
             var query = _context.Roles
                 .AsNoTracking()
                 .Where(r =>
@@ -566,18 +566,18 @@ public class RoleRepository : IRoleRepository
                 return response;
             }
 
-           
+
             int roleType = dto.RoleType;
 
             var query = _context.Roles
                 .Where(r => r.TenantId == tenantId && (r.IsSoftDeleted != true))
                 .AsQueryable();
 
-            // ✅ Optional Filters
+            //  Optional Filters
             if (dto.Id > 0)
                 query = query.Where(r => r.Id == dto.Id);
 
-         
+
 
             if (!string.IsNullOrWhiteSpace(dto.RoleName))
                 query = query.Where(r => r.RoleName.ToLower().Contains(dto.RoleName.ToLower()));
@@ -588,7 +588,7 @@ public class RoleRepository : IRoleRepository
             if (roleType > 0)
                 query = query.Where(r => r.RoleType == roleType);
 
-            // ✅ Sorting
+            //  Sorting
 
             query = dto.SortBy?.ToLower() switch
             {
@@ -603,7 +603,7 @@ public class RoleRepository : IRoleRepository
                 _ => query.OrderByDescending(x => x.Id) // default sort by Id
             };
 
-            // ✅ Pagination
+            //  Pagination
             var totalRecords = await query.CountAsync();
             var roles = await query
                 .Skip((dto.PageNumber - 1) * dto.PageSize)
@@ -639,8 +639,8 @@ public class RoleRepository : IRoleRepository
     public async Task<List<GetRoleOptionResponseDTO>> GetOptionAsync(long tenantId, GetRoleOptionRequestDTO dto)
     {
         try
-        {   
-             
+        {
+
             var query = _context.Roles
                 .Where(x => x.TenantId == tenantId && x.IsSoftDeleted != true && x.IsActive);
 
@@ -653,9 +653,9 @@ public class RoleRepository : IRoleRepository
                 {
                     Id = r.Id,
                     RoleName = r.RoleName,
-                    RoleType = r.RoleType,                      
+                    RoleType = r.RoleType,
                     IsActive = r.IsActive
-                    
+
                 })
                 .AsNoTracking()
                 .ToListAsync();

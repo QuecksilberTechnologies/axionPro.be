@@ -24,6 +24,9 @@ using Microsoft.Extensions.Logging;
 namespace axionpro.application.Features.EmployeeCmd.UpdateStatus.Handler
 {
 
+    #region Command
+
+
 
     /// <summary>
     /// Represents the UpdateEditableStatusCommand application component.
@@ -42,7 +45,11 @@ namespace axionpro.application.Features.EmployeeCmd.UpdateStatus.Handler
     /// <summary>
     /// Handles UpdateEditStatusCommand requests.
     /// </summary>
-    public class UpdateEditStatusCommandHandler
+        #endregion
+
+    #region Handler
+
+public class UpdateEditStatusCommandHandler
         : IRequestHandler<UpdateEditableStatusCommand, ApiResponse<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -116,7 +123,7 @@ namespace axionpro.application.Features.EmployeeCmd.UpdateStatus.Handler
                     throw new ValidationErrorException("Invalid section type.");
 
                 // ===============================
-                // 4️⃣ PERMISSION (CRITICAL 🚨)
+                // 4️⃣ PERMISSION (CRITICAL )
                 // ===============================
                 //var hasAccess = await _permissionService.HasAccessAsync(
                 //    validation.RoleId,
@@ -170,9 +177,10 @@ namespace axionpro.application.Features.EmployeeCmd.UpdateStatus.Handler
             {
                 _logger.LogError(ex, "Editable update error");
 
-                throw; // 🚨 MUST
+                throw; //  MUST
             }
         }
 
     }
+    #endregion
 }

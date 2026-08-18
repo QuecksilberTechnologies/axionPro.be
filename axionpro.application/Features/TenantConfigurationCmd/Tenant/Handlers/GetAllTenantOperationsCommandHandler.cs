@@ -18,7 +18,10 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.TenantConfigurationCmd.Tenant.Handlers
 {
-    // ✅ FIXED COMMAND
+
+    #region Command
+
+    //  FIXED COMMAND
     /// <summary>
     /// Represents the GetAllTenantOperationsCommand application component.
     /// </summary>
@@ -32,11 +35,15 @@ namespace axionpro.application.Features.TenantConfigurationCmd.Tenant.Handlers
         }
     }
 
-    // ✅ FIXED HANDLER
+    //  FIXED HANDLER
     /// <summary>
     /// Handles GetAllTenantOperationsCommand requests.
     /// </summary>
-    public class GetAllTenantOperationsCommandHandler
+        #endregion
+
+    #region Handler
+
+public class GetAllTenantOperationsCommandHandler
         : IRequestHandler<GetAllTenantOperationsCommand, ApiResponse<TenantEnabledOperationsResponseDTO>>
     {
         private readonly ITenantModuleConfigurationRepository _tenantModuleConfigurationRepository;
@@ -89,15 +96,15 @@ namespace axionpro.application.Features.TenantConfigurationCmd.Tenant.Handlers
 
                 //if (!hasAccess)
                 //    throw new UnauthorizedAccessException("Access denied.");
-                            
-                 
+
+
                 // ===============================
                 // 2️⃣ SET CONTEXT
                 // ===============================
                 TenantEnabledOperation tenantEnabledOperation = new TenantEnabledOperation
                 {
                     TenantId = validation.TenantId,
-                     
+
                 };
                 // ===============================
                 // 3️⃣ FETCH DATA
@@ -128,5 +135,6 @@ namespace axionpro.application.Features.TenantConfigurationCmd.Tenant.Handlers
             }
         }
     }
+    #endregion
 }
- 
+

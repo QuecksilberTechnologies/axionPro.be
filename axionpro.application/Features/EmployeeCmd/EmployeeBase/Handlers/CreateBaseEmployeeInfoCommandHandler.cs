@@ -27,6 +27,9 @@ using System.Reflection;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
+
+    #region Command
+
     /// <summary>
     /// Represents the CreateBaseEmployeeInfoCommand application component.
     /// </summary>
@@ -43,7 +46,11 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
     /// <summary>
     /// Handles CreateBaseEmployeeInfoCommand requests.
     /// </summary>
-    public class CreateBaseEmployeeInfoCommandHandler
+        #endregion
+
+    #region Handler
+
+public class CreateBaseEmployeeInfoCommandHandler
    : IRequestHandler<CreateBaseEmployeeInfoCommand, ApiResponse<GetBaseEmployeeResponseDTO>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -101,7 +108,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request.");
                 // ===============================
-                // 3️⃣ PERMISSION (YOUR PATTERN ✅)
+                // 3️⃣ PERMISSION (YOUR PATTERN )
                 // ===============================
                 //var hasAccess = await _permissionService.HasAccessAsync(
                 //    validation.RoleId,
@@ -192,7 +199,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 };
 
                 // ===============================
-                // 🔟 SAVE
+                //  SAVE
                 // ===============================
                 var savedEmployee =
                     await _unitOfWork.Employees
@@ -261,11 +268,12 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 
                 _logger.LogError(ex, "Employee creation failed");
 
-                throw; // 🚨 MUST
+                throw; //  MUST
             }
         }
     }
 
 
+    #endregion
 }
 

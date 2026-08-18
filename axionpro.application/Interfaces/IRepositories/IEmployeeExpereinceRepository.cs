@@ -16,20 +16,20 @@ namespace axionpro.application.Interfaces.IRepositories;
 /// </summary>
 public interface IEmployeeExperienceRepository
 {
-    // 🔹 CREATE
+    //  CREATE
     Task<GetEmployeeExperienceResponseDTO> AddAsync(EmployeeExperience entity);
 
-    // 🔹 UPDATE
+    //  UPDATE
     Task<bool> UpdateAsync(EmployeeExperience entity);
 
-    // 🔹 DELETE (Soft Delete)
+    //  DELETE (Soft Delete)
     Task<bool> SoftDeleteAsync(EmployeeExperience entity);
     Task<bool> SoftDeleteDocAsync(EmployeeExperienceDocument entity);
 
-    // 🔹 GET BY ID
+    //  GET BY ID
     Task<EmployeeExperience?> GetByIdAsync(long id, long employeeid);
 
-    // 🔹 GET LIST (WITH DETAILS)
+    //  GET LIST (WITH DETAILS)
     Task<PagedResponseDTO<GetEmployeeExperienceResponseDTO>> GetByEmployeeIdWithDocumentsAsync(long employeeId, GetExperienceRequestDTO employee);
 }
 

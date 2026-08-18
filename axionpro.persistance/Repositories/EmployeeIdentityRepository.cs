@@ -24,6 +24,9 @@ using Microsoft.Extensions.Logging;
 namespace axionpro.persistance.Repositories
 {
 
+    #region Persistence Operations
+
+
     /// <summary>
     /// Provides persistence operations for EmployeeIdentity records.
     /// </summary>
@@ -32,7 +35,7 @@ namespace axionpro.persistance.Repositories
         private readonly WorkforceDbContext _context;
         private readonly IMapper _mapper;
         private readonly ILogger<EmployeeIdentityRepository> _logger;
-       
+
         private readonly IPasswordService _passwordService;
         private readonly IEncryptionService _encryptionService;
         public EmployeeIdentityRepository(WorkforceDbContext context, IMapper mapper, ILogger<EmployeeIdentityRepository> logger,
@@ -41,7 +44,7 @@ namespace axionpro.persistance.Repositories
             this._context = context;
             this._mapper = mapper;
             this._logger = logger;
-            
+
             _passwordService = passwordService;
             _encryptionService = encryptionService;
 
@@ -92,12 +95,12 @@ namespace axionpro.persistance.Repositories
         //                EmergencyContactNumber = x.EmergencyContactNumber,
         //                EmergencyContactRelation = x.EmergencyContactRelation,
 
-        //                // 📎 Upload flags
+        //                //  Upload flags
         //                hasAadharIdUploaded = !string.IsNullOrEmpty(x.AadhaarDocPath),
         //                hasPanIdUploaded = !string.IsNullOrEmpty(x.PanDocPath),
         //                hasPassportIdUploaded = !string.IsNullOrEmpty(x.PassportDocPath),
 
-        //                // 📂 Paths
+        //                //  Paths
         //                aadharFilePath = x.AadhaarDocPath,
         //                panFilePath = x.PanDocPath,
         //                passportFilePath = x.PassportDocPath,
@@ -121,14 +124,14 @@ namespace axionpro.persistance.Repositories
         //                    !string.IsNullOrEmpty(x.PanDocPath) ? 1 : 0
         //                        }.Sum() / 10.0) * 100, 0)
         //            })
-        //            .FirstOrDefaultAsync();   // 🔥 THIS IS THE KEY
+        //            .FirstOrDefaultAsync();   //  THIS IS THE KEY
 
         //        return response!;
         //    }
         //    catch (Exception ex)
         //    {
         //        _logger.LogError(ex,
-        //            "❌ Error occurred while adding/fetching personal info for EmployeeId: {EmployeeId}",
+        //            " Error occurred while adding/fetching personal info for EmployeeId: {EmployeeId}",
         //            entity.EmployeeId);
 
         //        throw;
@@ -139,7 +142,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                
+
                 _context.EmployeePersonalDetails.Update(employeePersonal);
 
                 return await _context.SaveChangesAsync() > 0;
@@ -155,20 +158,20 @@ namespace axionpro.persistance.Repositories
         //{
         //    try
         //    {
-        //        // 🧭 Base Query
+        //        //  Base Query
         //        var query = _context.EmployeePersonalDetails
         //            .AsNoTracking()
         //            .Where(x =>
         //                x.IsActive == dto.IsActive &&
         //                x.IsSoftDeleted != true);
-             
 
-        //        // 🔍 Keyword Search
+
+        //        //  Keyword Search
         //        if (!string.IsNullOrWhiteSpace(dto.SortBy))
         //        {
         //            var keyword = dto.SortBy.Trim().ToLower();
         //            query = query.Where(x =>
-        //                (x.BloodGroup ?? "").ToLower().Contains(keyword) ||                        
+        //                (x.BloodGroup ?? "").ToLower().Contains(keyword) ||
         //                (x.Nationality ?? "").ToLower().Contains(keyword) ||
         //                (x.EmergencyContactName ?? "").ToLower().Contains(keyword) ||
         //                (x.PanNumber ?? "").ToLower().Contains(keyword) ||
@@ -176,10 +179,10 @@ namespace axionpro.persistance.Repositories
         //                (x.PassportNumber ?? "").ToLower().Contains(keyword));
         //        }
 
-        //        // 🔽 Sorting (latest record preferred)
+        //        //  Sorting (latest record preferred)
         //        query = query.OrderByDescending(x => x.Id);
 
-        //        // 🎯 SINGLE RECORD
+        //        //  SINGLE RECORD
         //        var identity = await query
         //            .Select(identity => new GetIdentityResponseDTO
         //            {
@@ -225,12 +228,12 @@ namespace axionpro.persistance.Repositories
         //            })
         //            .FirstOrDefaultAsync();
 
-        //        return identity; // ✅ single object or null
+        //        return identity; //  single object or null
         //    }
         //    catch (Exception ex)
         //    {
         //        _logger.LogError(ex,
-        //            "❌ Error while fetching identity info | EmployeeId={EmployeeId}",
+        //            " Error while fetching identity info | EmployeeId={EmployeeId}",
 
         //        throw;
         //    }
@@ -317,6 +320,8 @@ namespace axionpro.persistance.Repositories
 
 
 
+
+    #endregion
 }
 
 

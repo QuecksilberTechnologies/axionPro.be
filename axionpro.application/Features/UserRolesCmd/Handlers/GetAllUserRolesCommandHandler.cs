@@ -18,6 +18,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.UserRolesCmd.Handlers
 {
+
+    #region Command
+
     // ===============================
     // COMMAND
     // ===============================
@@ -40,7 +43,11 @@ namespace axionpro.application.Features.UserRolesCmd.Handlers
     /// <summary>
     /// Handles GetAllUserRolesCommand requests.
     /// </summary>
-    public class GetAllUserRolesCommandHandler
+        #endregion
+
+    #region Handler
+
+public class GetAllUserRolesCommandHandler
     : IRequestHandler<GetAllUserRolesCommand, ApiResponse<List<UserRoleDTO>>>
     {
         private readonly IMapper _mapper;
@@ -150,5 +157,6 @@ namespace axionpro.application.Features.UserRolesCmd.Handlers
     }
 
 
+    #endregion
 }
- 
+

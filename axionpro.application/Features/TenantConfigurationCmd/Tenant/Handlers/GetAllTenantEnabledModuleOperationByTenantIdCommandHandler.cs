@@ -94,7 +94,7 @@ public class GetAllTenantEnabledModuleOperationByTenantIdCommandHandler : IReque
            {
             try
               {
-                // ✅ Request null check
+                //  Request null check
                 if (request == null)
                 {
                     _logger.LogWarning("GetTenantEnabledModuleOperationCommand is null.");
@@ -137,7 +137,7 @@ public class GetAllTenantEnabledModuleOperationByTenantIdCommandHandler : IReque
                 };
             }
         }
-    
+
         #endregion
 }
 }

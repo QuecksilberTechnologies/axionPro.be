@@ -24,6 +24,9 @@ using Microsoft.Extensions.Logging;
 namespace axionpro.persistance.Repositories
 {
 
+    #region Persistence Operations
+
+
     /// <summary>
     /// Provides persistence operations for EmployeeDependent records.
     /// </summary>
@@ -59,11 +62,11 @@ namespace axionpro.persistance.Repositories
                 if (entity.EmployeeId <= 0)
                     throw new ArgumentException("Invalid EmployeeId provided.");
 
-                // ✅ Insert
+                //  Insert
                 await _context.EmployeeDependents.AddAsync(entity);
                 await _context.SaveChangesAsync();
 
-                // ✅ Base query
+                //  Base query
                 var query = _context.EmployeeDependents
                     .AsNoTracking()
                     .Where(x =>
@@ -74,15 +77,15 @@ namespace axionpro.persistance.Repositories
 
                 var totalRecords = await query.CountAsync();
 
-                // 🔥 SAFE DEFAULTS
+                //  SAFE DEFAULTS
                 int pageNumber = 1;
                 int pageSize = 10;
                 var records = await query.Take(pageSize).ToListAsync();
 
-                // ✅ Map
+                //  Map
                 var responseData = _mapper.Map<List<GetDependentResponseDTO>>(records);
 
-                // ✅ Completion calculation (FAST & CLEAN)
+                //  Completion calculation (FAST & CLEAN)
                 foreach (var item in responseData)
                 {
                     item.CompletionPercentage =
@@ -175,7 +178,7 @@ namespace axionpro.persistance.Repositories
             try
             {
                 // ===============================
-                // 🔹 STEP 1: FETCH DATA
+                //  STEP 1: FETCH DATA
                 // ===============================
                 var records = await _context.EmployeeDependents
                     .AsNoTracking()
@@ -192,16 +195,16 @@ namespace axionpro.persistance.Repositories
                 }
 
                 // ===============================
-                // 🔹 STEP 2: MAP + CALCULATE
+                //  STEP 2: MAP + CALCULATE
                 // ===============================
                 var result = records.Select(x =>
                 {
-                    // 🔥 FILE URL (S3)
+                    //  FILE URL (S3)
                     string? fileUrl = !string.IsNullOrWhiteSpace(x.FilePath)
                         ? _fileStorageService.GetFileUrl(x.FilePath)
                         : null;
 
-                    // 🔥 FLAGS
+                    //  FLAGS
                     bool hasProof = !string.IsNullOrWhiteSpace(x.FilePath);
 
 
@@ -233,7 +236,7 @@ namespace axionpro.persistance.Repositories
                         DependentName = x.DependentName,
 
                         Relation = x.Relation,
-                        RelationType = relationType, // 🔥 helper
+                        RelationType = relationType, //  helper
 
 
                         DateOfBirth = x.DateOfBirth,
@@ -246,7 +249,7 @@ namespace axionpro.persistance.Repositories
                         IsActive = x.IsActive,
 
                         HasProofUploaded = hasProof,
-                        HasUploadedAll = hasProof, // 🔥 can extend later
+                        HasUploadedAll = hasProof, //  can extend later
 
 
 
@@ -260,25 +263,25 @@ namespace axionpro.persistance.Repositories
                 }).ToList();
 
                 // ===============================
-                // 🔹 STEP 3: COUNTS
+                //  STEP 3: COUNTS
                 // ===============================
                 var response = new GetDependentsDetailResponseDTO
                 {
                     TotalDependents = result.Count,
 
-                    // 👶 Children
+                    //  Children
                     TotalChilds = result.Count(x =>
                         x.Relation == (int)RelationDependant.CHILDREN),
 
-                    // 💑 Spouse
+                    //  Spouse
                     TotalSpouses = result.Count(x =>
                         x.Relation == (int)RelationDependant.SPOUSE),
 
-                    // 👨‍👩‍👧 Parents
+                    // ‍‍ Parents
                     TotalParents = result.Count(x =>
                         x.Relation == (int)RelationDependant.PARENT),
 
-                    // 🧓 In-Laws
+                    //  In-Laws
                     TotalInLaws = result.Count(x =>
                         x.Relation == (int)RelationDependant.IN_LAWS),
 
@@ -302,21 +305,21 @@ namespace axionpro.persistance.Repositories
             try
             {
 
-                // 🔹 Fetch ONLY latest 10 dependents for employee
+                //  Fetch ONLY latest 10 dependents for employee
                 var records = await _context.EmployeeDependents
                     .AsNoTracking()
                     .Where(x =>
                         x.EmployeeId == employeeId &&
                         x.IsSoftDeleted != true &&
                         x.IsActive == true)
-                    .OrderByDescending(x => x.Id)   // ✅ Latest first
-                    .Take(10)                       // ✅ Only 10 records
+                    .OrderByDescending(x => x.Id)   //  Latest first
+                    .Take(10)                       //  Only 10 records
                     .ToListAsync();
 
-                // 🔹 Map to DTO
+                //  Map to DTO
                 var responseData = _mapper.Map<List<GetDependentResponseDTO>>(records);
 
-                // 🔹 Completion calculation (STANDARD helper)
+                //  Completion calculation (STANDARD helper)
                 foreach (var item in responseData)
                 {
                     item.CompletionPercentage =
@@ -442,17 +445,17 @@ namespace axionpro.persistance.Repositories
                 if (dependentIds == null || !dependentIds.Any())
                     return new List<GetDependentResponseDTO>();
 
-                // 🔹 FETCH DEPENDENTS (BULK)
+                //  FETCH DEPENDENTS (BULK)
                 var records = await _context.EmployeeDependents
                     .AsNoTracking()
                     .Where(x =>
-                        dependentIds.Contains(x.Id) &&     // 🔥 FIXED
+                        dependentIds.Contains(x.Id) &&     //  FIXED
                         x.IsSoftDeleted != true &&
                         x.IsActive == true)
                     .OrderByDescending(x => x.Id)
                     .ToListAsync();
 
-                // 🔹 MAP TO DTO
+                //  MAP TO DTO
                 var responseData = _mapper.Map<List<GetDependentResponseDTO>>(records);
 
                 return responseData;
@@ -471,12 +474,12 @@ namespace axionpro.persistance.Repositories
                 if (dependents == null || !dependents.Any())
                     return false;
 
-                // 🔹 TRACKING ENABLE (IMPORTANT)
+                //  TRACKING ENABLE (IMPORTANT)
                 foreach (var entity in dependents)
                 {
                     _context.EmployeeDependents.Attach(entity);
 
-                    // 🔥 MARK ONLY REQUIRED FIELDS (BEST PRACTICE)
+                    //  MARK ONLY REQUIRED FIELDS (BEST PRACTICE)
                     _context.Entry(entity).Property(x => x.IsCoveredInPolicy).IsModified = true;
                     _context.Entry(entity).Property(x => x.UpdatedDateTime).IsModified = true;
                     _context.Entry(entity).Property(x => x.UpdatedById).IsModified = true;
@@ -493,13 +496,15 @@ namespace axionpro.persistance.Repositories
     }
 
 
+
+    #endregion
 }
 
 
 
 
- 
- 
+
+
 
 
 

@@ -16,6 +16,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.TickeAllCmd.Classification
 {
+
+    #region Command
+
     /// <summary>
     /// Represents the UpdateClassificationCommand application component.
     /// </summary>
@@ -32,7 +35,11 @@ namespace axionpro.application.Features.TickeAllCmd.Classification
     /// <summary>
     /// Handles UpdateClassificationCommand requests.
     /// </summary>
-    public class UpdateClassificationCommandHandler
+        #endregion
+
+    #region Handler
+
+public class UpdateClassificationCommandHandler
         : IRequestHandler<UpdateClassificationCommand, ApiResponse<GetClassificationResponseDTO>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -120,4 +127,5 @@ namespace axionpro.application.Features.TickeAllCmd.Classification
             }
         }
     }
+    #endregion
 }

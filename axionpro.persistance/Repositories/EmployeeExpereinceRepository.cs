@@ -23,6 +23,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.persistance.Repositories
 {
+
+    #region Persistence Operations
+
     /// <summary>
     /// Provides persistence operations for EmployeeExpereince records.
     /// </summary>
@@ -48,20 +51,20 @@ namespace axionpro.persistance.Repositories
 
         }
         // ===============================
-        // 🔹 CREATE
+        //  CREATE
         // ===============================
         public async Task<GetEmployeeExperienceResponseDTO> AddAsync(EmployeeExperience entity)
         {
             if (entity == null)
                 throw new ArgumentNullException(nameof(entity));
 
-            // 🔥 ONLY ADD (NO SAVE)
+            //  ONLY ADD (NO SAVE)
             await _context.EmployeeExperiences.AddAsync(entity);
 
-            // ❌ REMOVE THIS LINE
+            //  REMOVE THIS LINE
             // await _context.SaveChangesAsync();
 
-            // 👉 Just return empty or minimal DTO (optional)
+            //  Just return empty or minimal DTO (optional)
             return new GetEmployeeExperienceResponseDTO();
         }
         //public async Task<GetEmployeeExperienceResponseDTO> AddAsync(EmployeeExperience entity)
@@ -69,13 +72,13 @@ namespace axionpro.persistance.Repositories
         //    if (entity == null)
         //        throw new ArgumentNullException(nameof(entity));
 
-        //    // 🔹 Add
+        //    //  Add
         //    await _context.EmployeeExperiences.AddAsync(entity);
 
-        //    // 🔹 Save (IMPORTANT 🔥)
+        //    //  Save (IMPORTANT )
         //    await _context.SaveChangesAsync();
 
-        //    // 🔹 Map to DTO
+        //    //  Map to DTO
         //    var result = new GetEmployeeExperienceResponseDTO
         //    {
         //        Id = entity.Id,
@@ -121,7 +124,7 @@ namespace axionpro.persistance.Repositories
         //        Documents = new List<GetEmployeeExperienceDocumentDTO>()
         //    };
 
-        //    // 🔥 Completion calculate
+        //    //  Completion calculate
         //    result.CompletionPercentage =
         //        CompletionCalculatorHelper.ExperiencePropCalculate(result);
 
@@ -129,7 +132,7 @@ namespace axionpro.persistance.Repositories
         //}
 
         // ===============================
-        // 🔹 UPDATE
+        //  UPDATE
         // ===============================
         public async Task<bool> UpdateAsync(EmployeeExperience entity)
         {
@@ -139,11 +142,11 @@ namespace axionpro.persistance.Repositories
 
         public async Task<bool> SoftDeleteAsync(EmployeeExperience entity)
         {
-            // 🔹 Parent Soft Delete
+            //  Parent Soft Delete
             entity.IsSoftDeleted = true;
             entity.IsActive = false;
 
-            // 🔹 Child Documents Soft Delete
+            //  Child Documents Soft Delete
             if (entity.EmployeeExperienceDocument != null && entity.EmployeeExperienceDocument.Any())
             {
                 foreach (var doc in entity.EmployeeExperienceDocument)
@@ -168,19 +171,19 @@ namespace axionpro.persistance.Repositories
         }
 
         // ===============================
-        // 🔹 GET BY ID
+        //  GET BY ID
         // ===============================
         public async Task<EmployeeExperience?> GetByIdAsync(long id, long employeeId)
         {
             return await _context.EmployeeExperiences
-                .Include(x => x.EmployeeExperienceDocument) // ✅ direct include
+                .Include(x => x.EmployeeExperienceDocument) //  direct include
                 .FirstOrDefaultAsync(x =>
                     x.Id == id &&
                     x.EmployeeId == employeeId &&
                     !x.IsSoftDeleted);
         }
         // ===============================
-        // 🔹 GET LIST (PAGINATED)
+        //  GET LIST (PAGINATED)
         // ===============================
 
         public async Task<PagedResponseDTO<GetEmployeeExperienceResponseDTO>> GetByEmployeeIdWithDocumentsAsync(long employeeId, GetExperienceRequestDTO dto)
@@ -364,11 +367,13 @@ namespace axionpro.persistance.Repositories
 
     }
 
+
+    #endregion
 }
 
 
- 
- 
+
+
 
 
 

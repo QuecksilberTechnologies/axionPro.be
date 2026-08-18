@@ -22,13 +22,13 @@ namespace axionpro.application.Interfaces.IRepositories
     public interface IPolicyTypeInsuranceMappingRepository
     {
 
-        // 🔹 CREATE
+        //  CREATE
         Task<GetPolicyTypeInsuranceMappingResponseDTO?> AddAsync(   PolicyTypeInsuranceMapping entity);
 
-        // 🔹 GET (By Id)
+        //  GET (By Id)
         Task<PolicyTypeInsuranceMapping?> GetByIdAsync(  int id, bool isActive);
 
-        // 🔹 GET LIST (Grid / Listing)
+        //  GET LIST (Grid / Listing)
         Task<PagedResponseDTO<GetPolicyTypeInsuranceMappingResponseDTO>> GetListAsync(long tenantId, GetPolicyTypeInsuranceMappingRequestDTO request);
         Task<List<GetPolicyTypeInsuranceMapDetailsResponseDTO>> GetMapInsuranceDetailAsync( int policyId, bool isActive);
         Task<List<GetPolicyTypeInsuranceMappingResponseDTO>> GetMapInsuranceDDLForEmployeeMappingAsync(long tenantId, bool isActive, bool isSoftDeleted);
@@ -36,14 +36,14 @@ namespace axionpro.application.Interfaces.IRepositories
         Task<PolicyTypeInsuranceMapping?> GetByMappedByInsuranceIdAsync(int id, bool isActive);
         Task<bool> ExistsAsync(int id, bool isActive);
 
-        //    // 🔹 UPDATE
+        //    //  UPDATE
         //  Task<bool> UpdateAsync( PolicyTypeInsuranceMapping entity);
          Task<bool> UpdateAsync(PolicyTypeInsuranceMapping entity);
 
-    //    // 🔹 SOFT DELETE
+    //    //  SOFT DELETE
           Task<bool> SoftDeleteAsync(PolicyTypeInsuranceMapping entity);
 
-        //    // 🔹 EXISTS (Validation use)
+        //    //  EXISTS (Validation use)
         //}
 
 }

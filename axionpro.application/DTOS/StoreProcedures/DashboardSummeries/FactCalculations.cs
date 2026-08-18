@@ -17,22 +17,22 @@ namespace axionpro.application.DTOS.StoreProcedures.DashboardSummeries
     /// <summary>
     /// Represents  Employee statistics for the Admin Dashboard.
     /// </summary>
-    /// 
+    ///
 
-    
+
     public class EmployeeStatsResponseDTO : BaseRequest
     {
-        // 👥 Employee Section
-        public EmployeeStats stat { get; set; }       
+        //  Employee Section
+        public EmployeeStats stat { get; set; }
     }
 
     /// <summary>
     /// Represents  Asset statistics for the Admin Dashboard.
     /// </summary>
-    /// 
+    ///
     public class AssetStatResponseDTO
     {
-        // 🧰 Asset Section
+        //  Asset Section
         public AssetStats stats { get; set; }
     }
 
@@ -51,7 +51,7 @@ namespace axionpro.application.DTOS.StoreProcedures.DashboardSummeries
     /// <summary>
     /// Employee-related dashboard statistics.
     /// </summary>
-    /// 
+    ///
     [Keyless]
     public class EmployeeCountResponseStatsSp
     {

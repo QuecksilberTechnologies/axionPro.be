@@ -19,6 +19,9 @@ using Microsoft.Extensions.Logging;
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
 
+    #region Command
+
+
 
     /// <summary>
     /// Represents the UpdateBaseEmployeeByAdminCommand application component.
@@ -37,7 +40,11 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
     /// <summary>
     /// Handles UpdateBaseEmployeeByAdminCommand requests.
     /// </summary>
-    public class UpdateBaseEmployeeByAdminCommandHandler
+        #endregion
+
+    #region Handler
+
+public class UpdateBaseEmployeeByAdminCommandHandler
         : IRequestHandler<UpdateBaseEmployeeByAdminCommand, ApiResponse<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -241,12 +248,13 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 
                 _logger.LogError(ex, "Error updating employee");
 
-                throw; // 🚨 MUST
+                throw; //  MUST
             }
         }
     }
 
 
+    #endregion
 }
 
 

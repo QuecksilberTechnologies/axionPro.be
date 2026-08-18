@@ -19,6 +19,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
+
+    #region Query
+
     /// <summary>
     /// Represents the ActivateAllEmployeeQuery application component.
     /// </summary>
@@ -34,7 +37,11 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
     /// <summary>
     /// Handles authenticated tenant requests for this feature.
     /// </summary>
-    public class ActivateEmployeeInfoQueryHandler
+        #endregion
+
+    #region Handler
+
+public class ActivateEmployeeInfoQueryHandler
     : IRequestHandler<ActivateAllEmployeeQuery, ApiResponse<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -90,7 +97,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     throw new ValidationErrorException("Invalid EmployeeId.");
 
                 // ===============================
-                // 3️⃣ PERMISSION (YOUR FIXED PATTERN ✅)
+                // 3️⃣ PERMISSION (YOUR FIXED PATTERN )
                 // ===============================
                 //var hasAccess = await _permissionService.HasAccessAsync(
                 //    validation.RoleId,
@@ -140,13 +147,14 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     "Error updating employee status | Id: {Id}",
                     request.DTO?.EmployeeId);
 
-                throw; // 🚨 MUST
+                throw; //  MUST
             }
         }
     }
 
 
 
+    #endregion
 }
 
 

@@ -19,6 +19,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
+
+    #region Command
+
     // ============================
     // COMMAND
     // ============================
@@ -42,7 +45,11 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
     /// <summary>
     /// Handles UpdateSectionBulkCommand requests.
     /// </summary>
-    public class UpdateSectionBulkCommandHandler
+        #endregion
+
+    #region Handler
+
+public class UpdateSectionBulkCommandHandler
         : IRequestHandler<UpdateSectionBulkCommand, ApiResponse<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -107,7 +114,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     throw new ValidationErrorException("No section selected.");
 
                 // ===============================
-                // 5️⃣ PERMISSION (YOUR PATTERN ✅)
+                // 5️⃣ PERMISSION (YOUR PATTERN )
                 // ===============================
                 //var hasAccess = await _permissionService.HasAccessAsync(
                 //    validation.RoleId,
@@ -167,11 +174,12 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
             {
                 _logger.LogError(ex, "UpdateSectionBulk failed");
 
-                throw; // 🚨 MUST
+                throw; //  MUST
             }
         }
 
 
     }
 
+    #endregion
 }

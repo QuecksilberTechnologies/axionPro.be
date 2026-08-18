@@ -19,13 +19,16 @@ using System.Linq;
 
 namespace axionpro.persistance.Repositories
 {
+
+    #region Persistence Operations
+
     /// <summary>
     /// Provides persistence operations for TicketHeader records.
     /// </summary>
     public class TicketHeaderRepository : ITicketHeaderRepository
     {
         private readonly WorkforceDbContext _context;
-       
+
         private readonly IMapper _mapper;
         private readonly ILogger<TicketHeaderRepository> _logger;
 
@@ -38,10 +41,10 @@ namespace axionpro.persistance.Repositories
             _context = context;
             _logger = logger;
             _mapper = mapper;
-            
+
         }
 
-        // ✅ ADD
+        //  ADD
         public async Task<TicketHeader?> AddAsync(TicketHeader entity)
         {
             try
@@ -56,7 +59,7 @@ namespace axionpro.persistance.Repositories
                 throw;
             }
         }
-        // ✅ GET BY ID
+        //  GET BY ID
         /// <summary>
         /// Get header by Id
         /// </summary>
@@ -69,11 +72,11 @@ namespace axionpro.persistance.Repositories
                 if (dto == null || dto.Id <= 0)
                 {
                     _logger.LogWarning("⚠️ Invalid DTO or Id for GetByIdAsync.");
-                  
+
                     return result;
                 }
 
-               
+
                 var entity = await _context.TicketHeaders
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x => x.Id == dto.Id && x.IsActive && (x.IsSoftDeleted !=true));
@@ -86,9 +89,9 @@ namespace axionpro.persistance.Repositories
                 }
 
                 var response = _mapper.Map<GetHeaderResponseDTO>(entity);
-               
 
-                
+
+
                 return result;
             }
             catch (Exception ex)
@@ -137,7 +140,7 @@ namespace axionpro.persistance.Repositories
                     !x.IsSoftDeleted)
                 .Select(x => new GetHeaderResponseDTO
                 {
-                    Id = x.Id, // 🔐 encode later
+                    Id = x.Id, //  encode later
                     HeaderName = x.HeaderName,
 
                     TicketClassificationId = x.TicketClassificationId,
@@ -150,20 +153,20 @@ namespace axionpro.persistance.Repositories
         }
         // TODO: Add other repository functions (AddAsync, UpdateAsync, DeleteAsync, GetAllAsync) in similar style
 
-        // ✅ GET ALL
+        //  GET ALL
         public async Task<List<GetHeaderResponseDTO>> GetAllAsync(GetHeaderRequestDTO dto)
         {
             var result = new List<GetHeaderResponseDTO>();
 
             try
             {
-            
-                // ✅ Step 1: Base Query
+
+                //  Step 1: Base Query
                 var query = _context.TicketHeaders
                     .Where(x => (x.IsSoftDeleted != true) && x.TenantId ==dto.TenantId)
-                    .AsQueryable();                
+                    .AsQueryable();
 
-                // ✅ Step 3: Optional Filters
+                //  Step 3: Optional Filters
                 if (dto.Id > 0)
                     query = query.Where(x => x.Id == dto.Id);
 
@@ -189,14 +192,14 @@ namespace axionpro.persistance.Repositories
                     // yahan agar koi Role-based header visibility logic ho, to wo lagao
                 }
 
-                // ✅ Step 4: Fetch
+                //  Step 4: Fetch
                 var headers = await query.AsNoTracking().ToListAsync();
 
-                // ✅ Step 5: Map to DTO
+                //  Step 5: Map to DTO
                 result = _mapper.Map<List<GetHeaderResponseDTO>>(headers);
 
-                // ✅ Step 6: Add success message
-                
+                //  Step 6: Add success message
+
 
                 _logger.LogInformation("✅ {Count} headers fetched successfully for TenantId={TenantId}", result.Count, dto.TenantId);
 
@@ -208,10 +211,10 @@ namespace axionpro.persistance.Repositories
 
                 return new List<GetHeaderResponseDTO>();
             };
-             
+
         }
 
-        // ✅ UPDATE
+        //  UPDATE
         public async Task<TicketHeader?> GetByIdForTenantAsync(long id, long tenantId)
         {
             return await _context.TicketHeaders.FirstOrDefaultAsync(x =>
@@ -226,7 +229,7 @@ namespace axionpro.persistance.Repositories
             await _context.SaveChangesAsync();
             return entity;
         }
-        // ✅ DELETE (Soft Delete)
+        //  DELETE (Soft Delete)
         public async Task<bool> DeleteAsync(DeleteHeaderRequestDTO dto, long EmployeeId)
         {
             try
@@ -235,7 +238,7 @@ namespace axionpro.persistance.Repositories
                 {
                     _logger.LogWarning("⚠️ Invalid DTO or Id for DeleteHeaderAsync.");
                     return false;
-                } 
+                }
 
                 var entity = await _context.TicketHeaders.FirstOrDefaultAsync(x => x.Id == dto.Id && (x.IsSoftDeleted != true && x.IsActive == true));
                 if (entity == null)
@@ -262,4 +265,6 @@ namespace axionpro.persistance.Repositories
             }
         }
     }
+
+    #endregion
 }

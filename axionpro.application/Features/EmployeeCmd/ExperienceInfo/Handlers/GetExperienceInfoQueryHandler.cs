@@ -17,6 +17,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers;
 
+#region Query
+
+
 /// <summary>
 /// Represents the GetExperienceInfoQuery application component.
 /// </summary>
@@ -34,6 +37,10 @@ public class GetExperienceInfoQuery
 /// <summary>
 /// Handles GetExperienceInfoQuery requests.
 /// </summary>
+#endregion
+
+#region Handler
+
 public class GetExperienceInfoQueryHandler
     : IRequestHandler<GetExperienceInfoQuery, ApiResponse<List<GetEmployeeExperienceResponseDTO>>>
 {
@@ -138,7 +145,7 @@ public class GetExperienceInfoQueryHandler
             }
 
             // ===============================
-            // 5️⃣ ENCODE IDS (FIXED 🔥)
+            // 5️⃣ ENCODE IDS (FIXED )
             // ===============================
             foreach (var item in expEntities.Data)
             {
@@ -181,8 +188,10 @@ public class GetExperienceInfoQueryHandler
         }
     }
 }
- 
 
 
 
 
+
+
+#endregion

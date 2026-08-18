@@ -17,6 +17,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
 {
+
+    #region Query
+
     /// <summary>
     /// Represents the GetAllTicketTypeByHeaderIdQuery application component.
     /// </summary>
@@ -32,7 +35,11 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
     /// <summary>
     /// Handles GetAllTicketTypeByHeaderIdQuery requests.
     /// </summary>
-    public class GetAllTicketTypeByHeaderIdQueryHandler
+        #endregion
+
+    #region Handler
+
+public class GetAllTicketTypeByHeaderIdQueryHandler
      : IRequestHandler<GetAllTicketTypeByHeaderIdQuery, ApiResponse<List<GetTicketTypeResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -69,7 +76,7 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
                     throw new ValidationErrorException("Invalid request.");
 
                 // ===============================
-                // 2️⃣ RBAC CHECK (MANDATORY 🔥)
+                // 2️⃣ RBAC CHECK (MANDATORY )
                 // ===============================
                 //var hasAccess = await _commonRequestService.HasAccessAsync(
                 //    validation.RoleId,
@@ -106,9 +113,10 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
                 _logger.LogError(ex, "❌ Error in GetAllTicketTypeByHeaderId. HeaderId: {HeaderId}",
                     request?.Request?.TicketHeaderId);
 
-                throw; // 🔥 Middleware handle karega (as per your architecture)
+                throw; //  Middleware handle karega (as per your architecture)
             }
         }
     }
 
+    #endregion
 }

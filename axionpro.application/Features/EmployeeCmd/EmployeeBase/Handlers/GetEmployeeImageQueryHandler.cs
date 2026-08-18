@@ -20,6 +20,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
+
+    #region Query
+
     /// <summary>
     /// Represents the GetEmployeeImageQuery application component.
     /// </summary>
@@ -37,7 +40,11 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
     /// <summary>
     /// Handles GetEmployeeImageQuery requests.
     /// </summary>
-    public class GetEmployeeImageQueryHandler
+        #endregion
+
+    #region Handler
+
+public class GetEmployeeImageQueryHandler
      : IRequestHandler<GetEmployeeImageQuery, ApiResponse<GetEmployeeImageReponseDTO>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -96,7 +103,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     throw new ValidationErrorException("Invalid EmployeeId.");
 
                 // ===============================
-                // 3️⃣ PERMISSION (YOUR PATTERN ✅)
+                // 3️⃣ PERMISSION (YOUR PATTERN )
                 // ===============================
                 //var hasAccess = await _permissionService.HasAccessAsync(
                 //    validation.RoleId,
@@ -148,9 +155,10 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     "Error fetching employee image | EmployeeId: {EmployeeId}",
                     request.DTO?.EmployeeId);
 
-                throw; // 🚨 MUST
+                throw; //  MUST
             }
         }
     }
 
+    #endregion
 }

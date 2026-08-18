@@ -22,6 +22,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
+
+    #region Query
+
     /// <summary>
     /// Represents the DeleteEmployeeQuery application component.
     /// </summary>
@@ -37,7 +40,11 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
     /// <summary>
     /// Handles DeleteBaseEmployeeInfoQuery requests.
     /// </summary>
-    public class DeleteBaseEmployeeInfoQueryHandler : IRequestHandler<DeleteEmployeeQuery, ApiResponse<bool>>
+        #endregion
+
+    #region Handler
+
+public class DeleteBaseEmployeeInfoQueryHandler : IRequestHandler<DeleteEmployeeQuery, ApiResponse<bool>>
     {
         private readonly IBaseEmployeeRepository _employeeRepository;
         private readonly IMapper _mapper;
@@ -94,7 +101,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     throw new ValidationErrorException("Invalid EmployeeId.");
 
                 // ===============================
-                // 3️⃣ PERMISSION (YOUR PATTERN ✅)
+                // 3️⃣ PERMISSION (YOUR PATTERN )
                 // ===============================
                 //var hasAccess = await _permissionService.HasAccessAsync(
                 //    validation.RoleId,
@@ -148,7 +155,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     "Error deleting employee | Id: {Id}",
                     request.DTO?.EmployeeId);
 
-                throw; // 🚨 MUST
+                throw; //  MUST
             }
         }
 
@@ -156,6 +163,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 
 
 
+    #endregion
 }
 
 

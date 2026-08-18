@@ -25,6 +25,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
 {
+
+    #region Command
+
     /// <summary>
     /// Represents the UpdateLoginPasswordCommand application component.
     /// </summary>
@@ -44,7 +47,11 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
     /// <summary>
     /// Handles authenticated tenant requests for this feature.
     /// </summary>
-    public class UpdateLoginPasswordCommandHandler : IRequestHandler<UpdateLoginPasswordCommand, ApiResponse<UpdatePasswordResponseDTO>>
+        #endregion
+
+    #region Handler
+
+public class UpdateLoginPasswordCommandHandler : IRequestHandler<UpdateLoginPasswordCommand, ApiResponse<UpdatePasswordResponseDTO>>
 {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -89,7 +96,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
         try
         {
                 await _unitOfWork.BeginTransactionAsync();
-               
+
                 // 1️ COMMON VALIDATION (Mandatory)
                 #region Tenant Request Validation
                 var validation = await _commonRequestService.ValidateRequestAsync();
@@ -103,7 +110,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                     validation.Claims.TenantEncriptionKey,
                     _idEncoderService);
 
-                // 🔐 Authenticate user
+                //  Authenticate user
                 var user = await _unitOfWork.UserLoginRepository.AuthenticateUser(request.DTO.LoginId);
 
                 if (user == null || string.IsNullOrWhiteSpace(user.Password))
@@ -111,13 +118,13 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                     throw new UnauthorizedAccessException(ConstantValues.invalidCredential);
                 }
 
-                // 🔑 Verify password
+                //  Verify password
                 if (!_passwordService.VerifyPassword(user.Password, request.DTO.OldPassword))
                 {
                     throw new UnauthorizedAccessException(ConstantValues.invalidCredential);
                 }
 
-                // Inside Handle() method 
+                // Inside Handle() method
                 string? hashedPassword = _passwordService.HashPassword(request.DTO.NewPassword);
                 if(string.IsNullOrEmpty(hashedPassword))
                 {
@@ -132,9 +139,9 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 hashedPassword = hashedPassword.Trim();
 
 
-               
+
                 // Just in case EmployeeId not mapped from request, ensure it is set
-                  
+
 
             bool isUpdated = await _unitOfWork.UserLoginRepository.UpdatePassword(
                 targetEmployeeId,
@@ -147,7 +154,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                     throw new InvalidOperationException("The password update did not complete.");
                 }
 
-                // ✅ COMMIT HERE
+                //  COMMIT HERE
                 await _unitOfWork.CommitTransactionAsync();
 
                 return ApiResponse<UpdatePasswordResponseDTO>.Success(
@@ -156,7 +163,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 );
 
 
-            
+
         }
         catch (Exception ex)
         {
@@ -174,4 +181,5 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
     }
 }
 
+    #endregion
 }

@@ -24,6 +24,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 {
+
+    #region Query
+
     /// <summary>
     /// Represents the GetBankInfoQuery application component.
     /// </summary>
@@ -39,7 +42,11 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
     /// <summary>
     /// Handles authenticated tenant requests for this feature.
     /// </summary>
-    public class GetBankInfoQueryHandler : IRequestHandler<GetBankInfoQuery, ApiResponse<List<GetBankResponseDTO>>>
+        #endregion
+
+    #region Handler
+
+public class GetBankInfoQueryHandler : IRequestHandler<GetBankInfoQuery, ApiResponse<List<GetBankResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -183,11 +190,12 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                     "Error fetching bank info | EmployeeId: {EmployeeId}",
                     request.DTO?.EmployeeId);
 
-                throw; // 🚨 MUST
+                throw; //  MUST
             }
         }
     }
 
 
+    #endregion
 }
- 
+

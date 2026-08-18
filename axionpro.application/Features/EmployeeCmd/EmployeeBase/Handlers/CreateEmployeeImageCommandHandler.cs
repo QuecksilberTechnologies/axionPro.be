@@ -24,6 +24,9 @@ using System.Reflection;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
+
+    #region Command
+
     /// <summary>
     /// Represents the CreateEmployeeImageCommand application component.
     /// </summary>
@@ -40,7 +43,11 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
     /// <summary>
     /// Handles CreateEmployeeImageCommand requests.
     /// </summary>
-    public class CreateEmployeeImageCommandHandler
+        #endregion
+
+    #region Handler
+
+public class CreateEmployeeImageCommandHandler
       : IRequestHandler<CreateEmployeeImageCommand, ApiResponse<GetEmployeeImageReponseDTO>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -99,7 +106,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     throw new ValidationErrorException("Invalid EmployeeId.");
 
                 // ===============================
-                // 3️⃣ PERMISSION (YOUR PATTERN ✅)
+                // 3️⃣ PERMISSION (YOUR PATTERN )
                 // ===============================
                 //var hasAccess = await _permissionService.HasAccessAsync(
                 //    validation.RoleId,
@@ -201,7 +208,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 
                 _logger.LogError(ex, "CreateEmployeeImage failed");
 
-                // 🧹 FILE CLEANUP (CRITICAL 🚨)
+                //  FILE CLEANUP (CRITICAL )
                 if (!string.IsNullOrEmpty(uploadedFileKey))
                 {
                     try
@@ -214,8 +221,9 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     }
                 }
 
-                throw; // 🚨 MUST
+                throw; //  MUST
             }
         }
     }
+    #endregion
 }

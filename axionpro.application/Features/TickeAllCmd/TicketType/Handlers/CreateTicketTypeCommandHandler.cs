@@ -19,6 +19,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
 {
+
+    #region Command
+
     /// <summary>
     /// Represents the CreateTicketTypeCommand application component.
     /// </summary>
@@ -36,7 +39,11 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
     /// <summary>
     /// Handles CreateTicketTypeCommand requests.
     /// </summary>
-    public class CreateTicketTypeCommandHandler
+        #endregion
+
+    #region Handler
+
+public class CreateTicketTypeCommandHandler
         : IRequestHandler<CreateTicketTypeCommand, ApiResponse<GetTicketTypeResponseDTO>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -73,7 +80,7 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
                     throw new UnauthorizedAccessException(validation.ErrorMessage);
 
                 // ===============================
-                // 2️⃣ RBAC CHECK 🔥
+                // 2️⃣ RBAC CHECK
                 // ===============================
                 //await _commonRequestService.HasAccessAsync(
                 //    ModuleEnum.Ticket,
@@ -109,8 +116,8 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
                 GetSingleRoleRequestDTO getSingleRoleRequestDTO = new GetSingleRoleRequestDTO()
                 {
                     Id = dto.ResponsibleRoleId  ,
-                    
-                };      
+
+                };
 
                 var roleRepository = await _unitOfWork.RoleRepository.GetByIdAsync1(getSingleRoleRequestDTO);
 
@@ -122,7 +129,7 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
                 {
                     getSingleRoleRequestDTO.Id = dto.ApprovalRoleId ?? 0;
                     var approvalRole = await _unitOfWork.RoleRepository.GetByIdAsync1(getSingleRoleRequestDTO);
-                  
+
 
                     if (approvalRole == null)
                         throw new ValidationErrorException("Invalid ApprovalRoleId.");
@@ -158,10 +165,10 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
                 // ===============================
                 // 9️⃣ RESPONSE MAPPING
                 // ===============================
-               
+
 
                 // ===============================
-                // 🔟 COMMIT
+                //  COMMIT
                 // ===============================
                 await _unitOfWork.CommitTransactionAsync();
 
@@ -179,4 +186,5 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
             }
         }
     }
+    #endregion
 }

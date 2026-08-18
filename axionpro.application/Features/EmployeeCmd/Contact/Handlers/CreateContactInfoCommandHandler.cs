@@ -26,6 +26,9 @@ using System.Reflection;
 
 namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
 {
+
+    #region Command
+
     /// <summary>
     /// Represents the CreateContactInfoCommand application component.
     /// </summary>
@@ -41,7 +44,11 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
     /// <summary>
     /// Handles CreateContactInfoCommand requests.
     /// </summary>
-    public class CreateContactInfoCommandHandler
+        #endregion
+
+    #region Handler
+
+public class CreateContactInfoCommandHandler
       : IRequestHandler<CreateContactInfoCommand, ApiResponse<List<GetContactResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -175,7 +182,7 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
                     "Error adding contact info | EmployeeId: {EmployeeId}",
                     request.DTO?.EmployeeId);
 
-                throw; // 🚨 MUST
+                throw; //  MUST
             }
         }
 
@@ -183,5 +190,6 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
     }
 
 
+    #endregion
 }
 

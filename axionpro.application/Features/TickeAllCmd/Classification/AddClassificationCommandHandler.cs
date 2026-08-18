@@ -14,7 +14,10 @@ using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace axionpro.application.Features.TickeAllCmd.Classification; 
+namespace axionpro.application.Features.TickeAllCmd.Classification;
+
+#region Command
+
 
 /// <summary>
 /// Represents the AddClassificationCommand application component.
@@ -32,6 +35,10 @@ public class AddClassificationCommand : IRequest<ApiResponse<GetClassificationRe
 /// <summary>
 /// Handles AddClassificationCommand requests.
 /// </summary>
+#endregion
+
+#region Handler
+
 public class AddClassificationCommandHandler : IRequestHandler<AddClassificationCommand, ApiResponse<GetClassificationResponseDTO>>
 {
     private readonly IMapper _mapper;
@@ -109,13 +116,15 @@ public class AddClassificationCommandHandler : IRequestHandler<AddClassification
         catch (Exception ex)
         {
             // ===============================
-            // 🔁 ROLLBACK
+            //  ROLLBACK
             // ===============================
             await _unitOfWork.RollbackTransactionAsync();
 
             _logger.LogError(ex, "❌ {Method} failed", methodName);
 
-            throw; // 🔥 IMPORTANT (middleware handle करेगा)
+            throw; //  IMPORTANT (middleware handle करेगा)
         }
     }
 }
+
+#endregion

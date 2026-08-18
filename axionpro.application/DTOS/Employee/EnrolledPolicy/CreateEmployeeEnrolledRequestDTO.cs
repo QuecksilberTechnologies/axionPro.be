@@ -19,30 +19,30 @@ namespace axionpro.application.DTOS.Employee.EnrolledPolicy
     public  class CreateEmployeeEnrolledRequestDTO
     {
 
-        
-            // 🔹 BASIC POLICY INFO
-            public required string EmployeeId { get; set; }   // 🔐 Encoded ID
+
+            //  BASIC POLICY INFO
+            public required string EmployeeId { get; set; }   //  Encoded ID
             public required int PolicyTypeId { get; set; }
             public required int InsurancePolicyId { get; set; }
 
-            // 🔹 DEPENDENT FLAG
+            //  DEPENDENT FLAG
             public bool HasDependent { get; set; } = false;
 
-            // 🔹 DATES
+            //  DATES
             public required DateTime StartDate { get; set; }
-            public DateTime? EndDate { get; set; }            
+            public DateTime? EndDate { get; set; }
 
-            // 🔥 DEPENDENT LIST (IMPORTANT)
+            //  DEPENDENT LIST (IMPORTANT)
             public List<CreateEmployeeDependentRequestPolicyDTO>? Dependents { get; set; } = new();
 
-            // 🔹 COMMON PROPS (CLEAN ARCHITECTURE)
+            //  COMMON PROPS (CLEAN ARCHITECTURE)
         }
     /// <summary>
     /// Represents the CreateEmployeeDependentRequestPolicyDTO data transfer model.
     /// </summary>
     public class CreateEmployeeDependentRequestPolicyDTO
     {
-        public   long DependentId { get; set; }  
+        public   long DependentId { get; set; }
 
         public int Relation { get; set; }  // ENUM VALUE
 

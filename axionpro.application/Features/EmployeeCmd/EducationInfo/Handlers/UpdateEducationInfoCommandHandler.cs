@@ -25,6 +25,9 @@ using System.Security.Principal;
 
 namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 {
+
+    #region Command
+
     /// <summary>
     /// Represents the UpdateEducationInfoCommand application component.
     /// </summary>
@@ -38,7 +41,11 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
     /// <summary>
     /// Handles UpdateEducationInfoCommand requests.
     /// </summary>
-    public class UpdateEducationInfoCommandHandler : IRequestHandler<UpdateEducationInfoCommand, ApiResponse<bool>>
+        #endregion
+
+    #region Handler
+
+public class UpdateEducationInfoCommandHandler : IRequestHandler<UpdateEducationInfoCommand, ApiResponse<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -103,7 +110,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                     throw new ValidationErrorException("Invalid request.");
 
                 // ===============================
-                // 3️⃣ PERMISSION (YOUR FIXED PATTERN ✅)
+                // 3️⃣ PERMISSION (YOUR FIXED PATTERN )
                 // ===============================
                 //var hasAccess = await _permissionService.HasAccessAsync(
                 //    validation.RoleId,
@@ -155,7 +162,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                 existing.StartDate = existing.StartDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
                 existing.EndDate = existing.EndDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
 
-                
+
                 // ===============================
                 // 7️⃣ FILE UPLOAD
                 // ===============================
@@ -192,7 +199,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                 }
 
                 // ===============================
-                // 🧾 AUDIT
+                //  AUDIT
                 // ===============================
                 existing.UpdatedById = validation.UserEmployeeId;
                 existing.UpdatedDateTime = DateTime.UtcNow;
@@ -218,7 +225,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
 
                 _logger.LogError(ex, "Error updating education");
 
-                // 🧹 FILE CLEANUP
+                //  FILE CLEANUP
                 if (!string.IsNullOrEmpty(uploadedFileKey))
                 {
                     try
@@ -231,11 +238,12 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                     }
                 }
 
-                throw; // 🚨 MUST
+                throw; //  MUST
             }
         }
 
     }
 
 
+    #endregion
 }

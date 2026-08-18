@@ -19,6 +19,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.UserRolesCmd.Handlers
 {
+
+    #region Command
+
     // ===============================
     // COMMAND
     // ===============================
@@ -41,7 +44,11 @@ namespace axionpro.application.Features.UserRolesCmd.Handlers
     /// <summary>
     /// Handles AssignUserRolesCommand requests.
     /// </summary>
-    public class AssignUserRolesCommandHandler
+        #endregion
+
+    #region Handler
+
+public class AssignUserRolesCommandHandler
     : IRequestHandler<AssignUserRolesCommand, ApiResponse<List<UserRoleDTO>>>
     {
         private readonly IMapper _mapper;
@@ -102,12 +109,12 @@ namespace axionpro.application.Features.UserRolesCmd.Handlers
 
                 var incomingRoles = request.DTO.UserRoles ?? new List<UserRoleDTO>();
 
-                // 🔥 Convert to HashSet for ultra fast lookup (O(1))
+                //  Convert to HashSet for ultra fast lookup (O(1))
                 var existingRoleIds = existingRoles.Select(x => x.RoleId).ToHashSet();
                 var incomingRoleIds = incomingRoles.Select(x => x.RoleId).ToHashSet();
 
                 // ==========================================================
-                // 🟥 BULK DELETE (Soft Delete)
+                //  BULK DELETE (Soft Delete)
                 // ==========================================================
 
                 var rolesToDelete = existingRoles
@@ -124,12 +131,12 @@ namespace axionpro.application.Features.UserRolesCmd.Handlers
                         role.DeletedDateTime = DateTime.UtcNow;
                     }
 
-                    // 🔥 Single bulk update call
+                    //  Single bulk update call
                     _unitOfWork.UserRoleRepository.UpdateRange(rolesToDelete);
                 }
 
                 // ==========================================================
-                // 🟩 BULK INSERT
+                //  BULK INSERT
                 // ==========================================================
                 var rolesToInsert = incomingRoles
                     .Where(x => !existingRoleIds.Contains(x.RoleId))
@@ -139,16 +146,16 @@ namespace axionpro.application.Features.UserRolesCmd.Handlers
                         RoleId = role.RoleId,
 
                         IsPrimaryRole = false,
-                        
+
 
                         IsActive = role.IsActive,
                         IsSoftDeleted = false,
 
                         AddedById = validation.LoggedInEmployeeId,
                         AddedDateTime = DateTime.UtcNow,
-                        
 
-                       
+
+
                     })
                     .ToList();
 
@@ -158,7 +165,7 @@ namespace axionpro.application.Features.UserRolesCmd.Handlers
                 }
 
                 // ==========================================================
-                // 🟨 BULK UPDATE
+                //  BULK UPDATE
                 // ==========================================================
                 var rolesToUpdate = existingRoles
                     .Where(x => incomingRoleIds.Contains(x.RoleId??0))
@@ -174,18 +181,18 @@ namespace axionpro.application.Features.UserRolesCmd.Handlers
 
                         // force business rules
                         existing.IsPrimaryRole = false;
-                       
+
 
                         existing.UpdatedById = validation.LoggedInEmployeeId;
                         existing.UpdatedDateTime = DateTime.UtcNow;
                     }
 
-                    // 🔥 Single bulk update call
+                    //  Single bulk update call
                     _unitOfWork.UserRoleRepository.UpdateRange(rolesToUpdate);
                 }
 
                 // ===============================
-                // 🔥 SINGLE DB COMMIT
+                //  SINGLE DB COMMIT
                 // ===============================
                 await _unitOfWork.SaveChangesAsync();
 
@@ -212,5 +219,6 @@ namespace axionpro.application.Features.UserRolesCmd.Handlers
         }
     }
 
+    #endregion
 }
- 
+

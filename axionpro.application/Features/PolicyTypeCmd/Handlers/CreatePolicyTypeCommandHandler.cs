@@ -23,6 +23,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.PolicyTypeCmd.Handlers
 {
+
+    #region Command
+
     /// <summary>
     /// Represents the CreatePolicyTypeCommand application component.
     /// </summary>
@@ -39,7 +42,11 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
     /// <summary>
     /// Handles CreatePolicyTypeCommand requests.
     /// </summary>
-    public class CreatePolicyTypeCommandHandler
+        #endregion
+
+    #region Handler
+
+public class CreatePolicyTypeCommandHandler
      : IRequestHandler<CreatePolicyTypeCommand, ApiResponse<GetPolicyTypeResponseDTO>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -69,8 +76,8 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
          CancellationToken cancellationToken)
         {
             string? uploadedFileKey = null;
-            bool hasPolicyDocUploaded = false; // ✅ FIX
- 
+            bool hasPolicyDocUploaded = false; //  FIX
+
 
             try
             {
@@ -88,7 +95,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                     throw new ValidationErrorException("At least one EmployeeType is required.");
 
                 // ===============================
-                // 🔥 FILE UPLOAD FIRST (IMPORTANT)
+                //  FILE UPLOAD FIRST (IMPORTANT)
                 // ===============================
                 string fileName = string.Empty;
 
@@ -110,7 +117,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
 
                     if (!string.IsNullOrWhiteSpace(uploadedFileKey))
                     {
-                        hasPolicyDocUploaded = true; // ✅ SET FLAG
+                        hasPolicyDocUploaded = true; //  SET FLAG
                     }
                 }
 
@@ -127,7 +134,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                     IsActive = request.DTO.IsActive,
                     PolicyTypeEnumVal = request.DTO.PolicyTypeEnumVal,
                     IsStructured = request.DTO.IsStructured,
-                    HasPolicyDocUploaded = hasPolicyDocUploaded, // ✅ CORRECT
+                    HasPolicyDocUploaded = hasPolicyDocUploaded, //  CORRECT
                     IsSoftDelete = false,
                     AddedById = validation.UserEmployeeId,
                     AddedDateTime = DateTime.UtcNow,
@@ -142,7 +149,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                     throw new ApiException("Policy type creation failed.", 500);
 
                 // ===============================
-                // 🔥 BULK INSERT MAPPING
+                //  BULK INSERT MAPPING
                 // ===============================
                 var mappings = request.DTO.EmployeeTypeIds
                     .Distinct()
@@ -152,7 +159,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                         EmployeeTypeId = empTypeId,
                         PolicyTypeId = createdPolicyType.Id,
                         IsActive = true,
-                        
+
                         AddedById = validation.UserEmployeeId,
                         AddedDateTime = DateTime.UtcNow,
                         UpdatedDateTime = null,
@@ -168,7 +175,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                 }
 
                 // ===============================
-                // 🔥 SAVE DOCUMENT ENTRY
+                //  SAVE DOCUMENT ENTRY
                 // ===============================
                 if (hasPolicyDocUploaded && !string.IsNullOrWhiteSpace(uploadedFileKey))
                 {
@@ -185,14 +192,14 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                         AddedDateTime = DateTime.UtcNow,
                         UpdatedDateTime = null,
                         SoftDeletedDateTime = null,
-                        
+
                     };
 
                     await _unitOfWork.PolicyTypeDocumentRepository.AddAsync(doc);
                 }
                 await _unitOfWork.CommitTransactionAsync();
 
-                // 🔥 FIX: DocDetails
+                //  FIX: DocDetails
                 if (hasPolicyDocUploaded && !string.IsNullOrWhiteSpace(uploadedFileKey))
                 {
                     createdPolicyType.DocDetails = new List<GetPolicyTypeDocumentResponseDTO>
@@ -201,7 +208,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                             {
                                 PolicyTypeId = createdPolicyType.Id,
                                 DocumentTitle = request.DTO.PolicyName,
-                                FileName = fileName,            
+                                FileName = fileName,
                                 FilePath = _fileStorageService.GetFileUrl(uploadedFileKey),
                                 IsActive = true
                             }
@@ -212,7 +219,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
                     createdPolicyType.DocDetails = new List<GetPolicyTypeDocumentResponseDTO>();
                 }
 
-                // 🔥 FIX: EmployeeTypeIds
+                //  FIX: EmployeeTypeIds
                 createdPolicyType.EmployeeTypeIds = request.DTO.EmployeeTypeIds.ToList();
 
                 return ApiResponse<GetPolicyTypeResponseDTO>
@@ -220,7 +227,7 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
             }
             catch (Exception ex)
             {
-               
+
 
                 _logger.LogError(ex, "❌ CreatePolicyType failed");
 
@@ -243,4 +250,5 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
     }
 
 
+    #endregion
 }

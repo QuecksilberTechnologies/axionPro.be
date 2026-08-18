@@ -16,7 +16,10 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.ReportTypeCmd.Handlers
 {
-    // ✅ Command
+
+    #region Command
+
+    //  Command
     /// <summary>
     /// Represents the CreateReportingTypeCommand application component.
     /// </summary>
@@ -30,11 +33,15 @@ namespace axionpro.application.Features.ReportTypeCmd.Handlers
         }
     }
 
-    // ✅ Handler
+    //  Handler
     /// <summary>
     /// Handles CreateReportingTypeCommand requests.
     /// </summary>
-    public class CreateReportingTypeCommandHandler
+        #endregion
+
+    #region Handler
+
+public class CreateReportingTypeCommandHandler
         : IRequestHandler<CreateReportingTypeCommand, ApiResponse<GetReportingTypeResponseDTO>>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -108,8 +115,9 @@ namespace axionpro.application.Features.ReportTypeCmd.Handlers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in CreateReportingType");
-                throw; // ✅ middleware handle karega
+                throw; //  middleware handle karega
             }
         }
     }
+    #endregion
 }

@@ -26,25 +26,25 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.persistance.Repositories
 {
-  
+
     /// <summary>
     /// Provides persistence operations for BaseEmployee records.
     /// </summary>
     public class BaseEmployeeRepository : IBaseEmployeeRepository
     {
         private readonly WorkforceDbContext _context;
-        private readonly IMapper _mapper;                           
+        private readonly IMapper _mapper;
         private readonly ILogger<BaseEmployeeRepository> _logger;
-       
+
         private readonly IPasswordService _passwordService;
         private readonly IEncryptionService _encryptionService;
-        public BaseEmployeeRepository(WorkforceDbContext context, IMapper mapper, ILogger<BaseEmployeeRepository> logger, 
+        public BaseEmployeeRepository(WorkforceDbContext context, IMapper mapper, ILogger<BaseEmployeeRepository> logger,
             IPasswordService passwordService, IEncryptionService encryptionService)
         {
             this._context = context;
             this._mapper = mapper;
             this._logger = logger;
-            
+
             _passwordService = passwordService;
             _encryptionService = encryptionService;
 #if DEBUG
@@ -61,13 +61,13 @@ namespace axionpro.persistance.Repositories
 
         }
 
-         
 
-       
 
-       
 
-        
+
+
+
+
         /// <summary>
         /// Common fun to for all tabs to update IsEditAllowed status
         /// </summary>
@@ -76,8 +76,8 @@ namespace axionpro.persistance.Repositories
         /// <param name="userEmployeeId"></param>
         /// <param name="isVerified"></param>
         /// <param name="ct"></param>
-        /// <returns></returns>   
-       
+        /// <returns></returns>
+
         public async Task<bool> UpdateEditableStatusByEntityAsync(
          int tabInfoType,
     long employeeId,
@@ -343,7 +343,7 @@ namespace axionpro.persistance.Repositories
 
                 // ================= EXPERIENCE =================
                 case TabInfoType.Experience:
-                    // 🔥 DETAILS TABLE
+                    //  DETAILS TABLE
                     affected = await _context.EmployeeExperienceDetails
                         .Where(x =>
                             x.EmployeeId == employeeId &&
@@ -362,7 +362,7 @@ namespace axionpro.persistance.Repositories
 
 
         //public async Task<bool> UpdateVerifyEditStatusAsyncisVerified, bool? isEditAllowed, bool? isActive, long userId)
-        //{(string sectionType, long employeeId, bool? 
+        //{(string sectionType, long employeeId, bool?
         //    if (employeeId <= 0 || string.IsNullOrWhiteSpace(sectionType))
         //        return false;
 
@@ -370,7 +370,7 @@ namespace axionpro.persistance.Repositories
 
         //    DateTime now = DateTime.UtcNow;
 
-        //    // 🔥 COMMON LOCAL FUNCTION — ALL TABLES FOLLOW SAME PATTERN
+        //    //  COMMON LOCAL FUNCTION — ALL TABLES FOLLOW SAME PATTERN
         //    async Task<bool> UpdateMainTable<TEntity>(DbSet<TEntity> dbSet)
         //        where TEntity : class
         //    {
@@ -425,7 +425,7 @@ namespace axionpro.persistance.Repositories
 
         //            if (mainUpdated)
         //            {
-        //                // 🔥 ExperienceDetails update — SAME PATTERN — ONE extra hit only
+        //                //  ExperienceDetails update — SAME PATTERN — ONE extra hit only
         //                var details = await _context.EmployeeExperienceDetails
         //                    .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
         //                    .ToListAsync();
@@ -470,14 +470,14 @@ namespace axionpro.persistance.Repositories
                 if (employee == null)
                     throw new Exception("Employee not found.");
 
-                // 🔹 EMPLOYEE (MASTER)
+                //  EMPLOYEE (MASTER)
                 employee.IsActive = isActive;
                 employee.IsEditAllowed = false;
                 employee.IsInfoVerified = false;
                 employee.UpdatedById = employee.Id;
                 employee.UpdatedDateTime = DateTime.UtcNow;
 
-                // 🔹 BANK DETAILS
+                //  BANK DETAILS
                 var bankDetails = await _context.EmployeeBankDetails
                     .Where(x => x.EmployeeId == employee.Id && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
                     .ToListAsync();
@@ -491,7 +491,7 @@ namespace axionpro.persistance.Repositories
                     bank.UpdatedDateTime = DateTime.UtcNow;
                 }
 
-                // 🔹 CONTACT DETAILS
+                //  CONTACT DETAILS
                 var contacts = await _context.EmployeeContacts
                     .Where(x => x.EmployeeId == employee.Id && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
                     .ToListAsync();
@@ -505,7 +505,7 @@ namespace axionpro.persistance.Repositories
                     contact.UpdatedDateTime = DateTime.UtcNow;
                 }
 
-                // 🔹 DEPENDENT DETAILS
+                //  DEPENDENT DETAILS
                 var dependents = await _context.EmployeeDependents
                     .Where(x => x.EmployeeId == employee.Id && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
                     .ToListAsync();
@@ -519,7 +519,7 @@ namespace axionpro.persistance.Repositories
                     dep.UpdatedDateTime = DateTime.UtcNow;
                 }
 
-                // 🔹 IMAGE DETAILS
+                //  IMAGE DETAILS
                 var images = await _context.EmployeeImages
                     .Where(x => x.EmployeeId == employee.Id && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
                     .ToListAsync();
@@ -531,7 +531,7 @@ namespace axionpro.persistance.Repositories
                     img.UpdatedDateTime = DateTime.UtcNow;
                 }
 
-                // 🔹 EDUCATION DETAILS
+                //  EDUCATION DETAILS
                 var educations = await _context.EmployeeEducations
                     .Where(x => x.EmployeeId == employee.Id && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
                     .ToListAsync();
@@ -545,7 +545,7 @@ namespace axionpro.persistance.Repositories
                     edu.UpdatedDateTime = DateTime.UtcNow;
                 }
 
-                // 🔹 PERSONAL / IDENTITY DETAILS
+                //  PERSONAL / IDENTITY DETAILS
                 var identities = await _context.EmployeePersonalDetails
                     .Where(x => x.EmployeeId == employee.Id && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
                     .ToListAsync();
@@ -559,7 +559,7 @@ namespace axionpro.persistance.Repositories
                     iden.UpdatedDateTime = DateTime.UtcNow;
                 }
 
-                // 🔹 SAVE ONCE
+                //  SAVE ONCE
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
@@ -595,7 +595,7 @@ namespace axionpro.persistance.Repositories
                 employee.IsEditAllowed = false;
                 employee.IsInfoVerified = false;
 
-                // 🔹 BANK DETAILS
+                //  BANK DETAILS
                 var bankDetails = await _context.EmployeeBankDetails
                     .Where(x => x.EmployeeId == employee.Id
                         && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
@@ -612,7 +612,7 @@ namespace axionpro.persistance.Repositories
 
                 }
 
-                // 🔹 CONTACT DETAILS
+                //  CONTACT DETAILS
                 var contacts = await _context.EmployeeContacts
                     .Where(x => x.EmployeeId == employee.Id
                         && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
@@ -628,7 +628,7 @@ namespace axionpro.persistance.Repositories
                     contact.IsInfoVerified = employee.IsInfoVerified ;
                 }
 
-                // 🔹 Dependant DETAILS
+                //  Dependant DETAILS
                 var dependants = await _context.EmployeeDependents
                     .Where(x => x.EmployeeId == employee.Id
                         && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
@@ -643,7 +643,7 @@ namespace axionpro.persistance.Repositories
                     dep.IsEditAllowed = employee.IsEditAllowed ;
                     dep.IsInfoVerified = employee.IsInfoVerified ;
                 }
-                // 🔹 Images DETAILS
+                //  Images DETAILS
                 var images = await _context.EmployeeImages
                     .Where(x => x.EmployeeId == employee.Id
                         && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
@@ -658,7 +658,7 @@ namespace axionpro.persistance.Repositories
 
                 }
 
-                // 🔹 Education DETAILS
+                //  Education DETAILS
                 var educations = await _context.EmployeeEducations
                     .Where(x => x.EmployeeId == employee.Id
                         && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
@@ -673,7 +673,7 @@ namespace axionpro.persistance.Repositories
                     edu.IsEditAllowed = employee.IsEditAllowed ;
                     edu.IsInfoVerified = employee.IsInfoVerified ;
                 }
-                // 🔹 Identity DETAILS
+                //  Identity DETAILS
                 var identites = await _context.EmployeePersonalDetails
                     .Where(x => x.EmployeeId == employee.Id
                         && (x.IsSoftDeleted == null || x.IsSoftDeleted == false))
@@ -689,7 +689,7 @@ namespace axionpro.persistance.Repositories
                     iden.IsInfoVerified = employee.IsInfoVerified ;
                 }
 
-                // 🔹 SAVE ONCE
+                //  SAVE ONCE
                 await _context.SaveChangesAsync();
                 //  await transaction.CommitAsync();
 
@@ -897,11 +897,11 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                // 🧩 Step 1: Pagination defaults
+                //  Step 1: Pagination defaults
                 int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
                 int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
 
-                // 🧩 Step 2: Base employee query (NO tracking = faster)
+                //  Step 2: Base employee query (NO tracking = faster)
                 var query = _context.Employees
                .AsNoTracking()
                .Include(x => x.UserRole)
@@ -910,7 +910,7 @@ namespace axionpro.persistance.Repositories
                     x.TenantId == tenantId &&
                             (x.IsSoftDeleted != true && x.IsActive==true));
 
-                // 🧩 Step 3: Dynamic filters (SAFE & SAME RESULT)
+                //  Step 3: Dynamic filters (SAFE & SAME RESULT)
                 if (employeeId > 0)
                     query = query.Where(x => x.Id == employeeId);
 
@@ -944,7 +944,7 @@ namespace axionpro.persistance.Repositories
                 if (dto.IsInfoVerified.HasValue)
                     query = query.Where(x => x.IsInfoVerified == dto.IsInfoVerified);
 
-                // 🧩 Step 4: Sorting
+                //  Step 4: Sorting
                 bool isAsc = string.Equals(dto.SortOrder, "asc", StringComparison.OrdinalIgnoreCase);
                 query = dto.SortBy?.ToLower() switch
                 {
@@ -954,10 +954,10 @@ namespace axionpro.persistance.Repositories
                     _ => isAsc ? query.OrderBy(x => x.Id) : query.OrderByDescending(x => x.Id)
                 };
 
-                // 🧩 Step 5: Total count (pagination metadata)
+                //  Step 5: Total count (pagination metadata)
                 int totalCount = await query.CountAsync();
 
-                // 🧩 Step 6: Fetch paged employees ONLY (lightweight)
+                //  Step 6: Fetch paged employees ONLY (lightweight)
                 var employees = await query
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
@@ -969,7 +969,7 @@ namespace axionpro.persistance.Repositories
                     .ToListAsync();
 
                 // ----------------------------------------------------
-                // ⚡ PERFORMANCE MAGIC STARTS HERE
+                //  PERFORMANCE MAGIC STARTS HERE
                 // ----------------------------------------------------
 
                 bool hasPrimaryImage = await _context.EmployeeImages
@@ -981,7 +981,7 @@ namespace axionpro.persistance.Repositories
                              x.IsSoftDeleted != true);
 
 
-                // 🧩 Step 8: ONE-TIME lookup tables (Dictionary = O(1))
+                //  Step 8: ONE-TIME lookup tables (Dictionary = O(1))
                 var designationLookup = await _context.Designations
                     .ToDictionaryAsync(x => x.Id, x => x.DesignationName);
 
@@ -994,7 +994,7 @@ namespace axionpro.persistance.Repositories
                 var genderLookup = await _context.Genders
                     .ToDictionaryAsync(x => x.Id, x => x.GenderName);
 
-                // 🧩 Step 9: Final DTO mapping + IN-MEMORY completion
+                //  Step 9: Final DTO mapping + IN-MEMORY completion
                 var records = employees.Select(x =>
                 {
                  //   bool hasPrimary = hasPrimaryImageLookup.Contains(x.Employee.Id);
@@ -1051,13 +1051,13 @@ namespace axionpro.persistance.Repositories
                     };
                 }).ToList();
 
-                // 🧩 Step 10: Overall completion (AVG, fast, accurate)
+                //  Step 10: Overall completion (AVG, fast, accurate)
                 double overallCompletion =
                     records.Any()
                         ? Math.Round(records.Average(x => x.CompletionPercentage), 2)
                         : 0;
 
-                // 🧩 Step 11: Final response
+                //  Step 11: Final response
                 return new PagedResponseDTO<GetBaseEmployeeResponseDTO>
                 {
                     Data = records,
@@ -1081,10 +1081,10 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-              
+
                 int pageNumber = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
                 int pageSize = dto.PageSize <= 0 ? 10 : dto.PageSize;
-                
+
                 // ----------------------------------------------------
                 // 1️⃣ BASE QUERY (LEFT JOIN + AS NO TRACKING)
                 // ----------------------------------------------------
@@ -1134,7 +1134,7 @@ namespace axionpro.persistance.Repositories
                         EmployeeTypeName = et != null ? et.TypeName : "",
                         DepartmentName = dep != null ? dep.DepartmentName : "",
                         CountryName = c != null ? c.CountryName : "",
-                        CountryCode = c != null ? c.CountryCode : ""   // ✅ ADD THIS
+                        CountryCode = c != null ? c.CountryCode : ""   //  ADD THIS
                     };
 
 
@@ -1226,13 +1226,13 @@ namespace axionpro.persistance.Repositories
                         IsMarried = x.emp?.IsMarried,
                         EmployeeCode= x.emp.EmployementCode,
 
-                        OnlineStatus = null, // 🔴 Redis / SignalR se aayega (DB se nahi)
+                        OnlineStatus = null, //  Redis / SignalR se aayega (DB se nahi)
                         LastLoginDateTime = DateTime.UtcNow,
 
-                        CurrentSalaryStatusId = 1,               // ❗ salary join nahi hai
+                        CurrentSalaryStatusId = 1,               //  salary join nahi hai
                         CurrentSalaryStatusRemark = null,
 
-                        RoleId = 1,                              // ❗ role join nahi hai
+                        RoleId = 1,                              //  role join nahi hai
                         RoleType = null,
 
                         DesignationId = x.emp.DesignationId ?? 0,
@@ -1240,10 +1240,10 @@ namespace axionpro.persistance.Repositories
 
                         DepartmentId = x.emp.DepartmentId ?? 0,
                         Department = x.DepartmentName,
-                       
+
                         ProfileImage = !string.IsNullOrWhiteSpace(img?.FilePath) ? img.FilePath : null,
-                        City = x.dist?.DistrictName,   // ✅ District table se
-                                                       // ✅ FIXED
+                        City = x.dist?.DistrictName,   //  District table se
+                                                       //  FIXED
                         Address = x.cont?.Address,
 
                         DateOfJoining = x.emp.DateOfOnBoarding,
@@ -1252,7 +1252,7 @@ namespace axionpro.persistance.Repositories
                         EmployeeTypeName = x.EmployeeTypeName
                     };
 
-                   
+
                     return new GetAllEmployeeInfoResponseDTO
                     {
                         EmployeeId = x.emp.Id.ToString(),
@@ -1262,7 +1262,7 @@ namespace axionpro.persistance.Repositories
                         DateOfOnBoarding = x.emp.DateOfOnBoarding?.ToString(),
                         DateOfBirth = x.emp.DateOfBirth?.ToString(),
                         CountryId = x.emp.CountryId,
-                        Nationality = x.CountryName,   // ✅ FIXED (NO navigation access)
+                        Nationality = x.CountryName,   //  FIXED (NO navigation access)
                         CountryCode = x.CountryCode,
                         EmergencyContactPerson = x.emp.EmergencyContactPerson,
                         GenderId = x.emp.GenderId ?? 0,
@@ -1270,7 +1270,7 @@ namespace axionpro.persistance.Repositories
                         DesignationId = x.emp.DesignationId ?? 0,
                         DepartmentId = x.emp.DepartmentId ?? 0,
                         GenderName = x.GenderName,
-                        MobileNumber  = x.emp?.MobileNumber,                        
+                        MobileNumber  = x.emp?.MobileNumber,
                         EmployeeTypeName = x.EmployeeTypeName,
                         DesignationName = x.DesignationName,
                         DepartmentName = x.DepartmentName,
@@ -1278,7 +1278,7 @@ namespace axionpro.persistance.Repositories
                         EmployeeImagePath = img?.FilePath,
                         HasImagePicUploaded = hasPrimary,
                         IsActive = x.emp.IsActive,
-                      //  SummaryEmployeeInfo = summaryEmployeeInfo  , // ✅ THIS WAS MISSING
+                      //  SummaryEmployeeInfo = summaryEmployeeInfo  , //  THIS WAS MISSING
                         CompletionPercentage = completionPercentage
                     };
                 }).ToList();
@@ -1290,7 +1290,7 @@ namespace axionpro.persistance.Repositories
                     PageNumber = pageNumber,
                     PageSize = pageSize,
                     TotalPages = (int)Math.Ceiling((double)totalCount / pageSize),
-                    
+
 
                 };
             }
@@ -1317,54 +1317,54 @@ namespace axionpro.persistance.Repositories
                 throw new ArgumentException("Invalid EmployeeId.");
 
             // =====================================================
-            // 🔹 EMPLOYEE + MASTER DATA (STRICT FILTERS)
+            //  EMPLOYEE + MASTER DATA (STRICT FILTERS)
             // =====================================================
             var employeeData =
                 await (
                     from emp in _context.Employees.AsNoTracking()
 
-                    // 🔹 UserRole
+                    //  UserRole
                     join userRole in _context.UserRoles
                         .Where(x => x.IsActive == true && x.IsSoftDeleted != true)
                         on emp.Id equals userRole.EmployeeId into userRoleJoin
                     from ur in userRoleJoin.DefaultIfEmpty()
 
-                        // 🔹 Role
+                        //  Role
                     join role in _context.Roles
                         .Where(x => x.IsActive == true && x.IsSoftDeleted != true)
                         on ur.RoleId equals role.Id into roleJoin
                     from r in roleJoin.DefaultIfEmpty()
 
-                        // 🔹 Gender
+                        //  Gender
                     join gender in _context.Genders
                         on emp.GenderId equals (long?)gender.Id into genderJoin
                     from g in genderJoin.DefaultIfEmpty()
 
-                        // 🔹 Designation
+                        //  Designation
                     join designation in _context.Designations
                         .Where(x => x.IsActive == true && x.IsSoftDeleted != true)
                         on emp.DesignationId equals (long?)designation.Id into desigJoin
                     from d in desigJoin.DefaultIfEmpty()
 
-                        // 🔹 Employee Type
+                        //  Employee Type
                     join empType in _context.EmployeeTypes
                         .Where(x => x.IsActive == true && x.IsSoftDeleted != true)
                         on emp.EmployeeTypeId equals (long?)empType.Id into typeJoin
                     from et in typeJoin.DefaultIfEmpty()
 
-                        // 🔹 Department
+                        //  Department
                     join department in _context.Departments
                         .Where(x => x.IsActive == true && x.IsSoftDeleted != true)
                         on emp.DepartmentId equals (long?)department.Id into deptJoin
                     from dep in deptJoin.DefaultIfEmpty()
 
-                        // 🔹 Country
+                        //  Country
                     join country in _context.Countries
                         .Where(x => x.IsActive == true)
                         on emp.CountryId equals country.Id into countryJoin
                     from c in countryJoin.DefaultIfEmpty()
 
-                        // 🔹 Primary Contact
+                        //  Primary Contact
                     join contact in _context.EmployeeContacts
                         .Where(ec =>
                             ec.IsPrimary == true &&
@@ -1373,13 +1373,13 @@ namespace axionpro.persistance.Repositories
                         on emp.Id equals contact.EmployeeId into contactJoin
                     from cont in contactJoin.DefaultIfEmpty()
 
-                        // 🔹 District
+                        //  District
                     join district in _context.Districts
                         .Where(x => x.IsActive == true)
                         on cont.DistrictId equals district.Id into districtJoin
                     from dist in districtJoin.DefaultIfEmpty()
 
-                        // 🔹 FINAL FILTER
+                        //  FINAL FILTER
                     where emp.Id == employeeId
                           && emp.IsActive == isActive
                           && emp.IsSoftDeleted != true
@@ -1405,7 +1405,7 @@ namespace axionpro.persistance.Repositories
                 return null;
 
             // =====================================================
-            // 🔹 PROFILE IMAGE
+            //  PROFILE IMAGE
             // =====================================================
             var img = await _context.EmployeeImages
                 .Where(i =>
@@ -1419,7 +1419,7 @@ namespace axionpro.persistance.Repositories
             bool hasPrimaryImage = img?.IsPrimary == true;
 
             // =====================================================
-            // 🔹 COMPLETION %
+            //  COMPLETION %
             // =====================================================
             double completion =
                 CompletionCalculatorHelper.EmployeePropCalculate(
@@ -1427,7 +1427,7 @@ namespace axionpro.persistance.Repositories
                     hasPrimaryImage);
 
             // =====================================================
-            // 🔹 FINAL DTO
+            //  FINAL DTO
             // =====================================================
             return new SummaryEmployeeInfo
             {
@@ -1487,19 +1487,19 @@ namespace axionpro.persistance.Repositories
                 await (
                     from emp in _context.Employees.AsNoTracking()
 
-                        // 🔹 Designation (Active + Not Deleted)
+                        //  Designation (Active + Not Deleted)
                     join designation in _context.Designations
                         .Where(x => x.IsActive == true && x.IsSoftDeleted != true)
                         on emp.DesignationId equals (long?)designation.Id into desigJoin
                     from d in desigJoin.DefaultIfEmpty()
 
-                        // 🔹 Department (Active + Not Deleted)
+                        //  Department (Active + Not Deleted)
                     join department in _context.Departments
                         .Where(x => x.IsActive == true && x.IsSoftDeleted != true)
                         on emp.DepartmentId equals (long?)department.Id into deptJoin
                     from dep in deptJoin.DefaultIfEmpty()
 
-                        // 🔹 Primary Contact (Active + Not Deleted)
+                        //  Primary Contact (Active + Not Deleted)
                     join contact in _context.EmployeeContacts
                         .Where(c =>
                             c.IsPrimary == true &&
@@ -1508,7 +1508,7 @@ namespace axionpro.persistance.Repositories
                         on emp.Id equals contact.EmployeeId into contactJoin
                     from cont in contactJoin.DefaultIfEmpty()
 
-                        // 🔹 FINAL FILTER (MOST IMPORTANT)
+                        //  FINAL FILTER (MOST IMPORTANT)
                     where emp.Id == employeeId
                           && emp.IsActive == isActive
                           && emp.IsSoftDeleted != true
@@ -1530,7 +1530,7 @@ namespace axionpro.persistance.Repositories
 
                         EmployeeCode = emp.EmployementCode,
 
-                     
+
                         MobileNumber = emp.MobileNumber,
 
                         OffilcialEmail = emp.OfficialEmail
@@ -1544,7 +1544,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                // ❗If bad employeeId, return empty list safely
+                // If bad employeeId, return empty list safely
                 if (employeeId <= 0)
                     return new List<CompletionSectionDTO>();
                 #region Contact Details
@@ -1589,11 +1589,11 @@ namespace axionpro.persistance.Repositories
                         ScoreType = x.ScoreType.ToString(),
                         HasEducationDocUploded = x.HasEducationDocUploded,
 
-                        StartDate = x.StartDate ?? DateOnly.FromDateTime(DateTime.UtcNow),                       
-                        EndDate = x.EndDate,                       
+                        StartDate = x.StartDate ?? DateOnly.FromDateTime(DateTime.UtcNow),
+                        EndDate = x.EndDate,
                         IsEditAllowed =x.IsEditAllowed,
                         IsInfoVerified =x.IsInfoVerified,
-                       
+
 
                     })
                     .ToListAsync();
@@ -1604,9 +1604,9 @@ namespace axionpro.persistance.Repositories
                     .Where(x => x.EmployeeId == employeeId && x.IsSoftDeleted != true)
                     .Select(x => new GetBankResponseDTO
                     {
-                        AccountNumber = x.AccountNumber,    
-                        BankName = x.BankName,  
-                        IFSCCode = x.Ifsccode,  
+                        AccountNumber = x.AccountNumber,
+                        BankName = x.BankName,
+                        IFSCCode = x.Ifsccode,
                         BranchName = x.BranchName,
                         AccountType = x.AccountType,
                         HasChequeDocUploaded = x.HasChequeDocUploaded,
@@ -1615,13 +1615,13 @@ namespace axionpro.persistance.Repositories
                         IsInfoVerified = x.IsInfoVerified,
                         FileName = x.FileName,
                         FilePath = x.FilePath,
-                        
+
 
 
                     })
                     .ToListAsync();
                 #endregion
-                // 🧮 Calculate completion %
+                //  Calculate completion %
                 var educationSection = eduList.CalculateEducationCompletionDTO();
                  var bankSection = bankList.CalculateBankCompletionDTO();
                  var contactSection = contactList.CalculateContactCompletionDTO();
@@ -1630,12 +1630,12 @@ namespace axionpro.persistance.Repositories
             }
             catch (Exception ex)
             {
-                // 🔥 Log error safely
+                //  Log error safely
                 _logger.LogError(ex,
                     "Error in GetEmployeeCompletionAsync for EmployeeId: {EmployeeId}",
                     employeeId);
 
-                // ❗Never throw — return empty list to avoid API crash
+                // Never throw — return empty list to avoid API crash
                 return new List<CompletionSectionDTO>();
             }
         }
@@ -1644,11 +1644,11 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-             
+
                 if (id <= 0)
                     throw new ArgumentException("Invalid Id provided for fetching employee record.");
 
-                
+
 
                 var record = await (
                     from emp in _context.Employees.AsNoTracking()
@@ -1707,7 +1707,7 @@ namespace axionpro.persistance.Repositories
                         OfficialEmail = emp.OfficialEmail,
                         IsActive = emp.IsActive,
                         HasPermanent = emp.HasPermanent,
-                        
+
 
                     }
                 ).FirstOrDefaultAsync();
@@ -1724,8 +1724,8 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-     
-        public async Task<bool> UpdateEmployeeAsync(Employee entity, long tenantId)      
+
+        public async Task<bool> UpdateEmployeeAsync(Employee entity, long tenantId)
         {
             _context.Employees.Update(entity);
             await _context.SaveChangesAsync();
@@ -1736,14 +1736,14 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                // 🔹 Validation
+                //  Validation
                 if (dto == null)
                     throw new ArgumentNullException(nameof(dto), "Request data cannot be null.");
 
                 if (dto.Id <= 0)
                     throw new ArgumentException("Invalid Leave Balance Id provided.");
 
-                // 🔹 Fetch existing record
+                //  Fetch existing record
                 var existingBalance = await _context.EmployeeLeaveBalances
                     .FirstOrDefaultAsync(e => e.Id == dto.Id
                                            && e.TenantId == dto.TenantId);
@@ -1751,7 +1751,7 @@ namespace axionpro.persistance.Repositories
                 if (existingBalance == null)
                     throw new Exception("Employee Leave Balance record not found.");
 
-                // 🔹 Update fields
+                //  Update fields
                 existingBalance.LeaveYear = dto.LeaveYear;
                 existingBalance.OpeningBalance = dto.OpeningBalance;
                 existingBalance.Availed = dto.Availed;
@@ -1765,10 +1765,10 @@ namespace axionpro.persistance.Repositories
 
 
 
-                // 🔹 Save changes
+                //  Save changes
                 await _context.SaveChangesAsync();
 
-                // 🔹 Map to Response DTO
+                //  Map to Response DTO
                 var response = new GetLeaveBalanceToEmployeeResponseDTO
                 {
                     Id = existingBalance.Id,
@@ -1805,7 +1805,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-               
+
                 return await _context.EmployeeImages
                     .AsNoTracking()
                     .FirstOrDefaultAsync(img =>
@@ -1836,7 +1836,7 @@ namespace axionpro.persistance.Repositories
         {
             try
             {
-                
+
                 _context.EmployeeImages.Update(employeeImageInfo);
 
                 return await _context.SaveChangesAsync() > 0;
@@ -1849,7 +1849,7 @@ namespace axionpro.persistance.Repositories
         }
 
 
-       
+
       public async Task<GetBaseEmployeeResponseDTO> CreateEmployeeAsync( Employee employee, LoginCredential loginCredential, UserRole userRole)
 {
     // 1️⃣ Save entities
@@ -1866,7 +1866,7 @@ namespace axionpro.persistance.Repositories
         AddedDateTime = DateTime.UtcNow,
         FileType = 1
     };
-          
+
      await _context.EmployeeImages.AddAsync(employeeImage);
     await _context.LoginCredentials.AddAsync(loginCredential);
     await _context.UserRoles.AddAsync(userRole);
@@ -1951,7 +1951,7 @@ namespace axionpro.persistance.Repositories
                 bool hasPrimaryImage = await _context.EmployeeImages
                       .AsNoTracking()
                       .AnyAsync(x =>
-                          x.EmployeeId == employee.Id &&      // ✅ FIX
+                          x.EmployeeId == employee.Id &&      //  FIX
                           x.IsPrimary == true &&
                           x.HasImageUploaded == true &&
                           x.IsSoftDeleted != true);
@@ -1961,7 +1961,7 @@ namespace axionpro.persistance.Repositories
                 // =====================================================
                  result.CompletionPercentage =    CompletionCalculatorHelper.EmployeePropCalculate(employee, hasPrimaryImage);
 
-                         
+
             }
 
 
@@ -1971,7 +1971,7 @@ namespace axionpro.persistance.Repositories
 
 
 
-    
+
         public Task<Employee?> IsEmployeeExist(string EmployeeCode, long tenantId, bool track = true)
         {
             throw new NotImplementedException();
@@ -2131,7 +2131,7 @@ namespace axionpro.persistance.Repositories
     }
 
 
-}   
+}
 
 
 
@@ -2140,13 +2140,13 @@ namespace axionpro.persistance.Repositories
 
 
 
-  
 
 
 
 
- 
- 
+
+
+
 
 
 

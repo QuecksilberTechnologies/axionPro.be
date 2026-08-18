@@ -27,6 +27,9 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 {
+
+    #region Query
+
     /// <summary>
     /// Represents the GetAllEmployeeInfoQuery application component.
     /// </summary>
@@ -42,7 +45,11 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
     /// <summary>
     /// Handles authenticated tenant requests for this feature.
     /// </summary>
-    public class GetAllEmployeeInfoQueryHandler : IRequestHandler<GetAllEmployeeInfoQuery, ApiResponse<List<GetAllEmployeeInfoResponseDTO>>>
+        #endregion
+
+    #region Handler
+
+public class GetAllEmployeeInfoQueryHandler : IRequestHandler<GetAllEmployeeInfoQuery, ApiResponse<List<GetAllEmployeeInfoResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -118,7 +125,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                         throw new ValidationErrorException("Invalid EmployeeId.");
                 }
                 // ===============================
-                // 3️⃣ PERMISSION (YOUR PATTERN ✅)
+                // 3️⃣ PERMISSION (YOUR PATTERN )
                 // ===============================
                 //var hasAccess = await _permissionService.HasAccessAsync(
                 //    validation.RoleId,
@@ -135,7 +142,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     validation.TenantId,
                     employeeId,
                     request.DTO);
-                
+
                 if (responseDTO == null)
                     throw new ApiException("Employee data not found", 404);
 
@@ -176,11 +183,12 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     "Error fetching employee info | EmployeeId: {EmployeeId}",
                     request.DTO?.EmployeeId);
 
-                throw; // 🚨 MUST
+                throw; //  MUST
             }
         }
 
     }
+    #endregion
 }
 
 
