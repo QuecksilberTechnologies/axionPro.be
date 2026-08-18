@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Assign User Roles Command Handler requests.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.UserRoles;
 using axionpro.application.Exceptions;
@@ -70,26 +77,22 @@ namespace axionpro.application.Features.UserRolesCmd.Handlers
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request.");
 
-                request.DTO.Prop ??= new();
-                request.DTO.Prop.TenantId = validation.TenantId;
-
                 // ===============================
                 // 2️⃣ EMPLOYEE ID CHECK
                 // ===============================
                 if (string.IsNullOrWhiteSpace(request.DTO.EmployeeId))
                     throw new ValidationErrorException("Invalid EmployeeId.");
 
-                var employeeId = request.DTO.Prop.EmployeeId =
-                    RequestCommonHelper.DecodeOnlyEmployeeId(
-                        request.DTO.EmployeeId,
-                        validation.Claims.TenantEncriptionKey,
-                        _idEncoderService);
+                var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
+                    request.DTO.EmployeeId,
+                    validation.Claims.TenantEncriptionKey,
+                    _idEncoderService);
 
                 // ===============================
                 // 3️⃣ FETCH EXISTING ROLES
                 // ===============================
                 var existingRoles = await _unitOfWork.UserRoleRepository
-                    .GetEmployeeRolesWithDetailsByIdAsync(request.DTO.Prop.EmployeeId, request.DTO.Prop.TenantId);
+                    .GetEmployeeRolesWithDetailsByIdAsync(employeeId, validation.TenantId);
 
                 var incomingRoles = request.DTO.UserRoles ?? new List<UserRoleDTO>();
 
@@ -126,7 +129,7 @@ namespace axionpro.application.Features.UserRolesCmd.Handlers
                     .Where(x => !existingRoleIds.Contains(x.RoleId))
                     .Select(role => new UserRole
                     {
-                        EmployeeId = request.DTO.Prop.EmployeeId,
+                        EmployeeId = employeeId,
                         RoleId = role.RoleId,
 
                         IsPrimaryRole = false,
@@ -184,7 +187,7 @@ namespace axionpro.application.Features.UserRolesCmd.Handlers
                 // 9️⃣ RETURN UPDATED DATA
                 // ===============================
                 var updatedRoles = await _unitOfWork.UserRoleRepository
-                    .GetEmployeeRolesWithDetailsByIdAsync(request.DTO.Prop.EmployeeId, request.DTO.Prop.TenantId);
+                    .GetEmployeeRolesWithDetailsByIdAsync(employeeId, validation.TenantId);
 
                 var userRoleDTOs = _mapper.Map<List<UserRoleDTO>>(updatedRoles);
 

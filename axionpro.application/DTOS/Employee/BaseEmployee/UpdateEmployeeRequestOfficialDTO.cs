@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the Update Employee Request Official DTO data transfer model.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Pagination;
 using System;
 using System.Collections.Generic;
@@ -44,7 +51,6 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         public bool? IsActive { get; set; }
         public string? Remark { get; set; }
  
-        public ExtraPropRequestDTO Prop { get; set; } = new();
     }
 
 }

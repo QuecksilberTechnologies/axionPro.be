@@ -74,14 +74,10 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                 throw new UnauthorizedAccessException(validation.ErrorMessage);
 
                 // 🔓 STEP 2: Assign decoded props
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-
-                request.DTO.Prop.EmployeeId =
-                    RequestCommonHelper.DecodeOnlyEmployeeId(
-                        request.DTO.EmployeeId,
-                        validation.Claims.TenantEncriptionKey,
-                        _idEncoderService);
+                var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
+                    request.DTO.EmployeeId,
+                    validation.Claims.TenantEncriptionKey,
+                    _idEncoderService);
 
                 // 🔑 STEP 3: Permission check
                 //var hasAccess = await _permissionService.HasAccessAsync(
@@ -96,7 +92,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                 // 📦 STEP 4: Repository call
                 var result =
                     await _unitOfWork.EmployeeDependentRepository
-                        .GetInfo(request.DTO);
+                        .GetInfo(employeeId, request.DTO);
 
                 if (result == null || !result.Data.Any())
                 {

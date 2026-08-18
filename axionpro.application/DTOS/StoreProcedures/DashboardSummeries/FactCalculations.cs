@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the Fact Calculations data transfer model.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Pagination;
 using Microsoft.EntityFrameworkCore;
 using System.Numerics;
@@ -59,7 +66,6 @@ namespace axionpro.application.DTOS.StoreProcedures.DashboardSummeries
     {
 
         public required string UserEmployeeId { get; set; }
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
     }
 
     /// <summary>

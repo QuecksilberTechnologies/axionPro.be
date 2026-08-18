@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Update Header Command Handler requests.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.DTOS.TicketDTO.Header;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -23,15 +30,18 @@ namespace axionpro.application.Features.TickeAllCmd.TicketHeader.Handlers
         : IRequestHandler<UpdateHeaderCommand, ApiResponse<GetHeaderResponseDTO>>
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
         private readonly ILogger<UpdateHeaderCommandHandler> _logger;
         private readonly ICommonRequestService _commonRequestService;
 
         public UpdateHeaderCommandHandler(
             IUnitOfWork unitOfWork,
+            IMapper mapper,
             ILogger<UpdateHeaderCommandHandler> logger,
             ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
             _logger = logger;
             _commonRequestService = commonRequestService;
         }
@@ -65,9 +75,6 @@ namespace axionpro.application.Features.TickeAllCmd.TicketHeader.Handlers
 
                 var dto = request.DTO;
 
-                dto.Prop ??= new ExtraPropRequestDTO();
-                dto.Prop.TenantId = validation.TenantId;
-
                 if (string.IsNullOrWhiteSpace(dto.HeaderName))
                     throw new ValidationErrorException("Header name is required.");
 
@@ -76,8 +83,16 @@ namespace axionpro.application.Features.TickeAllCmd.TicketHeader.Handlers
                 // ===============================
                 await _unitOfWork.BeginTransactionAsync();
 
-                var result = await _unitOfWork.TicketHeaderRepository
-                    .UpdateAsync(dto);
+                var entity = await _unitOfWork.TicketHeaderRepository
+                    .GetByIdForTenantAsync(dto.Id, validation.TenantId);
+                if (entity == null)
+                    throw new ApiException("Header not found or could not be updated.", 404);
+
+                _mapper.Map(dto, entity);
+                entity.UpdatedById = validation.LoggedInEmployeeId;
+                entity.UpdatedDateTime = DateTime.UtcNow;
+
+                var result = await _unitOfWork.TicketHeaderRepository.UpdateAsync(entity);
 
                 if (result == null)
                     throw new ApiException("Header not found or could not be updated.", 404);
@@ -87,8 +102,9 @@ namespace axionpro.application.Features.TickeAllCmd.TicketHeader.Handlers
                 // ===============================
                 // 5️⃣ RESPONSE
                 // ===============================
+                var response = _mapper.Map<GetHeaderResponseDTO>(result);
                 return ApiResponse<GetHeaderResponseDTO>
-                    .Success(result, "Ticket header updated successfully.");
+                    .Success(response, "Ticket header updated successfully.");
             }
             catch (Exception ex)
             {

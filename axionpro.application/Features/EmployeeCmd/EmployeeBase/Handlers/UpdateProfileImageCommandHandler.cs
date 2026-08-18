@@ -1,4 +1,11 @@
-﻿using axionpro.application.Constants;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Update Profile Image Command Handler requests.
+// ================================================================
+
+using axionpro.application.Constants;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -85,12 +92,6 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request.");
-
-                request.DTO.Prop ??= new();
-
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-
                 // ===============================
                 // 2️⃣ PERMISSION
                 //// ===============================

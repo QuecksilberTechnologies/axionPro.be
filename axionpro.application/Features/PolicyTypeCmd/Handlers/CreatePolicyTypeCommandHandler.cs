@@ -1,4 +1,11 @@
-﻿using axionpro.application.Common.Helpers.EncryptionHelper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Create Policy Type Command Handler requests.
+// ================================================================
+
+using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.PolicyType;
 using axionpro.application.DTOS.PolicyTypeDocument;
@@ -73,10 +80,6 @@ namespace axionpro.application.Features.PolicyTypeCmd.Handlers
 
                 if (request.DTO.EmployeeTypeIds == null || !request.DTO.EmployeeTypeIds.Any())
                     throw new ValidationErrorException("At least one EmployeeType is required.");
-
-                request.DTO.Prop ??= new();
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
 
                 // ===============================
                 // 🔥 FILE UPLOAD FIRST (IMPORTANT)

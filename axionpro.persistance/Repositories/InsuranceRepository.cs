@@ -240,6 +240,7 @@ namespace axionpro.persistance.Repositories
 
         // 🔹 GET LIST (Grid)
         public async Task<PagedResponseDTO<GetInsurancePolicyResponseDTO>> GetListAsync(
+         long tenantId,
          GetInsurancePolicyRequestDTO request)
         {
             // 🔹 Defaults (Handler ke baad safety)
@@ -258,7 +259,7 @@ namespace axionpro.persistance.Repositories
                 .Include(x => x.PolicyType)
                 .Include(x => x.Country)
                 .Where(x =>
-                    x.TenantId == request.Prop.TenantId &&
+                    x.TenantId == tenantId &&
                     !x.IsSoftDeleted &&
                     x.IsActive == isActive);
 

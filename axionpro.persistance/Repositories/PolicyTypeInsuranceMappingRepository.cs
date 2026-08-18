@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Provides persistence operations for Policy Type Insurance Mapping records.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.DTOS.InsurancePoliciesMapping;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -239,15 +246,11 @@ namespace axionpro.persistance.Repositories
 
 
         public async Task<PagedResponseDTO<GetPolicyTypeInsuranceMappingResponseDTO>> GetListAsync(
+            long tenantId,
             GetPolicyTypeInsuranceMappingRequestDTO request)
         {
             try
             {
-                if (request.Props == null)
-                    throw new ArgumentNullException(nameof(request.Props));
-
-                var tenantId = request.Props.TenantId;
-
                 var query =
                     from mapping in _context.PolicyTypeInsuranceMappings.AsNoTracking()
 

@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Provides persistence operations for Employee Contact records.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Common.Helpers.PercentageHelper;
 using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Pagination;
@@ -177,12 +184,12 @@ namespace axionpro.persistance.Repositories
                 throw;
             }
         }
-        public async Task<PagedResponseDTO<GetContactResponseDTO>> GetInfo(GetContactRequestDTO dto)
+        public async Task<PagedResponseDTO<GetContactResponseDTO>> GetInfo(long employeeId, GetContactRequestDTO dto)
         {
             try
             {
                 // 🔒 SAFETY
-                if (dto?.Prop == null || dto.Prop.EmployeeId <= 0)
+                if (dto == null || employeeId <= 0)
                     throw new Exception("Invalid EmployeeId.");
  
 
@@ -207,7 +214,7 @@ namespace axionpro.persistance.Repositories
                     from district in districtJoin.DefaultIfEmpty()
 
                     where
-                        c.EmployeeId == dto.Prop.EmployeeId &&
+                        c.EmployeeId == employeeId &&
                         (c.IsSoftDeleted == false || c.IsSoftDeleted == null)
 
                     orderby c.Id descending   // ✅ LATEST FIRST
@@ -290,8 +297,8 @@ namespace axionpro.persistance.Repositories
             {
                 _logger.LogError(
                     ex,
-                    "❌ Error fetching contacts | EmployeeId: {EmployeeId}",
-                    dto?.Prop?.EmployeeId);
+                    "Error fetching contacts for EmployeeId: {EmployeeId}",
+                    employeeId);
 
                 throw;
             }

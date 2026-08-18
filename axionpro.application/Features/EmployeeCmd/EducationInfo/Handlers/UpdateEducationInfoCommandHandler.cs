@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Update Education Info Command Handler requests.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.Education;
@@ -88,11 +95,6 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                 // ===============================
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request.");
-
-                request.DTO.Prop ??= new ExtraPropRequestDTO();
-
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
 
                 // ===============================
                 // 3️⃣ PERMISSION (YOUR FIXED PATTERN ✅)

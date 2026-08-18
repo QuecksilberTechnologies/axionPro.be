@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOs.Manager.ReportingType;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Get All Reporting Type Query Handler requests.
+// ================================================================
+
+using axionpro.application.DTOs.Manager.ReportingType;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
@@ -68,14 +75,11 @@ namespace axionpro.application.Features.ReportTypeCmd.Handlers
                 if (request?.DTO == null)
                     throw new Exception("Invalid request data.");
 
-                request.DTO.Prop ??= new();
-                request.DTO.Prop.TenantId = validation.TenantId;
-
                 // ===============================
                 // 4️⃣ REPOSITORY CALL (PAGINATION)
                 // ===============================
                 var result = await _unitOfWork.ReportingTypeRepository
-                    .AllAsync(request.DTO);
+                    .AllAsync(validation.TenantId, request.DTO);
 
                 if (result == null)
                     throw new Exception("Failed to fetch ReportingTypes.");

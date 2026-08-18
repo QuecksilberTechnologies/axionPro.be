@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Create Reporting Type Command Handler requests.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.DTOs.Manager.ReportingType;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -25,15 +32,18 @@ namespace axionpro.application.Features.ReportTypeCmd.Handlers
         : IRequestHandler<CreateReportingTypeCommand, ApiResponse<GetReportingTypeResponseDTO>>
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
         private readonly ILogger<CreateReportingTypeCommandHandler> _logger;
         private readonly ICommonRequestService _commonRequestService;
 
         public CreateReportingTypeCommandHandler(
             IUnitOfWork unitOfWork,
+            IMapper mapper,
             ILogger<CreateReportingTypeCommandHandler> logger,
             ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
             _logger = logger;
             _commonRequestService = commonRequestService;
         }
@@ -60,10 +70,6 @@ namespace axionpro.application.Features.ReportTypeCmd.Handlers
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request data.");
 
-                request.DTO.Prop ??= new();
-
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
                 //var hasPermission = await _permissionService.HasAccessAsync(
                 //    validation.RoleId,
                 //    "TicketClassification",   // ModuleName (DB match)
@@ -76,17 +82,22 @@ namespace axionpro.application.Features.ReportTypeCmd.Handlers
                 // ===============================
                 // 3️⃣ REPOSITORY CALL
                 // ===============================
-                var response = await _unitOfWork.ReportingTypeRepository
-                    .AddAsync(request.DTO);
+                var entity = _mapper.Map<axionpro.domain.Entity.ReportingType>(request.DTO);
+                entity.TenantId = validation.TenantId;
+                entity.AddedById = validation.LoggedInEmployeeId;
+                entity.AddedDateTime = DateTime.UtcNow;
+                entity.IsSoftDeleted = false;
 
-                if (response == null)
+                var created = await _unitOfWork.ReportingTypeRepository.AddAsync(entity);
+
+                if (created == null)
                     throw new Exception("ReportingType creation failed.");
 
                 // ===============================
                 // 4️⃣ SUCCESS
                 // ===============================
                 return ApiResponse<GetReportingTypeResponseDTO>
-                    .Success(response, "ReportingType created successfully.");
+                    .Success(_mapper.Map<GetReportingTypeResponseDTO>(created), "ReportingType created successfully.");
             }
             catch (Exception ex)
             {

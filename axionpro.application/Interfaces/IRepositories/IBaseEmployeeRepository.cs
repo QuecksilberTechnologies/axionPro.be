@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOs.Department;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the repository contract for  Base Employee Repository.
+// ================================================================
+
+using axionpro.application.DTOs.Department;
 using axionpro.application.DTOs.Employee.AccessResponse;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
@@ -46,9 +53,9 @@ public interface IBaseEmployeeRepository
     Task<GetLeaveBalanceToEmployeeResponseDTO> UpdateLeaveBalanceToEmployee(
         UpdateLeaveBalanceToEmployeeRequestDTO updateLeaveBalanceTo);
 
-    Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> GetInfo(GetBaseEmployeeRequestDTO dto);
+    Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> GetInfo(long tenantId, long employeeId, GetBaseEmployeeRequestDTO dto);
 
-    Task<PagedResponseDTO<GetAllEmployeeInfoResponseDTO>> GetAllInfo(GetAllEmployeeInfoRequestDTO dto);
+    Task<PagedResponseDTO<GetAllEmployeeInfoResponseDTO>> GetAllInfo(long tenantId, long? employeeId, GetAllEmployeeInfoRequestDTO dto);
 
     Task<Employee?> IsEmployeeExist(string employeeCode, long tenantId, bool track = true);
 
@@ -77,7 +84,7 @@ public interface IBaseEmployeeRepository
 
     Task<bool> UpdateEmployeeAsync(Employee entity, long tenantId);
 
-    Task<GetEmployeeImageReponseDTO> GetImage(GetEmployeeImageRequestDTO dto);
+    Task<GetEmployeeImageReponseDTO> GetImage(long tenantId, long employeeId, GetEmployeeImageRequestDTO dto);
 
     Task<string?> ProfileImage(long employeeId);
 

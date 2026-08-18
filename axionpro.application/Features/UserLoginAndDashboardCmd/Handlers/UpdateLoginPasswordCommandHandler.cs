@@ -95,13 +95,10 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 if (!validation.Success)
                     throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // Assign decoded values coming from CommonRequestService
-                 request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                 request.DTO.Prop.TenantId = validation.TenantId;
-                 request.DTO.Prop.EmployeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
-                 request.DTO.EmployeeId, validation.Claims.TenantEncriptionKey,
-                  _idEncoderService
-              );
+                var targetEmployeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
+                    request.DTO.EmployeeId,
+                    validation.Claims.TenantEncriptionKey,
+                    _idEncoderService);
 
                 // 🔐 Authenticate user
                 var user = await _unitOfWork.UserLoginRepository.AuthenticateUser(request.DTO.LoginId);
@@ -136,7 +133,10 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 // Just in case EmployeeId not mapped from request, ensure it is set
                   
 
-            bool isUpdated = await _unitOfWork.UserLoginRepository.UpdatePassword(request.DTO.Prop.EmployeeId, hashedPassword, request.DTO.Prop.UserEmployeeId);
+            bool isUpdated = await _unitOfWork.UserLoginRepository.UpdatePassword(
+                targetEmployeeId,
+                hashedPassword,
+                validation.LoggedInEmployeeId);
 
                 if (!isUpdated)
                 {

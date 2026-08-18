@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.InsurancePolicy;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Get Insurance Query Handler requests.
+// ================================================================
+
+using axionpro.application.DTOS.InsurancePolicy;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
@@ -73,11 +80,6 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request data.");
 
-                request.DTO.Prop ??= new();
-
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-
                 // ===============================
                 // 4️⃣ PAGING DEFAULTS
                 // ===============================
@@ -91,7 +93,9 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                 // 5️⃣ FETCH DATA
                 // ===============================
                 var result =
-                    await _unitOfWork.InsuranceRepository.GetListAsync(request.DTO);
+                    await _unitOfWork.InsuranceRepository.GetListAsync(
+                        validation.TenantId,
+                        request.DTO);
 
                 var data = result?.Data ?? new List<GetInsurancePolicyResponseDTO>();
 

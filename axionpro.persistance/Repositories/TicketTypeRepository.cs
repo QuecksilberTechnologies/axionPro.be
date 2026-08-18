@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Provides persistence operations for Ticket Type records.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.DTOS.TicketDTO.TicketType;
@@ -48,7 +55,7 @@ namespace axionpro.persistance.Repositories
         /// and <see cref="GetTicketTypeRequestDTO.IsActive"/>.
         /// </param>
         /// <returns>
-        public async Task<PagedResponseDTO<GetTicketTypeResponseDTO>> AllAsync(GetTicketTypeRequestDTO dto)
+        public async Task<PagedResponseDTO<GetTicketTypeResponseDTO>> AllAsync(long tenantId, GetTicketTypeRequestDTO dto)
         {
             try
             {
@@ -76,7 +83,7 @@ namespace axionpro.persistance.Repositories
                         on t.ApprovalRoleId equals ar.Id into approvalGroup
                     from ar in approvalGroup.DefaultIfEmpty()
 
-                    where t.TenantId == dto.Prop.TenantId
+                    where t.TenantId == tenantId
                           && t.IsActive == true
                           && t.IsSoftDeleted != true
 
@@ -147,7 +154,7 @@ namespace axionpro.persistance.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching TicketTypes for TenantId {TenantId}", dto.Prop?.TenantId);
+                _logger.LogError(ex, "Error fetching TicketTypes for TenantId {TenantId}", tenantId);
                 throw;
             }
         }
@@ -197,12 +204,12 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<List<GetTicketTypeResponseDTO>> AllByHeaderIdAsync(GetTicketTypeByHeaderIdRequestDTO dTO)
+        public async Task<List<GetTicketTypeResponseDTO>> AllByHeaderIdAsync(long tenantId, GetTicketTypeByHeaderIdRequestDTO dTO)
         {
             try
             {
                 var ticketTypes = await _context.TicketTypes
-                    .Where(t => t.TicketHeaderId == dTO.TicketHeaderId && t.TenantId == dTO.Prop.TenantId && t.IsActive && (t.IsSoftDeleted !=true))
+                    .Where(t => t.TicketHeaderId == dTO.TicketHeaderId && t.TenantId == tenantId && t.IsActive && (t.IsSoftDeleted !=true))
                     .ToListAsync();
 
                 if (ticketTypes == null || !ticketTypes.Any())
@@ -241,20 +248,14 @@ namespace axionpro.persistance.Repositories
         #endregion
 
         #region Add Method
-        public async Task<GetTicketTypeResponseDTO> AddAsync(TicketType entity)
+        public async Task<TicketType?> AddAsync(TicketType entity)
         {
             try
             {
                 await _context.TicketTypes.AddAsync(entity);
                 await _context.SaveChangesAsync();
 
-                var data = await _context.TicketTypes
-                    .Include(t => t.TicketHeader)
-                    .Include(t => t.ResponsibleRole)
-                    .Include(t => t.ApprovalRole)
-                    .FirstOrDefaultAsync(t => t.Id == entity.Id);
-
-                return _mapper.Map<GetTicketTypeResponseDTO>(data);
+                return entity;
             }
             catch (Exception ex)
             {
@@ -273,47 +274,19 @@ namespace axionpro.persistance.Repositories
         /// <summary>
         /// Updates an existing TicketType record. Only non-null values from DTO will be updated.
         /// </summary>
-        public async Task<bool> UpdateAsync(UpdateTicketTypeRequestDTO dto, long userId)
+        public async Task<TicketType?> GetByIdForTenantAsync(long id, long tenantId)
         {
-            try
-            {
-                var entity = await _context.TicketTypes
-                    .FirstOrDefaultAsync(x =>
-                        x.Id == dto.Id &&
-                        x.IsSoftDeleted != true &&
-                        x.TenantId == dto.Prop.TenantId);
+            return await _context.TicketTypes.FirstOrDefaultAsync(x =>
+                x.Id == id &&
+                x.TenantId == tenantId &&
+                x.IsSoftDeleted != true);
+        }
 
-                if (entity == null)
-                    throw new ValidationErrorException("TicketType not found.");
-
-                // ===============================
-                // UPDATE FIELDS
-                // ===============================
-                entity.TicketTypeName = dto.TicketTypeName;
-                entity.TicketHeaderId = dto.TicketHeaderId;
-                entity.Description = dto.Description;
-
-                entity.ResponsibleRoleId = dto.ResponsibleRoleId;
-
-                entity.IsApprovalRequired = dto.IsApprovalRequired;
-                entity.ApprovalRoleId = dto.ApprovalRoleId;
-                entity.AutoApproveIfSameRole = dto.AutoApproveIfSameRole;
-                entity.IsAttachmentRequired = dto.IsAttachmentRequired;
-                entity.SLAHours = dto.SLAHours;
-                entity.IsActiveForAllUsers = dto.IsActiveForAllUsers;
-
-                entity.UpdatedById = userId;
-                entity.UpdatedDateTime = DateTime.UtcNow;
-
-                await _context.SaveChangesAsync();
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating TicketType Id {Id}", dto.Id);
-                throw;
-            }
+        public async Task<TicketType?> UpdateAsync(TicketType entity)
+        {
+            _context.TicketTypes.Update(entity);
+            await _context.SaveChangesAsync();
+            return entity;
         }
 
         #endregion

@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for processing Set New Password Link.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using axionpro.domain.Entity; 
 using MediatR;
 using System;
@@ -12,7 +19,6 @@ namespace axionpro.application.DTOs.UserLogin
     {
          
         public string UserLoginId { get; set; } = string.Empty;
-        public ExtraPropRequestDTO? Prop { get; set; }
 
 
     }

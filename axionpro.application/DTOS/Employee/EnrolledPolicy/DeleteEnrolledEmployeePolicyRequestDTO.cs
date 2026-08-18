@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for deleting Enrolled Employee Policy.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,6 +16,5 @@ namespace axionpro.application.DTOS.Employee.EnrolledPolicy
     {
         public   string? EmployeeId { get; set; } = string.Empty;
         public   long? EmployeeInsuranceMappingId { get; set; } 
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
     }
 }

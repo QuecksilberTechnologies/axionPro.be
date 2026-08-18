@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Pagination;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for retrieving Reporting Type.
+// ================================================================
+
+using axionpro.application.DTOS.Pagination;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +24,6 @@ namespace axionpro.application.DTOs.Manager.ReportingType
         public bool? IsActive { get; set; }
         public string? TypeName { get; set; }
 
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
 
     }
 }

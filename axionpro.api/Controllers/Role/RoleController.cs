@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOs.Role;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Exposes HTTP endpoints for Role operations.
+// ================================================================
+
+using axionpro.application.DTOs.Role;
 using axionpro.application.DTOS.Role;
 using axionpro.application.Features.CategoryCmd.Command;
 using axionpro.application.Features.RoleCmd.Handlers;
@@ -52,7 +59,7 @@ namespace axionpro.api.Controllers.Role
         [HttpGet("option")]      
         public async Task<IActionResult> getRole([FromQuery] GetRoleOptionRequestDTO requestDTO)
         {
-            _logger.LogInfo($"Received request to get Role : {requestDTO.UserEmployeeId}");
+            _logger.LogInfo("Received request to get role options.");
 
             var command = new GetRoleOptionQuery(requestDTO);
             var result = await _mediator.Send(command);

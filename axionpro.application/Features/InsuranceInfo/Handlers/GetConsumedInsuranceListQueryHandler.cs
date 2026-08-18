@@ -100,20 +100,19 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                 throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
             }
 
-            request.DTO.Prop ??= new();
-            request.DTO.Prop.EmployeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
+            var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
                 request.DTO.EmployeeId,
                 validation.Claims.TenantEncriptionKey,
                 _idEncoderService);
 
-            if (request.DTO.Prop.EmployeeId <= 0)
+            if (employeeId <= 0)
             {
                 throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
             }
 
             var policies = await _unitOfWork.InsuranceRepository
                 .GetAllPolicyListWithConsumedDetailsAsync(
-                    request.DTO.Prop.EmployeeId,
+                    employeeId,
                     request.DTO.PolicyId,
                     request.DTO.IsActive);
 

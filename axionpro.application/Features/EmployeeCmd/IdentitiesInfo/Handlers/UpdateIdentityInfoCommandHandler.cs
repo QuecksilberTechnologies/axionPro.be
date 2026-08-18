@@ -76,14 +76,6 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
         //        if (!validation.Success)
         //            return ApiResponse<bool>.Fail(validation.ErrorMessage);
 
-        //        request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-        //        request.DTO.Prop.TenantId = validation.TenantId;
-        //        request.DTO.Prop.EmployeeId =
-        //            RequestCommonHelper.DecodeOnlyEmployeeId(
-        //                request.DTO.EmployeeId,
-        //                validation.Claims.TenantEncriptionKey,
-        //                _idEncoderService);
-
         //        // =================================================
         //        // 2️⃣ FETCH EXISTING RECORD
         //        // =================================================

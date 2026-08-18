@@ -1,4 +1,11 @@
-﻿using axionpro.application.Common.Helpers.Converters;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for retrieving All Employee Info.
+// ================================================================
+
+using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Pagination;
 using System;
@@ -32,7 +39,6 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         public int  DesignationId { get; set; }
         public int? DepartmentId { get; set; }
         public string? EmailId { get; set; }
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
 
 
 

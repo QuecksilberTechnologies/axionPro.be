@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for updating Policy Type Insurance Mapping.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +24,5 @@ namespace axionpro.application.DTOS.InsurancePoliciesMapping
 
         public int? PolicyTypeId { get; set; }
 
-        public ExtraPropRequestDTO? Props { get; set; } = new ExtraPropRequestDTO();
     }
 }

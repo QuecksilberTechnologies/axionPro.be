@@ -401,14 +401,12 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 {
                     Id = employeeInfo.UserPrimaryRole?.RoleId ?? 0,
                     RoleType = roleInfo.Role.RoleType,
-                    IsActive = true,
-                    Prop = new()
-                    {
-                        TenantId = dto.TenantId
-                    }
+                    IsActive = true
                 };
 
-                var roleTypeList = await _unitOfWork.RoleRepository.GetAsync(getRoleRequestDTO);
+                var roleTypeList = await _unitOfWork.RoleRepository.GetAsync(
+                    dto.TenantId,
+                    getRoleRequestDTO);
                 var roleType = roleTypeList.Data.FirstOrDefault(r =>
                     r.Id == employeeInfo.UserPrimaryRole.RoleId && r.IsActive == true);
 

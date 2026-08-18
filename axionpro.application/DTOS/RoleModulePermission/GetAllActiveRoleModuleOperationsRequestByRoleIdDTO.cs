@@ -1,21 +1,17 @@
-﻿using axionpro.application.DTOS.Pagination;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; 
-using axionpro.domain.Entity; 
-using MediatR;
-using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for retrieving role module operations.
+// ================================================================
 
 namespace axionpro.application.DTOs.RoleModulePermission
 {
+    /// <summary>
+    /// Defines the role identifier used to retrieve assigned module operations.
+    /// </summary>
     public class GetAllActiveRoleModuleOperationsRequestByRoleIdDTO
     {
-        
-        
-        public int RoleId { get; set; }  // RoleId of the role
-        public ExtraPropRequestDTO? Prop { get; set; } = new ExtraPropRequestDTO(); // Common properties for request (e.g., TenantId, EmployeeId, etc.) 
+        public int RoleId { get; set; }
     }
-
 }

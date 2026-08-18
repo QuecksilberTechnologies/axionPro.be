@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for processing Activate All Employee.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +20,6 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         public string? EmployeeId { get; set; }
         public long? Id { get; set; }
         public required bool IsActive { get; set; }
-        public ExtraPropRequestDTO? Prop { get; set; } = new ExtraPropRequestDTO();
     }
 
 }

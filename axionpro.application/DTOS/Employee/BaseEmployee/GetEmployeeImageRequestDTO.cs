@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for retrieving Employee Image.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Pagination;
 using Microsoft.AspNetCore.Http;
 using System;
@@ -15,7 +22,6 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
 
         public string? EmployeeId { get; set; } 
         public bool IsActive { get; set; } =true;
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
 
 
     }

@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.InsurancePoliciesMapping;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Get Policy Type Insurance Mapping Query Handler requests.
+// ================================================================
+
+using axionpro.application.DTOS.InsurancePoliciesMapping;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
@@ -67,11 +74,6 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request data.");
 
-                request.DTO.Props ??= new();
-
-                request.DTO.Props.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Props.TenantId = validation.TenantId;
-
                 // ===============================
                 // 4️⃣ PAGING DEFAULTS
                 // ===============================
@@ -86,7 +88,7 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                 // ===============================
                 var result = await _unitOfWork
                     .PolicyTypeInsuranceMappingRepository
-                    .GetListAsync(request.DTO);
+                    .GetListAsync(validation.TenantId, request.DTO);
 
                 var data = result?.Data ?? new List<GetPolicyTypeInsuranceMappingResponseDTO>();
 

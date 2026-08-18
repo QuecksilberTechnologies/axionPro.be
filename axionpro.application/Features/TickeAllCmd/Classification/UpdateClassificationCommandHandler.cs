@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Update Classification Command Handler requests.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.DTOS.TicketDTO.Classification;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -23,15 +30,18 @@ namespace axionpro.application.Features.TickeAllCmd.Classification
         : IRequestHandler<UpdateClassificationCommand, ApiResponse<GetClassificationResponseDTO>>
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
         private readonly ILogger<UpdateClassificationCommandHandler> _logger;
         private readonly ICommonRequestService _commonRequestService;
 
         public UpdateClassificationCommandHandler(
             IUnitOfWork unitOfWork,
+            IMapper mapper,
             ILogger<UpdateClassificationCommandHandler> logger,
             ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
             _logger = logger;
             _commonRequestService = commonRequestService;
         }
@@ -65,9 +75,6 @@ namespace axionpro.application.Features.TickeAllCmd.Classification
 
                 var dto = request.DTO;
 
-                dto.Prop ??= new ExtraPropRequestDTO();
-                dto.Prop.TenantId = validation.TenantId;
-
                 if (string.IsNullOrWhiteSpace(dto.ClassificationName))
                     throw new ValidationErrorException("ClassificationName is required.");
 
@@ -76,8 +83,16 @@ namespace axionpro.application.Features.TickeAllCmd.Classification
                 // ===============================
                 await _unitOfWork.BeginTransactionAsync();
 
-                var result = await _unitOfWork.TicketClassificationRepository
-                    .UpdateAsync(dto);
+                var entity = await _unitOfWork.TicketClassificationRepository
+                    .GetByIdForTenantAsync(dto.Id, validation.TenantId);
+                if (entity == null)
+                    throw new ApiException("Classification not found or could not be updated.", 404);
+
+                _mapper.Map(dto, entity);
+                entity.UpdatedById = validation.LoggedInEmployeeId;
+                entity.UpdatedDateTime = DateTime.UtcNow;
+
+                var result = await _unitOfWork.TicketClassificationRepository.UpdateAsync(entity);
 
                 if (result == null)
                     throw new ApiException("Classification not found or could not be updated.", 404);
@@ -87,8 +102,9 @@ namespace axionpro.application.Features.TickeAllCmd.Classification
                 // ===============================
                 // 5️⃣ RESPONSE
                 // ===============================
+                var response = _mapper.Map<GetClassificationResponseDTO>(result);
                 return ApiResponse<GetClassificationResponseDTO>
-                    .Success(result, "Ticket classification updated successfully.");
+                    .Success(response, "Ticket classification updated successfully.");
             }
             catch (Exception ex)
             {

@@ -1,4 +1,11 @@
-﻿using axionpro.application.Common.Enums;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Create Ticket Command Handler requests.
+// ================================================================
+
+using axionpro.application.Common.Enums;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.TicketDTO.Ticket;
 using axionpro.application.Exceptions;
@@ -56,9 +63,6 @@ public class CreateTicketCommandHandler
                 throw new UnauthorizedAccessException(validation.ErrorMessage);
 
             var dto = request.DTO ?? throw new ValidationErrorException("Invalid request");
-
-            dto.Prop ??= new ExtraPropRequestDTO();
-            dto.Prop.TenantId = validation.TenantId;
 
             if (string.IsNullOrWhiteSpace(dto.Description))
                 throw new ValidationErrorException("Description is required");

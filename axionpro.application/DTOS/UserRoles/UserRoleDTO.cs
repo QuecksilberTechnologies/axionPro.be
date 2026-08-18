@@ -1,4 +1,11 @@
-﻿using System;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the User Role DTO data transfer model.
+// ================================================================
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,7 +33,6 @@ namespace axionpro.application.DTOS.UserRoles
     {
         public required string EmployeeId { get; set; } 
         public List<UserRoleDTO> UserRoles { get; set; } = new List<UserRoleDTO>();
-        public ExtraPropRequestDTO? Prop { get; set; } = new ExtraPropRequestDTO();
     }
 
 

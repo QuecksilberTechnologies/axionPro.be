@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for updating Policy Type.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -22,6 +29,5 @@ namespace axionpro.application.DTOs.PolicyType
         public IFormFile? FormFile { get; set; }
         public required string Description { get; set; }
 
-        public ExtraPropRequestDTO? Prop { get; set; } = new();
     }
 }

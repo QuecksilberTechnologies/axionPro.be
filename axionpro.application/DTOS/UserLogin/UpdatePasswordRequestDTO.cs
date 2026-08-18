@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for updating Password.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +21,5 @@ namespace axionpro.application.DTOS.UserLogin
         public required string EmployeeId { get; set; }          // User's login ID     
         public required string NewPassword { get; set; }         // User's password       
         public required string OldPassword { get; set; }         // User's password       
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
     }
 }

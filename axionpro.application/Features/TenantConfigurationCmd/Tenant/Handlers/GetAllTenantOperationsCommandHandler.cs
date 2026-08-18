@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Get All Tenant Operations Command Handler requests.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.DTOs.Tenant;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -81,7 +88,6 @@ namespace axionpro.application.Features.TenantConfigurationCmd.Tenant.Handlers
                 // ===============================
                 // 2️⃣ SET CONTEXT
                 // ===============================
-                request.Request.Prop.TenantId = validation.TenantId;
                 TenantEnabledOperation tenantEnabledOperation = new TenantEnabledOperation
                 {
                     TenantId = validation.TenantId,

@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Create Bank Info Command Handler requests.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
@@ -97,19 +104,12 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 // ===============================
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request data.");
-
-                request.DTO.Prop ??= new();
-
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-
-                request.DTO.Prop.EmployeeId =
-                    RequestCommonHelper.DecodeOnlyEmployeeId(
+                var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
                         request.DTO.EmployeeId,
                         validation.Claims.TenantEncriptionKey,
                         _idEncoderService);
 
-                if (request.DTO.Prop.EmployeeId <= 0)
+                if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
 
                 // ===============================
@@ -155,7 +155,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
 
                     string folderPath =
                         $"{ConstantValues.TenantFolder}-{validation.TenantId}/" +
-                        $"{ConstantValues.EmployeeFolder}/{request.DTO.Prop.EmployeeId}/" +
+                        $"{ConstantValues.EmployeeFolder}/{employeeId}/" +
                         $"{ConstantValues.BankFolder}";
 
                     uploadedFileKey = await _fileStorageService.UploadFileAsync(
@@ -172,8 +172,8 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 // ===============================
                 var bankEntity = _mapper.Map<EmployeeBankDetail>(request.DTO);
 
-                bankEntity.EmployeeId = request.DTO.Prop.EmployeeId;
-                bankEntity.AddedById = request.DTO.Prop.UserEmployeeId;
+                bankEntity.EmployeeId = employeeId;
+                bankEntity.AddedById = validation.LoggedInEmployeeId;
                 bankEntity.AddedDateTime = DateTime.UtcNow;
                 bankEntity.AccountType = AccountTypeHelper.Normalize(request.DTO.AccountType);
                 bankEntity.IsActive = true;

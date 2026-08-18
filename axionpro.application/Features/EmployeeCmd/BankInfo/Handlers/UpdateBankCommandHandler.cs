@@ -1,4 +1,4 @@
-﻿// ================================================================
+// ================================================================
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
@@ -105,19 +105,12 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 // ===============================
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request.");
-
-                request.DTO.Prop ??= new();
-
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-
-                request.DTO.Prop.EmployeeId =
-                    RequestCommonHelper.DecodeOnlyEmployeeId(
+                var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
                         request.DTO.EmployeeId,
                         validation.Claims.TenantEncriptionKey,
                         _idEncoderService);
 
-                if (request.DTO.Prop.EmployeeId <= 0)
+                if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
 
                 // ===============================
@@ -174,8 +167,8 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                     var resetDone =
                         await _unitOfWork.EmployeeBankRepository
                             .ResetPrimaryAccountAsync(
-                                request.DTO.Prop.EmployeeId,
-                                request.DTO.Prop.UserEmployeeId);
+                                employeeId,
+                                validation.LoggedInEmployeeId);
 
                     if (!resetDone)
                         throw new ApiException("Failed to reset primary accounts.", 500);
@@ -201,12 +194,12 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                     try
                     {
                         string folderPath =
-                            $"{ConstantValues.TenantFolder}-{request.DTO.Prop.TenantId}/" +
-                            $"{ConstantValues.EmployeeFolder}/{request.DTO.Prop.EmployeeId}/" +
+                            $"{ConstantValues.TenantFolder}-{validation.TenantId}/" +
+                            $"{ConstantValues.EmployeeFolder}/{employeeId}/" +
                             $"{ConstantValues.BankFolder}";
 
                         string newFileName =
-                            $"{ConstantValues.BankFolder}-{request.DTO.Prop.EmployeeId}-{DateTime.UtcNow:yyyyMMddHHmmss}";
+                            $"{ConstantValues.BankFolder}-{employeeId}-{DateTime.UtcNow:yyyyMMddHHmmss}";
 
                         uploadedFileKey = await _fileStorageService.UploadFileAsync(
                             dto.CancelledChequeFile,
@@ -225,13 +218,10 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 }
 
                 bank.UpdatedDateTime = DateTime.UtcNow;
-                bank.UpdatedById = request.DTO.Prop.UserEmployeeId;
+                bank.UpdatedById = validation.LoggedInEmployeeId;
 
-                var responseData = _mapper.Map<UpdateBankReqestDTO>(bank);
-                responseData.Prop.UserEmployeeId = request.DTO.Prop.UserEmployeeId;
-                responseData.Prop.EmployeeId = request.DTO.Prop.EmployeeId;
                 bool isSuccess =
-                    await _unitOfWork.EmployeeBankRepository.UpdateAsync(responseData);
+                    await _unitOfWork.EmployeeBankRepository.UpdateAsync(bank);
 
                 if (!isSuccess)
                     throw new ApiException("Failed to update bank info.", 500);

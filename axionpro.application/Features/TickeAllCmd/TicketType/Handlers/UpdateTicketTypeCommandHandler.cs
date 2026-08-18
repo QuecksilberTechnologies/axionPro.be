@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Update Ticket Type Command Handler requests.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Role;
 using axionpro.application.DTOS.TicketDTO.TicketType;
@@ -25,15 +32,18 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
      : IRequestHandler<UpdateTicketTypeCommand, ApiResponse<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
         private readonly ILogger<UpdateTicketTypeCommandHandler> _logger;
         private readonly ICommonRequestService _commonRequestService;
 
         public UpdateTicketTypeCommandHandler(
             IUnitOfWork unitOfWork,
+            IMapper mapper,
             ILogger<UpdateTicketTypeCommandHandler> logger,
             ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
             _logger = logger;
             _commonRequestService = commonRequestService;
         }
@@ -66,9 +76,6 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
                 // ===============================
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request data.");
-
-                request.DTO.Prop ??= new ExtraPropRequestDTO();
-                request.DTO.Prop.TenantId = validation.TenantId;
 
                 var dto = request.DTO;
 
@@ -141,9 +148,17 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
                 // ===============================
                 // 6️⃣ UPDATE CALL
                 // ===============================
-                var isUpdated = await _unitOfWork.TicketTypeRepository.UpdateAsync(dto, validation.UserEmployeeId);
+                var entity = await _unitOfWork.TicketTypeRepository
+                    .GetByIdForTenantAsync(dto.Id, validation.TenantId);
+                if (entity == null)
+                throw new ApiException("TicketType update failed.", 500);
 
-                if (!isUpdated)
+                _mapper.Map(dto, entity);
+                entity.UpdatedById = validation.LoggedInEmployeeId;
+                entity.UpdatedDateTime = DateTime.UtcNow;
+
+                var updated = await _unitOfWork.TicketTypeRepository.UpdateAsync(entity);
+                if (updated == null)
                     throw new ApiException("TicketType update failed.", 500);
 
                 // ===============================

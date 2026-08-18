@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for updating Contact.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -33,7 +40,6 @@ namespace axionpro.application.DTOS.Employee.Contact
         public string? Street { get; set; }
         public string? Address { get; set; } 
         public string? Description { get; set; }
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
 
     }
 

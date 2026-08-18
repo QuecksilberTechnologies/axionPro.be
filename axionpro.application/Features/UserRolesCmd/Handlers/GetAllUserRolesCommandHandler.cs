@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Get All User Roles Command Handler requests.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.UserRoles;
 using axionpro.application.Exceptions;
@@ -69,28 +76,24 @@ namespace axionpro.application.Features.UserRolesCmd.Handlers
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request.");
 
-                request.DTO.Prop ??= new();
-                request.DTO.Prop.TenantId = validation.TenantId;
-
                 // ===============================
                 // 2️⃣ EMPLOYEE ID DECODE
                 // ===============================
                 if (string.IsNullOrEmpty(request.DTO.EmployeeId))
                     throw new ValidationErrorException("Invalid EmployeeId.");
 
-                request.DTO.Prop.EmployeeId =
-                    RequestCommonHelper.DecodeOnlyEmployeeId(
-                        request.DTO.EmployeeId,
-                        validation.Claims.TenantEncriptionKey,
-                        _idEncoderService);
+                var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
+                    request.DTO.EmployeeId,
+                    validation.Claims.TenantEncriptionKey,
+                    _idEncoderService);
 
                 // ===============================
                 // 3️⃣ GET USER ROLES
                 // ===============================
                 var userRoles = await _unitOfWork.UserRoleRepository
                     .GetEmployeeRolesWithDetailsByIdAsync(
-                        request.DTO.Prop.EmployeeId,
-                        request.DTO.Prop.TenantId);
+                        employeeId,
+                        validation.TenantId);
 
                 if (userRoles == null || userRoles.Count == 0)
                 {

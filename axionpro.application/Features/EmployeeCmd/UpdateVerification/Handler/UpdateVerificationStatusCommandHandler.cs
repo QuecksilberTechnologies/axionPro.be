@@ -1,4 +1,11 @@
-﻿using axionpro.application.Common.Enums;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Update Verification Status Command Handler requests.
+// ================================================================
+
+using axionpro.application.Common.Enums;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Common;
 using axionpro.application.Exceptions;
@@ -73,18 +80,12 @@ namespace axionpro.application.Features.EmployeeCmd.UpdateVerification.Handler
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request.");
 
-                request.DTO.Prop ??= new();
+                var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
+                    request.DTO.EmployeeId,
+                    validation.Claims.TenantEncriptionKey,
+                    _idEncoderService);
 
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-
-                request.DTO.Prop.EmployeeId =
-                    RequestCommonHelper.DecodeOnlyEmployeeId(
-                        request.DTO.EmployeeId,
-                        validation.Claims.TenantEncriptionKey,
-                        _idEncoderService);
-
-                if (request.DTO.Prop.EmployeeId <= 0)
+                if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid employee.");
 
                 // ===============================
@@ -109,8 +110,8 @@ namespace axionpro.application.Features.EmployeeCmd.UpdateVerification.Handler
                 // ===============================
                 var employee =
                     await _unitOfWork.Employees.GetByIdAsync(
-                        request.DTO.Prop.EmployeeId,
-                        request.DTO.Prop.TenantId,
+                        employeeId,
+                        validation.TenantId,
                         true);
 
                 if (employee == null)
@@ -123,8 +124,8 @@ namespace axionpro.application.Features.EmployeeCmd.UpdateVerification.Handler
                     await _unitOfWork.Employees
                         .UpdateVerificationStatusByTabAsync(
                             request.DTO.TabInfoType,
-                            request.DTO.Prop.EmployeeId,
-                            validation.UserEmployeeId,
+                            employeeId,
+                            validation.LoggedInEmployeeId,
                             request.DTO.IsVerified,
                             ct);
 
@@ -132,7 +133,7 @@ namespace axionpro.application.Features.EmployeeCmd.UpdateVerification.Handler
                 {
                     _logger.LogWarning(
                         "Verification update failed | EmpId={EmpId} | Tab={Tab}",
-                        request.DTO.Prop.EmployeeId,
+                        employeeId,
                         request.DTO.TabInfoType);
 
                     throw new ApiException("Verification update failed.", 500);

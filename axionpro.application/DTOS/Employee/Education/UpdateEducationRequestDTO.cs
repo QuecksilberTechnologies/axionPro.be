@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for updating Education.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -25,6 +32,5 @@ namespace axionpro.application.DTOS.Employee.Education
         public bool? HasEducationDocUploded { get; set; }
         public string? ReasonOfEducationGap { get; set; }
         public IFormFile? EducationDocument { get; set; }
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
     }
 }

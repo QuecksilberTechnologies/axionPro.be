@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Employee.Dependent;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Get Dependent Counts Query Handler requests.
+// ================================================================
+
+using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -72,10 +79,6 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                 // ===============================
                 // 🔓 STEP 2: DECODE EMPLOYEE ID
                 // ===============================
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-                request.DTO.Prop.EmployeeId = validation.LoggedInEmployeeId;
-
 
 
                 // ===============================
@@ -94,7 +97,7 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                 // ===============================
                 var result = await _unitOfWork
                     .EmployeeDependentRepository
-                    .GetDetailInfo(request.DTO);
+                    .GetDetailInfo(validation.LoggedInEmployeeId, request.DTO);
 
                 if (result == null)
                     result = new GetDependentsDetailResponseDTO();

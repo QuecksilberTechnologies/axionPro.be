@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for updating Experience.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Pagination;
 using Microsoft.AspNetCore.Http;
 using System;
@@ -63,7 +70,6 @@ namespace axionpro.application.DTOS.Employee.Experience
 
         public DateTime? GapYearFrom { get; set; }
         public DateTime? GapYearTo { get; set; }
-        public ExtraPropRequestDTO? Prop { get; set; } = new();
 
 
         // 🔹 Documents

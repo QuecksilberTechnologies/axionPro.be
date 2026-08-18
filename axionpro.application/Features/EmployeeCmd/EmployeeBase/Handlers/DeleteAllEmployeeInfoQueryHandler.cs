@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Delete All Employee Info Query Handler requests.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.Exceptions;
@@ -72,19 +79,12 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // ===============================
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request.");
-
-                request.DTO.Prop ??= new();
-
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-
-                request.DTO.Prop.EmployeeId =
-                    RequestCommonHelper.DecodeOnlyEmployeeId(
+                var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
                         request.DTO.EmployeeId,
                         validation.Claims.TenantEncriptionKey,
                         _idEncoderService);
 
-                if (request.DTO.Prop.EmployeeId <= 0)
+                if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
 
                 // ===============================
@@ -103,8 +103,8 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // ===============================
                 var employee =
                     await _unitOfWork.Employees.GetByIdAsync(
-                        request.DTO.Prop.EmployeeId,
-                        request.DTO.Prop.TenantId,
+                        employeeId,
+                        validation.TenantId,
                         true);
 
                 if (employee == null)
@@ -129,7 +129,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // ===============================
                 await _unitOfWork.CommitTransactionAsync();
 
-                _logger.LogInformation("DeleteEmployee success | Id: {Id}", request.DTO.Prop.EmployeeId);
+                _logger.LogInformation("DeleteEmployee success | Id: {Id}", employeeId);
 
                 return ApiResponse<bool>.Success(true, "Employee deleted successfully.");
             }

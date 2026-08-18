@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Create Education Info Command Handler requests.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Constants;
@@ -97,18 +104,12 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request.");
 
-                request.DTO.Prop ??= new();
+                var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
+                    request.DTO.EmployeeId,
+                    validation.Claims.TenantEncriptionKey,
+                    _idEncoderService);
 
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-
-                request.DTO.Prop.EmployeeId =
-                    RequestCommonHelper.DecodeOnlyEmployeeId(
-                        request.DTO.EmployeeId,
-                        validation.Claims.TenantEncriptionKey,
-                        _idEncoderService);
-
-                if (request.DTO.Prop.EmployeeId <= 0)
+                if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
 
                 // ===============================
@@ -143,11 +144,11 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                             request.DTO.Degree?.Trim().ToLower().Replace(" ", "_") ?? "doc";
 
                         fileName =
-                            $"{ConstantValues.EducationFolder}-{request.DTO.Prop.EmployeeId}-{degreeName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
+                            $"{ConstantValues.EducationFolder}-{employeeId}-{degreeName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
 
                         string folderPath =
-                            $"{ConstantValues.TenantFolder}-{request.DTO.Prop.TenantId}/" +
-                            $"{ConstantValues.EmployeeFolder}/{request.DTO.Prop.EmployeeId}/" +
+                            $"{ConstantValues.TenantFolder}-{validation.TenantId}/" +
+                            $"{ConstantValues.EmployeeFolder}/{employeeId}/" +
                             $"{ConstantValues.EducationFolder}";
 
                         uploadedFileKey = await _fileStorageService.UploadFileAsync(
@@ -173,8 +174,8 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                 // ===============================
                 var educationEntity = _mapper.Map<EmployeeEducation>(request.DTO);
 
-                educationEntity.EmployeeId = request.DTO.Prop.EmployeeId;
-                educationEntity.AddedById = request.DTO.Prop.UserEmployeeId;
+                educationEntity.EmployeeId = employeeId;
+                educationEntity.AddedById = validation.LoggedInEmployeeId;
                 educationEntity.AddedDateTime = DateTime.UtcNow;
 
                 educationEntity.IsActive = true;

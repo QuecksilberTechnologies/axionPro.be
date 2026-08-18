@@ -1,4 +1,11 @@
-﻿using System;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for retrieving Ticket Type.
+// ================================================================
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,7 +19,6 @@ namespace axionpro.application.DTOS.TicketDTO.TicketType
 {
     public class GetTicketTypeRequestDTO:BaseRequest
     {
-        public ExtraPropRequestDTO? Prop { get; set; } = new ExtraPropRequestDTO();
 
 
     }

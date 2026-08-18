@@ -92,11 +92,9 @@ namespace axionpro.application.Features.RoleCmd.Handlers
                 throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
             }
 
-            request.OptionDTO.Prop ??= new();
-            request.OptionDTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-            request.OptionDTO.Prop.TenantId = validation.TenantId;
-
-            var roles = await _unitOfWork.RoleRepository.GetOptionAsync(request.OptionDTO);
+            var roles = await _unitOfWork.RoleRepository.GetOptionAsync(
+                validation.TenantId,
+                request.OptionDTO);
 
             _logger.LogInformation(
                 "Retrieved {Count} role options for tenant {TenantId}.",

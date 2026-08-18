@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Get All Ticket Type By Header Id Query Handler requests.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.DTOS.TicketDTO.TicketType;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -55,11 +62,6 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
                 if (request?.Request == null)
                     throw new ValidationErrorException("Invalid request.");
 
-                request.Request.Prop ??= new();
-
-                request.Request.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.Request.Prop.TenantId = validation.TenantId;
-
                 // ===============================
                 // 2️⃣ RBAC CHECK (MANDATORY 🔥)
                 // ===============================
@@ -75,7 +77,7 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
                 // 3️⃣ REPOSITORY CALL
                 // ===============================
                 var ticketTypes = await _unitOfWork.TicketTypeRepository
-                    .AllByHeaderIdAsync(request.Request);
+                    .AllByHeaderIdAsync(validation.TenantId, request.Request);
 
                 if (ticketTypes == null || !ticketTypes.Any())
                     throw new ApiException("No TicketTypes found for given HeaderId.", 404);

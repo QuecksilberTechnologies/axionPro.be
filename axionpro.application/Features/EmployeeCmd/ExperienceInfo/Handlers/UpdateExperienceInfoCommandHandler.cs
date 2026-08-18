@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Update Experience Info Command Handler requests.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.Experience;
 using axionpro.application.Exceptions;
@@ -69,15 +76,17 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
 
                 if (request.DTO.Id < 0)
                     throw new ValidationErrorException("ExperienceId is required");
-                request.DTO.Prop.EmployeeId =
-                RequestCommonHelper.DecodeOnlyEmployeeId(request.DTO.EmployeeId, validation.Claims.TenantEncriptionKey, _idEncoderService);
+                var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
+                    request.DTO.EmployeeId,
+                    validation.Claims.TenantEncriptionKey,
+                    _idEncoderService);
 
 
                 // ===============================
                 // 3️⃣ FETCH EXISTING (SINGLE)
                 // ===============================
                 var existing = await _unitOfWork.EmployeeExperienceRepository
-                    .GetByIdAsync(request.DTO.Id, request.DTO.Prop.EmployeeId);
+                    .GetByIdAsync(request.DTO.Id, employeeId);
 
                 if (existing == null)
                     throw new ApiException("Experience not found", 404);

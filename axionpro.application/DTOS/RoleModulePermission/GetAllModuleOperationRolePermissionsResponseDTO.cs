@@ -1,33 +1,45 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines role module-operation permission response models.
+// ================================================================
 
 namespace axionpro.application.DTOs.RoleModulePermission
 {
-  
+    /// <summary>
+    /// Represents the module-operation permissions assigned to a role.
+    /// </summary>
     public class GetAllModuleOperationRolePermissionsResponseDTO
     {
         public int RoleId { get; set; }
-        public ExtraPropRequestDTO? Prop { get; set; } = new ExtraPropRequestDTO();
 
-        public List<ModulePermissionDTO> ModuleOperations { get; set; }
+        public List<ModulePermissionDTO> ModuleOperations { get; set; } = new();
     }
 
+    /// <summary>
+    /// Represents operation permissions selected for a module.
+    /// </summary>
     public class ModulePermissionDTO
     {
         public int ModuleId { get; set; }
+
         public string? ModuleName { get; set; }
 
         public List<OperationPermissionDTO> Operations { get; set; } = new();
     }
 
+    /// <summary>
+    /// Represents a role permission for one module operation.
+    /// </summary>
     public class OperationPermissionDTO
     {
         public int OperationId { get; set; }
+
         public string? OperationName { get; set; }
 
-        public int OperationType { get; set; } // CRUD / Workflow / Status
+        public int OperationType { get; set; }
 
-        public bool HasAccess { get; set; } // 🔥 checkbox value
+        public bool HasAccess { get; set; }
     }
-
-
 }

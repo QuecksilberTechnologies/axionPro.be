@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Add Employee Manager Mapping Command Handler requests.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Compliances.ComplianceRule;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -56,9 +63,6 @@ namespace axionpro.application.Features.EmployeeManagerMapCmd
 
     //            var dto = request.DTO;
 
-    //            dto.Prop ??= new ExtraPropRequestDTO();
-    //            dto.Prop.TenantId = validation.TenantId;
-
     //            // ===============================
     //            // 2️⃣ BUSINESS VALIDATION
     //            // ===============================
@@ -67,7 +71,7 @@ namespace axionpro.application.Features.EmployeeManagerMapCmd
     //                throw new ValidationErrorException("EffectiveFrom cannot be greater than EffectiveTo.");
 
     //            bool exists = await _unitOfWork.ComplianceRuleRepository
-    //                .ExistsAsync(dto.ComplianceTypeId, dto.CountryId, dto.StateId, dto.Prop.TenantId, dto.EffectiveFrom);
+    //                .ExistsAsync(dto.ComplianceTypeId, dto.CountryId, dto.StateId, validation.TenantId, dto.EffectiveFrom);
 
     //            if (exists)
     //                throw new ValidationErrorException("Compliance rule already exists.");
@@ -83,7 +87,7 @@ namespace axionpro.application.Features.EmployeeManagerMapCmd
     //                    dto.ComplianceTypeId,
     //                    dto.CountryId,
     //                    dto.StateId,
-    //                    dto.Prop.TenantId,
+    //                    validation.TenantId,
     //                    dto.EffectiveFrom);
 
     //            if (existingRule != null)
@@ -101,7 +105,7 @@ namespace axionpro.application.Features.EmployeeManagerMapCmd
     //                ComplianceTypeId = dto.ComplianceTypeId,
     //                CountryId = dto.CountryId,
     //                StateId = dto.StateId,
-    //                TenantId = dto.Prop.TenantId,
+    //                TenantId = validation.TenantId,
 
     //                RuleJson = JsonSerializer.Serialize(dto.RuleJson),
 
@@ -125,7 +129,7 @@ namespace axionpro.application.Features.EmployeeManagerMapCmd
     //                "ComplianceRule created | Type: {Type}, Country: {Country}, Tenant: {Tenant}",
     //                dto.ComplianceTypeId,
     //                dto.CountryId,
-    //                dto.Prop.TenantId);
+    //                validation.TenantId);
 
     //            // ===============================
     //            // 4️⃣ RESPONSE

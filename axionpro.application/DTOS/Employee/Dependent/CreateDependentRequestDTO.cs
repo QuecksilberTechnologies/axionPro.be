@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for creating Dependent.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Pagination;
 using Microsoft.AspNetCore.Http;
 using System;
@@ -23,7 +30,6 @@ namespace axionpro.application.DTOS.Employee.Dependent
         public string? Description { get; set; }
         public bool HasProofUploaded {  get; set; }     
         public IFormFile? ProofFile { get; set; }
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
 
 
 

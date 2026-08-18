@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for retrieving Insurance For Employee DDL.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,6 +17,5 @@ namespace axionpro.application.DTOS.InsurancePoliciesMapping
 
         public int? EmployeeTypeId { get; set; }
         public bool? IsActive { get; set; } = true;
-        public ExtraPropRequestDTO? Props { get; set; } = new ExtraPropRequestDTO();
     }
 }

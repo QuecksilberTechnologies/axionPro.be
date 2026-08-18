@@ -23,9 +23,10 @@ namespace axionpro.application.Interfaces.IRepositories
         /// <summary>
         /// Gets role option projections for the trusted tenant context.
         /// </summary>
-        /// <param name="dto">The role option query criteria.</param>
+        /// <param name="tenantId">The authenticated tenant identifier.</param>
+        /// <param name="dto">The client-editable role option query criteria.</param>
         /// <returns>The matching role option projections.</returns>
-        Task<List<GetRoleOptionResponseDTO>> GetOptionAsync(GetRoleOptionRequestDTO dto);
+        Task<List<GetRoleOptionResponseDTO>> GetOptionAsync(long tenantId, GetRoleOptionRequestDTO dto);
 
         /// <summary>
         /// Soft deletes a tenant role using trusted tenant and actor identifiers.
@@ -37,7 +38,13 @@ namespace axionpro.application.Interfaces.IRepositories
         /// </summary>
         Task<Role?> CreateAsync(Role entity, CancellationToken cancellationToken = default);
 
-        Task<PagedResponseDTO<GetRoleResponseDTO>> GetAsync(GetRoleRequestDTO dto);
+        /// <summary>
+        /// Gets paged role projections for the authenticated tenant.
+        /// </summary>
+        /// <param name="tenantId">The authenticated tenant identifier.</param>
+        /// <param name="dto">The client-editable role query criteria.</param>
+        /// <returns>A paged role projection result.</returns>
+        Task<PagedResponseDTO<GetRoleResponseDTO>> GetAsync(long tenantId, GetRoleRequestDTO dto);
         Task<List<GetRoleResponseDTO>> GetRoleAsync(long tenantId, int roleTypeId, bool isActive);
 
         /// <summary>

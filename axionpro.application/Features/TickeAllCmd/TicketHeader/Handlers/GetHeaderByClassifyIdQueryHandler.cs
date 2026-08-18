@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.TicketDTO.Header;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Get Header By Classify Id Query Handler requests.
+// ================================================================
+
+using axionpro.application.DTOS.TicketDTO.Header;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IRepositories;
@@ -55,11 +62,6 @@ namespace axionpro.application.Features.TickeAllCmd.TicketHeader.Handlers
                 if (request?.Request == null)
                     throw new ValidationErrorException("Invalid request.");
 
-                request.Request.Prop ??= new();
-
-                request.Request.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.Request.Prop.TenantId = validation.TenantId;
-
                 // ===============================
                 // 2️⃣ RBAC (OPTIONAL but recommended)
                 // ===============================
@@ -74,7 +76,9 @@ namespace axionpro.application.Features.TickeAllCmd.TicketHeader.Handlers
                 // ===============================
                 // 3️⃣ REPOSITORY CALL
                 // ===============================
-                var headers = await _repository.GetByClassificationIdAsync(request.Request);
+                var headers = await _repository.GetByClassificationIdAsync(
+                    validation.TenantId,
+                    request.Request);
 
                 if (headers == null || !headers.Any())
                     throw new ApiException("No headers found for given classification.", 404);

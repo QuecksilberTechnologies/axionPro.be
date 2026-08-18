@@ -1,20 +1,23 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines filtering and paging criteria for tenant role queries.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Pagination;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOs.Role
 {
-    public class GetRoleRequestDTO:BaseRequest
-    {      
+    /// <summary>
+    /// Defines client-editable filtering and paging criteria for role queries.
+    /// </summary>
+    public class GetRoleRequestDTO : BaseRequest
+    {
         public int Id { get; set; }
         public int RoleType { get; set; }
-        public bool IsActive{ get; set; } = true;  
+        public bool IsActive { get; set; } = true;
         public string? RoleName { get; set; }
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
-
     }
 }

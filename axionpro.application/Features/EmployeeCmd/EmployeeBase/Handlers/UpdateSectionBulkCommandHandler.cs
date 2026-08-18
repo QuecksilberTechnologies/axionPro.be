@@ -1,4 +1,11 @@
-﻿using axionpro.application.Common.Enums;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Update Section Bulk Command Handler requests.
+// ================================================================
+
+using axionpro.application.Common.Enums;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.Exceptions;

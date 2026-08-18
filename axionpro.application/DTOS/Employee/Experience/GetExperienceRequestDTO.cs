@@ -1,4 +1,11 @@
-﻿using axionpro.application.Common.Helpers;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for retrieving Experience.
+// ================================================================
+
+using axionpro.application.Common.Helpers;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Pagination;
 using axionpro.domain.Entity; 
@@ -17,7 +24,6 @@ namespace axionpro.application.DTOS.Employee.Experience
         public  string? UserEmployeeId { get; set; }
 
         // 🔹 Common Props (Tenant/User context)
-        public ExtraPropRequestDTO? Prop { get; set; } = new();
     }
 
 

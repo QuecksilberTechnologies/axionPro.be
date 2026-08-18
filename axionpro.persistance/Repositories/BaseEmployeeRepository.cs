@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Provides persistence operations for Base Employee records.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Common.Enums;
 using axionpro.application.Common.Helpers.PercentageHelper;
 using axionpro.application.DTOS.Employee.Bank;
@@ -798,12 +805,12 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<GetEmployeeImageReponseDTO> GetImage(GetEmployeeImageRequestDTO dto)
+        public async Task<GetEmployeeImageReponseDTO> GetImage(long tenantId, long employeeId, GetEmployeeImageRequestDTO dto)
         {
             try
             {
                 _logger.LogInformation("Fetching employee primary image | EmpId={Emp} | Tenant={Tenant}",
-                    dto.Prop.EmployeeId, dto.Prop.TenantId);
+                    employeeId, tenantId);
 
                 // ---------------------------------------------
                 // 1️⃣ Base Query
@@ -811,8 +818,8 @@ namespace axionpro.persistance.Repositories
                 var query = _context.EmployeeImages
                     .AsNoTracking()
                     .Where(x =>
-                        x.TenantId == dto.Prop.TenantId &&
-                        x.EmployeeId == dto.Prop.EmployeeId &&
+                        x.TenantId == tenantId &&
+                        x.EmployeeId == employeeId &&
                         x.IsSoftDeleted != true &&
                         x.IsPrimary == true);   // always fetch only primary
 
@@ -834,7 +841,7 @@ namespace axionpro.persistance.Repositories
                     // Safe fallback (no crash)
                     return new GetEmployeeImageReponseDTO
                     {
-                        EmployeeId = dto.Prop.EmployeeId.ToString(),
+                        EmployeeId = employeeId.ToString(),
                         IsActive = false,
                         IsPrimary = false,
                         HasImageUploaded = false,
@@ -868,12 +875,12 @@ namespace axionpro.persistance.Repositories
             {
                 _logger.LogError(ex,
                     "❌ Error fetching primary image | EmployeeId={Emp}",
-                    dto.Prop.EmployeeId);
+                    employeeId);
 
                 // SAFE fallback
                 return new GetEmployeeImageReponseDTO
                 {
-                    EmployeeId = dto.Prop.EmployeeId.ToString(),
+                    EmployeeId = employeeId.ToString(),
                     CompletionPercentage = 0
                 };
             }
@@ -881,7 +888,9 @@ namespace axionpro.persistance.Repositories
 
 
         public async Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> GetInfo(
-      GetBaseEmployeeRequestDTO dto)
+            long tenantId,
+            long employeeId,
+            GetBaseEmployeeRequestDTO dto)
         {
             try
             {
@@ -895,12 +904,12 @@ namespace axionpro.persistance.Repositories
                .Include(x => x.UserRole)
                    .ThenInclude(ur => ur.Role)
                .Where(x =>
-                   x.TenantId == dto.Prop.TenantId &&
+                    x.TenantId == tenantId &&
                             (x.IsSoftDeleted != true && x.IsActive==true));
 
                 // 🧩 Step 3: Dynamic filters (SAFE & SAME RESULT)
-                if (dto.Prop.EmployeeId > 0)
-                    query = query.Where(x => x.Id == dto.Prop.EmployeeId);
+                if (employeeId > 0)
+                    query = query.Where(x => x.Id == employeeId);
 
                 if (dto.IsActive)
                     query = query.Where(x => x.IsActive == dto.IsActive);
@@ -963,7 +972,7 @@ namespace axionpro.persistance.Repositories
                 bool hasPrimaryImage = await _context.EmployeeImages
                         .AsNoTracking()
                          .AnyAsync(x =>
-                         x.EmployeeId == dto.Prop.EmployeeId &&
+                         x.EmployeeId == employeeId &&
                              x.IsPrimary &&
                               x.HasImageUploaded &&
                              x.IsSoftDeleted != true);
@@ -1062,7 +1071,10 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<PagedResponseDTO<GetAllEmployeeInfoResponseDTO>> GetAllInfo(GetAllEmployeeInfoRequestDTO dto)
+        public async Task<PagedResponseDTO<GetAllEmployeeInfoResponseDTO>> GetAllInfo(
+            long tenantId,
+            long? employeeId,
+            GetAllEmployeeInfoRequestDTO dto)
         {
             try
             {
@@ -1105,7 +1117,7 @@ namespace axionpro.persistance.Repositories
                     on cont.DistrictId equals district.Id into districtJoin
                     from dist in districtJoin.DefaultIfEmpty()
 
-                    where emp.TenantId == dto.Prop.TenantId
+                    where emp.TenantId == tenantId
                           && emp.IsSoftDeleted != true
 
 
@@ -1127,8 +1139,8 @@ namespace axionpro.persistance.Repositories
                 // ----------------------------------------------------
                 // 2️⃣ FILTERS
                 // ----------------------------------------------------
-                if (dto.Prop.EmployeeId > 0)
-                    baseQuery = baseQuery.Where(x => x.emp.Id == dto.Prop.EmployeeId);
+                if (employeeId.HasValue && employeeId.Value > 0)
+                    baseQuery = baseQuery.Where(x => x.emp.Id == employeeId.Value);
 
                 if (!string.IsNullOrWhiteSpace(dto.EmailId))
                     baseQuery = baseQuery.Where(x => x.emp.OfficialEmail == dto.EmailId.Trim());

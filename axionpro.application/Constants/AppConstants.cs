@@ -56,6 +56,9 @@ namespace axionpro.application.Constants
         {
             public const string GenderOptionsRetrieved = "Gender options fetched successfully.";
             public const string RoleOptionsRetrieved = "Role options fetched successfully.";
+            public const string RolesRetrieved = "Roles retrieved successfully.";
+            public const string RolePermissionsRetrieved = "Role permissions retrieved successfully.";
+            public const string RolePermissionsUpdated = "Role permissions updated successfully.";
             public const string CountriesRetrieved = "Countries fetched successfully.";
             public const string StatesRetrieved = "States fetched successfully.";
             public const string DistrictsRetrieved = "Districts fetched successfully.";

@@ -1,4 +1,11 @@
-﻿
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Provides persistence operations for Employee Expereince records.
+// ================================================================
+
+
 using AutoMapper;
 using axionpro.application.Common.Helpers.PercentageHelper;
 using axionpro.application.DTOS.Employee.Experience;
@@ -173,11 +180,11 @@ namespace axionpro.persistance.Repositories
         // 🔹 GET LIST (PAGINATED)
         // ===============================
 
-        public async Task<PagedResponseDTO<GetEmployeeExperienceResponseDTO>> GetByEmployeeIdWithDocumentsAsync(GetExperienceRequestDTO dto)
+        public async Task<PagedResponseDTO<GetEmployeeExperienceResponseDTO>> GetByEmployeeIdWithDocumentsAsync(long employeeId, GetExperienceRequestDTO dto)
         {
             try
             {
-                _logger.LogInformation("🚀 START GetExperience | EmployeeId: {EmployeeId}", dto?.Prop?.EmployeeId);
+                _logger.LogInformation("Starting experience query for EmployeeId: {EmployeeId}", employeeId);
 
                 // -----------------
                 // Pagination defaults
@@ -198,12 +205,12 @@ namespace axionpro.persistance.Repositories
                     .AsNoTracking()
                     .Include(x => x.EmployeeExperienceDocument)
                     .Where(x =>
-                        x.EmployeeId == dto.Prop.EmployeeId &&
+                        x.EmployeeId == employeeId &&
                         x.IsActive &&
                         !x.IsSoftDeleted
                     );
 
-                _logger.LogInformation("🔍 BaseQuery applied | EmployeeId: {EmployeeId}", dto.Prop.EmployeeId);
+                _logger.LogInformation("BaseQuery applied | EmployeeId: {EmployeeId}", employeeId);
 
                 // -----------------
                 // Sorting
@@ -344,8 +351,8 @@ namespace axionpro.persistance.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex,
-                    "❌ ERROR GetExperience | EmployeeId: {EmployeeId}",
-                    dto?.Prop?.EmployeeId);
+                    "Error retrieving experience for EmployeeId: {EmployeeId}",
+                    employeeId);
 
                 throw;
             }

@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Provides persistence operations for Reporting Type records.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.DTOs.Manager.ReportingType;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces.IRepositories;
@@ -36,7 +43,7 @@ namespace axionpro.persistance.Repositories
         #endregion
 
         #region AddAsync
-        public async Task<GetReportingTypeResponseDTO> AddAsync(CreateReportingTypeRequestDTO dto)
+        public async Task<ReportingType?> AddAsync(ReportingType entity)
         {
             try
             {
@@ -45,46 +52,22 @@ namespace axionpro.persistance.Repositories
                 // ===============================
                 bool isExist = await _context.ReportingTypes
                     .AnyAsync(x =>
-                        x.TypeName.ToLower() == dto.TypeName.ToLower()
+                        x.TypeName.ToLower() == entity.TypeName.ToLower()
                         && x.IsSoftDeleted != true
                         && x.IsActive == true);
 
                 if (isExist)
-                    throw new Exception($"Reporting type '{dto.TypeName}' already exists.");
-
-                // ===============================
-                // 2️⃣ Create Entity
-                // ===============================
-                var entity = new ReportingType
-                {
-                    TypeName = dto.TypeName,
-                    TenantId = dto.Prop.TenantId,
-                    AddedDateTime = DateTime.UtcNow,
-                    AddedById = dto.Prop.UserEmployeeId,
-                    IsSoftDeleted = false,
-                    IsActive = true,
-                    UpdatedDateTime = DateTime.UtcNow,
-                    Description = dto.Description
-                };
+                    throw new Exception($"Reporting type '{entity.TypeName}' already exists.");
 
                 await _context.ReportingTypes.AddAsync(entity);
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation(
                     "ReportingType '{TypeName}' added successfully by UserId {UserId}",
-                    dto.TypeName,
+                    entity.TypeName,
                     entity.AddedById);
 
-                // ===============================
-                // 3️⃣ Return CREATED OBJECT (BEST)
-                // ===============================
-                return new GetReportingTypeResponseDTO
-                {
-                    Id = entity.Id,
-                    TypeName = entity.TypeName,
-                    Description = entity.Description,
-                    IsActive = entity.IsActive
-                };
+                return entity;
             }
             catch (Exception ex)
             {
@@ -96,7 +79,7 @@ namespace axionpro.persistance.Repositories
         #endregion
 
         #region AllAsync
-        public async Task<PagedResponseDTO<GetReportingTypeResponseDTO>> AllAsync(GetReportingTypeRequestDTO dto)
+        public async Task<PagedResponseDTO<GetReportingTypeResponseDTO>> AllAsync(long tenantId, GetReportingTypeRequestDTO dto)
         {
             try
             {
@@ -112,7 +95,7 @@ namespace axionpro.persistance.Repositories
                 var query = _context.ReportingTypes
                     .AsNoTracking()
                     .Where(x => x.IsSoftDeleted != true
-                                && x.TenantId == dto.Prop.TenantId);
+                                && x.TenantId == tenantId);
 
                 // ===============================
                 // 3️⃣ FILTERS

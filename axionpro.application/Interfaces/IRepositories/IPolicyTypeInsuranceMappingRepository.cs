@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.InsurancePoliciesMapping;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the repository contract for  Policy Type Insurance Mapping Repository.
+// ================================================================
+
+using axionpro.application.DTOS.InsurancePoliciesMapping;
 using axionpro.application.DTOS.Pagination;
 
 using System;
@@ -19,7 +26,7 @@ namespace axionpro.application.Interfaces.IRepositories
         Task<PolicyTypeInsuranceMapping?> GetByIdAsync(  int id, bool isActive);
 
         // 🔹 GET LIST (Grid / Listing)
-        Task<PagedResponseDTO<GetPolicyTypeInsuranceMappingResponseDTO>> GetListAsync( GetPolicyTypeInsuranceMappingRequestDTO request);
+        Task<PagedResponseDTO<GetPolicyTypeInsuranceMappingResponseDTO>> GetListAsync(long tenantId, GetPolicyTypeInsuranceMappingRequestDTO request);
         Task<List<GetPolicyTypeInsuranceMapDetailsResponseDTO>> GetMapInsuranceDetailAsync( int policyId, bool isActive);
         Task<List<GetPolicyTypeInsuranceMappingResponseDTO>> GetMapInsuranceDDLForEmployeeMappingAsync(long tenantId, bool isActive, bool isSoftDeleted);
 

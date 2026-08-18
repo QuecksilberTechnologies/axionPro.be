@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for creating Employee Enrolled.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -26,7 +33,6 @@ namespace axionpro.application.DTOS.Employee.EnrolledPolicy
             public List<CreateEmployeeDependentRequestPolicyDTO>? Dependents { get; set; } = new();
 
             // 🔹 COMMON PROPS (CLEAN ARCHITECTURE)
-            public ExtraPropRequestDTO? Prop { get; set; } = new();
         }
     public class CreateEmployeeDependentRequestPolicyDTO
     {

@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOs.Manager.ReportingType;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the repository contract for  Reporting Type Repository.
+// ================================================================
+
+using axionpro.application.DTOs.Manager.ReportingType;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,8 +19,8 @@ namespace axionpro.application.Interfaces.IRepositories
 {
     public interface IReportingTypeRepository
     {
-        public Task<GetReportingTypeResponseDTO> AddAsync(CreateReportingTypeRequestDTO dTO);
-        public Task<PagedResponseDTO<GetReportingTypeResponseDTO>> AllAsync(GetReportingTypeRequestDTO dTO);
+        public Task<ReportingType?> AddAsync(ReportingType entity);
+        public Task<PagedResponseDTO<GetReportingTypeResponseDTO>> AllAsync(long tenantId, GetReportingTypeRequestDTO dTO);
         public Task<GetReportingTypeResponseDTO?> GetByIdAsync(long id);
         public Task<bool> DeleteAsync(long id, long employeeId);
         public Task<bool> UpdateAsync(UpdateReportingTypeRequestDTO dto);

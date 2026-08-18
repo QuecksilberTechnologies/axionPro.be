@@ -1,4 +1,4 @@
-﻿// ================================================================
+// ================================================================
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
@@ -9,6 +9,7 @@
 
 using AutoMapper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
+using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Exceptions;
@@ -102,13 +103,17 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request");
 
-                
+                long? employeeId = null;
+                if (!string.IsNullOrWhiteSpace(request.DTO.EmployeeId))
+                {
+                    employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
+                        request.DTO.EmployeeId,
+                        validation.Claims.TenantEncriptionKey,
+                        _idEncoderService);
 
-                request.DTO.Prop ??= new();
-
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-
+                    if (employeeId <= 0)
+                        throw new ValidationErrorException("Invalid EmployeeId.");
+                }
                 // ===============================
                 // 3️⃣ PERMISSION (YOUR PATTERN ✅)
                 // ===============================
@@ -123,7 +128,10 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // ===============================
                 // 4️⃣ FETCH DATA
                 // ===============================
-                var responseDTO = await _unitOfWork.Employees.GetAllInfo(request.DTO);
+                var responseDTO = await _unitOfWork.Employees.GetAllInfo(
+                    validation.TenantId,
+                    employeeId,
+                    request.DTO);
                 
                 if (responseDTO == null)
                     throw new ApiException("Employee data not found", 404);
@@ -163,7 +171,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 _logger.LogError(
                     ex,
                     "Error fetching employee info | EmployeeId: {EmployeeId}",
-                    request.DTO?.UserEmployeeId);
+                    request.DTO?.EmployeeId);
 
                 throw; // 🚨 MUST
             }

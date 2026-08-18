@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Create Employee Image Command Handler requests.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.DTOs.Module;
 using axionpro.application.DTOS.Employee.BaseEmployee;
@@ -81,12 +88,8 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request.");
 
-                request.DTO.Prop ??= new();
-
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-
-                if (request.DTO.Prop.EmployeeId <= 0)
+                var employeeId = validation.LoggedInEmployeeId;
+                if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
 
                 // ===============================
@@ -119,10 +122,10 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                     try
                     {
                         fileName =
-                            $"profile-{request.DTO.Prop.EmployeeId}-{DateTime.UtcNow:yyMMddHHmmss}";
+                            $"profile-{employeeId}-{DateTime.UtcNow:yyMMddHHmmss}";
 
                         string folderPath =
-                            $"tenants/tenant-{validation.TenantId}/employees/{request.DTO.Prop.EmployeeId}/profile";
+                            $"tenants/tenant-{validation.TenantId}/employees/{employeeId}/profile";
 
                         uploadedFileKey =
                             await _fileStorageService.UploadFileAsync(
@@ -148,7 +151,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // ===============================
                 var entity = _mapper.Map<EmployeeImage>(request.DTO);
 
-                entity.EmployeeId = request.DTO.Prop.EmployeeId;
+                entity.EmployeeId = employeeId;
                 entity.AddedById = validation.UserEmployeeId;
                 entity.AddedDateTime = DateTime.UtcNow;
                 entity.IsActive = request.DTO.IsActive;

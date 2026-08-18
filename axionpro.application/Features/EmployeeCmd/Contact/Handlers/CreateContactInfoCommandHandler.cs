@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Create Contact Info Command Handler requests.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOs.Module;
@@ -80,18 +87,12 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request.");
 
-                request.DTO.Prop ??= new();
+                var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
+                    request.DTO.EmployeeId,
+                    validation.Claims.TenantEncriptionKey,
+                    _idEncoderService);
 
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-
-                request.DTO.Prop.EmployeeId =
-                    RequestCommonHelper.DecodeOnlyEmployeeId(
-                        request.DTO.EmployeeId,
-                        validation.Claims.TenantEncriptionKey,
-                        _idEncoderService);
-
-                if (request.DTO.Prop.EmployeeId <= 0)
+                if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
 
                 // ===============================
@@ -115,8 +116,8 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
                 // ===============================
                 var entity = _mapper.Map<EmployeeContact>(request.DTO);
 
-                entity.EmployeeId = request.DTO.Prop.EmployeeId;
-                entity.AddedById = request.DTO.Prop.UserEmployeeId;
+                entity.EmployeeId = employeeId;
+                entity.AddedById = validation.LoggedInEmployeeId;
                 entity.AddedDateTime = DateTime.UtcNow;
                 entity.IsActive = true;
                 entity.IsSoftDeleted = false;

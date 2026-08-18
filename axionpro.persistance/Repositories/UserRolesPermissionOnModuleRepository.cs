@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOs.BasicAndRoleBaseMenu;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Provides persistence operations for User Roles Permission On Module records.
+// ================================================================
+
+using axionpro.application.DTOs.BasicAndRoleBaseMenu;
 using axionpro.application.DTOs.Module;
 using axionpro.application.DTOs.ModuleOperation;
 using axionpro.application.DTOs.Role;
@@ -208,12 +215,10 @@ namespace axionpro.persistance.Repositories
 
 
 
-        public async Task<TenantEnabledOperationsResponseDTO> Get(TenantEnabledModuleRequestDTO tenantEnabledModuleOperationsRequestDTO)
+        public async Task<TenantEnabledOperationsResponseDTO> Get(long tenantId)
         {
             try
             {
-                var tenantId = tenantEnabledModuleOperationsRequestDTO.Prop.TenantId;
-
                 // 🟢 Step 1: Get all enabled modules
                 var tenantModules = await _context.TenantEnabledModules
                     .Where(t => t.TenantId == tenantId)
@@ -256,7 +261,7 @@ namespace axionpro.persistance.Repositories
                 _logger.LogError(ex, "Error occurred while fetching enabled modules and operations for tenant.");
                 return new TenantEnabledOperationsResponseDTO
                 {
-                    TenantId = tenantEnabledModuleOperationsRequestDTO.Prop.TenantId,
+                    TenantId = tenantId,
                     Modules = null
                 };
             }

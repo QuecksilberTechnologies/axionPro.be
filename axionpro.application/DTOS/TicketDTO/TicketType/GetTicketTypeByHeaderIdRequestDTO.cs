@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for retrieving Ticket Type By Header Id.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Pagination;
 using axionpro.domain.Entity; 
 using MediatR;
@@ -14,6 +21,5 @@ namespace axionpro.application.DTOS.TicketDTO.TicketType
    
         public long  TicketHeaderId { get; set; }
        
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
     }
 }

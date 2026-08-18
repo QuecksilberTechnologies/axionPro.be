@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for retrieving Base Employee.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Pagination;
 using System;
 using System.Collections.Generic;
@@ -33,7 +40,6 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         public bool IsActive { get; set; }
         public bool? IsEditAllowed { get; set; }  
         public bool? IsInfoVerified { get; set; }
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
 
 
     }

@@ -1,4 +1,11 @@
-﻿using axionpro.application.Common.Helpers.RequestHelper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Get Employee Image Query Handler requests.
+// ================================================================
+
+using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -74,19 +81,12 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // ===============================
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request.");
-
-                request.DTO.Prop ??= new();
-
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-
-                request.DTO.Prop.EmployeeId =
-                    RequestCommonHelper.DecodeOnlyEmployeeId(
+                var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
                         request.DTO.EmployeeId,
                         validation.Claims.TenantEncriptionKey,
                         _idEncoderService);
 
-                if (request.DTO.Prop.EmployeeId <= 0)
+                if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
 
                 // ===============================
@@ -104,13 +104,16 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // 4️⃣ FETCH IMAGE
                 // ===============================
                 var image =
-                    await _unitOfWork.Employees.GetImage(request.DTO);
+                    await _unitOfWork.Employees.GetImage(
+                        validation.TenantId,
+                        employeeId,
+                        request.DTO);
 
                 if (image == null)
                 {
                     _logger.LogInformation(
                         "No primary image found | EmployeeId={EmpId}",
-                        request.DTO.Prop.EmployeeId);
+                        employeeId);
 
                     throw new ApiException("Employee image not found.", 404);
                 }

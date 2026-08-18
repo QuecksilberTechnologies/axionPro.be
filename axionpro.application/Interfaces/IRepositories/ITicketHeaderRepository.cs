@@ -1,4 +1,11 @@
-﻿
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the repository contract for  Ticket Header Repository.
+// ================================================================
+
+
 
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.DTOS.TicketDTO.Header;
@@ -19,14 +26,14 @@ namespace axionpro.application.Interfaces.IRepositories
         /// <summary>
         /// Add new ticket header.
         /// </summary>
-     public Task<GetHeaderResponseDTO> AddAsync(AddHeaderRequestDTO dTO);
+        Task<TicketHeader?> AddAsync(TicketHeader entity);
 
         /// <summary>
         /// Get header by Id.
         /// </summary>
         Task<List<GetHeaderResponseDTO>> GetAllHeaderAsync(GetHeaderRequestDTO dto);
         Task<GetHeaderResponseDTO> GetByIdAsync(long headerId);
-        Task<List<GetHeaderResponseDTO>> GetByClassificationIdAsync(GetTicketHeaderByClassifyIdRequestDTO dto);
+        Task<List<GetHeaderResponseDTO>> GetByClassificationIdAsync(long tenantId, GetTicketHeaderByClassifyIdRequestDTO dto);
         /// <summary>
         /// Get all active header.
         /// </summary>
@@ -40,7 +47,8 @@ namespace axionpro.application.Interfaces.IRepositories
         /// <summary>
         /// Update existing header details.
         /// </summary>
-        Task<GetHeaderResponseDTO?> UpdateAsync(UpdateHeaderRequestDTO dTO);
+        Task<TicketHeader?> GetByIdForTenantAsync(long id, long tenantId);
+        Task<TicketHeader?> UpdateAsync(TicketHeader entity);
         
     }
 

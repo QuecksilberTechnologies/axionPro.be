@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for retrieving Policy Type Document.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Pagination;
 using System;
 using System.Collections.Generic;
@@ -13,7 +20,6 @@ namespace axionpro.application.DTOS.PolicyTypeDocument
     public class GetPolicyTypeDocumentRequestDTO : BaseRequest
     {
         // 🔐 Common decoded props (TenantId, UserEmployeeId etc.)
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
 
         // 🔍 Filters
         public long? Id { get; set; }

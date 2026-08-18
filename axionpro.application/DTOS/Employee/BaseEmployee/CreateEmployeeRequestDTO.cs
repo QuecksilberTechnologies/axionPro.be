@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for creating Employee.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Pagination;
 using axionpro.domain.Entity; using MediatR;
 using System;
@@ -65,7 +72,6 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
         
         public int? ReferalId { get; set; }
 
-        public ExtraPropRequestDTO Prop = new ExtraPropRequestDTO();
 
 
     }

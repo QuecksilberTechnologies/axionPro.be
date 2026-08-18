@@ -1,4 +1,11 @@
-﻿using System;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for updating Edit Status.
+// ================================================================
+
+using System;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -18,7 +25,6 @@ namespace axionpro.application.DTOS.Common
 
         [Required]
         public bool IsEditable { get; set; }
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
     }
 
     public class UpdateEditStatusRequestDTO_
@@ -33,7 +39,6 @@ namespace axionpro.application.DTOS.Common
 
         [Required]
         public bool IsEditable { get; set; }
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
 
     }
 

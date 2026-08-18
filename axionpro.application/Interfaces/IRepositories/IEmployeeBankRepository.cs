@@ -1,4 +1,11 @@
-﻿
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the repository contract for  Employee Bank Repository.
+// ================================================================
+
+
 
 using axionpro.application.DTOs.Employee.AccessResponse;
 using axionpro.application.DTOS.Employee.Bank;
@@ -25,10 +32,10 @@ public interface IEmployeeBankRepository
     public Task<bool> UpdateVerificationStatus(long EmployeeId, long UserId, bool Status);
     public Task< PagedResponseDTO<GetBankResponseDTO>> CreateAsync(EmployeeBankDetail entity);  // Ensure this returns 
     public Task<EmployeeBankDetail> GetSingleRecordAsync(int Id ,bool IsActive);  // Ensure this returns    
-    public  Task<PagedResponseDTO<GetBankResponseDTO>> GetInfoAsync(GetBankReqestDTO dto);  
+    public Task<PagedResponseDTO<GetBankResponseDTO>> GetInfoAsync(long employeeId, GetBankReqestDTO dto);
     public Task<bool> ResetPrimaryAccountAsync(long employeeId, long byUserId);
     public Task<bool> DeleteAsync(EmployeeBankDetail employeeBankDetail);
-    public Task<bool> UpdateAsync(UpdateBankReqestDTO entity);
+    public Task<bool> UpdateAsync(EmployeeBankDetail entity);
 
 
 

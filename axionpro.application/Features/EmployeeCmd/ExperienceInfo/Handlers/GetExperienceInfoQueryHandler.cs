@@ -1,4 +1,11 @@
-﻿using axionpro.application.Common.Helpers.RequestHelper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Get Experience Info Query Handler requests.
+// ================================================================
+
+using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.Experience;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -72,11 +79,6 @@ public class GetExperienceInfoQueryHandler
                 throw new ValidationErrorException("EmployeeId is required");
             }
 
-            request.DTO.Prop ??= new();
-
-            request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-            request.DTO.Prop.TenantId = validation.TenantId;
-
             _logger.LogInformation("✅ Validation Passed | UserId: {UserId}", validation.UserEmployeeId);
 
             // ===============================
@@ -84,15 +86,14 @@ public class GetExperienceInfoQueryHandler
             // ===============================
             _logger.LogInformation("🔓 Decoding EmployeeId: {EncodedId}", request.DTO.EmployeeId);
 
-            request.DTO.Prop.EmployeeId =
-                RequestCommonHelper.DecodeOnlyEmployeeId(
-                    request.DTO.EmployeeId,
-                    validation.Claims.TenantEncriptionKey,
-                    _idEncoderService);
+            var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
+                request.DTO.EmployeeId,
+                validation.Claims.TenantEncriptionKey,
+                _idEncoderService);
 
-            _logger.LogInformation("🔑 Decoded EmployeeId: {DecodedId}", request.DTO.Prop.EmployeeId);
+            _logger.LogInformation("Decoded EmployeeId: {DecodedId}", employeeId);
 
-            if (request.DTO.Prop.EmployeeId <= 0)
+            if (employeeId <= 0)
             {
                 _logger.LogError("❌ Invalid decoded EmployeeId");
                 throw new ValidationErrorException("Invalid EmployeeId.");
@@ -105,7 +106,7 @@ public class GetExperienceInfoQueryHandler
 
             var expEntities =
                 await _unitOfWork.EmployeeExperienceRepository
-                    .GetByEmployeeIdWithDocumentsAsync(request.DTO);
+                    .GetByEmployeeIdWithDocumentsAsync(employeeId, request.DTO);
 
             _logger.LogInformation("📦 Data fetched | Count: {Count}",
                 expEntities?.Data?.Count ?? 0);

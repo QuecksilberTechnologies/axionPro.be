@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for creating Identity.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces.IFileStorage;
 using MediatR.NotificationPublishers;
@@ -36,7 +43,6 @@ namespace axionpro.application.DTOS.Employee.Sensitive
         // 🔹 Validity
         public DateOnly? EffectiveFrom { get; set; }
         public DateOnly? EffectiveTo { get; set; }
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
 
         // 🔹 Audit Fields
         // public string? DocumentFileName { get; set; }

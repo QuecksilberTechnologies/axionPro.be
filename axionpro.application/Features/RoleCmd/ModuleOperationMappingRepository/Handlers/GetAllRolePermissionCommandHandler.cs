@@ -1,9 +1,15 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles retrieval of module-operation permissions for a role.
+// ================================================================
+
+using axionpro.application.Constants;
 using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
@@ -11,30 +17,47 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.RoleCmd.ModuleOperationMappingRepository.Handlers
 {
-    // ===============================
- // COMMAND
- // ===============================
-    public class GetRolePermissionCommand
-        : IRequest<ApiResponse<List<RoleModuleAndPermission>>>
-    {
-        public GetAllActiveRoleModuleOperationsRequestByRoleIdDTO DTO { get; set; }
+    #region Query
 
+    /// <summary>
+    /// Represents a request to retrieve module-operation permissions for a role.
+    /// </summary>
+    public class GetRolePermissionCommand : IRequest<ApiResponse<List<RoleModuleAndPermission>>>
+    {
+        public GetAllActiveRoleModuleOperationsRequestByRoleIdDTO DTO { get; set; } = default!;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetRolePermissionCommand"/> class.
+        /// </summary>
         public GetRolePermissionCommand(GetAllActiveRoleModuleOperationsRequestByRoleIdDTO dto)
         {
             DTO = dto;
         }
     }
 
+    #endregion
 
-    // HANDLER
-    // ===============================
+    #region Handler
+
+    /// <summary>
+    /// Retrieves module-operation permissions for a validated tenant role.
+    /// </summary>
     public class GetRolePermissionCommandHandler
         : IRequestHandler<GetRolePermissionCommand, ApiResponse<List<RoleModuleAndPermission>>>
     {
+        #region Fields
+
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetRolePermissionCommandHandler> _logger;
         private readonly ICommonRequestService _commonRequestService;
 
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetRolePermissionCommandHandler"/> class.
+        /// </summary>
         public GetRolePermissionCommandHandler(
             IUnitOfWork unitOfWork,
             ILogger<GetRolePermissionCommandHandler> logger,
@@ -45,57 +68,45 @@ namespace axionpro.application.Features.RoleCmd.ModuleOperationMappingRepository
             _commonRequestService = commonRequestService;
         }
 
+        #endregion
+
+        #region Handle
+
+        /// <summary>
+        /// Retrieves the existing module-operation assignments for the requested role.
+        /// </summary>
         public async Task<ApiResponse<List<RoleModuleAndPermission>>> Handle(
             GetRolePermissionCommand request,
             CancellationToken cancellationToken)
         {
-            try
+            var validation = await _commonRequestService.ValidateRequestAsync();
+            if (!validation.Success)
             {
-                _logger.LogInformation("🚀 GetRolePermission started");
-
-                // ===============================
-                // 1️⃣ VALIDATION
-                // ===============================
-                var validation = await _commonRequestService.ValidateRequestAsync();
-
-                if (!validation.Success)
-                    throw new UnauthorizedAccessException(validation.ErrorMessage);
-
-                if (request?.DTO == null)
-                    throw new ValidationErrorException("Invalid request.");
-
-                request.DTO.Prop ??= new();
-                request.DTO.Prop.TenantId = validation.TenantId;
-
-                // ===============================
-                // 2️⃣ VALID ROLE CHECK
-                // ===============================
-                if (request.DTO.RoleId <= 0)
-                    throw new ValidationErrorException("Invalid RoleId.");
-
-                // ===============================
-                // 3️⃣ FETCH EXISTING PERMISSIONS
-                // ===============================
-                var existingPermissions = await _unitOfWork
-                    .UserRolesPermissionOnModuleRepository
-                    .GetByRoleIdAsync(request.DTO.RoleId);
-
-                // ===============================
-                // 4️⃣ RESPONSE
-                // ===============================
-                return new ApiResponse<List<RoleModuleAndPermission>>
-                {
-                    IsSucceeded = true,
-                    Message = "Role permissions fetched successfully.",
-                    Data = existingPermissions
-                };
+                throw new UnauthorizedAccessException(validation.ErrorMessage);
             }
-            catch (Exception ex)
+
+            if (request?.DTO == null || request.DTO.RoleId <= 0)
             {
-                _logger.LogError(ex, "❌ Error in GetRolePermission");
-                throw;
+                throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
             }
+
+            var permissions = await _unitOfWork
+                .UserRolesPermissionOnModuleRepository
+                .GetByRoleIdAsync(request.DTO.RoleId);
+
+            _logger.LogInformation(
+                "Retrieved {Count} role permissions for tenant {TenantId}, role {RoleId}.",
+                permissions.Count,
+                validation.TenantId,
+                request.DTO.RoleId);
+
+            return ApiResponse<List<RoleModuleAndPermission>>.Success(
+                permissions,
+                AppConstants.SuccessMessages.RolePermissionsRetrieved);
         }
+
+        #endregion
     }
+
+    #endregion
 }
- 

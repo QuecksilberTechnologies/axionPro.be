@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Provides persistence operations for Ticket Classification records.
+// ================================================================
+
+using AutoMapper;
  
 using axionpro.application.DTOS.TicketDTO.Classification;
 using axionpro.application.Interfaces.IRepositories;
@@ -34,17 +41,17 @@ namespace axionpro.persistance.Repositories
         }
 
         //  ADD
-        public async Task<GetClassificationResponseDTO> AddAsync(AddClassificationRequestDTO dto)
+        public async Task<TicketClassification?> AddAsync(TicketClassification entity)
         {
             try
             {
                 // ===============================
                 // 1️⃣ VALIDATION
                 // ===============================
-                if (dto == null)
+                if (entity == null)
                     throw new ArgumentException("Request cannot be null.");
 
-                if (string.IsNullOrWhiteSpace(dto.ClassificationName))
+                if (string.IsNullOrWhiteSpace(entity.ClassificationName))
                     throw new ArgumentException("ClassificationName is required.");
 
                 // ===============================
@@ -52,10 +59,10 @@ namespace axionpro.persistance.Repositories
                 // ===============================
                 var exists = await _context.TicketClassifications
                     .AnyAsync(x =>
-                        x.TenantId == dto.Prop.TenantId &&
+                        x.TenantId == entity.TenantId &&
                         x.IsActive &&
                         (x.IsSoftDeleted != true) &&
-                        x.ClassificationName.ToLower() == dto.ClassificationName.ToLower());
+                        x.ClassificationName.ToLower() == entity.ClassificationName.ToLower());
 
                 if (exists)
                     throw new InvalidOperationException("Classification already exists.");
@@ -63,20 +70,6 @@ namespace axionpro.persistance.Repositories
                 // ===============================
                 // 3️⃣ CREATE ENTITY (MANUAL)
                 // ===============================
-                var entity = new TicketClassification
-                {
-                    ClassificationName = dto.ClassificationName,
-                    Description = dto.Description,
-
-                    TenantId = dto.Prop.TenantId,
-
-                    IsActive = dto.IsActive ?? true,
-                    IsSoftDeleted = false,
-
-                    AddedById = dto.Prop.UserEmployeeId,
-                    AddedDateTime = DateTime.UtcNow
-                };
-
                 // ===============================
                 // 4️⃣ SAVE
                 // ===============================
@@ -85,17 +78,7 @@ namespace axionpro.persistance.Repositories
 
                 _logger.LogInformation("Ticket classification added. Id: {Id}", entity.Id);
 
-                // ===============================
-                // 5️⃣ RETURN DTO
-                // ===============================
-                return new GetClassificationResponseDTO
-                {
-                    Id = entity.Id,
-                    ClassificationName = entity.ClassificationName,
-                    Description = entity.Description,
-                    IsActive = entity.IsActive,
-                  
-                };
+                return entity;
             }
             catch (Exception ex)
             {
@@ -179,7 +162,7 @@ namespace axionpro.persistance.Repositories
                 throw;
             }
         }
-        public async Task<PagedResponseDTO<GetClassificationResponseDTO>> GetAllAsync(GetAllClassificationRequestDTO dto)
+        public async Task<PagedResponseDTO<GetClassificationResponseDTO>> GetAllAsync(long tenantId, GetAllClassificationRequestDTO dto)
         {
             try
             {
@@ -195,7 +178,7 @@ namespace axionpro.persistance.Repositories
                 var query = _context.TicketClassifications
                     .AsNoTracking()
                     .Where(x =>
-                        x.TenantId == dto.Prop.TenantId &&
+                        x.TenantId == tenantId &&
                         x.IsActive == true &&
                         (x.IsSoftDeleted != true));
 
@@ -262,44 +245,19 @@ namespace axionpro.persistance.Repositories
         }
 
         //  UPDATE
-        public async Task<GetClassificationResponseDTO?> UpdateAsync(UpdateClassificationRequestDTO dto)
+        public async Task<TicketClassification?> GetByIdForTenantAsync(int id, long tenantId)
         {
-            try
-            {
-                if (dto == null || dto.Id <= 0)
-                {
-                    _logger.LogWarning("⚠️ Invalid DTO or Id for UpdateAsync.");
-                    return new GetClassificationResponseDTO();
-                }
+            return await _context.TicketClassifications.FirstOrDefaultAsync(x =>
+                x.Id == id &&
+                x.TenantId == tenantId &&
+                x.IsSoftDeleted != true);
+        }
 
-                
-                var existing = await _context.TicketClassifications.FirstOrDefaultAsync(x => x.Id == dto.Id && (x.IsSoftDeleted!=true));
-                if (existing == null)
-                {
-                    _logger.LogWarning("⚠️ Classification not found for update. Id: {Id}", dto.Id);
-                    return new GetClassificationResponseDTO();
-                }
-
-                existing.ClassificationName = dto.ClassificationName ?? existing.ClassificationName;
-                existing.Description = dto.Description ?? existing.Description;
-                existing.IsActive = dto.IsActive ?? existing.IsActive;
-                existing.UpdatedById = dto.Prop?.EmployeeId;
-                existing.UpdatedDateTime = DateTime.UtcNow;
-
-                _context.TicketClassifications.Update(existing);
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation(" Classification updated successfully. Id: {Id}", dto.Id);
-
-                var response = _mapper.Map<GetClassificationResponseDTO>(existing);
-                
-                return response;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error while updating classification. Id: {Id}", dto.Id);
-                return new GetClassificationResponseDTO();
-            }
+        public async Task<TicketClassification?> UpdateAsync(TicketClassification entity)
+        {
+            _context.TicketClassifications.Update(entity);
+            await _context.SaveChangesAsync();
+            return entity;
         }
 
         //  DELETE (Soft Delete)

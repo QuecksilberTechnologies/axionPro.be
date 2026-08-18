@@ -1,4 +1,11 @@
-﻿
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Provides persistence operations for Employee Identity records.
+// ================================================================
+
+
 
 using AutoMapper;
 using axionpro.application.DTOS.Employee.Experience;
@@ -149,7 +156,6 @@ namespace axionpro.persistance.Repositories
         //        var query = _context.EmployeePersonalDetails
         //            .AsNoTracking()
         //            .Where(x =>
-        //                x.EmployeeId == dto.Prop.EmployeeId &&
         //                x.IsActive == dto.IsActive &&
         //                x.IsSoftDeleted != true);
              
@@ -222,7 +228,6 @@ namespace axionpro.persistance.Repositories
         //    {
         //        _logger.LogError(ex,
         //            "❌ Error while fetching identity info | EmployeeId={EmployeeId}",
-        //            dto.Prop.EmployeeId);
 
         //        throw;
         //    }

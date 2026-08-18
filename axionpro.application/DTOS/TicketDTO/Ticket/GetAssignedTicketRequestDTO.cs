@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for retrieving Assigned Ticket.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Pagination;
 using System;
 using System.Collections.Generic;
@@ -12,7 +19,6 @@ namespace axionpro.application.DTOS.TicketDTO.Ticket
         public required int  Status { get; set; }   // optional (Open, Pending etc.)
 
         // 🔥 Login user info (CommonRequestService se aayega)
-        public ExtraPropRequestDTO? Prop { get; set; } = new();
 
             // 🔥 Filter
         }

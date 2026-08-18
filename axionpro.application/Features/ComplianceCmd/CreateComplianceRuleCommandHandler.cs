@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOs.Designation;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Create Compliance Rule Command Handler requests.
+// ================================================================
+
+using axionpro.application.DTOs.Designation;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Compliances.ComplianceRule;
 using axionpro.application.Exceptions;
@@ -60,9 +67,6 @@ namespace axionpro.application.Features.ComplianceCmd
 
                 var dto = request.DTO;
 
-                dto.Prop ??= new ExtraPropRequestDTO();
-                dto.Prop.TenantId = validation.TenantId;
-
                 // ===============================
                 // 2️⃣ BUSINESS VALIDATION
                 // ===============================
@@ -75,7 +79,7 @@ namespace axionpro.application.Features.ComplianceCmd
                         dto.ComplianceTypeId,
                         dto.CountryId,
                         dto.StateId,
-                        dto.Prop.TenantId,
+                        validation.TenantId,
                         dto.EffectiveFrom);
 
                 if (exists)
@@ -92,7 +96,7 @@ namespace axionpro.application.Features.ComplianceCmd
                         dto.ComplianceTypeId,
                         dto.CountryId,
                         dto.StateId,
-                        dto.Prop.TenantId,
+                        validation.TenantId,
                         dto.EffectiveFrom);
                 ComplianceRule complianceRule = new ComplianceRule();
                 if (existingRule != null)
@@ -101,7 +105,7 @@ namespace axionpro.application.Features.ComplianceCmd
                     existingRule.UpdatedDateTime = DateTime.UtcNow;
                     existingRule.UpdatedById = validation.LoggedInEmployeeId;
                   
-                    await _unitOfWork.CompilanceRuleRepository.UpdateAsync(complianceRule);
+                    await _unitOfWork.CompilanceRuleRepository.UpdateAsync(existingRule);
                 }
 
                 // 🔥 CREATE NEW RULE
@@ -110,7 +114,7 @@ namespace axionpro.application.Features.ComplianceCmd
                     ComplianceTypeId = dto.ComplianceTypeId,
                     CountryId = dto.CountryId,
                     StateId = dto.StateId,
-                    TenantId = dto.Prop.TenantId,
+                    TenantId = validation.TenantId,
 
                     RuleJson = JsonSerializer.Serialize(dto.RuleJson),
 
@@ -134,7 +138,7 @@ namespace axionpro.application.Features.ComplianceCmd
                     "ComplianceRule created | Type: {Type}, Country: {Country}, Tenant: {Tenant}",
                     dto.ComplianceTypeId,
                     dto.CountryId,
-                    dto.Prop.TenantId);
+                    validation.TenantId);
 
                 // ===============================
                 // 4️⃣ RESPONSE

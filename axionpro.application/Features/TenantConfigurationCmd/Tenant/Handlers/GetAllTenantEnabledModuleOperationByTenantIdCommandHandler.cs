@@ -14,6 +14,7 @@ using System.Text;
 using AutoMapper;
 using axionpro.application.Features.TenantConfigurationCmd.Tenant.Commands;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IRepositories;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -56,6 +57,7 @@ public class GetAllTenantEnabledModuleOperationByTenantIdCommandHandler : IReque
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetAllTenantOperationsCommandHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
         #endregion
 
         #region Constructor
@@ -68,12 +70,14 @@ public class GetAllTenantEnabledModuleOperationByTenantIdCommandHandler : IReque
             ITenantModuleConfigurationRepository tenantModuleConfigurationRepository,
             IMapper mapper,
             IUnitOfWork unitOfWork,
-            ILogger<GetAllTenantOperationsCommandHandler> logger)
+            ILogger<GetAllTenantOperationsCommandHandler> logger,
+            ICommonRequestService commonRequestService)
         {
             _tenantModuleConfigurationRepository = tenantModuleConfigurationRepository;
             _mapper = mapper;
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _commonRequestService = commonRequestService;
         }
         #endregion
 
@@ -102,21 +106,17 @@ public class GetAllTenantEnabledModuleOperationByTenantIdCommandHandler : IReque
                     };
                 }
 
-                // ✅ TenantId validation
-                var TenantId = request.dto.Prop.TenantId;
-                if (TenantId <= 0)
+                var validation = await _commonRequestService.ValidateRequestAsync();
+                if (!validation.Success)
                 {
-                    _logger.LogWarning("Invalid TenantId: {TenantId}", TenantId);
-                    return new ApiResponse<GetModuleHierarchyResponseDTO>
-                    {
-                        IsSucceeded = false,
-                        Message = "TenantId is required and must be greater than 0.",
-                        Data = null
-                    };
+                    throw new UnauthorizedAccessException(validation.ErrorMessage);
                 }
 
-                // ✅ Get data from repository
-                var responseDTO = await _unitOfWork.TenantModuleConfigurationRepository.GetAllTenantEnabledModulesAsync(request.dto);
+                var responseDTO = await _tenantModuleConfigurationRepository
+                    .GetAllTenantEnabledModulesAsync(new axionpro.domain.Entity.TenantEnabledOperation
+                    {
+                        TenantId = validation.TenantId
+                    });
 
 
                 return new ApiResponse<GetModuleHierarchyResponseDTO>

@@ -1,4 +1,11 @@
-﻿using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Get Employee Profile Summary Query Handler requests.
+// ================================================================
+
+using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.Exceptions;

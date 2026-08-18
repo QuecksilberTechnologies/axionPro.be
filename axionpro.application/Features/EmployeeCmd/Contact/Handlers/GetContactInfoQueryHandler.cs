@@ -83,18 +83,12 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request.");
 
-                request.DTO.Prop ??= new();
+                var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
+                    request.DTO.EmployeeId,
+                    validation.Claims.TenantEncriptionKey,
+                    _idEncoderService);
 
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-
-                request.DTO.Prop.EmployeeId =
-                    RequestCommonHelper.DecodeOnlyEmployeeId(
-                        request.DTO.EmployeeId,
-                        validation.Claims.TenantEncriptionKey,
-                        _idEncoderService);
-
-                if (request.DTO.Prop.EmployeeId <= 0)
+                if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
 
                 // ===============================
@@ -113,7 +107,7 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
                 // ===============================
                 var result =
                     await _unitOfWork.EmployeeContactRepository
-                        .GetInfo(request.DTO);
+                        .GetInfo(employeeId, request.DTO);
 
                 // ===============================
                 // 5️⃣ OPTIMIZED EMPTY HANDLING

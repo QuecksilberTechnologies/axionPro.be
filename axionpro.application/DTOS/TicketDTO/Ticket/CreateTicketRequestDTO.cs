@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for creating Ticket.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -27,7 +34,6 @@ namespace axionpro.application.DTOS.TicketDTO.Ticket
         public List<string>? AttachmentUrls { get; set; }
 
         
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();  
     }
     
 }

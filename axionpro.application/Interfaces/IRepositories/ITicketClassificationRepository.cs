@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Pagination;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the repository contract for  Ticket Classification Repository.
+// ================================================================
+
+using axionpro.application.DTOS.Pagination;
 using axionpro.application.DTOS.TicketDTO.Classification;
 using axionpro.domain.Entity; 
 using MediatR;
@@ -15,7 +22,7 @@ namespace axionpro.application.Interfaces.IRepositories
         /// <summary>
         /// Add new ticket classification.
         /// </summary>
-           Task<GetClassificationResponseDTO> AddAsync(AddClassificationRequestDTO dTO);
+           Task<TicketClassification?> AddAsync(TicketClassification entity);
 
         /// <summary>
         /// Get classification by Id.
@@ -25,7 +32,7 @@ namespace axionpro.application.Interfaces.IRepositories
             /// <summary>
             /// Get all active classifications.
             /// </summary>
-            Task<PagedResponseDTO<GetClassificationResponseDTO>> GetAllAsync(GetAllClassificationRequestDTO dto);
+            Task<PagedResponseDTO<GetClassificationResponseDTO>> GetAllAsync(long tenantId, GetAllClassificationRequestDTO dto);
             Task<List<GetClassificationResponseDTO>> GetDDLAsync(bool isActive, long tenantId);
 
             /// <summary>
@@ -36,7 +43,8 @@ namespace axionpro.application.Interfaces.IRepositories
             /// <summary>
             /// Update existing classification details.
             /// </summary>
-            Task<GetClassificationResponseDTO?> UpdateAsync(UpdateClassificationRequestDTO dTO);
+            Task<TicketClassification?> GetByIdForTenantAsync(int id, long tenantId);
+            Task<TicketClassification?> UpdateAsync(TicketClassification entity);
         }
    
 }

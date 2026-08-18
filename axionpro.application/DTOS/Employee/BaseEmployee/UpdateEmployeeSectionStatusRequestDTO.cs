@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for updating Employee Section Status.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +24,6 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
 
 
         public List<SectionStatusDTO>? Sections { get; set; }
-       public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
     }
 
     public class SectionStatusDTO

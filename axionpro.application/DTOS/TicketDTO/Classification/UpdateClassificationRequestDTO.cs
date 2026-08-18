@@ -1,4 +1,11 @@
-﻿using System;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for updating Classification.
+// ================================================================
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,7 +23,6 @@ namespace axionpro.application.DTOS.TicketDTO.Classification
     public string? ClassificationName { get; set; } 
     public string? Description { get; set; }
     public bool? IsActive { get; set; }
-        public ExtraPropRequestDTO? Prop { get; set; } = new ExtraPropRequestDTO();
    
 }
 }

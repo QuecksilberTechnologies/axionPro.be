@@ -1,4 +1,11 @@
-﻿using System;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for updating Verification Status.
+// ================================================================
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -17,7 +24,6 @@ namespace axionpro.application.DTOS.Common
 
         [Required]
         public bool IsVerified { get; set; }
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
 
     }
     public class UpdateVerificationStatusRequestDTO_
@@ -32,7 +38,6 @@ namespace axionpro.application.DTOS.Common
 
         [Required]
         public bool IsVerified { get; set; }
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
 
     }
 

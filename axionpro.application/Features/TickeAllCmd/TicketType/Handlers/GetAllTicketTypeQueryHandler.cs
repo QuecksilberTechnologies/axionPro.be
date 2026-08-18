@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Get All Ticket Type Query Handler requests.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.DTOs.OrganizationHolidayCalendar;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Pagination;
@@ -66,9 +73,6 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request data.");
 
-                request.DTO.Prop ??= new ExtraPropRequestDTO();
-                request.DTO.Prop.TenantId = validation.TenantId;
-
                 // ===============================
                 // 4️⃣ DEFAULT PAGINATION (IMPORTANT 🔥)
                 // ===============================
@@ -79,7 +83,7 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
                 // 5️⃣ REPOSITORY CALL
                 // ===============================
                 var result = await _unitOfWork.TicketTypeRepository
-                    .AllAsync(request.DTO);
+                    .AllAsync(validation.TenantId, request.DTO);
 
                 if (result == null)
                     throw new ApiException("Failed to fetch TicketTypes.", 500);

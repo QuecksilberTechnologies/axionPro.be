@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Provides persistence operations for Ticket Header records.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.DTOS.TicketDTO.Header;
 using axionpro.application.Interfaces.IRepositories;
@@ -32,49 +39,13 @@ namespace axionpro.persistance.Repositories
         }
 
         // ✅ ADD
-        public async Task<GetHeaderResponseDTO> AddAsync(AddHeaderRequestDTO dto)
+        public async Task<TicketHeader?> AddAsync(TicketHeader entity)
         {
             try
             {
-                var entity = new TicketHeader
-                {
-                    HeaderName = dto.HeaderName,
-                    Description = dto.Description,
-
-                    TenantId = dto.Prop.TenantId,
-
-                    IsActive = true,
-                    IsSoftDeleted = false,
-
-                    AddedById = dto.Prop.UserEmployeeId,
-                    AddedDateTime = DateTime.UtcNow
-                };
-
                 await _context.TicketHeaders.AddAsync(entity);
                 await _context.SaveChangesAsync();
-
-                // 🔥 IMPORTANT: re-fetch with join
-                var result = await (
-                    from h in _context.TicketHeaders
-                    join c in _context.TicketClassifications
-                        on h.TicketClassificationId equals c.Id into hc
-                    from c in hc.DefaultIfEmpty()
-                    where h.Id == entity.Id
-                    select new GetHeaderResponseDTO
-                    {
-                        Id = h.Id,
-                        HeaderName = h.HeaderName,
-                        Description = h.Description,
-                        IsActive = h.IsActive,
-
-                        TicketClassificationId = h.TicketClassificationId,
-                        TicketClassificationName = c != null ? c.ClassificationName : null,
-
-                        
-                    }
-                ).FirstOrDefaultAsync();
-
-                return result!;
+                return entity;
             }
             catch (Exception ex)
             {
@@ -152,13 +123,13 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<List<GetHeaderResponseDTO>> GetByClassificationIdAsync(GetTicketHeaderByClassifyIdRequestDTO dto)
+        public async Task<List<GetHeaderResponseDTO>> GetByClassificationIdAsync(long tenantId, GetTicketHeaderByClassifyIdRequestDTO dto)
         {
             return await _context.TicketHeaders .AsNoTracking()
                 .AsNoTracking()
                 .Where(x =>
                     x.TicketClassificationId == dto.TicketClassifyId &&
-                    x.TenantId == dto.Prop.TenantId &&
+                    x.TenantId == tenantId &&
                     x.IsActive &&
                     !x.IsSoftDeleted)
                 .Select(x => new GetHeaderResponseDTO
@@ -238,60 +209,19 @@ namespace axionpro.persistance.Repositories
         }
 
         // ✅ UPDATE
-        public async Task<GetHeaderResponseDTO?> UpdateAsync(UpdateHeaderRequestDTO dto)
+        public async Task<TicketHeader?> GetByIdForTenantAsync(long id, long tenantId)
         {
-            try
-            {
-                var entity = await _context.TicketHeaders
-                    .FirstOrDefaultAsync(x =>
-                        x.Id == dto.Id &&
-                        x.TenantId == dto.Prop.TenantId &&
-                        x.IsSoftDeleted != true);
+            return await _context.TicketHeaders.FirstOrDefaultAsync(x =>
+                x.Id == id &&
+                x.TenantId == tenantId &&
+                x.IsSoftDeleted != true);
+        }
 
-                if (entity == null)
-                    return null;
-
-                // ===============================
-                // 1️⃣ UPDATE FIELDS
-                // ===============================
-                entity.HeaderName = dto.HeaderName;
-                entity.Description = dto.Description;
-
-                entity.UpdatedById = dto.Prop.UserEmployeeId;
-                entity.UpdatedDateTime = DateTime.UtcNow;
-
-                await _context.SaveChangesAsync();
-
-                // ===============================
-                // 2️⃣ RE-FETCH WITH JOIN
-                // ===============================
-                var result = await (
-                    from h in _context.TicketHeaders.AsNoTracking()
-                    join c in _context.TicketClassifications.AsNoTracking()
-                        on h.TicketClassificationId equals c.Id into hc
-                    from c in hc.DefaultIfEmpty()
-                    where h.Id == entity.Id
-                    select new GetHeaderResponseDTO
-                    {
-                        Id = h.Id,
-                        HeaderName = h.HeaderName,
-                        Description = h.Description,
-                        IsActive = h.IsActive,
-
-                        TicketClassificationId = h.TicketClassificationId,
-                        TicketClassificationName = c != null ? c.ClassificationName : null,
-
-                        
-                    }
-                ).FirstOrDefaultAsync();
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while updating TicketHeader");
-                throw;
-            }
+        public async Task<TicketHeader?> UpdateAsync(TicketHeader entity)
+        {
+            _context.TicketHeaders.Update(entity);
+            await _context.SaveChangesAsync();
+            return entity;
         }
         // ✅ DELETE (Soft Delete)
         public async Task<bool> DeleteAsync(DeleteHeaderRequestDTO dto, long EmployeeId)

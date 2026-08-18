@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Create Dependent Command Handler requests.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Constants;
@@ -88,18 +95,12 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request.");
 
-                request.DTO.Prop ??= new();
+                var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
+                    request.DTO.EmployeeId,
+                    validation.Claims.TenantEncriptionKey,
+                    _idEncoderService);
 
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-
-                request.DTO.Prop.EmployeeId =
-                    RequestCommonHelper.DecodeOnlyEmployeeId(
-                        request.DTO.EmployeeId,
-                        validation.Claims.TenantEncriptionKey,
-                        _idEncoderService);
-
-                if (request.DTO.Prop.EmployeeId <= 0)
+                if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
 
                 // ===============================
@@ -134,11 +135,11 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                             request.DTO.Relation.ToString() ?? "doc";
 
                         string fileName =
-                            $"proof-{request.DTO.Prop.EmployeeId}-{relation}-{DateTime.UtcNow:yyyyMMddHHmmss}";
+                            $"proof-{employeeId}-{relation}-{DateTime.UtcNow:yyyyMMddHHmmss}";
 
                         string folderPath =
-                            $"{ConstantValues.TenantFolder}-{request.DTO.Prop.TenantId}/" +
-                            $"{ConstantValues.EmployeeFolder}/{request.DTO.Prop.EmployeeId}/{ConstantValues.DependentFolder}";
+                            $"{ConstantValues.TenantFolder}-{validation.TenantId}/" +
+                            $"{ConstantValues.EmployeeFolder}/{employeeId}/{ConstantValues.DependentFolder}";
 
                         uploadedFileKey = await _fileStorageService.UploadFileAsync(
                             request.DTO.ProofFile,
@@ -164,8 +165,8 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                 // ===============================
                 var entity = _mapper.Map<EmployeeDependent>(request.DTO);
 
-                entity.EmployeeId = request.DTO.Prop.EmployeeId;
-                entity.AddedById = request.DTO.Prop.UserEmployeeId;
+                entity.EmployeeId = employeeId;
+                entity.AddedById = validation.LoggedInEmployeeId;
                 entity.AddedDateTime = DateTime.UtcNow;
 
                 entity.IsActive = true;

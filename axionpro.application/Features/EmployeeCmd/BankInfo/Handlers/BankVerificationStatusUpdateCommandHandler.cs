@@ -1,4 +1,4 @@
-﻿// ================================================================
+// ================================================================
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
@@ -103,23 +103,15 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                         new List<string> { "Request DTO is required." }
                     );
 
-                if (request.DTO.Prop == null)
-                    request.DTO.Prop = new();
-
-                // Assign values
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-
                 // ===============================
                 // 3️⃣ DECODE EMPLOYEE ID (IMPORTANT)
                 // ===============================
-                request.DTO.Prop.EmployeeId =
-                    RequestCommonHelper.DecodeOnlyEmployeeId(
+                var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
                         request.DTO.EmployeeId,
                         validation.Claims.TenantEncriptionKey,
                         _idEncoderService);
 
-                if (request.DTO.Prop.EmployeeId <= 0)
+                if (employeeId <= 0)
                     throw new ValidationErrorException(
                         "Invalid Employee Id.",
                         new List<string> { "EmployeeId is invalid after decoding." }
@@ -142,15 +134,15 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 // 5️⃣ FETCH EMPLOYEE
                 // ===============================
                 var employee = await _unitOfWork.Employees.GetByIdAsync(
-                    request.DTO.Prop.EmployeeId,
-                    request.DTO.Prop.TenantId,
+                    employeeId,
+                    validation.TenantId,
                     true);
 
                 if (employee == null)
                 {
                     _logger.LogWarning(
                         "Employee not found. EmployeeId: {EmployeeId}",
-                        request.DTO.Prop.EmployeeId);
+                        employeeId);
 
                     throw new ApiException("Employee not found.", 404);
                 }
@@ -160,15 +152,15 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 // ===============================
                 bool updateResult = await _unitOfWork.EmployeeBankRepository
                     .UpdateVerificationStatus(
-                        request.DTO.Prop.EmployeeId,
-                        request.DTO.Prop.UserEmployeeId,
+                        employeeId,
+                        validation.LoggedInEmployeeId,
                         request.DTO.IsVerified);
 
                 if (!updateResult)
                 {
                     _logger.LogWarning(
                         "Failed to update verification status for EmployeeId: {EmployeeId}",
-                        request.DTO.Prop.EmployeeId);
+                        employeeId);
 
                     throw new ApiException("Unexpected error occurred.", 500);
                 }
@@ -178,7 +170,7 @@ namespace axionpro.application.Features.EmployeeCmd.BankInfo.Handlers
                 // ===============================
                 _logger.LogInformation(
                     "Verification status updated successfully for EmployeeId: {EmployeeId}",
-                    request.DTO.Prop.EmployeeId);
+                    employeeId);
 
                 return ApiResponse<bool>
                     .Success(true, "Verification update completed.");

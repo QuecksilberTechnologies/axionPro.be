@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Add Classification Command Handler requests.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.DTOS.TicketDTO.Classification;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -60,11 +67,6 @@ public class AddClassificationCommandHandler : IRequestHandler<AddClassification
                     "Invalid request.",
                     new List<string> { "DTO is required." });
 
-            // ===============================
-            // 3️⃣ SET COMMON PROPS
-            // ===============================
-            request.DTO.Prop.TenantId = validation.TenantId;
-            request.DTO.Prop.EmployeeId = validation.UserEmployeeId;
             //var hasPermission = await _permissionService.HasAccessAsync(
             //    validation.RoleId,
             //    "TicketClassification",   // ModuleName (DB match)
@@ -76,8 +78,13 @@ public class AddClassificationCommandHandler : IRequestHandler<AddClassification
             // ===============================
             // 4️⃣ REPOSITORY CALL
             // ===============================
-            var result = await _unitOfWork.TicketClassificationRepository
-                .AddAsync(request.DTO);
+            var entity = _mapper.Map<axionpro.domain.Entity.TicketClassification>(request.DTO);
+            entity.TenantId = validation.TenantId;
+            entity.AddedById = validation.LoggedInEmployeeId;
+            entity.AddedDateTime = DateTime.UtcNow;
+            entity.IsSoftDeleted = false;
+
+            var result = await _unitOfWork.TicketClassificationRepository.AddAsync(entity);
 
             if (result == null)
                 throw new ApiException("Failed to create classification.", 500);
@@ -89,8 +96,9 @@ public class AddClassificationCommandHandler : IRequestHandler<AddClassification
 
             _logger.LogInformation("✅ Classification created successfully | Id={Id}", result.Id);
 
+            var response = _mapper.Map<GetClassificationResponseDTO>(result);
             return ApiResponse<GetClassificationResponseDTO>
-                .Success(result, "Classification created successfully.");
+                .Success(response, "Classification created successfully.");
         }
         catch (Exception ex)
         {

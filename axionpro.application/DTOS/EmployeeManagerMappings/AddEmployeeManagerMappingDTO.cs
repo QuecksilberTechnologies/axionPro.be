@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the Add Employee Manager Mapping DTO data transfer model.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -21,6 +28,5 @@ namespace axionpro.application.DTOS.EmployeeManagerMappings
         public string? Description { get; set; }
         public string? Remark { get; set; }
 
-        public ExtraPropRequestDTO Prop { get; set; } = new();
     }
 }

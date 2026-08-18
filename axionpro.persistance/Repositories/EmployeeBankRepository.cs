@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Provides persistence operations for Employee Bank records.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Common.Helpers.PercentageHelper;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
@@ -296,7 +303,7 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<PagedResponseDTO<GetBankResponseDTO>> GetInfoAsync(GetBankReqestDTO dto)
+        public async Task<PagedResponseDTO<GetBankResponseDTO>> GetInfoAsync(long employeeId, GetBankReqestDTO dto)
         {
             try
             {
@@ -316,7 +323,7 @@ namespace axionpro.persistance.Repositories
                 IQueryable<EmployeeBankDetail> query = _context.EmployeeBankDetails
                     .AsNoTracking()
                     .Where(x =>
-                        x.EmployeeId == dto.Prop.EmployeeId &&
+                        x.EmployeeId == employeeId &&
                         (x.IsSoftDeleted == false || x.IsSoftDeleted == null)
                     );
 
@@ -462,7 +469,7 @@ namespace axionpro.persistance.Repositories
                 _logger.LogError(
                     ex,
                     "❌ Error fetching bank info for EmployeeId: {EmployeeId}",
-                    dto.Prop.EmployeeId
+                    employeeId
                 );
 
                 throw new Exception($"Failed to fetch bank information: {ex.Message}");
@@ -471,93 +478,10 @@ namespace axionpro.persistance.Repositories
 
 
 
-        public async Task<bool> UpdateAsync(UpdateBankReqestDTO dto)
+        public async Task<bool> UpdateAsync(EmployeeBankDetail entity)
         {
-            // -----------------------------
-            // 1️⃣ Basic validation
-            // -----------------------------
-            if (dto == null || dto.Id <= 0)
-                throw new ArgumentException("Invalid bank request.");
-
-            // -----------------------------
-            // 2️⃣ Fetch existing record
-            // -----------------------------
-            var existingBank = await _context.EmployeeBankDetails
-                .FirstOrDefaultAsync(x =>
-                    x.Id == dto.Id &&
-                    (x.IsSoftDeleted == null || x.IsSoftDeleted == false));
-
-            if (existingBank == null)
-                throw new InvalidOperationException("Employee bank record not found.");
-
-            // -----------------------------
-            // 3️⃣ Update ONLY provided fields
-            // -----------------------------
-            if (!string.IsNullOrWhiteSpace(dto.BankName))
-                existingBank.BankName = dto.BankName.Trim();
-
-            if (!string.IsNullOrWhiteSpace(dto.AccountNumber))
-                existingBank.AccountNumber = dto.AccountNumber.Trim();
-
-            if (!string.IsNullOrWhiteSpace(dto.IFSCCode))
-                existingBank.Ifsccode = dto.IFSCCode.Trim();
-
-            if (!string.IsNullOrWhiteSpace(dto.BranchName))
-                existingBank.BranchName = dto.BranchName.Trim();
-
-            if (!string.IsNullOrWhiteSpace(dto.AccountType))
-                existingBank.AccountType = dto.AccountType.Trim();
-
-            if (!string.IsNullOrWhiteSpace(dto.UPIId))
-                existingBank.Upiid = dto.UPIId.Trim();
-
-            if (!string.IsNullOrWhiteSpace(dto.FileName))
-                existingBank.FileName = dto.FileName.Trim();
-
-            if (!string.IsNullOrWhiteSpace(dto.FilePath))
-            {
-                existingBank.FilePath = dto.FilePath.Trim();
-                existingBank.HasChequeDocUploaded = true;
-                existingBank.FileType = 1;
-            }
-                        // ----------------------------
-            // 4️⃣ Primary & Cheque flags
-            // -----------------------------
-            if (dto.IsPrimaryAccount)
-            {
-                // 🔹 Step 1: Reset all existing primary accounts of this employee
-                var existingPrimaries = await _context.EmployeeBankDetails
-                    .Where(x =>
-                        x.EmployeeId == dto.Prop.EmployeeId &&
-                        (x.IsSoftDeleted  !=true) &&
-                        x.IsPrimaryAccount == true)
-                    .ToListAsync();
-
-                foreach (var item in existingPrimaries)
-                {
-                    item.IsPrimaryAccount = false;
-                }
-
-                // 🔹 Step 2: Mark current record as primary
-                existingBank.IsPrimaryAccount = true;
-            }
-            else
-                existingBank.IsPrimaryAccount = dto.IsPrimaryAccount;
-
-
-            // CancelledChequeFile aaya hai matlab document uploaded
-            if (dto.CancelledChequeFile != null && dto.CancelledChequeFile.Length > 0)
-                existingBank.HasChequeDocUploaded = true;
-
-            // -----------------------------
-            // 5️⃣ Audit fields
-            // -----------------------------
-            existingBank.UpdatedById = dto.Prop.UserEmployeeId;
-            existingBank.UpdatedDateTime = DateTime.UtcNow;
-
-            // -----------------------------
-            // 6️⃣ Save
-            // -----------------------------
+            ArgumentNullException.ThrowIfNull(entity);
+            _context.EmployeeBankDetails.Update(entity);
             await _context.SaveChangesAsync();
             return true;
         }

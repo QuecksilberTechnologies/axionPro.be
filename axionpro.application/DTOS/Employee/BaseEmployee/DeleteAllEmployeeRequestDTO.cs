@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for deleting All Employee.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +19,6 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
       
         
         public required string EmployeeId { get; set; } = string.Empty;
-        public ExtraPropRequestDTO Prop { get; set; } = new ExtraPropRequestDTO();
 
 
     }

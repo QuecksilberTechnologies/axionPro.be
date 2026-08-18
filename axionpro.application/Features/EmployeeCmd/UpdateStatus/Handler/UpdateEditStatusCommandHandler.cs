@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Update Edit Status Command Handler requests.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Common.Enums;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Common;
@@ -88,18 +95,12 @@ namespace axionpro.application.Features.EmployeeCmd.UpdateStatus.Handler
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request.");
 
-                request.DTO.Prop ??= new();
+                var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
+                    request.DTO.EmployeeId,
+                    validation.Claims.TenantEncriptionKey,
+                    _idEncoderService);
 
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-
-                request.DTO.Prop.EmployeeId =
-                    RequestCommonHelper.DecodeOnlyEmployeeId(
-                        request.DTO.EmployeeId,
-                        validation.Claims.TenantEncriptionKey,
-                        _idEncoderService);
-
-                if (request.DTO.Prop.EmployeeId <= 0)
+                if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid employee.");
 
                 // ===============================
@@ -124,8 +125,8 @@ namespace axionpro.application.Features.EmployeeCmd.UpdateStatus.Handler
                 // ===============================
                 var employee =
                     await _unitOfWork.Employees.GetByIdAsync(
-                        request.DTO.Prop.EmployeeId,
-                        request.DTO.Prop.TenantId,
+                        employeeId,
+                        validation.TenantId,
                         true);
 
                 if (employee == null)
@@ -138,8 +139,8 @@ namespace axionpro.application.Features.EmployeeCmd.UpdateStatus.Handler
                     await _unitOfWork.Employees
                         .UpdateEditableStatusByEntityAsync(
                             request.DTO.TabInfoType,
-                            request.DTO.Prop.EmployeeId,
-                            validation.UserEmployeeId,
+                            employeeId,
+                            validation.LoggedInEmployeeId,
                             request.DTO.IsEditable,
                             ct);
 
@@ -147,7 +148,7 @@ namespace axionpro.application.Features.EmployeeCmd.UpdateStatus.Handler
                 {
                     _logger.LogWarning(
                         "Editable update failed | EmpId={EmpId} | Tab={Tab}",
-                        request.DTO.Prop.EmployeeId,
+                        employeeId,
                         request.DTO.TabInfoType);
 
                     throw new ApiException("Editable update failed.", 500);

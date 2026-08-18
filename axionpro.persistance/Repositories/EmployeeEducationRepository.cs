@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Provides persistence operations for Employee Education records.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Common.Helpers.PercentageHelper;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.DTOS.Employee.Dependent;
@@ -86,7 +93,7 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<PagedResponseDTO<GetEducationResponseDTO>> GetInfo(GetEducationRequestDTO dto)
+        public async Task<PagedResponseDTO<GetEducationResponseDTO>> GetInfo(long employeeId, GetEducationRequestDTO dto)
         {
             double averagePercentage = 0;
             bool hasUploadedAll = false;
@@ -108,7 +115,7 @@ namespace axionpro.persistance.Repositories
                 var baseQuery = _context.EmployeeEducations
                     .AsNoTracking()
                     .Where(edu =>
-                        edu.EmployeeId == dto.Prop.EmployeeId &&
+                        edu.EmployeeId == employeeId &&
                         (dto.IsActive == null || edu.IsActive == dto.IsActive) &&
                         (edu.IsSoftDeleted != true)
                     );
@@ -116,9 +123,6 @@ namespace axionpro.persistance.Repositories
                 // -----------------
                 // Filters
                 // -----------------
-
-                //if (dto.Prop.RowId > 0)
-                //    baseQuery = baseQuery.Where(x => x.Id == dto.Prop.RowId);
 
                 if (!string.IsNullOrEmpty(dto.InstituteName))
                     baseQuery = baseQuery.Where(x => x.InstituteName.Contains(dto.InstituteName));
@@ -231,7 +235,7 @@ namespace axionpro.persistance.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching education info for EmployeeId: {EmployeeId}", dto.Prop.EmployeeId);
+                _logger.LogError(ex, "Error fetching education info for EmployeeId: {EmployeeId}", employeeId);
                 throw new Exception($"Failed: {ex.Message}");
             }
         }

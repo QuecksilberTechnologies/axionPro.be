@@ -1,4 +1,4 @@
-﻿// ================================================================
+// ================================================================
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
@@ -95,19 +95,12 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // ===============================
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request.");
-
-                request.DTO.Prop ??= new();
-
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-
-                request.DTO.Prop.EmployeeId =
-                    RequestCommonHelper.DecodeOnlyEmployeeId(
+                var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
                         request.DTO.EmployeeId,
                         validation.Claims.TenantEncriptionKey,
                         _idEncoderService);
 
-                if (request.DTO.Prop.EmployeeId <= 0)
+                if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
 
                 // ===============================
@@ -125,7 +118,10 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 // 4️⃣ FETCH DATA
                 // ===============================
                 var responseDTO =
-                    await _unitOfWork.Employees.GetInfo(request.DTO);
+                    await _unitOfWork.Employees.GetInfo(
+                        validation.TenantId,
+                        employeeId,
+                        request.DTO);
 
                 // ===============================
                 // 5️⃣ OPTIMIZED EMPTY HANDLING
@@ -171,7 +167,7 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
                 _logger.LogError(
                     ex,
                     "Error fetching employee info | EmployeeId: {EmployeeId}",
-                    request.DTO?.UserEmployeeId);
+                    request.DTO?.EmployeeId);
 
                 throw; // 🚨 MUST
             }

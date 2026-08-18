@@ -1,4 +1,11 @@
-﻿using axionpro.application.Common.Helpers.axionpro.application.Configuration;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Get Employee Profile Status Query Handler requests.
+// ================================================================
+
+using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.Exceptions;

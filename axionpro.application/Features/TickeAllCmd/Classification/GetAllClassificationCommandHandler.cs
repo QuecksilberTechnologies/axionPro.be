@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Get All Classification Command Handler requests.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.DTOS.TicketDTO.Classification;
 using axionpro.application.Exceptions;
@@ -70,9 +77,6 @@ namespace axionpro.application.Features.TickeAllCmd.Classification
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request.");
 
-                request.DTO.Prop ??= new ExtraPropRequestDTO();
-                request.DTO.Prop.TenantId = validation.TenantId;
-
                 // ===============================
                 // 3️⃣ RBAC (OPTIONAL)
                 // ===============================
@@ -84,7 +88,7 @@ namespace axionpro.application.Features.TickeAllCmd.Classification
                 // 4️⃣ REPOSITORY CALL
                 // ===============================
                 var result = await _unitOfWork.TicketClassificationRepository
-                    .GetAllAsync(request.DTO);
+                    .GetAllAsync(validation.TenantId, request.DTO);
 
                 if (result == null)
                     throw new ApiException("Failed to fetch classifications.", 500);
@@ -108,10 +112,7 @@ namespace axionpro.application.Features.TickeAllCmd.Classification
             }
             catch (Exception ex)
             {
-                _logger.LogError(
-                    ex,
-                    "Error fetching classifications | UserId: {UserId}",
-                    request.DTO?.Prop?.UserEmployeeId);
+                _logger.LogError(ex, "Error fetching classifications.");
 
                 throw;
             }

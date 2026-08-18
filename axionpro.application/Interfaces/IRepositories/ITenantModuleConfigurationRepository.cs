@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOs.Module;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the repository contract for  Tenant Module Configuration Repository.
+// ================================================================
+
+using axionpro.application.DTOs.Module;
 using axionpro.application.DTOs.Tenant;
 using axionpro.application.Wrappers;
 
@@ -18,6 +25,7 @@ namespace axionpro.application.Interfaces.IRepositories
 
         //Task<List<TenantEnabledModule>> GetAllEnabledTrueModulesWithOperationsByTenantIdAsync(long? TenantId);
         Task <GetModuleHierarchyResponseDTO> GetAllTenantEnabledModulesAsync(TenantEnabledModuleRequestDTO dto);
+        Task<GetModuleHierarchyResponseDTO> GetAllTenantEnabledModulesAsync(TenantEnabledOperation dto);
          
        
 

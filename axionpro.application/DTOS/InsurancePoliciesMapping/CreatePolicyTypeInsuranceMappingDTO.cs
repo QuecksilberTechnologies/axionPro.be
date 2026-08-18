@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the Create Policy Type Insurance Mapping DTO data transfer model.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +22,6 @@ namespace axionpro.application.DTOS.InsurancePoliciesMapping
 
         public int PolicyTypeId { get; set; }  
         
-        public ExtraPropRequestDTO? Props { get; set; } = new ExtraPropRequestDTO();
 
 
     }

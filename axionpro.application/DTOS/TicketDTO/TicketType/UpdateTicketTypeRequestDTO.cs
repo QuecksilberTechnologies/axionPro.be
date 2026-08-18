@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request model for updating Ticket Type.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using axionpro.domain.Entity; 
 using MediatR;
 using System;
@@ -35,7 +42,6 @@ namespace axionpro.application.DTOS.TicketDTO.TicketType
         public bool IsActiveForAllUsers { get; set; } = true;
 
         // 🔹 Common Request (Tumhare pattern ke hisaab se)
-        public ExtraPropRequestDTO? Prop { get; set; } = new ExtraPropRequestDTO();
 
     }
 

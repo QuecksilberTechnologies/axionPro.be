@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Provides persistence operations for Employee Dependent records.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Common.Enums;
 using axionpro.application.Common.Helpers.PercentageHelper;
 using axionpro.application.DTOS.Employee.Bank;
@@ -160,7 +167,7 @@ namespace axionpro.persistance.Repositories
                 throw;
             }
         }
-        public async Task<GetDependentsDetailResponseDTO> GetDetailInfo(GetDependentRequestDTO dto)
+        public async Task<GetDependentsDetailResponseDTO> GetDetailInfo(long employeeId, GetDependentRequestDTO dto)
         {
             try
             {
@@ -170,7 +177,7 @@ namespace axionpro.persistance.Repositories
                 var records = await _context.EmployeeDependents
                     .AsNoTracking()
                     .Where(x =>
-                        x.EmployeeId == dto.Prop.EmployeeId &&
+                        x.EmployeeId == employeeId &&
                         x.IsSoftDeleted != true &&
                         x.IsActive == true)
                     .OrderByDescending(x => x.Id)
@@ -286,7 +293,8 @@ namespace axionpro.persistance.Repositories
         }
 
         public async Task<PagedResponseDTO<GetDependentResponseDTO>> GetInfo(
-       GetDependentRequestDTO dto)
+            long employeeId,
+            GetDependentRequestDTO dto)
         {
             try
             {
@@ -295,7 +303,7 @@ namespace axionpro.persistance.Repositories
                 var records = await _context.EmployeeDependents
                     .AsNoTracking()
                     .Where(x =>
-                        x.EmployeeId == dto.Prop.EmployeeId &&
+                        x.EmployeeId == employeeId &&
                         x.IsSoftDeleted != true &&
                         x.IsActive == true)
                     .OrderByDescending(x => x.Id)   // ✅ Latest first
@@ -331,7 +339,7 @@ namespace axionpro.persistance.Repositories
             {
                 _logger.LogError(ex,
                     "❌ Error fetching dependents for EmployeeId: {EmployeeId}",
-                    dto.Prop.EmployeeId);
+                    employeeId);
 
                 return new PagedResponseDTO<GetDependentResponseDTO>
                 {

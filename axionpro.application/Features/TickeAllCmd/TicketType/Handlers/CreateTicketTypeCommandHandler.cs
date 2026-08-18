@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Create Ticket Type Command Handler requests.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.DTOs.OrganizationHolidayCalendar;
 using axionpro.application.DTOS.Role;
 using axionpro.application.DTOS.TicketDTO.TicketType;
@@ -72,11 +79,6 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
                 //if (request?.DTO == null)
                 //    throw new ValidationErrorException("Invalid request data.");
 
-              //   request.DTO.Prop ??= new BaseRequestDTO();
-
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-
                 var dto = request.DTO;
 
                 // ===============================
@@ -129,7 +131,7 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
                 // 7️⃣ SYSTEM FIELDS
                 // ===============================
                 entity.TenantId = validation.TenantId;
-                entity.AddedById = validation.UserEmployeeId;
+                entity.AddedById = validation.LoggedInEmployeeId;
                 entity.AddedDateTime = DateTime.UtcNow;
 
                 entity.IsActive = true;
@@ -157,8 +159,9 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
                 // ===============================
                 await _unitOfWork.CommitTransactionAsync();
 
+                var response = _mapper.Map<GetTicketTypeResponseDTO>(inserted);
                 return ApiResponse<GetTicketTypeResponseDTO>
-                    .Success(inserted, "TicketType created successfully.");
+                    .Success(response, "TicketType created successfully.");
             }
             catch (Exception ex)
             {

@@ -548,7 +548,10 @@ public class RoleRepository : IRoleRepository
         }
     }
 
-    public async Task<PagedResponseDTO<GetRoleResponseDTO>> GetAsync(GetRoleRequestDTO dto)
+    /// <summary>
+    /// Projects paged roles for the supplied trusted tenant identifier.
+    /// </summary>
+    public async Task<PagedResponseDTO<GetRoleResponseDTO>> GetAsync(long tenantId, GetRoleRequestDTO dto)
     {
         var response = new PagedResponseDTO<GetRoleResponseDTO>();
 
@@ -564,7 +567,7 @@ public class RoleRepository : IRoleRepository
             int roleType = dto.RoleType;
 
             var query = _context.Roles
-                .Where(r => r.TenantId == dto.Prop.TenantId && (r.IsSoftDeleted != true))
+                .Where(r => r.TenantId == tenantId && (r.IsSoftDeleted != true))
                 .AsQueryable();
 
             // ✅ Optional Filters
@@ -612,11 +615,11 @@ public class RoleRepository : IRoleRepository
             response.PageSize = dto.PageSize;
             response.TotalPages = (int)Math.Ceiling((double)totalRecords / dto.PageSize);
 
-            _logger.LogInformation("✅ Retrieved {Count} roles for TenantId: {TenantId}", mappedList.Count, dto.Prop.TenantId);
+            _logger.LogInformation("Retrieved {Count} roles for TenantId: {TenantId}", mappedList.Count, tenantId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Error fetching roles for TenantId: {TenantId}", dto.Prop.TenantId);
+            _logger.LogError(ex, "Error fetching roles for TenantId: {TenantId}", tenantId);
             new List<GetRoleResponseDTO>();
         }
 
@@ -627,22 +630,20 @@ public class RoleRepository : IRoleRepository
     /// <summary>
     /// Projects role options for the trusted tenant without constructing an API response.
     /// </summary>
-    /// <param name="dto">The role option query criteria.</param>
+    /// <param name="tenantId">The authenticated tenant identifier.</param>
+    /// <param name="dto">The client-editable role option query criteria.</param>
     /// <returns>The matching role option projections.</returns>
-    public async Task<List<GetRoleOptionResponseDTO>> GetOptionAsync(GetRoleOptionRequestDTO dto)
+    public async Task<List<GetRoleOptionResponseDTO>> GetOptionAsync(long tenantId, GetRoleOptionRequestDTO dto)
     {
         try
         {   
              
-            // ✅ Base Query
             var query = _context.Roles
-                .Where(x => x.TenantId == dto.Prop.TenantId && x.IsSoftDeleted != true && x.IsActive);        
+                .Where(x => x.TenantId == tenantId && x.IsSoftDeleted != true && x.IsActive);
 
-            // ✅ Conditional filter (apply only if roleType > 0)
             if (dto.RoleType > 0)
                 query = query.Where(x => x.RoleType == dto.RoleType);
 
-            // ✅ Projection
             return await query
                 .OrderBy(x => x.RoleName)
                 .Select(r => new GetRoleOptionResponseDTO
@@ -659,7 +660,7 @@ public class RoleRepository : IRoleRepository
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error fetching role options for tenant {TenantId}.", dto.Prop.TenantId);
+            _logger.LogError(ex, "Error fetching role options for tenant {TenantId}.", tenantId);
             throw;
         }
     }

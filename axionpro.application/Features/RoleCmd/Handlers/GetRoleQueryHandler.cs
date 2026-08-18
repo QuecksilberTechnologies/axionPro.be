@@ -5,146 +5,106 @@
 // Purpose : Handles GetRoleQueryHandler requests using authenticated tenant context.
 // ================================================================
 
-using AutoMapper;
+using axionpro.application.Constants;
 using axionpro.application.DTOs.Role;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IEncryptionService;
-using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using MediatR;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.RoleCmd.Handlers
 {
+    #region Query
+
+    /// <summary>
+    /// Represents a request to retrieve paged roles for the authenticated tenant.
+    /// </summary>
     public class GetRoleQuery : IRequest<ApiResponse<List<GetRoleResponseDTO>>>
     {
-        public GetRoleRequestDTO DTO { get; set; }
+        public GetRoleRequestDTO DTO { get; set; } = default!;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetRoleQuery"/> class.
+        /// </summary>
         public GetRoleQuery(GetRoleRequestDTO dto)
         {
             DTO = dto;
         }
     }
 
+    #endregion
+
+    #region Handler
+
     /// <summary>
-    /// Handles authenticated tenant requests for this feature.
+    /// Handles paged role queries using the authenticated tenant context.
     /// </summary>
     public class GetRoleQueryHandler : IRequestHandler<GetRoleQuery, ApiResponse<List<GetRoleResponseDTO>>>
     {
+        #region Fields
+
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<GetRoleQueryHandler> _logger;
-        private readonly ITokenService _tokenService;
-        private readonly IConfiguration _config;
-        private readonly IEncryptionService _encryptionService;
-        private readonly IPermissionService _permissionService;
-        private readonly IIdEncoderService _idEncoderService;
         private readonly ICommonRequestService _commonRequestService;
-       
 
+        #endregion
 
+        #region Constructor
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetRoleQueryHandler"/> class.
+        /// </summary>
         public GetRoleQueryHandler(
             IUnitOfWork unitOfWork,
-            IMapper mapper,
-            IHttpContextAccessor httpContextAccessor,
             ILogger<GetRoleQueryHandler> logger,
-            ITokenService tokenService,
-            IConfiguration config,
-            IEncryptionService encryptionService,
-            IPermissionService permissionService,
-            IIdEncoderService idEncoderService,
             ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
-            _httpContextAccessor = httpContextAccessor;
             _logger = logger;
-            _tokenService = tokenService;
-            _config = config;
-            _encryptionService = encryptionService;
-            _permissionService = permissionService;
-            _idEncoderService = idEncoderService;
             _commonRequestService = commonRequestService;
         }
 
+        #endregion
+
+        #region Handle
+
+        /// <summary>
+        /// Retrieves roles for the trusted tenant and builds the paged application response.
+        /// </summary>
         public async Task<ApiResponse<List<GetRoleResponseDTO>>> Handle(GetRoleQuery request, CancellationToken cancellationToken)
         {
-            try
+            var validation = await _commonRequestService.ValidateRequestAsync();
+            if (!validation.Success)
             {
-                //  COMMON VALIDATION (Mandatory)
-                #region Tenant Request Validation
-                var validation = await _commonRequestService.ValidateRequestAsync();
-                #endregion
-
-                if (!validation.Success)
-                    throw new UnauthorizedAccessException(validation.ErrorMessage);
-
-                // Assign decoded values coming from CommonRequestService
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-
-
-                // ✅ Create  using repository
-                // ===============================
-                // 2️⃣ PERMISSION CHECK (RBAC)
-                // ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.Role,
-                //    Operations.Delete);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("Access denied.");
-
-
-
-                var responseDTO = await _unitOfWork.RoleRepository.GetAsync(request.DTO);
-
-                if (responseDTO.Data == null || !responseDTO.Data.Any())
-                {
-                    _logger.LogInformation("⚠️ No roles found for TenantId: {TenantId}", request.DTO.Prop.TenantId);
-                    return new ApiResponse<List<GetRoleResponseDTO>>
-                    {
-                        IsSucceeded = true,
-                        Message = "No roles found.",
-                        Data = new List<GetRoleResponseDTO>(),
-                        PageNumber = request.DTO.PageNumber,
-                        PageSize = request.DTO.PageSize,
-                        TotalRecords = 0,
-                        TotalPages = 0
-                    };
-                }
-
-                //  var encryptedList = ProjectionHelper.ToGetRoleResponseDTOs(responseDTO.Items, _encryptionService, tenantKey);
-
-
-                // 🧩 STEP 7: Success response
-                _logger.LogInformation("✅ {Count} roles retrieved successfully for TenantId: {TenantId}",
-                    responseDTO.TotalCount, request.DTO.Prop.TenantId);
-
-                return new ApiResponse<List<GetRoleResponseDTO>>
-                {
-                    IsSucceeded = true,
-                    Message = "Roles retrieved successfully.",
-                    Data = responseDTO.Data,
-                    PageNumber = responseDTO.PageNumber,
-                    PageSize = responseDTO.PageSize,
-                    TotalRecords = responseDTO.TotalCount,
-                    TotalPages = responseDTO.TotalPages
-                };
+                throw new UnauthorizedAccessException(validation.ErrorMessage);
             }
-            catch (Exception ex)
+
+            if (request?.DTO == null)
             {
-                // 🧩 STEP 8: Error Handling
-                _logger.LogError(ex, "❌ Error occurred while retrieving roles.");
-                throw;
+                throw new ArgumentNullException(nameof(request.DTO));
             }
+
+            var roles = await _unitOfWork.RoleRepository.GetAsync(
+                validation.TenantId,
+                request.DTO);
+
+            _logger.LogInformation(
+                "Retrieved {Count} roles for tenant {TenantId}.",
+                roles.TotalCount,
+                validation.TenantId);
+
+            return ApiResponse<List<GetRoleResponseDTO>>.SuccessPaginated(
+                roles.Data ?? new List<GetRoleResponseDTO>(),
+                roles.PageNumber,
+                roles.PageSize,
+                roles.TotalCount,
+                roles.TotalPages,
+                AppConstants.SuccessMessages.RolesRetrieved);
         }
 
+        #endregion
     }
+
+    #endregion
 }

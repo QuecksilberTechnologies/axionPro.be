@@ -1,4 +1,11 @@
-﻿using axionpro.application.Common.Helpers.PercentageHelper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Create Experience Info Command Handler requests.
+// ================================================================
+
+using axionpro.application.Common.Helpers.PercentageHelper;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.Employee.Experience;
@@ -68,15 +75,15 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request");
 
-                request.DTO.Prop.EmployeeId =
-                  RequestCommonHelper.DecodeOnlyEmployeeId(request.DTO.EmployeeId, validation.Claims.TenantEncriptionKey, _idEncoderService);
+                var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
+                    request.DTO.EmployeeId,
+                    validation.Claims.TenantEncriptionKey,
+                    _idEncoderService);
 
-                if (request.DTO.Prop.EmployeeId <= 0)
+                if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
 
-                request.DTO.Prop.UserEmployeeId = validation.UserEmployeeId;
-                request.DTO.Prop.TenantId = validation.TenantId;
-                if (request.DTO.Prop.TenantId <= 0)
+                if (validation.TenantId <= 0)
                     throw new ValidationErrorException("Invalid TenantId.");
                 // ===============================
                 // 2️⃣ TRANSACTION START
@@ -92,7 +99,7 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                 // ===============================
                 var exp = new EmployeeExperience
                 {
-                    EmployeeId = request.DTO.Prop.EmployeeId,
+                    EmployeeId = employeeId,
                     CompanyName = request.DTO.CompanyName,
                     Designation = request.DTO.Designation,
                     EmployeeIdOfCompany = request.DTO.EmployeeIdOfCompany,
@@ -162,12 +169,12 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                                 memoryStream.Position = 0;
 
                                 // ✅ STEP 2: Generate unique filename
-                                var fileName = $"experience-{request.DTO.Prop.EmployeeId}-{Guid.NewGuid()}";
+                                var fileName = $"experience-{employeeId}-{Guid.NewGuid()}";
 
                                 // ✅ STEP 3: Folder path
                                 string folderPath =
-                                    $"{ConstantValues.TenantFolder}-{request.DTO.Prop.TenantId}/" +
-                                    $"{ConstantValues.EmployeeFolder}/{request.DTO.Prop.EmployeeId}/" +
+                                    $"{ConstantValues.TenantFolder}-{validation.TenantId}/" +
+                                    $"{ConstantValues.EmployeeFolder}/{employeeId}/" +
                                     $"{ConstantValues.ExperienceFolder}";
 
                                 // ✅ STEP 4: File extension

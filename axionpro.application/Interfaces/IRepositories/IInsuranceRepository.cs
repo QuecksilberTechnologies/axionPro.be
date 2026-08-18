@@ -30,7 +30,7 @@ namespace axionpro.application.Interfaces.IRepositories
         /// <summary>
         /// Gets a paged insurance policy projection result.
         /// </summary>
-        Task<PagedResponseDTO<GetInsurancePolicyResponseDTO>> GetListAsync(GetInsurancePolicyRequestDTO request);
+        Task<PagedResponseDTO<GetInsurancePolicyResponseDTO>> GetListAsync(long tenantId, GetInsurancePolicyRequestDTO request);
 
         /// <summary>
         /// Gets available insurance-policy option projections.
