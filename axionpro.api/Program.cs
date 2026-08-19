@@ -207,6 +207,24 @@ try
     app.MapControllers();
     app.MapAxionProSignalR();
 
+    #region Application Started Logging
+
+    app.Lifetime.ApplicationStarted.Register(() =>
+    {
+        app.Logger.LogInformation(
+            """
+            ========================================
+            AXIONPRO APPLICATION STARTED SUCCESSFULLY
+            Environment : {EnvironmentName}
+            SignalR Hub : {SignalRHubPath}
+            ========================================
+            """,
+            app.Environment.EnvironmentName,
+            SignalRRouteConstants.NotificationHub);
+    });
+
+    #endregion
+
     await app.RunAsync();
 }
 catch (Exception ex)
