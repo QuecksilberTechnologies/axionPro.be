@@ -1,4 +1,5 @@
 ﻿using axionpro.api.Middlewares;
+using axionpro.api.Realtime;
 using axionpro.application;
 using axionpro.infrastructure;
 using axionpro.persistance;
@@ -59,6 +60,23 @@ try
     {
         options.RequireHttpsMetadata = !isLocal;
         options.SaveToken = true;
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"].FirstOrDefault();
+                var isNotificationHubRequest = string.Equals(
+                    context.HttpContext.Request.Path.Value,
+                    SignalRRouteConstants.NotificationHub,
+                    StringComparison.OrdinalIgnoreCase);
+
+                // Security: query-string tokens are accepted only by the authenticated SignalR hub.
+                if (isNotificationHubRequest && !string.IsNullOrWhiteSpace(accessToken))
+                    context.Token = accessToken;
+
+                return Task.CompletedTask;
+            }
+        };
 
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -82,6 +100,7 @@ try
     builder.Services.AddInfrastructure(builder.Configuration);
     builder.Services.AddPersistence(builder.Configuration);
     builder.Services.AddHttpContextAccessor();
+    builder.Services.AddAxionProSignalR();
 
     builder.Services.AddControllers();
 
@@ -99,7 +118,9 @@ try
                 "https://axionpro-app.vercel.app"
             )
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            // Browser SignalR transports require credentialed CORS; the existing explicit origins remain unchanged.
+            .AllowCredentials();
         });
     });
 
@@ -184,6 +205,7 @@ try
     app.UseAuthorization();
 
     app.MapControllers();
+    app.MapAxionProSignalR();
 
     await app.RunAsync();
 }

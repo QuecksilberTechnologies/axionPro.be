@@ -1,10 +1,12 @@
 ﻿using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IContext;
+using axionpro.application.Interfaces.IRealTimeNotification;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces.ITokenService;
 
 using axionpro.persistance.Data.Context;
 using axionpro.persistance.Repositories;
+using axionpro.persistance.Realtime;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,8 +14,16 @@ using Microsoft.Extensions.Logging;
 
 namespace axionpro.persistance
 {
+    /// <summary>
+    /// Registers persistence-layer database services and repositories.
+    /// </summary>
     public static class ServiceExtentions
     {
+        /// <summary>
+        /// Adds persistence services, including the read-only real-time connection membership resolver.
+        /// </summary>
+        /// <param name="services">The service collection.</param>
+        /// <param name="configuration">The application configuration.</param>
         public static void AddPersistence(this IServiceCollection services, IConfiguration configuration)
         {
             var connectionString = configuration.GetConnectionString("DefaultConnection");
@@ -67,6 +77,12 @@ namespace axionpro.persistance
             // which can cause "Cannot resolve scoped service ... from root provider" errors when a singleton
             // tries to capture the interface during startup.
             services.AddScoped<IWorkforcedbContext, WorkforceDbContext>();
+
+            #region Real-time connection membership
+
+            services.AddScoped<IRealTimeConnectionMembershipResolver, RealTimeConnectionMembershipResolver>();
+
+            #endregion
 
             // ✅ Unit of Work
             services.AddScoped<IUnitOfWork, UnitOfWork>();
