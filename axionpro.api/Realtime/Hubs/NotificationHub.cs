@@ -1,7 +1,7 @@
 // ============================================================================
 // Author      : Deepesh Gupta
 // Company     : Quecksilber Technologies
-// Role        : CEO
+// Role        : Sr. Software Engineer
 // Purpose     : Hosts authenticated, server-assigned SignalR notification
 //               connections for tenant employees and Host users.
 // ============================================================================
