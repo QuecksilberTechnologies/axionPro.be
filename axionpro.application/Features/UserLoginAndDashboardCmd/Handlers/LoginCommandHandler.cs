@@ -290,8 +290,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
 
               //  employeeInfo.EmployeeTypeId = empInfo.EmployeeTypeId;
 
-
-                // Getting Tenant Enabled module list
+ 
 
 
                 //  Step 9: Load Common Itaxionpro
