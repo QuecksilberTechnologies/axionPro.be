@@ -6,6 +6,7 @@
 // ================================================================
 
 using AutoMapper;
+using axionpro.application.Constants;
 using axionpro.application.DTOs.Operation;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -112,6 +113,12 @@ public class UpdateOperationCommandHandler
         var operation = await _unitOfWork.OperationRepository
             .GetOperationByIdAsync(dto.Id)
             ?? throw new ApiException("Operation not found.", 404);
+
+        if (dto.IsActive == false && await _unitOfWork.ModuleRepository
+                .IsOperationLinkedToAnyModuleAsync(operation.Id, cancellationToken))
+        {
+            throw new ConflictException(AppConstants.ErrorMessages.OperationLinkedToModule);
+        }
 
         if (!string.IsNullOrWhiteSpace(dto.OperationName))
         {

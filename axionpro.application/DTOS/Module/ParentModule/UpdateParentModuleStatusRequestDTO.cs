@@ -1,14 +1,14 @@
-// ============================================================================
-// Author      : Deepesh Gupta
-// Company     : Quecksilber Technologies
-// Role        : CEO
-// Purpose     : Defines the active-state change requested for a Parent/Header Module.
-// ============================================================================
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the active-state change requested for a Parent Module status cascade.
+// ================================================================
 
 namespace axionpro.application.DTOS.Module.ParentModule
 {
     /// <summary>
-    /// Captures the supported non-destructive status change for a Parent/Header Module.
+    /// Captures the requested active state for a Parent Module and its status cascade.
     /// </summary>
     public class UpdateParentModuleStatusRequestDTO
     {

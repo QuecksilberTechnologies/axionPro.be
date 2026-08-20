@@ -1,29 +1,59 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines editable fields for a partial Operation update request.
+// ================================================================
 
-namespace axionpro.application.DTOs.Operation
+namespace axionpro.application.DTOs.Operation;
+
+/// <summary>
+/// Represents the request to update an existing operation.
+/// </summary>
+public class UpdateOperationRequestDTO
 {
+    #region Update Properties
+
     /// <summary>
-    /// post-request to update operation
+    /// Gets or sets the product-owner identifier retained by the existing audit workflow.
     /// </summary>
-    public class UpdateOperationRequestDTO
-    {
-        /// <summary> Product Id Required</summary>
+    public required int ProductOwnerId { get; set; }
 
-        public required int ProductOwnerId { get; set; }
-        /// <summary> Product Owner Role Id Id Required</summary>
+    /// <summary>
+    /// Gets or sets the product-owner role identifier retained by the existing request contract.
+    /// </summary>
+    public required int ProductOwnerRoleId { get; set; }
 
-        public required int ProductOwnerRoleId { get; set; }
-        public required int Id { get; set; } // Nullable
-        public  int?  OperationType { get; set; } // Nullable
-        public  string? OperationName { get; set; }  // Default value
-        public string? Remark { get; set; } // Nullable
-        public string? IconImage { get; set; } // Nullable
-        public bool? IsActive { get; set; } = false; // Default false
-     
+    /// <summary>
+    /// Gets or sets the operation identifier to update.
+    /// </summary>
+    public required int Id { get; set; }
 
-    }
+    /// <summary>
+    /// Gets or sets the optional operation type.
+    /// </summary>
+    public int? OperationType { get; set; }
+
+    /// <summary>
+    /// Gets or sets the optional operation name.
+    /// </summary>
+    public string? OperationName { get; set; }
+
+    /// <summary>
+    /// Gets or sets the optional operation remark.
+    /// </summary>
+    public string? Remark { get; set; }
+
+    /// <summary>
+    /// Gets or sets the optional operation icon image reference.
+    /// </summary>
+    public string? IconImage { get; set; }
+
+    /// <summary>
+    /// Gets or sets the requested active state.
+    /// A <see langword="null"/> value preserves the current state during a partial update.
+    /// </summary>
+    public bool? IsActive { get; set; }
+
+    #endregion
 }

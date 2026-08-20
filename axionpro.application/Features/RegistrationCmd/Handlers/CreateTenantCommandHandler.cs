@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Creates tenant registrations and validates their selected subscription plans.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.Common.SeedData;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.Registration;
@@ -21,6 +28,9 @@ using System.Text.RegularExpressions;
 
 namespace axionpro.application.Features.RegistrationCmd.Handlers
 {
+    /// <summary>
+    /// Represents a request to create a tenant and its initial subscription.
+    /// </summary>
     public class CreateTenantCommand : IRequest<ApiResponse<TenantCreateResponseDTO>>
     {
         public TenantCreateRequestDTO TenantCreateRequestDTO { get; set; }
@@ -31,6 +41,9 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
         }
     }
 
+    /// <summary>
+    /// Creates a tenant registration after validating its selected subscription plan.
+    /// </summary>
     public class CreateTenantCommandHandler : IRequestHandler<CreateTenantCommand, ApiResponse<TenantCreateResponseDTO>>
     {
         private readonly IEmailService _emailService;
@@ -126,6 +139,17 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
 
                 if (existingUser != null)
                     return Fail("Tenant with this email already exists as an employee.");
+
+                #region Subscription Plan Validation
+
+                // Prevent a new tenant from being assigned to a soft-deleted subscription plan.
+                var subscriptionPlan = await _unitOfWork.SubscriptionRepository
+                    .GetNonDeletedSubscriptionPlanByIdAsync(dto.SubscriptionPlanId, cancellationToken);
+
+                if (subscriptionPlan is null)
+                    return Fail(AppConstants.ErrorMessages.SubscriptionPlanNotFound);
+
+                #endregion
 
                 // =====================================================
                 // STEP 3 : Prepare root entity

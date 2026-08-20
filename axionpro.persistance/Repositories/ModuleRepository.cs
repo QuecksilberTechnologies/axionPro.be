@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Provides module and module-operation persistence queries for module configuration workflows.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.DTOS.Module.CommonModule;
 using axionpro.application.DTOS.Module.ManualModule;
@@ -14,13 +21,6 @@ using axionpro.application.Constants;
 using axionpro.application.DTOS.Host;
 using System.Linq.Expressions;
 
-
-// ============================================================================
-// Author      : Deepesh Gupta
-// Company     : Quecksilber Technologies
-// Role        : CEO
-// Purpose     : Provides persistence operations for application modules.
-// ============================================================================
 
 namespace axionpro.persistance.Repositories
 {
@@ -530,6 +530,71 @@ namespace axionpro.persistance.Repositories
                     module.IsActive,
                     cancellationToken);
         }
+
+        #region Module Status Cascade
+
+        /// <summary>
+        /// Retrieves tracked direct child modules for one Parent Module status cascade.
+        /// The current Module schema has no soft-delete field, so every direct child in the requested scope is returned.
+        /// </summary>
+        /// <param name="parentModuleId">The validated Parent Module identifier.</param>
+        /// <param name="moduleScope">The validated module scope.</param>
+        /// <param name="cancellationToken">A token to observe while executing the query.</param>
+        /// <returns>The tracked direct child modules.</returns>
+        public async Task<List<Module>> GetDirectChildModulesForStatusUpdateAsync(
+            int parentModuleId,
+            short moduleScope,
+            CancellationToken cancellationToken)
+        {
+            var context = _context ?? throw new InvalidOperationException("Module context is unavailable.");
+
+            return await context.Modules
+                .Where(module =>
+                    module.ParentModuleId == parentModuleId &&
+                    module.ModuleScope == moduleScope &&
+                    module.IsLeafNode == true)
+                .ToListAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Retrieves tracked operation mappings for all affected direct child modules in one query.
+        /// The current mapping schema has no soft-delete field, so every mapping for the affected children is returned.
+        /// </summary>
+        /// <param name="moduleIds">The affected direct child module identifiers.</param>
+        /// <param name="cancellationToken">A token to observe while executing the query.</param>
+        /// <returns>The tracked operation mappings for the affected child modules.</returns>
+        public async Task<List<ModuleOperationMapping>> GetModuleOperationMappingsForStatusUpdateAsync(
+            IReadOnlyCollection<int> moduleIds,
+            CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(moduleIds);
+
+            if (moduleIds.Count == 0)
+            {
+                return new List<ModuleOperationMapping>();
+            }
+
+            var context = _context ?? throw new InvalidOperationException("Module context is unavailable.");
+
+            return await context.ModuleOperationMappings
+                .Where(mapping => moduleIds.Contains(mapping.ModuleId))
+                .ToListAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Persists the complete tracked status cascade with one SaveChangesAsync call.
+        /// EF Core executes the relational changes in its SaveChanges transaction.
+        /// </summary>
+        /// <param name="cancellationToken">A token to observe while saving the complete cascade.</param>
+        /// <returns>A task that completes after the cascade is persisted.</returns>
+        public async Task SaveModuleStatusCascadeAsync(CancellationToken cancellationToken)
+        {
+            var context = _context ?? throw new InvalidOperationException("Module context is unavailable.");
+
+            await context.SaveChangesAsync(cancellationToken);
+        }
+
+        #endregion
 
         #region Parent Module Projection
 
@@ -1199,6 +1264,28 @@ namespace axionpro.persistance.Repositories
             await context.SaveChangesAsync(cancellationToken);
 
             return true;
+        }
+
+        #endregion
+
+        #region Operation Dependency Queries
+
+        /// <summary>
+        /// Determines whether the supplied operation is still referenced by a module-operation mapping.
+        /// The mapping schema does not expose a soft-delete column, so the database query evaluates every persisted relationship.
+        /// </summary>
+        /// <param name="operationId">The operation identifier to check.</param>
+        /// <param name="cancellationToken">A token to observe while executing the database existence query.</param>
+        /// <returns><see langword="true"/> when a persisted mapping references the operation; otherwise <see langword="false"/>.</returns>
+        public async Task<bool> IsOperationLinkedToAnyModuleAsync(
+            int operationId,
+            CancellationToken cancellationToken)
+        {
+            var context = _context ?? throw new InvalidOperationException("Module context is unavailable.");
+
+            // Inactive mappings remain relationships and must not permit bypassing the operation dependency guard.
+            return await context.ModuleOperationMappings
+                .AnyAsync(item => item.OperationId == operationId, cancellationToken);
         }
 
         #endregion

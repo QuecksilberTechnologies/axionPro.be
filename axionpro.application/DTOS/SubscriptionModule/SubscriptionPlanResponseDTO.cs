@@ -1,41 +1,52 @@
-﻿using axionpro.application.DTOS.Module.ParentModule;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the detailed response model for a subscription plan.
+// ================================================================
 
-namespace axionpro.application.DTOs.SubscriptionModule
+using axionpro.application.DTOS.Module.ParentModule;
+
+namespace axionpro.application.DTOs.SubscriptionModule;
+
+/// <summary>
+/// Represents a detailed, non-deleted subscription plan response.
+/// </summary>
+public sealed class SubscriptionPlanResponseDTO
 {
-    public class SubscriptionPlanResponseDTO
-    {
-        public int? Id { get; set; }
+    /// <summary>Gets or sets the subscription plan identifier.</summary>
+    public int? Id { get; set; }
 
-        public string? PlanName { get; set; } = null!;
+    /// <summary>Gets or sets the subscription plan name.</summary>
+    public string? PlanName { get; set; }
 
-        public int? MaxUsers { get; set; }
-        
-        public bool IsMostPopular { get; set; }
-        public bool IsCustom { get; set; }
-        public string? CurrencyKey { get; set; }
+    /// <summary>Gets or sets the maximum number of users allowed by the plan.</summary>
+    public int? MaxUsers { get; set; }
 
-        public decimal? PerDayPrice { get; set; }
+    /// <summary>Gets or sets whether the plan is marked as most popular.</summary>
+    public bool IsMostPopular { get; set; }
 
-        public bool? IsFree { get; set; }
+    /// <summary>Gets or sets whether the plan is custom.</summary>
+    public bool IsCustom { get; set; }
 
-        public decimal? MonthlyPrice { get; set; }
+    /// <summary>Gets or sets the plan currency key.</summary>
+    public string? CurrencyKey { get; set; }
 
-        public decimal? YearlyPrice { get; set; }
+    /// <summary>Gets or sets the optional per-day price.</summary>
+    public decimal? PerDayPrice { get; set; }
 
-        public bool? IsActive { get; set; }
-        // ✅ Mapped Modules List
-        public List<ModuleResponseDTO> Modules { get; set; } = new() ;
+    /// <summary>Gets or sets whether the plan is free.</summary>
+    public bool? IsFree { get; set; }
 
+    /// <summary>Gets or sets the optional monthly price.</summary>
+    public decimal? MonthlyPrice { get; set; }
 
+    /// <summary>Gets or sets the optional yearly price.</summary>
+    public decimal? YearlyPrice { get; set; }
 
-    }
-     
+    /// <summary>Gets or sets whether the plan is active.</summary>
+    public bool? IsActive { get; set; }
 
-
-
+    /// <summary>Gets or sets the modules associated with the subscription plan.</summary>
+    public List<ModuleResponseDTO> Modules { get; set; } = new();
 }

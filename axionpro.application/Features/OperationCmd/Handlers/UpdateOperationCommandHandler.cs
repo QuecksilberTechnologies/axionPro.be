@@ -12,13 +12,13 @@ using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
-using axionpro.application.Features.TransportCmd.Commands;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces;
 using axionpro.application.Features.OperationCmd.Commands;
+using axionpro.application.Constants;
+using axionpro.application.Exceptions;
 
 namespace axionpro.application.Features.OperationCmd.Commands
 {
@@ -88,8 +88,22 @@ public class UpdateOperationCommandHandler : IRequestHandler<UpdateOperationComm
             try
             {
 
-                Operation operation = _mapper.Map<Operation>(request.updateOperationDTO);
-                operation.UpdatedById = (long)request.updateOperationDTO.ProductOwnerId;
+                var dto = request?.updateOperationDTO
+                    ?? throw new ValidationErrorException("Operation details are required.");
+
+                var existingOperation = await operationRepository
+                    .GetOperationByIdAsync(dto.Id)
+                    ?? throw new ApiException("Operation not found.", 404);
+
+                if (dto.IsActive == false && await _unitOfWork.ModuleRepository
+                        .IsOperationLinkedToAnyModuleAsync(existingOperation.Id, cancellationToken))
+                {
+                    throw new ConflictException(AppConstants.ErrorMessages.OperationLinkedToModule);
+                }
+
+                Operation operation = _mapper.Map<Operation>(dto);
+                operation.IsActive = dto.IsActive ?? existingOperation.IsActive;
+                operation.UpdatedById = (long)dto.ProductOwnerId;
                 operation.UpdateDateTime = DateTime.UtcNow;
                 List<Operation> operations = await operationRepository.UpdateOperationAsync(operation);
 
@@ -111,6 +125,10 @@ public class UpdateOperationCommandHandler : IRequestHandler<UpdateOperationComm
                     Message = "Travel created successfully",
                     Data = getAllOperationDTOs
                 };
+            }
+            catch (ApiException)
+            {
+                throw;
             }
             catch (Exception ex)
             {

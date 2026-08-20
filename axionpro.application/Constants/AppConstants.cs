@@ -43,6 +43,26 @@ namespace axionpro.application.Constants
             public const string InternalServerError = "Something went wrong. Please try again.";
             public const string RequiredDataMissing = "Required data is missing.";
             public const string ValidationFailed = "The request failed validation.";
+
+            /// <summary>
+            /// Indicates that the requested subscription plan is unavailable or already soft deleted.
+            /// </summary>
+            public const string SubscriptionPlanNotFound = "The requested subscription plan was not found.";
+
+            /// <summary>
+            /// Indicates that a subscription plan cannot be deleted while an active tenant uses it.
+            /// </summary>
+            public const string SubscriptionPlanInUse = "The subscription plan cannot be deleted because it is currently assigned to one or more tenants.";
+
+            /// <summary>
+            /// Indicates that the requested Parent Module is unavailable in the requested scope.
+            /// </summary>
+            public const string ParentModuleNotFound = "The requested Parent Module was not found.";
+
+            /// <summary>
+            /// Indicates that an operation remains linked to one or more module-operation mappings.
+            /// </summary>
+            public const string OperationLinkedToModule = "The operation cannot be deactivated or deleted because it is linked to one or more modules. Unlink the operation from all module-operation mappings first.";
         }
 
         #endregion
@@ -66,6 +86,41 @@ namespace axionpro.application.Constants
             public const string WorkflowStageDeleted = "Workflow stage deleted successfully.";
             public const string EmployeeTypesRetrieved = "Employee types fetched successfully.";
             public const string MenuDisplayStructureRetrieved = "Menu display structure fetched successfully.";
+
+            /// <summary>
+            /// Confirms that a subscription plan was soft deleted successfully.
+            /// </summary>
+            public const string SubscriptionPlanDeletedSuccessfully = "Subscription plan deleted successfully.";
+
+            /// <summary>
+            /// Confirms that subscription plans were retrieved successfully.
+            /// </summary>
+            public const string SubscriptionPlansRetrievedSuccessfully = "Subscription plans retrieved successfully.";
+
+            /// <summary>
+            /// Confirms that a subscription plan was created successfully.
+            /// </summary>
+            public const string SubscriptionPlanCreatedSuccessfully = "Subscription plan created successfully.";
+
+            /// <summary>
+            /// Confirms that a subscription plan was updated successfully.
+            /// </summary>
+            public const string SubscriptionPlanUpdatedSuccessfully = "Subscription plan updated successfully.";
+
+            /// <summary>
+            /// Confirms that tenant subscription information was retrieved successfully.
+            /// </summary>
+            public const string TenantSubscriptionPlanRetrievedSuccessfully = "Tenant subscription plan retrieved successfully.";
+
+            /// <summary>
+            /// Confirms that modules available to a subscription plan were retrieved successfully.
+            /// </summary>
+            public const string SubscriptionPlanModulesRetrievedSuccessfully = "Subscription plan modules retrieved successfully.";
+
+            /// <summary>
+            /// Confirms that a Parent Module status cascade completed successfully.
+            /// </summary>
+            public const string ParentModuleStatusUpdatedSuccessfully = "Parent Module status updated successfully.";
         }
 
         #endregion

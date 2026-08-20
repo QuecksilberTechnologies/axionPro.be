@@ -1,29 +1,96 @@
-﻿using axionpro.application.DTOs.SubscriptionModule;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines persistence operations for subscription plans.
+// ================================================================
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+using axionpro.application.DTOs.SubscriptionModule;
+using axionpro.domain.Entity;
 
-namespace axionpro.application.Interfaces.IRepositories
+namespace axionpro.application.Interfaces.IRepositories;
+
+/// <summary>
+/// Defines persistence operations for Host-managed subscription plans.
+/// </summary>
+public interface ISubscriptionRepository
 {
-    public interface ISubscriptionRepository
-    {
-        // 🎯 Add new subscription plan
-        Task<SubscriptionPlan> AddSubscriptionPlanAsync(SubscriptionPlan entity);
+    #region Commands
 
-        // 🔄 Update existing subscription plan
-        Task<SubscriptionPlan> UpdateSubscriptionPlanAsync(SubscriptionPlan entity);
+    /// <summary>
+    /// Adds a new subscription plan entity.
+    /// </summary>
+    /// <param name="entity">The plan entity to add.</param>
+    /// <param name="cancellationToken">The token used to observe cancellation.</param>
+    /// <returns>The added subscription plan entity.</returns>
+    Task<SubscriptionPlan> AddSubscriptionPlanAsync(
+        SubscriptionPlan entity,
+        CancellationToken cancellationToken);
 
-        // 📋 Get all active subscription plans
-        Task<List<SubscriptionActivePlanDTO>> GetAllPlansAsync();
+    /// <summary>
+    /// Persists an existing, non-deleted subscription plan entity prepared by the handler.
+    /// </summary>
+    /// <param name="entity">The tracked plan entity containing updated business fields.</param>
+    /// <param name="cancellationToken">The token used to observe cancellation.</param>
+    /// <returns>The updated subscription plan entity.</returns>
+    Task<SubscriptionPlan> UpdateSubscriptionPlanAsync(
+        SubscriptionPlan entity,
+        CancellationToken cancellationToken);
 
-        // 🔍 Get plan by ID
-        Task<SubscriptionPlanResponseDTO> GetPlanByIdAsync(int id);
+    /// <summary>
+    /// Persists the server-prepared soft-delete state for a subscription plan entity.
+    /// </summary>
+    /// <param name="entity">The subscription plan entity prepared for soft deletion.</param>
+    /// <param name="cancellationToken">The token used to observe cancellation.</param>
+    /// <returns>The soft-deleted subscription plan entity.</returns>
+    Task<SubscriptionPlan> SoftDeleteSubscriptionPlanAsync(
+        SubscriptionPlan entity,
+        CancellationToken cancellationToken);
 
-      
+    #endregion
 
-    }
+    #region Queries
 
+    /// <summary>
+    /// Retrieves non-deleted subscription plans matching the requested active status.
+    /// </summary>
+    /// <param name="isActive">Whether to return active or inactive plans.</param>
+    /// <param name="cancellationToken">The token used to observe cancellation.</param>
+    /// <returns>The matching subscription plan read models.</returns>
+    Task<List<SubscriptionActivePlanDTO>> GetAllPlansAsync(
+        bool isActive,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Retrieves a non-deleted subscription plan response by identifier.
+    /// </summary>
+    /// <param name="id">The subscription plan identifier.</param>
+    /// <returns>The plan response, when found.</returns>
+    Task<SubscriptionPlanResponseDTO> GetPlanByIdAsync(int id);
+
+    #endregion
+
+    #region Validation Queries
+
+    /// <summary>
+    /// Retrieves a tracked, non-deleted subscription plan entity for a server-side operation.
+    /// </summary>
+    /// <param name="id">The subscription plan identifier.</param>
+    /// <param name="cancellationToken">The token used to observe cancellation.</param>
+    /// <returns>The subscription plan entity, or <see langword="null"/> when it is unavailable.</returns>
+    Task<SubscriptionPlan?> GetNonDeletedSubscriptionPlanByIdAsync(
+        int id,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Determines whether an active, legitimate tenant currently uses the subscription plan.
+    /// </summary>
+    /// <param name="subscriptionPlanId">The subscription plan identifier.</param>
+    /// <param name="cancellationToken">The token used to observe cancellation.</param>
+    /// <returns><see langword="true"/> when the plan is assigned to an active tenant; otherwise, <see langword="false"/>.</returns>
+    Task<bool> IsSubscriptionPlanAssignedToAnyActiveTenantAsync(
+        int subscriptionPlanId,
+        CancellationToken cancellationToken);
+
+    #endregion
 }

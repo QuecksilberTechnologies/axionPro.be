@@ -1,9 +1,9 @@
-// ============================================================================
-// Author      : Deepesh Gupta
-// Company     : Quecksilber Technologies
-// Role        : CEO
-// Purpose     : Exposes Host-admin controlled Parent/Header Module CRUD endpoints.
-// ============================================================================
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Exposes parent-module management endpoints and delegates requests through MediatR.
+// ================================================================
 
 using axionpro.application.DTOs.Module;
 using axionpro.application.DTOS.Module.ManualModule;
@@ -40,7 +40,7 @@ namespace axionpro.api.Controllers.Module
 
         #endregion
 
-        #region Parent Module CRUD
+        #region Parent Module Commands
 
         /// <summary>
         /// Creates a new Header Module for the authenticated Host user.
@@ -81,6 +81,30 @@ namespace axionpro.api.Controllers.Module
         }
 
         /// <summary>
+        /// Updates a Parent Module's active state and cascades the same value to its direct child modules and their operation mappings.
+        /// </summary>
+        /// <param name="id">The Parent Module identifier.</param>
+        /// <param name="statusRequestDTO">The required target active state.</param>
+        /// <param name="cancellationToken">A token used to cancel the request.</param>
+        /// <returns>The Parent Module after the status cascade completes.</returns>
+        [HttpPatch("{id:int}/status")]
+        public async Task<IActionResult> UpdateModuleStatus(
+            int id,
+            [FromBody] UpdateParentModuleStatusRequestDTO? statusRequestDTO,
+            CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(
+                new UpdateParentModuleStatusCommand(id, statusRequestDTO),
+                cancellationToken);
+
+            return Ok(result);
+        }
+
+        #endregion
+
+        #region Parent Module Queries
+
+        /// <summary>
         /// Retrieves one Header Module in the requested module scope.
         /// </summary>
         /// <param name="id">The Header Module identifier.</param>
@@ -115,26 +139,6 @@ namespace axionpro.api.Controllers.Module
         {
             var result = await _mediator.Send(
                 new GetParentModulesQuery(moduleScope, isActive),
-                cancellationToken);
-
-            return Ok(result);
-        }
-
-        /// <summary>
-        /// Changes the active state of an existing Header Module without deleting it.
-        /// </summary>
-        /// <param name="id">The Header Module identifier.</param>
-        /// <param name="statusRequestDTO">The required target active state.</param>
-        /// <param name="cancellationToken">A token used to cancel the request.</param>
-        /// <returns>The Header Module after its status changes.</returns>
-        [HttpPatch("{id:int}/status")]
-        public async Task<IActionResult> UpdateModuleStatus(
-            int id,
-            [FromBody] UpdateParentModuleStatusRequestDTO? statusRequestDTO,
-            CancellationToken cancellationToken)
-        {
-            var result = await _mediator.Send(
-                new UpdateParentModuleStatusCommand(id, statusRequestDTO),
                 cancellationToken);
 
             return Ok(result);

@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOs.Module.NewFolder;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Configures the AxionPro PostgreSQL persistence model.
+// ================================================================
+
+using axionpro.application.DTOs.Module.NewFolder;
 
 using axionpro.application.Common.Enums;
 using axionpro.application.DTOs.RoleModulePermission;
@@ -9,13 +16,6 @@ using axionpro.application.Interfaces.IContext;
 using axionpro.domain.Entity;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
-
-// ============================================================================
-// Author      : Deepesh Gupta
-// Company     : Quecksilber Technologies
-// Role        : CEO
-// Purpose     : Configures the AxionPro PostgreSQL persistence model.
-// ============================================================================
 
 namespace axionpro.persistance.Data.Context
 {
@@ -2683,7 +2683,12 @@ namespace axionpro.persistance.Data.Context
 
             entity.ToTable("SubscriptionPlan", "axionpro");
 
+            entity.HasIndex(e => e.IsSoftDeleted, "IX_SubscriptionPlan_IsSoftDeleted");
+
             entity.Property(e => e.CurrencyKey).HasMaxLength(20);
+            entity.Property(e => e.DeletedById).HasColumnType("integer");
+            entity.Property(e => e.DeletedDateTime).HasColumnType("timestamp with time zone");
+            entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
             entity.Property(e => e.MonthlyPrice).HasPrecision(10, 2);
             entity.Property(e => e.PerDayPrice).HasPrecision(10, 2);
             entity.Property(e => e.PlanName).HasMaxLength(100);

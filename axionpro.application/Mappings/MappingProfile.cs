@@ -250,10 +250,18 @@ namespace axionpro.application.Mappings
             CreateMap<CreateHostRoleResponseDTO, HostRole>().ReverseMap();
    
 
-            CreateMap<SubscriptionPlanResponseDTO, SubscriptionPlan>().ReverseMap();
-            CreateMap<CreateSubscriptionRequestDTO, SubscriptionPlan>().ReverseMap();
+            CreateMap<CreateSubscriptionRequestDTO, SubscriptionPlan>()
+                .ForMember(destination => destination.IsSoftDeleted, options => options.Ignore())
+                .ForMember(destination => destination.DeletedById, options => options.Ignore())
+                .ForMember(destination => destination.DeletedDateTime, options => options.Ignore())
+                .ReverseMap();
             CreateMap<SubscriptionActivePlanDTO, SubscriptionPlan>().ReverseMap(); 
-            CreateMap<UpdateSubscriptionRequestDTO, SubscriptionPlan>().ReverseMap(); 
+            CreateMap<UpdateSubscriptionRequestDTO, SubscriptionPlan>()
+                .ForMember(destination => destination.Id, options => options.Ignore())
+                .ForMember(destination => destination.IsSoftDeleted, options => options.Ignore())
+                .ForMember(destination => destination.DeletedById, options => options.Ignore())
+                .ForMember(destination => destination.DeletedDateTime, options => options.Ignore())
+                .ReverseMap();
 
 
             CreateMap<GetAssetResponseDTO, Asset>().ReverseMap();

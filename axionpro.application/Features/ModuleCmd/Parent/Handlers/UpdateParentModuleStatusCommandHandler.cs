@@ -2,19 +2,19 @@
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
-// Purpose : Updates Parent/Header Module status for authenticated Host users.
+// Purpose : Handles Parent Module status changes and cascades active state to direct Child Modules and their operation mappings.
 // ================================================================
 
 using axionpro.application.Constants;
 using axionpro.application.Exceptions;
 using axionpro.application.DTOS.Module.ParentModule;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using System.Security.Claims;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace axionpro.application.Features.ModuleCmd.Parent.Commands
 {
@@ -45,16 +45,17 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
 
     #endregion
 
+    #region Handler
+
     /// <summary>
-    /// Handles Host-authorized non-destructive Parent/Header Module status changes.
+    /// Handles Host-authorized Parent Module status changes and cascades the requested state to direct child modules and their operation mappings.
     /// </summary>
     public class UpdateParentModuleStatusCommandHandler : IRequestHandler<UpdateParentModuleStatusCommand, ApiResponse<GetParentModuleResponseDTO>>
     {
         #region Fields
 
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ILogger<UpdateParentModuleStatusCommandHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
 
         #endregion
 
@@ -63,36 +64,35 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
         /// <summary>
         /// Initializes a new instance of the <see cref="UpdateParentModuleStatusCommandHandler"/> class.
         /// </summary>
-        /// <param name="unitOfWork">Provides the existing Module repository.</param>
-        /// <param name="httpContextAccessor">Provides the ASP.NET Core-authenticated principal.</param>
-        /// <param name="logger">Records unexpected processing failures.</param>
+        /// <param name="unitOfWork">Provides the module configuration repository.</param>
+        /// <param name="commonRequestService">Validates the authenticated Host request and resolves its trusted actor.</param>
         public UpdateParentModuleStatusCommandHandler(
             IUnitOfWork unitOfWork,
-            IHttpContextAccessor httpContextAccessor,
-            ILogger<UpdateParentModuleStatusCommandHandler> logger)
+            ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
-            _httpContextAccessor = httpContextAccessor;
-            _logger = logger;
+            _commonRequestService = commonRequestService;
         }
 
         #endregion
 
-        #region MediatR Handler
+        #region Handle
 
         /// <summary>
-        /// Changes a scoped Header Module state while preventing deactivation that would hide active direct children.
+        /// Updates a Parent Module's active state and cascades the same value to its direct child modules and their operation mappings.
         /// </summary>
         /// <param name="request">The status change request.</param>
         /// <param name="cancellationToken">A token used to cancel the operation.</param>
-        /// <returns>The Header Module response after a permitted status change.</returns>
-        /// <exception cref="UnauthorizedAccessException">Thrown when the request does not have a valid Host principal.</exception>
-        /// <exception cref="KeyNotFoundException">Thrown when the scoped Header Module does not exist.</exception>
+        /// <returns>The Parent Module response after the complete cascade succeeds.</returns>
+        /// <exception cref="ValidationErrorException">Thrown when the request or module scope is invalid.</exception>
+        /// <exception cref="NotFoundException">Thrown when the requested identifier does not resolve to a Parent Module in the requested scope.</exception>
         public async Task<ApiResponse<GetParentModuleResponseDTO>> Handle(
             UpdateParentModuleStatusCommand request,
             CancellationToken cancellationToken)
         {
-            var hostUserId = GetAuthenticatedHostUserId();
+            // Resolve the authenticated Host actor before processing client-provided data.
+            var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
+            cancellationToken.ThrowIfCancellationRequested();
 
             if (request == null || request.Id <= 0 || request.DTO == null)
             {
@@ -105,75 +105,59 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
                 throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
             }
 
-            try
+            // Load the tracked Parent Module; a child identifier does not match this parent-only query.
+            var parentModule = await _unitOfWork.ModuleRepository.GetParentModuleForUpdateAsync(
+                request.Id,
+                request.DTO.ModuleScope,
+                cancellationToken);
+
+            if (parentModule == null)
             {
-                var entity = await _unitOfWork.ModuleRepository.GetParentModuleForUpdateAsync(
-                    request.Id,
-                    dto.ModuleScope,
+                throw new NotFoundException(AppConstants.ErrorMessages.ParentModuleNotFound);
+            }
+
+            // Load all direct child modules in one database query.
+            var childModules = await _unitOfWork.ModuleRepository.GetDirectChildModulesForStatusUpdateAsync(
+                parentModule.Id,
+                parentModule.ModuleScope,
+                cancellationToken);
+
+            var childModuleIds = childModules.Select(module => module.Id).ToList();
+            var operationMappings = childModuleIds.Count == 0
+                ? new List<ModuleOperationMapping>()
+                : await _unitOfWork.ModuleRepository.GetModuleOperationMappingsForStatusUpdateAsync(
+                    childModuleIds,
                     cancellationToken);
 
-                if (entity == null)
-                {
-                    throw new KeyNotFoundException("Parent Module was not found in the requested ModuleScope.");
-                }
+            var updatedDateTime = DateTime.UtcNow;
 
-                if (entity.IsActive && !dto.IsActive && await _unitOfWork.ModuleRepository.HasChildrenAsync(
-                    entity.Id,
-                    entity.ModuleScope,
-                    cancellationToken))
-                {
-                    throw new ConflictException(AppConstants.ErrorMessages.ResourceConflict);
-                }
+            // Apply the requested active state while preserving module hierarchy and creation data.
+            parentModule.IsActive = dto.IsActive;
+            parentModule.UpdatedById = hostUserId;
+            parentModule.UpdatedDateTime = updatedDateTime;
 
-                entity.ParentModuleId = null;
-                entity.IsLeafNode = false;
-                entity.IsActive = dto.IsActive;
-                entity.UpdatedById = hostUserId;
-                entity.UpdatedDateTime = DateTime.UtcNow;
-
-                var updated = await _unitOfWork.ModuleRepository.UpdateParentModuleAsync(entity, cancellationToken);
-
-                return ApiResponse<GetParentModuleResponseDTO>.Success(
-                    ToResponse(updated),
-                    "Parent Module status updated successfully.");
-            }
-            catch (Exception exception)
+            // Apply the requested active state to the affected direct children only.
+            foreach (var childModule in childModules)
             {
-                _logger.LogError(exception, "Unable to update Parent Module {ModuleId} status in ModuleScope {ModuleScope}.", request.Id, dto.ModuleScope);
-                throw;
+                childModule.IsActive = dto.IsActive;
+                childModule.UpdatedById = hostUserId;
+                childModule.UpdatedDateTime = updatedDateTime;
             }
-        }
 
-        #endregion
-
-        #region Authentication
-
-        /// <summary>
-        /// Verifies that the ASP.NET Core-authenticated principal is a Host user and returns its actor identifier.
-        /// </summary>
-        /// <returns>The authenticated Host user identifier.</returns>
-        /// <exception cref="UnauthorizedAccessException">Thrown when the principal is missing, unauthenticated, non-Host, or lacks a valid Host user identifier.</exception>
-        private long GetAuthenticatedHostUserId()
-        {
-            var principal = _httpContextAccessor.HttpContext?.User;
-            if (principal?.Identity?.IsAuthenticated != true)
+            // Apply the requested active state to mappings belonging to the affected child modules only.
+            foreach (var operationMapping in operationMappings)
             {
-                throw new UnauthorizedAccessException("An authenticated Host principal is required.");
+                operationMapping.IsActive = dto.IsActive;
+                operationMapping.UpdatedById = hostUserId;
+                operationMapping.UpdatedDateTime = updatedDateTime;
             }
 
-            var userType = principal.FindFirst(AppConstants.UserTypeClaim)?.Value;
-            if (!string.Equals(userType, AppConstants.HostUserType, StringComparison.OrdinalIgnoreCase))
-            {
-                throw new UnauthorizedAccessException("Only Host users can update Parent Modules.");
-            }
+            // Persist the complete tracked cascade with one SaveChangesAsync call.
+            await _unitOfWork.ModuleRepository.SaveModuleStatusCascadeAsync(cancellationToken);
 
-            var hostUserIdValue = principal.FindFirst(AppConstants.HostUserIdClaim)?.Value;
-            if (!long.TryParse(hostUserIdValue, out var hostUserId) || hostUserId <= 0)
-            {
-                throw new UnauthorizedAccessException("A valid HostUserId claim is required.");
-            }
-
-            return hostUserId;
+            return ApiResponse<GetParentModuleResponseDTO>.Success(
+                ToResponse(parentModule),
+                AppConstants.SuccessMessages.ParentModuleStatusUpdatedSuccessfully);
         }
 
         #endregion
@@ -228,4 +212,6 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
 
         #endregion
     }
+
+    #endregion
 }

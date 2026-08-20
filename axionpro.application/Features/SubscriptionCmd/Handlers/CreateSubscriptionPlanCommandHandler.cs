@@ -1,67 +1,124 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines and handles Host-authorized creation of subscription plans.
+// ================================================================
+
+using AutoMapper;
+using axionpro.application.Constants;
 using axionpro.application.DTOs.SubscriptionModule;
 using axionpro.application.DTOS.SubscriptionModule;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace axionpro.application.Features.SubscriptionCmd.Handlers
+namespace axionpro.application.Features.SubscriptionCmd.Handlers;
+
+#region Command
+
+/// <summary>
+/// Represents the request to create a subscription plan.
+/// </summary>
+public sealed class CreateSubscriptionPlanCommand : IRequest<ApiResponse<SubscriptionActivePlanDTO>>
 {
-    public class CreateSubscriptionPlanCommand
-     : IRequest<ApiResponse<SubscriptionActivePlanDTO>>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CreateSubscriptionPlanCommand"/> class.
+    /// </summary>
+    /// <param name="requestDTO">The subscription plan data to create.</param>
+    public CreateSubscriptionPlanCommand(CreateSubscriptionRequestDTO? requestDTO)
     {
-        public CreateSubscriptionRequestDTO SubscriptionPlanRequestDTO { get; }
-
-        public CreateSubscriptionPlanCommand(CreateSubscriptionRequestDTO dto)
-        {
-            SubscriptionPlanRequestDTO = dto;
-        }
+        RequestDTO = requestDTO;
     }
 
-    public class CreateSubscriptionPlanCommandHandler
-    : IRequestHandler<CreateSubscriptionPlanCommand,
-        ApiResponse<SubscriptionActivePlanDTO>>
-    {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly ICommonRequestService _commonRequestService;
-        private readonly ILogger<CreateSubscriptionPlanCommandHandler> _logger;
-        private readonly IMapper _mapper;
-        public CreateSubscriptionPlanCommandHandler(
-            IUnitOfWork unitOfWork,
-             IMapper mapper,
-            ICommonRequestService commonRequestService,
-            ILogger<CreateSubscriptionPlanCommandHandler> logger)
-        {
-            _unitOfWork = unitOfWork;
-            _commonRequestService = commonRequestService;
-            _mapper = mapper;
-            _logger = logger;
-        }
-
-        public async Task<ApiResponse<SubscriptionActivePlanDTO>> Handle(
-            CreateSubscriptionPlanCommand request,
-            CancellationToken cancellationToken)
-        {
-            try
-            {
-                var entity = _mapper.Map<SubscriptionPlan>(request.SubscriptionPlanRequestDTO);
-
-                var result = await _unitOfWork.SubscriptionRepository.AddSubscriptionPlanAsync(entity);
-                var dto = _mapper.Map<SubscriptionActivePlanDTO>(entity);
-                return ApiResponse<SubscriptionActivePlanDTO>.Success(dto,"Subscription plan created successfully.");
-            }
-            catch
-            {
-                await _unitOfWork.RollbackTransactionAsync();
-                throw;
-            }
-        }
-    }
+    /// <summary>
+    /// Gets the subscription plan creation request.
+    /// </summary>
+    public CreateSubscriptionRequestDTO? RequestDTO { get; }
 }
+
+#endregion
+
+#region Handler
+
+/// <summary>
+/// Handles Host-authorized creation of subscription plans.
+/// </summary>
+public sealed class CreateSubscriptionPlanCommandHandler
+    : IRequestHandler<CreateSubscriptionPlanCommand, ApiResponse<SubscriptionActivePlanDTO>>
+{
+    #region Fields
+
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
+    private readonly ICommonRequestService _commonRequestService;
+
+    #endregion
+
+    #region Constructor
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CreateSubscriptionPlanCommandHandler"/> class.
+    /// </summary>
+    /// <param name="unitOfWork">Provides subscription plan persistence operations.</param>
+    /// <param name="mapper">Maps the request and persisted entity to their appropriate models.</param>
+    /// <param name="commonRequestService">Validates the current authenticated Host request.</param>
+    public CreateSubscriptionPlanCommandHandler(
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        ICommonRequestService commonRequestService)
+    {
+        _unitOfWork = unitOfWork;
+        _mapper = mapper;
+        _commonRequestService = commonRequestService;
+    }
+
+    #endregion
+
+    #region Handle
+
+    /// <summary>
+    /// Creates a subscription plan with server-controlled soft-delete defaults.
+    /// </summary>
+    /// <param name="request">The command to process.</param>
+    /// <param name="cancellationToken">The token used to observe cancellation.</param>
+    /// <returns>The created subscription plan response.</returns>
+    /// <exception cref="ValidationErrorException">Thrown when the creation request is missing.</exception>
+    public async Task<ApiResponse<SubscriptionActivePlanDTO>> Handle(
+        CreateSubscriptionPlanCommand request,
+        CancellationToken cancellationToken)
+    {
+        // Validate the authenticated Host request before processing client-provided data.
+        await _commonRequestService.ValidateHostUserRequestAsync();
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (request?.RequestDTO is null)
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
+        }
+
+        var subscriptionPlan = _mapper.Map<SubscriptionPlan>(request.RequestDTO);
+
+        // Apply server-controlled soft-delete defaults before persistence.
+        subscriptionPlan.IsSoftDeleted = false;
+        subscriptionPlan.DeletedById = null;
+        subscriptionPlan.DeletedDateTime = null;
+
+        var createdSubscriptionPlan = await _unitOfWork.SubscriptionRepository
+            .AddSubscriptionPlanAsync(subscriptionPlan, cancellationToken);
+
+        // Map the persisted entity to the subscription response model.
+        var response = _mapper.Map<SubscriptionActivePlanDTO>(createdSubscriptionPlan);
+
+        return ApiResponse<SubscriptionActivePlanDTO>.Success(
+            response,
+            AppConstants.SuccessMessages.SubscriptionPlanCreatedSuccessfully);
+    }
+
+    #endregion
+}
+
+#endregion

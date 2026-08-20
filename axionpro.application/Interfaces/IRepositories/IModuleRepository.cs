@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOs;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines module and module-operation persistence operations for module configuration workflows.
+// ================================================================
+
+using axionpro.application.DTOs;
 using axionpro.application.DTOs.Module;
 using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOS.Module.CommonModule;
@@ -19,13 +26,6 @@ using axionpro.domain.Entity;
 using MediatR;
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.DTOS.Host;
-
-// ============================================================================
-// Author      : Deepesh Gupta
-// Company     : Quecksilber Technologies
-// Role        : CEO
-// Purpose     : Defines persistence operations for application modules.
-// ============================================================================
 
 namespace axionpro.application.Interfaces.IRepositories
 {
@@ -114,6 +114,22 @@ namespace axionpro.application.Interfaces.IRepositories
         Task<bool> DeactivateModuleOperationMappingAsync(
             int id,
             long hostUserId,
+            CancellationToken cancellationToken);
+
+        #endregion
+
+        #region Operation Dependency Queries
+
+        /// <summary>
+        /// Determines whether an operation is referenced by any persisted module-operation mapping.
+        /// The current mapping schema has no soft-delete property; a mapping is ignored only after it is removed from the database.
+        /// Mapping activity is intentionally not used because an inactive mapping still represents a relationship.
+        /// </summary>
+        /// <param name="operationId">The operation identifier to check.</param>
+        /// <param name="cancellationToken">A token to observe while executing the database existence query.</param>
+        /// <returns><see langword="true"/> when a module-operation mapping still references the operation; otherwise <see langword="false"/>.</returns>
+        Task<bool> IsOperationLinkedToAnyModuleAsync(
+            int operationId,
             CancellationToken cancellationToken);
 
         #endregion
@@ -217,6 +233,41 @@ namespace axionpro.application.Interfaces.IRepositories
             int parentModuleId,
             short moduleScope,
             CancellationToken cancellationToken);
+
+        #region Module Status Cascade
+
+        /// <summary>
+        /// Retrieves tracked direct child modules for a Parent Module status cascade.
+        /// The current Module schema has no soft-delete field, so every direct child in the requested scope is returned.
+        /// </summary>
+        /// <param name="parentModuleId">The validated Parent Module identifier.</param>
+        /// <param name="moduleScope">The validated module scope.</param>
+        /// <param name="cancellationToken">A token to observe while executing the query.</param>
+        /// <returns>The tracked direct child modules.</returns>
+        Task<List<Module>> GetDirectChildModulesForStatusUpdateAsync(
+            int parentModuleId,
+            short moduleScope,
+            CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Retrieves tracked operation mappings for the supplied direct child module identifiers.
+        /// The current mapping schema has no soft-delete field, so every mapping for the affected children is returned.
+        /// </summary>
+        /// <param name="moduleIds">The affected direct child module identifiers.</param>
+        /// <param name="cancellationToken">A token to observe while executing the query.</param>
+        /// <returns>The tracked operation mappings for the affected child modules.</returns>
+        Task<List<ModuleOperationMapping>> GetModuleOperationMappingsForStatusUpdateAsync(
+            IReadOnlyCollection<int> moduleIds,
+            CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Persists all tracked changes prepared for one Parent Module status cascade.
+        /// </summary>
+        /// <param name="cancellationToken">A token to observe while saving the complete cascade.</param>
+        /// <returns>A task that completes after the cascade is persisted.</returns>
+        Task SaveModuleStatusCascadeAsync(CancellationToken cancellationToken);
+
+        #endregion
 
         #region SubModule CRUD
 

@@ -1,20 +1,44 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the request criteria used to retrieve subscription plans.
+// ================================================================
 
-namespace axionpro.application.DTOs.SubscriptionModule
+namespace axionpro.application.DTOs.SubscriptionModule;
+
+/// <summary>
+/// Defines the filter criteria for retrieving subscription plans.
+/// </summary>
+public sealed class SubscriptionPlanRequestDTO
 {
-    public class SubscriptionPlanRequestDTO
-    {
-       // public long? TenantId { get; set; }
-        public string? PlanName { get; set; }              // Example: Basic, Pro, Premium
-        public int? MaxUsers { get; set; }                // Optional: Maximum number of users allowed
-        public decimal? PerDayPrice { get; set; }         // Optional: Price per day
-        public decimal? MonthlyPrice { get; set; }        // Optional: Price per month
-        public decimal? YearlyPrice { get; set; }         // Optional: Price per year
-        public bool IsActive { get; set; } = true;        // Default: Active
+    /// <summary>
+    /// Gets or sets an optional plan name criterion retained for API compatibility.
+    /// </summary>
+    public string? PlanName { get; set; }
 
-    }
+    /// <summary>
+    /// Gets or sets an optional maximum-user criterion retained for API compatibility.
+    /// </summary>
+    public int? MaxUsers { get; set; }
+
+    /// <summary>
+    /// Gets or sets an optional daily-price criterion retained for API compatibility.
+    /// </summary>
+    public decimal? PerDayPrice { get; set; }
+
+    /// <summary>
+    /// Gets or sets an optional monthly-price criterion retained for API compatibility.
+    /// </summary>
+    public decimal? MonthlyPrice { get; set; }
+
+    /// <summary>
+    /// Gets or sets an optional yearly-price criterion retained for API compatibility.
+    /// </summary>
+    public decimal? YearlyPrice { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether the query returns active or inactive, non-deleted plans.
+    /// </summary>
+    public bool IsActive { get; set; } = true;
 }
