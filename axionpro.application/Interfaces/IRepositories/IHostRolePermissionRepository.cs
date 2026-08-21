@@ -48,5 +48,20 @@ namespace axionpro.application.Interfaces.IRepositories
             CancellationToken cancellationToken = default);
 
         #endregion
+
+        #region Host Access Queries
+
+        /// <summary>
+        /// Retrieves the current Host authorization rows that remain valid against active Host modules,
+        /// active module-operation mappings, and active operations.
+        /// </summary>
+        /// <param name="hostRoleId">The validated current Host-role identifier.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The current Host module-operation permissions available for runtime access.</returns>
+        Task<List<HostUserPermissionResponseDTO>> GetCurrentHostAccessPermissionsAsync(
+            long hostRoleId,
+            CancellationToken cancellationToken = default);
+
+        #endregion
     }
 }

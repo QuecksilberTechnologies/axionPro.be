@@ -74,6 +74,26 @@ namespace axionpro.application.Constants
         /// </summary>
         public static class SuccessMessages
         {
+            /// <summary>
+            /// Confirms that a Tenant Employee session was created successfully.
+            /// </summary>
+            public const string LoginSuccessful = "Login successful.";
+
+            /// <summary>
+            /// Confirms that the shared Common navigation hierarchy was retrieved successfully.
+            /// </summary>
+            public const string CommonMenuRetrieved = "Common menu retrieved successfully.";
+
+            /// <summary>
+            /// Confirms that the current Tenant employee authorization bootstrap was retrieved successfully.
+            /// </summary>
+            public const string TenantUserAccessRetrieved = "Tenant user access retrieved successfully.";
+
+            /// <summary>
+            /// Confirms that the current Host authorization bootstrap was retrieved successfully.
+            /// </summary>
+            public const string HostAccessRetrieved = "Host access retrieved successfully.";
+
             public const string GenderOptionsRetrieved = "Gender options fetched successfully.";
             public const string RoleOptionsRetrieved = "Role options fetched successfully.";
             public const string RolesRetrieved = "Roles retrieved successfully.";

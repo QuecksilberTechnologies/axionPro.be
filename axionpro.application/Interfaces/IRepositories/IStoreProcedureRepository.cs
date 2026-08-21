@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOs.Module.NewFolder;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines stored-function and validated runtime authorization read operations.
+// ================================================================
+
+using axionpro.application.DTOs.Module.NewFolder;
 using axionpro.application.DTOs.Operation;
 using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOs.UserLogin;
@@ -21,7 +28,26 @@ namespace axionpro.application.Interfaces.IRepositories
         Task<UpdateTenantEnabledOperationFromModuleOperationResponseDTO> UpdateTenantEnabledOperationFromModuleOperationRequestDTO(
             UpdateTenantEnabledOperationFromModuleOperationRequestDTO request);
 
-        Task<List<RoleModuleOperationResponseDTO>> GetActiveRoleModuleOperationsAsync( GetActiveRoleModuleOperationsRequestDTO request);
+        /// <summary>
+        /// Retrieves the legacy Tenant operational permission rows for a supplied internal role-ID set.
+        /// </summary>
+        /// <param name="request">The trusted Tenant identifier and internal comma-separated role identifiers.</param>
+        /// <returns>The legacy operational permission rows.</returns>
+        Task<List<RoleModuleOperationResponseDTO>> GetActiveRoleModuleOperationsAsync(
+            GetActiveRoleModuleOperationsRequestDTO request);
+
+        /// <summary>
+        /// Retrieves the authenticated tenant employee's current effective module-operation access
+        /// using the authoritative tenant permission source.
+        /// </summary>
+        /// <param name="tenantId">The validated Tenant identifier.</param>
+        /// <param name="roleIds">The current effective role identifiers resolved by the application.</param>
+        /// <param name="cancellationToken">A token used to cancel the database operation.</param>
+        /// <returns>The current permitted operational rows used to construct navigation.</returns>
+        Task<List<RoleModuleOperationResponseDTO>> GetCurrentTenantOperationalAccessAsync(
+            long tenantId,
+            IReadOnlyCollection<int> roleIds,
+            CancellationToken cancellationToken = default);
         Task<List<GetModuleOperationRolePermissionsResponseDTO>> GetTenantModulesConfigurationResponses(GetTenantModuleOperationRolePermissionsRequestDTO request);
          
 
@@ -40,4 +66,3 @@ namespace axionpro.application.Interfaces.IRepositories
 
     }
 }
- 

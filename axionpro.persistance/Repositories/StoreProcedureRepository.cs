@@ -1,4 +1,11 @@
-﻿using AutoMapper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Executes stored-function queries, including authoritative Tenant operational permission reads.
+// ================================================================
+
+using AutoMapper;
 using axionpro.application.DTOs.Module.NewFolder;
 using axionpro.application.DTOs.Operation;
 using axionpro.application.DTOs.RoleModulePermission;
@@ -367,7 +374,15 @@ namespace axionpro.persistance.Repositories
         //    }
         //}
 
-        public async Task<List<RoleModuleOperationResponseDTO>> GetActiveRoleModuleOperationsAsync( GetActiveRoleModuleOperationsRequestDTO request)      
+        #region Tenant Operational Access Queries
+
+        /// <summary>
+        /// Retrieves the legacy Tenant operational permission rows for the supplied internal role-ID set.
+        /// </summary>
+        /// <param name="request">The trusted Tenant identifier and internal comma-separated role identifiers.</param>
+        /// <returns>The legacy operational permission rows.</returns>
+        public async Task<List<RoleModuleOperationResponseDTO>> GetActiveRoleModuleOperationsAsync(
+            GetActiveRoleModuleOperationsRequestDTO request)
         {
             try
             {
@@ -400,7 +415,49 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-       
+        /// <summary>
+        /// Retrieves the authenticated tenant employee's current effective module-operation access
+        /// using the authoritative tenant permission source.
+        /// </summary>
+        /// <param name="tenantId">The validated Tenant identifier.</param>
+        /// <param name="roleIds">The current effective role identifiers resolved by the application.</param>
+        /// <param name="cancellationToken">A token used to cancel the database operation.</param>
+        /// <returns>The current permitted operational rows used to construct navigation.</returns>
+        public async Task<List<RoleModuleOperationResponseDTO>> GetCurrentTenantOperationalAccessAsync(
+            long tenantId,
+            IReadOnlyCollection<int> roleIds,
+            CancellationToken cancellationToken = default)
+        {
+            if (tenantId <= 0 || roleIds.Count == 0)
+            {
+                return new List<RoleModuleOperationResponseDTO>();
+            }
+
+            var normalizedRoleIds = roleIds
+                .Where(roleId => roleId > 0)
+                .Distinct()
+                .OrderBy(roleId => roleId)
+                .ToArray();
+            if (normalizedRoleIds.Length == 0)
+            {
+                return new List<RoleModuleOperationResponseDTO>();
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Query the authoritative Tenant permission source using the current effective role set.
+            // Do not apply a second module-enable model: TenantEnabledModule stores enabled hierarchy roots,
+            // while this function resolves the granted leaf module-operation permission rows.
+            return await GetActiveRoleModuleOperationsAsync(
+                new GetActiveRoleModuleOperationsRequestDTO
+                {
+                    TenantId = tenantId,
+                    RoleIds = string.Join(',', normalizedRoleIds)
+                });
+        }
+
+        #endregion
+
         public async Task<EmployeeCountResponseStatsSp?> GetEmployeeCountsAsync(long tenantId)
         {
             try
@@ -846,4 +903,3 @@ GetTenantModulesConfigurationResponses(GetTenantModuleOperationRolePermissionsRe
 
     }
 }
- 

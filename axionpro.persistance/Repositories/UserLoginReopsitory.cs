@@ -44,6 +44,8 @@ namespace axionpro.persistance.Repositories
             _configuration = configuration;
         }
 
+        #region Authentication Queries
+
         public async Task<LoginCredential?> AuthenticateUser(string loginId)
         {
             try
@@ -78,6 +80,114 @@ namespace axionpro.persistance.Repositories
                     credential.IsActive &&
                     credential.IsSoftDeleted != true);
         }
+
+        /// <summary>
+        /// Retrieves the compact, validated Tenant Employee data required to construct a NewLogin session.
+        /// </summary>
+        /// <param name="loginCredentialId">The active Tenant login credential identifier.</param>
+        /// <param name="cancellationToken">A token used to cancel the read-only projection query.</param>
+        /// <returns>The minimal session-bootstrap projection, or <see langword="null"/> when required active records are unavailable.</returns>
+        public async Task<NewLoginBootstrapReadModel?> GetNewLoginBootstrapAsync(
+            long loginCredentialId,
+            CancellationToken cancellationToken = default)
+        {
+            // Resolve only active employee and tenant context; effective roles use the established role repository query.
+            return await (
+                from credential in _context.LoginCredentials.AsNoTracking()
+                join employee in _context.Employees.AsNoTracking()
+                    on credential.EmployeeId equals employee.Id
+                join tenant in _context.Tenants.AsNoTracking()
+                    on employee.TenantId equals tenant.Id
+                join employeeType in _context.EmployeeTypes.AsNoTracking()
+                    on employee.EmployeeTypeId equals employeeType.Id
+                join department in _context.Departments.AsNoTracking()
+                    on employee.DepartmentId equals department.Id into departmentJoin
+                from department in departmentJoin.DefaultIfEmpty()
+                join designation in _context.Designations.AsNoTracking()
+                    on employee.DesignationId equals designation.Id into designationJoin
+                from designation in designationJoin.DefaultIfEmpty()
+                join gender in _context.Genders.AsNoTracking()
+                    on employee.GenderId equals gender.Id into genderJoin
+                from gender in genderJoin.DefaultIfEmpty()
+                where credential.Id == loginCredentialId
+                    && credential.IsActive
+                    && credential.IsSoftDeleted != true
+                    && credential.TenantId == employee.TenantId
+                    && employee.IsActive
+                    && !employee.IsSoftDeleted
+                    && tenant.IsActive
+                    && tenant.IsSoftDeleted != true
+                    && employeeType.IsActive == true
+                    && employeeType.IsSoftDeleted != true
+                    && (department == null || (department.IsActive && !department.IsSoftDeleted))
+                    && (designation == null || (designation.IsActive && !designation.IsSoftDeleted))
+                select new NewLoginBootstrapReadModel
+                {
+                    EmployeeId = employee.Id,
+                    TenantId = tenant.Id,
+                    FirstName = employee.FirstName,
+                    MiddleName = employee.MiddleName,
+                    LastName = employee.LastName,
+                    OfficialEmail = employee.OfficialEmail,
+                    TenantName = tenant.CompanyName,
+                    EmployeeTypeId = employeeType.Id,
+                    EmployeeTypeName = employeeType.TypeName,
+                    DepartmentId = employee.DepartmentId,
+                    DepartmentName = department != null ? department.DepartmentName : null,
+                    DesignationId = employee.DesignationId,
+                    DesignationName = designation != null ? designation.DesignationName : null,
+                    GenderId = employee.GenderId ?? 0,
+                    GenderName = gender != null ? gender.GenderName : null,
+                    HasPermanent = employee.HasPermanent,
+                    IsPasswordChangeRequired = credential.IsPasswordChangeRequired ?? false,
+                    IsOnboard = credential.IsOnboard
+                })
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        #endregion
+
+        #region Login Metadata
+
+        /// <summary>
+        /// Updates only permitted login metadata for an active Tenant login credential without using the legacy SQL result DTO path.
+        /// </summary>
+        /// <param name="loginCredential">The credential carrying the server-approved login metadata values.</param>
+        /// <param name="cancellationToken">A token used to cancel the persistence operation.</param>
+        /// <returns><see langword="true"/> when the metadata was persisted; otherwise, <see langword="false"/>.</returns>
+        public async Task<bool> UpdateLoginMetadataAsync(
+            LoginCredential loginCredential,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(loginCredential);
+
+            var persistedCredential = await _context.LoginCredentials
+                .FirstOrDefaultAsync(
+                    credential =>
+                        credential.Id == loginCredential.Id &&
+                        credential.IsActive &&
+                        credential.IsSoftDeleted != true,
+                    cancellationToken);
+
+            if (persistedCredential == null)
+            {
+                return false;
+            }
+
+            // Persist only request metadata; password and credential ownership remain unchanged.
+            persistedCredential.MacAddress = loginCredential.MacAddress;
+            persistedCredential.IpAddressLocal = loginCredential.IpAddressLocal;
+            persistedCredential.IpAddressPublic = loginCredential.IpAddressPublic;
+            persistedCredential.Latitude = loginCredential.Latitude;
+            persistedCredential.Longitude = loginCredential.Longitude;
+            persistedCredential.LoginDevice = loginCredential.LoginDevice;
+            persistedCredential.UpdatedById = loginCredential.UpdatedById;
+            persistedCredential.UpdatedDateTime = loginCredential.UpdatedDateTime;
+
+            return await _context.SaveChangesAsync(cancellationToken) > 0;
+        }
+
+        #endregion
 
         public async Task<long> CreateUser(LoginCredential loginRequest)
         {

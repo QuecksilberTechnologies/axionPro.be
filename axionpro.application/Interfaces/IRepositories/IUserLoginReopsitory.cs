@@ -17,7 +17,7 @@ namespace axionpro.application.Interfaces.IRepositories
 {
     public interface IUserLoginReopsitory
     {
-        #region Login Credential Queries
+        #region Authentication Queries
 
         Task<LoginCredential> AuthenticateUser(string loginId);
 
@@ -27,6 +27,30 @@ namespace axionpro.application.Interfaces.IRepositories
         /// <param name="loginCredentialId">The Tenant LoginCredential primary key stored on the refresh token.</param>
         /// <returns>The active Tenant login credential, or <see langword="null"/> when it is no longer valid.</returns>
         Task<LoginCredential?> GetActiveByIdAsync(long loginCredentialId);
+
+        /// <summary>
+        /// Retrieves the minimal active Tenant Employee bootstrap projection for an authenticated login credential.
+        /// </summary>
+        /// <param name="loginCredentialId">The active Tenant login credential identifier.</param>
+        /// <param name="cancellationToken">A token used to cancel the database query.</param>
+        /// <returns>The validated bootstrap projection, or <see langword="null"/> when its employee or tenant is no longer valid.</returns>
+        Task<NewLoginBootstrapReadModel?> GetNewLoginBootstrapAsync(
+            long loginCredentialId,
+            CancellationToken cancellationToken = default);
+
+        #endregion
+
+        #region Login Metadata
+
+        /// <summary>
+        /// Persists the permitted login-device metadata for an active Tenant login credential.
+        /// </summary>
+        /// <param name="loginCredential">The credential containing only the login metadata values to persist.</param>
+        /// <param name="cancellationToken">A token used to cancel the persistence operation.</param>
+        /// <returns><see langword="true"/> when the active credential metadata was updated; otherwise, <see langword="false"/>.</returns>
+        Task<bool> UpdateLoginMetadataAsync(
+            LoginCredential loginCredential,
+            CancellationToken cancellationToken = default);
 
         #endregion
 

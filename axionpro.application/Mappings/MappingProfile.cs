@@ -6,6 +6,7 @@
 // ================================================================
 
 using AutoMapper;
+using axionpro.application.Constants;
 using axionpro.application.DTOs.Client;
 using axionpro.application.DTOs.Department;
 using axionpro.application.DTOs.Designation;
@@ -82,6 +83,28 @@ namespace axionpro.application.Mappings
 
         public MappingProfile()
         {
+
+            #region New Login Mappings
+
+            CreateMap<NewLoginBootstrapReadModel, NewLoginUserContextDTO>()
+                .ForMember(destination => destination.EmployeeId, options => options.Ignore())
+                .ForMember(destination => destination.FullName, options => options.Ignore())
+                .ForMember(destination => destination.ProfileImageUrl, options => options.Ignore())
+                .ForMember(destination => destination.TenantId, options => options.Ignore())
+                .ForMember(destination => destination.PrimaryRole, options => options.Ignore())
+                .ForMember(destination => destination.SecondaryRoles, options => options.Ignore());
+
+            CreateMap<Role, NewLoginRoleDTO>()
+                .ForMember(destination => destination.RoleId, options => options.MapFrom(source => source.Id))
+                .ForMember(destination => destination.RoleName, options => options.MapFrom(source => source.RoleName ?? string.Empty))
+                .ForMember(destination => destination.RoleTypeId, options => options.MapFrom(source => source.RoleType))
+                .ForMember(destination => destination.RoleTypeName, options => options.MapFrom(source =>
+                    source.RoleType == ConstantValues.RoleTypeAdmin ? "Super Admin" :
+                    source.RoleType == ConstantValues.RoleTypeEmployee ? "Employee" :
+                    source.RoleType == ConstantValues.RoleTypeManager ? "Manager" :
+                    "Unknown"));
+
+            #endregion
 
 
             CreateMap<AddAssetRequestDTO, Asset>()

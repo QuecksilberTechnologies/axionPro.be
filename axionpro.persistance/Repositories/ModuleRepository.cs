@@ -2,12 +2,13 @@
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
-// Purpose : Provides module and module-operation persistence queries for module configuration workflows.
+// Purpose : Provides module, module-operation, and deterministic shared Common-navigation persistence queries.
 // ================================================================
 
 using AutoMapper;
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.DTOS.Module.CommonModule;
+using axionpro.application.DTOS.Module.CommonMenu;
 using axionpro.application.DTOS.Module.ManualModule;
 using axionpro.application.DTOS.Module.ParentModule;
 
@@ -173,13 +174,23 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<Module?> GetCommonMenuParentAsync()
+        #region Common Navigation Queries
+
+        /// <inheritdoc />
+        public async Task<Module?> GetCommonMenuParentAsync(
+            CancellationToken cancellationToken = default)
         {
             try
             {
-               
                 return await _context.Modules
-                    .FirstOrDefaultAsync(m => m.IsCommonMenu == true && m.IsModuleDisplayInUI == true && m.IsActive == true);
+                    .AsNoTracking()
+                    .SingleOrDefaultAsync(
+                        module =>
+                            module.IsCommonMenu &&
+                            module.IsModuleDisplayInUI &&
+                            module.IsActive &&
+                            module.ParentModuleId == null,
+                        cancellationToken);
             }
             catch (Exception ex)
             {
@@ -187,21 +198,19 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<List<ModuleDTO>> GetCommonMenuTreeAsync(int? parentId)
+        /// <inheritdoc />
+        public async Task<List<ModuleDTO>> GetCommonMenuTreeAsync(
+            int? parentId,
+            CancellationToken cancellationToken = default)
         {
             try
             {
-                List<Module> allModules;
+                // Load active UI-visible candidates once, then compose the recursive hierarchy without N+1 queries.
+                var allModules = await _context.Modules
+                    .AsNoTracking()
+                    .Where(module => module.IsActive && module.IsModuleDisplayInUI)
+                    .ToListAsync(cancellationToken);
 
-                // ✅ DbContext used only here
-                
-                    allModules = await _context.Modules
-                        .Where(m => m.IsActive && m.IsModuleDisplayInUI)
-                        .OrderBy(m => m.Id)
-                        .ToListAsync();
-               
-
-                // ✅ Outside context — Safe recursion
                 var result = BuildMenuTree(allModules, parentId);
                 return result;
             }
@@ -217,8 +226,9 @@ namespace axionpro.persistance.Repositories
         {
             return allModules
                 .Where(m => m.ParentModuleId == parentId)
-                .OrderBy(m => m.ItemPriority < 0 ? int.MaxValue : m.ItemPriority) // ✅ custom priority sort
-                .ThenBy(m => m.ModuleName) // optional fallback
+                .OrderBy(m => m.ItemPriority < 0 ? int.MaxValue : m.ItemPriority)
+                .ThenBy(m => m.ModuleName)
+                .ThenBy(m => m.Id)
                 .Select(m => new ModuleDTO
                 {
                     Id = m.Id,
@@ -228,10 +238,53 @@ namespace axionpro.persistance.Repositories
                     DisplayName = m.DisplayName,
                     ImageIconMobile = m.ImageIconMobile,
                     ImageIconWeb = m.ImageIconWeb,
+                    ItemPriority = m.ItemPriority,
                     Children = BuildMenuTree(allModules, m.Id)
                 })
                 .ToList();
         }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<CommonMenuItemResponseDTO>?> GetCommonMenuHierarchyAsync(
+            CancellationToken cancellationToken = default)
+        {
+            // Resolve the unique Common root using hierarchy semantics rather than database row order.
+            var commonRoot = await GetCommonMenuParentAsync(cancellationToken);
+            if (commonRoot == null)
+            {
+                return null;
+            }
+
+            // Reuse the established child-only CommonItems hierarchy shape.
+            var commonItems = await GetCommonMenuTreeAsync(commonRoot.Id, cancellationToken);
+            return MapCommonMenuItems(commonItems);
+        }
+
+        /// <summary>
+        /// Maps the existing Common-menu tree model to the standalone API contract without changing its hierarchy.
+        /// </summary>
+        /// <param name="items">The existing child-only Common-menu tree.</param>
+        /// <returns>The standalone Common-menu response items.</returns>
+        private static IReadOnlyCollection<CommonMenuItemResponseDTO> MapCommonMenuItems(
+            IReadOnlyCollection<ModuleDTO> items)
+        {
+            return items
+                .Select(item => new CommonMenuItemResponseDTO
+                {
+                    ModuleId = item.Id,
+                    ModuleName = item.ModuleName,
+                    DisplayName = item.DisplayName,
+                    UrlPath = item.URLPath,
+                    ImageIconWeb = item.ImageIconWeb,
+                    ImageIconMobile = item.ImageIconMobile,
+                    IsLeafNode = item.IsLeafNode ?? item.Children.Count == 0,
+                    ItemPriority = item.ItemPriority,
+                    Children = MapCommonMenuItems(item.Children)
+                })
+                .ToArray();
+        }
+
+        #endregion
 
         public async Task<List<GetModuleChildInversResponseDTO>> GetAllOnlyModuleTreeAsync()
         {

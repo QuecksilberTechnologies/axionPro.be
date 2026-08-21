@@ -2,13 +2,14 @@
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
-// Purpose : Defines module and module-operation persistence operations for module configuration workflows.
+// Purpose : Defines module, module-operation, and shared Common-navigation persistence operations.
 // ================================================================
 
 using axionpro.application.DTOs;
 using axionpro.application.DTOs.Module;
 using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOS.Module.CommonModule;
+using axionpro.application.DTOS.Module.CommonMenu;
 using axionpro.application.DTOS.Module.ManualModule;
 using axionpro.application.DTOS.Module.ParentModule;
 using axionpro.application.DTOS.Module.SubModule;
@@ -54,13 +55,34 @@ namespace axionpro.application.Interfaces.IRepositories
 
         #endregion
 
-        /// <summary>
-        /// Ek module ko fetch karta hai by Id
-        /// </summary>
-        /// 
+        #region Common Navigation Queries
 
-        Task<Module?> GetCommonMenuParentAsync();
-        Task<List<ModuleDTO>> GetCommonMenuTreeAsync(int? parentModuleId);
+        /// <summary>
+        /// Retrieves the unique active, UI-visible structural root of the shared Common navigation hierarchy.
+        /// </summary>
+        /// <param name="cancellationToken">A token used to cancel the database operation.</param>
+        /// <returns>The unique Common root, or <see langword="null"/> when none is configured.</returns>
+        Task<Module?> GetCommonMenuParentAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Retrieves the visible active navigation children beneath the supplied Common root.
+        /// </summary>
+        /// <param name="parentModuleId">The validated Common root identifier.</param>
+        /// <param name="cancellationToken">A token used to cancel the database operation.</param>
+        /// <returns>The ordered child hierarchy below the supplied root.</returns>
+        Task<List<ModuleDTO>> GetCommonMenuTreeAsync(
+            int? parentModuleId,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Retrieves the deterministic active Common-menu hierarchy displayed across the authenticated application.
+        /// </summary>
+        /// <param name="cancellationToken">A token used to cancel the database operation.</param>
+        /// <returns>The configured Common navigation items, or <see langword="null"/> when no Common root exists.</returns>
+        Task<IReadOnlyCollection<CommonMenuItemResponseDTO>?> GetCommonMenuHierarchyAsync(
+            CancellationToken cancellationToken = default);
+
+        #endregion
 
         Task<Module?> GetModuleByIdAsync(long moduleId);
 

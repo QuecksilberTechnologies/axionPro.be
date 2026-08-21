@@ -7,6 +7,7 @@
 
 using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.RequestHelper;
+using axionpro.application.Common.Enums;
 using axionpro.application.Common.Models.Security;
 using axionpro.application.Constants;
 using axionpro.application.Interfaces;
@@ -90,6 +91,61 @@ namespace axionpro.infrastructure.CommonRequest
                 _logger.LogError(ex, "CommonRequestService Error");
                 return new CommonDecodedResult { Success = false, ErrorMessage = "Internal validation error." };
             }
+        }
+
+        #endregion
+
+        #region Unified Authentication Validation
+
+        /// <summary>
+        /// Validates the current authenticated Host or Tenant request by reusing the established principal-specific validation path.
+        /// </summary>
+        /// <returns>The trusted authenticated principal context.</returns>
+        /// <exception cref="UnauthorizedAccessException">Thrown when the JWT, token purpose, or represented principal is invalid.</exception>
+        public async Task<AuthenticatedRequestContext> ValidateAuthenticatedRequestAsync()
+        {
+            var principal = _context.HttpContext?.User;
+            if (principal?.Identity?.IsAuthenticated != true)
+            {
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            // Host tokens carry the explicit principal-type claim established by GenerateHostToken.
+            var userType = principal.FindFirst(AppConstants.UserTypeClaim)?.Value;
+            if (string.Equals(userType, AppConstants.HostUserType, StringComparison.OrdinalIgnoreCase))
+            {
+                var hostUserId = await ValidateHostUserRequestAsync();
+                return new AuthenticatedRequestContext
+                {
+                    UserType = LoginUserType.Host,
+                    AuthenticatedUserId = hostUserId
+                };
+            }
+
+            // Tenant tokens use the established Tenant claim set and intentionally do not carry the Host UserType claim.
+            if (!string.IsNullOrWhiteSpace(userType))
+            {
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            var tenantValidation = await ValidateRequestAsync();
+            if (!tenantValidation.Success ||
+                tenantValidation.Claims == null ||
+                !string.Equals(
+                    tenantValidation.Claims.TokenPurpose,
+                    ConstantValues.Auth.ToString(),
+                    StringComparison.Ordinal))
+            {
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            return new AuthenticatedRequestContext
+            {
+                UserType = LoginUserType.TenantEmployee,
+                AuthenticatedUserId = tenantValidation.LoggedInEmployeeId,
+                TenantId = tenantValidation.TenantId,
+                RoleId = tenantValidation.RoleId
+            };
         }
 
         #endregion

@@ -6,6 +6,7 @@
 // ============================================================================
 
 using AutoMapper;
+using axionpro.application.Constants;
 using axionpro.application.DTOS.Host;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IHashed;
@@ -107,6 +108,50 @@ namespace axionpro.persistance.Repositories
             }
 
             await _context.HostRoleModuleAndPermissions.AddRangeAsync(permissions, cancellationToken);
+        }
+
+        #endregion
+
+        #region Host Access Queries
+
+        /// <summary>
+        /// Retrieves current Host permission rows that remain valid against active Host modules,
+        /// active module-operation mappings, and active operations.
+        /// </summary>
+        /// <param name="hostRoleId">The validated current Host-role identifier.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The current Host module-operation permissions available for runtime access.</returns>
+        public Task<List<HostUserPermissionResponseDTO>> GetCurrentHostAccessPermissionsAsync(
+            long hostRoleId,
+            CancellationToken cancellationToken = default)
+        {
+            // Exclude inactive configuration so Host permission rows cannot expose disabled modules or operations.
+            return _context.HostRoleModuleAndPermissions
+                .AsNoTracking()
+                .Where(permission =>
+                    permission.HostRoleId == hostRoleId &&
+                    permission.IsActive &&
+                    !permission.IsSoftDeleted &&
+                    permission.Module.ModuleScope == AppConstants.HostModuleScope &&
+                    permission.Module.IsActive &&
+                    permission.Module.IsModuleDisplayInUI &&
+                    permission.Operation.IsActive &&
+                    _context.ModuleOperationMappings.Any(mapping =>
+                        mapping.ModuleId == permission.ModuleId &&
+                        mapping.OperationId == permission.OperationId &&
+                        mapping.IsActive == true))
+                .OrderBy(permission => permission.Module.ItemPriority)
+                .ThenBy(permission => permission.Module.ModuleName)
+                .ThenBy(permission => permission.Operation.OperationName)
+                .Select(permission => new HostUserPermissionResponseDTO
+                {
+                    ModuleId = permission.ModuleId,
+                    ModuleName = permission.Module.ModuleName,
+                    DisplayName = permission.Module.DisplayName,
+                    OperationId = permission.OperationId,
+                    OperationName = permission.Operation.OperationName
+                })
+                .ToListAsync(cancellationToken);
         }
 
         #endregion
