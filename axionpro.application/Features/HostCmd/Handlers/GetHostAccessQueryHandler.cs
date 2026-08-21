@@ -2,7 +2,7 @@
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
-// Purpose : Resolves current Host-role permissions and composes lightweight Host operational access.
+// Purpose : Resolves the authenticated Host user's current role permissions and composes lightweight runtime module access.
 // ================================================================
 
 using axionpro.application.Constants;
@@ -68,7 +68,7 @@ public sealed class GetHostAccessQueryHandler
         GetHostAccessQuery request,
         CancellationToken cancellationToken)
     {
-        // Resolve Host permissions exclusively from the Host authorization model.
+        // Validate the Host identity before resolving current authorization state.
         var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
         var hostUser = await _unitOfWork.HostUserRepository.GetByIdAsync(hostUserId);
         if (hostUser == null || !hostUser.IsActive || hostUser.IsSoftDeleted)
@@ -82,8 +82,9 @@ public sealed class GetHostAccessQueryHandler
             throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
         }
 
+        // Read permissions from the Host-specific authorization model used by legacy Host login.
         var permissions = await _unitOfWork.HostRolePermissionRepository
-            .GetCurrentHostAccessPermissionsAsync(hostRole.Id, cancellationToken);
+            .GetHostUserPermissionsAsync(hostRole.Id, cancellationToken);
 
         var response = new HostAccessResponseDTO
         {
@@ -108,11 +109,7 @@ public sealed class GetHostAccessQueryHandler
         IReadOnlyCollection<HostUserPermissionResponseDTO> permissions)
     {
         return permissions
-            .Where(permission =>
-                permission.ModuleId > 0 &&
-                permission.OperationId > 0 &&
-                !string.IsNullOrWhiteSpace(permission.ModuleName) &&
-                !string.IsNullOrWhiteSpace(permission.OperationName))
+            // Preserve the legacy Host permission set; composition only deduplicates module-operation grants.
             .GroupBy(permission => new
             {
                 permission.ModuleId,

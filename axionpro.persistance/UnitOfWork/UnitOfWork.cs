@@ -277,11 +277,7 @@ public class UnitOfWork : IUnitOfWork
             _encriptionService);
     public IHostRolePermissionRepository HostRolePermissionRepository =>
         _hostRolePermissionRepository ??= new HostRolePermissionRepository (
-            _context,
-            _mapper,
-            _loggerFactory.CreateLogger<HostRolePermissionRepository>(),
-            _passwordService,
-            _encriptionService);
+            _context);
 
     public IPolicyTypeInsuranceMappingRepository PolicyTypeInsuranceMappingRepository =>
         _policyTypeInsuranceMappingRepository ??= new PolicyTypeInsuranceMappingRepository(

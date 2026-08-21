@@ -1,9 +1,9 @@
-// ============================================================================
-// Author      : Deepesh Gupta
-// Company     : Quecksilber Technologies
-// Role        : CEO
-// Purpose     : Defines read operations for effective Host role permissions.
-// ============================================================================
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines current Host-role module and operation permission queries for runtime authorization.
+// ================================================================
 
 using axionpro.application.DTOS.Host;
 using axionpro.domain.Entity;
@@ -18,11 +18,12 @@ namespace axionpro.application.Interfaces.IRepositories
         #region Host Permission Operations
 
         /// <summary>
-        /// Retrieves the active, non-deleted module-operation permissions effective for a Host role.
+        /// Retrieves the authenticated Host user's currently effective module and operation permissions
+        /// from the Host authorization model.
         /// </summary>
         /// <param name="hostRoleId">The Host-role primary key whose effective permissions are requested.</param>
         /// <param name="cancellationToken">The token used to observe cancellation.</param>
-        /// <returns>The effective Host permissions projected with module and operation display data.</returns>
+        /// <returns>The currently effective Host module-operation grants.</returns>
         Task<List<HostUserPermissionResponseDTO>> GetHostUserPermissionsAsync(
             long hostRoleId,
             CancellationToken cancellationToken = default);
@@ -45,21 +46,6 @@ namespace axionpro.application.Interfaces.IRepositories
         /// <returns>A task that completes when the assignments have been staged for persistence.</returns>
         Task BulkInsertAsync(
             List<HostRoleModuleAndPermission> permissions,
-            CancellationToken cancellationToken = default);
-
-        #endregion
-
-        #region Host Access Queries
-
-        /// <summary>
-        /// Retrieves the current Host authorization rows that remain valid against active Host modules,
-        /// active module-operation mappings, and active operations.
-        /// </summary>
-        /// <param name="hostRoleId">The validated current Host-role identifier.</param>
-        /// <param name="cancellationToken">The token used to observe cancellation.</param>
-        /// <returns>The current Host module-operation permissions available for runtime access.</returns>
-        Task<List<HostUserPermissionResponseDTO>> GetCurrentHostAccessPermissionsAsync(
-            long hostRoleId,
             CancellationToken cancellationToken = default);
 
         #endregion
