@@ -1,215 +1,351 @@
-﻿using axionpro.application.DTOs.Module;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Provides persistence and hierarchy queries for Subscription Plan Module mappings.
+// ================================================================
+
+using axionpro.application.Constants;
+using axionpro.application.DTOs.PlanModule;
 using axionpro.application.DTOs.Tenant;
 using axionpro.application.Interfaces.IRepositories;
-
+using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Emit;
-using System.Text;
-using axionpro.domain.Entity;
+using TenantPlanModuleMappingResponseDTO = axionpro.application.DTOs.Tenant.PlanModuleMappingResponseDTO;
 
-namespace axionpro.persistance.Repositories
+namespace axionpro.persistance.Repositories;
+
+/// <summary>
+/// Provides read-only hierarchy queries and staged delta commands for Subscription Plan Module mappings.
+/// </summary>
+public sealed class PlanModuleMappingRepository : IPlanModuleMappingRepository
 {
-    public class PlanModuleMappingRepository : IPlanModuleMappingRepository
+    #region Fields
+
+    private readonly WorkforceDbContext _context;
+    private readonly ILogger<PlanModuleMappingRepository> _logger;
+
+    #endregion
+
+    #region Constructor
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PlanModuleMappingRepository"/> class.
+    /// </summary>
+    /// <param name="context">The persistence context for mappings and Modules.</param>
+    /// <param name="logger">The logger used for mapping synchronization diagnostics.</param>
+    public PlanModuleMappingRepository(
+        WorkforceDbContext context,
+        ILogger<PlanModuleMappingRepository> logger)
     {
-        private readonly WorkforceDbContext? _context;
-        private readonly ILogger? _logger;
-
-
-
-        public PlanModuleMappingRepository(WorkforceDbContext context, ILogger<PlanModuleMappingRepository> logger)
-        {
-            _context = context;
-
-            _logger = logger;
-        }
-
-        public Task AddAsync(PlanModuleMapping planModuleMapping)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> DeleteByIdAsync(int id)
-        {
-            throw new NotImplementedException();
-        }
-        public async Task<List<Module>> GetAllSubscribedModuleAsync(int? subscriptionPlanId)
-        {
-            try
-            {
-
-                if (subscriptionPlanId == null)
-                    return new List<Module>();
-
-                // 🔹 Step 1: Plan ke mapped module IDs nikaal lo
-                var mappedModuleIds = await _context.PlanModuleMappings
-                    .Where(p => p.SubscriptionPlanId == subscriptionPlanId && p.IsActive==true)
-                    .Select(p => p.ModuleId)
-                    .ToListAsync();
-
-                if (!mappedModuleIds.Any())
-                    return new List<Module>();
-
-                // 🔹 Step 2: In mapped modules ke saare child modules laa lo (recursively)
-                var allModules = await _context.Modules
-                    .Where(m => m.IsActive)
-                    .ToListAsync();
-
-                List<Module> resultModules = new();
-
-                foreach (var id in mappedModuleIds)
-                {
-                    var parentModule = allModules.FirstOrDefault(m => m.Id == id);
-                    if (parentModule != null)
-                    {
-                        resultModules.Add(parentModule);
-                        resultModules.AddRange(GetAllChildModules(allModules, parentModule.Id));
-                    }
-                }
-
-                // 🔹 Step 3: Duplicate hata do
-                resultModules = resultModules.DistinctBy(m => m.Id).ToList();
-
-                return resultModules;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while fetching modules for SubscriptionPlanId: {SubscriptionPlanId}", subscriptionPlanId);
-                return new List<Module>();
-            }
-        }
-
-        private List<Module> GetAllChildModules(List<Module> allModules, int parentId)
-        {
-            var children = allModules.Where(m => m.ParentModuleId == parentId && m.IsActive).ToList();
-            List<Module> result = new(children);
-
-            foreach (var child in children)
-            {
-                result.AddRange(GetAllChildModules(allModules, child.Id));
-            }
-
-            return result;
-        }
-
-        //public async Task<List<Module>> GetAllSubscribedModuleAsync(int? subscriptionPlanId)
-        //{
-        //    try
-        //    {
-        //        if (subscriptionPlanId == null)
-        //            return null; // ya return new List<Module>();
-
-        //        var mappings = await _context.PlanModuleMappings
-        //            .Where(p => p.SubscriptionPlanId == subscriptionPlanId && p.IsActive == true)
-        //            .Include(p => p.Module)
-        //            .ToListAsync();
-
-        //        var modules = mappings
-        //            .Where(p => p.Module != null)
-        //            .Select(p => new Module
-        //            {
-        //                Id = p.Module.Id,
-        //                ModuleName = p.Module.ModuleName,
-        //                DisplayName = p.Module.DisplayName ?? string.Empty,
-        //                ParentModuleId = p.Module.ParentModuleId,
-        //                IsLeafNode = p.Module.IsLeafNode
-        //            })
-        //            .ToList();
-
-        //        return modules;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Error while fetching modules for SubscriptionPlanId: {SubscriptionPlanId}", subscriptionPlanId);
-        //        return null; // ya return new List<Module>();
-        //    }
-        //}
-
-        public async Task<PlanModuleMappingResponseDTO> GetModulesBySubscriptionPlanIdAsync(int? subscriptionPlanId)
-        {
-            try
-            {
-                if (subscriptionPlanId == null)
-                {
-                    return new PlanModuleMappingResponseDTO
-                    {
-                        SubscriptionPlanId = 0,
-                        Modules = new List<ModuleWithOperationsDTO>()
-                    };
-                }
-
-                var mappings = await _context.PlanModuleMappings
-                    .Where(p => p.SubscriptionPlanId == subscriptionPlanId && p.IsActive == true)
-                    .Include(p => p.Module)
-                        .ThenInclude(m => m.ModuleOperationMapping)
-                            .ThenInclude(mop => mop.Operation)
-                    .Include(p => p.Module)
-                        .ThenInclude(m => m.ParentModule) // ✅ Include Parent Module
-                    .ToListAsync();
-
-                var response = new PlanModuleMappingResponseDTO
-                {
-                    SubscriptionPlanId = subscriptionPlanId.Value,
-                    Modules = mappings
-                        .Where(p => p.Module != null)
-                        .Select(p => new ModuleWithOperationsDTO
-                        {
-                            ModuleId = p.Module.Id,
-                            ModuleName = p.Module.ModuleName,
-                            DisplayName = p.Module.DisplayName?.ToString()?? string.Empty,
-                            ParentModuleId = p.Module.ParentModuleId,
-                            MainModuleId = p.Module.ParentModule?.Id ?? null,
-                            MainModuleName = p.Module.ParentModule?.ModuleName ?? string.Empty,
-                            
-                            Operations = p.Module.ModuleOperationMapping
-                               .Where(mop =>
-                                        mop.IsActive == true &&
-                                        mop.Operation != null/* &&
-                                        mop.Operation.IsActive == true*/)
-                                       .Select(mop => new OperationResponseDTO
-                                            {
-                                         OperationId = mop.Operation.Id,
-                                        
-                                          //PageUrl = mop.PageUrl,
-                                          //IconUrl = mop.IconUrl
-                                           })
-                                      .ToList()
-
-                        })
-                        .ToList()
-                };
-
-                return response;
-            }
-
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while fetching modules and operations for SubscriptionPlanId: {SubscriptionPlanId}", subscriptionPlanId);
-
-                return new PlanModuleMappingResponseDTO
-                {
-                    SubscriptionPlanId = subscriptionPlanId ?? 0,
-                    Modules = new List<ModuleWithOperationsDTO>()
-                };
-            }
-        }
-
-
-
-        public Task<bool> IsModuleMappedAsync(int subscriptionPlanId, int moduleId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task UpdateAsync(PlanModuleMapping planModuleMapping)
-        {
-            throw new NotImplementedException();
-        }
-
-        
+        _context = context;
+        _logger = logger;
     }
+
+    #endregion
+
+    #region Tenant Module Queries
+
+    /// <inheritdoc />
+    public async Task<List<Module>> GetAllSubscribedModuleAsync(int? subscriptionPlanId)
+    {
+        if (subscriptionPlanId is null or <= 0)
+        {
+            return new List<Module>();
+        }
+
+        var mappedModuleIds = await _context.PlanModuleMappings
+            .AsNoTracking()
+            .Where(mapping =>
+                mapping.SubscriptionPlanId == subscriptionPlanId.Value &&
+                mapping.IsActive == true)
+            .Select(mapping => mapping.ModuleId)
+            .Distinct()
+            .ToListAsync();
+
+        if (mappedModuleIds.Count == 0)
+        {
+            return new List<Module>();
+        }
+
+        // Load eligible Modules once, then compose selected branches in memory.
+        var eligibleModules = await GetEligibleModulesForPlanMappingAsync(CancellationToken.None);
+        var modulesById = eligibleModules.ToDictionary(module => module.Id);
+        var childrenByParentId = eligibleModules
+            .Where(module => module.ParentModuleId.HasValue && module.ParentModuleId.Value > 0)
+            .GroupBy(module => module.ParentModuleId!.Value)
+            .ToDictionary(group => group.Key, group => group.ToList());
+        var resultById = new Dictionary<int, Module>();
+
+        foreach (var mappedModuleId in mappedModuleIds)
+        {
+            AddModuleBranch(mappedModuleId, modulesById, childrenByParentId, resultById, new HashSet<int>());
+        }
+
+        return resultById.Values
+            .OrderBy(module => module.ItemPriority ?? int.MaxValue)
+            .ThenBy(module => module.ModuleName)
+            .ThenBy(module => module.Id)
+            .ToList();
+    }
+
+    /// <inheritdoc />
+    public async Task<TenantPlanModuleMappingResponseDTO> GetModulesBySubscriptionPlanIdAsync(int? subscriptionPlanId)
+    {
+        if (subscriptionPlanId is null or <= 0)
+        {
+            return new TenantPlanModuleMappingResponseDTO();
+        }
+
+        var mappings = await _context.PlanModuleMappings
+            .AsNoTracking()
+            .Where(mapping =>
+                mapping.SubscriptionPlanId == subscriptionPlanId.Value &&
+                mapping.IsActive == true &&
+                mapping.Module.IsActive &&
+                mapping.Module.IsModuleDisplayInUI &&
+                mapping.Module.ModuleScope == (short)AppConstants.TenantModuleScope)
+            .Include(mapping => mapping.Module)
+                .ThenInclude(module => module.ModuleOperationMapping)
+                    .ThenInclude(moduleOperation => moduleOperation.Operation)
+            .Include(mapping => mapping.Module)
+                .ThenInclude(module => module.ParentModule)
+            .ToListAsync();
+
+        return new TenantPlanModuleMappingResponseDTO
+        {
+            SubscriptionPlanId = subscriptionPlanId.Value,
+            Modules = mappings.Select(mapping => new ModuleWithOperationsDTO
+            {
+                ModuleId = mapping.Module.Id,
+                ModuleName = mapping.Module.ModuleName,
+                DisplayName = mapping.Module.DisplayName ?? string.Empty,
+                ParentModuleId = mapping.Module.ParentModuleId,
+                MainModuleId = mapping.Module.ParentModule?.Id,
+                MainModuleName = mapping.Module.ParentModule?.ModuleName ?? string.Empty,
+                Operations = mapping.Module.ModuleOperationMapping
+                    .Where(moduleOperation => moduleOperation.IsActive == true && moduleOperation.Operation != null)
+                    .Select(moduleOperation => new OperationResponseDTO
+                    {
+                        OperationId = moduleOperation.Operation.Id
+                    })
+                    .ToList()
+            }).ToList()
+        };
+    }
+
+    #endregion
+
+    #region Mapping Queries
+
+    /// <inheritdoc />
+    public Task<List<Module>> GetEligibleModulesForPlanMappingAsync(CancellationToken cancellationToken)
+    {
+        // Module does not have a soft-delete column; visibility, activity, and tenant scope are canonical eligibility.
+        return _context.Modules
+            .AsNoTracking()
+            .Where(module =>
+                module.ModuleScope == (short)AppConstants.TenantModuleScope &&
+                module.IsModuleDisplayInUI &&
+                module.IsActive)
+            .OrderBy(module => module.ItemPriority ?? int.MaxValue)
+            .ThenBy(module => module.ModuleName)
+            .ThenBy(module => module.Id)
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<List<int>> GetActiveMappedModuleIdsAsync(
+        int subscriptionPlanId,
+        CancellationToken cancellationToken)
+    {
+        return _context.PlanModuleMappings
+            .AsNoTracking()
+            .Where(mapping =>
+                mapping.SubscriptionPlanId == subscriptionPlanId &&
+                mapping.IsActive == true)
+            .Select(mapping => mapping.ModuleId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+    }
+
+    #endregion
+
+    #region Mapping Commands
+
+    /// <inheritdoc />
+    public async Task<SavePlanModuleMappingResponseDTO> SynchronizeMappingsAsync(
+        int subscriptionPlanId,
+        IReadOnlyCollection<int> selectedModuleIds,
+        string? remark,
+        long hostUserId,
+        CancellationToken cancellationToken)
+    {
+        var selectedModuleIdSet = selectedModuleIds.ToHashSet();
+        var existingMappings = await _context.PlanModuleMappings
+            .Where(mapping => mapping.SubscriptionPlanId == subscriptionPlanId)
+            .OrderBy(mapping => mapping.Id)
+            .ToListAsync(cancellationToken);
+        var mappingsByModuleId = existingMappings
+            .GroupBy(mapping => mapping.ModuleId)
+            .ToDictionary(group => group.Key, group => group.ToList());
+        var timestamp = DateTime.UtcNow;
+        var result = new SavePlanModuleMappingResponseDTO
+        {
+            SubscriptionPlanId = subscriptionPlanId,
+            SelectedModuleCount = selectedModuleIdSet.Count
+        };
+
+        // Compute the mapping delta before applying tracked persistence changes.
+        foreach (var selectedModuleId in selectedModuleIdSet)
+        {
+            if (!mappingsByModuleId.TryGetValue(selectedModuleId, out var mappings))
+            {
+                await _context.PlanModuleMappings.AddAsync(new PlanModuleMapping
+                {
+                    SubscriptionPlanId = subscriptionPlanId,
+                    ModuleId = selectedModuleId,
+                    IsActive = true,
+                    Remark = remark,
+                    AddedById = hostUserId,
+                    AddedDateTime = timestamp,
+                    UpdatedById = hostUserId,
+                    UpdatedDateTime = timestamp
+                }, cancellationToken);
+
+                result.AddedCount++;
+                continue;
+            }
+
+            var canonicalMapping = mappings.FirstOrDefault(mapping => mapping.IsActive == true) ?? mappings[0];
+            if (canonicalMapping.IsActive != true)
+            {
+                canonicalMapping.IsActive = true;
+                canonicalMapping.UpdatedById = hostUserId;
+                canonicalMapping.UpdatedDateTime = timestamp;
+
+                if (!string.IsNullOrWhiteSpace(remark))
+                {
+                    canonicalMapping.Remark = remark;
+                }
+
+                result.ReactivatedCount++;
+            }
+
+            // Retain one active row per logical plan and Module combination.
+            foreach (var duplicateMapping in mappings.Where(mapping => mapping.Id != canonicalMapping.Id && mapping.IsActive == true))
+            {
+                DeactivateMapping(duplicateMapping, hostUserId, timestamp);
+                result.DeactivatedCount++;
+            }
+        }
+
+        foreach (var mapping in existingMappings.Where(mapping =>
+                     !selectedModuleIdSet.Contains(mapping.ModuleId) &&
+                     mapping.IsActive == true))
+        {
+            DeactivateMapping(mapping, hostUserId, timestamp);
+            result.DeactivatedCount++;
+        }
+
+        _logger.LogInformation(
+            "Prepared Subscription Plan Module mapping delta. SubscriptionPlanId: {SubscriptionPlanId}; Selected: {SelectedCount}; Added: {AddedCount}; Reactivated: {ReactivatedCount}; Deactivated: {DeactivatedCount}.",
+            subscriptionPlanId,
+            result.SelectedModuleCount,
+            result.AddedCount,
+            result.ReactivatedCount,
+            result.DeactivatedCount);
+
+        return result;
+    }
+
+    /// <inheritdoc />
+    public async Task<int> SynchronizePlanMappingStatusAsync(
+        int subscriptionPlanId,
+        bool isPlanActive,
+        IReadOnlyCollection<int> eligibleModuleIds,
+        long hostUserId,
+        CancellationToken cancellationToken)
+    {
+        var mappings = await _context.PlanModuleMappings
+            .Where(mapping => mapping.SubscriptionPlanId == subscriptionPlanId)
+            .ToListAsync(cancellationToken);
+        var eligibleModuleIdSet = eligibleModuleIds.ToHashSet();
+        var timestamp = DateTime.UtcNow;
+        var changedCount = 0;
+
+        foreach (var mapping in mappings)
+        {
+            // Reactivate only mappings whose Modules are still part of the current eligible hierarchy.
+            var shouldBeActive = isPlanActive && eligibleModuleIdSet.Contains(mapping.ModuleId);
+            if (mapping.IsActive == shouldBeActive)
+            {
+                continue;
+            }
+
+            mapping.IsActive = shouldBeActive;
+            mapping.UpdatedById = hostUserId;
+            mapping.UpdatedDateTime = timestamp;
+            changedCount++;
+        }
+
+        _logger.LogInformation(
+            "Prepared Subscription Plan Module status synchronization. SubscriptionPlanId: {SubscriptionPlanId}; IsPlanActive: {IsPlanActive}; ChangedMappings: {ChangedMappings}.",
+            subscriptionPlanId,
+            isPlanActive,
+            changedCount);
+
+        return changedCount;
+    }
+
+    /// <inheritdoc />
+    public Task<int> DeleteAllBySubscriptionPlanIdAsync(
+        int subscriptionPlanId,
+        CancellationToken cancellationToken)
+    {
+        // This cleanup is intentionally physical because mappings are owned configuration rows of a soft-deleted plan.
+        return _context.PlanModuleMappings
+            .Where(mapping => mapping.SubscriptionPlanId == subscriptionPlanId)
+            .ExecuteDeleteAsync(cancellationToken);
+    }
+
+    #endregion
+
+    #region Helpers
+
+    private static void AddModuleBranch(
+        int moduleId,
+        IReadOnlyDictionary<int, Module> modulesById,
+        IReadOnlyDictionary<int, List<Module>> childrenByParentId,
+        IDictionary<int, Module> resultById,
+        ISet<int> ancestry)
+    {
+        if (!ancestry.Add(moduleId) || !modulesById.TryGetValue(moduleId, out var module))
+        {
+            return;
+        }
+
+        resultById[module.Id] = module;
+
+        if (!childrenByParentId.TryGetValue(moduleId, out var children))
+        {
+            return;
+        }
+
+        foreach (var child in children)
+        {
+            AddModuleBranch(child.Id, modulesById, childrenByParentId, resultById, new HashSet<int>(ancestry));
+        }
+    }
+
+    private static void DeactivateMapping(PlanModuleMapping mapping, long hostUserId, DateTime timestamp)
+    {
+        mapping.IsActive = false;
+        mapping.UpdatedById = hostUserId;
+        mapping.UpdatedDateTime = timestamp;
+    }
+
+    #endregion
 }

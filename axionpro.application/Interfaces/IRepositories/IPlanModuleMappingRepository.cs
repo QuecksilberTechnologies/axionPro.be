@@ -1,31 +1,104 @@
-﻿using axionpro.application.DTOs.Tenant;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines persistence and hierarchy operations for Subscription Plan Module mappings.
+// ================================================================
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+using axionpro.application.DTOs.PlanModule;
+using axionpro.application.DTOs.Tenant;
+using axionpro.domain.Entity;
+using TenantPlanModuleMappingResponseDTO = axionpro.application.DTOs.Tenant.PlanModuleMappingResponseDTO;
 
-namespace axionpro.application.Interfaces.IRepositories
+namespace axionpro.application.Interfaces.IRepositories;
+
+/// <summary>
+/// Defines persistence and hierarchy queries for Subscription Plan to Module mappings.
+/// </summary>
+public interface IPlanModuleMappingRepository
 {
-    public interface IPlanModuleMappingRepository
-    {
-        // 🔍 Get all modules for a specific plan
-        Task<PlanModuleMappingResponseDTO> GetModulesBySubscriptionPlanIdAsync(int? subscriptionPlanId);
-        Task<List<Module>> GetAllSubscribedModuleAsync(int? subscriptionPlanId);
+    #region Tenant Module Queries
 
+    /// <summary>
+    /// Retrieves active mapped Modules and their operations for the existing tenant-facing subscription query.
+    /// </summary>
+    /// <param name="subscriptionPlanId">The subscription plan identifier.</param>
+    /// <returns>The tenant-facing mapped Module response.</returns>
+    Task<TenantPlanModuleMappingResponseDTO> GetModulesBySubscriptionPlanIdAsync(int? subscriptionPlanId);
 
+    /// <summary>
+    /// Retrieves active Modules available to a subscription plan for existing tenant provisioning.
+    /// </summary>
+    /// <param name="subscriptionPlanId">The subscription plan identifier.</param>
+    /// <returns>The active mapped Modules and their eligible descendants.</returns>
+    Task<List<Module>> GetAllSubscribedModuleAsync(int? subscriptionPlanId);
 
-        // ➕ Add a new plan-module mapping
-        Task AddAsync(PlanModuleMapping planModuleMapping);
+    #endregion
 
-        // 🗑️ Delete a mapping by id
-        Task<bool> DeleteByIdAsync(int id);
+    #region Mapping Queries
 
-        // ✅ Check if a module is already mapped to a plan
-        Task<bool> IsModuleMappedAsync(int subscriptionPlanId, int moduleId);
+    /// <summary>
+    /// Retrieves all Modules currently eligible for Subscription Plan assignment.
+    /// </summary>
+    /// <param name="cancellationToken">The token used to observe cancellation.</param>
+    /// <returns>Read-only Module entities used to compose and validate the mapping hierarchy.</returns>
+    Task<List<Module>> GetEligibleModulesForPlanMappingAsync(CancellationToken cancellationToken);
 
-        // 📝 Update mapping (optional)
-        Task UpdateAsync(PlanModuleMapping planModuleMapping);
-    }
+    /// <summary>
+    /// Retrieves active mapping identifiers for the specified Subscription Plan.
+    /// </summary>
+    /// <param name="subscriptionPlanId">The subscription plan identifier.</param>
+    /// <param name="cancellationToken">The token used to observe cancellation.</param>
+    /// <returns>The distinct Module identifiers currently mapped to the plan.</returns>
+    Task<List<int>> GetActiveMappedModuleIdsAsync(
+        int subscriptionPlanId,
+        CancellationToken cancellationToken);
+
+    #endregion
+
+    #region Mapping Commands
+
+    /// <summary>
+    /// Stages a delta synchronization of a plan's selected Module assignments.
+    /// </summary>
+    /// <param name="subscriptionPlanId">The subscription plan identifier.</param>
+    /// <param name="selectedModuleIds">The validated and hierarchy-expanded selected Module identifiers.</param>
+    /// <param name="remark">The optional remark for newly created or reactivated mappings.</param>
+    /// <param name="hostUserId">The authenticated Host user performing the change.</param>
+    /// <param name="cancellationToken">The token used to observe cancellation.</param>
+    /// <returns>The staged synchronization counts.</returns>
+    Task<SavePlanModuleMappingResponseDTO> SynchronizeMappingsAsync(
+        int subscriptionPlanId,
+        IReadOnlyCollection<int> selectedModuleIds,
+        string? remark,
+        long hostUserId,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Stages active-state changes for every mapping owned by a Subscription Plan.
+    /// </summary>
+    /// <param name="subscriptionPlanId">The subscription plan identifier.</param>
+    /// <param name="isPlanActive">The new Subscription Plan active state.</param>
+    /// <param name="eligibleModuleIds">The currently eligible Module identifiers used during activation.</param>
+    /// <param name="hostUserId">The authenticated Host user performing the status change.</param>
+    /// <param name="cancellationToken">The token used to observe cancellation.</param>
+    /// <returns>The number of mapping rows whose active state changed.</returns>
+    Task<int> SynchronizePlanMappingStatusAsync(
+        int subscriptionPlanId,
+        bool isPlanActive,
+        IReadOnlyCollection<int> eligibleModuleIds,
+        long hostUserId,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Permanently deletes every mapping row owned by a Subscription Plan.
+    /// </summary>
+    /// <param name="subscriptionPlanId">The subscription plan identifier.</param>
+    /// <param name="cancellationToken">The token used to observe cancellation.</param>
+    /// <returns>The number of deleted mapping rows.</returns>
+    Task<int> DeleteAllBySubscriptionPlanIdAsync(
+        int subscriptionPlanId,
+        CancellationToken cancellationToken);
+
+    #endregion
 }

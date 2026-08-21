@@ -78,7 +78,7 @@ public class SubscriptionRepository : ISubscriptionRepository
     #region Update
 
     /// <summary>
-    /// Persists a tracked subscription plan whose editable fields were prepared by the handler.
+    /// Stages a tracked subscription plan whose editable fields were prepared by the handler.
     /// </summary>
     /// <param name="entity">The tracked subscription plan entity to update.</param>
     /// <param name="cancellationToken">The token used to observe cancellation.</param>
@@ -89,11 +89,10 @@ public class SubscriptionRepository : ISubscriptionRepository
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        // Persist the entity prepared by the handler; delete audit fields remain server-controlled.
+        // Stage the entity prepared by the handler so related mapping changes can share one transaction.
         _context.SubscriptionPlans.Update(entity);
-        await _context.SaveChangesAsync(cancellationToken);
 
-        return entity;
+        return await Task.FromResult(entity);
     }
 
     #endregion
@@ -101,7 +100,7 @@ public class SubscriptionRepository : ISubscriptionRepository
     #region Delete
 
     /// <summary>
-    /// Persists an entity whose server-controlled soft-delete audit values were prepared by the handler.
+    /// Stages an entity whose server-controlled soft-delete audit values were prepared by the handler.
     /// </summary>
     /// <param name="entity">The subscription plan entity to persist.</param>
     /// <param name="cancellationToken">The token used to observe cancellation.</param>
@@ -112,10 +111,10 @@ public class SubscriptionRepository : ISubscriptionRepository
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        // Persist the tracked entity; no physical delete is performed.
-        await _context.SaveChangesAsync(cancellationToken);
+        // Stage the tracked entity; no physical delete is performed.
+        _context.SubscriptionPlans.Update(entity);
 
-        return entity;
+        return await Task.FromResult(entity);
     }
 
     #endregion

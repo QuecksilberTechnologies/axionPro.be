@@ -2,7 +2,7 @@
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
-// Purpose : Defines and handles Host-authorized soft deletion of subscription plans.
+// Purpose : Safely soft-deletes Subscription Plans and removes their owned Module mapping records.
 // ================================================================
 
 using axionpro.application.Constants;
@@ -12,6 +12,7 @@ using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.SubscriptionCmd.Handlers;
 
@@ -51,6 +52,7 @@ public class DeleteSubscriptionPlanCommandHandler
 
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICommonRequestService _commonRequestService;
+    private readonly ILogger<DeleteSubscriptionPlanCommandHandler> _logger;
 
     #endregion
 
@@ -61,12 +63,15 @@ public class DeleteSubscriptionPlanCommandHandler
     /// </summary>
     /// <param name="unitOfWork">Provides subscription plan persistence operations.</param>
     /// <param name="commonRequestService">Validates the current authenticated Host user.</param>
+    /// <param name="logger">The logger used for mapping cleanup diagnostics.</param>
     public DeleteSubscriptionPlanCommandHandler(
         IUnitOfWork unitOfWork,
-        ICommonRequestService commonRequestService)
+        ICommonRequestService commonRequestService,
+        ILogger<DeleteSubscriptionPlanCommandHandler> logger)
     {
         _unitOfWork = unitOfWork;
         _commonRequestService = commonRequestService;
+        _logger = logger;
     }
 
     #endregion
@@ -74,7 +79,7 @@ public class DeleteSubscriptionPlanCommandHandler
     #region Handle
 
     /// <summary>
-    /// Soft deletes an unused subscription plan and records the authenticated Host user as the actor.
+    /// Soft deletes an unused Subscription Plan and permanently removes all owned Module mappings atomically.
     /// </summary>
     /// <param name="request">The delete command to process.</param>
     /// <param name="cancellationToken">The token used to observe cancellation.</param>
@@ -118,18 +123,45 @@ public class DeleteSubscriptionPlanCommandHandler
             throw new ConflictException(AppConstants.ErrorMessages.SubscriptionPlanInUse);
         }
 
-        // Apply server-controlled soft-delete audit values.
-        subscriptionPlan.IsSoftDeleted = true;
-        subscriptionPlan.DeletedById = (int)hostUserId;
-        subscriptionPlan.DeletedDateTime = DateTime.UtcNow;
+        var transactionStarted = false;
+        try
+        {
+            await _unitOfWork.BeginTransactionAsync(cancellationToken);
+            transactionStarted = true;
 
-        // Persist the updated subscription plan entity without physically deleting it.
-        await _unitOfWork.SubscriptionRepository
-            .SoftDeleteSubscriptionPlanAsync(subscriptionPlan, cancellationToken);
+            // Remove owned mapping rows only after all Plan deletion guards succeed.
+            var deletedMappingCount = await _unitOfWork.PlanModuleMappingRepository
+                .DeleteAllBySubscriptionPlanIdAsync(subscriptionPlan.Id, cancellationToken);
 
-        return ApiResponse<bool>.Success(
-            true,
-            AppConstants.SuccessMessages.SubscriptionPlanDeletedSuccessfully);
+            // Apply server-controlled soft-delete audit values without physically deleting the plan.
+            subscriptionPlan.IsSoftDeleted = true;
+            subscriptionPlan.DeletedById = (int)hostUserId;
+            subscriptionPlan.DeletedDateTime = DateTime.UtcNow;
+
+            await _unitOfWork.SubscriptionRepository
+                .SoftDeleteSubscriptionPlanAsync(subscriptionPlan, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await _unitOfWork.CommitTransactionAsync(cancellationToken);
+            transactionStarted = false;
+
+            _logger.LogInformation(
+                "Soft-deleted Subscription Plan and removed owned Module mappings. SubscriptionPlanId: {SubscriptionPlanId}; DeletedMappings: {DeletedMappings}.",
+                subscriptionPlan.Id,
+                deletedMappingCount);
+
+            return ApiResponse<bool>.Success(
+                true,
+                AppConstants.SuccessMessages.SubscriptionPlanDeletedSuccessfully);
+        }
+        catch
+        {
+            if (transactionStarted)
+            {
+                await _unitOfWork.RollbackTransactionAsync(CancellationToken.None);
+            }
+
+            throw;
+        }
     }
 
     #endregion

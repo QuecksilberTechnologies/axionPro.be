@@ -28,21 +28,21 @@ public interface ISubscriptionRepository
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Persists an existing, non-deleted subscription plan entity prepared by the handler.
+    /// Stages an existing, non-deleted subscription plan entity prepared by the handler.
     /// </summary>
     /// <param name="entity">The tracked plan entity containing updated business fields.</param>
     /// <param name="cancellationToken">The token used to observe cancellation.</param>
-    /// <returns>The updated subscription plan entity.</returns>
+    /// <returns>The updated subscription plan entity staged for the Unit of Work transaction.</returns>
     Task<SubscriptionPlan> UpdateSubscriptionPlanAsync(
         SubscriptionPlan entity,
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Persists the server-prepared soft-delete state for a subscription plan entity.
+    /// Stages the server-prepared soft-delete state for a subscription plan entity.
     /// </summary>
     /// <param name="entity">The subscription plan entity prepared for soft deletion.</param>
     /// <param name="cancellationToken">The token used to observe cancellation.</param>
-    /// <returns>The soft-deleted subscription plan entity.</returns>
+    /// <returns>The soft-deleted subscription plan entity staged for the Unit of Work transaction.</returns>
     Task<SubscriptionPlan> SoftDeleteSubscriptionPlanAsync(
         SubscriptionPlan entity,
         CancellationToken cancellationToken);

@@ -55,6 +55,11 @@ namespace axionpro.application.Constants
             public const string SubscriptionPlanInUse = "The subscription plan cannot be deleted because it is currently assigned to one or more tenants.";
 
             /// <summary>
+            /// Indicates that one or more submitted Modules cannot be assigned to a subscription plan.
+            /// </summary>
+            public const string InvalidSubscriptionPlanModule = "One or more selected modules are not eligible for the subscription plan.";
+
+            /// <summary>
             /// Indicates that the requested Parent Module is unavailable in the requested scope.
             /// </summary>
             public const string ParentModuleNotFound = "The requested Parent Module was not found.";
@@ -136,6 +141,16 @@ namespace axionpro.application.Constants
             /// Confirms that modules available to a subscription plan were retrieved successfully.
             /// </summary>
             public const string SubscriptionPlanModulesRetrievedSuccessfully = "Subscription plan modules retrieved successfully.";
+
+            /// <summary>
+            /// Confirms that selectable Module options for a subscription plan were retrieved successfully.
+            /// </summary>
+            public const string SubscriptionPlanModuleOptionsRetrievedSuccessfully = "Subscription plan module options retrieved successfully.";
+
+            /// <summary>
+            /// Confirms that a subscription plan's Module mapping was synchronized successfully.
+            /// </summary>
+            public const string SubscriptionPlanModuleMappingSavedSuccessfully = "Subscription plan module mapping saved successfully.";
 
             /// <summary>
             /// Confirms that a Parent Module status cascade completed successfully.

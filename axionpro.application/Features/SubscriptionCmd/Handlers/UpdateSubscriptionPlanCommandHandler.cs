@@ -2,7 +2,7 @@
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
-// Purpose : Defines and handles Host-authorized updates of subscription plans.
+// Purpose : Updates Subscription Plan state and synchronizes dependent Module mappings atomically.
 // ================================================================
 
 using AutoMapper;
@@ -10,6 +10,7 @@ using axionpro.application.Constants;
 using axionpro.application.DTOs.SubscriptionModule;
 using axionpro.application.DTOS.SubscriptionModule;
 using axionpro.application.Exceptions;
+using axionpro.application.Features.PlanModuleMappingCmd;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
@@ -89,7 +90,7 @@ public sealed class UpdateSubscriptionPlanCommandHandler
     #region Handle
 
     /// <summary>
-    /// Updates an existing subscription plan without allowing client data to alter delete audit fields.
+    /// Updates an existing Subscription Plan and synchronizes Module mappings when its active state changes.
     /// </summary>
     /// <param name="request">The command to process.</param>
     /// <param name="cancellationToken">The token used to observe cancellation.</param>
@@ -101,12 +102,13 @@ public sealed class UpdateSubscriptionPlanCommandHandler
         CancellationToken cancellationToken)
     {
         // Validate the authenticated Host request before processing client-provided data.
-        await _commonRequestService.ValidateHostUserRequestAsync();
+        var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
         cancellationToken.ThrowIfCancellationRequested();
 
         if (request?.RequestDTO is null ||
             request.SubscriptionPlanId <= 0 ||
-            request.SubscriptionPlanId > int.MaxValue)
+            request.SubscriptionPlanId > int.MaxValue ||
+            hostUserId <= 0)
         {
             throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
         }
@@ -120,18 +122,66 @@ public sealed class UpdateSubscriptionPlanCommandHandler
             throw new NotFoundException(AppConstants.ErrorMessages.SubscriptionPlanNotFound);
         }
 
+        var wasActive = subscriptionPlan.IsActive;
+
         // AutoMapper ignores the entity identifier and all server-controlled delete audit fields.
         _mapper.Map(request.RequestDTO, subscriptionPlan);
+        subscriptionPlan.UpdatedById = hostUserId;
+        subscriptionPlan.UpdatedDateTime = DateTime.UtcNow;
 
-        var updatedSubscriptionPlan = await _unitOfWork.SubscriptionRepository
-            .UpdateSubscriptionPlanAsync(subscriptionPlan, cancellationToken);
+        var isStatusChanged = wasActive != subscriptionPlan.IsActive;
+        IReadOnlyCollection<int> eligibleModuleIds = Array.Empty<int>();
 
-        // Map the persisted entity to the subscription response model.
-        var response = _mapper.Map<SubscriptionActivePlanDTO>(updatedSubscriptionPlan);
+        if (isStatusChanged && subscriptionPlan.IsActive)
+        {
+            // Build the current eligibility set before reactivating historical mapping rows.
+            var eligibleModules = await _unitOfWork.PlanModuleMappingRepository
+                .GetEligibleModulesForPlanMappingAsync(cancellationToken);
+            eligibleModuleIds = PlanModuleHierarchy.Create(eligibleModules).ModuleIds;
+        }
 
-        return ApiResponse<SubscriptionActivePlanDTO>.Success(
-            response,
-            AppConstants.SuccessMessages.SubscriptionPlanUpdatedSuccessfully);
+        var transactionStarted = false;
+        try
+        {
+            await _unitOfWork.BeginTransactionAsync(cancellationToken);
+            transactionStarted = true;
+
+            if (isStatusChanged)
+            {
+                // Deactivate every mapping when disabled; reactivate only currently eligible mappings when enabled.
+                await _unitOfWork.PlanModuleMappingRepository
+                    .SynchronizePlanMappingStatusAsync(
+                        subscriptionPlan.Id,
+                        subscriptionPlan.IsActive,
+                        eligibleModuleIds,
+                        hostUserId,
+                        cancellationToken);
+            }
+
+            var updatedSubscriptionPlan = await _unitOfWork.SubscriptionRepository
+                .UpdateSubscriptionPlanAsync(subscriptionPlan, cancellationToken);
+
+            // Persist the plan and every prepared mapping change in one transaction.
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await _unitOfWork.CommitTransactionAsync(cancellationToken);
+            transactionStarted = false;
+
+            // Map the persisted entity to the subscription response model.
+            var response = _mapper.Map<SubscriptionActivePlanDTO>(updatedSubscriptionPlan);
+
+            return ApiResponse<SubscriptionActivePlanDTO>.Success(
+                response,
+                AppConstants.SuccessMessages.SubscriptionPlanUpdatedSuccessfully);
+        }
+        catch
+        {
+            if (transactionStarted)
+            {
+                await _unitOfWork.RollbackTransactionAsync(CancellationToken.None);
+            }
+
+            throw;
+        }
     }
 
     #endregion
