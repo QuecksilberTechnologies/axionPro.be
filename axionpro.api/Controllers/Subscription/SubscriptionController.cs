@@ -10,6 +10,7 @@ using axionpro.application.DTOs.Tenant;
 using axionpro.application.DTOS.SubscriptionModule;
 using axionpro.application.Features.SubscriptionCmd.Handlers;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace axionpro.api.Controllers.Subscription;
@@ -48,6 +49,8 @@ public class SubscriptionController : ControllerBase
     /// <param name="requestDTO">The active-status filter for subscription plans.</param>
     /// <param name="cancellationToken">The token used to observe request cancellation.</param>
     /// <returns>The filtered subscription plan response.</returns>
+    /// 
+    [AllowAnonymous]
     [HttpPost("get-all-subscription-plan")]
     public async Task<IActionResult> GetAllSubscriptionPlan(
         [FromBody] SubscriptionPlanRequestDTO requestDTO,
