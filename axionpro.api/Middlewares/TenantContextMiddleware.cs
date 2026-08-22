@@ -44,7 +44,6 @@ namespace axionpro.api.Middlewares
                 var claims = tokenService.ValidateAndExtractClaims(token);
                 if (claims == null || claims.IsExpired)
                 {
-                    await _next(context);
                     return;
                 }
 
@@ -52,7 +51,6 @@ namespace axionpro.api.Middlewares
                 if (string.IsNullOrWhiteSpace(encodedTenantId))
                 {
                     _logger.LogWarning("TenantId missing in token.");
-                    await _next(context);
                     return;
                 }
 
@@ -62,7 +60,6 @@ namespace axionpro.api.Middlewares
                 if (tenantId <= 0)
                 {
                     _logger.LogWarning("Invalid TenantId after decoding.");
-                    await _next(context);
                     return;
                 }
 
@@ -79,8 +76,10 @@ namespace axionpro.api.Middlewares
             {
                 _logger.LogError(ex, "TenantContextMiddleware error.");
             }
-
-            await _next(context);
+            finally
+            {
+                await _next(context);
+            }
         }
     }
 }

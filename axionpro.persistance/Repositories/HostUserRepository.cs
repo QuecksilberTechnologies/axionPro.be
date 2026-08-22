@@ -76,6 +76,7 @@ namespace axionpro.persistance.Repositories
         public async Task<HostUser?> GetByLoginIdAsync(string loginId)
         {
             return await _context.HostUsers
+                .AsNoTracking()
                 .FirstOrDefaultAsync(x =>
                     x.LoginId == loginId &&
                     x.IsActive &&

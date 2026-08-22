@@ -95,6 +95,7 @@ namespace axionpro.application.Features.HostCmd.Handler
             CancellationToken cancellationToken)
         {
             await _commonRequestService.ValidateHostUserRequestAsync();
+            await _unitOfWork.BeginTransactionAsync();
 
             if (request.DTO == null)
             {
@@ -136,9 +137,12 @@ namespace axionpro.application.Features.HostCmd.Handler
             hostUser.MobileNumber = dto.MobileNumber;
             hostUser.IsActive = dto.IsActive;
             hostUser.UpdatedDateTime = DateTime.UtcNow;
+            hostUser.UpdatedById = dto.Id;
 
             var updatedHostUser = await _unitOfWork.HostUserRepository
                 .UpdateAsync(hostUser);
+            await _unitOfWork.CommitTransactionAsync();
+
 
             _logger.LogInformation(
                 "Updated host user with Id {HostUserId}.",
