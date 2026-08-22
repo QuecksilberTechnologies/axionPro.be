@@ -124,6 +124,7 @@ public class DeleteSubscriptionPlanCommandHandler
         }
 
         var transactionStarted = false;
+        var utcNow = DateTime.UtcNow;
         try
         {
             await _unitOfWork.BeginTransactionAsync(cancellationToken);
@@ -136,7 +137,7 @@ public class DeleteSubscriptionPlanCommandHandler
             // Apply server-controlled soft-delete audit values without physically deleting the plan.
             subscriptionPlan.IsSoftDeleted = true;
             subscriptionPlan.DeletedById = (int)hostUserId;
-            subscriptionPlan.DeletedDateTime = DateTime.UtcNow;
+            subscriptionPlan.DeletedDateTime = utcNow;
 
             await _unitOfWork.SubscriptionRepository
                 .SoftDeleteSubscriptionPlanAsync(subscriptionPlan, cancellationToken);

@@ -89,8 +89,9 @@ public class DeleteModuleOperationCommandHandler
             throw new ValidationErrorException("A valid module operation mapping ID is required.");
         }
 
+        var utcNow = DateTime.UtcNow;
         var isDeleted = await _unitOfWork.ModuleRepository
-            .DeactivateModuleOperationMappingAsync(request.Id, hostUserId, cancellationToken);
+            .DeactivateModuleOperationMappingAsync(request.Id, hostUserId, utcNow, cancellationToken);
 
         if (!isDeleted)
         {

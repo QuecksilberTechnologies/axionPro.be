@@ -12,7 +12,10 @@ namespace axionpro.application.DTOs.Operation
     public class CreateOperationRequestDTO
     {
 
-        /// <summary> Product Owner Id Required</summary>
+        /// <summary>
+        /// Gets or sets the legacy product-owner identifier retained for request compatibility.
+        /// The authenticated Host user is used for audit attribution.
+        /// </summary>
 
         public required int  ProductOwnerId { get; set; }
       

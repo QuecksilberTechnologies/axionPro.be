@@ -15,7 +15,8 @@ public class UpdateOperationRequestDTO
     #region Update Properties
 
     /// <summary>
-    /// Gets or sets the product-owner identifier retained by the existing audit workflow.
+    /// Gets or sets the legacy product-owner identifier retained for request compatibility.
+    /// The authenticated Host user is used for audit attribution.
     /// </summary>
     public required int ProductOwnerId { get; set; }
 

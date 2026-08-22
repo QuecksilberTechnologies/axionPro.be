@@ -77,18 +77,28 @@ namespace axionpro.application.Interfaces.IRepositories
         /// </summary>
         /// <param name="tenant">The tracked Tenant whose active state was prepared by the handler.</param>
         /// <param name="hostUserId">The validated Host user used for credential audit fields.</param>
+        /// <param name="utcNow">The single UTC audit timestamp captured for the Host request.</param>
         /// <param name="cancellationToken">The token used to observe cancellation.</param>
         /// <returns>A task representing the staging operation.</returns>
-        Task SynchronizeTenantStatusAsync(Tenant tenant, long hostUserId, CancellationToken cancellationToken = default);
+        Task SynchronizeTenantStatusAsync(
+            Tenant tenant,
+            long hostUserId,
+            DateTime utcNow,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Stages Tenant soft deletion and deactivates all related login credentials without deleting historical records.
         /// </summary>
         /// <param name="tenant">The tracked Tenant prepared for soft deletion.</param>
         /// <param name="hostUserId">The validated Host user used for credential audit fields.</param>
+        /// <param name="utcNow">The single UTC audit timestamp captured for the Host request.</param>
         /// <param name="cancellationToken">The token used to observe cancellation.</param>
         /// <returns>A task representing the staging operation.</returns>
-        Task SoftDeleteTenantAndDeactivateCredentialsAsync(Tenant tenant, long hostUserId, CancellationToken cancellationToken = default);
+        Task SoftDeleteTenantAndDeactivateCredentialsAsync(
+            Tenant tenant,
+            long hostUserId,
+            DateTime utcNow,
+            CancellationToken cancellationToken = default);
 
         #endregion
     }

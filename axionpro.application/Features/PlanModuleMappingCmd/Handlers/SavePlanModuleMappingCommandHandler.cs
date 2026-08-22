@@ -121,6 +121,7 @@ public sealed class SavePlanModuleMappingCommandHandler
         }
 
         var transactionStarted = false;
+        var utcNow = DateTime.UtcNow;
         try
         {
             await _unitOfWork.BeginTransactionAsync(cancellationToken);
@@ -132,6 +133,7 @@ public sealed class SavePlanModuleMappingCommandHandler
                     selectedModuleIds,
                     request.RequestDTO.Remark,
                     hostUserId,
+                    utcNow,
                     cancellationToken);
 
             // Persist the complete mapping delta once within the transaction boundary.

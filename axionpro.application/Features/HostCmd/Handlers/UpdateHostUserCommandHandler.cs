@@ -94,8 +94,7 @@ namespace axionpro.application.Features.HostCmd.Handler
             UpdateHostUserCommand request,
             CancellationToken cancellationToken)
         {
-            await _commonRequestService.ValidateHostUserRequestAsync();
-            await _unitOfWork.BeginTransactionAsync();
+            var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
 
             if (request.DTO == null)
             {
@@ -130,40 +129,56 @@ namespace axionpro.application.Features.HostCmd.Handler
                     409);
             }
 
-            hostUser.HostRoleId = dto.HostRoleId;
-            hostUser.Name = dto.Name;
-            hostUser.LoginId = dto.LoginId;
-            hostUser.Email = dto.Email;
-            hostUser.MobileNumber = dto.MobileNumber;
-            hostUser.IsActive = dto.IsActive;
-            hostUser.UpdatedDateTime = DateTime.UtcNow;
-            hostUser.UpdatedById = dto.Id;
-
-            var updatedHostUser = await _unitOfWork.HostUserRepository
-                .UpdateAsync(hostUser);
-            await _unitOfWork.CommitTransactionAsync();
-
-
-            _logger.LogInformation(
-                "Updated host user with Id {HostUserId}.",
-                updatedHostUser.Id);
-
-            var response = new UpdateHostUserResponseDTO
+            var transactionStarted = false;
+            try
             {
-                Id = updatedHostUser.Id,
-                HostRoleId = updatedHostUser.HostRoleId,
-                HostRoleName = updatedHostUser.HostRole?.Name,
-                Name = updatedHostUser.Name,
-                LoginId = updatedHostUser.LoginId,
-                Email = updatedHostUser.Email,
-                MobileNumber = updatedHostUser.MobileNumber,
-                IsActive = updatedHostUser.IsActive,
-                UpdatedDateTime = updatedHostUser.UpdatedDateTime
-            };
+                await _unitOfWork.BeginTransactionAsync(cancellationToken);
+                transactionStarted = true;
 
-            return ApiResponse<UpdateHostUserResponseDTO>.Success(
-                response,
-                "Host user updated successfully.");
+                hostUser.HostRoleId = dto.HostRoleId;
+                hostUser.Name = dto.Name;
+                hostUser.LoginId = dto.LoginId;
+                hostUser.Email = dto.Email;
+                hostUser.MobileNumber = dto.MobileNumber;
+                hostUser.IsActive = dto.IsActive;
+                hostUser.UpdatedById = hostUserId;
+                hostUser.UpdatedDateTime = DateTime.UtcNow;
+
+                var updatedHostUser = await _unitOfWork.HostUserRepository
+                    .UpdateAsync(hostUser);
+                await _unitOfWork.CommitTransactionAsync(cancellationToken);
+                transactionStarted = false;
+
+                _logger.LogInformation(
+                    "Updated host user with Id {HostUserId}.",
+                    updatedHostUser.Id);
+
+                var response = new UpdateHostUserResponseDTO
+                {
+                    Id = updatedHostUser.Id,
+                    HostRoleId = updatedHostUser.HostRoleId,
+                    HostRoleName = updatedHostUser.HostRole?.Name,
+                    Name = updatedHostUser.Name,
+                    LoginId = updatedHostUser.LoginId,
+                    Email = updatedHostUser.Email,
+                    MobileNumber = updatedHostUser.MobileNumber,
+                    IsActive = updatedHostUser.IsActive,
+                    UpdatedDateTime = updatedHostUser.UpdatedDateTime
+                };
+
+                return ApiResponse<UpdateHostUserResponseDTO>.Success(
+                    response,
+                    "Host user updated successfully.");
+            }
+            catch
+            {
+                if (transactionStarted)
+                {
+                    await _unitOfWork.RollbackTransactionAsync(CancellationToken.None);
+                }
+
+                throw;
+            }
         }
 
         #endregion

@@ -181,6 +181,7 @@ public sealed class PlanModuleMappingRepository : IPlanModuleMappingRepository
         IReadOnlyCollection<int> selectedModuleIds,
         string? remark,
         long hostUserId,
+        DateTime utcNow,
         CancellationToken cancellationToken)
     {
         var selectedModuleIdSet = selectedModuleIds.ToHashSet();
@@ -191,7 +192,6 @@ public sealed class PlanModuleMappingRepository : IPlanModuleMappingRepository
         var mappingsByModuleId = existingMappings
             .GroupBy(mapping => mapping.ModuleId)
             .ToDictionary(group => group.Key, group => group.ToList());
-        var timestamp = DateTime.UtcNow;
         var result = new SavePlanModuleMappingResponseDTO
         {
             SubscriptionPlanId = subscriptionPlanId,
@@ -210,9 +210,9 @@ public sealed class PlanModuleMappingRepository : IPlanModuleMappingRepository
                     IsActive = true,
                     Remark = remark,
                     AddedById = hostUserId,
-                    AddedDateTime = timestamp,
-                    UpdatedById = hostUserId,
-                    UpdatedDateTime = timestamp
+                    AddedDateTime = utcNow,
+                    UpdatedById = null,
+                    UpdatedDateTime = null
                 }, cancellationToken);
 
                 result.AddedCount++;
@@ -224,7 +224,7 @@ public sealed class PlanModuleMappingRepository : IPlanModuleMappingRepository
             {
                 canonicalMapping.IsActive = true;
                 canonicalMapping.UpdatedById = hostUserId;
-                canonicalMapping.UpdatedDateTime = timestamp;
+                canonicalMapping.UpdatedDateTime = utcNow;
 
                 if (!string.IsNullOrWhiteSpace(remark))
                 {
@@ -237,7 +237,7 @@ public sealed class PlanModuleMappingRepository : IPlanModuleMappingRepository
             // Retain one active row per logical plan and Module combination.
             foreach (var duplicateMapping in mappings.Where(mapping => mapping.Id != canonicalMapping.Id && mapping.IsActive == true))
             {
-                DeactivateMapping(duplicateMapping, hostUserId, timestamp);
+                DeactivateMapping(duplicateMapping, hostUserId, utcNow);
                 result.DeactivatedCount++;
             }
         }
@@ -246,7 +246,7 @@ public sealed class PlanModuleMappingRepository : IPlanModuleMappingRepository
                      !selectedModuleIdSet.Contains(mapping.ModuleId) &&
                      mapping.IsActive == true))
         {
-            DeactivateMapping(mapping, hostUserId, timestamp);
+            DeactivateMapping(mapping, hostUserId, utcNow);
             result.DeactivatedCount++;
         }
 
@@ -267,13 +267,13 @@ public sealed class PlanModuleMappingRepository : IPlanModuleMappingRepository
         bool isPlanActive,
         IReadOnlyCollection<int> eligibleModuleIds,
         long hostUserId,
+        DateTime utcNow,
         CancellationToken cancellationToken)
     {
         var mappings = await _context.PlanModuleMappings
             .Where(mapping => mapping.SubscriptionPlanId == subscriptionPlanId)
             .ToListAsync(cancellationToken);
         var eligibleModuleIdSet = eligibleModuleIds.ToHashSet();
-        var timestamp = DateTime.UtcNow;
         var changedCount = 0;
 
         foreach (var mapping in mappings)
@@ -287,7 +287,7 @@ public sealed class PlanModuleMappingRepository : IPlanModuleMappingRepository
 
             mapping.IsActive = shouldBeActive;
             mapping.UpdatedById = hostUserId;
-            mapping.UpdatedDateTime = timestamp;
+            mapping.UpdatedDateTime = utcNow;
             changedCount++;
         }
 

@@ -7,6 +7,7 @@
 
 using AutoMapper;
 using axionpro.application.DTOS.Host;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IHashed;
@@ -100,22 +101,32 @@ namespace axionpro.application.Features.HostCmd.Handler
             CreateHostRoleCommand request,
             CancellationToken cancellationToken)
         {
-            await _commonRequestService.ValidateHostUserRequestAsync();
+            var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
 
+            if (request?.DTO == null)
+            {
+                throw new ValidationErrorException("Host role details are required.");
+            }
+
+            var utcNow = DateTime.UtcNow;
+            var entity = _mapper.Map<HostRole>(request.DTO);
+            entity.IsActive = true;
+            entity.IsSoftDeleted = false;
+            entity.AddedById = hostUserId;
+            entity.AddedDateTime = utcNow;
+            entity.UpdatedById = null;
+            entity.UpdatedDateTime = null;
+            entity.DeletedById = null;
+            entity.DeletedDateTime = null;
+
+            var transactionStarted = false;
             try
             {
-                await _unitOfWork.BeginTransactionAsync();
-
-                // Map Request DTO -> Entity
-                var entity = _mapper.Map<HostRole>(request.DTO);
-
-                // Default values
-                entity.IsActive = true;
-                entity.IsSoftDeleted = false;
-                entity.AddedDateTime = DateTime.UtcNow;
+                await _unitOfWork.BeginTransactionAsync(cancellationToken);
+                transactionStarted = true;
 
                 // Create Host Role
-                var result = await _unitOfWork.HostRoleRepository
+                await _unitOfWork.HostRoleRepository
                     .AddAsync(entity);
 
                 // Prepare Response
@@ -129,13 +140,19 @@ namespace axionpro.application.Features.HostCmd.Handler
 
                 //response.Permissions = permissions;
 
+                await _unitOfWork.CommitTransactionAsync(cancellationToken);
+                transactionStarted = false;
+
                 return ApiResponse<CreateHostRoleResponseDTO>.Success(
                     response,
                     "Host role created successfully.");
             }
             catch (Exception ex)
             {
-                await _unitOfWork.RollbackTransactionAsync();
+                if (transactionStarted)
+                {
+                    await _unitOfWork.RollbackTransactionAsync(CancellationToken.None);
+                }
 
                 _logger.LogError(
                     ex,

@@ -65,6 +65,7 @@ public interface IPlanModuleMappingRepository
     /// <param name="selectedModuleIds">The validated and hierarchy-expanded selected Module identifiers.</param>
     /// <param name="remark">The optional remark for newly created or reactivated mappings.</param>
     /// <param name="hostUserId">The authenticated Host user performing the change.</param>
+    /// <param name="utcNow">The single UTC audit timestamp captured for this request.</param>
     /// <param name="cancellationToken">The token used to observe cancellation.</param>
     /// <returns>The staged synchronization counts.</returns>
     Task<SavePlanModuleMappingResponseDTO> SynchronizeMappingsAsync(
@@ -72,6 +73,7 @@ public interface IPlanModuleMappingRepository
         IReadOnlyCollection<int> selectedModuleIds,
         string? remark,
         long hostUserId,
+        DateTime utcNow,
         CancellationToken cancellationToken);
 
     /// <summary>
@@ -81,6 +83,7 @@ public interface IPlanModuleMappingRepository
     /// <param name="isPlanActive">The new Subscription Plan active state.</param>
     /// <param name="eligibleModuleIds">The currently eligible Module identifiers used during activation.</param>
     /// <param name="hostUserId">The authenticated Host user performing the status change.</param>
+    /// <param name="utcNow">The single UTC audit timestamp captured for this request.</param>
     /// <param name="cancellationToken">The token used to observe cancellation.</param>
     /// <returns>The number of mapping rows whose active state changed.</returns>
     Task<int> SynchronizePlanMappingStatusAsync(
@@ -88,6 +91,7 @@ public interface IPlanModuleMappingRepository
         bool isPlanActive,
         IReadOnlyCollection<int> eligibleModuleIds,
         long hostUserId,
+        DateTime utcNow,
         CancellationToken cancellationToken);
 
     /// <summary>

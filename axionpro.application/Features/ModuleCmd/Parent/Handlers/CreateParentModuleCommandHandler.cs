@@ -9,12 +9,11 @@ using axionpro.application.Constants;
 using axionpro.application.Exceptions;
 using axionpro.application.DTOS.Module.ParentModule;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 
 namespace axionpro.application.Features.ModuleCmd.Parent.Commands
 {
@@ -50,7 +49,7 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
         #region Fields
 
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ICommonRequestService _commonRequestService;
         private readonly ILogger<CreateParentModuleCommandHandler> _logger;
 
         #endregion
@@ -61,15 +60,15 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
         /// Initializes a new instance of the <see cref="CreateParentModuleCommandHandler"/> class.
         /// </summary>
         /// <param name="unitOfWork">Provides the existing Module repository.</param>
-        /// <param name="httpContextAccessor">Provides the ASP.NET Core-authenticated principal.</param>
+        /// <param name="commonRequestService">Validates the authenticated Host request and resolves its trusted actor.</param>
         /// <param name="logger">Records processing failures.</param>
         public CreateParentModuleCommandHandler(
             IUnitOfWork unitOfWork,
-            IHttpContextAccessor httpContextAccessor,
+            ICommonRequestService commonRequestService,
             ILogger<CreateParentModuleCommandHandler> logger)
         {
             _unitOfWork = unitOfWork;
-            _httpContextAccessor = httpContextAccessor;
+            _commonRequestService = commonRequestService;
             _logger = logger;
         }
 
@@ -88,7 +87,7 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
             CreateParentModuleCommand request,
             CancellationToken cancellationToken)
         {
-            var hostUserId = GetAuthenticatedHostUserId();
+            var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
 
             if (request?.DTO == null)
             {
@@ -106,6 +105,7 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
                 throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
             }
 
+            var utcNow = DateTime.UtcNow;
             try
             {
                 var tenantId = ResolveTenantId(dto);
@@ -140,7 +140,9 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
                     ItemPriority = dto.ItemPriority,
                     Remark = dto.Remark?.Trim(),
                     AddedById = hostUserId,
-                    AddedDateTime = DateTime.UtcNow
+                    AddedDateTime = utcNow,
+                    UpdatedById = null,
+                    UpdatedDateTime = null
                 };
 
                 var created = await _unitOfWork.ModuleRepository.AddParentModuleAsync(entity, cancellationToken);
@@ -158,38 +160,6 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
                     dto.ModuleScope);
                 throw;
             }
-        }
-
-        #endregion
-
-        #region Host Authorization
-
-        /// <summary>
-        /// Verifies that the ASP.NET Core-authenticated principal is a Host user and returns its actor identifier.
-        /// </summary>
-        /// <returns>The authenticated Host user identifier.</returns>
-        /// <exception cref="UnauthorizedAccessException">Thrown when the principal is missing, unauthenticated, non-Host, or lacks a valid Host user identifier.</exception>
-        private long GetAuthenticatedHostUserId()
-        {
-            var principal = _httpContextAccessor.HttpContext?.User;
-            if (principal?.Identity?.IsAuthenticated != true)
-            {
-                throw new UnauthorizedAccessException("An authenticated Host principal is required.");
-            }
-
-            var userType = principal.FindFirst(AppConstants.UserTypeClaim)?.Value;
-            if (!string.Equals(userType, AppConstants.HostUserType, StringComparison.OrdinalIgnoreCase))
-            {
-                throw new UnauthorizedAccessException("Only Host users can create Parent Modules.");
-            }
-
-            var hostUserIdValue = principal.FindFirst(AppConstants.HostUserIdClaim)?.Value;
-            if (!long.TryParse(hostUserIdValue, out var hostUserId) || hostUserId <= 0)
-            {
-                throw new UnauthorizedAccessException("A valid HostUserId claim is required.");
-            }
-
-            return hostUserId;
         }
 
         #endregion

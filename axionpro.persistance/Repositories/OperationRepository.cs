@@ -38,22 +38,25 @@ namespace axionpro.persistance.Repositories
             }
         }
 
-        public async Task<bool> DeleteOperationAsync(int id)
+        public async Task<bool> DeleteOperationAsync(Operation operation)
         {
-            var operation = await _context.Operations
-                .FirstOrDefaultAsync(item => item.Id == id);
+            ArgumentNullException.ThrowIfNull(operation);
 
-            if (operation == null)
+            var existingOperation = await _context.Operations
+                .FirstOrDefaultAsync(item => item.Id == operation.Id);
+
+            if (existingOperation == null)
             {
                 return false;
             }
 
-            operation.IsActive = false;
-            operation.UpdateDateTime = DateTime.UtcNow;
+            existingOperation.IsActive = false;
+            existingOperation.UpdatedById = operation.UpdatedById;
+            existingOperation.UpdateDateTime = operation.UpdateDateTime;
 
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Operation with ID {OperationId} was deactivated.", id);
+            _logger.LogInformation("Operation with ID {OperationId} was deactivated.", operation.Id);
             return true;
         }
 

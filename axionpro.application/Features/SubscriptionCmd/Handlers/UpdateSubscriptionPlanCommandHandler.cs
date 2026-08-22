@@ -126,8 +126,9 @@ public sealed class UpdateSubscriptionPlanCommandHandler
 
         // AutoMapper ignores the entity identifier and all server-controlled delete audit fields.
         _mapper.Map(request.RequestDTO, subscriptionPlan);
+        var utcNow = DateTime.UtcNow;
         subscriptionPlan.UpdatedById = hostUserId;
-        subscriptionPlan.UpdatedDateTime = DateTime.UtcNow;
+        subscriptionPlan.UpdatedDateTime = utcNow;
 
         var isStatusChanged = wasActive != subscriptionPlan.IsActive;
         IReadOnlyCollection<int> eligibleModuleIds = Array.Empty<int>();
@@ -155,6 +156,7 @@ public sealed class UpdateSubscriptionPlanCommandHandler
                         subscriptionPlan.IsActive,
                         eligibleModuleIds,
                         hostUserId,
+                        utcNow,
                         cancellationToken);
             }
 

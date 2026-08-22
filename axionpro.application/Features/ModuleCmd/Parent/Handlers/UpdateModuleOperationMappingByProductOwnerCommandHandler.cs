@@ -105,8 +105,9 @@ public class UpdateModuleOperationMappingByProductOwnerCommandHandler
             ?? throw new ApiException("Module operation mapping not found.", 404);
 
         _mapper.Map(dto, existing);
+        var utcNow = DateTime.UtcNow;
         existing.UpdatedById = hostUserId;
-        existing.UpdatedDateTime = DateTime.UtcNow;
+        existing.UpdatedDateTime = utcNow;
 
         var updated = await _unitOfWork.ModuleRepository
             .UpdateModuleOperationMappingAsync(existing, cancellationToken);

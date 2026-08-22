@@ -346,11 +346,13 @@ namespace axionpro.persistance.Repositories
         /// </summary>
         /// <param name="tenant">The tracked Tenant whose active state was prepared by the handler.</param>
         /// <param name="hostUserId">The validated Host user used for credential audit fields.</param>
+        /// <param name="utcNow">The single UTC audit timestamp captured for the Host request.</param>
         /// <param name="cancellationToken">The token used to observe cancellation.</param>
         /// <returns>A task representing the staging operation.</returns>
         public async Task SynchronizeTenantStatusAsync(
             Tenant tenant,
             long hostUserId,
+            DateTime utcNow,
             CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(tenant);
@@ -367,7 +369,7 @@ namespace axionpro.persistance.Repositories
             {
                 credential.IsActive = tenant.IsActive;
                 credential.UpdatedById = hostUserId;
-                credential.UpdatedDateTime = DateTime.UtcNow;
+                credential.UpdatedDateTime = utcNow;
             }
         }
 
@@ -376,11 +378,13 @@ namespace axionpro.persistance.Repositories
         /// </summary>
         /// <param name="tenant">The tracked Tenant prepared for soft deletion.</param>
         /// <param name="hostUserId">The validated Host user used for credential audit fields.</param>
+        /// <param name="utcNow">The single UTC audit timestamp captured for the Host request.</param>
         /// <param name="cancellationToken">The token used to observe cancellation.</param>
         /// <returns>A task representing the staging operation.</returns>
         public async Task SoftDeleteTenantAndDeactivateCredentialsAsync(
             Tenant tenant,
             long hostUserId,
+            DateTime utcNow,
             CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(tenant);
@@ -396,7 +400,7 @@ namespace axionpro.persistance.Repositories
                 // Preserve each credential's existing soft-delete state while deactivating access.
                 credential.IsActive = false;
                 credential.UpdatedById = hostUserId;
-                credential.UpdatedDateTime = DateTime.UtcNow;
+                credential.UpdatedDateTime = utcNow;
             }
         }
 

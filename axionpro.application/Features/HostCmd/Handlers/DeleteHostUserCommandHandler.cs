@@ -91,7 +91,7 @@ namespace axionpro.application.Features.HostCmd.Handler
             DeleteHostUserCommand request,
             CancellationToken cancellationToken)
         {
-            await _commonRequestService.ValidateHostUserRequestAsync();
+            var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
 
             if (request.DTO == null)
             {
@@ -115,6 +115,7 @@ namespace axionpro.application.Features.HostCmd.Handler
 
             hostUser.IsSoftDeleted = true;
             hostUser.IsActive = false;
+            hostUser.DeletedById = hostUserId;
             hostUser.DeletedDateTime = DateTime.UtcNow;
 
             var result = await _unitOfWork.HostUserRepository

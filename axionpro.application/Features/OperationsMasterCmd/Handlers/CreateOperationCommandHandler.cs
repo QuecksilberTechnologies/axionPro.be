@@ -89,16 +89,11 @@ public class CreateOperationCommandHandler
         CreateOperationCommand request,
         CancellationToken cancellationToken)
     {
-        await _commonRequestService.ValidateHostUserRequestAsync();
+        var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
         cancellationToken.ThrowIfCancellationRequested();
 
         var dto = request?.CreateOperationRequestDTO
             ?? throw new ValidationErrorException("Operation details are required.");
-
-        if (dto.ProductOwnerId <= 0)
-        {
-            throw new ValidationErrorException("A valid product owner ID is required.");
-        }
 
         if (string.IsNullOrWhiteSpace(dto.OperationName))
         {
@@ -110,10 +105,11 @@ public class CreateOperationCommandHandler
             throw new ValidationErrorException("A valid operation type is required.");
         }
 
+        var utcNow = DateTime.UtcNow;
         var operation = _mapper.Map<Operation>(dto);
         operation.OperationName = dto.OperationName.Trim();
-        operation.AddedById = dto.ProductOwnerId;
-        operation.AddedDateTime = DateTime.UtcNow;
+        operation.AddedById = hostUserId;
+        operation.AddedDateTime = utcNow;
         operation.UpdatedById = null;
         operation.UpdateDateTime = null;
 

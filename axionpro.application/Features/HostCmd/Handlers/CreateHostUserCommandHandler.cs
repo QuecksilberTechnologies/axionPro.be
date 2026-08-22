@@ -7,6 +7,7 @@
 
 using AutoMapper;
 using axionpro.application.DTOS.Host;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IHashed;
@@ -99,28 +100,38 @@ namespace axionpro.application.Features.HostCmd.Handler
             CreateHostUserCommand request,
             CancellationToken cancellationToken)
         {
-            await _commonRequestService.ValidateHostUserRequestAsync();
+            var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
 
+            if (request?.DTO == null)
+            {
+                throw new ValidationErrorException("Host user details are required.");
+            }
+
+            var dto = request.DTO;
+            var utcNow = DateTime.UtcNow;
+
+            // The request DTO contains only client-editable values; audit values come from the trusted Host context.
+            var entity = _mapper.Map<HostUser>(dto);
+            entity.PasswordHash = _passwordService.HashPassword(dto.Password);
+            entity.IsActive = true;
+            entity.IsSoftDeleted = false;
+            entity.AddedById = hostUserId;
+            entity.AddedDateTime = utcNow;
+            entity.UpdatedById = null;
+            entity.UpdatedDateTime = null;
+            entity.DeletedById = null;
+            entity.DeletedDateTime = null;
+
+            var transactionStarted = false;
             try
             {
-                await _unitOfWork.BeginTransactionAsync();
-
-                // Create Entity
-                var entity = _mapper.Map<HostUser>(request.DTO);
-
-                // Password Hash
-                entity.PasswordHash =
-                    _passwordService.HashPassword(request.DTO.Password);
-
-                // Default Values
-                entity.IsActive = true;
-                entity.IsSoftDeleted = false;
-                entity.AddedDateTime = DateTime.UtcNow;
+                await _unitOfWork.BeginTransactionAsync(cancellationToken);
+                transactionStarted = true;
 
                 // Add Host User
-                var result = await _unitOfWork.HostUserRepository.AddAsync(entity);
+                await _unitOfWork.HostUserRepository.AddAsync(entity);
 
-                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                 //// Get Role + Permissions
                 //var permissions = await _unitOfWork.HostUserRepository
@@ -134,7 +145,8 @@ namespace axionpro.application.Features.HostCmd.Handler
 
                 //response.Permissions = permissions.Permissions;
 
-                await _unitOfWork.CommitTransactionAsync();
+                await _unitOfWork.CommitTransactionAsync(cancellationToken);
+                transactionStarted = false;
 
                 return ApiResponse<CreateHostUserResponseDTO>
                     .Success(
@@ -143,7 +155,10 @@ namespace axionpro.application.Features.HostCmd.Handler
             }
             catch (Exception ex)
             {
-                await _unitOfWork.RollbackTransactionAsync();
+                if (transactionStarted)
+                {
+                    await _unitOfWork.RollbackTransactionAsync(CancellationToken.None);
+                }
 
                 _logger.LogError(
                     ex,

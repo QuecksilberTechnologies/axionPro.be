@@ -1327,11 +1327,13 @@ namespace axionpro.persistance.Repositories
         /// </summary>
         /// <param name="id">The mapping identifier.</param>
         /// <param name="hostUserId">The authenticated Host user identifier.</param>
+        /// <param name="utcNow">The UTC audit timestamp captured by the application layer.</param>
         /// <param name="cancellationToken">A token to observe while saving changes.</param>
         /// <returns><see langword="true"/> when a mapping was deactivated; otherwise <see langword="false"/>.</returns>
         public async Task<bool> DeactivateModuleOperationMappingAsync(
             int id,
             long hostUserId,
+            DateTime utcNow,
             CancellationToken cancellationToken)
         {
             var context = _context ?? throw new InvalidOperationException("Module context is unavailable.");
@@ -1345,7 +1347,7 @@ namespace axionpro.persistance.Repositories
 
             entity.IsActive = false;
             entity.UpdatedById = hostUserId;
-            entity.UpdatedDateTime = DateTime.UtcNow;
+            entity.UpdatedDateTime = utcNow;
 
             await context.SaveChangesAsync(cancellationToken);
 

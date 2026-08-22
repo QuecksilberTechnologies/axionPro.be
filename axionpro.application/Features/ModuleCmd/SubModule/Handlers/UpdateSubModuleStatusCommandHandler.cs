@@ -9,13 +9,12 @@ using axionpro.application.Constants;
 using axionpro.application.Exceptions;
 using axionpro.application.DTOS.Module.SubModule;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using axionpro.application.Features.ModuleCmd.SubModule.Commands;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 
 namespace axionpro.application.Features.ModuleCmd.SubModule.Commands
 {
@@ -57,7 +56,7 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
         #region Fields
 
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ICommonRequestService _commonRequestService;
         private readonly ILogger<UpdateSubModuleStatusCommandHandler> _logger;
 
         #endregion
@@ -68,15 +67,15 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
         /// Initializes a new instance of the <see cref="UpdateSubModuleStatusCommandHandler"/> class.
         /// </summary>
         /// <param name="unitOfWork">Provides the existing Module repository.</param>
-        /// <param name="httpContextAccessor">Provides the ASP.NET Core-authenticated principal.</param>
+        /// <param name="commonRequestService">Validates the authenticated Host request and resolves its trusted actor.</param>
         /// <param name="logger">Records unexpected processing failures.</param>
         public UpdateSubModuleStatusCommandHandler(
             IUnitOfWork unitOfWork,
-            IHttpContextAccessor httpContextAccessor,
+            ICommonRequestService commonRequestService,
             ILogger<UpdateSubModuleStatusCommandHandler> logger)
         {
             _unitOfWork = unitOfWork;
-            _httpContextAccessor = httpContextAccessor;
+            _commonRequestService = commonRequestService;
             _logger = logger;
         }
 
@@ -96,7 +95,7 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
             UpdateSubModuleStatusCommand request,
             CancellationToken cancellationToken)
         {
-            var hostUserId = GetAuthenticatedHostUserId();
+            var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
 
             if (request == null || request.Id <= 0 || request.DTO == null)
             {
@@ -139,8 +138,9 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
                 entity.ParentModuleId = parentModule.Id;
                 entity.IsLeafNode = true;
                 entity.IsActive = dto.IsActive;
+                var utcNow = DateTime.UtcNow;
                 entity.UpdatedById = hostUserId;
-                entity.UpdatedDateTime = DateTime.UtcNow;
+                entity.UpdatedDateTime = utcNow;
 
                 var updated = await _unitOfWork.ModuleRepository.UpdateSubModuleAsync(entity, cancellationToken);
 
@@ -153,38 +153,6 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
                 _logger.LogError(exception, "Unable to update SubModule {ModuleId} status in ModuleScope {ModuleScope}.", request.Id, dto.ModuleScope);
                 throw;
             }
-        }
-
-        #endregion
-
-        #region Authentication
-
-        /// <summary>
-        /// Verifies that the ASP.NET Core-authenticated principal is a Host user and returns its actor identifier.
-        /// </summary>
-        /// <returns>The authenticated Host user identifier.</returns>
-        /// <exception cref="UnauthorizedAccessException">Thrown when the principal is missing, unauthenticated, non-Host, or lacks a valid Host user identifier.</exception>
-        private long GetAuthenticatedHostUserId()
-        {
-            var principal = _httpContextAccessor.HttpContext?.User;
-            if (principal?.Identity?.IsAuthenticated != true)
-            {
-                throw new UnauthorizedAccessException("An authenticated Host principal is required.");
-            }
-
-            var userType = principal.FindFirst(AppConstants.UserTypeClaim)?.Value;
-            if (!string.Equals(userType, AppConstants.HostUserType, StringComparison.OrdinalIgnoreCase))
-            {
-                throw new UnauthorizedAccessException("Only Host users can update SubModules.");
-            }
-
-            var hostUserIdValue = principal.FindFirst(AppConstants.HostUserIdClaim)?.Value;
-            if (!long.TryParse(hostUserIdValue, out var hostUserId) || hostUserId <= 0)
-            {
-                throw new UnauthorizedAccessException("A valid HostUserId claim is required.");
-            }
-
-            return hostUserId;
         }
 
         #endregion

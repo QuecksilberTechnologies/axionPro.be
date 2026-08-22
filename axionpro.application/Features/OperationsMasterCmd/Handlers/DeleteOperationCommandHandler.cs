@@ -82,7 +82,7 @@ public class DeleteOperationCommandHandler
         DeleteOperationCommand request,
         CancellationToken cancellationToken)
     {
-        await _commonRequestService.ValidateHostUserRequestAsync();
+        var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
         cancellationToken.ThrowIfCancellationRequested();
 
         if (request is null || request.OperationId <= 0)
@@ -100,8 +100,12 @@ public class DeleteOperationCommandHandler
             throw new ConflictException(AppConstants.ErrorMessages.OperationLinkedToModule);
         }
 
+        var utcNow = DateTime.UtcNow;
+        operation.UpdatedById = hostUserId;
+        operation.UpdateDateTime = utcNow;
+
         var isDeleted = await _unitOfWork.OperationRepository
-            .DeleteOperationAsync(request.OperationId);
+            .DeleteOperationAsync(operation);
 
         if (!isDeleted)
         {

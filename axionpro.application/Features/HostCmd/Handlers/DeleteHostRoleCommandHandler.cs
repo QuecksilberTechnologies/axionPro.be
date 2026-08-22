@@ -91,7 +91,7 @@ namespace axionpro.application.Features.HostCmd.Handler
             DeleteHostRoleCommand request,
             CancellationToken cancellationToken)
         {
-            await _commonRequestService.ValidateHostUserRequestAsync();
+            var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
 
             if (request.DTO == null)
             {
@@ -125,6 +125,7 @@ namespace axionpro.application.Features.HostCmd.Handler
 
             hostRole.IsSoftDeleted = true;
             hostRole.IsActive = false;
+            hostRole.DeletedById = hostUserId;
             hostRole.DeletedDateTime = DateTime.UtcNow;
 
             var result = await _unitOfWork.HostRoleRepository

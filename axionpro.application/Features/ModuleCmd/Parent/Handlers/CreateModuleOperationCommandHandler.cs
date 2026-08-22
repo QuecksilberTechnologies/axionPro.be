@@ -100,9 +100,10 @@ public class CreateModuleOperationCommandHandler
 
         ValidateMappingValues(dto.ModuleId, dto.OperationId, dto.DataViewStructureId, dto.PageTypeId);
 
+        var utcNow = DateTime.UtcNow;
         var entity = _mapper.Map<ModuleOperationMapping>(dto);
         entity.AddedById = hostUserId;
-        entity.AddedDateTime = DateTime.UtcNow;
+        entity.AddedDateTime = utcNow;
         entity.UpdatedById = null;
         entity.UpdatedDateTime = null;
 

@@ -129,12 +129,13 @@ public sealed class DeleteHostManagedTenantCommandHandler
             throw new NotFoundException(AppConstants.ErrorMessages.ResourceNotFound);
         }
 
+        var utcNow = DateTime.UtcNow;
         tenant.IsSoftDeleted = true;
         tenant.IsActive = false;
         tenant.SoftDeletedById = hostUserId;
-        tenant.DeletedDateTime = DateTime.UtcNow;
+        tenant.DeletedDateTime = utcNow;
         tenant.UpdatedById = hostUserId;
-        tenant.UpdatedDateTime = DateTime.UtcNow;
+        tenant.UpdatedDateTime = utcNow;
 
         var transactionStarted = false;
         try
@@ -144,7 +145,7 @@ public sealed class DeleteHostManagedTenantCommandHandler
 
             // Keep the Tenant and every related credential state transition atomic.
             await _unitOfWork.TenantRepository
-                .SoftDeleteTenantAndDeactivateCredentialsAsync(tenant, hostUserId, cancellationToken);
+                .SoftDeleteTenantAndDeactivateCredentialsAsync(tenant, hostUserId, utcNow, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             await _unitOfWork.CommitTransactionAsync(cancellationToken);
             transactionStarted = false;

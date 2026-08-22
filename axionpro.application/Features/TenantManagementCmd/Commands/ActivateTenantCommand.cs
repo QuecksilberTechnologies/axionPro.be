@@ -107,11 +107,12 @@ public sealed class ActivateTenantCommandHandler
             throw new NotFoundException(AppConstants.ErrorMessages.ResourceNotFound);
         }
 
+        var utcNow = DateTime.UtcNow;
         tenant.IsActive = true;
         tenant.UpdatedById = hostUserId;
-        tenant.UpdatedDateTime = DateTime.UtcNow;
+        tenant.UpdatedDateTime = utcNow;
 
-        await PersistStatusAsync(tenant, hostUserId, cancellationToken);
+        await PersistStatusAsync(tenant, hostUserId, utcNow, cancellationToken);
 
         return ApiResponse<TenantResponseDTO>.Success(
             MapTenant(tenant),
@@ -122,14 +123,19 @@ public sealed class ActivateTenantCommandHandler
 
     #region Helpers
 
-    private async Task PersistStatusAsync(Tenant tenant, long hostUserId, CancellationToken cancellationToken)
+    private async Task PersistStatusAsync(
+        Tenant tenant,
+        long hostUserId,
+        DateTime utcNow,
+        CancellationToken cancellationToken)
     {
         var transactionStarted = false;
         try
         {
             await _unitOfWork.BeginTransactionAsync(cancellationToken);
             transactionStarted = true;
-            await _unitOfWork.TenantRepository.SynchronizeTenantStatusAsync(tenant, hostUserId, cancellationToken);
+            await _unitOfWork.TenantRepository
+                .SynchronizeTenantStatusAsync(tenant, hostUserId, utcNow, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             await _unitOfWork.CommitTransactionAsync(cancellationToken);
             transactionStarted = false;

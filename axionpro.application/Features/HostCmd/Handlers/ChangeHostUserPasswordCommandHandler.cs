@@ -96,7 +96,7 @@ namespace axionpro.application.Features.HostCmd.Handler
             ChangeHostUserPasswordCommand request,
             CancellationToken cancellationToken)
         {
-            await _commonRequestService.ValidateHostUserRequestAsync();
+            var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
 
             if (request.DTO == null)
             {
@@ -157,6 +157,7 @@ namespace axionpro.application.Features.HostCmd.Handler
             }
 
             hostUser.PasswordHash = _passwordService.HashPassword(dto.NewPassword);
+            hostUser.UpdatedById = hostUserId;
             hostUser.UpdatedDateTime = DateTime.UtcNow;
 
             await _unitOfWork.HostUserRepository.UpdateAsync(hostUser);

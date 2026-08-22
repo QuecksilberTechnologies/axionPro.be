@@ -139,11 +139,13 @@ namespace axionpro.application.Interfaces.IRepositories
         /// </summary>
         /// <param name="id">The mapping identifier.</param>
         /// <param name="hostUserId">The authenticated Host user identifier.</param>
+        /// <param name="utcNow">The UTC audit timestamp captured by the application layer.</param>
         /// <param name="cancellationToken">A token to observe while saving changes.</param>
         /// <returns><see langword="true"/> when a mapping was deactivated; otherwise <see langword="false"/>.</returns>
         Task<bool> DeactivateModuleOperationMappingAsync(
             int id,
             long hostUserId,
+            DateTime utcNow,
             CancellationToken cancellationToken);
 
         #endregion

@@ -12,6 +12,6 @@ namespace axionpro.application.Interfaces.IRepositories
 
         Task<List<Operation>> UpdateOperationAsync(Operation operation);
 
-        Task<bool> DeleteOperationAsync(int id);
+        Task<bool> DeleteOperationAsync(Operation operation);
     }
 }

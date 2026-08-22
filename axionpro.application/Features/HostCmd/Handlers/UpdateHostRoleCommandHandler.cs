@@ -94,7 +94,7 @@ namespace axionpro.application.Features.HostCmd.Handler
             UpdateHostRoleCommand request,
             CancellationToken cancellationToken)
         {
-            await _commonRequestService.ValidateHostUserRequestAsync();
+            var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
 
             if (request.DTO == null)
             {
@@ -132,6 +132,7 @@ namespace axionpro.application.Features.HostCmd.Handler
             hostRole.Name = dto.Name;
             hostRole.Description = dto.Description;
             hostRole.IsActive = dto.IsActive;
+            hostRole.UpdatedById = hostUserId;
             hostRole.UpdatedDateTime = DateTime.UtcNow;
 
             var updatedHostRole = await _unitOfWork.HostRoleRepository

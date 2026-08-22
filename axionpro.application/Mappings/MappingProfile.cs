@@ -267,13 +267,33 @@ namespace axionpro.application.Mappings
 
 
 
-            CreateMap<CreateHostUserRequestDTO, HostUser>().ReverseMap();
+            CreateMap<CreateHostUserRequestDTO, HostUser>()
+                .ForMember(destination => destination.AddedById, options => options.Ignore())
+                .ForMember(destination => destination.AddedDateTime, options => options.Ignore())
+                .ForMember(destination => destination.UpdatedById, options => options.Ignore())
+                .ForMember(destination => destination.UpdatedDateTime, options => options.Ignore())
+                .ForMember(destination => destination.DeletedById, options => options.Ignore())
+                .ForMember(destination => destination.DeletedDateTime, options => options.Ignore())
+                .ForMember(destination => destination.IsSoftDeleted, options => options.Ignore())
+                .ReverseMap();
             CreateMap<CreateHostUserResponseDTO, HostUser>().ReverseMap();
-            CreateMap<CreateHostRoleRequestDTO, HostRole>().ReverseMap();
+            CreateMap<CreateHostRoleRequestDTO, HostRole>()
+                .ForMember(destination => destination.AddedById, options => options.Ignore())
+                .ForMember(destination => destination.AddedDateTime, options => options.Ignore())
+                .ForMember(destination => destination.UpdatedById, options => options.Ignore())
+                .ForMember(destination => destination.UpdatedDateTime, options => options.Ignore())
+                .ForMember(destination => destination.DeletedById, options => options.Ignore())
+                .ForMember(destination => destination.DeletedDateTime, options => options.Ignore())
+                .ForMember(destination => destination.IsSoftDeleted, options => options.Ignore())
+                .ReverseMap();
             CreateMap<CreateHostRoleResponseDTO, HostRole>().ReverseMap();
    
 
             CreateMap<CreateSubscriptionRequestDTO, SubscriptionPlan>()
+                .ForMember(destination => destination.AddedById, options => options.Ignore())
+                .ForMember(destination => destination.AddedDateTime, options => options.Ignore())
+                .ForMember(destination => destination.UpdatedById, options => options.Ignore())
+                .ForMember(destination => destination.UpdatedDateTime, options => options.Ignore())
                 .ForMember(destination => destination.IsSoftDeleted, options => options.Ignore())
                 .ForMember(destination => destination.DeletedById, options => options.Ignore())
                 .ForMember(destination => destination.DeletedDateTime, options => options.Ignore())
@@ -281,6 +301,10 @@ namespace axionpro.application.Mappings
             CreateMap<SubscriptionActivePlanDTO, SubscriptionPlan>().ReverseMap(); 
             CreateMap<UpdateSubscriptionRequestDTO, SubscriptionPlan>()
                 .ForMember(destination => destination.Id, options => options.Ignore())
+                .ForMember(destination => destination.AddedById, options => options.Ignore())
+                .ForMember(destination => destination.AddedDateTime, options => options.Ignore())
+                .ForMember(destination => destination.UpdatedById, options => options.Ignore())
+                .ForMember(destination => destination.UpdatedDateTime, options => options.Ignore())
                 .ForMember(destination => destination.IsSoftDeleted, options => options.Ignore())
                 .ForMember(destination => destination.DeletedById, options => options.Ignore())
                 .ForMember(destination => destination.DeletedDateTime, options => options.Ignore())

@@ -176,7 +176,11 @@ public class SaveHostRoleModulePermissionsCommandHandler
                 IsActive = true,
                 IsSoftDeleted = false,
                 AddedById = hostUserId,
-                AddedDateTime = utcNow
+                AddedDateTime = utcNow,
+                UpdatedById = null,
+                UpdatedDateTime = null,
+                DeletedById = null,
+                DeletedDateTime = null
             })
             .ToList();
 

@@ -89,15 +89,15 @@ public class UpdateOperationCommandHandler
         UpdateOperationCommand request,
         CancellationToken cancellationToken)
     {
-        await _commonRequestService.ValidateHostUserRequestAsync();
+        var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
         cancellationToken.ThrowIfCancellationRequested();
 
         var dto = request?.UpdateOperationRequestDTO
             ?? throw new ValidationErrorException("Operation details are required.");
 
-        if (dto.Id <= 0 || dto.ProductOwnerId <= 0)
+        if (dto.Id <= 0)
         {
-            throw new ValidationErrorException("A valid operation ID and product owner ID are required.");
+            throw new ValidationErrorException("A valid operation ID is required.");
         }
 
         if (dto.OperationName is not null && string.IsNullOrWhiteSpace(dto.OperationName))
@@ -145,8 +145,9 @@ public class UpdateOperationCommandHandler
             operation.IsActive = dto.IsActive.Value;
         }
 
-        operation.UpdatedById = dto.ProductOwnerId;
-        operation.UpdateDateTime = DateTime.UtcNow;
+        var utcNow = DateTime.UtcNow;
+        operation.UpdatedById = hostUserId;
+        operation.UpdateDateTime = utcNow;
 
         var operations = await _unitOfWork.OperationRepository
             .UpdateOperationAsync(operation);

@@ -92,7 +92,7 @@ public sealed class CreateSubscriptionPlanCommandHandler
         CancellationToken cancellationToken)
     {
         // Validate the authenticated Host request before processing client-provided data.
-        await _commonRequestService.ValidateHostUserRequestAsync();
+        var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
         cancellationToken.ThrowIfCancellationRequested();
 
         if (request?.RequestDTO is null)
@@ -101,8 +101,13 @@ public sealed class CreateSubscriptionPlanCommandHandler
         }
 
         var subscriptionPlan = _mapper.Map<SubscriptionPlan>(request.RequestDTO);
+        var utcNow = DateTime.UtcNow;
 
-        // Apply server-controlled soft-delete defaults before persistence.
+        // Apply server-controlled create and soft-delete defaults before persistence.
+        subscriptionPlan.AddedById = hostUserId;
+        subscriptionPlan.AddedDateTime = utcNow;
+        subscriptionPlan.UpdatedById = null;
+        subscriptionPlan.UpdatedDateTime = null;
         subscriptionPlan.IsSoftDeleted = false;
         subscriptionPlan.DeletedById = null;
         subscriptionPlan.DeletedDateTime = null;
