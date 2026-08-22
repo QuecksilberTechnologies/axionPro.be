@@ -283,7 +283,8 @@ namespace axionpro.infrastructure.Token
                     Email = principal.FindFirst(ClaimTypes.Email)?.Value,
                     Expiry = jwt.ValidTo,
                     IsExpired = jwt.ValidTo < DateTime.UtcNow,
-                    TokenPurpose = principal.FindFirst("TokenPurpose")?.Value
+                    TokenPurpose = principal.FindFirst("TokenPurpose")?.Value,
+                    UserType = principal.FindFirst(AppConstants.UserTypeClaim)?.Value
                 };
             }
             catch

@@ -17,6 +17,7 @@ namespace axionpro.application.Common.Helpers
         // 🔥 ADD THESE
         public string? EmployeeId { get; set; }
         public string? TokenPurpose { get; set; }
+        public string? UserType { get; set; }
         public string? Email { get; set; }
         
 

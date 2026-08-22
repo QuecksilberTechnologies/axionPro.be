@@ -1,4 +1,5 @@
 ﻿using axionpro.application.Common.Contexts;
+using axionpro.application.Constants;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IRepositories;
@@ -37,49 +38,51 @@ namespace axionpro.api.Middlewares
                 return;
             }
 
-            try
-            {
-                var token = authHeader.Replace("Bearer ", "").Trim();
+            var token = authHeader.Replace("Bearer ", "").Trim();
+            var claims = tokenService.ValidateAndExtractClaims(token);
 
-                var claims = tokenService.ValidateAndExtractClaims(token);
-                if (claims == null || claims.IsExpired)
-                {
-                    return;
-                }
-
-                var encodedTenantId = claims.TenantId;
-                if (string.IsNullOrWhiteSpace(encodedTenantId))
-                {
-                    _logger.LogWarning("TenantId missing in token.");
-                    return;
-                }
-
-                // ✅ GLOBAL HashId decode (NO tenant key)
-                var tenantId = encoderService.DecodeId_long(encodedTenantId, null);
-
-                if (tenantId <= 0)
-                {
-                    _logger.LogWarning("Invalid TenantId after decoding.");
-                    return;
-                }
-
-                // ✅ Resolve tenant encryption key (RAM → DB)
-                var encryptionKey = await tenantKeyResolver.ResolveAsync(tenantId);
-
-                context.Items[TenantContextKey] = new TenantContext
-                {
-                    TenantId = tenantId,
-                    TenantEncryptionKey = encryptionKey
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "TenantContextMiddleware error.");
-            }
-            finally
+            if (claims == null || claims.IsExpired)
             {
                 await _next(context);
+                return;
             }
+
+            var encodedTenantId = claims.TenantId;
+            if (string.IsNullOrWhiteSpace(encodedTenantId))
+            {
+                if (string.Equals(
+                        claims.UserType,
+                        AppConstants.HostUserType,
+                        StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(
+                        claims.TokenPurpose,
+                        AppConstants.AccessTokenPurpose,
+                        StringComparison.Ordinal))
+                {
+                    await _next(context);
+                    return;
+                }
+
+                _logger.LogWarning("TenantId missing in a non-Host access token.");
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            var tenantId = encoderService.DecodeId_long(encodedTenantId, null);
+            if (tenantId <= 0)
+            {
+                _logger.LogWarning("Invalid TenantId after decoding.");
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            var encryptionKey = await tenantKeyResolver.ResolveAsync(tenantId);
+
+            context.Items[TenantContextKey] = new TenantContext
+            {
+                TenantId = tenantId,
+                TenantEncryptionKey = encryptionKey
+            };
+
+            await _next(context);
         }
     }
 }
