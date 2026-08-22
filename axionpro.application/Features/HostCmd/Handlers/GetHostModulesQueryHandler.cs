@@ -1,12 +1,14 @@
-// ============================================================================
-// Author      : Deepesh Gupta
-// Company     : Quecksilber Technologies
-// Role        : CEO
-// Purpose     : Retrieves modules available in the Host application scope.
-// ============================================================================
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Retrieves filtered and paginated Host modules after validating the current Host administrator.
+// ================================================================
 
 using axionpro.application.DTOS.Host;
+using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -16,9 +18,9 @@ namespace axionpro.application.Features.HostCmd.Handler
     #region Query
 
     /// <summary>
-    /// Represents the request to retrieve Host-scope modules with an optional active-state filter.
+    /// Represents the request to retrieve filtered and paginated Host-scope modules.
     /// </summary>
-    public class GetHostModulesQuery : IRequest<ApiResponse<List<GetHostModuleResponseDTO>>>
+    public class GetHostModulesQuery : IRequest<ApiResponse<PagedResponseDTO<GetHostModuleResponseDTO>>>
     {
         #region Constructor
 
@@ -26,9 +28,13 @@ namespace axionpro.application.Features.HostCmd.Handler
         /// Initializes a new instance of the <see cref="GetHostModulesQuery"/> class.
         /// </summary>
         /// <param name="isActive">When supplied, filters Host modules by their active state.</param>
-        public GetHostModulesQuery(bool? isActive)
+        /// <param name="pageNumber">The requested one-based page number.</param>
+        /// <param name="pageSize">The requested number of rows per page.</param>
+        public GetHostModulesQuery(bool? isActive, int pageNumber, int pageSize)
         {
             IsActive = isActive;
+            PageNumber = pageNumber;
+            PageSize = pageSize;
         }
 
         #endregion
@@ -39,6 +45,16 @@ namespace axionpro.application.Features.HostCmd.Handler
         /// Gets the optional active-state filter.
         /// </summary>
         public bool? IsActive { get; }
+
+        /// <summary>
+        /// Gets the requested one-based page number.
+        /// </summary>
+        public int PageNumber { get; }
+
+        /// <summary>
+        /// Gets the requested number of rows per page.
+        /// </summary>
+        public int PageSize { get; }
 
         #endregion
     }
@@ -51,12 +67,13 @@ namespace axionpro.application.Features.HostCmd.Handler
     /// Handles retrieval of modules that belong to the Host application scope.
     /// </summary>
     public class GetHostModulesQueryHandler
-        : IRequestHandler<GetHostModulesQuery, ApiResponse<List<GetHostModuleResponseDTO>>>
+        : IRequestHandler<GetHostModulesQuery, ApiResponse<PagedResponseDTO<GetHostModuleResponseDTO>>>
     {
         #region Fields
 
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetHostModulesQueryHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
 
         #endregion
 
@@ -67,12 +84,15 @@ namespace axionpro.application.Features.HostCmd.Handler
         /// </summary>
         /// <param name="unitOfWork">The unit of work used to retrieve modules.</param>
         /// <param name="logger">The logger used to record handler activity.</param>
+        /// <param name="commonRequestService">Validates the current Host principal.</param>
         public GetHostModulesQueryHandler(
             IUnitOfWork unitOfWork,
-            ILogger<GetHostModulesQueryHandler> logger)
+            ILogger<GetHostModulesQueryHandler> logger,
+            ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _commonRequestService = commonRequestService;
         }
 
         #endregion
@@ -82,19 +102,25 @@ namespace axionpro.application.Features.HostCmd.Handler
         /// <summary>
         /// Retrieves Host-scope modules and returns a successful response even when none match the filter.
         /// </summary>
-        /// <param name="request">The query containing the optional active-state filter.</param>
+        /// <param name="request">The query containing the active-state filter and paging request.</param>
         /// <param name="cancellationToken">A token to observe while handling the query.</param>
-        /// <returns>A response containing the matching Host modules.</returns>
-        public async Task<ApiResponse<List<GetHostModuleResponseDTO>>> Handle(
+        /// <returns>A response containing the matching Host-module page.</returns>
+        public async Task<ApiResponse<PagedResponseDTO<GetHostModuleResponseDTO>>> Handle(
             GetHostModulesQuery request,
             CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Retrieving Host modules. IsActive: {IsActive}", request.IsActive);
+            // Validate the current Host identity before reading management data.
+            await _commonRequestService.ValidateHostUserRequestAsync();
+
+            var pageNumber = request.PageNumber > 0 ? request.PageNumber : 1;
+            var pageSize = request.PageSize > 0 ? request.PageSize : 10;
+
+            _logger.LogInformation("Retrieving Host modules. IsActive: {IsActive}; PageNumber: {PageNumber}; PageSize: {PageSize}", request.IsActive, pageNumber, pageSize);
 
             var modules = await _unitOfWork.ModuleRepository
-                .GetHostModulesAsync(request.IsActive);
+                .GetHostModulesAsync(request.IsActive, pageNumber, pageSize, cancellationToken);
 
-            return ApiResponse<List<GetHostModuleResponseDTO>>.Success(
+            return ApiResponse<PagedResponseDTO<GetHostModuleResponseDTO>>.Success(
                 modules,
                 "Host modules retrieved successfully.");
         }

@@ -68,6 +68,11 @@ namespace axionpro.application.Constants
             /// Indicates that an operation remains linked to one or more module-operation mappings.
             /// </summary>
             public const string OperationLinkedToModule = "The operation cannot be deactivated or deleted because it is linked to one or more modules. Unlink the operation from all module-operation mappings first.";
+
+            /// <summary>
+            /// Indicates that verification cannot be resent for an already verified Tenant.
+            /// </summary>
+            public const string TenantAlreadyVerified = "Tenant is already verified.";
         }
 
         #endregion
@@ -156,7 +161,41 @@ namespace axionpro.application.Constants
             /// Confirms that a Parent Module status cascade completed successfully.
             /// </summary>
             public const string ParentModuleStatusUpdatedSuccessfully = "Parent Module status updated successfully.";
+
+            /// <summary>
+            /// Confirms that Host-managed Tenant details were updated successfully.
+            /// </summary>
+            public const string TenantUpdatedSuccessfully = "Tenant updated successfully.";
+
+            /// <summary>
+            /// Confirms that a Tenant was soft deleted successfully.
+            /// </summary>
+            public const string TenantDeletedSuccessfully = "Tenant deleted successfully.";
+
+            /// <summary>
+            /// Confirms that a Tenant was activated successfully.
+            /// </summary>
+            public const string TenantActivatedSuccessfully = "Tenant activated successfully.";
+
+            /// <summary>
+            /// Confirms that a Tenant was deactivated successfully.
+            /// </summary>
+            public const string TenantDeactivatedSuccessfully = "Tenant deactivated successfully.";
+
+            /// <summary>
+            /// Confirms that a Tenant verification welcome email was sent successfully.
+            /// </summary>
+            public const string TenantVerificationResentSuccessfully = "Tenant verification email sent successfully.";
         }
+
+        #endregion
+
+        #region Application Limits
+
+        /// <summary>
+        /// Defines the maximum number of roles that may be assigned to one Employee.
+        /// </summary>
+        public const int MaxEmployeeRoleAssigned = 2;
 
         #endregion
 

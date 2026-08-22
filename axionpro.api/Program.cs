@@ -1,22 +1,30 @@
-﻿using axionpro.api.Middlewares;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Configures the AxionPro API host, authentication pipeline, and centralized HTTP error behavior.
+// ================================================================
+
+using axionpro.api.Middlewares;
 using axionpro.api.Realtime;
 using axionpro.application;
+using axionpro.application.Constants;
 using axionpro.infrastructure;
 using axionpro.persistance;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
- 
+using System.Net;
 using System.Text;
 
 try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    // ✅ ENV CHECK
+    // Environment check
     var isLocal = builder.Environment.IsDevelopment();
 
-    // ✅ Kestrel Config (LOCAL ONLY)
+    // Kestrel configuration for local execution
     if (isLocal)
     {
         builder.WebHost.ConfigureKestrel(options =>
@@ -29,7 +37,7 @@ try
     }
 
     // ============================
-    // 🔐 JWT CONFIG (SAFE)
+    // JWT configuration
     // ============================
     var jwtSettings = builder.Configuration.GetSection("JWTSettings");
 
@@ -75,6 +83,24 @@ try
                     context.Token = accessToken;
 
                 return Task.CompletedTask;
+            },
+            OnChallenge = context =>
+            {
+                // Suppress the framework challenge body so all authentication failures share the AxionPro envelope.
+                context.HandleResponse();
+                return ErrorHandlerMiddleware.HandleExceptionAsync(
+                    context.HttpContext,
+                    HttpStatusCode.Unauthorized,
+                    AppConstants.ErrorCodes.Unauthorized,
+                    AppConstants.ErrorMessages.Unauthorized);
+            },
+            OnForbidden = context =>
+            {
+                return ErrorHandlerMiddleware.HandleExceptionAsync(
+                    context.HttpContext,
+                    HttpStatusCode.Forbidden,
+                    AppConstants.ErrorCodes.Forbidden,
+                    AppConstants.ErrorMessages.PermissionDenied);
             }
         };
 
@@ -94,7 +120,7 @@ try
     });
 
     // ============================
-    // 🧩 SERVICES
+    // Service registration
     // ============================
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
@@ -105,7 +131,7 @@ try
     builder.Services.AddControllers();
 
     // ============================
-    // 🌐 CORS
+    // CORS
     // ============================
     builder.Services.AddCors(options =>
     {
@@ -125,7 +151,7 @@ try
     });
 
     // ============================
-    // 📘 SWAGGER
+    // Swagger
     // ============================
     builder.Services.AddEndpointsApiExplorer();
 
@@ -164,12 +190,12 @@ try
     });
 
     // ============================
-    // 🚀 BUILD
+    // Build the application
     // ============================
     var app = builder.Build();
 
     // ============================
-    // 🌍 PRODUCTION PORT
+    // Production port
     // ============================
     if (!isLocal)
     {
@@ -179,10 +205,10 @@ try
     }
 
     // ============================
-    // 🔐 MIDDLEWARE PIPELINE
+    // Middleware pipeline
     // ============================
 
-    // ❌ HTTPS only in production
+    // HTTPS only in production
     if (!isLocal)
         app.UseHttpsRedirection();
 
@@ -191,14 +217,14 @@ try
 
     app.UseCors("AllowFrontend");
 
-    // 🔥 Global Error Handler (FIRST)
+    // Global error handler
     app.UseMiddleware<ErrorHandlerMiddleware>();
 
-    // 🔥 WebSocket
+    // WebSocket support
     app.UseWebSockets();
     app.UseMiddleware<WebSocketMiddleware>();
 
-    // 🔥 Tenant Context
+    // Tenant context
     app.UseMiddleware<TenantContextMiddleware>();
 
     app.UseAuthentication();

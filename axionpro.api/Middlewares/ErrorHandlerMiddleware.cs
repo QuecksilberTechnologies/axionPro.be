@@ -126,7 +126,7 @@ namespace axionpro.api.Middlewares
         /// <param name="errorCode">The stable application error code.</param>
         /// <param name="message">The safe public error message.</param>
         /// <param name="errors">Optional validation details.</param>
-        private static async Task HandleExceptionAsync(
+        internal static async Task HandleExceptionAsync(
             HttpContext context,
             HttpStatusCode statusCode,
             string errorCode,

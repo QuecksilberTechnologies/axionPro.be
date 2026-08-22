@@ -8,6 +8,7 @@
 using axionpro.application.DTOS.Host;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Wrappers;
 using MediatR;
@@ -56,6 +57,7 @@ namespace axionpro.application.Features.HostCmd.Handler
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPasswordService _passwordService;
         private readonly ILogger<ChangeHostUserPasswordCommandHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
 
         #endregion
 
@@ -67,14 +69,17 @@ namespace axionpro.application.Features.HostCmd.Handler
         /// <param name="unitOfWork">The unit of work used to retrieve and update the host user.</param>
         /// <param name="passwordService">The password service used to verify and hash passwords.</param>
         /// <param name="logger">The logger used to record handler activity.</param>
+        /// <param name="commonRequestService">Validates the current Host principal.</param>
         public ChangeHostUserPasswordCommandHandler(
             IUnitOfWork unitOfWork,
             IPasswordService passwordService,
-            ILogger<ChangeHostUserPasswordCommandHandler> logger)
+            ILogger<ChangeHostUserPasswordCommandHandler> logger,
+            ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
             _passwordService = passwordService;
             _logger = logger;
+            _commonRequestService = commonRequestService;
         }
 
         #endregion
@@ -91,6 +96,8 @@ namespace axionpro.application.Features.HostCmd.Handler
             ChangeHostUserPasswordCommand request,
             CancellationToken cancellationToken)
         {
+            await _commonRequestService.ValidateHostUserRequestAsync();
+
             if (request.DTO == null)
             {
                 throw new ValidationErrorException(

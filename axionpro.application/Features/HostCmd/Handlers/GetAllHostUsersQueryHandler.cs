@@ -2,16 +2,17 @@
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
-// Purpose : Retrieves all active host users that are not soft deleted.
+// Purpose : Retrieves filtered and paginated Host users after validating the current Host administrator.
 // ================================================================
 
 using axionpro.application.DTOS.Host;
+using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,11 +21,38 @@ namespace axionpro.application.Features.HostCmd.Handler
     #region Query
 
     /// <summary>
-    /// Represents the request to retrieve all host users.
+    /// Represents the request to retrieve filtered and paginated Host users.
     /// </summary>
     public class GetAllHostUsersQuery
-        : IRequest<ApiResponse<List<GetHostUserResponseDTO>>>
+        : IRequest<ApiResponse<PagedResponseDTO<GetHostUserResponseDTO>>>
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetAllHostUsersQuery"/> class.
+        /// </summary>
+        /// <param name="isActive">When supplied, filters users by active status.</param>
+        /// <param name="pageNumber">The requested one-based page number.</param>
+        /// <param name="pageSize">The requested number of rows per page.</param>
+        public GetAllHostUsersQuery(bool? isActive, int pageNumber, int pageSize)
+        {
+            IsActive = isActive;
+            PageNumber = pageNumber;
+            PageSize = pageSize;
+        }
+
+        /// <summary>
+        /// Gets the optional active-status filter.
+        /// </summary>
+        public bool? IsActive { get; }
+
+        /// <summary>
+        /// Gets the requested one-based page number.
+        /// </summary>
+        public int PageNumber { get; }
+
+        /// <summary>
+        /// Gets the requested number of rows per page.
+        /// </summary>
+        public int PageSize { get; }
     }
 
     #endregion
@@ -32,17 +60,18 @@ namespace axionpro.application.Features.HostCmd.Handler
     #region Handler
 
     /// <summary>
-    /// Handles retrieval of all host users.
+    /// Handles retrieval of filtered and paginated Host users for an authenticated Host administrator.
     /// </summary>
     public class GetAllHostUsersQueryHandler
         : IRequestHandler<
             GetAllHostUsersQuery,
-            ApiResponse<List<GetHostUserResponseDTO>>>
+            ApiResponse<PagedResponseDTO<GetHostUserResponseDTO>>>
     {
         #region Fields
 
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetAllHostUsersQueryHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
 
         #endregion
 
@@ -53,12 +82,15 @@ namespace axionpro.application.Features.HostCmd.Handler
         /// </summary>
         /// <param name="unitOfWork">The unit of work used to retrieve host users.</param>
         /// <param name="logger">The logger used to record handler activity.</param>
+        /// <param name="commonRequestService">Validates the current Host principal.</param>
         public GetAllHostUsersQueryHandler(
             IUnitOfWork unitOfWork,
-            ILogger<GetAllHostUsersQueryHandler> logger)
+            ILogger<GetAllHostUsersQueryHandler> logger,
+            ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _commonRequestService = commonRequestService;
         }
 
         #endregion
@@ -66,37 +98,27 @@ namespace axionpro.application.Features.HostCmd.Handler
         #region Handler
 
         /// <summary>
-        /// Retrieves all host users.
+        /// Retrieves a filtered, database-paged Host-user result.
         /// </summary>
         /// <param name="request">The query to handle.</param>
         /// <param name="cancellationToken">A token to observe while handling the query.</param>
-        /// <returns>A response containing all non-soft-deleted host users.</returns>
-        public async Task<ApiResponse<List<GetHostUserResponseDTO>>> Handle(
+        /// <returns>A response containing the requested non-soft-deleted Host-user page.</returns>
+        public async Task<ApiResponse<PagedResponseDTO<GetHostUserResponseDTO>>> Handle(
             GetAllHostUsersQuery request,
             CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Retrieving all host users.");
+            // Validate the current Host identity before reading management data.
+            await _commonRequestService.ValidateHostUserRequestAsync();
 
-            var hostUsers = await _unitOfWork.HostUserRepository
-                .GetAllAsync();
+            var pageNumber = request.PageNumber > 0 ? request.PageNumber : 1;
+            var pageSize = request.PageSize > 0 ? request.PageSize : 10;
 
-            var response = hostUsers
-                .Select(hostUser => new GetHostUserResponseDTO
-                {
-                    Id = hostUser.Id,
-                    HostRoleId = hostUser.HostRoleId,
-                    HostRoleName = hostUser.HostRole?.Name,
-                    Name = hostUser.Name,
-                    LoginId = hostUser.LoginId,
-                    Email = hostUser.Email,
-                    MobileNumber = hostUser.MobileNumber,
-                    IsActive = hostUser.IsActive,
-                    AddedDateTime = hostUser.AddedDateTime,
-                    UpdatedDateTime = hostUser.UpdatedDateTime
-                })
-                .ToList();
+            _logger.LogInformation("Retrieving Host users. IsActive: {IsActive}; PageNumber: {PageNumber}; PageSize: {PageSize}", request.IsActive, pageNumber, pageSize);
 
-            return ApiResponse<List<GetHostUserResponseDTO>>.Success(
+            var response = await _unitOfWork.HostUserRepository
+                .GetPagedAsync(request.IsActive, pageNumber, pageSize, cancellationToken);
+
+            return ApiResponse<PagedResponseDTO<GetHostUserResponseDTO>>.Success(
                 response,
                 "Host users retrieved successfully.");
         }

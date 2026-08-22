@@ -20,6 +20,7 @@ using axionpro.application.Features.TenantManagementCmd.Queries;
 using axionpro.application.Features.VerifyEmailCmd.Handlers;
 using axionpro.application.Interfaces.ILogger;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace axionpro.api.Controllers.Tenant;
@@ -79,6 +80,7 @@ public class TenantController : ControllerBase
     /// </summary>
     /// <param name="requestDTO">The Tenant management filter and paging request.</param>
     /// <returns>The Tenant management list response.</returns>
+    [Authorize]
     [HttpGet("get-all-tenants")]
     public async Task<IActionResult> GetAllTenantsAsync([FromQuery] GetAllTenantsRequestDTO requestDTO)
     {
@@ -91,6 +93,7 @@ public class TenantController : ControllerBase
     /// </summary>
     /// <param name="requestDTO">The Tenant identifier request.</param>
     /// <returns>The requested Tenant response.</returns>
+    [Authorize]
     [HttpGet("get-tenant-by-id")]
     public async Task<IActionResult> GetTenantByIdAsync([FromQuery] GetTenantByIdRequestDTO requestDTO)
     {
@@ -103,10 +106,70 @@ public class TenantController : ControllerBase
     #region Tenant Management Commands
 
     /// <summary>
+    /// Updates editable Tenant details using the authoritative route identifier.
+    /// </summary>
+    /// <param name="id">The authoritative Tenant identifier from the route.</param>
+    /// <param name="requestDTO">The client-editable Tenant details.</param>
+    /// <param name="cancellationToken">The token used to observe request cancellation.</param>
+    /// <returns>The updated Tenant response.</returns>
+    [Authorize]
+    [HttpPut("{id:long}")]
+    public async Task<IActionResult> UpdateHostManagedTenantAsync(
+        long id,
+        [FromBody] UpdateHostManagedTenantRequestDTO? requestDTO,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new UpdateHostManagedTenantCommand(id, requestDTO),
+            cancellationToken);
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Soft deletes a Tenant selected by the authoritative route identifier.
+    /// </summary>
+    /// <param name="id">The authoritative Tenant identifier from the route.</param>
+    /// <param name="cancellationToken">The token used to observe request cancellation.</param>
+    /// <returns>The Tenant soft-delete result.</returns>
+    [Authorize]
+    [HttpDelete("{id:long}")]
+    public async Task<IActionResult> DeleteHostManagedTenantAsync(
+        long id,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new DeleteHostManagedTenantCommand(id),
+            cancellationToken);
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Resends the existing Tenant onboarding welcome email when the Tenant is not verified.
+    /// </summary>
+    /// <param name="id">The authoritative Tenant identifier from the route.</param>
+    /// <param name="cancellationToken">The token used to observe request cancellation.</param>
+    /// <returns>The resend-verification result.</returns>
+    [Authorize]
+    [HttpPost("{id:long}/resend-verification")]
+    public async Task<IActionResult> ResendTenantVerificationAsync(
+        long id,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new ResendTenantVerificationCommand(id),
+            cancellationToken);
+
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Updates the editable Tenant details supplied by a Host-side management request.
     /// </summary>
     /// <param name="requestDTO">The editable Tenant details request.</param>
     /// <returns>The updated Tenant response.</returns>
+    [Authorize]
     [HttpPost("update-tenant")]
     public async Task<IActionResult> UpdateTenantAsync([FromBody] UpdateTenantRequestDTO requestDTO)
     {
@@ -119,6 +182,7 @@ public class TenantController : ControllerBase
     /// </summary>
     /// <param name="requestDTO">The Tenant activation request.</param>
     /// <returns>The activated Tenant response.</returns>
+    [Authorize]
     [HttpPost("activate-tenant")]
     public async Task<IActionResult> ActivateTenantAsync([FromBody] ActivateTenantRequestDTO requestDTO)
     {
@@ -131,6 +195,7 @@ public class TenantController : ControllerBase
     /// </summary>
     /// <param name="requestDTO">The Tenant deactivation request.</param>
     /// <returns>The deactivated Tenant response.</returns>
+    [Authorize]
     [HttpPost("deactivate-tenant")]
     public async Task<IActionResult> DeactivateTenantAsync([FromBody] DeactivateTenantRequestDTO requestDTO)
     {
@@ -143,6 +208,7 @@ public class TenantController : ControllerBase
     /// </summary>
     /// <param name="requestDTO">The Tenant deletion request.</param>
     /// <returns>The deletion result.</returns>
+    [Authorize]
     [HttpPost("delete-tenant")]
     public async Task<IActionResult> DeleteTenantAsync([FromBody] DeleteTenantRequestDTO requestDTO)
     {
@@ -159,6 +225,7 @@ public class TenantController : ControllerBase
     /// </summary>
     /// <param name="tenantCreateRequestDTO">The Host user creation request.</param>
     /// <returns>The result returned by the existing Host user creation command.</returns>
+    [Authorize]
     [HttpPost("create-host-user")]
     public async Task<IActionResult> CreateHostUser([FromBody] CreateHostUserRequestDTO tenantCreateRequestDTO)
     {

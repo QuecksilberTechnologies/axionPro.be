@@ -19,7 +19,6 @@ namespace axionpro.application.Interfaces.ICommonRequest
         /// </summary>
         /// <returns>The validated tenant request context.</returns>
         Task<CommonDecodedResult> ValidateRequestAsync();
-
         /// <summary>
         /// Validates the current authenticated Host or Tenant request by delegating to the established principal-specific validation path.
         /// </summary>
@@ -28,6 +27,7 @@ namespace axionpro.application.Interfaces.ICommonRequest
         Task<AuthenticatedRequestContext> ValidateAuthenticatedRequestAsync();
 
         /// <summary>
+
         /// Validates that the current JWT belongs to an active Host user with an active Host role.
         /// </summary>
         /// <returns>The validated Host user identifier.</returns>

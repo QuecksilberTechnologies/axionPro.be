@@ -1,21 +1,23 @@
-// ============================================================================
-// Author      : Deepesh Gupta
-// Company     : Quecksilber Technologies
-// Role        : CEO
-// Purpose     : Provides Host user, role, password-management, and module API operations.
-// ============================================================================
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Exposes authenticated Host administration endpoints for Host-user, Host-role, and Host-module management.
+// ================================================================
 
 using axionpro.application.DTOS.Host;
 using axionpro.application.Features.HostCmd.Handler;
 using axionpro.application.Interfaces.ILogger;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace axionpro.api.Controllers.Host
 {
     /// <summary>
-    /// handled-Tenant-related-operations.
+    /// Provides authenticated HTTP endpoints for Host administration requests.
     /// </summary>
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class HostController : ControllerBase
@@ -34,10 +36,12 @@ namespace axionpro.api.Controllers.Host
         _logger = logger;  // Logger service ko inject karna
     }
 
+        /// <summary>
+        /// Creates a Host user.
+        /// </summary>
+        /// <param name="tenantCreateRequestDTO">The Host-user creation request.</param>
+        /// <returns>The created Host-user response.</returns>
         [HttpPost("create-host-user")]
-
-
-        // [Authorize]
         public async Task<IActionResult> CreateHostUser([FromBody] CreateHostUserRequestDTO tenantCreateRequestDTO)
         {
             _logger.LogInfo("Received request for register a new Tenant" + tenantCreateRequestDTO.ToString());
@@ -46,8 +50,12 @@ namespace axionpro.api.Controllers.Host
 
             return Ok(result);
         }
+        /// <summary>
+        /// Creates a Host role.
+        /// </summary>
+        /// <param name="hostRoleRequestDTO">The Host-role creation request.</param>
+        /// <returns>The created Host-role response.</returns>
         [HttpPost("create-host-role")]
-        // [Authorize]
         public async Task<IActionResult> CreateHostRole( [FromBody] CreateHostRoleRequestDTO hostRoleRequestDTO)
         {
             _logger.LogInfo(
@@ -80,15 +88,21 @@ namespace axionpro.api.Controllers.Host
         }
 
         /// <summary>
-        /// Retrieves all host users.
+        /// Retrieves filtered and database-paged host users.
         /// </summary>
-        /// <returns>An HTTP response containing all host users.</returns>
+        /// <param name="isActive">When supplied, filters users by active status.</param>
+        /// <param name="pageNumber">The one-based page number.</param>
+        /// <param name="pageSize">The requested number of rows per page.</param>
+        /// <returns>An HTTP response containing the requested Host-user page.</returns>
         [HttpGet("get-all-host-users")]
-        public async Task<IActionResult> GetAllHostUsers()
+        public async Task<IActionResult> GetAllHostUsers(
+            [FromQuery] bool? isActive = null,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
         {
-            _logger.LogInfo("Received request to get all host users.");
+            _logger.LogInfo($"Received Host-user list request. IsActive: {isActive}; PageNumber: {pageNumber}; PageSize: {pageSize}.");
 
-            var query = new GetAllHostUsersQuery();
+            var query = new GetAllHostUsersQuery(isActive, pageNumber, pageSize);
             var result = await _mediator.Send(query);
 
             return Ok(result);
@@ -250,13 +264,18 @@ namespace axionpro.api.Controllers.Host
         /// Retrieves modules that belong to the Host application scope.
         /// </summary>
         /// <param name="isActive">When supplied, filters Host modules by their active state.</param>
-        /// <returns>An HTTP response containing the requested Host modules.</returns>
+        /// <param name="pageNumber">The one-based page number.</param>
+        /// <param name="pageSize">The requested number of rows per page.</param>
+        /// <returns>An HTTP response containing the requested Host-module page.</returns>
         [HttpGet("get-host-modules")]
-        public async Task<IActionResult> GetHostModules([FromQuery] bool? isActive = null)
+        public async Task<IActionResult> GetHostModules(
+            [FromQuery] bool? isActive = null,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
         {
-            _logger.LogInfo($"Received request to get Host modules. IsActive: {isActive}");
+            _logger.LogInfo($"Received Host-module list request. IsActive: {isActive}; PageNumber: {pageNumber}; PageSize: {pageSize}.");
 
-            var query = new GetHostModulesQuery(isActive);
+            var query = new GetHostModulesQuery(isActive, pageNumber, pageSize);
             var result = await _mediator.Send(query);
 
             return Ok(result);

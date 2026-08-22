@@ -7,6 +7,7 @@
 
 using axionpro.application.DTOS.Host;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -43,6 +44,7 @@ namespace axionpro.application.Features.HostCmd.Handler
 
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetAllHostRolesQueryHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
 
         #endregion
 
@@ -53,12 +55,15 @@ namespace axionpro.application.Features.HostCmd.Handler
         /// </summary>
         /// <param name="unitOfWork">The unit of work used to retrieve host roles.</param>
         /// <param name="logger">The logger used to record handler activity.</param>
+        /// <param name="commonRequestService">Validates the current Host principal.</param>
         public GetAllHostRolesQueryHandler(
             IUnitOfWork unitOfWork,
-            ILogger<GetAllHostRolesQueryHandler> logger)
+            ILogger<GetAllHostRolesQueryHandler> logger,
+            ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _commonRequestService = commonRequestService;
         }
 
         #endregion
@@ -75,6 +80,8 @@ namespace axionpro.application.Features.HostCmd.Handler
             GetAllHostRolesQuery request,
             CancellationToken cancellationToken)
         {
+            await _commonRequestService.ValidateHostUserRequestAsync();
+
             _logger.LogInformation("Retrieving all host roles.");
 
             var hostRoles = await _unitOfWork.HostRoleRepository

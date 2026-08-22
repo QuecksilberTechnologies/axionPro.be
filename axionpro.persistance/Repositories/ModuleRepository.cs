@@ -20,6 +20,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.Host;
+using axionpro.application.DTOS.Pagination;
 using System.Linq.Expressions;
 
 
@@ -45,28 +46,48 @@ namespace axionpro.persistance.Repositories
         #region Host Module Queries
 
         /// <summary>
-        /// Retrieves Host-scope modules, optionally filtered by their active state.
+        /// Retrieves a database-paged set of Host-scope modules, optionally filtered by their active state.
         /// </summary>
         /// <param name="isActive">When supplied, limits results to modules with the specified active state.</param>
-        /// <returns>A projected list of Host-scope module response models.</returns>
-        public async Task<List<GetHostModuleResponseDTO>> GetHostModulesAsync(bool? isActive)
+        /// <param name="pageNumber">The normalized one-based page number.</param>
+        /// <param name="pageSize">The normalized number of rows per page.</param>
+        /// <param name="cancellationToken">A token to observe while executing the database query.</param>
+        /// <returns>The requested Host-scope module page.</returns>
+        public async Task<PagedResponseDTO<GetHostModuleResponseDTO>> GetHostModulesAsync(
+            bool? isActive,
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken)
         {
             if (_context?.Modules == null)
             {
                 _logger?.LogWarning("Unable to retrieve Host modules because the Module DbSet is unavailable.");
-                return new List<GetHostModuleResponseDTO>();
+                return new PagedResponseDTO<GetHostModuleResponseDTO>(
+                    new List<GetHostModuleResponseDTO>(),
+                    0,
+                    pageNumber,
+                    pageSize)
+                {
+                    TotalPages = 0
+                };
             }
 
             try
             {
                 // Module has no IsSoftDeleted property, so only its supported scope and activity filters apply.
-                return await _context.Modules
+                var query = _context.Modules
                     .AsNoTracking()
                     .Where(x =>
                         x.ModuleScope == AppConstants.HostModuleScope &&
-                        (!isActive.HasValue || x.IsActive == isActive.Value))
+                        (!isActive.HasValue || x.IsActive == isActive.Value));
+
+                var totalCount = await query.CountAsync(cancellationToken);
+                var data = await query
                     .OrderBy(x => x.ItemPriority)
                     .ThenBy(x => x.ModuleName)
+                    .ThenBy(x => x.Id)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
                     .Select(x => new GetHostModuleResponseDTO
                     {
                         Id = x.Id,
@@ -90,12 +111,24 @@ namespace axionpro.persistance.Repositories
                         UpdatedById = x.UpdatedById,
                         UpdatedDateTime = x.UpdatedDateTime
                     })
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken);
+
+                return new PagedResponseDTO<GetHostModuleResponseDTO>(data, totalCount, pageNumber, pageSize)
+                {
+                    TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
+                };
             }
             catch (Exception ex)
             {
                 _logger?.LogError(ex, "Error retrieving Host modules. IsActive: {IsActive}", isActive);
-                return new List<GetHostModuleResponseDTO>();
+                return new PagedResponseDTO<GetHostModuleResponseDTO>(
+                    new List<GetHostModuleResponseDTO>(),
+                    0,
+                    pageNumber,
+                    pageSize)
+                {
+                    TotalPages = 0
+                };
             }
         }
 

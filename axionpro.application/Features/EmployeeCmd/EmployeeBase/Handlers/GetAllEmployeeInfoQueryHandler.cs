@@ -8,6 +8,7 @@
 
 
 using AutoMapper;
+using axionpro.application.Constants;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOS.Employee.BaseEmployee;
@@ -94,7 +95,7 @@ public class GetAllEmployeeInfoQueryHandler : IRequestHandler<GetAllEmployeeInfo
                 _logger.LogInformation("GetAllEmployeeInfo started");
 
                 // ===============================
-                // 1️⃣ VALIDATION
+                // Validate the request.
                 // ===============================
                 #region Tenant Request Validation
                 var validation =
@@ -105,7 +106,7 @@ public class GetAllEmployeeInfoQueryHandler : IRequestHandler<GetAllEmployeeInfo
                     throw new UnauthorizedAccessException(validation.ErrorMessage);
 
                 // ===============================
-                // 2️⃣ NULL SAFETY
+                // Enforce required request data.
                 // ===============================
                 if (!validation.Success)
                     throw new UnauthorizedAccessException(validation.ErrorMessage);
@@ -125,7 +126,7 @@ public class GetAllEmployeeInfoQueryHandler : IRequestHandler<GetAllEmployeeInfo
                         throw new ValidationErrorException("Invalid EmployeeId.");
                 }
                 // ===============================
-                // 3️⃣ PERMISSION (YOUR PATTERN )
+                // Validate the current authenticated user.
                 // ===============================
                 //var hasAccess = await _permissionService.HasAccessAsync(
                 //    validation.RoleId,
@@ -136,7 +137,7 @@ public class GetAllEmployeeInfoQueryHandler : IRequestHandler<GetAllEmployeeInfo
                 //    throw new UnauthorizedAccessException("No permission to view employee info.");
 
                 // ===============================
-                // 4️⃣ FETCH DATA
+                // Retrieve the requested employee records.
                 // ===============================
                 var responseDTO = await _unitOfWork.Employees.GetAllInfo(
                     validation.TenantId,
@@ -147,7 +148,7 @@ public class GetAllEmployeeInfoQueryHandler : IRequestHandler<GetAllEmployeeInfo
                     throw new ApiException("Employee data not found", 404);
 
                 // ===============================
-                // 5️⃣ OPTIMIZED EMPTY HANDLING
+                // Preserve the existing empty-result behavior.
                 // ===============================
                 var items = responseDTO?.Data ?? new List<GetAllEmployeeInfoResponseDTO>();
 
@@ -158,10 +159,16 @@ public class GetAllEmployeeInfoQueryHandler : IRequestHandler<GetAllEmployeeInfo
                         _config, _fileStorageService)
                     : new List<GetAllEmployeeInfoResponseDTO>();
 
+                // Expose the configured assignment limit on every existing Employee row without another role query.
+                foreach (var employee in resultList)
+                {
+                    employee.MaxRoleAssigned = AppConstants.MaxEmployeeRoleAssigned;
+                }
+
                 _logger.LogInformation("GetAllEmployeeInfo success");
 
                 // ===============================
-                // 6️⃣ SINGLE RESPONSE
+                // Build the standardized response.
                 // ===============================
                 return ApiResponse<List<GetAllEmployeeInfoResponseDTO>> .SuccessPaginatedPercentage(
                         Data: resultList,

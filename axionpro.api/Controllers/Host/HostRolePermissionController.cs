@@ -8,6 +8,7 @@
 using axionpro.application.DTOS.Host;
 using axionpro.application.Features.HostCmd.Handler;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace axionpro.api.Controllers.Host;
@@ -17,6 +18,7 @@ namespace axionpro.api.Controllers.Host;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class HostRolePermissionController : ControllerBase
 {
     #region Fields

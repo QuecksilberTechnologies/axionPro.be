@@ -308,6 +308,14 @@ public sealed class NewLoginCommandHandler : IRequestHandler<NewLoginCommand, Ap
         user.PrimaryRole = primaryRole;
         user.SecondaryRoles = secondaryRoles;
 
+        // Residential geography is intentionally deferred; never infer it from Tenant registration data.
+        user.CountryId = null;
+        user.CountryName = null;
+        user.StateId = null;
+        user.StateName = null;
+        user.CityId = null;
+        user.CityName = null;
+
         var profileImageKey = await _unitOfWork.Employees.ProfileImage(bootstrap.EmployeeId);
         if (!string.IsNullOrWhiteSpace(profileImageKey))
         {

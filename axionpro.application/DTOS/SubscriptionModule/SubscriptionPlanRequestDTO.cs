@@ -38,7 +38,7 @@ public sealed class SubscriptionPlanRequestDTO
     public decimal? YearlyPrice { get; set; }
 
     /// <summary>
-    /// Gets or sets whether the query returns active or inactive, non-deleted plans.
+    /// Gets or sets the legacy active-status value retained for request compatibility. The public plan endpoint always returns active plans only.
     /// </summary>
     public bool IsActive { get; set; } = true;
 }

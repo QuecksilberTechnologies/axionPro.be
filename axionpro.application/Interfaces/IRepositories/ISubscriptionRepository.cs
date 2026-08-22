@@ -6,6 +6,7 @@
 // ================================================================
 
 using axionpro.application.DTOs.SubscriptionModule;
+using axionpro.application.DTOS.Pagination;
 using axionpro.domain.Entity;
 
 namespace axionpro.application.Interfaces.IRepositories;
@@ -59,6 +60,22 @@ public interface ISubscriptionRepository
     /// <returns>The matching subscription plan read models.</returns>
     Task<List<SubscriptionActivePlanDTO>> GetAllPlansAsync(
         bool isActive,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Retrieves a database-paged set of non-deleted subscription plans for Host administration.
+    /// </summary>
+    /// <param name="search">Optional plan-name search text.</param>
+    /// <param name="isActive">When supplied, limits plans to the requested active status.</param>
+    /// <param name="pageNumber">The normalized one-based page number.</param>
+    /// <param name="pageSize">The normalized number of rows per page.</param>
+    /// <param name="cancellationToken">The token used to observe cancellation.</param>
+    /// <returns>The requested Host subscription-plan page.</returns>
+    Task<PagedResponseDTO<SubscriptionActivePlanDTO>> GetHostPlansAsync(
+        string? search,
+        bool? isActive,
+        int pageNumber,
+        int pageSize,
         CancellationToken cancellationToken);
 
     /// <summary>

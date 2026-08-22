@@ -8,6 +8,7 @@
 using axionpro.application.DTOS.Host;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -54,6 +55,7 @@ namespace axionpro.application.Features.HostCmd.Handler
 
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<DeleteHostRoleCommandHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
 
         #endregion
 
@@ -64,12 +66,15 @@ namespace axionpro.application.Features.HostCmd.Handler
         /// </summary>
         /// <param name="unitOfWork">The unit of work used to delete the host role.</param>
         /// <param name="logger">The logger used to record handler activity.</param>
+        /// <param name="commonRequestService">Validates the current Host principal.</param>
         public DeleteHostRoleCommandHandler(
             IUnitOfWork unitOfWork,
-            ILogger<DeleteHostRoleCommandHandler> logger)
+            ILogger<DeleteHostRoleCommandHandler> logger,
+            ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _commonRequestService = commonRequestService;
         }
 
         #endregion
@@ -86,6 +91,8 @@ namespace axionpro.application.Features.HostCmd.Handler
             DeleteHostRoleCommand request,
             CancellationToken cancellationToken)
         {
+            await _commonRequestService.ValidateHostUserRequestAsync();
+
             if (request.DTO == null)
             {
                 throw new ValidationErrorException(

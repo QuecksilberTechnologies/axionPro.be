@@ -8,6 +8,7 @@
 using axionpro.application.DTOS.Host;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -53,6 +54,7 @@ namespace axionpro.application.Features.HostCmd.Handler
 
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetHostUserByIdQueryHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
 
         #endregion
 
@@ -63,12 +65,15 @@ namespace axionpro.application.Features.HostCmd.Handler
         /// </summary>
         /// <param name="unitOfWork">The unit of work used to retrieve the host user.</param>
         /// <param name="logger">The logger used to record handler activity.</param>
+        /// <param name="commonRequestService">Validates the current Host principal.</param>
         public GetHostUserByIdQueryHandler(
             IUnitOfWork unitOfWork,
-            ILogger<GetHostUserByIdQueryHandler> logger)
+            ILogger<GetHostUserByIdQueryHandler> logger,
+            ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _commonRequestService = commonRequestService;
         }
 
         #endregion
@@ -85,6 +90,8 @@ namespace axionpro.application.Features.HostCmd.Handler
             GetHostUserByIdQuery request,
             CancellationToken cancellationToken)
         {
+            await _commonRequestService.ValidateHostUserRequestAsync();
+
             if (request.Id <= 0)
             {
                 throw new ValidationErrorException(

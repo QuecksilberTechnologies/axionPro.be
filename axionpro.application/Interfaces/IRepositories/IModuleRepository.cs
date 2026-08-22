@@ -26,6 +26,7 @@ using System.Threading.Tasks;
 using axionpro.domain.Entity; 
 using MediatR;
 using axionpro.application.DTOs.UserLogin;
+using axionpro.application.DTOS.Pagination;
 using axionpro.application.DTOS.Host;
 
 namespace axionpro.application.Interfaces.IRepositories
@@ -35,11 +36,18 @@ namespace axionpro.application.Interfaces.IRepositories
         #region Host Module Queries
 
         /// <summary>
-        /// Retrieves Host-scope modules, optionally filtered by their active state.
+        /// Retrieves a database-paged set of Host-scope modules, optionally filtered by their active state.
         /// </summary>
         /// <param name="isActive">When supplied, limits results to modules with the specified active state.</param>
-        /// <returns>A list of Host-scope module response models.</returns>
-        Task<List<GetHostModuleResponseDTO>> GetHostModulesAsync(bool? isActive);
+        /// <param name="pageNumber">The normalized one-based page number.</param>
+        /// <param name="pageSize">The normalized number of rows per page.</param>
+        /// <param name="cancellationToken">A token to observe while executing the database query.</param>
+        /// <returns>The requested Host-scope module page.</returns>
+        Task<PagedResponseDTO<GetHostModuleResponseDTO>> GetHostModulesAsync(
+            bool? isActive,
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Retrieves one Host-scope module by identifier, optionally filtered by its active state.

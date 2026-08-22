@@ -99,6 +99,40 @@ public sealed class NewLoginUserContextDTO
 
     #endregion
 
+    #region Residential Geography
+
+    /// <summary>
+    /// Gets or sets the Employee residential country identifier. This is intentionally unavailable until the residential profile source is connected.
+    /// </summary>
+    public int? CountryId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the Employee residential country name. This is intentionally unavailable until the residential profile source is connected.
+    /// </summary>
+    public string? CountryName { get; set; }
+
+    /// <summary>
+    /// Gets or sets the Employee residential state identifier. This is intentionally unavailable until the residential profile source is connected.
+    /// </summary>
+    public int? StateId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the Employee residential state name. This is intentionally unavailable until the residential profile source is connected.
+    /// </summary>
+    public string? StateName { get; set; }
+
+    /// <summary>
+    /// Gets or sets the Employee residential city identifier. This is intentionally unavailable until the residential profile source is connected.
+    /// </summary>
+    public int? CityId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the Employee residential city name. This is intentionally unavailable until the residential profile source is connected.
+    /// </summary>
+    public string? CityName { get; set; }
+
+    #endregion
+
     #region Tenant Context
 
     /// <summary>

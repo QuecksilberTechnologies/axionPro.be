@@ -7,6 +7,7 @@
 
 using AutoMapper;
 using axionpro.application.DTOs.SubscriptionModule;
+using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
@@ -189,6 +190,96 @@ public class SubscriptionRepository : ISubscriptionRepository
             isActive);
 
         return plans;
+    }
+
+    /// <summary>
+    /// Retrieves a database-paged projection of non-deleted subscription plans for Host administration.
+    /// </summary>
+    /// <param name="search">Optional plan-name search text.</param>
+    /// <param name="isActive">When supplied, limits plans to the requested active status.</param>
+    /// <param name="pageNumber">The normalized one-based page number.</param>
+    /// <param name="pageSize">The normalized number of rows per page.</param>
+    /// <param name="cancellationToken">The token used to observe cancellation.</param>
+    /// <returns>The requested Host subscription-plan page.</returns>
+    public async Task<PagedResponseDTO<SubscriptionActivePlanDTO>> GetHostPlansAsync(
+        string? search,
+        bool? isActive,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken)
+    {
+        var query = _context.SubscriptionPlans
+            .AsNoTracking()
+            .Where(plan => !plan.IsSoftDeleted);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var trimmedSearch = search.Trim();
+            query = query.Where(plan => plan.PlanName != null && plan.PlanName.Contains(trimmedSearch));
+        }
+
+        if (isActive.HasValue)
+        {
+            query = query.Where(plan => plan.IsActive == isActive.Value);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+        var plans = await query
+            .OrderBy(plan => plan.PlanName)
+            .ThenBy(plan => plan.Id)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(plan => new SubscriptionActivePlanDTO
+            {
+                Id = plan.Id,
+                PlanName = plan.PlanName,
+                IsActive = plan.IsActive,
+                IsMostPopular = plan.IsMostPopular,
+                IsCustom = plan.IsCustom,
+                MaxUsers = plan.MaxUsers,
+                CurrencyKey = plan.CurrencyKey,
+                PerDayPrice = plan.PerDayPrice,
+                MonthlyPrice = plan.MonthlyPrice,
+                YearlyPrice = plan.YearlyPrice,
+                IsFree = plan.IsFree,
+                Modules = plan.PlanModuleMapping
+                    .Where(mapping => mapping.IsActive == true && mapping.Module.IsActive == true)
+                    .Select(mapping => new ModuleActiveDTO
+                    {
+                        Id = mapping.Module.Id,
+                        ModuleName = mapping.Module.ModuleName,
+                        DisplayName = mapping.Module.DisplayName ?? mapping.Module.ModuleName,
+                        ParentModuleId = mapping.Module.ParentModuleId ?? 0
+                    })
+                    .ToList()
+            })
+            .ToListAsync(cancellationToken);
+
+        foreach (var plan in plans)
+        {
+            var moduleDictionary = plan.Modules.ToDictionary(module => module.Id);
+            var topLevelModules = new List<ModuleActiveDTO>();
+
+            foreach (var module in plan.Modules)
+            {
+                if (module.ParentModuleId != 0 &&
+                    moduleDictionary.TryGetValue(module.ParentModuleId, out var parent))
+                {
+                    parent.ChildModules.Add(module);
+                }
+                else
+                {
+                    topLevelModules.Add(module);
+                }
+            }
+
+            plan.Modules = topLevelModules;
+        }
+
+        return new PagedResponseDTO<SubscriptionActivePlanDTO>(plans, totalCount, pageNumber, pageSize)
+        {
+            TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
+        };
     }
 
     /// <summary>

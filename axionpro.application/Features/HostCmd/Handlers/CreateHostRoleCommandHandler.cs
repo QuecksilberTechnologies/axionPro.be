@@ -100,6 +100,8 @@ namespace axionpro.application.Features.HostCmd.Handler
             CreateHostRoleCommand request,
             CancellationToken cancellationToken)
         {
+            await _commonRequestService.ValidateHostUserRequestAsync();
+
             try
             {
                 await _unitOfWork.BeginTransactionAsync();

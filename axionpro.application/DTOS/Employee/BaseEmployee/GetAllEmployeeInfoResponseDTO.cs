@@ -1,5 +1,15 @@
-﻿namespace axionpro.application.DTOS.Employee.BaseEmployee
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines Employee-list row data including the configured maximum role-assignment limit.
+// ================================================================
+
+namespace axionpro.application.DTOS.Employee.BaseEmployee
 {
+    /// <summary>
+    /// Represents one Employee row returned by the existing paged Employee-list endpoint.
+    /// </summary>
     public class GetAllEmployeeInfoResponseDTO
     {
                   
@@ -29,6 +39,11 @@
          //   public   <List>AsignedAsset AsignedAssetList { get;set} 
             public double? CompletionPercentage { get; set; }
             public bool? HasImagePicUploaded { get; set; }
+
+            /// <summary>
+            /// Gets or sets the configured maximum number of roles that may be assigned to this Employee.
+            /// </summary>
+            public int MaxRoleAssigned { get; set; }
         //   public SummaryEmployeeInfo SummaryEmployeeInfo { get; set; } = new SummaryEmployeeInfo();
 
 

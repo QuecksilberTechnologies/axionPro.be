@@ -6,6 +6,8 @@
 // ================================================================
 
 using AutoMapper;
+using axionpro.application.DTOS.Host;
+using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
@@ -107,6 +109,55 @@ namespace axionpro.persistance.Repositories
                 .Where(x => !x.IsSoftDeleted)
                 .OrderByDescending(x => x.Id)
                 .ToListAsync();
+        }
+
+        /// <summary>
+        /// Retrieves a database-paged projection of non-soft-deleted Host users with their Host-role names.
+        /// </summary>
+        /// <param name="isActive">When supplied, limits rows to the requested active status.</param>
+        /// <param name="pageNumber">The normalized one-based page number.</param>
+        /// <param name="pageSize">The normalized number of rows per page.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The requested Host-user page.</returns>
+        public async Task<PagedResponseDTO<GetHostUserResponseDTO>> GetPagedAsync(
+            bool? isActive,
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken)
+        {
+            var query = _context.HostUsers
+                .AsNoTracking()
+                .Where(hostUser => !hostUser.IsSoftDeleted);
+
+            if (isActive.HasValue)
+            {
+                query = query.Where(hostUser => hostUser.IsActive == isActive.Value);
+            }
+
+            var totalCount = await query.CountAsync(cancellationToken);
+            var data = await query
+                .OrderByDescending(hostUser => hostUser.Id)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(hostUser => new GetHostUserResponseDTO
+                {
+                    Id = hostUser.Id,
+                    HostRoleId = hostUser.HostRoleId,
+                    HostRoleName = hostUser.HostRole != null ? hostUser.HostRole.Name : null,
+                    Name = hostUser.Name,
+                    LoginId = hostUser.LoginId,
+                    Email = hostUser.Email,
+                    MobileNumber = hostUser.MobileNumber,
+                    IsActive = hostUser.IsActive,
+                    AddedDateTime = hostUser.AddedDateTime,
+                    UpdatedDateTime = hostUser.UpdatedDateTime
+                })
+                .ToListAsync(cancellationToken);
+
+            return new PagedResponseDTO<GetHostUserResponseDTO>(data, totalCount, pageNumber, pageSize)
+            {
+                TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
+            };
         }
 
         /// <summary>

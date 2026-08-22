@@ -5,6 +5,8 @@
 // Purpose : Defines persistence operations for host users.
 // ================================================================
 
+using axionpro.application.DTOS.Host;
+using axionpro.application.DTOS.Pagination;
 using axionpro.domain.Entity;
 using System;
 using System.Collections.Generic;
@@ -38,6 +40,20 @@ namespace axionpro.application.Interfaces.IRepositories
         /// </summary>
         /// <returns>A list of host users, which is empty when no matching users exist.</returns>
         Task<List<HostUser>> GetAllAsync();
+
+        /// <summary>
+        /// Retrieves a database-paged set of non-soft-deleted Host users with an optional active-status filter.
+        /// </summary>
+        /// <param name="isActive">When supplied, limits rows to the requested active status.</param>
+        /// <param name="pageNumber">The normalized one-based page number.</param>
+        /// <param name="pageSize">The normalized number of rows per page.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The requested Host-user page.</returns>
+        Task<PagedResponseDTO<GetHostUserResponseDTO>> GetPagedAsync(
+            bool? isActive,
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Determines whether an active, non-soft-deleted host user is assigned to a host role.

@@ -44,9 +44,9 @@ public class SubscriptionController : ControllerBase
     #region Subscription Plan Queries
 
     /// <summary>
-    /// Returns non-deleted subscription plans filtered by their requested active status.
+    /// Returns active, non-deleted subscription plans for pre-login visitors.
     /// </summary>
-    /// <param name="requestDTO">The active-status filter for subscription plans.</param>
+    /// <param name="requestDTO">The legacy request contract retained for public subscription-plan retrieval.</param>
     /// <param name="cancellationToken">The token used to observe request cancellation.</param>
     /// <returns>The filtered subscription plan response.</returns>
     /// 
@@ -58,6 +58,25 @@ public class SubscriptionController : ControllerBase
     {
         var result = await _mediator.Send(
             new GetSubscriptionPlanQuery(requestDTO),
+            cancellationToken);
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Returns filtered and paginated subscription plans for Host administration.
+    /// </summary>
+    /// <param name="requestDTO">The Host plan list filters and paging request.</param>
+    /// <param name="cancellationToken">The token used to observe request cancellation.</param>
+    /// <returns>The Host subscription-plan page.</returns>
+    [Authorize]
+    [HttpPost("get-all-host-subscription-plans")]
+    public async Task<IActionResult> GetAllHostSubscriptionPlans(
+        [FromBody] HostSubscriptionPlanListRequestDTO? requestDTO,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new GetHostSubscriptionPlansQuery(requestDTO),
             cancellationToken);
 
         return Ok(result);
@@ -109,6 +128,7 @@ public class SubscriptionController : ControllerBase
     /// <param name="requestDTO">The subscription plan data to create.</param>
     /// <param name="cancellationToken">The token used to observe request cancellation.</param>
     /// <returns>The created subscription plan response.</returns>
+    [Authorize]
     [HttpPost("add")]
     public async Task<IActionResult> CreateSubscription(
         [FromBody] CreateSubscriptionRequestDTO requestDTO,
@@ -128,6 +148,7 @@ public class SubscriptionController : ControllerBase
     /// <param name="requestDTO">The editable subscription plan data.</param>
     /// <param name="cancellationToken">The token used to observe request cancellation.</param>
     /// <returns>The updated subscription plan response.</returns>
+    [Authorize]
     [HttpPut("{id:long}")]
     public async Task<IActionResult> UpdateSubscription(
         long id,
@@ -147,6 +168,7 @@ public class SubscriptionController : ControllerBase
     /// <param name="requestDTO">The subscription plan selected for deletion.</param>
     /// <param name="cancellationToken">The token used to observe request cancellation.</param>
     /// <returns>The result of the soft-delete operation.</returns>
+    [Authorize]
     [HttpPost("delete-subscription-plan")]
     public async Task<IActionResult> DeleteSubscriptionPlan(
         [FromBody] DeleteSubscriptionPlanRequestDTO requestDTO,
