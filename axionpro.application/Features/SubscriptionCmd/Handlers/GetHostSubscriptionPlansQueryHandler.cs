@@ -7,7 +7,6 @@
 
 using axionpro.application.Constants;
 using axionpro.application.DTOs.SubscriptionModule;
-using axionpro.application.DTOS.Pagination;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
@@ -22,7 +21,7 @@ namespace axionpro.application.Features.SubscriptionCmd.Handlers;
 /// Represents the Host request to retrieve filtered and paginated subscription plans.
 /// </summary>
 public sealed class GetHostSubscriptionPlansQuery
-    : IRequest<ApiResponse<PagedResponseDTO<SubscriptionActivePlanDTO>>>
+    : IRequest<PagedApiResponse<SubscriptionActivePlanDTO>>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GetHostSubscriptionPlansQuery"/> class.
@@ -47,7 +46,7 @@ public sealed class GetHostSubscriptionPlansQuery
 /// Handles authenticated Host retrieval of filtered and paginated subscription plans.
 /// </summary>
 public sealed class GetHostSubscriptionPlansQueryHandler
-    : IRequestHandler<GetHostSubscriptionPlansQuery, ApiResponse<PagedResponseDTO<SubscriptionActivePlanDTO>>>
+    : IRequestHandler<GetHostSubscriptionPlansQuery, PagedApiResponse<SubscriptionActivePlanDTO>>
 {
     #region Fields
 
@@ -82,7 +81,7 @@ public sealed class GetHostSubscriptionPlansQueryHandler
     /// <param name="cancellationToken">The token used to observe cancellation.</param>
     /// <returns>The requested subscription-plan page.</returns>
     /// <exception cref="ValidationErrorException">Thrown when the list request is missing.</exception>
-    public async Task<ApiResponse<PagedResponseDTO<SubscriptionActivePlanDTO>>> Handle(
+    public async Task<PagedApiResponse<SubscriptionActivePlanDTO>> Handle(
         GetHostSubscriptionPlansQuery request,
         CancellationToken cancellationToken)
     {
@@ -104,7 +103,7 @@ public sealed class GetHostSubscriptionPlansQueryHandler
             pageSize,
             cancellationToken);
 
-        return ApiResponse<PagedResponseDTO<SubscriptionActivePlanDTO>>.Success(
+        return PagedApiResponse<SubscriptionActivePlanDTO>.Success(
             plans,
             AppConstants.SuccessMessages.SubscriptionPlansRetrievedSuccessfully);
     }

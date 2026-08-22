@@ -16,7 +16,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace axionpro.api.Controllers.Subscription;
 
 /// <summary>
-/// Exposes HTTP transport endpoints for subscription plan operations.
+/// Exposes HTTP transport endpoints for subscription plan queries and commands.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -44,16 +44,20 @@ public class SubscriptionController : ControllerBase
     #region Subscription Plan Queries
 
     /// <summary>
-    /// Returns active, non-deleted subscription plans for pre-login visitors.
+    /// Retrieves active, non-deleted subscription plans for pre-login visitors.
     /// </summary>
-    /// <param name="requestDTO">The legacy request contract retained for public subscription-plan retrieval.</param>
-    /// <param name="cancellationToken">The token used to observe request cancellation.</param>
-    /// <returns>The filtered subscription plan response.</returns>
-    /// 
+    /// <param name="requestDTO">
+    /// Contains the public subscription-plan filtering criteria supplied through
+    /// the query string.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The token used to observe request cancellation.
+    /// </param>
+    /// <returns>The filtered subscription-plan response.</returns>
     [AllowAnonymous]
-    [HttpPost("get-all-subscription-plan")]
+    [HttpGet("get-all-subscription-plan")]
     public async Task<IActionResult> GetAllSubscriptionPlan(
-        [FromBody] SubscriptionPlanRequestDTO requestDTO,
+        [FromQuery] SubscriptionPlanRequestDTO requestDTO,
         CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(
@@ -64,15 +68,20 @@ public class SubscriptionController : ControllerBase
     }
 
     /// <summary>
-    /// Returns filtered and paginated subscription plans for Host administration.
+    /// Retrieves filtered and paginated subscription plans for Host administration.
     /// </summary>
-    /// <param name="requestDTO">The Host plan list filters and paging request.</param>
-    /// <param name="cancellationToken">The token used to observe request cancellation.</param>
-    /// <returns>The Host subscription-plan page.</returns>
+    /// <param name="requestDTO">
+    /// Contains the Host subscription-plan filters and pagination values supplied
+    /// through the query string.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The token used to observe request cancellation.
+    /// </param>
+    /// <returns>The filtered and paginated Host subscription-plan response.</returns>
     [Authorize]
-    [HttpPost("get-all-host-subscription-plans")]
+    [HttpGet("get-all-host-subscription-plans")]
     public async Task<IActionResult> GetAllHostSubscriptionPlans(
-        [FromBody] HostSubscriptionPlanListRequestDTO? requestDTO,
+        [FromQuery] HostSubscriptionPlanListRequestDTO? requestDTO,
         CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(
@@ -83,14 +92,18 @@ public class SubscriptionController : ControllerBase
     }
 
     /// <summary>
-    /// Returns subscription information for a tenant according to the supplied criteria.
+    /// Retrieves subscription-plan information for a tenant.
     /// </summary>
-    /// <param name="requestDTO">The tenant subscription query criteria.</param>
-    /// <param name="cancellationToken">The token used to observe request cancellation.</param>
-    /// <returns>The tenant subscription information response.</returns>
-    [HttpPost("get-tenant-subscription-plan-info")]
+    /// <param name="requestDTO">
+    /// Contains the tenant subscription criteria supplied through the query string.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The token used to observe request cancellation.
+    /// </param>
+    /// <returns>The tenant subscription-plan information response.</returns>
+    [HttpGet("get-tenant-subscription-plan-info")]
     public async Task<IActionResult> GetTenantSubscriptionPlanInfo(
-        [FromBody] TenantSubscriptionPlanRequestDTO requestDTO,
+        [FromQuery] TenantSubscriptionPlanRequestDTO requestDTO,
         CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(
@@ -101,14 +114,19 @@ public class SubscriptionController : ControllerBase
     }
 
     /// <summary>
-    /// Returns modules available to the specified tenant subscription plan.
+    /// Retrieves the modules accessible through the specified tenant subscription plan.
     /// </summary>
-    /// <param name="requestDTO">The tenant and subscription plan criteria.</param>
-    /// <param name="cancellationToken">The token used to observe request cancellation.</param>
-    /// <returns>The subscription plan module response.</returns>
-    [HttpPost("get-all-tenant-accessible-modules")]
+    /// <param name="requestDTO">
+    /// Contains the tenant and subscription-plan criteria supplied through the
+    /// query string.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The token used to observe request cancellation.
+    /// </param>
+    /// <returns>The accessible subscription-plan module response.</returns>
+    [HttpGet("get-all-tenant-accessible-modules")]
     public async Task<IActionResult> GetAllTenantAccessibleModules(
-        [FromBody] PlanModuleMappingRequestDTO requestDTO,
+        [FromQuery] PlanModuleMappingRequestDTO requestDTO,
         CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(
@@ -126,8 +144,10 @@ public class SubscriptionController : ControllerBase
     /// Creates a Host-managed subscription plan.
     /// </summary>
     /// <param name="requestDTO">The subscription plan data to create.</param>
-    /// <param name="cancellationToken">The token used to observe request cancellation.</param>
-    /// <returns>The created subscription plan response.</returns>
+    /// <param name="cancellationToken">
+    /// The token used to observe request cancellation.
+    /// </param>
+    /// <returns>The created subscription-plan response.</returns>
     [Authorize]
     [HttpPost("add")]
     public async Task<IActionResult> CreateSubscription(
@@ -144,10 +164,12 @@ public class SubscriptionController : ControllerBase
     /// <summary>
     /// Updates a Host-managed subscription plan.
     /// </summary>
-    /// <param name="id">The subscription plan identifier from the route.</param>
-    /// <param name="requestDTO">The editable subscription plan data.</param>
-    /// <param name="cancellationToken">The token used to observe request cancellation.</param>
-    /// <returns>The updated subscription plan response.</returns>
+    /// <param name="id">The subscription-plan identifier from the route.</param>
+    /// <param name="requestDTO">The editable subscription-plan data.</param>
+    /// <param name="cancellationToken">
+    /// The token used to observe request cancellation.
+    /// </param>
+    /// <returns>The updated subscription-plan response.</returns>
     [Authorize]
     [HttpPut("{id:long}")]
     public async Task<IActionResult> UpdateSubscription(
@@ -165,8 +187,12 @@ public class SubscriptionController : ControllerBase
     /// <summary>
     /// Soft deletes a subscription plan when it is no longer assigned to an active tenant.
     /// </summary>
-    /// <param name="requestDTO">The subscription plan selected for deletion.</param>
-    /// <param name="cancellationToken">The token used to observe request cancellation.</param>
+    /// <param name="requestDTO">
+    /// The subscription plan selected for deletion.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The token used to observe request cancellation.
+    /// </param>
     /// <returns>The result of the soft-delete operation.</returns>
     [Authorize]
     [HttpPost("delete-subscription-plan")]
