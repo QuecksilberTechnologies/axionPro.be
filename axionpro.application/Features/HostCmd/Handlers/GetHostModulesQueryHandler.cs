@@ -6,7 +6,6 @@
 // ================================================================
 
 using axionpro.application.DTOS.Host;
-using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
@@ -20,7 +19,7 @@ namespace axionpro.application.Features.HostCmd.Handler
     /// <summary>
     /// Represents the request to retrieve filtered and paginated Host-scope modules.
     /// </summary>
-    public class GetHostModulesQuery : IRequest<ApiResponse<PagedResponseDTO<GetHostModuleResponseDTO>>>
+    public class GetHostModulesQuery : IRequest<PagedApiResponse<GetHostModuleResponseDTO>>
     {
         #region Constructor
 
@@ -67,7 +66,7 @@ namespace axionpro.application.Features.HostCmd.Handler
     /// Handles retrieval of modules that belong to the Host application scope.
     /// </summary>
     public class GetHostModulesQueryHandler
-        : IRequestHandler<GetHostModulesQuery, ApiResponse<PagedResponseDTO<GetHostModuleResponseDTO>>>
+        : IRequestHandler<GetHostModulesQuery, PagedApiResponse<GetHostModuleResponseDTO>>
     {
         #region Fields
 
@@ -105,7 +104,7 @@ namespace axionpro.application.Features.HostCmd.Handler
         /// <param name="request">The query containing the active-state filter and paging request.</param>
         /// <param name="cancellationToken">A token to observe while handling the query.</param>
         /// <returns>A response containing the matching Host-module page.</returns>
-        public async Task<ApiResponse<PagedResponseDTO<GetHostModuleResponseDTO>>> Handle(
+        public async Task<PagedApiResponse<GetHostModuleResponseDTO>> Handle(
             GetHostModulesQuery request,
             CancellationToken cancellationToken)
         {
@@ -120,7 +119,7 @@ namespace axionpro.application.Features.HostCmd.Handler
             var modules = await _unitOfWork.ModuleRepository
                 .GetHostModulesAsync(request.IsActive, pageNumber, pageSize, cancellationToken);
 
-            return ApiResponse<PagedResponseDTO<GetHostModuleResponseDTO>>.Success(
+            return PagedApiResponse<GetHostModuleResponseDTO>.Success(
                 modules,
                 "Host modules retrieved successfully.");
         }

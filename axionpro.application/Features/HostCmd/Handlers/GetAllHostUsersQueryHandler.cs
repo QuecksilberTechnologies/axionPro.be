@@ -6,7 +6,6 @@
 // ================================================================
 
 using axionpro.application.DTOS.Host;
-using axionpro.application.DTOS.Pagination;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
@@ -24,7 +23,7 @@ namespace axionpro.application.Features.HostCmd.Handler
     /// Represents the request to retrieve filtered and paginated Host users.
     /// </summary>
     public class GetAllHostUsersQuery
-        : IRequest<ApiResponse<PagedResponseDTO<GetHostUserResponseDTO>>>
+        : IRequest<PagedApiResponse<GetHostUserResponseDTO>>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="GetAllHostUsersQuery"/> class.
@@ -65,7 +64,7 @@ namespace axionpro.application.Features.HostCmd.Handler
     public class GetAllHostUsersQueryHandler
         : IRequestHandler<
             GetAllHostUsersQuery,
-            ApiResponse<PagedResponseDTO<GetHostUserResponseDTO>>>
+            PagedApiResponse<GetHostUserResponseDTO>>
     {
         #region Fields
 
@@ -103,7 +102,7 @@ namespace axionpro.application.Features.HostCmd.Handler
         /// <param name="request">The query to handle.</param>
         /// <param name="cancellationToken">A token to observe while handling the query.</param>
         /// <returns>A response containing the requested non-soft-deleted Host-user page.</returns>
-        public async Task<ApiResponse<PagedResponseDTO<GetHostUserResponseDTO>>> Handle(
+        public async Task<PagedApiResponse<GetHostUserResponseDTO>> Handle(
             GetAllHostUsersQuery request,
             CancellationToken cancellationToken)
         {
@@ -118,7 +117,7 @@ namespace axionpro.application.Features.HostCmd.Handler
             var response = await _unitOfWork.HostUserRepository
                 .GetPagedAsync(request.IsActive, pageNumber, pageSize, cancellationToken);
 
-            return ApiResponse<PagedResponseDTO<GetHostUserResponseDTO>>.Success(
+            return PagedApiResponse<GetHostUserResponseDTO>.Success(
                 response,
                 "Host users retrieved successfully.");
         }
