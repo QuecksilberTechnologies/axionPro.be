@@ -87,23 +87,23 @@ namespace axionpro.application.Mappings
 
             #region Host Device Management Mappings
 
-            CreateMap<CreateDeviceMasterRequestDTO, DeviceMaster>()
-                .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
-                .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
-                .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore()).ForMember(d => d.IsSoftDeleted, o => o.Ignore());
-            CreateMap<UpdateDeviceMasterRequestDTO, DeviceMaster>()
-                .IncludeBase<CreateDeviceMasterRequestDTO, DeviceMaster>().ForMember(d => d.Id, o => o.Ignore());
-            CreateMap<DeviceMaster, DeviceMasterResponseDTO>();
+            //CreateMap<CreateDeviceMasterRequestDTO, DeviceMaster>()
+            //    .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
+            //    .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
+            //    .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore()).ForMember(d => d.IsSoftDeleted, o => o.Ignore());
+            //CreateMap<UpdateDeviceMasterRequestDTO, DeviceMaster>()
+            //    .IncludeBase<CreateDeviceMasterRequestDTO, DeviceMaster>().ForMember(d => d.Id, o => o.Ignore());
+            //CreateMap<DeviceMaster, DeviceMasterResponseDTO>();
 
-            CreateMap<CreateTenantDeviceRequestDTO, TenantDevice>()
-                .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
-                .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
-                .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore()).ForMember(d => d.IsSoftDeleted, o => o.Ignore())
-                .ForMember(d => d.LastHeartbeatDateTime, o => o.Ignore()).ForMember(d => d.LastSyncDateTime, o => o.Ignore()).ForMember(d => d.LastAttendanceReceivedDateTime, o => o.Ignore())
-                .ForMember(d => d.LastSuccessfulConnectionDateTime, o => o.Ignore()).ForMember(d => d.LastFailedConnectionDateTime, o => o.Ignore()).ForMember(d => d.LastConnectionError, o => o.Ignore());
-            CreateMap<UpdateTenantDeviceRequestDTO, TenantDevice>()
-                .IncludeBase<CreateTenantDeviceRequestDTO, TenantDevice>().ForMember(d => d.Id, o => o.Ignore());
-            CreateMap<TenantDevice, TenantDeviceResponseDTO>();
+            //CreateMap<CreateTenantDeviceRequestDTO, TenantDevice>()
+            //    .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
+            //    .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
+            //    .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore()).ForMember(d => d.IsSoftDeleted, o => o.Ignore())
+            //    .ForMember(d => d.LastHeartbeatDateTime, o => o.Ignore()).ForMember(d => d.LastSyncDateTime, o => o.Ignore()).ForMember(d => d.LastAttendanceReceivedDateTime, o => o.Ignore())
+            //    .ForMember(d => d.LastSuccessfulConnectionDateTime, o => o.Ignore()).ForMember(d => d.LastFailedConnectionDateTime, o => o.Ignore()).ForMember(d => d.LastConnectionError, o => o.Ignore());
+            //CreateMap<UpdateTenantDeviceRequestDTO, TenantDevice>()
+            //    .IncludeBase<CreateTenantDeviceRequestDTO, TenantDevice>().ForMember(d => d.Id, o => o.Ignore());
+            //CreateMap<TenantDevice, TenantDeviceResponseDTO>();
 
             #endregion
 
