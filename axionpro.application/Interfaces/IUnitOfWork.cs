@@ -2,12 +2,12 @@
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.domain.Entity;
 
-// ============================================================================
-// Author      : Deepesh Gupta
-// Company     : Quecksilber Technologies
-// Role        : CEO
-// Purpose     : Defines the repository and transaction boundary for application operations.
-// ============================================================================
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines the repository and transaction boundary for application operations.
+// ================================================================
 
 namespace axionpro.application.Interfaces
 {
@@ -89,6 +89,34 @@ namespace axionpro.application.Interfaces
         IUnStructuredEmployeePolicyTypeMappingRepository UnStructuredEmployeePolicyTypeMappingRepository { get; }
         IUserRolesPermissionOnModuleRepository UserRolesPermissionOnModuleRepository { get; }
          ITicketGenrationRepository TicketGenrationRepository { get; }
+
+        #region Tenant Configuration
+
+        /// <summary>Gets Tenant-location persistence operations.</summary>
+        ITenantLocationRepository TenantLocationRepository { get; }
+        /// <summary>Gets AttendancePolicy persistence operations.</summary>
+        IAttendancePolicyRepository AttendancePolicyRepository { get; }
+        /// <summary>Gets employee-location-assignment persistence operations.</summary>
+        IEmployeeLocationAssignmentRepository EmployeeLocationAssignmentRepository { get; }
+        /// <summary>Gets employee-device-enrollment persistence operations.</summary>
+        IEmployeeDeviceEnrollmentRepository EmployeeDeviceEnrollmentRepository { get; }
+        /// <summary>Gets employee-work-arrangement persistence operations.</summary>
+        IEmployeeWorkArrangementRepository EmployeeWorkArrangementRepository { get; }
+        /// <summary>Gets employee-work-pattern persistence operations.</summary>
+        IEmployeeWorkPatternRepository EmployeeWorkPatternRepository { get; }
+        /// <summary>Gets employee-work-mode-override persistence operations.</summary>
+        IEmployeeWorkModeOverrideRequestRepository EmployeeWorkModeOverrideRequestRepository { get; }
+
+        #endregion
+
+        #region Host Device Management
+
+        /// <summary>Gets Host-managed DeviceMaster catalog persistence operations.</summary>
+        IDeviceMasterRepository DeviceMasterRepository { get; }
+        /// <summary>Gets Host-managed physical TenantDevice persistence operations.</summary>
+        ITenantDeviceRepository TenantDeviceRepository { get; }
+
+        #endregion
  
  
         Task BeginTransactionAsync(CancellationToken cancellationToken = default);

@@ -73,6 +73,40 @@ namespace axionpro.application.Constants
             /// Indicates that verification cannot be resent for an already verified Tenant.
             /// </summary>
             public const string TenantAlreadyVerified = "Tenant is already verified.";
+
+            public const string TenantLocationNotFound = "The requested tenant location was not found.";
+            public const string TenantLocationInUse = "Tenant location is currently in use. Remove or deactivate the dependent configuration before changing this location.";
+            public const string AttendancePolicyNotFound = "The requested attendance policy was not found.";
+            public const string AttendancePolicyInUse = "Attendance policy is currently assigned to an employee work arrangement. Unassign or deactivate the work arrangement first.";
+            public const string EmployeeLocationAssignmentNotFound = "The requested employee location assignment was not found.";
+            public const string EmployeeDeviceEnrollmentNotFound = "The requested employee device enrollment was not found.";
+            public const string EmployeeWorkArrangementNotFound = "The requested employee work arrangement was not found.";
+            public const string EmployeeWorkArrangementInUse = "Employee work arrangement has dependent configuration that must be removed or deactivated first.";
+            public const string EmployeeWorkPatternNotFound = "The requested employee work pattern was not found.";
+            public const string EmployeeWorkModeOverrideNotFound = "The requested work mode override request was not found.";
+            public const string InvalidTenantConfigurationReference = "One or more selected configuration references are invalid for this tenant.";
+            public const string DuplicateTenantLocationCode = "A live tenant location already uses this location code.";
+            public const string DuplicateAttendancePolicyName = "A live attendance policy already uses this policy name.";
+            public const string DuplicateEmployeeLocationAssignment = "The employee already has this active location assignment.";
+            public const string EmployeeAlreadyHasPrimaryLocation = "The employee already has an active primary location assignment.";
+            public const string DuplicateDeviceEnrollId = "The selected device already has this live enrollment identifier.";
+            public const string EmployeeAlreadyHasCurrentWorkArrangement = "The employee already has a current active work arrangement.";
+            public const string DuplicateEmployeeWorkPatternDay = "The work arrangement already has an active pattern for this day.";
+            public const string InvalidEffectiveDateRange = "The end date cannot be earlier than the start date.";
+            public const string InvalidHybridConfiguration = "Hybrid type is required only when work mode is Hybrid.";
+            public const string InvalidOverrideWorkMode = "Hybrid work mode is not allowed for a temporary override request.";
+            public const string DeviceMasterNotFound = "The requested device master was not found.";
+            public const string DuplicateDeviceMaster = "A live device master already uses this device code or company and model combination.";
+            public const string DeviceMasterInUse = "Device master is currently assigned to one or more Tenant devices. Remove those device assignments before changing the device master lifecycle.";
+            public const string TenantDeviceNotFound = "The requested tenant device was not found.";
+            public const string DuplicateTenantDeviceSerialNumber = "A live tenant device already uses this serial number.";
+            public const string DuplicateTenantDeviceCode = "A live tenant device already uses this device code for the selected tenant.";
+            public const string DuplicateTenantDeviceAssetTag = "A live tenant device already uses this asset tag for the selected tenant.";
+            public const string InvalidDeviceManagementTenant = "The selected tenant is unavailable or inactive.";
+            public const string InvalidDeviceManagementTenantLocation = "The selected tenant location is unavailable or inactive.";
+            public const string TenantLocationDoesNotBelongToTenant = "The selected tenant location does not belong to the selected tenant.";
+            public const string InvalidDeviceMaster = "The selected device master is unavailable or inactive.";
+            public const string TenantDeviceEnrollmentInUse = "Tenant device has active employee enrollments that must be removed or deactivated first.";
         }
 
         #endregion
@@ -186,6 +220,47 @@ namespace axionpro.application.Constants
             /// Confirms that a Tenant verification welcome email was sent successfully.
             /// </summary>
             public const string TenantVerificationResentSuccessfully = "Tenant verification email sent successfully.";
+
+            public const string TenantLocationCreated = "Tenant location created successfully.";
+            public const string TenantLocationUpdated = "Tenant location updated successfully.";
+            public const string TenantLocationStatusUpdated = "Tenant location status updated successfully.";
+            public const string TenantLocationDeleted = "Tenant location deleted successfully.";
+            public const string TenantLocationRetrieved = "Tenant locations retrieved successfully.";
+            public const string AttendancePolicyCreated = "Attendance policy created successfully.";
+            public const string AttendancePolicyUpdated = "Attendance policy updated successfully.";
+            public const string AttendancePolicyStatusUpdated = "Attendance policy status updated successfully.";
+            public const string AttendancePolicyDeleted = "Attendance policy deleted successfully.";
+            public const string AttendancePolicyRetrieved = "Attendance policies retrieved successfully.";
+            public const string EmployeeLocationAssignmentCreated = "Employee location assignment created successfully.";
+            public const string EmployeeLocationAssignmentUpdated = "Employee location assignment updated successfully.";
+            public const string EmployeeLocationAssignmentStatusUpdated = "Employee location assignment status updated successfully.";
+            public const string EmployeeLocationAssignmentDeleted = "Employee location assignment deleted successfully.";
+            public const string EmployeeDeviceEnrollmentCreated = "Employee device enrollment created successfully.";
+            public const string EmployeeDeviceEnrollmentUpdated = "Employee device enrollment updated successfully.";
+            public const string EmployeeDeviceEnrollmentStatusUpdated = "Employee device enrollment status updated successfully.";
+            public const string EmployeeDeviceEnrollmentDeleted = "Employee device enrollment deleted successfully.";
+            public const string EmployeeWorkArrangementCreated = "Employee work arrangement created successfully.";
+            public const string EmployeeWorkArrangementUpdated = "Employee work arrangement updated successfully.";
+            public const string EmployeeWorkArrangementStatusUpdated = "Employee work arrangement status updated successfully.";
+            public const string EmployeeWorkArrangementDeleted = "Employee work arrangement deleted successfully.";
+            public const string EmployeeWorkPatternCreated = "Employee work pattern created successfully.";
+            public const string EmployeeWorkPatternUpdated = "Employee work pattern updated successfully.";
+            public const string EmployeeWorkPatternStatusUpdated = "Employee work pattern status updated successfully.";
+            public const string EmployeeWorkPatternDeleted = "Employee work pattern deleted successfully.";
+            public const string EmployeeWorkModeOverrideCreated = "Work mode override request created successfully.";
+            public const string EmployeeWorkModeOverrideUpdated = "Work mode override request updated successfully.";
+            public const string EmployeeWorkModeOverrideStatusUpdated = "Work mode override request status updated successfully.";
+            public const string EmployeeWorkModeOverrideDeleted = "Work mode override request deleted successfully.";
+            public const string DeviceMasterCreated = "Device master created successfully.";
+            public const string DeviceMasterUpdated = "Device master updated successfully.";
+            public const string DeviceMasterStatusUpdated = "Device master status updated successfully.";
+            public const string DeviceMasterDeleted = "Device master deleted successfully.";
+            public const string DeviceMasterRetrieved = "Device masters retrieved successfully.";
+            public const string TenantDeviceCreated = "Tenant device created successfully.";
+            public const string TenantDeviceUpdated = "Tenant device updated successfully.";
+            public const string TenantDeviceStatusUpdated = "Tenant device status updated successfully.";
+            public const string TenantDeviceDeleted = "Tenant device deleted successfully.";
+            public const string TenantDeviceRetrieved = "Tenant devices retrieved successfully.";
         }
 
         #endregion

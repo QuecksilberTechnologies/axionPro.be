@@ -115,6 +115,15 @@ public class UnitOfWork : IUnitOfWork
     private IOperationRepository? _operationRepository;
     private ITravelRepository? _travelRepository;
     private IClientRepository? _clientRepository;
+    private ITenantLocationRepository? _tenantLocationRepository;
+    private IAttendancePolicyRepository? _attendancePolicyRepository;
+    private IEmployeeLocationAssignmentRepository? _employeeLocationAssignmentRepository;
+    private IEmployeeDeviceEnrollmentRepository? _employeeDeviceEnrollmentRepository;
+    private IEmployeeWorkArrangementRepository? _employeeWorkArrangementRepository;
+    private IEmployeeWorkPatternRepository? _employeeWorkPatternRepository;
+    private IEmployeeWorkModeOverrideRequestRepository? _employeeWorkModeOverrideRequestRepository;
+    private IDeviceMasterRepository? _deviceMasterRepository;
+    private ITenantDeviceRepository? _tenantDeviceRepository;
 
     public UnitOfWork(
         WorkforceDbContext context,
@@ -430,6 +439,43 @@ public class UnitOfWork : IUnitOfWork
    _ticketThreadRepository ??= new TicketThreadRepository(_context, _loggerFactory.CreateLogger<TicketThreadRepository >(), _mapper);
     public ITicketAttachmentRepository TicketAttachmentRepository =>
    _ticketAttachmentRepository ??= new TicketAttachmentRepository(_context, _loggerFactory.CreateLogger<TicketAttachmentRepository>(), _mapper);
+
+    #region Tenant Configuration
+
+    public ITenantLocationRepository TenantLocationRepository =>
+        _tenantLocationRepository ??= new TenantLocationRepository(_context);
+
+    public IAttendancePolicyRepository AttendancePolicyRepository =>
+        _attendancePolicyRepository ??= new AttendancePolicyRepository(_context);
+
+    public IEmployeeLocationAssignmentRepository EmployeeLocationAssignmentRepository =>
+        _employeeLocationAssignmentRepository ??= new EmployeeLocationAssignmentRepository(_context);
+
+    public IEmployeeDeviceEnrollmentRepository EmployeeDeviceEnrollmentRepository =>
+        _employeeDeviceEnrollmentRepository ??= new EmployeeDeviceEnrollmentRepository(_context);
+
+    public IEmployeeWorkArrangementRepository EmployeeWorkArrangementRepository =>
+        _employeeWorkArrangementRepository ??= new EmployeeWorkArrangementRepository(_context);
+
+    public IEmployeeWorkPatternRepository EmployeeWorkPatternRepository =>
+        _employeeWorkPatternRepository ??= new EmployeeWorkPatternRepository(_context);
+
+    public IEmployeeWorkModeOverrideRequestRepository EmployeeWorkModeOverrideRequestRepository =>
+        _employeeWorkModeOverrideRequestRepository ??= new EmployeeWorkModeOverrideRequestRepository(_context);
+
+    #endregion
+
+    #region Host Device Management
+
+    /// <summary>Gets the Host-managed DeviceMaster catalog repository.</summary>
+    public IDeviceMasterRepository DeviceMasterRepository =>
+        _deviceMasterRepository ??= new DeviceMasterRepository(_context);
+
+    /// <summary>Gets the Host-managed physical TenantDevice repository.</summary>
+    public ITenantDeviceRepository TenantDeviceRepository =>
+        _tenantDeviceRepository ??= new TenantDeviceRepository(_context);
+
+    #endregion
 
     public ICompilanceRuleRepository CompilanceRuleRepository => throw new NotImplementedException();
 

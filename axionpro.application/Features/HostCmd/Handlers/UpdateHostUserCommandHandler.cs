@@ -104,8 +104,8 @@ namespace axionpro.application.Features.HostCmd.Handler
 
             var dto = request.DTO;
 
-            if (dto.Id <= 0)
             {
+            if (dto.Id <= 0)
                 throw new ValidationErrorException(
                     "Host user Id must be greater than zero.");
             }

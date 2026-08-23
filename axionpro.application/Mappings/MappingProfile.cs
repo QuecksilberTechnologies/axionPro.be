@@ -60,6 +60,7 @@ using axionpro.application.DTOS.TicketDTO.Classification;
 using axionpro.application.DTOS.TicketDTO.Header;
 using axionpro.application.DTOS.TicketDTO.TicketType;
 using axionpro.application.DTOS.UserRoles;
+using axionpro.application.DTOS.TenantConfiguration;
 using axionpro.application.Features.TickeAllCmd.Classification;
 using axionpro.domain.Entity;
 using FluentValidation;
@@ -83,6 +84,104 @@ namespace axionpro.application.Mappings
 
         public MappingProfile()
         {
+
+            #region Host Device Management Mappings
+
+            CreateMap<CreateDeviceMasterRequestDTO, DeviceMaster>()
+                .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
+                .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
+                .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore()).ForMember(d => d.IsSoftDeleted, o => o.Ignore());
+            CreateMap<UpdateDeviceMasterRequestDTO, DeviceMaster>()
+                .IncludeBase<CreateDeviceMasterRequestDTO, DeviceMaster>().ForMember(d => d.Id, o => o.Ignore());
+            CreateMap<DeviceMaster, DeviceMasterResponseDTO>();
+
+            CreateMap<CreateTenantDeviceRequestDTO, TenantDevice>()
+                .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
+                .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
+                .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore()).ForMember(d => d.IsSoftDeleted, o => o.Ignore())
+                .ForMember(d => d.LastHeartbeatDateTime, o => o.Ignore()).ForMember(d => d.LastSyncDateTime, o => o.Ignore()).ForMember(d => d.LastAttendanceReceivedDateTime, o => o.Ignore())
+                .ForMember(d => d.LastSuccessfulConnectionDateTime, o => o.Ignore()).ForMember(d => d.LastFailedConnectionDateTime, o => o.Ignore()).ForMember(d => d.LastConnectionError, o => o.Ignore());
+            CreateMap<UpdateTenantDeviceRequestDTO, TenantDevice>()
+                .IncludeBase<CreateTenantDeviceRequestDTO, TenantDevice>().ForMember(d => d.Id, o => o.Ignore());
+            CreateMap<TenantDevice, TenantDeviceResponseDTO>();
+
+            #endregion
+
+            #region Tenant Configuration Mappings
+
+            CreateMap<CreateTenantLocationRequestDTO, TenantLocation>()
+                .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.TenantId, o => o.Ignore())
+                .ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
+                .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
+                .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore())
+                .ForMember(d => d.IsSoftDeleted, o => o.Ignore());
+            CreateMap<UpdateTenantLocationRequestDTO, TenantLocation>()
+                .IncludeBase<CreateTenantLocationRequestDTO, TenantLocation>()
+                .ForMember(d => d.Id, o => o.Ignore());
+
+            CreateMap<CreateAttendancePolicyRequestDTO, AttendancePolicy>()
+                .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.TenantId, o => o.Ignore())
+                .ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
+                .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
+                .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore())
+                .ForMember(d => d.IsSoftDeleted, o => o.Ignore());
+            CreateMap<UpdateAttendancePolicyRequestDTO, AttendancePolicy>()
+                .IncludeBase<CreateAttendancePolicyRequestDTO, AttendancePolicy>()
+                .ForMember(d => d.Id, o => o.Ignore());
+
+            CreateMap<CreateEmployeeLocationAssignmentRequestDTO, EmployeeLocationAssignment>()
+                .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.TenantId, o => o.Ignore())
+                .ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
+                .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
+                .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore())
+                .ForMember(d => d.IsSoftDeleted, o => o.Ignore());
+            CreateMap<UpdateEmployeeLocationAssignmentRequestDTO, EmployeeLocationAssignment>()
+                .IncludeBase<CreateEmployeeLocationAssignmentRequestDTO, EmployeeLocationAssignment>()
+                .ForMember(d => d.Id, o => o.Ignore());
+
+            CreateMap<CreateEmployeeDeviceEnrollmentRequestDTO, EmployeeDeviceEnrollment>()
+                .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.TenantId, o => o.Ignore())
+                .ForMember(d => d.LastSyncedDateTime, o => o.Ignore()).ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
+                .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
+                .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore())
+                .ForMember(d => d.IsSoftDeleted, o => o.Ignore());
+            CreateMap<UpdateEmployeeDeviceEnrollmentRequestDTO, EmployeeDeviceEnrollment>()
+                .IncludeBase<CreateEmployeeDeviceEnrollmentRequestDTO, EmployeeDeviceEnrollment>()
+                .ForMember(d => d.Id, o => o.Ignore());
+
+            CreateMap<CreateEmployeeWorkArrangementRequestDTO, EmployeeWorkArrangement>()
+                .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.TenantId, o => o.Ignore())
+                .ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
+                .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
+                .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore())
+                .ForMember(d => d.IsSoftDeleted, o => o.Ignore());
+            CreateMap<UpdateEmployeeWorkArrangementRequestDTO, EmployeeWorkArrangement>()
+                .IncludeBase<CreateEmployeeWorkArrangementRequestDTO, EmployeeWorkArrangement>()
+                .ForMember(d => d.Id, o => o.Ignore());
+
+            CreateMap<CreateEmployeeWorkPatternRequestDTO, EmployeeWorkPattern>()
+                .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.TenantId, o => o.Ignore())
+                .ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
+                .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
+                .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore())
+                .ForMember(d => d.IsSoftDeleted, o => o.Ignore());
+            CreateMap<UpdateEmployeeWorkPatternRequestDTO, EmployeeWorkPattern>()
+                .IncludeBase<CreateEmployeeWorkPatternRequestDTO, EmployeeWorkPattern>()
+                .ForMember(d => d.Id, o => o.Ignore());
+
+            CreateMap<CreateEmployeeWorkModeOverrideRequestDTO, EmployeeWorkModeOverrideRequest>()
+                .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.TenantId, o => o.Ignore())
+                .ForMember(d => d.ApprovalStatus, o => o.Ignore()).ForMember(d => d.ApprovedById, o => o.Ignore()).ForMember(d => d.ApprovedDateTime, o => o.Ignore())
+                .ForMember(d => d.ApprovalRemark, o => o.Ignore()).ForMember(d => d.RejectedById, o => o.Ignore()).ForMember(d => d.RejectedDateTime, o => o.Ignore()).ForMember(d => d.RejectionRemark, o => o.Ignore())
+                .ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
+                .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
+                .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore())
+                .ForMember(d => d.IsSoftDeleted, o => o.Ignore());
+            CreateMap<UpdateEmployeeWorkModeOverrideRequestDTO, EmployeeWorkModeOverrideRequest>()
+                .IncludeBase<CreateEmployeeWorkModeOverrideRequestDTO, EmployeeWorkModeOverrideRequest>()
+                .ForMember(d => d.Id, o => o.Ignore());
+
+            #endregion
 
             #region New Login Mappings
 
