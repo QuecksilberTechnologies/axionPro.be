@@ -40,7 +40,7 @@ public sealed class TenantLocationRepository : TenantConfigurationRepositoryBase
 
     /// <inheritdoc />
     public Task<TenantLocation?> GetByIdAsync(long tenantId, long id, CancellationToken cancellationToken) =>
-        Context.TenantLocations.AsNoTracking().Include(x => x.Country).Include(x => x.State).Include(x => x.City)
+        Context.TenantLocations.AsNoTracking().Include(x => x.Country).Include(x => x.City)
             .FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId && !x.IsSoftDeleted, cancellationToken);
 
     /// <inheritdoc />
@@ -51,13 +51,13 @@ public sealed class TenantLocationRepository : TenantConfigurationRepositoryBase
     public async Task<PagedResponseDTO<TenantLocation>> GetPagedAsync(long tenantId, TenantLocationFilterRequestDTO filter, CancellationToken cancellationToken)
     {
         var (pageNumber, pageSize) = NormalizePage(filter.PageNumber, filter.PageSize);
-        var query = Context.TenantLocations.AsNoTracking().Include(x => x.Country).Include(x => x.State).Include(x => x.City)
+        var query = Context.TenantLocations.AsNoTracking().Include(x => x.Country).Include(x => x.City)
             .Where(x => x.TenantId == tenantId && !x.IsSoftDeleted);
         if (!string.IsNullOrWhiteSpace(filter.Search)) { var term = $"%{filter.Search.Trim()}%"; query = query.Where(x => EF.Functions.ILike(x.LocationCode, term) || EF.Functions.ILike(x.LocationName, term) || (x.Address != null && EF.Functions.ILike(x.Address, term))); }
         if (filter.CountryId.HasValue) query = query.Where(x => x.CountryId == filter.CountryId.Value);
         if (filter.StateId.HasValue) query = query.Where(x => x.StateId == filter.StateId.Value);
         if (filter.CityId.HasValue) query = query.Where(x => x.CityId == filter.CityId.Value);
-        if (filter.LocationType.HasValue) query = query.Where(x => x.LocationType == filter.LocationType.Value);
+        if (filter.LocationType.HasValue) query = query.Where(x => x.LocationType == (short)filter.LocationType.Value);
         if (filter.IsActive.HasValue) query = query.Where(x => x.IsActive == filter.IsActive.Value);
         var count = await query.CountAsync(cancellationToken);
         var data = await query.OrderBy(x => x.LocationName).ThenBy(x => x.Id).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken);
@@ -217,7 +217,7 @@ public sealed class EmployeeDeviceEnrollmentRepository : TenantConfigurationRepo
 
     /// <inheritdoc />
     public Task<EmployeeDeviceEnrollment?> GetByIdAsync(long tenantId, long id, CancellationToken cancellationToken) =>
-        Context.EmployeeDeviceEnrollments.AsNoTracking().Include(x => x.Employee).Include(x => x.TenantDevice).ThenInclude(x => x.TenantLocation).FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId && !x.IsSoftDeleted, cancellationToken);
+        Context.EmployeeDeviceEnrollments.AsNoTracking().Include(x => x.Employee).FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId && !x.IsSoftDeleted, cancellationToken);
 
     /// <inheritdoc />
     public Task<EmployeeDeviceEnrollment?> GetForUpdateAsync(long tenantId, long id, CancellationToken cancellationToken) =>
@@ -227,11 +227,11 @@ public sealed class EmployeeDeviceEnrollmentRepository : TenantConfigurationRepo
     public async Task<PagedResponseDTO<EmployeeDeviceEnrollment>> GetPagedAsync(long tenantId, EmployeeDeviceEnrollmentFilterRequestDTO filter, CancellationToken cancellationToken)
     {
         var (pageNumber, pageSize) = NormalizePage(filter.PageNumber, filter.PageSize);
-        var query = Context.EmployeeDeviceEnrollments.AsNoTracking().Include(x => x.Employee).Include(x => x.TenantDevice).ThenInclude(x => x.TenantLocation).Where(x => x.TenantId == tenantId && !x.IsSoftDeleted);
-        if (!string.IsNullOrWhiteSpace(filter.Search)) { var term = $"%{filter.Search.Trim()}%"; query = query.Where(x => EF.Functions.ILike(x.EnrollId, term) || (x.CardNumber != null && EF.Functions.ILike(x.CardNumber, term)) || EF.Functions.ILike(x.TenantDevice.SerialNumber, term) || EF.Functions.ILike(x.TenantDevice.DeviceCode, term)); }
+        var query = Context.EmployeeDeviceEnrollments.AsNoTracking().Include(x => x.Employee).Where(x => x.TenantId == tenantId && !x.IsSoftDeleted);
+        if (!string.IsNullOrWhiteSpace(filter.Search)) { var term = $"%{filter.Search.Trim()}%"; query = query.Where(x => EF.Functions.ILike(x.EnrollId, term) || (x.CardNumber != null && EF.Functions.ILike(x.CardNumber, term)) || Context.TenantDevices.Any(d => d.Id == x.TenantDeviceId && (EF.Functions.ILike(d.SerialNumber, term) || EF.Functions.ILike(d.DeviceCode, term)))); }
         if (filter.EmployeeId.HasValue) query = query.Where(x => x.EmployeeId == filter.EmployeeId.Value);
         if (filter.TenantDeviceId.HasValue) query = query.Where(x => x.TenantDeviceId == filter.TenantDeviceId.Value);
-        if (filter.TenantLocationId.HasValue) query = query.Where(x => x.TenantDevice.TenantLocationId == filter.TenantLocationId.Value);
+        if (filter.TenantLocationId.HasValue) query = query.Where(x => Context.TenantDevices.Any(d => d.Id == x.TenantDeviceId && d.TenantLocationId == filter.TenantLocationId.Value));
         if (filter.IsActive.HasValue) query = query.Where(x => x.IsActive == filter.IsActive.Value);
         var count = await query.CountAsync(cancellationToken);
         var data = await query.OrderByDescending(x => x.Id).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken);
@@ -279,7 +279,7 @@ public sealed class EmployeeWorkArrangementRepository : TenantConfigurationRepos
         if (filter.EmployeeId.HasValue) query = query.Where(x => x.EmployeeId == filter.EmployeeId.Value);
         if (filter.AttendancePolicyId.HasValue) query = query.Where(x => x.AttendancePolicyId == filter.AttendancePolicyId.Value);
         if (filter.PrimaryTenantLocationId.HasValue) query = query.Where(x => x.PrimaryTenantLocationId == filter.PrimaryTenantLocationId.Value);
-        if (filter.WorkMode.HasValue) query = query.Where(x => x.WorkMode == filter.WorkMode.Value);
+        if (filter.WorkMode.HasValue) query = query.Where(x => x.WorkMode == (short)filter.WorkMode.Value);
         if (filter.IsActive.HasValue) query = query.Where(x => x.IsActive == filter.IsActive.Value);
         var count = await query.CountAsync(cancellationToken);
         var data = await query.OrderByDescending(x => x.IsActive).ThenByDescending(x => x.EffectiveFrom).ThenByDescending(x => x.Id).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken);
@@ -335,7 +335,7 @@ public sealed class EmployeeWorkPatternRepository : TenantConfigurationRepositor
         var (pageNumber, pageSize) = NormalizePage(filter.PageNumber, filter.PageSize);
         var query = Context.EmployeeWorkPatterns.AsNoTracking().Include(x => x.TenantLocation).Where(x => x.TenantId == tenantId && !x.IsSoftDeleted);
         if (filter.EmployeeWorkArrangementId.HasValue) query = query.Where(x => x.EmployeeWorkArrangementId == filter.EmployeeWorkArrangementId.Value);
-        if (filter.DayOfWeek.HasValue) query = query.Where(x => x.DayOfWeek == filter.DayOfWeek.Value);
+        if (filter.DayOfWeek.HasValue) query = query.Where(x => x.DayOfWeek == (short)filter.DayOfWeek.Value);
         if (filter.IsActive.HasValue) query = query.Where(x => x.IsActive == filter.IsActive.Value);
         var count = await query.CountAsync(cancellationToken);
         var data = await query.OrderBy(x => x.DayOfWeek).ThenBy(x => x.Id).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken);
@@ -347,7 +347,7 @@ public sealed class EmployeeWorkPatternRepository : TenantConfigurationRepositor
     /// <inheritdoc />
     public Task<bool> IsEligibleLocationAsync(long tenantId, long locationId, CancellationToken cancellationToken) => Context.TenantLocations.AnyAsync(x => x.Id == locationId && x.TenantId == tenantId && x.IsActive && !x.IsSoftDeleted, cancellationToken);
     /// <inheritdoc />
-    public Task<bool> PatternDayExistsAsync(long tenantId, long arrangementId, short dayOfWeek, long? excludeId, CancellationToken cancellationToken) => Context.EmployeeWorkPatterns.AnyAsync(x => x.TenantId == tenantId && x.EmployeeWorkArrangementId == arrangementId && (short)x.DayOfWeek == dayOfWeek && x.IsActive && !x.IsSoftDeleted && (!excludeId.HasValue || x.Id != excludeId.Value), cancellationToken);
+    public Task<bool> PatternDayExistsAsync(long tenantId, long arrangementId, short dayOfWeek, long? excludeId, CancellationToken cancellationToken) => Context.EmployeeWorkPatterns.AnyAsync(x => x.TenantId == tenantId && x.EmployeeWorkArrangementId == arrangementId && x.DayOfWeek == dayOfWeek && x.IsActive && !x.IsSoftDeleted && (!excludeId.HasValue || x.Id != excludeId.Value), cancellationToken);
 
     #endregion
 
@@ -382,8 +382,8 @@ public sealed class EmployeeWorkModeOverrideRequestRepository : TenantConfigurat
         var query = Context.EmployeeWorkModeOverrideRequests.AsNoTracking().Include(x => x.Employee).Include(x => x.TenantLocation).Where(x => x.TenantId == tenantId && !x.IsSoftDeleted);
         if (!string.IsNullOrWhiteSpace(filter.Search)) { var term = $"%{filter.Search.Trim()}%"; query = query.Where(x => EF.Functions.ILike(x.Reason, term)); }
         if (filter.EmployeeId.HasValue) query = query.Where(x => x.EmployeeId == filter.EmployeeId.Value);
-        if (filter.RequestedWorkMode.HasValue) query = query.Where(x => x.RequestedWorkMode == filter.RequestedWorkMode.Value);
-        if (filter.ApprovalStatus.HasValue) query = query.Where(x => x.ApprovalStatus == filter.ApprovalStatus.Value);
+        if (filter.RequestedWorkMode.HasValue) query = query.Where(x => x.RequestedWorkMode == (short)filter.RequestedWorkMode.Value);
+        if (filter.ApprovalStatus.HasValue) query = query.Where(x => x.ApprovalStatus == (short)filter.ApprovalStatus.Value);
         if (filter.FromDate.HasValue) query = query.Where(x => x.FromDate >= filter.FromDate.Value);
         if (filter.ToDate.HasValue) query = query.Where(x => x.ToDate <= filter.ToDate.Value);
         if (filter.IsActive.HasValue) query = query.Where(x => x.IsActive == filter.IsActive.Value);

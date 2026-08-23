@@ -6,7 +6,6 @@
 // ================================================================
 
 using AutoMapper;
-using axionpro.application.Common.Helpers;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.TenantConfiguration;
 using axionpro.application.Exceptions;
@@ -77,7 +76,7 @@ public sealed class CreateEmployeeWorkArrangementCommandHandler : TenantConfigur
         var (tenantId, actorId) = await ValidateTenantAsync(); Validate(request.DTO); await ValidateRefs(tenantId, request.DTO, null, ct);
         var e = _mapper.Map<EmployeeWorkArrangement>(request.DTO); e.TenantId = tenantId; e.IsSoftDeleted = false; e.AddedById = actorId; e.AddedDateTime = DateTime.UtcNow; await UnitOfWork.EmployeeWorkArrangementRepository.AddAsync(e, ct); await UnitOfWork.SaveChangesAsync(ct);
         Logger.LogInformation("Work arrangement {WorkArrangementId} created for Employee {EmployeeId} and Tenant {TenantId}.", e.Id, e.EmployeeId, tenantId);
-        return ApiResponse<EmployeeWorkArrangementResponseDTO>.Success(TenantConfigurationResponseMapper.ToResponse((await UnitOfWork.EmployeeWorkArrangementRepository.GetByIdAsync(tenantId, e.Id, ct))!), AppConstants.SuccessMessages.EmployeeWorkArrangementCreated);
+        return ApiResponse<EmployeeWorkArrangementResponseDTO>.Success(_mapper.Map<EmployeeWorkArrangementResponseDTO>((await UnitOfWork.EmployeeWorkArrangementRepository.GetByIdAsync(tenantId, e.Id, ct))!), AppConstants.SuccessMessages.EmployeeWorkArrangementCreated);
     }
     #endregion
     private async Task ValidateRefs(long tenantId, CreateEmployeeWorkArrangementRequestDTO dto, long? excludeId, CancellationToken ct)
@@ -112,7 +111,7 @@ public sealed class UpdateEmployeeWorkArrangementCommandHandler : TenantConfigur
         if (!await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleEmployeeAsync(tenantId, request.DTO.EmployeeId, ct) || !await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleAttendancePolicyAsync(tenantId, request.DTO.AttendancePolicyId, ct) || (request.DTO.PrimaryTenantLocationId.HasValue && !await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleLocationAsync(tenantId, request.DTO.PrimaryTenantLocationId.Value, ct))) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
         if (request.DTO.IsActive && await UnitOfWork.EmployeeWorkArrangementRepository.CurrentArrangementExistsAsync(tenantId, request.DTO.EmployeeId, e.Id, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasCurrentWorkArrangement);
         _mapper.Map(request.DTO, e); e.UpdatedById = actorId; e.UpdatedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(ct);
-        return ApiResponse<EmployeeWorkArrangementResponseDTO>.Success(TenantConfigurationResponseMapper.ToResponse((await UnitOfWork.EmployeeWorkArrangementRepository.GetByIdAsync(tenantId, e.Id, ct))!), AppConstants.SuccessMessages.EmployeeWorkArrangementUpdated);
+        return ApiResponse<EmployeeWorkArrangementResponseDTO>.Success(_mapper.Map<EmployeeWorkArrangementResponseDTO>((await UnitOfWork.EmployeeWorkArrangementRepository.GetByIdAsync(tenantId, e.Id, ct))!), AppConstants.SuccessMessages.EmployeeWorkArrangementUpdated);
     }
     #endregion
     private static void Validate(CreateEmployeeWorkArrangementRequestDTO dto)
@@ -134,27 +133,30 @@ public sealed class DeleteEmployeeWorkArrangementCommandHandler : TenantConfigur
 /// <summary>Handles employee work arrangement status changes.</summary>
 public sealed class UpdateEmployeeWorkArrangementStatusCommandHandler : TenantConfigurationHandlerBase, IRequestHandler<UpdateEmployeeWorkArrangementStatusCommand, ApiResponse<EmployeeWorkArrangementResponseDTO>>
 {
+    private readonly IMapper _mapper;
     /// <summary>Initializes handler.</summary>
-    public UpdateEmployeeWorkArrangementStatusCommandHandler(IUnitOfWork u, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l) : base(u, c, l) { }
+    public UpdateEmployeeWorkArrangementStatusCommandHandler(IUnitOfWork u, IMapper mapper, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l) : base(u, c, l) => _mapper = mapper;
     /// <inheritdoc />
-    public async Task<ApiResponse<EmployeeWorkArrangementResponseDTO>> Handle(UpdateEmployeeWorkArrangementStatusCommand request, CancellationToken ct) { var (tenantId, actorId) = await ValidateTenantAsync(); if (request.DTO is null || request.DTO.Id <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier); var e = await UnitOfWork.EmployeeWorkArrangementRepository.GetForUpdateAsync(tenantId, request.DTO.Id, ct) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkArrangementNotFound); if (!request.DTO.IsActive && e.IsActive && await UnitOfWork.EmployeeWorkArrangementRepository.HasLiveActiveDependenciesAsync(tenantId, e.Id, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeWorkArrangementInUse); if (request.DTO.IsActive && await UnitOfWork.EmployeeWorkArrangementRepository.CurrentArrangementExistsAsync(tenantId, e.EmployeeId, e.Id, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasCurrentWorkArrangement); e.IsActive = request.DTO.IsActive; e.UpdatedById = actorId; e.UpdatedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(ct); return ApiResponse<EmployeeWorkArrangementResponseDTO>.Success(TenantConfigurationResponseMapper.ToResponse((await UnitOfWork.EmployeeWorkArrangementRepository.GetByIdAsync(tenantId, e.Id, ct))!), AppConstants.SuccessMessages.EmployeeWorkArrangementStatusUpdated); }
+    public async Task<ApiResponse<EmployeeWorkArrangementResponseDTO>> Handle(UpdateEmployeeWorkArrangementStatusCommand request, CancellationToken ct) { var (tenantId, actorId) = await ValidateTenantAsync(); if (request.DTO is null || request.DTO.Id <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier); var e = await UnitOfWork.EmployeeWorkArrangementRepository.GetForUpdateAsync(tenantId, request.DTO.Id, ct) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkArrangementNotFound); if (!request.DTO.IsActive && e.IsActive && await UnitOfWork.EmployeeWorkArrangementRepository.HasLiveActiveDependenciesAsync(tenantId, e.Id, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeWorkArrangementInUse); if (request.DTO.IsActive && await UnitOfWork.EmployeeWorkArrangementRepository.CurrentArrangementExistsAsync(tenantId, e.EmployeeId, e.Id, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasCurrentWorkArrangement); e.IsActive = request.DTO.IsActive; e.UpdatedById = actorId; e.UpdatedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(ct); return ApiResponse<EmployeeWorkArrangementResponseDTO>.Success(_mapper.Map<EmployeeWorkArrangementResponseDTO>((await UnitOfWork.EmployeeWorkArrangementRepository.GetByIdAsync(tenantId, e.Id, ct))!), AppConstants.SuccessMessages.EmployeeWorkArrangementStatusUpdated); }
 }
 
 /// <summary>Handles employee work arrangement retrieval.</summary>
 public sealed class GetEmployeeWorkArrangementByIdQueryHandler : TenantConfigurationHandlerBase, IRequestHandler<GetEmployeeWorkArrangementByIdQuery, ApiResponse<EmployeeWorkArrangementResponseDTO>>
 {
+    private readonly IMapper _mapper;
     /// <summary>Initializes handler.</summary>
-    public GetEmployeeWorkArrangementByIdQueryHandler(IUnitOfWork u, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l) : base(u, c, l) { }
+    public GetEmployeeWorkArrangementByIdQueryHandler(IUnitOfWork u, IMapper mapper, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l) : base(u, c, l) => _mapper = mapper;
     /// <inheritdoc />
-    public async Task<ApiResponse<EmployeeWorkArrangementResponseDTO>> Handle(GetEmployeeWorkArrangementByIdQuery request, CancellationToken ct) { var (tenantId, _) = await ValidateTenantAsync(); var e = await UnitOfWork.EmployeeWorkArrangementRepository.GetByIdAsync(tenantId, request.Id, ct) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkArrangementNotFound); return ApiResponse<EmployeeWorkArrangementResponseDTO>.Success(TenantConfigurationResponseMapper.ToResponse(e)); }
+    public async Task<ApiResponse<EmployeeWorkArrangementResponseDTO>> Handle(GetEmployeeWorkArrangementByIdQuery request, CancellationToken ct) { var (tenantId, _) = await ValidateTenantAsync(); var e = await UnitOfWork.EmployeeWorkArrangementRepository.GetByIdAsync(tenantId, request.Id, ct) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkArrangementNotFound); return ApiResponse<EmployeeWorkArrangementResponseDTO>.Success(_mapper.Map<EmployeeWorkArrangementResponseDTO>(e)); }
 }
 
 /// <summary>Handles filtered employee work arrangement retrieval.</summary>
 public sealed class GetEmployeeWorkArrangementsQueryHandler : TenantConfigurationHandlerBase, IRequestHandler<GetEmployeeWorkArrangementsQuery, ApiResponse<List<EmployeeWorkArrangementResponseDTO>>>
 {
+    private readonly IMapper _mapper;
     /// <summary>Initializes handler.</summary>
-    public GetEmployeeWorkArrangementsQueryHandler(IUnitOfWork u, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l) : base(u, c, l) { }
+    public GetEmployeeWorkArrangementsQueryHandler(IUnitOfWork u, IMapper mapper, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l) : base(u, c, l) => _mapper = mapper;
     /// <inheritdoc />
-    public async Task<ApiResponse<List<EmployeeWorkArrangementResponseDTO>>> Handle(GetEmployeeWorkArrangementsQuery request, CancellationToken ct) { var (tenantId, _) = await ValidateTenantAsync(); var p = await UnitOfWork.EmployeeWorkArrangementRepository.GetPagedAsync(tenantId, request.Filter ?? new EmployeeWorkArrangementFilterRequestDTO(), ct); return Paged(p.Data.Select(TenantConfigurationResponseMapper.ToResponse).ToList(), p.PageNumber, p.PageSize, p.TotalCount, "Employee work arrangements retrieved successfully."); }
+    public async Task<ApiResponse<List<EmployeeWorkArrangementResponseDTO>>> Handle(GetEmployeeWorkArrangementsQuery request, CancellationToken ct) { var (tenantId, _) = await ValidateTenantAsync(); var p = await UnitOfWork.EmployeeWorkArrangementRepository.GetPagedAsync(tenantId, request.Filter ?? new EmployeeWorkArrangementFilterRequestDTO(), ct); return Paged(p.Data.Select(entity => _mapper.Map<EmployeeWorkArrangementResponseDTO>(entity)).ToList(), p.PageNumber, p.PageSize, p.TotalCount, "Employee work arrangements retrieved successfully."); }
 }
 #endregion

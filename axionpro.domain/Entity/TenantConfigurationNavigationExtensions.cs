@@ -41,12 +41,6 @@ public partial class Country
     public virtual ICollection<TenantLocation> TenantLocations { get; set; } = new List<TenantLocation>();
 }
 
-/// <summary>Adds TenantLocation relationships to a State.</summary>
-public partial class State
-{
-    public virtual ICollection<TenantLocation> TenantLocations { get; set; } = new List<TenantLocation>();
-}
-
 /// <summary>Adds TenantLocation relationships to a City.</summary>
 public partial class City
 {

@@ -49,7 +49,7 @@ public sealed class DeviceMasterRepository(WorkforceDbContext context) : DeviceM
             var term = $"%{filter.Search.Trim()}%";
             query = query.Where(x => EF.Functions.ILike(x.DeviceCode, term) || EF.Functions.ILike(x.DeviceName, term) || EF.Functions.ILike(x.ModelNo, term) || EF.Functions.ILike(x.CompanyName, term) || (x.BrandName != null && EF.Functions.ILike(x.BrandName, term)) || (x.Description != null && EF.Functions.ILike(x.Description, term)));
         }
-        if (filter.DeviceType.HasValue) query = query.Where(x => x.DeviceType == filter.DeviceType.Value);
+        if (filter.DeviceType.HasValue) query = query.Where(x => x.DeviceType == (short)filter.DeviceType.Value);
         if (filter.IsActive.HasValue) query = query.Where(x => x.IsActive == filter.IsActive.Value);
         var totalCount = await query.CountAsync(cancellationToken);
         var data = await query.OrderByDescending(x => x.Id).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken);
@@ -104,7 +104,7 @@ public sealed class TenantDeviceRepository(WorkforceDbContext context) : DeviceM
         if (filter.TenantId.HasValue) query = query.Where(x => x.TenantId == filter.TenantId.Value);
         if (filter.TenantLocationId.HasValue) query = query.Where(x => x.TenantLocationId == filter.TenantLocationId.Value);
         if (filter.DeviceMasterId.HasValue) query = query.Where(x => x.DeviceMasterId == filter.DeviceMasterId.Value);
-        if (filter.CommunicationType.HasValue) query = query.Where(x => x.CommunicationType == filter.CommunicationType.Value);
+        if (filter.CommunicationType.HasValue) query = query.Where(x => x.CommunicationType == (short)filter.CommunicationType.Value);
         if (filter.IsActive.HasValue) query = query.Where(x => x.IsActive == filter.IsActive.Value);
         var totalCount = await query.CountAsync(cancellationToken);
         var data = await query.OrderByDescending(x => x.Id).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken);

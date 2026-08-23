@@ -6,7 +6,6 @@
 // ================================================================
 
 using AutoMapper;
-using axionpro.application.Common.Helpers;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.TenantConfiguration;
 using axionpro.application.Exceptions;
@@ -105,7 +104,7 @@ public sealed class CreateAttendancePolicyCommandHandler : TenantConfigurationHa
         var entity = _mapper.Map<AttendancePolicy>(request.DTO); entity.PolicyName = request.DTO.PolicyName.Trim(); entity.TenantId = tenantId; entity.IsSoftDeleted = false; entity.AddedById = actorId; entity.AddedDateTime = DateTime.UtcNow;
         await UnitOfWork.AttendancePolicyRepository.AddAsync(entity, cancellationToken); await UnitOfWork.SaveChangesAsync(cancellationToken);
         Logger.LogInformation("Attendance policy {AttendancePolicyId} created for Tenant {TenantId} by Employee {EmployeeId}.", entity.Id, tenantId, actorId);
-        return ApiResponse<AttendancePolicyResponseDTO>.Success(TenantConfigurationResponseMapper.ToResponse((await UnitOfWork.AttendancePolicyRepository.GetByIdAsync(tenantId, entity.Id, cancellationToken))!), AppConstants.SuccessMessages.AttendancePolicyCreated);
+        return ApiResponse<AttendancePolicyResponseDTO>.Success(_mapper.Map<AttendancePolicyResponseDTO>((await UnitOfWork.AttendancePolicyRepository.GetByIdAsync(tenantId, entity.Id, cancellationToken))!), AppConstants.SuccessMessages.AttendancePolicyCreated);
     }
     #endregion
     private static void Validate(CreateAttendancePolicyRequestDTO dto)
@@ -138,7 +137,7 @@ public sealed class UpdateAttendancePolicyCommandHandler : TenantConfigurationHa
         if (await UnitOfWork.AttendancePolicyRepository.PolicyNameExistsAsync(tenantId, request.DTO.PolicyName.Trim(), entity.Id, cancellationToken)) throw new ConflictException(AppConstants.ErrorMessages.DuplicateAttendancePolicyName);
         _mapper.Map(request.DTO, entity); entity.PolicyName = request.DTO.PolicyName.Trim(); entity.UpdatedById = actorId; entity.UpdatedDateTime = DateTime.UtcNow;
         await UnitOfWork.SaveChangesAsync(cancellationToken);
-        return ApiResponse<AttendancePolicyResponseDTO>.Success(TenantConfigurationResponseMapper.ToResponse((await UnitOfWork.AttendancePolicyRepository.GetByIdAsync(tenantId, entity.Id, cancellationToken))!), AppConstants.SuccessMessages.AttendancePolicyUpdated);
+        return ApiResponse<AttendancePolicyResponseDTO>.Success(_mapper.Map<AttendancePolicyResponseDTO>((await UnitOfWork.AttendancePolicyRepository.GetByIdAsync(tenantId, entity.Id, cancellationToken))!), AppConstants.SuccessMessages.AttendancePolicyUpdated);
     }
     #endregion
     private static void Validate(CreateAttendancePolicyRequestDTO dto)
@@ -172,9 +171,10 @@ public sealed class DeleteAttendancePolicyCommandHandler : TenantConfigurationHa
 /// <summary>Handles active-state changes to Tenant-owned attendance policies.</summary>
 public sealed class UpdateAttendancePolicyStatusCommandHandler : TenantConfigurationHandlerBase, IRequestHandler<UpdateAttendancePolicyStatusCommand, ApiResponse<AttendancePolicyResponseDTO>>
 {
+    private readonly IMapper _mapper;
     #region Constructor
     /// <summary>Initializes the handler.</summary>
-    public UpdateAttendancePolicyStatusCommandHandler(IUnitOfWork unitOfWork, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) { }
+    public UpdateAttendancePolicyStatusCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) => _mapper = mapper;
     #endregion
     #region Handle
     /// <summary>Changes policy state after dependency validation.</summary>
@@ -186,7 +186,7 @@ public sealed class UpdateAttendancePolicyStatusCommandHandler : TenantConfigura
         var entity = await UnitOfWork.AttendancePolicyRepository.GetForUpdateAsync(tenantId, request.DTO.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.AttendancePolicyNotFound);
         if (!request.DTO.IsActive && entity.IsActive && await UnitOfWork.AttendancePolicyRepository.HasActiveWorkArrangementsAsync(tenantId, entity.Id, cancellationToken)) throw new ConflictException(AppConstants.ErrorMessages.AttendancePolicyInUse);
         entity.IsActive = request.DTO.IsActive; entity.UpdatedById = actorId; entity.UpdatedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(cancellationToken);
-        return ApiResponse<AttendancePolicyResponseDTO>.Success(TenantConfigurationResponseMapper.ToResponse((await UnitOfWork.AttendancePolicyRepository.GetByIdAsync(tenantId, entity.Id, cancellationToken))!), AppConstants.SuccessMessages.AttendancePolicyStatusUpdated);
+        return ApiResponse<AttendancePolicyResponseDTO>.Success(_mapper.Map<AttendancePolicyResponseDTO>((await UnitOfWork.AttendancePolicyRepository.GetByIdAsync(tenantId, entity.Id, cancellationToken))!), AppConstants.SuccessMessages.AttendancePolicyStatusUpdated);
     }
     #endregion
 }
@@ -194,9 +194,10 @@ public sealed class UpdateAttendancePolicyStatusCommandHandler : TenantConfigura
 /// <summary>Handles retrieval of a Tenant-owned attendance policy.</summary>
 public sealed class GetAttendancePolicyByIdQueryHandler : TenantConfigurationHandlerBase, IRequestHandler<GetAttendancePolicyByIdQuery, ApiResponse<AttendancePolicyResponseDTO>>
 {
+    private readonly IMapper _mapper;
     #region Constructor
     /// <summary>Initializes the handler.</summary>
-    public GetAttendancePolicyByIdQueryHandler(IUnitOfWork unitOfWork, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) { }
+    public GetAttendancePolicyByIdQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) => _mapper = mapper;
     #endregion
     #region Handle
     /// <summary>Retrieves one Tenant-owned attendance policy.</summary>
@@ -205,7 +206,7 @@ public sealed class GetAttendancePolicyByIdQueryHandler : TenantConfigurationHan
     {
         var (tenantId, _) = await ValidateTenantAsync();
         var entity = await UnitOfWork.AttendancePolicyRepository.GetByIdAsync(tenantId, request.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.AttendancePolicyNotFound);
-        return ApiResponse<AttendancePolicyResponseDTO>.Success(TenantConfigurationResponseMapper.ToResponse(entity), AppConstants.SuccessMessages.AttendancePolicyRetrieved);
+        return ApiResponse<AttendancePolicyResponseDTO>.Success(_mapper.Map<AttendancePolicyResponseDTO>(entity), AppConstants.SuccessMessages.AttendancePolicyRetrieved);
     }
     #endregion
 }
@@ -213,9 +214,10 @@ public sealed class GetAttendancePolicyByIdQueryHandler : TenantConfigurationHan
 /// <summary>Handles filtered retrieval of Tenant-owned attendance policies.</summary>
 public sealed class GetAttendancePoliciesQueryHandler : TenantConfigurationHandlerBase, IRequestHandler<GetAttendancePoliciesQuery, ApiResponse<List<AttendancePolicyResponseDTO>>>
 {
+    private readonly IMapper _mapper;
     #region Constructor
     /// <summary>Initializes the handler.</summary>
-    public GetAttendancePoliciesQueryHandler(IUnitOfWork unitOfWork, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) { }
+    public GetAttendancePoliciesQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) => _mapper = mapper;
     #endregion
     #region Handle
     /// <summary>Retrieves a database-paged attendance-policy list.</summary>
@@ -224,7 +226,7 @@ public sealed class GetAttendancePoliciesQueryHandler : TenantConfigurationHandl
     {
         var (tenantId, _) = await ValidateTenantAsync();
         var page = await UnitOfWork.AttendancePolicyRepository.GetPagedAsync(tenantId, request.Filter ?? new AttendancePolicyFilterRequestDTO(), cancellationToken);
-        return Paged(page.Data.Select(TenantConfigurationResponseMapper.ToResponse).ToList(), page.PageNumber, page.PageSize, page.TotalCount, AppConstants.SuccessMessages.AttendancePolicyRetrieved);
+        return Paged(page.Data.Select(entity => _mapper.Map<AttendancePolicyResponseDTO>(entity)).ToList(), page.PageNumber, page.PageSize, page.TotalCount, AppConstants.SuccessMessages.AttendancePolicyRetrieved);
     }
     #endregion
 }

@@ -6,7 +6,6 @@
 // ================================================================
 
 using AutoMapper;
-using axionpro.application.Common.Helpers;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.Host;
 using axionpro.application.Exceptions;
@@ -63,7 +62,7 @@ public sealed class CreateDeviceMasterCommandHandler : IRequestHandler<CreateDev
         var entity = _mapper.Map<DeviceMaster>(dto); entity.DeviceCode = dto.DeviceCode.Trim(); entity.DeviceName = dto.DeviceName.Trim(); entity.CompanyName = dto.CompanyName.Trim(); entity.ModelNo = dto.ModelNo.Trim(); entity.IsSoftDeleted = false; entity.AddedById = hostUserId; entity.AddedDateTime = DateTime.UtcNow;
         await _unitOfWork.DeviceMasterRepository.AddAsync(entity, cancellationToken); await _unitOfWork.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Created DeviceMaster {DeviceMasterId} by HostUser {HostUserId}.", entity.Id, hostUserId);
-        return ApiResponse<DeviceMasterResponseDTO>.Success(HostDeviceResponseMapper.ToResponse(_mapper, entity), AppConstants.SuccessMessages.DeviceMasterCreated);
+        return ApiResponse<DeviceMasterResponseDTO>.Success(_mapper.Map<DeviceMasterResponseDTO>(entity), AppConstants.SuccessMessages.DeviceMasterCreated);
     }
     #endregion
     private static void Validate(CreateDeviceMasterRequestDTO? dto) { if (dto is null || string.IsNullOrWhiteSpace(dto.DeviceCode) || string.IsNullOrWhiteSpace(dto.DeviceName) || string.IsNullOrWhiteSpace(dto.CompanyName) || string.IsNullOrWhiteSpace(dto.ModelNo) || !Enum.IsDefined(dto.DeviceType)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest); }
@@ -83,7 +82,7 @@ public sealed class UpdateDeviceMasterCommandHandler : IRequestHandler<UpdateDev
         if (await _unitOfWork.DeviceMasterRepository.DuplicateExistsAsync(dto.DeviceCode.Trim(), dto.CompanyName.Trim(), dto.ModelNo.Trim(), entity.Id, cancellationToken)) throw new ConflictException(AppConstants.ErrorMessages.DuplicateDeviceMaster);
         _mapper.Map(dto, entity); entity.DeviceCode = dto.DeviceCode.Trim(); entity.DeviceName = dto.DeviceName.Trim(); entity.CompanyName = dto.CompanyName.Trim(); entity.ModelNo = dto.ModelNo.Trim(); entity.UpdatedById = hostUserId; entity.UpdatedDateTime = DateTime.UtcNow; await _unitOfWork.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Updated DeviceMaster {DeviceMasterId} by HostUser {HostUserId}.", entity.Id, hostUserId);
-        return ApiResponse<DeviceMasterResponseDTO>.Success(HostDeviceResponseMapper.ToResponse(_mapper, entity), AppConstants.SuccessMessages.DeviceMasterUpdated);
+        return ApiResponse<DeviceMasterResponseDTO>.Success(_mapper.Map<DeviceMasterResponseDTO>(entity), AppConstants.SuccessMessages.DeviceMasterUpdated);
     }
     private static void Validate(UpdateDeviceMasterRequestDTO dto) { if (string.IsNullOrWhiteSpace(dto.DeviceCode) || string.IsNullOrWhiteSpace(dto.DeviceName) || string.IsNullOrWhiteSpace(dto.CompanyName) || string.IsNullOrWhiteSpace(dto.ModelNo) || !Enum.IsDefined(dto.DeviceType)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest); }
 }
@@ -102,7 +101,7 @@ public sealed class UpdateDeviceMasterStatusCommandHandler : IRequestHandler<Upd
         if (!request.DTO.IsActive && await _unitOfWork.DeviceMasterRepository.HasActiveTenantDevicesAsync(entity.Id, cancellationToken)) throw new ConflictException(AppConstants.ErrorMessages.DeviceMasterInUse);
         entity.IsActive = request.DTO.IsActive; entity.UpdatedById = hostUserId; entity.UpdatedDateTime = DateTime.UtcNow; await _unitOfWork.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Changed DeviceMaster {DeviceMasterId} status to {IsActive} by HostUser {HostUserId}.", entity.Id, entity.IsActive, hostUserId);
-        return ApiResponse<DeviceMasterResponseDTO>.Success(HostDeviceResponseMapper.ToResponse(_mapper, entity), AppConstants.SuccessMessages.DeviceMasterStatusUpdated);
+        return ApiResponse<DeviceMasterResponseDTO>.Success(_mapper.Map<DeviceMasterResponseDTO>(entity), AppConstants.SuccessMessages.DeviceMasterStatusUpdated);
     }
 }
 
@@ -131,7 +130,7 @@ public sealed class GetDeviceMasterByIdQueryHandler : IRequestHandler<GetDeviceM
     public GetDeviceMasterByIdQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService) { _unitOfWork = unitOfWork; _mapper = mapper; _commonRequestService = commonRequestService; }
     /// <inheritdoc />
     public async Task<ApiResponse<DeviceMasterResponseDTO>> Handle(GetDeviceMasterByIdQuery request, CancellationToken cancellationToken)
-    { await _commonRequestService.ValidateHostUserRequestAsync(); var entity = await _unitOfWork.DeviceMasterRepository.GetByIdAsync(request.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.DeviceMasterNotFound); return ApiResponse<DeviceMasterResponseDTO>.Success(HostDeviceResponseMapper.ToResponse(_mapper, entity), AppConstants.SuccessMessages.DeviceMasterRetrieved); }
+    { await _commonRequestService.ValidateHostUserRequestAsync(); var entity = await _unitOfWork.DeviceMasterRepository.GetByIdAsync(request.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.DeviceMasterNotFound); return ApiResponse<DeviceMasterResponseDTO>.Success(_mapper.Map<DeviceMasterResponseDTO>(entity), AppConstants.SuccessMessages.DeviceMasterRetrieved); }
 }
 
 /// <summary>Handles database-paged DeviceMaster retrieval.</summary>
@@ -142,7 +141,7 @@ public sealed class GetAllDeviceMastersQueryHandler : IRequestHandler<GetAllDevi
     public GetAllDeviceMastersQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService) { _unitOfWork = unitOfWork; _mapper = mapper; _commonRequestService = commonRequestService; }
     /// <inheritdoc />
     public async Task<ApiResponse<List<DeviceMasterResponseDTO>>> Handle(GetAllDeviceMastersQuery request, CancellationToken cancellationToken)
-    { await _commonRequestService.ValidateHostUserRequestAsync(); var page = await _unitOfWork.DeviceMasterRepository.GetPagedAsync(request.Filter ?? new GetDeviceMasterListRequestDTO(), cancellationToken); return ApiResponse<List<DeviceMasterResponseDTO>>.SuccessPaginated(page.Data.Select(x => HostDeviceResponseMapper.ToResponse(_mapper, x)).ToList(), page.PageNumber, page.PageSize, page.TotalCount, page.TotalPages, AppConstants.SuccessMessages.DeviceMasterRetrieved); }
+    { await _commonRequestService.ValidateHostUserRequestAsync(); var page = await _unitOfWork.DeviceMasterRepository.GetPagedAsync(request.Filter ?? new GetDeviceMasterListRequestDTO(), cancellationToken); return ApiResponse<List<DeviceMasterResponseDTO>>.SuccessPaginated(page.Data.Select(x => _mapper.Map<DeviceMasterResponseDTO>(x)).ToList(), page.PageNumber, page.PageSize, page.TotalCount, page.TotalPages, AppConstants.SuccessMessages.DeviceMasterRetrieved); }
 }
 
 #endregion

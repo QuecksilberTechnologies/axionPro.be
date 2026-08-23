@@ -6,7 +6,6 @@
 // ================================================================
 
 using AutoMapper;
-using axionpro.application.Common.Helpers;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.Host;
 using axionpro.application.Exceptions;
@@ -65,7 +64,7 @@ public sealed class CreateTenantDeviceCommandHandler : IRequestHandler<CreateTen
         await _unitOfWork.TenantDeviceRepository.AddAsync(entity, cancellationToken); await _unitOfWork.SaveChangesAsync(cancellationToken);
         var stored = await _unitOfWork.TenantDeviceRepository.GetByIdAsync(entity.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.TenantDeviceNotFound);
         _logger.LogInformation("Created TenantDevice {TenantDeviceId} for Tenant {TenantId}, Location {TenantLocationId}, Master {DeviceMasterId}, Serial {SerialNumber} by HostUser {HostUserId}.", entity.Id, entity.TenantId, entity.TenantLocationId, entity.DeviceMasterId, entity.SerialNumber, hostUserId);
-        return ApiResponse<TenantDeviceResponseDTO>.Success(HostDeviceResponseMapper.ToResponse(_mapper, stored), AppConstants.SuccessMessages.TenantDeviceCreated);
+        return ApiResponse<TenantDeviceResponseDTO>.Success(_mapper.Map<TenantDeviceResponseDTO>(stored), AppConstants.SuccessMessages.TenantDeviceCreated);
     }
     #endregion
 }
@@ -85,7 +84,7 @@ public sealed class UpdateTenantDeviceCommandHandler : IRequestHandler<UpdateTen
         _mapper.Map(dto, entity); entity.DeviceCode = dto.DeviceCode.Trim(); entity.SerialNumber = dto.SerialNumber.Trim(); entity.AssetTag = NormalizeOptional(dto.AssetTag); entity.UpdatedById = hostUserId; entity.UpdatedDateTime = DateTime.UtcNow; await _unitOfWork.SaveChangesAsync(cancellationToken);
         var stored = await _unitOfWork.TenantDeviceRepository.GetByIdAsync(entity.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.TenantDeviceNotFound);
         _logger.LogInformation("Updated TenantDevice {TenantDeviceId} for Tenant {TenantId}, Location {TenantLocationId}, Master {DeviceMasterId}, Serial {SerialNumber} by HostUser {HostUserId}.", entity.Id, entity.TenantId, entity.TenantLocationId, entity.DeviceMasterId, entity.SerialNumber, hostUserId);
-        return ApiResponse<TenantDeviceResponseDTO>.Success(HostDeviceResponseMapper.ToResponse(_mapper, stored), AppConstants.SuccessMessages.TenantDeviceUpdated);
+        return ApiResponse<TenantDeviceResponseDTO>.Success(_mapper.Map<TenantDeviceResponseDTO>(stored), AppConstants.SuccessMessages.TenantDeviceUpdated);
     }
 }
 
@@ -105,7 +104,7 @@ public sealed class UpdateTenantDeviceStatusCommandHandler : IRequestHandler<Upd
         entity.IsActive = request.DTO.IsActive; entity.UpdatedById = hostUserId; entity.UpdatedDateTime = DateTime.UtcNow; await _unitOfWork.SaveChangesAsync(cancellationToken);
         var stored = await _unitOfWork.TenantDeviceRepository.GetByIdAsync(entity.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.TenantDeviceNotFound);
         _logger.LogInformation("Changed TenantDevice {TenantDeviceId} status to {IsActive} by HostUser {HostUserId}.", entity.Id, entity.IsActive, hostUserId);
-        return ApiResponse<TenantDeviceResponseDTO>.Success(HostDeviceResponseMapper.ToResponse(_mapper, stored), AppConstants.SuccessMessages.TenantDeviceStatusUpdated);
+        return ApiResponse<TenantDeviceResponseDTO>.Success(_mapper.Map<TenantDeviceResponseDTO>(stored), AppConstants.SuccessMessages.TenantDeviceStatusUpdated);
     }
 }
 
@@ -134,7 +133,7 @@ public sealed class GetTenantDeviceByIdQueryHandler : IRequestHandler<GetTenantD
     public GetTenantDeviceByIdQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService) { _unitOfWork = unitOfWork; _mapper = mapper; _commonRequestService = commonRequestService; }
     /// <inheritdoc />
     public async Task<ApiResponse<TenantDeviceResponseDTO>> Handle(GetTenantDeviceByIdQuery request, CancellationToken cancellationToken)
-    { await _commonRequestService.ValidateHostUserRequestAsync(); var entity = await _unitOfWork.TenantDeviceRepository.GetByIdAsync(request.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.TenantDeviceNotFound); return ApiResponse<TenantDeviceResponseDTO>.Success(HostDeviceResponseMapper.ToResponse(_mapper, entity), AppConstants.SuccessMessages.TenantDeviceRetrieved); }
+    { await _commonRequestService.ValidateHostUserRequestAsync(); var entity = await _unitOfWork.TenantDeviceRepository.GetByIdAsync(request.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.TenantDeviceNotFound); return ApiResponse<TenantDeviceResponseDTO>.Success(_mapper.Map<TenantDeviceResponseDTO>(entity), AppConstants.SuccessMessages.TenantDeviceRetrieved); }
 }
 
 /// <summary>Handles database-paged TenantDevice retrieval.</summary>
@@ -145,7 +144,7 @@ public sealed class GetAllTenantDevicesQueryHandler : IRequestHandler<GetAllTena
     public GetAllTenantDevicesQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService) { _unitOfWork = unitOfWork; _mapper = mapper; _commonRequestService = commonRequestService; }
     /// <inheritdoc />
     public async Task<ApiResponse<List<TenantDeviceResponseDTO>>> Handle(GetAllTenantDevicesQuery request, CancellationToken cancellationToken)
-    { await _commonRequestService.ValidateHostUserRequestAsync(); var page = await _unitOfWork.TenantDeviceRepository.GetPagedAsync(request.Filter ?? new GetTenantDeviceListRequestDTO(), cancellationToken); return ApiResponse<List<TenantDeviceResponseDTO>>.SuccessPaginated(page.Data.Select(x => HostDeviceResponseMapper.ToResponse(_mapper, x)).ToList(), page.PageNumber, page.PageSize, page.TotalCount, page.TotalPages, AppConstants.SuccessMessages.TenantDeviceRetrieved); }
+    { await _commonRequestService.ValidateHostUserRequestAsync(); var page = await _unitOfWork.TenantDeviceRepository.GetPagedAsync(request.Filter ?? new GetTenantDeviceListRequestDTO(), cancellationToken); return ApiResponse<List<TenantDeviceResponseDTO>>.SuccessPaginated(page.Data.Select(x => _mapper.Map<TenantDeviceResponseDTO>(x)).ToList(), page.PageNumber, page.PageSize, page.TotalCount, page.TotalPages, AppConstants.SuccessMessages.TenantDeviceRetrieved); }
 }
 
 internal static class TenantDeviceCommandValidation

@@ -6,7 +6,6 @@
 // ================================================================
 
 using AutoMapper;
-using axionpro.application.Common.Helpers;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.TenantConfiguration;
 using axionpro.application.Exceptions;
@@ -108,7 +107,7 @@ public sealed class CreateTenantLocationCommandHandler : TenantConfigurationHand
         await UnitOfWork.TenantLocationRepository.AddAsync(entity, cancellationToken);
         await UnitOfWork.SaveChangesAsync(cancellationToken);
         Logger.LogInformation("Tenant location {TenantLocationId} created for Tenant {TenantId} by Employee {EmployeeId}.", entity.Id, tenantId, actorId);
-        return ApiResponse<TenantLocationResponseDTO>.Success(TenantConfigurationResponseMapper.ToResponse((await UnitOfWork.TenantLocationRepository.GetByIdAsync(tenantId, entity.Id, cancellationToken))!), AppConstants.SuccessMessages.TenantLocationCreated);
+        return ApiResponse<TenantLocationResponseDTO>.Success(_mapper.Map<TenantLocationResponseDTO>((await UnitOfWork.TenantLocationRepository.GetByIdAsync(tenantId, entity.Id, cancellationToken))!), AppConstants.SuccessMessages.TenantLocationCreated);
     }
     #endregion
     private static void Validate(CreateTenantLocationRequestDTO dto)
@@ -143,7 +142,7 @@ public sealed class UpdateTenantLocationCommandHandler : TenantConfigurationHand
         _mapper.Map(request.DTO, entity); entity.LocationCode = request.DTO.LocationCode.Trim(); entity.LocationName = request.DTO.LocationName.Trim(); entity.TimeZoneId = request.DTO.TimeZoneId.Trim(); entity.UpdatedById = actorId; entity.UpdatedDateTime = DateTime.UtcNow;
         await UnitOfWork.SaveChangesAsync(cancellationToken);
         Logger.LogInformation("Tenant location {TenantLocationId} updated for Tenant {TenantId} by Employee {EmployeeId}.", entity.Id, tenantId, actorId);
-        return ApiResponse<TenantLocationResponseDTO>.Success(TenantConfigurationResponseMapper.ToResponse((await UnitOfWork.TenantLocationRepository.GetByIdAsync(tenantId, entity.Id, cancellationToken))!), AppConstants.SuccessMessages.TenantLocationUpdated);
+        return ApiResponse<TenantLocationResponseDTO>.Success(_mapper.Map<TenantLocationResponseDTO>((await UnitOfWork.TenantLocationRepository.GetByIdAsync(tenantId, entity.Id, cancellationToken))!), AppConstants.SuccessMessages.TenantLocationUpdated);
     }
     #endregion
     private static void Validate(CreateTenantLocationRequestDTO dto)
@@ -178,9 +177,10 @@ public sealed class DeleteTenantLocationCommandHandler : TenantConfigurationHand
 /// <summary>Handles active-state changes to Tenant-owned work locations.</summary>
 public sealed class UpdateTenantLocationStatusCommandHandler : TenantConfigurationHandlerBase, IRequestHandler<UpdateTenantLocationStatusCommand, ApiResponse<TenantLocationResponseDTO>>
 {
+    private readonly IMapper _mapper;
     #region Constructor
     /// <summary>Initializes the handler.</summary>
-    public UpdateTenantLocationStatusCommandHandler(IUnitOfWork unitOfWork, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) { }
+    public UpdateTenantLocationStatusCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) => _mapper = mapper;
     #endregion
     #region Handle
     /// <summary>Changes the active state after dependency validation.</summary>
@@ -193,7 +193,7 @@ public sealed class UpdateTenantLocationStatusCommandHandler : TenantConfigurati
         if (!request.DTO.IsActive && entity.IsActive && await UnitOfWork.TenantLocationRepository.HasLiveActiveDependenciesAsync(tenantId, entity.Id, cancellationToken)) throw new ConflictException(AppConstants.ErrorMessages.TenantLocationInUse);
         entity.IsActive = request.DTO.IsActive; entity.UpdatedById = actorId; entity.UpdatedDateTime = DateTime.UtcNow;
         await UnitOfWork.SaveChangesAsync(cancellationToken);
-        return ApiResponse<TenantLocationResponseDTO>.Success(TenantConfigurationResponseMapper.ToResponse((await UnitOfWork.TenantLocationRepository.GetByIdAsync(tenantId, entity.Id, cancellationToken))!), AppConstants.SuccessMessages.TenantLocationStatusUpdated);
+        return ApiResponse<TenantLocationResponseDTO>.Success(_mapper.Map<TenantLocationResponseDTO>((await UnitOfWork.TenantLocationRepository.GetByIdAsync(tenantId, entity.Id, cancellationToken))!), AppConstants.SuccessMessages.TenantLocationStatusUpdated);
     }
     #endregion
 }
@@ -201,9 +201,10 @@ public sealed class UpdateTenantLocationStatusCommandHandler : TenantConfigurati
 /// <summary>Handles retrieval of a Tenant-owned work location.</summary>
 public sealed class GetTenantLocationByIdQueryHandler : TenantConfigurationHandlerBase, IRequestHandler<GetTenantLocationByIdQuery, ApiResponse<TenantLocationResponseDTO>>
 {
+    private readonly IMapper _mapper;
     #region Constructor
     /// <summary>Initializes the handler.</summary>
-    public GetTenantLocationByIdQueryHandler(IUnitOfWork unitOfWork, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) { }
+    public GetTenantLocationByIdQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) => _mapper = mapper;
     #endregion
     #region Handle
     /// <summary>Retrieves one Tenant-owned location.</summary>
@@ -212,7 +213,7 @@ public sealed class GetTenantLocationByIdQueryHandler : TenantConfigurationHandl
     {
         var (tenantId, _) = await ValidateTenantAsync();
         var entity = await UnitOfWork.TenantLocationRepository.GetByIdAsync(tenantId, request.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.TenantLocationNotFound);
-        return ApiResponse<TenantLocationResponseDTO>.Success(TenantConfigurationResponseMapper.ToResponse(entity), AppConstants.SuccessMessages.TenantLocationRetrieved);
+        return ApiResponse<TenantLocationResponseDTO>.Success(_mapper.Map<TenantLocationResponseDTO>(entity), AppConstants.SuccessMessages.TenantLocationRetrieved);
     }
     #endregion
 }
@@ -220,9 +221,10 @@ public sealed class GetTenantLocationByIdQueryHandler : TenantConfigurationHandl
 /// <summary>Handles filtered retrieval of Tenant-owned work locations.</summary>
 public sealed class GetTenantLocationsQueryHandler : TenantConfigurationHandlerBase, IRequestHandler<GetTenantLocationsQuery, ApiResponse<List<TenantLocationResponseDTO>>>
 {
+    private readonly IMapper _mapper;
     #region Constructor
     /// <summary>Initializes the handler.</summary>
-    public GetTenantLocationsQueryHandler(IUnitOfWork unitOfWork, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) { }
+    public GetTenantLocationsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) => _mapper = mapper;
     #endregion
     #region Handle
     /// <summary>Retrieves a database-paged Tenant location list.</summary>
@@ -231,7 +233,7 @@ public sealed class GetTenantLocationsQueryHandler : TenantConfigurationHandlerB
     {
         var (tenantId, _) = await ValidateTenantAsync();
         var page = await UnitOfWork.TenantLocationRepository.GetPagedAsync(tenantId, request.Filter ?? new TenantLocationFilterRequestDTO(), cancellationToken);
-        return Paged(page.Data.Select(TenantConfigurationResponseMapper.ToResponse).ToList(), page.PageNumber, page.PageSize, page.TotalCount, AppConstants.SuccessMessages.TenantLocationRetrieved);
+        return Paged(page.Data.Select(entity => _mapper.Map<TenantLocationResponseDTO>(entity)).ToList(), page.PageNumber, page.PageSize, page.TotalCount, AppConstants.SuccessMessages.TenantLocationRetrieved);
     }
     #endregion
 }

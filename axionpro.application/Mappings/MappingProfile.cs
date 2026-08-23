@@ -81,50 +81,83 @@ namespace axionpro.application.Mappings
             );
         }
 
+        private static string EmployeeName(Employee? employee) =>
+            string.Join(' ', new[] { employee?.FirstName, employee?.MiddleName, employee?.LastName }.Where(value => !string.IsNullOrWhiteSpace(value)));
+
 
         public MappingProfile()
         {
 
             #region Host Device Management Mappings
 
-            //CreateMap<CreateDeviceMasterRequestDTO, DeviceMaster>()
-            //    .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
-            //    .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
-            //    .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore()).ForMember(d => d.IsSoftDeleted, o => o.Ignore());
-            //CreateMap<UpdateDeviceMasterRequestDTO, DeviceMaster>()
-            //    .IncludeBase<CreateDeviceMasterRequestDTO, DeviceMaster>().ForMember(d => d.Id, o => o.Ignore());
-            //CreateMap<DeviceMaster, DeviceMasterResponseDTO>();
+            CreateMap<CreateDeviceMasterRequestDTO, DeviceMaster>()
+                .ForMember(d => d.DeviceType, o => o.MapFrom(s => checked((short)s.DeviceType)))
+                .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
+                .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
+                .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore()).ForMember(d => d.IsSoftDeleted, o => o.Ignore())
+                .ForMember(d => d.TenantDevice, o => o.Ignore());
+            CreateMap<UpdateDeviceMasterRequestDTO, DeviceMaster>()
+                .ForMember(d => d.DeviceType, o => o.MapFrom(s => checked((short)s.DeviceType)))
+                .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
+                .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
+                .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore()).ForMember(d => d.IsSoftDeleted, o => o.Ignore())
+                .ForMember(d => d.TenantDevice, o => o.Ignore());
+            CreateMap<DeviceMaster, DeviceMasterResponseDTO>()
+                .ForMember(d => d.DeviceType, o => o.MapFrom(s => (DeviceType)s.DeviceType))
+                .ForMember(d => d.DeviceTypeName, o => o.MapFrom(s => ((DeviceType)s.DeviceType).ToString()));
 
-            //CreateMap<CreateTenantDeviceRequestDTO, TenantDevice>()
-            //    .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
-            //    .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
-            //    .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore()).ForMember(d => d.IsSoftDeleted, o => o.Ignore())
-            //    .ForMember(d => d.LastHeartbeatDateTime, o => o.Ignore()).ForMember(d => d.LastSyncDateTime, o => o.Ignore()).ForMember(d => d.LastAttendanceReceivedDateTime, o => o.Ignore())
-            //    .ForMember(d => d.LastSuccessfulConnectionDateTime, o => o.Ignore()).ForMember(d => d.LastFailedConnectionDateTime, o => o.Ignore()).ForMember(d => d.LastConnectionError, o => o.Ignore());
-            //CreateMap<UpdateTenantDeviceRequestDTO, TenantDevice>()
-            //    .IncludeBase<CreateTenantDeviceRequestDTO, TenantDevice>().ForMember(d => d.Id, o => o.Ignore());
-            //CreateMap<TenantDevice, TenantDeviceResponseDTO>();
+            CreateMap<CreateTenantDeviceRequestDTO, TenantDevice>()
+                .ForMember(d => d.CommunicationType, o => o.MapFrom(s => s.CommunicationType.HasValue ? checked((short)s.CommunicationType.Value) : (short?)null))
+                .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
+                .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
+                .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore()).ForMember(d => d.IsSoftDeleted, o => o.Ignore())
+                .ForMember(d => d.LastHeartbeatDateTime, o => o.Ignore()).ForMember(d => d.LastSyncDateTime, o => o.Ignore()).ForMember(d => d.LastAttendanceReceivedDateTime, o => o.Ignore())
+                .ForMember(d => d.LastSuccessfulConnectionDateTime, o => o.Ignore()).ForMember(d => d.LastFailedConnectionDateTime, o => o.Ignore()).ForMember(d => d.LastConnectionError, o => o.Ignore())
+                .ForMember(d => d.Tenant, o => o.Ignore()).ForMember(d => d.TenantLocation, o => o.Ignore()).ForMember(d => d.DeviceMaster, o => o.Ignore());
+            CreateMap<UpdateTenantDeviceRequestDTO, TenantDevice>()
+                .ForMember(d => d.CommunicationType, o => o.MapFrom(s => s.CommunicationType.HasValue ? checked((short)s.CommunicationType.Value) : (short?)null))
+                .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
+                .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
+                .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore()).ForMember(d => d.IsSoftDeleted, o => o.Ignore())
+                .ForMember(d => d.LastHeartbeatDateTime, o => o.Ignore()).ForMember(d => d.LastSyncDateTime, o => o.Ignore()).ForMember(d => d.LastAttendanceReceivedDateTime, o => o.Ignore())
+                .ForMember(d => d.LastSuccessfulConnectionDateTime, o => o.Ignore()).ForMember(d => d.LastFailedConnectionDateTime, o => o.Ignore()).ForMember(d => d.LastConnectionError, o => o.Ignore())
+                .ForMember(d => d.Tenant, o => o.Ignore()).ForMember(d => d.TenantLocation, o => o.Ignore()).ForMember(d => d.DeviceMaster, o => o.Ignore());
+            CreateMap<TenantDevice, TenantDeviceResponseDTO>()
+                .ForMember(d => d.CommunicationType, o => o.MapFrom(s => s.CommunicationType.HasValue ? (DeviceCommunicationType?)s.CommunicationType.Value : null))
+                .ForMember(d => d.TenantName, o => o.MapFrom(s => s.Tenant != null ? s.Tenant.CompanyName : null))
+                .ForMember(d => d.TenantLocationName, o => o.MapFrom(s => s.TenantLocation != null ? s.TenantLocation.LocationName : null))
+                .ForMember(d => d.LocationCode, o => o.MapFrom(s => s.TenantLocation != null ? s.TenantLocation.LocationCode : null))
+                .ForMember(d => d.DeviceMasterName, o => o.MapFrom(s => s.DeviceMaster != null ? s.DeviceMaster.DeviceName : null))
+                .ForMember(d => d.DeviceMasterModelNo, o => o.MapFrom(s => s.DeviceMaster != null ? s.DeviceMaster.ModelNo : null))
+                .ForMember(d => d.CommunicationTypeName, o => o.MapFrom(s => s.CommunicationType.HasValue ? ((DeviceCommunicationType)s.CommunicationType.Value).ToString() : null));
 
             #endregion
 
             #region Tenant Configuration Mappings
 
             CreateMap<CreateTenantLocationRequestDTO, TenantLocation>()
+                .ForMember(d => d.LocationType, o => o.MapFrom(s => checked((short)s.LocationType)))
                 .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.TenantId, o => o.Ignore())
                 .ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
                 .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
                 .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore())
-                .ForMember(d => d.IsSoftDeleted, o => o.Ignore());
+                .ForMember(d => d.IsSoftDeleted, o => o.Ignore()).ForMember(d => d.Tenant, o => o.Ignore())
+                .ForMember(d => d.Country, o => o.Ignore()).ForMember(d => d.City, o => o.Ignore())
+                .ForMember(d => d.TenantDevice, o => o.Ignore()).ForMember(d => d.EmployeeLocationAssignment, o => o.Ignore())
+                .ForMember(d => d.EmployeeWorkArrangement, o => o.Ignore()).ForMember(d => d.EmployeeWorkPattern, o => o.Ignore())
+                .ForMember(d => d.EmployeeWorkModeOverrideRequest, o => o.Ignore());
             CreateMap<UpdateTenantLocationRequestDTO, TenantLocation>()
                 .IncludeBase<CreateTenantLocationRequestDTO, TenantLocation>()
                 .ForMember(d => d.Id, o => o.Ignore());
 
             CreateMap<CreateAttendancePolicyRequestDTO, AttendancePolicy>()
+                .ForMember(d => d.AttendanceLocationScope, o => o.MapFrom(s => checked((short)s.AttendanceLocationScope)))
                 .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.TenantId, o => o.Ignore())
                 .ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
                 .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
                 .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore())
-                .ForMember(d => d.IsSoftDeleted, o => o.Ignore());
+                .ForMember(d => d.IsSoftDeleted, o => o.Ignore()).ForMember(d => d.Tenant, o => o.Ignore())
+                .ForMember(d => d.PolicyType, o => o.Ignore()).ForMember(d => d.EmployeeWorkArrangement, o => o.Ignore());
             CreateMap<UpdateAttendancePolicyRequestDTO, AttendancePolicy>()
                 .IncludeBase<CreateAttendancePolicyRequestDTO, AttendancePolicy>()
                 .ForMember(d => d.Id, o => o.Ignore());
@@ -134,7 +167,8 @@ namespace axionpro.application.Mappings
                 .ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
                 .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
                 .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore())
-                .ForMember(d => d.IsSoftDeleted, o => o.Ignore());
+                .ForMember(d => d.IsSoftDeleted, o => o.Ignore()).ForMember(d => d.Tenant, o => o.Ignore())
+                .ForMember(d => d.Employee, o => o.Ignore()).ForMember(d => d.TenantLocation, o => o.Ignore());
             CreateMap<UpdateEmployeeLocationAssignmentRequestDTO, EmployeeLocationAssignment>()
                 .IncludeBase<CreateEmployeeLocationAssignmentRequestDTO, EmployeeLocationAssignment>()
                 .ForMember(d => d.Id, o => o.Ignore());
@@ -144,42 +178,99 @@ namespace axionpro.application.Mappings
                 .ForMember(d => d.LastSyncedDateTime, o => o.Ignore()).ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
                 .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
                 .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore())
-                .ForMember(d => d.IsSoftDeleted, o => o.Ignore());
+                .ForMember(d => d.IsSoftDeleted, o => o.Ignore()).ForMember(d => d.Tenant, o => o.Ignore())
+                .ForMember(d => d.Employee, o => o.Ignore());
             CreateMap<UpdateEmployeeDeviceEnrollmentRequestDTO, EmployeeDeviceEnrollment>()
                 .IncludeBase<CreateEmployeeDeviceEnrollmentRequestDTO, EmployeeDeviceEnrollment>()
                 .ForMember(d => d.Id, o => o.Ignore());
 
             CreateMap<CreateEmployeeWorkArrangementRequestDTO, EmployeeWorkArrangement>()
+                .ForMember(d => d.WorkMode, o => o.MapFrom(s => checked((short)s.WorkMode)))
+                .ForMember(d => d.HybridType, o => o.MapFrom(s => s.HybridType.HasValue ? checked((short)s.HybridType.Value) : (short?)null))
                 .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.TenantId, o => o.Ignore())
                 .ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
                 .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
                 .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore())
-                .ForMember(d => d.IsSoftDeleted, o => o.Ignore());
+                .ForMember(d => d.IsSoftDeleted, o => o.Ignore()).ForMember(d => d.Tenant, o => o.Ignore())
+                .ForMember(d => d.Employee, o => o.Ignore()).ForMember(d => d.AttendancePolicy, o => o.Ignore())
+                .ForMember(d => d.PrimaryTenantLocation, o => o.Ignore()).ForMember(d => d.EmployeeWorkPattern, o => o.Ignore())
+                .ForMember(d => d.EmployeeWorkModeOverrideRequest, o => o.Ignore());
             CreateMap<UpdateEmployeeWorkArrangementRequestDTO, EmployeeWorkArrangement>()
                 .IncludeBase<CreateEmployeeWorkArrangementRequestDTO, EmployeeWorkArrangement>()
                 .ForMember(d => d.Id, o => o.Ignore());
 
             CreateMap<CreateEmployeeWorkPatternRequestDTO, EmployeeWorkPattern>()
+                .ForMember(d => d.DayOfWeek, o => o.MapFrom(s => checked((short)s.DayOfWeek)))
+                .ForMember(d => d.WorkMode, o => o.MapFrom(s => checked((short)s.WorkMode)))
                 .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.TenantId, o => o.Ignore())
                 .ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
                 .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
                 .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore())
-                .ForMember(d => d.IsSoftDeleted, o => o.Ignore());
+                .ForMember(d => d.IsSoftDeleted, o => o.Ignore()).ForMember(d => d.Tenant, o => o.Ignore())
+                .ForMember(d => d.EmployeeWorkArrangement, o => o.Ignore()).ForMember(d => d.TenantLocation, o => o.Ignore());
             CreateMap<UpdateEmployeeWorkPatternRequestDTO, EmployeeWorkPattern>()
                 .IncludeBase<CreateEmployeeWorkPatternRequestDTO, EmployeeWorkPattern>()
                 .ForMember(d => d.Id, o => o.Ignore());
 
             CreateMap<CreateEmployeeWorkModeOverrideRequestDTO, EmployeeWorkModeOverrideRequest>()
+                .ForMember(d => d.RequestedWorkMode, o => o.MapFrom(s => checked((short)s.RequestedWorkMode)))
                 .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.TenantId, o => o.Ignore())
                 .ForMember(d => d.ApprovalStatus, o => o.Ignore()).ForMember(d => d.ApprovedById, o => o.Ignore()).ForMember(d => d.ApprovedDateTime, o => o.Ignore())
                 .ForMember(d => d.ApprovalRemark, o => o.Ignore()).ForMember(d => d.RejectedById, o => o.Ignore()).ForMember(d => d.RejectedDateTime, o => o.Ignore()).ForMember(d => d.RejectionRemark, o => o.Ignore())
                 .ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
                 .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
                 .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore())
-                .ForMember(d => d.IsSoftDeleted, o => o.Ignore());
+                .ForMember(d => d.IsSoftDeleted, o => o.Ignore()).ForMember(d => d.Tenant, o => o.Ignore())
+                .ForMember(d => d.Employee, o => o.Ignore()).ForMember(d => d.EmployeeWorkArrangement, o => o.Ignore())
+                .ForMember(d => d.TenantLocation, o => o.Ignore());
             CreateMap<UpdateEmployeeWorkModeOverrideRequestDTO, EmployeeWorkModeOverrideRequest>()
                 .IncludeBase<CreateEmployeeWorkModeOverrideRequestDTO, EmployeeWorkModeOverrideRequest>()
                 .ForMember(d => d.Id, o => o.Ignore());
+
+            CreateMap<TenantLocation, TenantLocationResponseDTO>()
+                .ForMember(d => d.LocationType, o => o.MapFrom(s => (TenantLocationType)s.LocationType))
+                .ForMember(d => d.LocationTypeName, o => o.MapFrom(s => ((TenantLocationType)s.LocationType).ToString()))
+                .ForMember(d => d.CountryName, o => o.MapFrom(s => s.Country != null ? s.Country.CountryName : string.Empty))
+                .ForMember(d => d.StateName, o => o.MapFrom(_ => (string?)null))
+                .ForMember(d => d.CityName, o => o.MapFrom(s => s.City != null ? s.City.CityName : null));
+            CreateMap<AttendancePolicy, AttendancePolicyResponseDTO>()
+                .ForMember(d => d.AttendanceLocationScope, o => o.MapFrom(s => (AttendanceLocationScope)s.AttendanceLocationScope))
+                .ForMember(d => d.PolicyTypeName, o => o.MapFrom(s => s.PolicyType != null ? s.PolicyType.PolicyName : string.Empty))
+                .ForMember(d => d.AttendanceLocationScopeName, o => o.MapFrom(s => ((AttendanceLocationScope)s.AttendanceLocationScope).ToString()));
+            CreateMap<EmployeeLocationAssignment, EmployeeLocationAssignmentResponseDTO>()
+                .ForMember(d => d.EmployeeName, o => o.MapFrom(s => EmployeeName(s.Employee)))
+                .ForMember(d => d.EmployeeCode, o => o.MapFrom(s => s.Employee != null ? s.Employee.EmployementCode : null))
+                .ForMember(d => d.TenantLocationName, o => o.MapFrom(s => s.TenantLocation != null ? s.TenantLocation.LocationName : string.Empty))
+                .ForMember(d => d.LocationCode, o => o.MapFrom(s => s.TenantLocation != null ? s.TenantLocation.LocationCode : string.Empty));
+            CreateMap<EmployeeDeviceEnrollment, EmployeeDeviceEnrollmentResponseDTO>()
+                .ForMember(d => d.EmployeeName, o => o.MapFrom(s => EmployeeName(s.Employee)))
+                .ForMember(d => d.EmployeeCode, o => o.MapFrom(s => s.Employee != null ? s.Employee.EmployementCode : null))
+                .ForMember(d => d.DeviceCode, o => o.MapFrom(_ => string.Empty))
+                .ForMember(d => d.DeviceName, o => o.MapFrom(_ => (string?)null))
+                .ForMember(d => d.SerialNumber, o => o.MapFrom(_ => string.Empty))
+                .ForMember(d => d.TenantLocationId, o => o.MapFrom(_ => 0L))
+                .ForMember(d => d.TenantLocationName, o => o.MapFrom(_ => string.Empty));
+            CreateMap<EmployeeWorkArrangement, EmployeeWorkArrangementResponseDTO>()
+                .ForMember(d => d.WorkMode, o => o.MapFrom(s => (WorkMode)s.WorkMode))
+                .ForMember(d => d.HybridType, o => o.MapFrom(s => s.HybridType.HasValue ? (HybridType?)s.HybridType.Value : null))
+                .ForMember(d => d.EmployeeName, o => o.MapFrom(s => EmployeeName(s.Employee)))
+                .ForMember(d => d.AttendancePolicyName, o => o.MapFrom(s => s.AttendancePolicy != null ? s.AttendancePolicy.PolicyName : string.Empty))
+                .ForMember(d => d.PrimaryTenantLocationName, o => o.MapFrom(s => s.PrimaryTenantLocation != null ? s.PrimaryTenantLocation.LocationName : null))
+                .ForMember(d => d.WorkModeName, o => o.MapFrom(s => ((WorkMode)s.WorkMode).ToString()))
+                .ForMember(d => d.HybridTypeName, o => o.MapFrom(s => s.HybridType.HasValue ? ((HybridType)s.HybridType.Value).ToString() : null));
+            CreateMap<EmployeeWorkPattern, EmployeeWorkPatternResponseDTO>()
+                .ForMember(d => d.DayOfWeek, o => o.MapFrom(s => (WorkPatternDay)s.DayOfWeek))
+                .ForMember(d => d.WorkMode, o => o.MapFrom(s => (WorkMode)s.WorkMode))
+                .ForMember(d => d.DayOfWeekName, o => o.MapFrom(s => ((WorkPatternDay)s.DayOfWeek).ToString()))
+                .ForMember(d => d.WorkModeName, o => o.MapFrom(s => ((WorkMode)s.WorkMode).ToString()))
+                .ForMember(d => d.TenantLocationName, o => o.MapFrom(s => s.TenantLocation != null ? s.TenantLocation.LocationName : null));
+            CreateMap<EmployeeWorkModeOverrideRequest, EmployeeWorkModeOverrideResponseDTO>()
+                .ForMember(d => d.RequestedWorkMode, o => o.MapFrom(s => (WorkMode)s.RequestedWorkMode))
+                .ForMember(d => d.ApprovalStatus, o => o.MapFrom(s => (WorkModeOverrideApprovalStatus)s.ApprovalStatus))
+                .ForMember(d => d.EmployeeName, o => o.MapFrom(s => EmployeeName(s.Employee)))
+                .ForMember(d => d.RequestedWorkModeName, o => o.MapFrom(s => ((WorkMode)s.RequestedWorkMode).ToString()))
+                .ForMember(d => d.TenantLocationName, o => o.MapFrom(s => s.TenantLocation != null ? s.TenantLocation.LocationName : null))
+                .ForMember(d => d.ApprovalStatusName, o => o.MapFrom(s => ((WorkModeOverrideApprovalStatus)s.ApprovalStatus).ToString()));
 
             #endregion
 

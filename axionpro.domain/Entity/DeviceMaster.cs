@@ -23,7 +23,7 @@ public partial class DeviceMaster
     public string? ManufacturerWebsite { get; set; }
     public string? SupportEmail { get; set; }
     public string? SupportContactNumber { get; set; }
-    public DeviceType DeviceType { get; set; }
+    public short DeviceType { get; set; }
     public bool IsAttendanceDevice { get; set; }
     public bool IsAccessControlDevice { get; set; }
     public bool SupportsFace { get; set; }
@@ -94,10 +94,7 @@ public partial class DeviceMaster
     #region Navigation Properties
 
     /// <summary>Gets physical Tenant devices using this device model.</summary>
-    public virtual ICollection<TenantDevice> TenantDevices { get; set; } = new List<TenantDevice>();
-
-    /// <summary>Gets legacy device commands associated with this device model.</summary>
-    public virtual ICollection<DeviceCommandQueue> DeviceCommandQueue { get; set; } = new List<DeviceCommandQueue>();
+    public virtual ICollection<TenantDevice> TenantDevice { get; set; } = new List<TenantDevice>();
 
     #endregion
 }

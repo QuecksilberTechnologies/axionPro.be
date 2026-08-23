@@ -1026,9 +1026,7 @@ namespace axionpro.persistance.Data.Context
             entity.Property(e => e.RetryCount).HasDefaultValue(0);
             entity.Property(e => e.Status).HasDefaultValue(0);
 
-            entity.HasOne(d => d.Device).WithMany(p => p.DeviceCommandQueue)
-                .HasForeignKey(d => d.DeviceId)
-                .HasConstraintName("FK_DeviceCommandQueue_DeviceMaster");
+            entity.Ignore(d => d.Device);
         });
 
         modelBuilder.Entity<DeviceLogRaw>(entity =>
@@ -1050,11 +1048,13 @@ namespace axionpro.persistance.Data.Context
 
         modelBuilder.Entity<DeviceMaster>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK_DeviceMaster");
             entity.ToTable("DeviceMaster", "axionpro");
-            entity.HasIndex(e => e.DeviceCode, "UX_DeviceMaster_DeviceCode").IsUnique().HasFilter("\"IsSoftDeleted\" = false");
-            entity.HasIndex(e => new { e.CompanyName, e.ModelNo }, "UX_DeviceMaster_CompanyName_ModelNo").IsUnique().HasFilter("\"IsSoftDeleted\" = false");
+            entity.HasIndex(e => e.CompanyName, "IX_DeviceMaster_CompanyName");
+            entity.HasIndex(e => e.DeviceType, "IX_DeviceMaster_DeviceType");
             entity.HasIndex(e => new { e.IsActive, e.IsSoftDeleted }, "IX_DeviceMaster_IsActive_IsSoftDeleted");
+            entity.HasIndex(e => e.IsAttendanceDevice, "IX_DeviceMaster_IsAttendanceDevice");
+            entity.HasIndex(e => e.IsIntegrationSupported, "IX_DeviceMaster_IsIntegrationSupported");
+            entity.HasIndex(e => e.ModelNo, "IX_DeviceMaster_ModelNo");
             entity.Property(e => e.DeviceCode).HasMaxLength(50);
             entity.Property(e => e.DeviceName).HasMaxLength(200);
             entity.Property(e => e.ModelNo).HasMaxLength(100);
@@ -1065,7 +1065,6 @@ namespace axionpro.persistance.Data.Context
             entity.Property(e => e.ManufacturerWebsite).HasMaxLength(300);
             entity.Property(e => e.SupportEmail).HasMaxLength(200);
             entity.Property(e => e.SupportContactNumber).HasMaxLength(30);
-            entity.Property(e => e.DeviceType).HasConversion<short>();
             entity.Property(e => e.SupportedTlsVersions).HasMaxLength(100);
             entity.Property(e => e.SupportedProtocols).HasMaxLength(500);
             entity.Property(e => e.FirmwareVersion).HasMaxLength(100);
@@ -1097,7 +1096,6 @@ namespace axionpro.persistance.Data.Context
             entity.Property(e => e.Remark).HasMaxLength(1000);
             entity.Property(e => e.IsAttendanceDevice).HasDefaultValue(true);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
             entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
         });
 
@@ -3527,61 +3525,46 @@ namespace axionpro.persistance.Data.Context
 
             modelBuilder.Entity<TenantLocation>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK_TenantLocation");
                 entity.ToTable("TenantLocation", "axionpro");
-                entity.HasIndex(e => new { e.TenantId, e.LocationCode }, "UX_TenantLocation_TenantId_LocationCode")
-                    .IsUnique().HasFilter("\"IsSoftDeleted\" = false");
+                entity.HasIndex(e => e.CityId, "IX_TenantLocation_CityId");
+                entity.HasIndex(e => e.CountryId, "IX_TenantLocation_CountryId");
                 entity.HasIndex(e => new { e.Id, e.TenantId }, "UQ_TenantLocation_Id_TenantId").IsUnique();
+                entity.HasIndex(e => e.TenantId, "IX_TenantLocation_TenantId");
                 entity.HasIndex(e => new { e.TenantId, e.IsActive }, "IX_TenantLocation_TenantId_IsActive");
                 entity.HasIndex(e => new { e.TenantId, e.IsSoftDeleted }, "IX_TenantLocation_TenantId_IsSoftDeleted");
+                entity.HasIndex(e => e.StateId, "IX_TenantLocation_StateId");
                 entity.Property(e => e.LocationCode).HasMaxLength(50);
                 entity.Property(e => e.LocationName).HasMaxLength(150);
-                entity.Property(e => e.LocationType).HasConversion<short>();
                 entity.Property(e => e.Address).HasMaxLength(500);
                 entity.Property(e => e.Landmark).HasMaxLength(200);
                 entity.Property(e => e.PostalCode).HasMaxLength(20);
                 entity.Property(e => e.Latitude).HasPrecision(10, 7);
                 entity.Property(e => e.Longitude).HasPrecision(10, 7);
                 entity.Property(e => e.TimeZoneId).HasMaxLength(100);
-                entity.Property(e => e.IsHeadOffice).HasDefaultValue(false);
-                entity.Property(e => e.IsGeoFenceEnabled).HasDefaultValue(false);
                 entity.Property(e => e.IsAttendanceAllowed).HasDefaultValue(true);
-                entity.Property(e => e.IsBiometricEnabled).HasDefaultValue(false);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
                 entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
                 entity.HasOne(e => e.Tenant).WithMany(e => e.TenantLocations)
                     .HasForeignKey(e => e.TenantId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_TenantLocation_Tenant");
                 entity.HasOne(e => e.Country).WithMany(e => e.TenantLocations)
                     .HasForeignKey(e => e.CountryId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_TenantLocation_Country");
-                entity.HasOne(e => e.State).WithMany(e => e.TenantLocations)
-                    .HasForeignKey(e => e.StateId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(e => e.City).WithMany(e => e.TenantLocations)
                     .HasForeignKey(e => e.CityId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_TenantLocation_City");
             });
 
             modelBuilder.Entity<AttendancePolicy>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK_AttendancePolicy");
                 entity.ToTable("AttendancePolicy", "axionpro");
-                entity.HasIndex(e => new { e.TenantId, e.PolicyName }, "UX_AttendancePolicy_TenantId_PolicyName")
-                    .IsUnique().HasFilter("\"IsSoftDeleted\" = false");
                 entity.HasIndex(e => new { e.TenantId, e.IsActive, e.IsSoftDeleted }, "IX_AttendancePolicy_TenantId_IsActive_IsSoftDeleted");
                 entity.HasIndex(e => e.PolicyTypeId, "IX_AttendancePolicy_PolicyTypeId");
+                entity.HasIndex(e => e.TenantId, "IX_AttendancePolicy_TenantId");
                 entity.Property(e => e.PolicyName).HasMaxLength(200);
                 entity.Property(e => e.Description).HasMaxLength(500);
                 entity.Property(e => e.Remark).HasMaxLength(500);
-                entity.Property(e => e.AttendanceLocationScope).HasConversion<short>();
                 entity.Property(e => e.AllowBiometric).HasDefaultValue(true);
-                entity.Property(e => e.AllowMobile).HasDefaultValue(false);
-                entity.Property(e => e.AllowWeb).HasDefaultValue(false);
-                entity.Property(e => e.AllowManualAttendance).HasDefaultValue(false);
-                entity.Property(e => e.AllowWorkFromHome).HasDefaultValue(false);
                 entity.Property(e => e.RequireGeoFenceForOffice).HasDefaultValue(true);
                 entity.Property(e => e.RequireGpsForRemote).HasDefaultValue(true);
-                entity.Property(e => e.AllowOutsideLocationWithApproval).HasDefaultValue(false);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
                 entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
                 entity.HasOne(e => e.Tenant).WithMany(e => e.AttendancePolicies)
                     .HasForeignKey(e => e.TenantId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_AttendancePolicy_Tenant");
@@ -3591,14 +3574,16 @@ namespace axionpro.persistance.Data.Context
 
             modelBuilder.Entity<TenantDevice>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK_TenantDevice");
                 entity.ToTable("TenantDevice", "axionpro");
-                entity.HasIndex(e => e.SerialNumber, "UX_TenantDevice_SerialNumber").IsUnique().HasFilter("\"IsSoftDeleted\" = false");
-                entity.HasIndex(e => new { e.TenantId, e.DeviceCode }, "UX_TenantDevice_TenantId_DeviceCode").IsUnique().HasFilter("\"IsSoftDeleted\" = false");
-                entity.HasIndex(e => new { e.TenantId, e.AssetTag }, "UX_TenantDevice_TenantId_AssetTag").IsUnique().HasFilter("\"AssetTag\" IS NOT NULL AND \"IsSoftDeleted\" = false");
                 entity.HasIndex(e => e.TenantId, "IX_TenantDevice_TenantId");
                 entity.HasIndex(e => e.TenantLocationId, "IX_TenantDevice_TenantLocationId");
                 entity.HasIndex(e => e.DeviceMasterId, "IX_TenantDevice_DeviceMasterId");
+                entity.HasIndex(e => new { e.DeviceMasterId, e.IsActive }, "IX_TenantDevice_DeviceMasterId_IsActive");
+                entity.HasIndex(e => e.LastHeartbeatDateTime, "IX_TenantDevice_LastHeartbeatDateTime");
+                entity.HasIndex(e => e.SerialNumber, "IX_TenantDevice_SerialNumber");
+                entity.HasIndex(e => new { e.TenantId, e.IsActive, e.IsSoftDeleted }, "IX_TenantDevice_TenantId_IsActive_IsSoftDeleted");
+                entity.HasIndex(e => new { e.TenantId, e.TenantLocationId }, "IX_TenantDevice_TenantId_TenantLocationId");
+                entity.HasIndex(e => new { e.TenantLocationId, e.IsActive }, "IX_TenantDevice_TenantLocationId_IsActive");
                 entity.Property(e => e.DeviceCode).HasMaxLength(50);
                 entity.Property(e => e.DeviceName).HasMaxLength(150);
                 entity.Property(e => e.SerialNumber).HasMaxLength(100);
@@ -3607,7 +3592,6 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.SoftwareVersion).HasMaxLength(100);
                 entity.Property(e => e.IpAddress).HasMaxLength(45);
                 entity.Property(e => e.MacAddress).HasMaxLength(50);
-                entity.Property(e => e.CommunicationType).HasConversion<short?>();
                 entity.Property(e => e.ServerHost).HasMaxLength(300);
                 entity.Property(e => e.ServerPath).HasMaxLength(300);
                 entity.Property(e => e.ServerUrl).HasMaxLength(500);
@@ -3633,122 +3617,113 @@ namespace axionpro.persistance.Data.Context
                 entity.Property(e => e.IsAttendancePushEnabled).HasDefaultValue(true);
                 entity.Property(e => e.IsAutoSyncEnabled).HasDefaultValue(true);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
                 entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
                 entity.HasOne(e => e.Tenant).WithMany(e => e.TenantDevices)
                     .HasForeignKey(e => e.TenantId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_TenantDevice_Tenant");
-                entity.HasOne(e => e.TenantLocation).WithMany(e => e.TenantDevices)
+                entity.HasOne(e => e.TenantLocation).WithMany(e => e.TenantDevice)
                     .HasForeignKey(e => new { e.TenantLocationId, e.TenantId })
                     .HasPrincipalKey(e => new { e.Id, e.TenantId })
                     .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_TenantDevice_TenantLocation");
-                entity.HasOne(e => e.DeviceMaster).WithMany(e => e.TenantDevices)
+                entity.HasOne(e => e.DeviceMaster).WithMany(e => e.TenantDevice)
                     .HasForeignKey(e => e.DeviceMasterId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_TenantDevice_DeviceMaster");
             });
 
             modelBuilder.Entity<EmployeeLocationAssignment>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK_EmployeeLocationAssignment");
                 entity.ToTable("EmployeeLocationAssignment", "axionpro");
+                entity.HasIndex(e => e.EmployeeId, "IX_EmployeeLocationAssignment_EmployeeId");
+                entity.HasIndex(e => e.TenantId, "IX_EmployeeLocationAssignment_TenantId");
+                entity.HasIndex(e => e.TenantLocationId, "IX_EmployeeLocationAssignment_TenantLocationId");
                 entity.HasIndex(e => new { e.TenantId, e.EmployeeId, e.TenantLocationId }, "UX_EmployeeLocationAssignment_Employee_Location")
-                    .IsUnique().HasFilter("\"IsActive\" = true AND \"IsSoftDeleted\" = false");
+                    .IsUnique().HasFilter("((\"IsActive\" = true) AND (\"IsSoftDeleted\" = false))");
                 entity.HasIndex(e => new { e.TenantId, e.EmployeeId }, "UX_EmployeeLocationAssignment_Primary")
-                    .IsUnique().HasFilter("\"IsPrimary\" = true AND \"IsActive\" = true AND \"IsSoftDeleted\" = false");
-                entity.Property(e => e.IsPrimary).HasDefaultValue(false);
+                    .IsUnique().HasFilter("((\"IsPrimary\" = true) AND (\"IsActive\" = true) AND (\"IsSoftDeleted\" = false))");
                 entity.Property(e => e.IsAttendanceAllowed).HasDefaultValue(true);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
                 entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
                 entity.HasOne(e => e.Tenant).WithMany(e => e.EmployeeLocationAssignments)
                     .HasForeignKey(e => e.TenantId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeLocationAssignment_Tenant");
                 entity.HasOne(e => e.Employee).WithMany(e => e.EmployeeLocationAssignments)
                     .HasForeignKey(e => e.EmployeeId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeLocationAssignment_Employee");
-                entity.HasOne(e => e.TenantLocation).WithMany(e => e.EmployeeLocationAssignments)
+                entity.HasOne(e => e.TenantLocation).WithMany(e => e.EmployeeLocationAssignment)
                     .HasForeignKey(e => e.TenantLocationId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeLocationAssignment_TenantLocation");
             });
 
             modelBuilder.Entity<EmployeeDeviceEnrollment>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK_EmployeeDeviceEnrollment");
                 entity.ToTable("EmployeeDeviceEnrollment", "axionpro");
-                entity.HasIndex(e => new { e.TenantDeviceId, e.EnrollId }, "UX_EmployeeDeviceEnrollment_Device_EnrollId")
-                    .IsUnique().HasFilter("\"IsSoftDeleted\" = false");
+                entity.HasIndex(e => e.EmployeeId, "IX_EmployeeDeviceEnrollment_EmployeeId");
+                entity.HasIndex(e => e.TenantDeviceId, "IX_EmployeeDeviceEnrollment_TenantDeviceId");
+                entity.HasIndex(e => e.TenantId, "IX_EmployeeDeviceEnrollment_TenantId");
                 entity.Property(e => e.EnrollId).HasMaxLength(100);
                 entity.Property(e => e.CardNumber).HasMaxLength(100);
-                entity.Property(e => e.IsFaceEnrolled).HasDefaultValue(false);
-                entity.Property(e => e.IsFingerprintEnrolled).HasDefaultValue(false);
-                entity.Property(e => e.IsCardEnrolled).HasDefaultValue(false);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
                 entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
                 entity.HasOne(e => e.Tenant).WithMany(e => e.EmployeeDeviceEnrollments)
                     .HasForeignKey(e => e.TenantId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeDeviceEnrollment_Tenant");
                 entity.HasOne(e => e.Employee).WithMany(e => e.EmployeeDeviceEnrollments)
                     .HasForeignKey(e => e.EmployeeId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeDeviceEnrollment_Employee");
-                entity.HasOne(e => e.TenantDevice).WithMany(e => e.EmployeeDeviceEnrollments)
-                    .HasForeignKey(e => e.TenantDeviceId).OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<EmployeeWorkArrangement>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK_EmployeeWorkArrangement");
                 entity.ToTable("EmployeeWorkArrangement", "axionpro");
+                entity.HasIndex(e => e.AttendancePolicyId, "IX_EmployeeWorkArrangement_AttendancePolicyId");
+                entity.HasIndex(e => e.EmployeeId, "IX_EmployeeWorkArrangement_EmployeeId");
+                entity.HasIndex(e => e.PrimaryTenantLocationId, "IX_EmployeeWorkArrangement_PrimaryLocationId");
+                entity.HasIndex(e => e.TenantId, "IX_EmployeeWorkArrangement_TenantId");
                 entity.HasIndex(e => new { e.TenantId, e.EmployeeId }, "UX_EmployeeWorkArrangement_Current")
-                    .IsUnique().HasFilter("\"IsActive\" = true AND \"IsSoftDeleted\" = false");
-                entity.Property(e => e.WorkMode).HasConversion<short>();
-                entity.Property(e => e.HybridType).HasConversion<short>();
+                    .IsUnique().HasFilter("((\"IsActive\" = true) AND (\"IsSoftDeleted\" = false))");
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
                 entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
                 entity.HasOne(e => e.Tenant).WithMany(e => e.EmployeeWorkArrangements)
                     .HasForeignKey(e => e.TenantId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeWorkArrangement_Tenant");
                 entity.HasOne(e => e.Employee).WithMany(e => e.EmployeeWorkArrangements)
                     .HasForeignKey(e => e.EmployeeId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeWorkArrangement_Employee");
-                entity.HasOne(e => e.AttendancePolicy).WithMany(e => e.EmployeeWorkArrangements)
+                entity.HasOne(e => e.AttendancePolicy).WithMany(e => e.EmployeeWorkArrangement)
                     .HasForeignKey(e => e.AttendancePolicyId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeWorkArrangement_AttendancePolicy");
-                entity.HasOne(e => e.PrimaryTenantLocation).WithMany(e => e.PrimaryEmployeeWorkArrangements)
+                entity.HasOne(e => e.PrimaryTenantLocation).WithMany(e => e.EmployeeWorkArrangement)
                     .HasForeignKey(e => e.PrimaryTenantLocationId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeWorkArrangement_PrimaryLocation");
             });
 
             modelBuilder.Entity<EmployeeWorkPattern>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK_EmployeeWorkPattern");
                 entity.ToTable("EmployeeWorkPattern", "axionpro");
+                entity.HasIndex(e => e.TenantLocationId, "IX_EmployeeWorkPattern_TenantLocationId");
+                entity.HasIndex(e => e.EmployeeWorkArrangementId, "IX_EmployeeWorkPattern_WorkArrangementId");
                 entity.HasIndex(e => new { e.EmployeeWorkArrangementId, e.DayOfWeek }, "UX_EmployeeWorkPattern_Arrangement_Day")
-                    .IsUnique().HasFilter("\"IsActive\" = true AND \"IsSoftDeleted\" = false");
-                entity.Property(e => e.DayOfWeek).HasConversion<short>();
-                entity.Property(e => e.WorkMode).HasConversion<short>();
+                    .IsUnique().HasFilter("((\"IsActive\" = true) AND (\"IsSoftDeleted\" = false))");
                 entity.Property(e => e.IsWorkingDay).HasDefaultValue(true);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
                 entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
                 entity.HasOne(e => e.Tenant).WithMany(e => e.EmployeeWorkPatterns)
                     .HasForeignKey(e => e.TenantId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeWorkPattern_Tenant");
-                entity.HasOne(e => e.EmployeeWorkArrangement).WithMany(e => e.EmployeeWorkPatterns)
+                entity.HasOne(e => e.EmployeeWorkArrangement).WithMany(e => e.EmployeeWorkPattern)
                     .HasForeignKey(e => e.EmployeeWorkArrangementId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeWorkPattern_WorkArrangement");
-                entity.HasOne(e => e.TenantLocation).WithMany(e => e.EmployeeWorkPatterns)
+                entity.HasOne(e => e.TenantLocation).WithMany(e => e.EmployeeWorkPattern)
                     .HasForeignKey(e => e.TenantLocationId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_EmployeeWorkPattern_TenantLocation");
             });
 
             modelBuilder.Entity<EmployeeWorkModeOverrideRequest>(entity =>
             {
-                entity.HasKey(e => e.Id).HasName("PK_EmployeeWorkModeOverrideRequest");
                 entity.ToTable("EmployeeWorkModeOverrideRequest", "axionpro");
+                entity.HasIndex(e => e.ApprovalStatus, "IX_WorkModeOverride_ApprovalStatus");
+                entity.HasIndex(e => e.EmployeeId, "IX_WorkModeOverride_EmployeeId");
                 entity.HasIndex(e => new { e.EmployeeId, e.FromDate, e.ToDate }, "IX_WorkModeOverride_Employee_Date");
-                entity.Property(e => e.RequestedWorkMode).HasConversion<short>();
-                entity.Property(e => e.ApprovalStatus).HasConversion<short>().HasDefaultValue(WorkModeOverrideApprovalStatus.Pending);
+                entity.HasIndex(e => e.TenantId, "IX_WorkModeOverride_TenantId");
+                entity.Property(e => e.ApprovalStatus).HasDefaultValue((short)1);
                 entity.Property(e => e.Reason).HasMaxLength(500);
                 entity.Property(e => e.ApprovalRemark).HasMaxLength(500);
                 entity.Property(e => e.RejectionRemark).HasMaxLength(500);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.IsSoftDeleted).HasDefaultValue(false);
                 entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
                 entity.HasOne(e => e.Tenant).WithMany(e => e.EmployeeWorkModeOverrideRequests)
                     .HasForeignKey(e => e.TenantId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_WorkModeOverride_Tenant");
                 entity.HasOne(e => e.Employee).WithMany(e => e.EmployeeWorkModeOverrideRequests)
                     .HasForeignKey(e => e.EmployeeId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_WorkModeOverride_Employee");
-                entity.HasOne(e => e.EmployeeWorkArrangement).WithMany(e => e.EmployeeWorkModeOverrideRequests)
+                entity.HasOne(e => e.EmployeeWorkArrangement).WithMany(e => e.EmployeeWorkModeOverrideRequest)
                     .HasForeignKey(e => e.EmployeeWorkArrangementId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_WorkModeOverride_WorkArrangement");
-                entity.HasOne(e => e.TenantLocation).WithMany(e => e.EmployeeWorkModeOverrideRequests)
+                entity.HasOne(e => e.TenantLocation).WithMany(e => e.EmployeeWorkModeOverrideRequest)
                     .HasForeignKey(e => e.TenantLocationId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_WorkModeOverride_TenantLocation");
             });
 

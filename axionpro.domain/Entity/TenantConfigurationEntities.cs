@@ -15,7 +15,7 @@ public partial class TenantLocation
     public long TenantId { get; set; }
     public string LocationCode { get; set; } = null!;
     public string LocationName { get; set; } = null!;
-    public TenantLocationType LocationType { get; set; }
+    public short LocationType { get; set; }
     public int CountryId { get; set; }
     public int? StateId { get; set; }
     public int? CityId { get; set; }
@@ -40,13 +40,12 @@ public partial class TenantLocation
     public DateTime? SoftDeletedDateTime { get; set; }
     public virtual Tenant Tenant { get; set; } = null!;
     public virtual Country Country { get; set; } = null!;
-    public virtual State? State { get; set; }
     public virtual City? City { get; set; }
-    public virtual ICollection<TenantDevice> TenantDevices { get; set; } = new List<TenantDevice>();
-    public virtual ICollection<EmployeeLocationAssignment> EmployeeLocationAssignments { get; set; } = new List<EmployeeLocationAssignment>();
-    public virtual ICollection<EmployeeWorkArrangement> PrimaryEmployeeWorkArrangements { get; set; } = new List<EmployeeWorkArrangement>();
-    public virtual ICollection<EmployeeWorkPattern> EmployeeWorkPatterns { get; set; } = new List<EmployeeWorkPattern>();
-    public virtual ICollection<EmployeeWorkModeOverrideRequest> EmployeeWorkModeOverrideRequests { get; set; } = new List<EmployeeWorkModeOverrideRequest>();
+    public virtual ICollection<TenantDevice> TenantDevice { get; set; } = new List<TenantDevice>();
+    public virtual ICollection<EmployeeLocationAssignment> EmployeeLocationAssignment { get; set; } = new List<EmployeeLocationAssignment>();
+    public virtual ICollection<EmployeeWorkArrangement> EmployeeWorkArrangement { get; set; } = new List<EmployeeWorkArrangement>();
+    public virtual ICollection<EmployeeWorkPattern> EmployeeWorkPattern { get; set; } = new List<EmployeeWorkPattern>();
+    public virtual ICollection<EmployeeWorkModeOverrideRequest> EmployeeWorkModeOverrideRequest { get; set; } = new List<EmployeeWorkModeOverrideRequest>();
 }
 
 /// <summary>Represents executable attendance configuration for a Tenant policy type.</summary>
@@ -58,7 +57,7 @@ public partial class AttendancePolicy
     public string PolicyName { get; set; } = null!;
     public string? Description { get; set; }
     public string? Remark { get; set; }
-    public AttendanceLocationScope AttendanceLocationScope { get; set; }
+    public short AttendanceLocationScope { get; set; }
     public bool AllowBiometric { get; set; }
     public bool AllowMobile { get; set; }
     public bool AllowWeb { get; set; }
@@ -77,7 +76,7 @@ public partial class AttendancePolicy
     public DateTime? SoftDeletedDateTime { get; set; }
     public virtual Tenant Tenant { get; set; } = null!;
     public virtual PolicyType PolicyType { get; set; } = null!;
-    public virtual ICollection<EmployeeWorkArrangement> EmployeeWorkArrangements { get; set; } = new List<EmployeeWorkArrangement>();
+    public virtual ICollection<EmployeeWorkArrangement> EmployeeWorkArrangement { get; set; } = new List<EmployeeWorkArrangement>();
 }
 
 /// <summary>Represents an employee's eligible Tenant work location.</summary>
@@ -127,7 +126,6 @@ public partial class EmployeeDeviceEnrollment
     public DateTime? SoftDeletedDateTime { get; set; }
     public virtual Tenant Tenant { get; set; } = null!;
     public virtual Employee Employee { get; set; } = null!;
-    public virtual TenantDevice TenantDevice { get; set; } = null!;
 }
 
 /// <summary>Represents an employee's active or historical work arrangement.</summary>
@@ -138,8 +136,8 @@ public partial class EmployeeWorkArrangement
     public long EmployeeId { get; set; }
     public int AttendancePolicyId { get; set; }
     public long? PrimaryTenantLocationId { get; set; }
-    public WorkMode WorkMode { get; set; }
-    public HybridType? HybridType { get; set; }
+    public short WorkMode { get; set; }
+    public short? HybridType { get; set; }
     public short? MinimumOfficeDaysPerWeek { get; set; }
     public short? MinimumOfficeDaysPerMonth { get; set; }
     public short? MaximumWFHDaysPerMonth { get; set; }
@@ -157,8 +155,8 @@ public partial class EmployeeWorkArrangement
     public virtual Employee Employee { get; set; } = null!;
     public virtual AttendancePolicy AttendancePolicy { get; set; } = null!;
     public virtual TenantLocation? PrimaryTenantLocation { get; set; }
-    public virtual ICollection<EmployeeWorkPattern> EmployeeWorkPatterns { get; set; } = new List<EmployeeWorkPattern>();
-    public virtual ICollection<EmployeeWorkModeOverrideRequest> EmployeeWorkModeOverrideRequests { get; set; } = new List<EmployeeWorkModeOverrideRequest>();
+    public virtual ICollection<EmployeeWorkPattern> EmployeeWorkPattern { get; set; } = new List<EmployeeWorkPattern>();
+    public virtual ICollection<EmployeeWorkModeOverrideRequest> EmployeeWorkModeOverrideRequest { get; set; } = new List<EmployeeWorkModeOverrideRequest>();
 }
 
 /// <summary>Represents one day in an employee work-arrangement pattern.</summary>
@@ -167,8 +165,8 @@ public partial class EmployeeWorkPattern
     public long Id { get; set; }
     public long TenantId { get; set; }
     public long EmployeeWorkArrangementId { get; set; }
-    public WorkPatternDay DayOfWeek { get; set; }
-    public WorkMode WorkMode { get; set; }
+    public short DayOfWeek { get; set; }
+    public short WorkMode { get; set; }
     public long? TenantLocationId { get; set; }
     public bool IsWorkingDay { get; set; }
     public bool IsActive { get; set; }
@@ -191,12 +189,12 @@ public partial class EmployeeWorkModeOverrideRequest
     public long TenantId { get; set; }
     public long EmployeeId { get; set; }
     public long? EmployeeWorkArrangementId { get; set; }
-    public WorkMode RequestedWorkMode { get; set; }
+    public short RequestedWorkMode { get; set; }
     public DateOnly FromDate { get; set; }
     public DateOnly ToDate { get; set; }
     public long? TenantLocationId { get; set; }
     public string Reason { get; set; } = null!;
-    public WorkModeOverrideApprovalStatus ApprovalStatus { get; set; }
+    public short ApprovalStatus { get; set; }
     public long? ApprovedById { get; set; }
     public DateTime? ApprovedDateTime { get; set; }
     public string? ApprovalRemark { get; set; }
@@ -233,7 +231,7 @@ public partial class TenantDevice
     public string? IpAddress { get; set; }
     public string? MacAddress { get; set; }
     public int? DevicePort { get; set; }
-    public DeviceCommunicationType? CommunicationType { get; set; }
+    public short? CommunicationType { get; set; }
     public string? ServerHost { get; set; }
     public int? ServerPort { get; set; }
     public string? ServerPath { get; set; }
@@ -281,5 +279,4 @@ public partial class TenantDevice
     public virtual Tenant Tenant { get; set; } = null!;
     public virtual TenantLocation TenantLocation { get; set; } = null!;
     public virtual DeviceMaster DeviceMaster { get; set; } = null!;
-    public virtual ICollection<EmployeeDeviceEnrollment> EmployeeDeviceEnrollments { get; set; } = new List<EmployeeDeviceEnrollment>();
 }
