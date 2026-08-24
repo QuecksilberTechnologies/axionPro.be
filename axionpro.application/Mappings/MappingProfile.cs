@@ -91,45 +91,134 @@ namespace axionpro.application.Mappings
             #region Host Device Management Mappings
 
             CreateMap<CreateDeviceMasterRequestDTO, DeviceMaster>()
-                .ForMember(d => d.DeviceType, o => o.MapFrom(s => checked((short)s.DeviceType)))
-                .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
-                .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
-                .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore()).ForMember(d => d.IsSoftDeleted, o => o.Ignore())
+                .ForMember(
+                    d => d.DeviceType,
+                    o => o.MapFrom(s => (short)s.DeviceType))
+                .ForMember(d => d.Id, o => o.Ignore())
+                .ForMember(d => d.AddedById, o => o.Ignore())
+                .ForMember(d => d.AddedDateTime, o => o.Ignore())
+                .ForMember(d => d.UpdatedById, o => o.Ignore())
+                .ForMember(d => d.UpdatedDateTime, o => o.Ignore())
+                .ForMember(d => d.SoftDeletedById, o => o.Ignore())
+                .ForMember(d => d.SoftDeletedDateTime, o => o.Ignore())
+                .ForMember(d => d.IsSoftDeleted, o => o.Ignore())
                 .ForMember(d => d.TenantDevice, o => o.Ignore());
+
             CreateMap<UpdateDeviceMasterRequestDTO, DeviceMaster>()
-                .ForMember(d => d.DeviceType, o => o.MapFrom(s => checked((short)s.DeviceType)))
-                .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
-                .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
-                .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore()).ForMember(d => d.IsSoftDeleted, o => o.Ignore())
+                .ForMember(
+                    d => d.DeviceType,
+                    o => o.MapFrom(s => (short)s.DeviceType))
+                .ForMember(d => d.Id, o => o.Ignore())
+                .ForMember(d => d.AddedById, o => o.Ignore())
+                .ForMember(d => d.AddedDateTime, o => o.Ignore())
+                .ForMember(d => d.UpdatedById, o => o.Ignore())
+                .ForMember(d => d.UpdatedDateTime, o => o.Ignore())
+                .ForMember(d => d.SoftDeletedById, o => o.Ignore())
+                .ForMember(d => d.SoftDeletedDateTime, o => o.Ignore())
+                .ForMember(d => d.IsSoftDeleted, o => o.Ignore())
                 .ForMember(d => d.TenantDevice, o => o.Ignore());
+
             CreateMap<DeviceMaster, DeviceMasterResponseDTO>()
-                .ForMember(d => d.DeviceType, o => o.MapFrom(s => (DeviceType)s.DeviceType))
-                .ForMember(d => d.DeviceTypeName, o => o.MapFrom(s => ((DeviceType)s.DeviceType).ToString()));
+                .ForMember(
+                    d => d.DeviceType,
+                    o => o.MapFrom(s => (DeviceType)s.DeviceType))
+                .ForMember(
+                    d => d.DeviceTypeName,
+                    o => o.MapFrom(s => ((DeviceType)s.DeviceType).ToString()));
 
             CreateMap<CreateTenantDeviceRequestDTO, TenantDevice>()
-                .ForMember(d => d.CommunicationType, o => o.MapFrom(s => s.CommunicationType.HasValue ? checked((short)s.CommunicationType.Value) : (short?)null))
-                .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
-                .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
-                .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore()).ForMember(d => d.IsSoftDeleted, o => o.Ignore())
-                .ForMember(d => d.LastHeartbeatDateTime, o => o.Ignore()).ForMember(d => d.LastSyncDateTime, o => o.Ignore()).ForMember(d => d.LastAttendanceReceivedDateTime, o => o.Ignore())
-                .ForMember(d => d.LastSuccessfulConnectionDateTime, o => o.Ignore()).ForMember(d => d.LastFailedConnectionDateTime, o => o.Ignore()).ForMember(d => d.LastConnectionError, o => o.Ignore())
-                .ForMember(d => d.Tenant, o => o.Ignore()).ForMember(d => d.TenantLocation, o => o.Ignore()).ForMember(d => d.DeviceMaster, o => o.Ignore());
+                .ForMember(
+                    d => d.CommunicationType,
+                    o => o.MapFrom(s =>
+                        s.CommunicationType.HasValue
+                            ? (short?)s.CommunicationType.Value
+                            : null))
+                .ForMember(d => d.Id, o => o.Ignore())
+                .ForMember(d => d.AddedById, o => o.Ignore())
+                .ForMember(d => d.AddedDateTime, o => o.Ignore())
+                .ForMember(d => d.UpdatedById, o => o.Ignore())
+                .ForMember(d => d.UpdatedDateTime, o => o.Ignore())
+                .ForMember(d => d.SoftDeletedById, o => o.Ignore())
+                .ForMember(d => d.SoftDeletedDateTime, o => o.Ignore())
+                .ForMember(d => d.IsSoftDeleted, o => o.Ignore())
+                .ForMember(d => d.LastHeartbeatDateTime, o => o.Ignore())
+                .ForMember(d => d.LastSyncDateTime, o => o.Ignore())
+                .ForMember(d => d.LastAttendanceReceivedDateTime, o => o.Ignore())
+                .ForMember(d => d.LastSuccessfulConnectionDateTime, o => o.Ignore())
+                .ForMember(d => d.LastFailedConnectionDateTime, o => o.Ignore())
+                .ForMember(d => d.LastConnectionError, o => o.Ignore())
+                .ForMember(d => d.Tenant, o => o.Ignore())
+                .ForMember(d => d.TenantLocation, o => o.Ignore())
+                .ForMember(d => d.DeviceMaster, o => o.Ignore());
+
             CreateMap<UpdateTenantDeviceRequestDTO, TenantDevice>()
-                .ForMember(d => d.CommunicationType, o => o.MapFrom(s => s.CommunicationType.HasValue ? checked((short)s.CommunicationType.Value) : (short?)null))
-                .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
-                .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
-                .ForMember(d => d.SoftDeletedById, o => o.Ignore()).ForMember(d => d.SoftDeletedDateTime, o => o.Ignore()).ForMember(d => d.IsSoftDeleted, o => o.Ignore())
-                .ForMember(d => d.LastHeartbeatDateTime, o => o.Ignore()).ForMember(d => d.LastSyncDateTime, o => o.Ignore()).ForMember(d => d.LastAttendanceReceivedDateTime, o => o.Ignore())
-                .ForMember(d => d.LastSuccessfulConnectionDateTime, o => o.Ignore()).ForMember(d => d.LastFailedConnectionDateTime, o => o.Ignore()).ForMember(d => d.LastConnectionError, o => o.Ignore())
-                .ForMember(d => d.Tenant, o => o.Ignore()).ForMember(d => d.TenantLocation, o => o.Ignore()).ForMember(d => d.DeviceMaster, o => o.Ignore());
+                .ForMember(
+                    d => d.CommunicationType,
+                    o => o.MapFrom(s =>
+                        s.CommunicationType.HasValue
+                            ? (short?)s.CommunicationType.Value
+                            : null))
+                .ForMember(d => d.Id, o => o.Ignore())
+                .ForMember(d => d.AddedById, o => o.Ignore())
+                .ForMember(d => d.AddedDateTime, o => o.Ignore())
+                .ForMember(d => d.UpdatedById, o => o.Ignore())
+                .ForMember(d => d.UpdatedDateTime, o => o.Ignore())
+                .ForMember(d => d.SoftDeletedById, o => o.Ignore())
+                .ForMember(d => d.SoftDeletedDateTime, o => o.Ignore())
+                .ForMember(d => d.IsSoftDeleted, o => o.Ignore())
+                .ForMember(d => d.LastHeartbeatDateTime, o => o.Ignore())
+                .ForMember(d => d.LastSyncDateTime, o => o.Ignore())
+                .ForMember(d => d.LastAttendanceReceivedDateTime, o => o.Ignore())
+                .ForMember(d => d.LastSuccessfulConnectionDateTime, o => o.Ignore())
+                .ForMember(d => d.LastFailedConnectionDateTime, o => o.Ignore())
+                .ForMember(d => d.LastConnectionError, o => o.Ignore())
+                .ForMember(d => d.Tenant, o => o.Ignore())
+                .ForMember(d => d.TenantLocation, o => o.Ignore())
+                .ForMember(d => d.DeviceMaster, o => o.Ignore());
+
             CreateMap<TenantDevice, TenantDeviceResponseDTO>()
-                .ForMember(d => d.CommunicationType, o => o.MapFrom(s => s.CommunicationType.HasValue ? (DeviceCommunicationType?)s.CommunicationType.Value : null))
-                .ForMember(d => d.TenantName, o => o.MapFrom(s => s.Tenant != null ? s.Tenant.CompanyName : null))
-                .ForMember(d => d.TenantLocationName, o => o.MapFrom(s => s.TenantLocation != null ? s.TenantLocation.LocationName : null))
-                .ForMember(d => d.LocationCode, o => o.MapFrom(s => s.TenantLocation != null ? s.TenantLocation.LocationCode : null))
-                .ForMember(d => d.DeviceMasterName, o => o.MapFrom(s => s.DeviceMaster != null ? s.DeviceMaster.DeviceName : null))
-                .ForMember(d => d.DeviceMasterModelNo, o => o.MapFrom(s => s.DeviceMaster != null ? s.DeviceMaster.ModelNo : null))
-                .ForMember(d => d.CommunicationTypeName, o => o.MapFrom(s => s.CommunicationType.HasValue ? ((DeviceCommunicationType)s.CommunicationType.Value).ToString() : null));
+                .ForMember(
+                    d => d.CommunicationType,
+                    o => o.MapFrom(s =>
+                        s.CommunicationType.HasValue
+                            ? (DeviceCommunicationType?)s.CommunicationType.Value
+                            : null))
+                .ForMember(
+                    d => d.CommunicationTypeName,
+                    o => o.MapFrom(s =>
+                        s.CommunicationType.HasValue
+                            ? ((DeviceCommunicationType)s.CommunicationType.Value).ToString()
+                            : null))
+                .ForMember(
+                    d => d.TenantName,
+                    o => o.MapFrom(s =>
+                        s.Tenant != null
+                            ? s.Tenant.CompanyName
+                            : null))
+                .ForMember(
+                    d => d.TenantLocationName,
+                    o => o.MapFrom(s =>
+                        s.TenantLocation != null
+                            ? s.TenantLocation.LocationName
+                            : null))
+                .ForMember(
+                    d => d.LocationCode,
+                    o => o.MapFrom(s =>
+                        s.TenantLocation != null
+                            ? s.TenantLocation.LocationCode
+                            : null))
+                .ForMember(
+                    d => d.DeviceMasterName,
+                    o => o.MapFrom(s =>
+                        s.DeviceMaster != null
+                            ? s.DeviceMaster.DeviceName
+                            : null))
+                .ForMember(
+                    d => d.DeviceMasterModelNo,
+                    o => o.MapFrom(s =>
+                        s.DeviceMaster != null
+                            ? s.DeviceMaster.ModelNo
+                            : null));
 
             #endregion
 

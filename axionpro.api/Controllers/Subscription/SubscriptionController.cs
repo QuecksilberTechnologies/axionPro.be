@@ -72,16 +72,16 @@ public class SubscriptionController : ControllerBase
     /// </summary>
     /// <param name="requestDTO">
     /// Contains the Host subscription-plan filters and pagination values supplied
-    /// through the query string.
+    /// through the request body.
     /// </param>
     /// <param name="cancellationToken">
     /// The token used to observe request cancellation.
     /// </param>
     /// <returns>The filtered and paginated Host subscription-plan response.</returns>
     [Authorize]
-    [HttpGet("get-all-host-subscription-plans")]
+    [HttpPost("get-all-host-subscription-plans")]
     public async Task<IActionResult> GetAllHostSubscriptionPlans(
-        [FromQuery] HostSubscriptionPlanListRequestDTO? requestDTO,
+        [FromBody] HostSubscriptionPlanListRequestDTO? requestDTO,
         CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(
