@@ -5,12 +5,14 @@
 // Purpose : Defines client input for creating an asset type.
 // ================================================================
 
+using axionpro.application.DTOs.BaseDTO;
+
 namespace axionpro.application.DTOS.AssetDTO.type;
 
 /// <summary>
 /// Represents the client-editable values required to create an asset type.
 /// </summary>
-public class AddTypeRequestDTO
+public class AddTypeRequestDTO : PermissionRequestDTO
 {
     /// <summary>
     /// Gets or sets the asset category associated with the type.

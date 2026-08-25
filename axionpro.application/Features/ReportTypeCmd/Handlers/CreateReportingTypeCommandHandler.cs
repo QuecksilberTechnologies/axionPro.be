@@ -6,6 +6,7 @@
 // ================================================================
 
 using AutoMapper;
+using axionpro.application.Constants;
 using axionpro.application.DTOs.Manager.ReportingType;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -69,13 +70,67 @@ public class CreateReportingTypeCommandHandler
             {
                 _logger.LogInformation("🔹 CreateReportingType started");
 
-                // ===============================
-                // 1️⃣ VALIDATION
-                // ===============================
-                var validation = await _commonRequestService.ValidateTenantUserRequestAsync();
+                #region Tenant Request Validation
 
+                var validation = await _commonRequestService.ValidateTenantUserRequestAsync();
                 if (!validation.Success)
-                    throw new UnauthorizedAccessException(validation.ErrorMessage);
+                {
+                    throw new UnauthorizedAccessException(
+                        validation.ErrorMessage ?? AppConstants.ErrorMessages.Unauthorized);
+                }
+
+                #endregion
+
+                #region Trusted Request Context
+
+                long userEmployeeId = validation.LoggedInEmployeeId;
+                long tenantId = validation.TenantId;
+                int tokenRoleId = validation.RoleId;
+
+                if (userEmployeeId <= 0 || tenantId <= 0 || tokenRoleId <= 0)
+                {
+                    _logger.LogWarning(
+                        "Invalid Tenant authorization context while creating Reporting Type. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                        tenantId, userEmployeeId, tokenRoleId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+                }
+
+                #endregion
+
+                #region Runtime Permission Validation
+
+                var permissionResult = await _unitOfWork.StoreProcedureRepository
+                    .CheckTenantEmployeePermissionAsync(
+                        tenantId,
+                        userEmployeeId,
+                        tokenRoleId,
+                        request.DTO.ModuleId,
+                        request.DTO.OperationId,
+                        cancellationToken);
+
+                switch (permissionResult.ResultCode)
+                {
+                    case 1:
+                        break;
+                    case -1:
+                        _logger.LogWarning(
+                            "Tenant authorization context changed while creating Reporting Type. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                            tenantId, userEmployeeId, tokenRoleId);
+                        throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+                    case -2:
+                        _logger.LogWarning(
+                            "Invalid Tenant role context while creating Reporting Type. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                            tenantId, userEmployeeId, tokenRoleId);
+                        throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+                    case 0:
+                    default:
+                        _logger.LogWarning(
+                            "Reporting Type creation permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}",
+                            tenantId, userEmployeeId, request.DTO.ModuleId, request.DTO.OperationId);
+                        throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+                }
+
+                #endregion
 
                 // ===============================
                 // 2️⃣ NULL CHECK
@@ -83,21 +138,12 @@ public class CreateReportingTypeCommandHandler
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request data.");
 
-                //var hasPermission = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    "TicketClassification",   // ModuleName (DB match)
-                //    "Delete"                  // Operation
-                //);
-
-                //if (!hasPermission)
-                //    throw new UnauthorizedAccessException("You do not have permission to delete classification.");
-                // ===============================
                 // ===============================
                 // 3️⃣ REPOSITORY CALL
                 // ===============================
                 var entity = _mapper.Map<axionpro.domain.Entity.ReportingType>(request.DTO);
-                entity.TenantId = validation.TenantId;
-                entity.AddedById = validation.LoggedInEmployeeId;
+                entity.TenantId = tenantId;
+                entity.AddedById = userEmployeeId;
                 entity.AddedDateTime = DateTime.UtcNow;
                 entity.IsSoftDeleted = false;
 

@@ -5,12 +5,14 @@
 // Purpose : Defines client input for deleting an asset type.
 // ================================================================
 
+using axionpro.application.DTOs.BaseDTO;
+
 namespace axionpro.application.DTOS.AssetDTO.type;
 
 /// <summary>
 /// Represents the asset type selected for deletion.
 /// </summary>
-public class DeleteTypeRequestDTO
+public class DeleteTypeRequestDTO : PermissionRequestDTO
 {
     /// <summary>
     /// Gets or sets the asset type identifier.

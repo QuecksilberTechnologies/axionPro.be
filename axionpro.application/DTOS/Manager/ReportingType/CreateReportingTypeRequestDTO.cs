@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using axionpro.application.DTOS.Common;
+using axionpro.application.DTOs.BaseDTO;
 using axionpro.domain.Entity; 
 using MediatR;
 
@@ -19,7 +20,7 @@ namespace axionpro.application.DTOs.Manager.ReportingType
     /// <summary>
     /// Represents the CreateReportingTypeRequestDTO data transfer model.
     /// </summary>
-    public class CreateReportingTypeRequestDTO
+    public class CreateReportingTypeRequestDTO : PermissionRequestDTO
     {
         
 

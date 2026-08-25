@@ -5,12 +5,14 @@
 // Purpose : Defines client input for creating an asset status.
 // ================================================================
 
+using axionpro.application.DTOs.BaseDTO;
+
 namespace axionpro.application.DTOS.AssetDTO.status;
 
 /// <summary>
 /// Represents the client-editable values required to create an asset status.
 /// </summary>
-public class CreateStatusRequestDTO
+public class CreateStatusRequestDTO : PermissionRequestDTO
 {
     /// <summary>
     /// Gets or sets the asset status name.

@@ -5,6 +5,7 @@
 // Purpose : Defines request, filter, status, and response contracts for TenantConfiguration management.
 // ================================================================
 
+using axionpro.application.DTOs.BaseDTO;
 using axionpro.domain.Entity;
 
 namespace axionpro.application.DTOS.TenantConfiguration;
@@ -89,7 +90,7 @@ public sealed class TenantLocationResponseDTO
 }
 
 /// <summary>Supplies client-editable values for an attendance policy.</summary>
-public class CreateAttendancePolicyRequestDTO
+public class CreateAttendancePolicyRequestDTO : PermissionRequestDTO
 {
     #region Properties
     public int PolicyTypeId { get; set; }
@@ -116,14 +117,14 @@ public sealed class UpdateAttendancePolicyRequestDTO : CreateAttendancePolicyReq
 }
 
 /// <summary>Supplies an attendance-policy active-state change.</summary>
-public sealed class UpdateAttendancePolicyStatusRequestDTO
+public sealed class UpdateAttendancePolicyStatusRequestDTO : PermissionRequestDTO
 {
     public int Id { get; set; }
     public bool IsActive { get; set; }
 }
 
 /// <summary>Defines database-side filters for attendance policies.</summary>
-public sealed class AttendancePolicyFilterRequestDTO
+public sealed class AttendancePolicyFilterRequestDTO : PermissionRequestDTO
 {
     public string? Search { get; set; }
     public int? PolicyTypeId { get; set; }

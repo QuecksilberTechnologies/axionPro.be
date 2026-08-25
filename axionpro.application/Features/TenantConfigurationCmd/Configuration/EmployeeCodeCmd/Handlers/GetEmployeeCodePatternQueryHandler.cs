@@ -39,9 +39,7 @@ namespace axionpro.application.Features.TenantConfigurationCmd.Configuration.Emp
             _logger = logger;
         }
 
-        public async Task<ApiResponse<GetEmployeeCodePatternResponseDTO>> Handle(
-    GetEmployeeCodePatternQuery request,
-    CancellationToken cancellationToken)
+        public async Task<ApiResponse<GetEmployeeCodePatternResponseDTO>> Handle( GetEmployeeCodePatternQuery request, CancellationToken cancellationToken)
         {
             try
             {

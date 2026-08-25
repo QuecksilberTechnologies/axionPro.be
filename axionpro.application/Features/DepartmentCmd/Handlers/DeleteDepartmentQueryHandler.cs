@@ -5,10 +5,11 @@
 // Purpose : Soft deletes a tenant-scoped department using trusted request context.
 // ================================================================
 
+using axionpro.application.Constants;
 using axionpro.application.DTOs.Department;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -46,7 +47,6 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
 
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICommonRequestService _commonRequestService;
-        private readonly IPermissionService _permissionService;
         private readonly ILogger<DeleteDepartmentQueryHandler> _logger;
 
         #endregion
@@ -59,12 +59,10 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
         public DeleteDepartmentQueryHandler(
             IUnitOfWork unitOfWork,
             ICommonRequestService commonRequestService,
-            IPermissionService permissionService,
             ILogger<DeleteDepartmentQueryHandler> logger)
         {
             _unitOfWork = unitOfWork;
             _commonRequestService = commonRequestService;
-            _permissionService = permissionService;
             _logger = logger;
         }
 
@@ -79,30 +77,104 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
             DeleteDepartmentQuery request,
             CancellationToken cancellationToken)
         {
+            #region Tenant Request Validation
+
             var validation = await _commonRequestService.ValidateTenantUserRequestAsync();
             if (!validation.Success)
-                throw new UnauthorizedAccessException(validation.ErrorMessage);
+            {
+                throw new UnauthorizedAccessException(
+                    validation.ErrorMessage ??
+                    AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            #endregion
+
+            #region Trusted Request Context
+
+            long userEmployeeId = validation.LoggedInEmployeeId;
+            long tenantId = validation.TenantId;
+            int tokenRoleId = validation.RoleId;
+
+            if (userEmployeeId <= 0 || tenantId <= 0 || tokenRoleId <= 0)
+            {
+                _logger.LogWarning(
+                    "Invalid Tenant authorization context while deleting Department. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                    tenantId,
+                    userEmployeeId,
+                    tokenRoleId);
+
+                throw new UnauthorizedAccessException(
+                    AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            #endregion
+
+            #region Runtime Permission Validation
+
+            // Current database role assignments are authoritative so a stale
+            // JWT role cannot authorize a department deletion.
+            var permissionResult =
+                await _unitOfWork.StoreProcedureRepository
+                    .CheckTenantEmployeePermissionAsync(
+                        tenantId,
+                        userEmployeeId,
+                        tokenRoleId,
+                        request.DTO.ModuleId,
+                        request.DTO.OperationId,
+                        cancellationToken);
+
+            switch (permissionResult.ResultCode)
+            {
+                case 1:
+                    break;
+
+                case -1:
+                    _logger.LogWarning(
+                        "Tenant authorization context changed while deleting Department. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                        tenantId,
+                        userEmployeeId,
+                        tokenRoleId);
+                    throw new UnauthorizedAccessException(
+                        AppConstants.ErrorMessages.Unauthorized);
+
+                case -2:
+                    _logger.LogWarning(
+                        "Invalid Tenant role context while deleting Department. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                        tenantId,
+                        userEmployeeId,
+                        tokenRoleId);
+                    throw new UnauthorizedAccessException(
+                        AppConstants.ErrorMessages.Unauthorized);
+
+                case 0:
+                default:
+                    _logger.LogWarning(
+                        "Department delete permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}",
+                        tenantId,
+                        userEmployeeId,
+                        request.DTO.ModuleId,
+                        request.DTO.OperationId);
+                    throw new UnauthorizedAccessException(
+                        AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            #endregion
 
             if (request.DTO.Id <= 0)
-                throw new axionpro.application.Exceptions.ValidationErrorException(
-                    axionpro.application.Constants.AppConstants.ErrorMessages.InvalidIdentifier);
-
-            // Retain the existing permission lookup without changing authorization behavior.
-            var permissions = await _permissionService.GetPermissionsAsync(validation.RoleId);
-            if (!permissions.Contains("AddBankInfo"))
-                await _unitOfWork.RollbackTransactionAsync();
+                throw new ValidationErrorException(
+                    AppConstants.ErrorMessages.InvalidIdentifier);
 
             var isDeleted = await _unitOfWork.DepartmentRepository.DeleteAsync(
                 request.DTO.Id,
-                validation.TenantId,
-                validation.LoggedInEmployeeId,
+                tenantId,
+                userEmployeeId,
                 cancellationToken);
 
             if (!isDeleted)
             {
                 _logger.LogWarning("Department deletion failed. DepartmentId: {DepartmentId}", request.DTO.Id);
-                throw new axionpro.application.Exceptions.NotFoundException(
-                    axionpro.application.Constants.AppConstants.ErrorMessages.ResourceNotFound);
+                throw new NotFoundException(
+                    AppConstants.ErrorMessages.ResourceNotFound);
             }
 
             return ApiResponse<bool>.Success(true, "Department deleted successfully.");

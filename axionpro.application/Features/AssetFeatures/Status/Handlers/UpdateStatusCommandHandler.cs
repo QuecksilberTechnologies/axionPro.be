@@ -6,12 +6,14 @@
 // ================================================================
 
 using AutoMapper;
+using axionpro.application.Constants;
 using axionpro.application.DTOS.AssetDTO.status;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.AssetFeatures.Status.Handlers;
 
@@ -50,6 +52,7 @@ public class UpdateStatusCommandHandler : IRequestHandler<UpdateStatusCommand, A
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly ICommonRequestService _commonRequestService;
+    private readonly ILogger<UpdateStatusCommandHandler> _logger;
 
     #endregion
 
@@ -61,11 +64,13 @@ public class UpdateStatusCommandHandler : IRequestHandler<UpdateStatusCommand, A
     public UpdateStatusCommandHandler(
         IUnitOfWork unitOfWork,
         IMapper mapper,
-        ICommonRequestService commonRequestService)
+        ICommonRequestService commonRequestService,
+        ILogger<UpdateStatusCommandHandler> logger)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _commonRequestService = commonRequestService;
+        _logger = logger;
     }
 
     #endregion
@@ -84,17 +89,72 @@ public class UpdateStatusCommandHandler : IRequestHandler<UpdateStatusCommand, A
                 new List<string> { "Status Id must be greater than 0." });
         }
 
-        // Resolve the trusted tenant-user context.
+        #region Tenant Request Validation
+
         var validation = await _commonRequestService.ValidateTenantUserRequestAsync();
         if (!validation.Success)
         {
-            throw new UnauthorizedAccessException(validation.ErrorMessage);
+            throw new UnauthorizedAccessException(
+                validation.ErrorMessage ?? AppConstants.ErrorMessages.Unauthorized);
         }
+
+        #endregion
+
+        #region Trusted Request Context
+
+        long userEmployeeId = validation.LoggedInEmployeeId;
+        long tenantId = validation.TenantId;
+        int tokenRoleId = validation.RoleId;
+
+        if (userEmployeeId <= 0 || tenantId <= 0 || tokenRoleId <= 0)
+        {
+            _logger.LogWarning(
+                "Invalid Tenant authorization context while updating Asset Status. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                tenantId, userEmployeeId, tokenRoleId);
+            throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+        }
+
+        #endregion
+
+        #region Runtime Permission Validation
+
+        var permissionResult = await _unitOfWork.StoreProcedureRepository
+            .CheckTenantEmployeePermissionAsync(
+                tenantId,
+                userEmployeeId,
+                tokenRoleId,
+                request.DTO.ModuleId,
+                request.DTO.OperationId,
+                cancellationToken);
+
+        switch (permissionResult.ResultCode)
+        {
+            case 1:
+                break;
+            case -1:
+                _logger.LogWarning(
+                    "Tenant authorization context changed while updating Asset Status. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                    tenantId, userEmployeeId, tokenRoleId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            case -2:
+                _logger.LogWarning(
+                    "Invalid Tenant role context while updating Asset Status. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                    tenantId, userEmployeeId, tokenRoleId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            case 0:
+            default:
+                _logger.LogWarning(
+                    "Asset Status update permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}",
+                    tenantId, userEmployeeId, request.DTO.ModuleId, request.DTO.OperationId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+        }
+
+        #endregion
 
         // Load the tenant-owned entity before applying client changes.
         var entity = await _unitOfWork.AssetStatusRepository.GetByIdForTenantAsync(
             request.DTO.Id,
-            validation.TenantId,
+            tenantId,
             cancellationToken);
         if (entity is null)
         {
@@ -102,7 +162,7 @@ public class UpdateStatusCommandHandler : IRequestHandler<UpdateStatusCommand, A
         }
 
         _mapper.Map(request.DTO, entity);
-        entity.UpdatedById = validation.LoggedInEmployeeId;
+        entity.UpdatedById = userEmployeeId;
         entity.UpdatedDateTime = DateTime.UtcNow;
 
         var updated = await _unitOfWork.AssetStatusRepository.UpdateAsync(entity, cancellationToken);

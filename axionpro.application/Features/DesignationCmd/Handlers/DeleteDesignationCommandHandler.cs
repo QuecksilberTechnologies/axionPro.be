@@ -5,7 +5,9 @@
 // Purpose : Soft deletes tenant-scoped designations using trusted request context.
 // ================================================================
 
+using axionpro.application.Constants;
 using axionpro.application.DTOs.Designation;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
@@ -75,23 +77,98 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
             DeleteDesignationQuery request,
             CancellationToken cancellationToken)
         {
+            #region Tenant Request Validation
+
             var validation = await _commonRequestService.ValidateTenantUserRequestAsync();
             if (!validation.Success)
-                throw new UnauthorizedAccessException(validation.ErrorMessage);
+            {
+                throw new UnauthorizedAccessException(
+                    validation.ErrorMessage ??
+                    AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            #endregion
+
+            #region Trusted Request Context
+
+            long userEmployeeId = validation.LoggedInEmployeeId;
+            long tenantId = validation.TenantId;
+            int tokenRoleId = validation.RoleId;
+
+            if (userEmployeeId <= 0 || tenantId <= 0 || tokenRoleId <= 0)
+            {
+                _logger.LogWarning(
+                    "Invalid Tenant authorization context while deleting Designation. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                    tenantId,
+                    userEmployeeId,
+                    tokenRoleId);
+
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            #endregion
+
+            #region Runtime Permission Validation
+
+            // Current database role assignments are authoritative so a stale
+            // JWT role cannot authorize a designation deletion.
+            var permissionResult =
+                await _unitOfWork.StoreProcedureRepository
+                    .CheckTenantEmployeePermissionAsync(
+                        tenantId,
+                        userEmployeeId,
+                        tokenRoleId,
+                        request.DTO.ModuleId,
+                        request.DTO.OperationId,
+                        cancellationToken);
+
+            switch (permissionResult.ResultCode)
+            {
+                case 1:
+                    break;
+
+                case -1:
+                    _logger.LogWarning(
+                        "Tenant authorization context changed while deleting Designation. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                        tenantId,
+                        userEmployeeId,
+                        tokenRoleId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+
+                case -2:
+                    _logger.LogWarning(
+                        "Invalid Tenant role context while deleting Designation. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                        tenantId,
+                        userEmployeeId,
+                        tokenRoleId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+
+                case 0:
+                default:
+                    _logger.LogWarning(
+                        "Designation delete permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}",
+                        tenantId,
+                        userEmployeeId,
+                        request.DTO.ModuleId,
+                        request.DTO.OperationId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            #endregion
 
             if (request.DTO.Id <= 0)
-                throw new axionpro.application.Exceptions.ValidationErrorException(
-                    axionpro.application.Constants.AppConstants.ErrorMessages.InvalidIdentifier);
+                throw new ValidationErrorException(
+                    AppConstants.ErrorMessages.InvalidIdentifier);
 
             var deleted = await _unitOfWork.DesignationRepository.DeleteDesignationAsync(
                 request.DTO.Id,
-                validation.TenantId,
-                validation.LoggedInEmployeeId,
+                tenantId,
+                userEmployeeId,
                 cancellationToken);
 
             if (!deleted)
-                throw new axionpro.application.Exceptions.NotFoundException(
-                    axionpro.application.Constants.AppConstants.ErrorMessages.ResourceNotFound);
+                throw new NotFoundException(
+                    AppConstants.ErrorMessages.ResourceNotFound);
 
             _logger.LogInformation("Designation deleted. DesignationId: {DesignationId}", request.DTO.Id);
             return ApiResponse<bool>.Success(true, "Designation deleted successfully.");

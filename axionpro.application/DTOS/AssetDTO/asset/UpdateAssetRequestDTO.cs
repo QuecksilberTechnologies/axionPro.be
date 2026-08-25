@@ -5,6 +5,7 @@
 // Purpose : Defines client input for updating an asset.
 // ================================================================
 
+using axionpro.application.DTOs.BaseDTO;
 using Microsoft.AspNetCore.Http;
 
 namespace axionpro.application.DTOS.AssetDTO.asset;
@@ -12,7 +13,7 @@ namespace axionpro.application.DTOS.AssetDTO.asset;
 /// <summary>
 /// Represents the client-editable values for an asset update.
 /// </summary>
-public class UpdateAssetRequestDTO
+public class UpdateAssetRequestDTO : PermissionRequestDTO
 {
     public long Id { get; set; }
     public string? AssetName { get; set; }

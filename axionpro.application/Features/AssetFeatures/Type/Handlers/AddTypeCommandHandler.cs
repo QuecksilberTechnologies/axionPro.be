@@ -6,6 +6,7 @@
 // ================================================================
 
 using AutoMapper;
+using axionpro.application.Constants;
 using axionpro.application.DTOS.AssetDTO.type;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -97,24 +98,79 @@ public class AddTypeCommandHandler : IRequestHandler<AddTypeCommand, ApiResponse
                 new List<string> { "TypeName cannot be empty." });
         }
 
-        // Resolve the trusted tenant-user context.
+        #region Tenant Request Validation
+
         var validation = await _commonRequestService.ValidateTenantUserRequestAsync();
         if (!validation.Success)
         {
-            throw new UnauthorizedAccessException(validation.ErrorMessage);
+            throw new UnauthorizedAccessException(
+                validation.ErrorMessage ?? AppConstants.ErrorMessages.Unauthorized);
         }
+
+        #endregion
+
+        #region Trusted Request Context
+
+        long userEmployeeId = validation.LoggedInEmployeeId;
+        long tenantId = validation.TenantId;
+        int tokenRoleId = validation.RoleId;
+
+        if (userEmployeeId <= 0 || tenantId <= 0 || tokenRoleId <= 0)
+        {
+            _logger.LogWarning(
+                "Invalid Tenant authorization context while creating Asset Type. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                tenantId, userEmployeeId, tokenRoleId);
+            throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+        }
+
+        #endregion
+
+        #region Runtime Permission Validation
+
+        var permissionResult = await _unitOfWork.StoreProcedureRepository
+            .CheckTenantEmployeePermissionAsync(
+                tenantId,
+                userEmployeeId,
+                tokenRoleId,
+                request.DTO.ModuleId,
+                request.DTO.OperationId,
+                cancellationToken);
+
+        switch (permissionResult.ResultCode)
+        {
+            case 1:
+                break;
+            case -1:
+                _logger.LogWarning(
+                    "Tenant authorization context changed while creating Asset Type. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                    tenantId, userEmployeeId, tokenRoleId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            case -2:
+                _logger.LogWarning(
+                    "Invalid Tenant role context while creating Asset Type. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                    tenantId, userEmployeeId, tokenRoleId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            case 0:
+            default:
+                _logger.LogWarning(
+                    "Asset Type creation permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}",
+                    tenantId, userEmployeeId, request.DTO.ModuleId, request.DTO.OperationId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+        }
+
+        #endregion
 
         // Map client-editable values and apply server-controlled context.
         var entity = _mapper.Map<AssetType>(request.DTO);
-        entity.TenantId = validation.TenantId;
-        entity.AddedById = validation.LoggedInEmployeeId;
+        entity.TenantId = tenantId;
+        entity.AddedById = userEmployeeId;
         entity.AddedDateTime = DateTime.UtcNow;
         entity.IsSoftDeleted = false;
 
         var createdEntity = await _unitOfWork.AssetTypeRepository.CreateAsync(entity, cancellationToken);
         if (createdEntity is null)
         {
-            _logger.LogWarning("Asset type creation returned no entity for tenant {TenantId}.", validation.TenantId);
+            _logger.LogWarning("Asset type creation returned no entity for tenant {TenantId}.", tenantId);
             throw new ApiException("Failed to add asset type.", 500);
         }
 

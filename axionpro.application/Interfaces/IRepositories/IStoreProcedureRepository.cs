@@ -23,7 +23,28 @@ namespace axionpro.application.Interfaces.IRepositories
 
         Task<int> ValidateUserPasswordAsync(string loginId);
         Task<bool> UpdateLoginCredential(LoginRequestDTO loginId);
-       
+
+        /// <summary>
+        /// Checks whether the current Tenant employee can execute the requested
+        /// module operation using the employee's current Primary and Secondary roles.
+        /// </summary>
+        /// <param name="tenantId">Authenticated Tenant identifier.</param>
+        /// <param name="employeeId">Authenticated Employee identifier.</param>
+        /// <param name="tokenRoleId">Primary Role identifier contained in the current JWT.</param>
+        /// <param name="moduleId">Requested Module identifier.</param>
+        /// <param name="operationId">Requested Operation identifier.</param>
+        /// <param name="cancellationToken">Token used to cancel the database operation.</param>
+        /// <returns>
+        /// The current authorization result including stale-role detection and
+        /// the Role that granted access.
+        /// </returns>
+        Task<TenantsUserPermissionCheckResponseDTO> CheckTenantEmployeePermissionAsync(
+                long tenantId,
+                long employeeId,
+                int tokenRoleId,
+                int moduleId,
+                int operationId,
+                CancellationToken cancellationToken = default);
 
         Task<UpdateTenantEnabledOperationFromModuleOperationResponseDTO> UpdateTenantEnabledOperationFromModuleOperationRequestDTO(
             UpdateTenantEnabledOperationFromModuleOperationRequestDTO request);
@@ -64,5 +85,13 @@ namespace axionpro.application.Interfaces.IRepositories
         //   Task  <IUserRoleRepository> UpdateLoginCredential(LoginRequestDTO loginId);
         //  Task List<string> UpdateLoginCredential(LoginRequestDTO loginId);
 
+    }
+}
+
+namespace axionpro.application.DTOS.StoreProcedures
+{
+    public class TenantUserPermissionCheckResponseDTO
+    {
+        // add properties according to your domain model
     }
 }

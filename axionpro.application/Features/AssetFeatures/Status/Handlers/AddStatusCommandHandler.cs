@@ -6,6 +6,7 @@
 // ================================================================
 
 using AutoMapper;
+using axionpro.application.Constants;
 using axionpro.application.DTOS.AssetDTO.status;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -13,6 +14,7 @@ using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.AssetFeatures.Status.Handlers;
 
@@ -51,6 +53,7 @@ public class AddStatusCommandHandler : IRequestHandler<AddStatusCommand, ApiResp
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly ICommonRequestService _commonRequestService;
+    private readonly ILogger<AddStatusCommandHandler> _logger;
 
     #endregion
 
@@ -62,11 +65,13 @@ public class AddStatusCommandHandler : IRequestHandler<AddStatusCommand, ApiResp
     public AddStatusCommandHandler(
         IUnitOfWork unitOfWork,
         IMapper mapper,
-        ICommonRequestService commonRequestService)
+        ICommonRequestService commonRequestService,
+        ILogger<AddStatusCommandHandler> logger)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _commonRequestService = commonRequestService;
+        _logger = logger;
     }
 
     #endregion
@@ -93,19 +98,74 @@ public class AddStatusCommandHandler : IRequestHandler<AddStatusCommand, ApiResp
                 new List<string> { "StatusName and ColorKey cannot be empty." });
         }
 
-        // Resolve the trusted tenant-user context.
+        #region Tenant Request Validation
+
         var validation = await _commonRequestService.ValidateTenantUserRequestAsync();
         if (!validation.Success)
         {
-            throw new UnauthorizedAccessException(validation.ErrorMessage);
+            throw new UnauthorizedAccessException(
+                validation.ErrorMessage ?? AppConstants.ErrorMessages.Unauthorized);
         }
+
+        #endregion
+
+        #region Trusted Request Context
+
+        long userEmployeeId = validation.LoggedInEmployeeId;
+        long tenantId = validation.TenantId;
+        int tokenRoleId = validation.RoleId;
+
+        if (userEmployeeId <= 0 || tenantId <= 0 || tokenRoleId <= 0)
+        {
+            _logger.LogWarning(
+                "Invalid Tenant authorization context while creating Asset Status. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                tenantId, userEmployeeId, tokenRoleId);
+            throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+        }
+
+        #endregion
+
+        #region Runtime Permission Validation
+
+        var permissionResult = await _unitOfWork.StoreProcedureRepository
+            .CheckTenantEmployeePermissionAsync(
+                tenantId,
+                userEmployeeId,
+                tokenRoleId,
+                request.DTO.ModuleId,
+                request.DTO.OperationId,
+                cancellationToken);
+
+        switch (permissionResult.ResultCode)
+        {
+            case 1:
+                break;
+            case -1:
+                _logger.LogWarning(
+                    "Tenant authorization context changed while creating Asset Status. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                    tenantId, userEmployeeId, tokenRoleId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            case -2:
+                _logger.LogWarning(
+                    "Invalid Tenant role context while creating Asset Status. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                    tenantId, userEmployeeId, tokenRoleId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            case 0:
+            default:
+                _logger.LogWarning(
+                    "Asset Status creation permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}",
+                    tenantId, userEmployeeId, request.DTO.ModuleId, request.DTO.OperationId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+        }
+
+        #endregion
 
         // Map client-editable values and apply server-controlled context.
         var entity = _mapper.Map<AssetStatus>(request.DTO);
-        entity.TenantId = validation.TenantId;
+        entity.TenantId = tenantId;
         entity.IsActive = true;
         entity.IsSoftDeleted = false;
-        entity.AddedById = validation.LoggedInEmployeeId;
+        entity.AddedById = userEmployeeId;
         entity.AddedDateTime = DateTime.UtcNow;
 
         var createdEntity = await _unitOfWork.AssetStatusRepository.CreateAsync(entity, cancellationToken);

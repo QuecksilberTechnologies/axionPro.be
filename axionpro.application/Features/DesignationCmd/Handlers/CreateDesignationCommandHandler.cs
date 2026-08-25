@@ -6,6 +6,7 @@
 // ================================================================
 
 using AutoMapper;
+using axionpro.application.Constants;
 using axionpro.application.DTOs.Designation;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -81,28 +82,104 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
             CreateDesignationCommand request,
             CancellationToken cancellationToken)
         {
+            #region Tenant Request Validation
+
             var validation = await _commonRequestService.ValidateTenantUserRequestAsync();
             if (!validation.Success)
-                throw new UnauthorizedAccessException(validation.ErrorMessage);
+            {
+                throw new UnauthorizedAccessException(
+                    validation.ErrorMessage ??
+                    AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            #endregion
+
+            #region Trusted Request Context
+
+            long userEmployeeId = validation.LoggedInEmployeeId;
+            long tenantId = validation.TenantId;
+            int tokenRoleId = validation.RoleId;
+
+            if (userEmployeeId <= 0 || tenantId <= 0 || tokenRoleId <= 0)
+            {
+                _logger.LogWarning(
+                    "Invalid Tenant authorization context while creating Designation. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                    tenantId,
+                    userEmployeeId,
+                    tokenRoleId);
+
+                throw new UnauthorizedAccessException(
+                    AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            #endregion
+
+            #region Runtime Permission Validation
+
+            // Current database role assignments are authoritative so a stale
+            // JWT role cannot authorize a designation create operation.
+            var permissionResult =
+                await _unitOfWork.StoreProcedureRepository
+                    .CheckTenantEmployeePermissionAsync(
+                        tenantId,
+                        userEmployeeId,
+                        tokenRoleId,
+                        request.DTO.ModuleId,
+                        request.DTO.OperationId,
+                        cancellationToken);
+
+            switch (permissionResult.ResultCode)
+            {
+                case 1:
+                    break;
+
+                case -1:
+                    _logger.LogWarning(
+                        "Tenant authorization context changed while creating Designation. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                        tenantId,
+                        userEmployeeId,
+                        tokenRoleId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+
+                case -2:
+                    _logger.LogWarning(
+                        "Invalid Tenant role context while creating Designation. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                        tenantId,
+                        userEmployeeId,
+                        tokenRoleId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+
+                case 0:
+                default:
+                    _logger.LogWarning(
+                        "Designation create permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}",
+                        tenantId,
+                        userEmployeeId,
+                        request.DTO.ModuleId,
+                        request.DTO.OperationId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            #endregion
 
             if (request.DTO.DepartmentId <= 0)
                 throw new ValidationErrorException(
-                    axionpro.application.Constants.AppConstants.ErrorMessages.InvalidIdentifier);
+                    AppConstants.ErrorMessages.InvalidIdentifier);
 
             var designationName = request.DTO.DesignationName?.Trim();
             if (string.IsNullOrWhiteSpace(designationName))
                 throw new ValidationErrorException(
-                    axionpro.application.Constants.AppConstants.ErrorMessages.InvalidRequest);
+                    AppConstants.ErrorMessages.InvalidRequest);
 
-            if (await _unitOfWork.DesignationRepository.CheckDuplicateValueAsync(validation.TenantId, designationName))
+            if (await _unitOfWork.DesignationRepository.CheckDuplicateValueAsync(tenantId, designationName))
                 throw new ConflictException(
-                    axionpro.application.Constants.AppConstants.ErrorMessages.ResourceConflict);
+                    AppConstants.ErrorMessages.ResourceConflict);
 
             // Map client-editable values to the domain entity.
             var entity = _mapper.Map<Designation>(request.DTO);
             entity.DesignationName = designationName;
-            entity.TenantId = validation.TenantId;
-            entity.AddedById = validation.LoggedInEmployeeId;
+            entity.TenantId = tenantId;
+            entity.AddedById = userEmployeeId;
             entity.AddedDateTime = DateTime.UtcNow;
             entity.IsSoftDeleted = false;
 
@@ -110,7 +187,7 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
             var created = await _unitOfWork.DesignationRepository.CreateAsync(entity, cancellationToken);
             if (created == null)
                 throw new ConflictException(
-                    axionpro.application.Constants.AppConstants.ErrorMessages.ResourceConflict);
+                    AppConstants.ErrorMessages.ResourceConflict);
 
             _logger.LogInformation("Designation created. DesignationId: {DesignationId}", created.Id);
             return ApiResponse<List<GetDesignationResponseDTO>>.Success(

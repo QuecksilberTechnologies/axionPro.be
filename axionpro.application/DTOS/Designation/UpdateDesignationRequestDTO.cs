@@ -5,12 +5,14 @@
 // Purpose : Defines client-editable values for updating a designation.
 // ================================================================
 
+using axionpro.application.DTOs.BaseDTO;
+
 namespace axionpro.application.DTOs.Designation
 {
     /// <summary>
     /// Represents the client-editable values for an existing designation.
     /// </summary>
-    public class UpdateDesignationRequestDTO
+    public class UpdateDesignationRequestDTO : PermissionRequestDTO
     {
         public required int Id { get; set; }
         public int DepartmentId { get; set; }

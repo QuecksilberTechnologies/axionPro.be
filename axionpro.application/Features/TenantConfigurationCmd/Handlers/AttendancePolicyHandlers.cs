@@ -97,8 +97,67 @@ public sealed class CreateAttendancePolicyCommandHandler : TenantConfigurationHa
     /// <param name="request">The creation command.</param><param name="cancellationToken">Cancellation token.</param><returns>The created attendance policy.</returns>
     public async Task<ApiResponse<AttendancePolicyResponseDTO>> Handle(CreateAttendancePolicyCommand request, CancellationToken cancellationToken)
     {
-        var (tenantId, actorId) = await ValidateTenantAsync();
+        #region Tenant Request Validation
+
+        var validation = await CommonRequestService.ValidateTenantUserRequestAsync();
+        if (!validation.Success)
+        {
+            throw new UnauthorizedAccessException(
+                validation.ErrorMessage ?? AppConstants.ErrorMessages.Unauthorized);
+        }
+
+        #endregion
+
+        #region Trusted Request Context
+
+        long tenantId = validation.TenantId;
+        long actorId = validation.LoggedInEmployeeId;
+        int tokenRoleId = validation.RoleId;
+        if (tenantId <= 0 || actorId <= 0 || tokenRoleId <= 0)
+        {
+            Logger.LogWarning(
+                "Invalid Tenant authorization context while creating Attendance Policy. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                tenantId, actorId, tokenRoleId);
+            throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+        }
+
+        #endregion
+
         Validate(request.DTO);
+
+        #region Runtime Permission Validation
+
+        var permissionResult = await UnitOfWork.StoreProcedureRepository
+            .CheckTenantEmployeePermissionAsync(
+                tenantId,
+                actorId,
+                tokenRoleId,
+                request.DTO.ModuleId,
+                request.DTO.OperationId,
+                cancellationToken);
+        switch (permissionResult.ResultCode)
+        {
+            case 1:
+                break;
+            case -1:
+                Logger.LogWarning(
+                    "Tenant authorization context changed while creating Attendance Policy. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                    tenantId, actorId, tokenRoleId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            case -2:
+                Logger.LogWarning(
+                    "Invalid Tenant role context while creating Attendance Policy. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                    tenantId, actorId, tokenRoleId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            case 0:
+            default:
+                Logger.LogWarning(
+                    "Attendance Policy creation permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}",
+                    tenantId, actorId, request.DTO.ModuleId, request.DTO.OperationId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+        }
+
+        #endregion
         if (!await UnitOfWork.AttendancePolicyRepository.IsEligiblePolicyTypeAsync(tenantId, request.DTO.PolicyTypeId, cancellationToken)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
         if (await UnitOfWork.AttendancePolicyRepository.PolicyNameExistsAsync(tenantId, request.DTO.PolicyName.Trim(), null, cancellationToken)) throw new ConflictException(AppConstants.ErrorMessages.DuplicateAttendancePolicyName);
         var entity = _mapper.Map<AttendancePolicy>(request.DTO); entity.PolicyName = request.DTO.PolicyName.Trim(); entity.TenantId = tenantId; entity.IsSoftDeleted = false; entity.AddedById = actorId; entity.AddedDateTime = DateTime.UtcNow;
@@ -126,10 +185,70 @@ public sealed class UpdateAttendancePolicyCommandHandler : TenantConfigurationHa
     #region Handle
     /// <summary>Updates a validated attendance policy.</summary>
     /// <param name="request">The update command.</param><param name="cancellationToken">Cancellation token.</param><returns>The updated attendance policy.</returns>
-    public async Task<ApiResponse<AttendancePolicyResponseDTO>> Handle(UpdateAttendancePolicyCommand request, CancellationToken cancellationToken)
+public async Task<ApiResponse<AttendancePolicyResponseDTO>> Handle(UpdateAttendancePolicyCommand request, CancellationToken cancellationToken)
     {
-        var (tenantId, actorId) = await ValidateTenantAsync();
+        #region Tenant Request Validation
+
+        var validation = await CommonRequestService.ValidateTenantUserRequestAsync();
+        if (!validation.Success)
+        {
+            throw new UnauthorizedAccessException(
+                validation.ErrorMessage ?? AppConstants.ErrorMessages.Unauthorized);
+        }
+
+        #endregion
+
+        #region Trusted Request Context
+
+        long tenantId = validation.TenantId;
+        long actorId = validation.LoggedInEmployeeId;
+        int tokenRoleId = validation.RoleId;
+        if (tenantId <= 0 || actorId <= 0 || tokenRoleId <= 0)
+        {
+            Logger.LogWarning(
+                "Invalid Tenant authorization context while updating Attendance Policy. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                tenantId, actorId, tokenRoleId);
+            throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+        }
+
+        #endregion
+
         if (request.DTO is null || request.DTO.Id <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
+
+        #region Runtime Permission Validation
+
+        var permissionResult = await UnitOfWork.StoreProcedureRepository
+            .CheckTenantEmployeePermissionAsync(
+                tenantId,
+                actorId,
+                tokenRoleId,
+                request.DTO.ModuleId,
+                request.DTO.OperationId,
+                cancellationToken);
+        switch (permissionResult.ResultCode)
+        {
+            case 1:
+                break;
+            case -1:
+                Logger.LogWarning(
+                    "Tenant authorization context changed while updating Attendance Policy. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                    tenantId, actorId, tokenRoleId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            case -2:
+                Logger.LogWarning(
+                    "Invalid Tenant role context while updating Attendance Policy. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                    tenantId, actorId, tokenRoleId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            case 0:
+            default:
+                Logger.LogWarning(
+                    "Attendance Policy update permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}",
+                    tenantId, actorId, request.DTO.ModuleId, request.DTO.OperationId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+        }
+
+        #endregion
+
         Validate(request.DTO);
         var entity = await UnitOfWork.AttendancePolicyRepository.GetForUpdateAsync(tenantId, request.DTO.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.AttendancePolicyNotFound);
         if (!request.DTO.IsActive && entity.IsActive && await UnitOfWork.AttendancePolicyRepository.HasActiveWorkArrangementsAsync(tenantId, entity.Id, cancellationToken)) throw new ConflictException(AppConstants.ErrorMessages.AttendancePolicyInUse);
@@ -179,10 +298,70 @@ public sealed class UpdateAttendancePolicyStatusCommandHandler : TenantConfigura
     #region Handle
     /// <summary>Changes policy state after dependency validation.</summary>
     /// <param name="request">The status command.</param><param name="cancellationToken">Cancellation token.</param><returns>The policy after the change.</returns>
-    public async Task<ApiResponse<AttendancePolicyResponseDTO>> Handle(UpdateAttendancePolicyStatusCommand request, CancellationToken cancellationToken)
+public async Task<ApiResponse<AttendancePolicyResponseDTO>> Handle(UpdateAttendancePolicyStatusCommand request, CancellationToken cancellationToken)
     {
-        var (tenantId, actorId) = await ValidateTenantAsync();
+        #region Tenant Request Validation
+
+        var validation = await CommonRequestService.ValidateTenantUserRequestAsync();
+        if (!validation.Success)
+        {
+            throw new UnauthorizedAccessException(
+                validation.ErrorMessage ?? AppConstants.ErrorMessages.Unauthorized);
+        }
+
+        #endregion
+
+        #region Trusted Request Context
+
+        long tenantId = validation.TenantId;
+        long actorId = validation.LoggedInEmployeeId;
+        int tokenRoleId = validation.RoleId;
+        if (tenantId <= 0 || actorId <= 0 || tokenRoleId <= 0)
+        {
+            Logger.LogWarning(
+                "Invalid Tenant authorization context while changing Attendance Policy status. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                tenantId, actorId, tokenRoleId);
+            throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+        }
+
+        #endregion
+
         if (request.DTO is null || request.DTO.Id <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
+
+        #region Runtime Permission Validation
+
+        var permissionResult = await UnitOfWork.StoreProcedureRepository
+            .CheckTenantEmployeePermissionAsync(
+                tenantId,
+                actorId,
+                tokenRoleId,
+                request.DTO.ModuleId,
+                request.DTO.OperationId,
+                cancellationToken);
+        switch (permissionResult.ResultCode)
+        {
+            case 1:
+                break;
+            case -1:
+                Logger.LogWarning(
+                    "Tenant authorization context changed while changing Attendance Policy status. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                    tenantId, actorId, tokenRoleId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            case -2:
+                Logger.LogWarning(
+                    "Invalid Tenant role context while changing Attendance Policy status. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                    tenantId, actorId, tokenRoleId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            case 0:
+            default:
+                Logger.LogWarning(
+                    "Attendance Policy status permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}",
+                    tenantId, actorId, request.DTO.ModuleId, request.DTO.OperationId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+        }
+
+        #endregion
+
         var entity = await UnitOfWork.AttendancePolicyRepository.GetForUpdateAsync(tenantId, request.DTO.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.AttendancePolicyNotFound);
         if (!request.DTO.IsActive && entity.IsActive && await UnitOfWork.AttendancePolicyRepository.HasActiveWorkArrangementsAsync(tenantId, entity.Id, cancellationToken)) throw new ConflictException(AppConstants.ErrorMessages.AttendancePolicyInUse);
         entity.IsActive = request.DTO.IsActive; entity.UpdatedById = actorId; entity.UpdatedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(cancellationToken);
@@ -222,10 +401,71 @@ public sealed class GetAttendancePoliciesQueryHandler : TenantConfigurationHandl
     #region Handle
     /// <summary>Retrieves a database-paged attendance-policy list.</summary>
     /// <param name="request">The filter query.</param><param name="cancellationToken">Cancellation token.</param><returns>A flattened paginated policy response.</returns>
-    public async Task<ApiResponse<List<AttendancePolicyResponseDTO>>> Handle(GetAttendancePoliciesQuery request, CancellationToken cancellationToken)
+public async Task<ApiResponse<List<AttendancePolicyResponseDTO>>> Handle(GetAttendancePoliciesQuery request, CancellationToken cancellationToken)
     {
-        var (tenantId, _) = await ValidateTenantAsync();
-        var page = await UnitOfWork.AttendancePolicyRepository.GetPagedAsync(tenantId, request.Filter ?? new AttendancePolicyFilterRequestDTO(), cancellationToken);
+        #region Tenant Request Validation
+
+        var validation = await CommonRequestService.ValidateTenantUserRequestAsync();
+        if (!validation.Success)
+        {
+            throw new UnauthorizedAccessException(
+                validation.ErrorMessage ?? AppConstants.ErrorMessages.Unauthorized);
+        }
+
+        #endregion
+
+        #region Trusted Request Context
+
+        long tenantId = validation.TenantId;
+        long actorId = validation.LoggedInEmployeeId;
+        int tokenRoleId = validation.RoleId;
+        if (tenantId <= 0 || actorId <= 0 || tokenRoleId <= 0)
+        {
+            Logger.LogWarning(
+                "Invalid Tenant authorization context while retrieving Attendance Policies. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                tenantId, actorId, tokenRoleId);
+            throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+        }
+
+        #endregion
+
+        var filter = request.Filter ?? throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
+
+        #region Runtime Permission Validation
+
+        var permissionResult = await UnitOfWork.StoreProcedureRepository
+            .CheckTenantEmployeePermissionAsync(
+                tenantId,
+                actorId,
+                tokenRoleId,
+                filter.ModuleId,
+                filter.OperationId,
+                cancellationToken);
+        switch (permissionResult.ResultCode)
+        {
+            case 1:
+                break;
+            case -1:
+                Logger.LogWarning(
+                    "Tenant authorization context changed while retrieving Attendance Policies. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                    tenantId, actorId, tokenRoleId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            case -2:
+                Logger.LogWarning(
+                    "Invalid Tenant role context while retrieving Attendance Policies. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                    tenantId, actorId, tokenRoleId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            case 0:
+            default:
+                Logger.LogWarning(
+                    "Attendance Policy retrieval permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}",
+                    tenantId, actorId, filter.ModuleId, filter.OperationId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+        }
+
+        #endregion
+
+        var page = await UnitOfWork.AttendancePolicyRepository.GetPagedAsync(tenantId, filter, cancellationToken);
         return Paged(page.Data.Select(entity => _mapper.Map<AttendancePolicyResponseDTO>(entity)).ToList(), page.PageNumber, page.PageSize, page.TotalCount, AppConstants.SuccessMessages.AttendancePolicyRetrieved);
     }
     #endregion

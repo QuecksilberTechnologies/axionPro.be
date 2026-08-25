@@ -1,9 +1,11 @@
+using axionpro.application.DTOs.BaseDTO;
+
 namespace axionpro.application.DTOs.Department
 {
     /// <summary>
     /// Represents client-supplied data used to create a department.
     /// </summary>
-    public class CreateDepartmentRequestDTO
+    public class CreateDepartmentRequestDTO : PermissionRequestDTO
     {
         /// <summary>
         /// Gets or sets the encoded identifier of the employee creating the department.

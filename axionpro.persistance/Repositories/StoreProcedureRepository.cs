@@ -373,7 +373,78 @@ namespace axionpro.persistance.Repositories
         //        throw;
         //    }
         //}
+        /// <summary>
+        /// Checks the authenticated Tenant employee's current module-operation
+        /// permission using current Primary and Secondary role assignments.
+        /// </summary>
+        /// <param name="tenantId">Authenticated Tenant identifier.</param>
+        /// <param name="employeeId">Authenticated Employee identifier.</param>
+        /// <param name="tokenRoleId">Primary Role identifier carried by the JWT.</param>
+        /// <param name="moduleId">Requested Module identifier.</param>
+        /// <param name="operationId">Requested Operation identifier.</param>
+        /// <param name="cancellationToken">Token used to cancel the database operation.</param>
+        /// <returns>The current Tenant permission result.</returns>
+        public async Task<TenantUserPermissionCheckResponseDTO>
+            CheckTenantEmployeePermissionAsync(
+                long tenantId,
+                long employeeId,
+                int tokenRoleId,
+                int moduleId,
+                int operationId,
+                CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                cancellationToken.ThrowIfCancellationRequested();
 
+                _logger.LogInformation(
+                    "Checking Tenant permission for TenantId {TenantId}, EmployeeId {EmployeeId}, ModuleId {ModuleId}, OperationId {OperationId}",
+                    tenantId,
+                    employeeId,
+                    moduleId,
+                    operationId);
+
+                var parameters = new[]
+                {
+            new NpgsqlParameter("p_tenantid", tenantId),
+            new NpgsqlParameter("p_employeeid", employeeId),
+            new NpgsqlParameter("p_tokenroleid", tokenRoleId),
+            new NpgsqlParameter("p_moduleid", moduleId),
+            new NpgsqlParameter("p_operationid", operationId)
+        };
+
+                var result = await _context
+                    .Set<TenantPermissionCheckResponseDTO>()
+                    .FromSqlRaw(
+                        """
+                SELECT *
+                FROM axionpro."CheckTenantEmployeePermission"(
+                    @p_tenantid,
+                    @p_employeeid,
+                    @p_tokenroleid,
+                    @p_moduleid,
+                    @p_operationid
+                )
+                """,
+                        parameters)
+                    .AsNoTracking()
+                    .SingleAsync(cancellationToken);
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Error checking Tenant permission for TenantId {TenantId}, EmployeeId {EmployeeId}, ModuleId {ModuleId}, OperationId {OperationId}",
+                    tenantId,
+                    employeeId,
+                    moduleId,
+                    operationId);
+
+                throw;
+            }
+        }
         #region Tenant Operational Access Queries
 
         /// <summary>
@@ -414,8 +485,7 @@ namespace axionpro.persistance.Repositories
                 throw;
             }
         }
-
-        /// <summary>
+          /// <summary>
         /// Retrieves the authenticated tenant employee's current effective module-operation access
         /// using the authoritative tenant permission source.
         /// </summary>

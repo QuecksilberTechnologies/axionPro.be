@@ -5,12 +5,14 @@
 // Purpose : Defines client input for updating an asset type.
 // ================================================================
 
+using axionpro.application.DTOs.BaseDTO;
+
 namespace axionpro.application.DTOS.AssetDTO.type;
 
 /// <summary>
 /// Represents the client-editable values for an asset type update.
 /// </summary>
-public class UpdateTypeRequestDTO
+public class UpdateTypeRequestDTO : PermissionRequestDTO
 {
     /// <summary>
     /// Gets or sets the asset type identifier.

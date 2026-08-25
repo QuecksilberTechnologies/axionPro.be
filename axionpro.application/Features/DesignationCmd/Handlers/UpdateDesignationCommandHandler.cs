@@ -5,7 +5,9 @@
 // Purpose : Updates tenant-scoped designations using trusted request context.
 // ================================================================
 
+using axionpro.application.Constants;
 using axionpro.application.DTOs.Designation;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
@@ -75,21 +77,96 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
             UpdateDesignationCommand request,
             CancellationToken cancellationToken)
         {
+            #region Tenant Request Validation
+
             var validation = await _commonRequestService.ValidateTenantUserRequestAsync();
             if (!validation.Success)
-                throw new UnauthorizedAccessException(validation.ErrorMessage);
+            {
+                throw new UnauthorizedAccessException(
+                    validation.ErrorMessage ??
+                    AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            #endregion
+
+            #region Trusted Request Context
+
+            long userEmployeeId = validation.LoggedInEmployeeId;
+            long tenantId = validation.TenantId;
+            int tokenRoleId = validation.RoleId;
+
+            if (userEmployeeId <= 0 || tenantId <= 0 || tokenRoleId <= 0)
+            {
+                _logger.LogWarning(
+                    "Invalid Tenant authorization context while updating Designation. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                    tenantId,
+                    userEmployeeId,
+                    tokenRoleId);
+
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            #endregion
+
+            #region Runtime Permission Validation
+
+            // Current database role assignments are authoritative so a stale
+            // JWT role cannot authorize a designation update.
+            var permissionResult =
+                await _unitOfWork.StoreProcedureRepository
+                    .CheckTenantEmployeePermissionAsync(
+                        tenantId,
+                        userEmployeeId,
+                        tokenRoleId,
+                        request.DTO.ModuleId,
+                        request.DTO.OperationId,
+                        cancellationToken);
+
+            switch (permissionResult.ResultCode)
+            {
+                case 1:
+                    break;
+
+                case -1:
+                    _logger.LogWarning(
+                        "Tenant authorization context changed while updating Designation. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                        tenantId,
+                        userEmployeeId,
+                        tokenRoleId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+
+                case -2:
+                    _logger.LogWarning(
+                        "Invalid Tenant role context while updating Designation. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                        tenantId,
+                        userEmployeeId,
+                        tokenRoleId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+
+                case 0:
+                default:
+                    _logger.LogWarning(
+                        "Designation update permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}",
+                        tenantId,
+                        userEmployeeId,
+                        request.DTO.ModuleId,
+                        request.DTO.OperationId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            #endregion
 
             if (request.DTO.Id <= 0)
-                throw new axionpro.application.Exceptions.ValidationErrorException(
-                    axionpro.application.Constants.AppConstants.ErrorMessages.InvalidIdentifier);
+                throw new ValidationErrorException(
+                    AppConstants.ErrorMessages.InvalidIdentifier);
 
             var entity = await _unitOfWork.DesignationRepository.GetByIdForTenantAsync(
                 request.DTO.Id,
-                validation.TenantId,
+                tenantId,
                 cancellationToken);
             if (entity == null)
-                throw new axionpro.application.Exceptions.NotFoundException(
-                    axionpro.application.Constants.AppConstants.ErrorMessages.ResourceNotFound);
+                throw new NotFoundException(
+                    AppConstants.ErrorMessages.ResourceNotFound);
 
             if (!string.IsNullOrWhiteSpace(request.DTO.DesignationName))
                 entity.DesignationName = request.DTO.DesignationName.Trim();
@@ -100,13 +177,13 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
             if (request.DTO.IsActive.HasValue)
                 entity.IsActive = request.DTO.IsActive.Value;
 
-            entity.UpdatedById = validation.LoggedInEmployeeId;
+            entity.UpdatedById = userEmployeeId;
             entity.UpdatedDateTime = DateTime.UtcNow;
 
             var updated = await _unitOfWork.DesignationRepository.UpdateDesignationAsync(entity, cancellationToken);
             if (!updated)
-                throw new axionpro.application.Exceptions.ConflictException(
-                    axionpro.application.Constants.AppConstants.ErrorMessages.ResourceConflict);
+                throw new ConflictException(
+                    AppConstants.ErrorMessages.ResourceConflict);
 
             _logger.LogInformation("Designation updated. DesignationId: {DesignationId}", entity.Id);
             return ApiResponse<bool>.Success(true, "Designation updated successfully.");

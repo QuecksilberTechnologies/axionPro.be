@@ -83,17 +83,74 @@ public class UpdateAssetCommandHandler : IRequestHandler<UpdateAssetCommand, Api
                     new List<string> { "Asset Id is required." });
             }
 
-            // Resolve the trusted tenant-user context.
+            #region Tenant Request Validation
+
             var validation = await _commonRequestService.ValidateTenantUserRequestAsync();
             if (!validation.Success)
             {
-                throw new UnauthorizedAccessException(validation.ErrorMessage);
+                throw new UnauthorizedAccessException(
+                    validation.ErrorMessage ?? AppConstants.ErrorMessages.Unauthorized);
             }
+
+            #endregion
+
+            #region Trusted Request Context
+
+            long userEmployeeId = validation.LoggedInEmployeeId;
+            long tenantId = validation.TenantId;
+            int tokenRoleId = validation.RoleId;
+
+            if (userEmployeeId <= 0 || tenantId <= 0 || tokenRoleId <= 0)
+            {
+                _logger.LogWarning(
+                    "Invalid Tenant authorization context while updating Asset. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                    tenantId,
+                    userEmployeeId,
+                    tokenRoleId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            #endregion
+
+            #region Runtime Permission Validation
+
+            var permissionResult = await _unitOfWork.StoreProcedureRepository
+                .CheckTenantEmployeePermissionAsync(
+                    tenantId,
+                    userEmployeeId,
+                    tokenRoleId,
+                    request.DTO.ModuleId,
+                    request.DTO.OperationId,
+                    cancellationToken);
+
+            switch (permissionResult.ResultCode)
+            {
+                case 1:
+                    break;
+                case -1:
+                    _logger.LogWarning(
+                        "Tenant authorization context changed while updating Asset. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                        tenantId, userEmployeeId, tokenRoleId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+                case -2:
+                    _logger.LogWarning(
+                        "Invalid Tenant role context while updating Asset. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                        tenantId, userEmployeeId, tokenRoleId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+                case 0:
+                default:
+                    _logger.LogWarning(
+                        "Asset update permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}",
+                        tenantId, userEmployeeId, request.DTO.ModuleId, request.DTO.OperationId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            #endregion
 
             // Load the tenant-owned entity before applying client changes.
             var asset = await _unitOfWork.AssetRepository.GetSingleRecordForTenantAsync(
                 request.DTO.Id,
-                validation.TenantId,
+                tenantId,
                 cancellationToken);
             if (asset is null)
             {
@@ -116,7 +173,7 @@ public class UpdateAssetCommandHandler : IRequestHandler<UpdateAssetCommand, Api
             asset.IsActive = request.DTO.IsActive;
             asset.PurchaseDate = request.DTO.PurchaseDate;
             asset.WarrantyExpiryDate = request.DTO.WarrantyExpiryDate;
-            asset.UpdatedById = validation.LoggedInEmployeeId;
+            asset.UpdatedById = userEmployeeId;
             asset.UpdatedDateTime = DateTime.UtcNow;
             asset.Qrcode = JsonConvert.SerializeObject(new
             {
@@ -141,7 +198,7 @@ public class UpdateAssetCommandHandler : IRequestHandler<UpdateAssetCommand, Api
                     .ToLowerInvariant()
                     .Replace(" ", "_");
                 var fileName = $"asset-{cleanName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
-                var folderPath = $"{ConstantValues.TenantFolder}-{validation.TenantId}/{ConstantValues.AssetsFolder}";
+                var folderPath = $"{ConstantValues.TenantFolder}-{tenantId}/{ConstantValues.AssetsFolder}";
                 uploadedFileKey = await _fileStorageService.UploadFileAsync(
                     request.DTO.AssetImageFile,
                     folderPath,

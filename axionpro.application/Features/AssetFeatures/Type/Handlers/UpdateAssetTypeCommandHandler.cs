@@ -6,6 +6,7 @@
 // ================================================================
 
 using AutoMapper;
+using axionpro.application.Constants;
 using axionpro.application.DTOS.AssetDTO.type;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -96,17 +97,72 @@ public class UpdateAssetTypeCommandHandler : IRequestHandler<UpdateAssetTypeComm
                 new List<string> { "TypeName cannot be empty." });
         }
 
-        // Resolve the trusted tenant-user context.
+        #region Tenant Request Validation
+
         var validation = await _commonRequestService.ValidateTenantUserRequestAsync();
         if (!validation.Success)
         {
-            throw new UnauthorizedAccessException(validation.ErrorMessage);
+            throw new UnauthorizedAccessException(
+                validation.ErrorMessage ?? AppConstants.ErrorMessages.Unauthorized);
         }
+
+        #endregion
+
+        #region Trusted Request Context
+
+        long userEmployeeId = validation.LoggedInEmployeeId;
+        long tenantId = validation.TenantId;
+        int tokenRoleId = validation.RoleId;
+
+        if (userEmployeeId <= 0 || tenantId <= 0 || tokenRoleId <= 0)
+        {
+            _logger.LogWarning(
+                "Invalid Tenant authorization context while updating Asset Type. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                tenantId, userEmployeeId, tokenRoleId);
+            throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+        }
+
+        #endregion
+
+        #region Runtime Permission Validation
+
+        var permissionResult = await _unitOfWork.StoreProcedureRepository
+            .CheckTenantEmployeePermissionAsync(
+                tenantId,
+                userEmployeeId,
+                tokenRoleId,
+                request.DTO.ModuleId,
+                request.DTO.OperationId,
+                cancellationToken);
+
+        switch (permissionResult.ResultCode)
+        {
+            case 1:
+                break;
+            case -1:
+                _logger.LogWarning(
+                    "Tenant authorization context changed while updating Asset Type. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                    tenantId, userEmployeeId, tokenRoleId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            case -2:
+                _logger.LogWarning(
+                    "Invalid Tenant role context while updating Asset Type. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                    tenantId, userEmployeeId, tokenRoleId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            case 0:
+            default:
+                _logger.LogWarning(
+                    "Asset Type update permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}",
+                    tenantId, userEmployeeId, request.DTO.ModuleId, request.DTO.OperationId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+        }
+
+        #endregion
 
         // Load the tenant-owned entity before applying client changes.
         var entity = await _unitOfWork.AssetTypeRepository.GetByIdForTenantAsync(
             request.DTO.Id,
-            validation.TenantId,
+            tenantId,
             cancellationToken);
         if (entity is null)
         {
@@ -115,7 +171,7 @@ public class UpdateAssetTypeCommandHandler : IRequestHandler<UpdateAssetTypeComm
 
         // Map client-editable values and apply the server-controlled audit values.
         _mapper.Map(request.DTO, entity);
-        entity.UpdatedById = validation.LoggedInEmployeeId;
+        entity.UpdatedById = userEmployeeId;
         entity.UpdatedDateTime = DateTime.UtcNow;
 
         var updated = await _unitOfWork.AssetTypeRepository.UpdateAsync(entity, cancellationToken);

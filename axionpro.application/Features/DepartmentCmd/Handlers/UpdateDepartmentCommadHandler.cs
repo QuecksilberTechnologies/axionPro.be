@@ -5,7 +5,9 @@
 // Purpose : Updates a tenant-scoped department using trusted request context.
 // ================================================================
 
+using axionpro.application.Constants;
 using axionpro.application.DTOs.Department;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
@@ -75,27 +77,106 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
             UpdateDepartmentCommad request,
             CancellationToken cancellationToken)
         {
+            #region Tenant Request Validation
+
             var validation = await _commonRequestService.ValidateTenantUserRequestAsync();
             if (!validation.Success)
-                throw new UnauthorizedAccessException(validation.ErrorMessage);
+            {
+                throw new UnauthorizedAccessException(
+                    validation.ErrorMessage ??
+                    AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            #endregion
+
+            #region Trusted Request Context
+
+            long userEmployeeId = validation.LoggedInEmployeeId;
+            long tenantId = validation.TenantId;
+            int tokenRoleId = validation.RoleId;
+
+            if (userEmployeeId <= 0 || tenantId <= 0 || tokenRoleId <= 0)
+            {
+                _logger.LogWarning(
+                    "Invalid Tenant authorization context while updating Department. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                    tenantId,
+                    userEmployeeId,
+                    tokenRoleId);
+
+                throw new UnauthorizedAccessException(
+                    AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            #endregion
+
+            #region Runtime Permission Validation
+
+            // Current database role assignments are authoritative so a stale
+            // JWT role cannot authorize a department update.
+            var permissionResult =
+                await _unitOfWork.StoreProcedureRepository
+                    .CheckTenantEmployeePermissionAsync(
+                        tenantId,
+                        userEmployeeId,
+                        tokenRoleId,
+                        request.DTO.ModuleId,
+                        request.DTO.OperationId,
+                        cancellationToken);
+
+            switch (permissionResult.ResultCode)
+            {
+                case 1:
+                    break;
+
+                case -1:
+                    _logger.LogWarning(
+                        "Tenant authorization context changed while updating Department. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                        tenantId,
+                        userEmployeeId,
+                        tokenRoleId);
+                    throw new UnauthorizedAccessException(
+                        AppConstants.ErrorMessages.Unauthorized);
+
+                case -2:
+                    _logger.LogWarning(
+                        "Invalid Tenant role context while updating Department. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                        tenantId,
+                        userEmployeeId,
+                        tokenRoleId);
+                    throw new UnauthorizedAccessException(
+                        AppConstants.ErrorMessages.Unauthorized);
+
+                case 0:
+                default:
+                    _logger.LogWarning(
+                        "Department update permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}",
+                        tenantId,
+                        userEmployeeId,
+                        request.DTO.ModuleId,
+                        request.DTO.OperationId);
+                    throw new UnauthorizedAccessException(
+                        AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            #endregion
 
             if (request.DTO.Id <= 0)
-                throw new axionpro.application.Exceptions.ValidationErrorException(
-                    axionpro.application.Constants.AppConstants.ErrorMessages.InvalidIdentifier);
+                throw new ValidationErrorException(
+                    AppConstants.ErrorMessages.InvalidIdentifier);
 
             if (string.IsNullOrWhiteSpace(request.DTO.DepartmentName))
-                throw new axionpro.application.Exceptions.ValidationErrorException(
-                    axionpro.application.Constants.AppConstants.ErrorMessages.InvalidRequest);
+                throw new ValidationErrorException(
+                    AppConstants.ErrorMessages.InvalidRequest);
 
             // Load the existing tenant-owned entity to retain immutable and omitted values.
             var department = await _unitOfWork.DepartmentRepository.GetByIdForTenantAsync(
                 request.DTO.Id,
-                validation.TenantId,
+                tenantId,
                 cancellationToken);
 
             if (department == null)
-                throw new axionpro.application.Exceptions.NotFoundException(
-                    axionpro.application.Constants.AppConstants.ErrorMessages.ResourceNotFound);
+                throw new NotFoundException(
+                    AppConstants.ErrorMessages.ResourceNotFound);
 
             // Apply client-editable fields and server-controlled audit values.
             department.DepartmentName = request.DTO.DepartmentName.Trim();
@@ -106,7 +187,7 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
             if (request.DTO.IsActive.HasValue)
                 department.IsActive = request.DTO.IsActive.Value;
 
-            department.UpdatedById = validation.LoggedInEmployeeId;
+            department.UpdatedById = userEmployeeId;
             department.UpdatedDateTime = DateTime.UtcNow;
 
             // Persist the prepared domain entity.
@@ -114,8 +195,8 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
             if (!isUpdated)
             {
                 _logger.LogWarning("Department update failed. DepartmentId: {DepartmentId}", request.DTO.Id);
-                throw new axionpro.application.Exceptions.ConflictException(
-                    axionpro.application.Constants.AppConstants.ErrorMessages.ResourceConflict);
+                throw new ConflictException(
+                    AppConstants.ErrorMessages.ResourceConflict);
             }
 
             _logger.LogInformation("Department updated successfully. DepartmentId: {DepartmentId}", request.DTO.Id);

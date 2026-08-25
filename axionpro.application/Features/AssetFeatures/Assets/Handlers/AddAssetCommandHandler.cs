@@ -88,17 +88,74 @@ public class AddAssetCommandHandler : IRequestHandler<AddAssetCommand, ApiRespon
                 throw new ValidationErrorException("Invalid request data.");
             }
 
-            // Resolve the trusted tenant-user context.
+            #region Tenant Request Validation
+
             var validation = await _commonRequestService.ValidateTenantUserRequestAsync();
             if (!validation.Success)
             {
-                throw new UnauthorizedAccessException(validation.ErrorMessage);
+                throw new UnauthorizedAccessException(
+                    validation.ErrorMessage ?? AppConstants.ErrorMessages.Unauthorized);
             }
+
+            #endregion
+
+            #region Trusted Request Context
+
+            long userEmployeeId = validation.LoggedInEmployeeId;
+            long tenantId = validation.TenantId;
+            int tokenRoleId = validation.RoleId;
+
+            if (userEmployeeId <= 0 || tenantId <= 0 || tokenRoleId <= 0)
+            {
+                _logger.LogWarning(
+                    "Invalid Tenant authorization context while creating Asset. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                    tenantId,
+                    userEmployeeId,
+                    tokenRoleId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            #endregion
+
+            #region Runtime Permission Validation
+
+            var permissionResult = await _unitOfWork.StoreProcedureRepository
+                .CheckTenantEmployeePermissionAsync(
+                    tenantId,
+                    userEmployeeId,
+                    tokenRoleId,
+                    request.DTO.ModuleId,
+                    request.DTO.OperationId,
+                    cancellationToken);
+
+            switch (permissionResult.ResultCode)
+            {
+                case 1:
+                    break;
+                case -1:
+                    _logger.LogWarning(
+                        "Tenant authorization context changed while creating Asset. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                        tenantId, userEmployeeId, tokenRoleId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+                case -2:
+                    _logger.LogWarning(
+                        "Invalid Tenant role context while creating Asset. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                        tenantId, userEmployeeId, tokenRoleId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+                case 0:
+                default:
+                    _logger.LogWarning(
+                        "Asset creation permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}",
+                        tenantId, userEmployeeId, request.DTO.ModuleId, request.DTO.OperationId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            #endregion
 
             // Map client-editable values and apply server-controlled context.
             var asset = _mapper.Map<Asset>(request.DTO);
-            asset.TenantId = validation.TenantId;
-            asset.AddedById = validation.LoggedInEmployeeId;
+            asset.TenantId = tenantId;
+            asset.AddedById = userEmployeeId;
             asset.AddedDateTime = DateTime.UtcNow;
             asset.IsActive = true;
             asset.IsSoftDeleted = false;
@@ -107,7 +164,7 @@ public class AddAssetCommandHandler : IRequestHandler<AddAssetCommand, ApiRespon
 
             var assetStatus = await _unitOfWork.AssetStatusRepository.GetByIdForTenantAsync(
                 asset.AssetStatusId,
-                validation.TenantId,
+                tenantId,
                 cancellationToken);
             if (assetStatus is null)
             {
@@ -121,7 +178,7 @@ public class AddAssetCommandHandler : IRequestHandler<AddAssetCommand, ApiRespon
                     .ToLowerInvariant()
                     .Replace(" ", "_");
                 var fileName = $"asset-{cleanName}-{DateTime.UtcNow:yyyyMMddHHmmss}";
-                var folderPath = $"{ConstantValues.TenantFolder}-{validation.TenantId}/{ConstantValues.AssetsFolder}";
+                var folderPath = $"{ConstantValues.TenantFolder}-{tenantId}/{ConstantValues.AssetsFolder}";
                 uploadedFileKey = await _fileStorageService.UploadFileAsync(
                     request.DTO.AssetImageFile,
                     folderPath,

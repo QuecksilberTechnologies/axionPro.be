@@ -1,18 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Defines client-supplied data for deleting a department.
+// ================================================================
+
+using axionpro.application.DTOs.BaseDTO;
 
 namespace axionpro.application.DTOs.Department
 {
-    public class DeleteDepartmentRequestDTO
-
+    /// <summary>
+    /// Represents the client-supplied data used to delete a department.
+    /// </summary>
+    public class DeleteDepartmentRequestDTO : PermissionRequestDTO
     {
-        public required int Id { get; set; } // यूज़र ID जिसने ऐड किया
+        /// <summary>
+        /// Gets or sets the department identifier to delete.
+        /// </summary>
+        public required int Id { get; set; }
 
+        /// <summary>
+        /// Gets or sets the encoded employee identifier supplied by the client.
+        /// </summary>
         public required string UserEmployeeId { get; set; }
-
     }
 }
 
