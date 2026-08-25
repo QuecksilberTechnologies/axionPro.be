@@ -7,10 +7,11 @@ using System.Threading.Tasks;
 using axionpro.domain.Entity; 
 using MediatR;
 using axionpro.application.DTOS.Common;
+using axionpro.application.DTOs.BaseDTO;
 
 namespace axionpro.application.DTOS.TicketDTO.Classification
 {
-    public class GetClassificationRequestDTO 
+    public class GetClassificationRequestDTO : PermissionRequestDTO
     {
 
         public int Id { get; set; }  

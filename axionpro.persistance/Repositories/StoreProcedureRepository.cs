@@ -384,7 +384,7 @@ namespace axionpro.persistance.Repositories
         /// <param name="operationId">Requested Operation identifier.</param>
         /// <param name="cancellationToken">Token used to cancel the database operation.</param>
         /// <returns>The current Tenant permission result.</returns>
-        public async Task<TenantUserPermissionCheckResponseDTO>
+        public async Task<TenantsUserPermissionCheckResponseDTO>
             CheckTenantEmployeePermissionAsync(
                 long tenantId,
                 long employeeId,
@@ -414,7 +414,7 @@ namespace axionpro.persistance.Repositories
         };
 
                 var result = await _context
-                    .Set<TenantPermissionCheckResponseDTO>()
+                    .Set<TenantsUserPermissionCheckResponseDTO>()
                     .FromSqlRaw(
                         """
                 SELECT *

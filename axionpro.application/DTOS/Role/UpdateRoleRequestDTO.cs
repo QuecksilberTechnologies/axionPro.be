@@ -5,12 +5,14 @@
 // Purpose : Defines client-editable values for updating a tenant role.
 // ================================================================
 
+using axionpro.application.DTOs.BaseDTO;
+
 namespace axionpro.application.DTOs.Role
 {
     /// <summary>
     /// Represents client-editable values for an existing tenant role.
     /// </summary>
-    public class UpdateRoleRequestDTO
+    public class UpdateRoleRequestDTO : PermissionRequestDTO
     {
         public required int Id { get; set; }
         public string? RoleName { get; set; }

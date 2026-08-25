@@ -6,6 +6,7 @@
 // ================================================================
 
 using AutoMapper;
+using axionpro.application.Constants;
 using axionpro.application.DTOS.TicketDTO.Classification;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -72,6 +73,28 @@ public class AddClassificationCommandHandler : IRequestHandler<AddClassification
             if (!validation.Success)
                 throw new UnauthorizedAccessException(validation.ErrorMessage);
 
+            long tenantId = validation.TenantId;
+            long userEmployeeId = validation.LoggedInEmployeeId;
+            int tokenRoleId = validation.RoleId;
+            if (tenantId <= 0 || userEmployeeId <= 0 || tokenRoleId <= 0)
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+
+            var permissionResult = await _unitOfWork.StoreProcedureRepository.CheckTenantEmployeePermissionAsync(tenantId, userEmployeeId, tokenRoleId, request.DTO.ModuleId, request.DTO.OperationId, cancellationToken);
+            switch (permissionResult.ResultCode)
+            {
+                case 1: break;
+                case -1:
+                    _logger.LogWarning("Tenant authorization context changed while creating Classification. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}", tenantId, userEmployeeId, tokenRoleId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+                case -2:
+                    _logger.LogWarning("Invalid Tenant role context while creating Classification. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}", tenantId, userEmployeeId, tokenRoleId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+                case 0:
+                default:
+                    _logger.LogWarning("Classification creation permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}", tenantId, userEmployeeId, request.DTO.ModuleId, request.DTO.OperationId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            }
+
             // ===============================
             // 2️⃣ NULL SAFETY
             // ===============================
@@ -80,20 +103,12 @@ public class AddClassificationCommandHandler : IRequestHandler<AddClassification
                     "Invalid request.",
                     new List<string> { "DTO is required." });
 
-            //var hasPermission = await _permissionService.HasAccessAsync(
-            //    validation.RoleId,
-            //    "TicketClassification",   // ModuleName (DB match)
-            //    "Delete"                  // Operation
-            //);
-
-            //if (!hasPermission)
-            //    throw new UnauthorizedAccessException("You do not have permission to delete classification.");
             // ===============================
             // 4️⃣ REPOSITORY CALL
             // ===============================
             var entity = _mapper.Map<axionpro.domain.Entity.TicketClassification>(request.DTO);
-            entity.TenantId = validation.TenantId;
-            entity.AddedById = validation.LoggedInEmployeeId;
+            entity.TenantId = tenantId;
+            entity.AddedById = userEmployeeId;
             entity.AddedDateTime = DateTime.UtcNow;
             entity.IsSoftDeleted = false;
 

@@ -5,12 +5,14 @@
 // Purpose : Defines client-editable values for creating a tenant role.
 // ================================================================
 
+using axionpro.application.DTOs.BaseDTO;
+
 namespace axionpro.application.DTOs.Role
 {
     /// <summary>
     /// Represents client-supplied values for a new tenant role.
     /// </summary>
-    public class CreateRoleRequestDTO
+    public class CreateRoleRequestDTO : PermissionRequestDTO
     {
         public string RoleName { get; set; } = string.Empty;
         public int RoleType { get; set; }

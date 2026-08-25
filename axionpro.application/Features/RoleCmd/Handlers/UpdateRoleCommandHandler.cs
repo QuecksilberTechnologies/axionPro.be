@@ -6,6 +6,7 @@
 // ================================================================
 
 using axionpro.application.DTOs.Role;
+using axionpro.application.Constants;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
@@ -80,12 +81,37 @@ namespace axionpro.application.Features.RoleCmd.Handlers
             if (!validation.Success)
                 throw new UnauthorizedAccessException(validation.ErrorMessage);
 
+            long tenantId = validation.TenantId;
+            long userEmployeeId = validation.LoggedInEmployeeId;
+            int tokenRoleId = validation.RoleId;
+            if (tenantId <= 0 || userEmployeeId <= 0 || tokenRoleId <= 0)
+            {
+                _logger.LogWarning("Invalid Tenant authorization context while updating Role. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}", tenantId, userEmployeeId, tokenRoleId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            var permissionResult = await _unitOfWork.StoreProcedureRepository.CheckTenantEmployeePermissionAsync(tenantId, userEmployeeId, tokenRoleId, request.DTO.ModuleId, request.DTO.OperationId, cancellationToken);
+            switch (permissionResult.ResultCode)
+            {
+                case 1: break;
+                case -1:
+                    _logger.LogWarning("Tenant authorization context changed while updating Role. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}", tenantId, userEmployeeId, tokenRoleId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+                case -2:
+                    _logger.LogWarning("Invalid Tenant role context while updating Role. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}", tenantId, userEmployeeId, tokenRoleId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+                case 0:
+                default:
+                    _logger.LogWarning("Role update permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}", tenantId, userEmployeeId, request.DTO.ModuleId, request.DTO.OperationId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            }
+
             if (request.DTO.Id <= 0 || string.IsNullOrWhiteSpace(request.DTO.RoleName))
                 throw new ValidationErrorException("A valid role identifier and name are required.");
 
             var entity = await _unitOfWork.RoleRepository.GetByIdForTenantAsync(
                 request.DTO.Id,
-                validation.TenantId,
+                tenantId,
                 cancellationToken);
             if (entity == null)
                 throw new ApiException("Role not found.", 404);
@@ -95,7 +121,7 @@ namespace axionpro.application.Features.RoleCmd.Handlers
             entity.Remark = request.DTO.Remark;
             if (request.DTO.IsActive.HasValue)
                 entity.IsActive = request.DTO.IsActive.Value;
-            entity.UpdatedById = validation.LoggedInEmployeeId;
+            entity.UpdatedById = userEmployeeId;
             entity.UpdatedDateTime = DateTime.UtcNow;
 
             var updated = await _unitOfWork.RoleRepository.UpdateAsync(entity, cancellationToken);

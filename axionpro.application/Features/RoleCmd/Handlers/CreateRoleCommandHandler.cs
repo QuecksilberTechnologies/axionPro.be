@@ -6,6 +6,7 @@
 // ================================================================
 
 using AutoMapper;
+using axionpro.application.Constants;
 using axionpro.application.DTOs.Role;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -85,6 +86,32 @@ namespace axionpro.application.Features.RoleCmd.Handlers
             if (!validation.Success)
                 throw new UnauthorizedAccessException(validation.ErrorMessage);
 
+            long tenantId = validation.TenantId;
+            long userEmployeeId = validation.LoggedInEmployeeId;
+            int tokenRoleId = validation.RoleId;
+            if (tenantId <= 0 || userEmployeeId <= 0 || tokenRoleId <= 0)
+            {
+                _logger.LogWarning("Invalid Tenant authorization context while creating Role. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}", tenantId, userEmployeeId, tokenRoleId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            var permissionResult = await _unitOfWork.StoreProcedureRepository.CheckTenantEmployeePermissionAsync(tenantId, userEmployeeId, tokenRoleId, request.DTO.ModuleId, request.DTO.OperationId, cancellationToken);
+            switch (permissionResult.ResultCode)
+            {
+                case 1:
+                    break;
+                case -1:
+                    _logger.LogWarning("Tenant authorization context changed while creating Role. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}", tenantId, userEmployeeId, tokenRoleId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+                case -2:
+                    _logger.LogWarning("Invalid Tenant role context while creating Role. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}", tenantId, userEmployeeId, tokenRoleId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+                case 0:
+                default:
+                    _logger.LogWarning("Role creation permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}", tenantId, userEmployeeId, request.DTO.ModuleId, request.DTO.OperationId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            }
+
             var roleName = request.DTO.RoleName?.Trim();
             if (string.IsNullOrWhiteSpace(roleName))
                 throw new ValidationErrorException("Role name cannot be empty.");
@@ -92,8 +119,8 @@ namespace axionpro.application.Features.RoleCmd.Handlers
             // Map client-editable fields to the domain entity.
             var entity = _mapper.Map<Role>(request.DTO);
             entity.RoleName = roleName;
-            entity.TenantId = validation.TenantId;
-            entity.AddedById = validation.LoggedInEmployeeId;
+            entity.TenantId = tenantId;
+            entity.AddedById = userEmployeeId;
             entity.AddedDateTime = DateTime.UtcNow;
             entity.IsSystemDefault = false;
             entity.IsSoftDeleted = false;

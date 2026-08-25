@@ -6,6 +6,7 @@
 // ================================================================
 
 using axionpro.application.DTOs.Role;
+using axionpro.application.Constants;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
@@ -80,13 +81,38 @@ namespace axionpro.application.Features.RoleCmd.Handlers
             if (!validation.Success)
                 throw new UnauthorizedAccessException(validation.ErrorMessage);
 
+            long tenantId = validation.TenantId;
+            long userEmployeeId = validation.LoggedInEmployeeId;
+            int tokenRoleId = validation.RoleId;
+            if (tenantId <= 0 || userEmployeeId <= 0 || tokenRoleId <= 0)
+            {
+                _logger.LogWarning("Invalid Tenant authorization context while deleting Role. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}", tenantId, userEmployeeId, tokenRoleId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            var permissionResult = await _unitOfWork.StoreProcedureRepository.CheckTenantEmployeePermissionAsync(tenantId, userEmployeeId, tokenRoleId, request.DTO.ModuleId, request.DTO.OperationId, cancellationToken);
+            switch (permissionResult.ResultCode)
+            {
+                case 1: break;
+                case -1:
+                    _logger.LogWarning("Tenant authorization context changed while deleting Role. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}", tenantId, userEmployeeId, tokenRoleId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+                case -2:
+                    _logger.LogWarning("Invalid Tenant role context while deleting Role. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}", tenantId, userEmployeeId, tokenRoleId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+                case 0:
+                default:
+                    _logger.LogWarning("Role deletion permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}", tenantId, userEmployeeId, request.DTO.ModuleId, request.DTO.OperationId);
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            }
+
             if (request.DTO.Id <= 0)
                 throw new ValidationErrorException("Invalid role identifier.");
 
             var deleted = await _unitOfWork.RoleRepository.DeleteAsync(
                 request.DTO.Id,
-                validation.TenantId,
-                validation.LoggedInEmployeeId,
+                tenantId,
+                userEmployeeId,
                 cancellationToken);
             if (!deleted)
                 throw new ApiException("Role not found or already deleted.", 404);

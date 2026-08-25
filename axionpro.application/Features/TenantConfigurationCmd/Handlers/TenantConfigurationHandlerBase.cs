@@ -5,6 +5,8 @@
 // Purpose : Provides common authenticated Tenant context and response helpers for TenantConfiguration handlers.
 // ================================================================
 
+using axionpro.application.Constants;
+using axionpro.application.DTOs.BaseDTO;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
@@ -43,6 +45,80 @@ public abstract class TenantConfigurationHandlerBase
         }
 
         return (validation.TenantId, validation.LoggedInEmployeeId);
+    }
+
+    /// <summary>
+    /// Resolves the authenticated Tenant context and enforces the requested
+    /// module operation using the current database role assignments.
+    /// </summary>
+    /// <param name="request">The request carrying the client-supplied module and operation identifiers.</param>
+    /// <param name="cancellationToken">Token used to cancel the authorization operation.</param>
+    /// <returns>The trusted Tenant identifier and employee audit actor.</returns>
+    /// <exception cref="UnauthorizedAccessException">Thrown when the Tenant context is invalid, stale, or denied.</exception>
+    protected async Task<(long TenantId, long ActorId)> ValidateTenantPermissionAsync(
+        PermissionRequestDTO request,
+        CancellationToken cancellationToken)
+    {
+        var validation = await CommonRequestService.ValidateTenantUserRequestAsync();
+        if (!validation.Success)
+        {
+            throw new UnauthorizedAccessException(
+                validation.ErrorMessage ?? AppConstants.ErrorMessages.Unauthorized);
+        }
+
+        long tenantId = validation.TenantId;
+        long actorId = validation.LoggedInEmployeeId;
+        int tokenRoleId = validation.RoleId;
+        if (tenantId <= 0 || actorId <= 0 || tokenRoleId <= 0)
+        {
+            Logger.LogWarning(
+                "Invalid Tenant authorization context. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                tenantId,
+                actorId,
+                tokenRoleId);
+            throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+        }
+
+        var permissionResult = await UnitOfWork.StoreProcedureRepository
+            .CheckTenantEmployeePermissionAsync(
+                tenantId,
+                actorId,
+                tokenRoleId,
+                request.ModuleId,
+                request.OperationId,
+                cancellationToken);
+
+        switch (permissionResult.ResultCode)
+        {
+            case 1:
+                return (tenantId, actorId);
+
+            case -1:
+                Logger.LogWarning(
+                    "Tenant authorization context changed. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                    tenantId,
+                    actorId,
+                    tokenRoleId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+
+            case -2:
+                Logger.LogWarning(
+                    "Invalid Tenant role context. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
+                    tenantId,
+                    actorId,
+                    tokenRoleId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+
+            case 0:
+            default:
+                Logger.LogWarning(
+                    "Tenant permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}",
+                    tenantId,
+                    actorId,
+                    request.ModuleId,
+                    request.OperationId);
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+        }
     }
 
     /// <summary>Creates a flattened paginated API response without data nesting.</summary>

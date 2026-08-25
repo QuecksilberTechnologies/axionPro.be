@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using axionpro.application.DTOS.Common;
+using axionpro.application.DTOs.BaseDTO;
 using axionpro.domain.Entity; 
 using MediatR;
 
@@ -19,7 +20,7 @@ namespace axionpro.application.DTOS.TicketDTO.Classification
     /// <summary>
     /// Represents the UpdateClassificationRequestDTO data transfer model.
     /// </summary>
-    public class UpdateClassificationRequestDTO
+    public class UpdateClassificationRequestDTO : PermissionRequestDTO
     {
   
     public int  Id { get; set; }

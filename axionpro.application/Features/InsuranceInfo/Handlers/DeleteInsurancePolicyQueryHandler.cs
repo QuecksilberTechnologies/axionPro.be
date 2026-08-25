@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.InsurancePolicy;
+﻿// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Soft deletes a tenant-owned insurance policy after runtime permission validation.
+// ================================================================
+
+using axionpro.application.DTOS.InsurancePolicy;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
@@ -52,16 +59,30 @@ namespace axionpro.application.Features.InsuranceInfo.Handlers
                 if (!validation.Success)
                     throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // ===============================
-                // 2️⃣ PERMISSION CHECK
-                // ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.InsurancePolicy,
-                //    Operations.Delete);
+                long tenantId = validation.TenantId;
+                long userEmployeeId = validation.LoggedInEmployeeId;
+                int tokenRoleId = validation.RoleId;
+                if (tenantId <= 0 || userEmployeeId <= 0 || tokenRoleId <= 0)
+                {
+                    _logger.LogWarning("Invalid Tenant authorization context while deleting Insurance Policy. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}", tenantId, userEmployeeId, tokenRoleId);
+                    throw new UnauthorizedAccessException("Invalid Tenant authorization context.");
+                }
 
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("Access denied.");
+                var permissionResult = await _unitOfWork.StoreProcedureRepository.CheckTenantEmployeePermissionAsync(tenantId, userEmployeeId, tokenRoleId, request.DTO.ModuleId, request.DTO.OperationId, cancellationToken);
+                switch (permissionResult.ResultCode)
+                {
+                    case 1: break;
+                    case -1:
+                        _logger.LogWarning("Tenant authorization context changed while deleting Insurance Policy. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}", tenantId, userEmployeeId, tokenRoleId);
+                        throw new UnauthorizedAccessException("Tenant authorization context changed.");
+                    case -2:
+                        _logger.LogWarning("Invalid Tenant role context while deleting Insurance Policy. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}", tenantId, userEmployeeId, tokenRoleId);
+                        throw new UnauthorizedAccessException("Invalid Tenant role context.");
+                    case 0:
+                    default:
+                        _logger.LogWarning("Insurance Policy deletion permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}", tenantId, userEmployeeId, request.DTO.ModuleId, request.DTO.OperationId);
+                        throw new UnauthorizedAccessException("Tenant permission denied.");
+                }
 
                 // ===============================
                 // 3️⃣ NULL SAFETY

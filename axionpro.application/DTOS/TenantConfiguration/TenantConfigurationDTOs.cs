@@ -156,7 +156,7 @@ public sealed class AttendancePolicyResponseDTO
 }
 
 /// <summary>Supplies client-editable values for an employee-location assignment.</summary>
-public class CreateEmployeeLocationAssignmentRequestDTO
+public class CreateEmployeeLocationAssignmentRequestDTO : PermissionRequestDTO
 {
     public long EmployeeId { get; set; }
     public long TenantLocationId { get; set; }
@@ -174,14 +174,14 @@ public sealed class UpdateEmployeeLocationAssignmentRequestDTO : CreateEmployeeL
 }
 
 /// <summary>Supplies an employee-location-assignment active-state change.</summary>
-public sealed class UpdateEmployeeLocationAssignmentStatusRequestDTO
+public sealed class UpdateEmployeeLocationAssignmentStatusRequestDTO : PermissionRequestDTO
 {
     public long Id { get; set; }
     public bool IsActive { get; set; }
 }
 
 /// <summary>Defines database-side filters for employee-location assignments.</summary>
-public sealed class EmployeeLocationAssignmentFilterRequestDTO
+public sealed class EmployeeLocationAssignmentFilterRequestDTO : PermissionRequestDTO
 {
     public long? EmployeeId { get; set; }
     public long? TenantLocationId { get; set; }
@@ -269,7 +269,7 @@ public sealed class EmployeeDeviceEnrollmentResponseDTO
 }
 
 /// <summary>Supplies client-editable values for an employee work arrangement.</summary>
-public class CreateEmployeeWorkArrangementRequestDTO
+public class CreateEmployeeWorkArrangementRequestDTO : PermissionRequestDTO
 {
     public long EmployeeId { get; set; }
     public int AttendancePolicyId { get; set; }
@@ -291,14 +291,14 @@ public sealed class UpdateEmployeeWorkArrangementRequestDTO : CreateEmployeeWork
 }
 
 /// <summary>Supplies an employee-work-arrangement active-state change.</summary>
-public sealed class UpdateEmployeeWorkArrangementStatusRequestDTO
+public sealed class UpdateEmployeeWorkArrangementStatusRequestDTO : PermissionRequestDTO
 {
     public long Id { get; set; }
     public bool IsActive { get; set; }
 }
 
 /// <summary>Defines database-side filters for employee work arrangements.</summary>
-public sealed class EmployeeWorkArrangementFilterRequestDTO
+public sealed class EmployeeWorkArrangementFilterRequestDTO : PermissionRequestDTO
 {
     public long? EmployeeId { get; set; }
     public int? AttendancePolicyId { get; set; }
@@ -332,7 +332,7 @@ public sealed class EmployeeWorkArrangementResponseDTO
 }
 
 /// <summary>Supplies client-editable values for an employee work-pattern day.</summary>
-public class CreateEmployeeWorkPatternRequestDTO
+public class CreateEmployeeWorkPatternRequestDTO : PermissionRequestDTO
 {
     public long EmployeeWorkArrangementId { get; set; }
     public WorkPatternDay DayOfWeek { get; set; }
@@ -349,14 +349,14 @@ public sealed class UpdateEmployeeWorkPatternRequestDTO : CreateEmployeeWorkPatt
 }
 
 /// <summary>Supplies an employee-work-pattern active-state change.</summary>
-public sealed class UpdateEmployeeWorkPatternStatusRequestDTO
+public sealed class UpdateEmployeeWorkPatternStatusRequestDTO : PermissionRequestDTO
 {
     public long Id { get; set; }
     public bool IsActive { get; set; }
 }
 
 /// <summary>Defines database-side filters for employee work-pattern days.</summary>
-public sealed class EmployeeWorkPatternFilterRequestDTO
+public sealed class EmployeeWorkPatternFilterRequestDTO : PermissionRequestDTO
 {
     public long? EmployeeWorkArrangementId { get; set; }
     public WorkPatternDay? DayOfWeek { get; set; }
@@ -381,7 +381,7 @@ public sealed class EmployeeWorkPatternResponseDTO
 }
 
 /// <summary>Supplies client-editable values for an employee temporary work-mode override.</summary>
-public class CreateEmployeeWorkModeOverrideRequestDTO
+public class CreateEmployeeWorkModeOverrideRequestDTO : PermissionRequestDTO
 {
     public long EmployeeId { get; set; }
     public long? EmployeeWorkArrangementId { get; set; }
@@ -400,14 +400,14 @@ public sealed class UpdateEmployeeWorkModeOverrideRequestDTO : CreateEmployeeWor
 }
 
 /// <summary>Supplies an override record active-state change without exposing approval fields.</summary>
-public sealed class UpdateEmployeeWorkModeOverrideStatusRequestDTO
+public sealed class UpdateEmployeeWorkModeOverrideStatusRequestDTO : PermissionRequestDTO
 {
     public long Id { get; set; }
     public bool IsActive { get; set; }
 }
 
 /// <summary>Defines database-side filters for employee work-mode overrides.</summary>
-public sealed class EmployeeWorkModeOverrideFilterRequestDTO
+public sealed class EmployeeWorkModeOverrideFilterRequestDTO : PermissionRequestDTO
 {
     public string? Search { get; set; }
     public long? EmployeeId { get; set; }

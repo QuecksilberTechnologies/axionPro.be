@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+using axionpro.application.DTOs.BaseDTO;
 
 namespace axionpro.application.DTOS.InsurancePolicy
 {
@@ -10,7 +11,7 @@ namespace axionpro.application.DTOS.InsurancePolicy
     /// Create Insurance Policy request DTO
     /// (Audit fields are handled internally)
     /// </summary>
-    public class DeleteInsurancePolicyRequestDTO
+    public class DeleteInsurancePolicyRequestDTO : PermissionRequestDTO
     {
         [Required]
         public int Id { get; set; }

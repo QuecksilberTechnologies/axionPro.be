@@ -6,6 +6,7 @@
 // ================================================================
 
 using AutoMapper;
+using axionpro.application.Constants;
 using axionpro.application.DTOS.TicketDTO.Classification;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -73,12 +74,27 @@ public class UpdateClassificationCommandHandler
                 if (!validation.Success)
                     throw new UnauthorizedAccessException(validation.ErrorMessage);
 
-                // ===============================
-                // 2️⃣ RBAC
-                // ===============================
-                //await _commonRequestService.HasAccessAsync(
-                //    ModuleEnum.Ticket,
-                //    OperationEnum.Update);
+                long tenantId = validation.TenantId;
+                long userEmployeeId = validation.LoggedInEmployeeId;
+                int tokenRoleId = validation.RoleId;
+                if (tenantId <= 0 || userEmployeeId <= 0 || tokenRoleId <= 0)
+                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+
+                var permissionResult = await _unitOfWork.StoreProcedureRepository.CheckTenantEmployeePermissionAsync(tenantId, userEmployeeId, tokenRoleId, request.DTO.ModuleId, request.DTO.OperationId, cancellationToken);
+                switch (permissionResult.ResultCode)
+                {
+                    case 1: break;
+                    case -1:
+                        _logger.LogWarning("Tenant authorization context changed while updating Classification. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}", tenantId, userEmployeeId, tokenRoleId);
+                        throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+                    case -2:
+                        _logger.LogWarning("Invalid Tenant role context while updating Classification. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}", tenantId, userEmployeeId, tokenRoleId);
+                        throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+                    case 0:
+                    default:
+                        _logger.LogWarning("Classification update permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}", tenantId, userEmployeeId, request.DTO.ModuleId, request.DTO.OperationId);
+                        throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+                }
 
                 // ===============================
                 // 3️⃣ NULL SAFETY
@@ -97,12 +113,12 @@ public class UpdateClassificationCommandHandler
                 await _unitOfWork.BeginTransactionAsync();
 
                 var entity = await _unitOfWork.TicketClassificationRepository
-                    .GetByIdForTenantAsync(dto.Id, validation.TenantId);
+                    .GetByIdForTenantAsync(dto.Id, tenantId);
                 if (entity == null)
                     throw new ApiException("Classification not found or could not be updated.", 404);
 
                 _mapper.Map(dto, entity);
-                entity.UpdatedById = validation.LoggedInEmployeeId;
+                entity.UpdatedById = userEmployeeId;
                 entity.UpdatedDateTime = DateTime.UtcNow;
 
                 var result = await _unitOfWork.TicketClassificationRepository.UpdateAsync(entity);

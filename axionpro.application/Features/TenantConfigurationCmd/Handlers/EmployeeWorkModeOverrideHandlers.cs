@@ -49,7 +49,7 @@ public sealed class CreateEmployeeWorkModeOverrideCommandHandler : TenantConfigu
     public CreateEmployeeWorkModeOverrideCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) => _mapper = mapper;
     public async Task<ApiResponse<EmployeeWorkModeOverrideResponseDTO>> Handle(CreateEmployeeWorkModeOverrideCommand request, CancellationToken cancellationToken)
     {
-        var (tenantId, actorId) = await ValidateTenantAsync(); Validate(request.DTO); await ValidateReferencesAsync(tenantId, request.DTO, cancellationToken);
+        var (tenantId, actorId) = await ValidateTenantPermissionAsync(request.DTO, cancellationToken); Validate(request.DTO); await ValidateReferencesAsync(tenantId, request.DTO, cancellationToken);
         var entity = _mapper.Map<EmployeeWorkModeOverrideRequest>(request.DTO); entity.TenantId = tenantId; entity.ApprovalStatus = (short)WorkModeOverrideApprovalStatus.Pending; entity.IsSoftDeleted = false; entity.AddedById = actorId; entity.AddedDateTime = DateTime.UtcNow;
         await UnitOfWork.EmployeeWorkModeOverrideRequestRepository.AddAsync(entity, cancellationToken); await UnitOfWork.SaveChangesAsync(cancellationToken);
         var stored = await UnitOfWork.EmployeeWorkModeOverrideRequestRepository.GetByIdAsync(tenantId, entity.Id, cancellationToken);
@@ -72,7 +72,7 @@ public sealed class UpdateEmployeeWorkModeOverrideCommandHandler : TenantConfigu
     public UpdateEmployeeWorkModeOverrideCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) => _mapper = mapper;
     public async Task<ApiResponse<EmployeeWorkModeOverrideResponseDTO>> Handle(UpdateEmployeeWorkModeOverrideCommand request, CancellationToken cancellationToken)
     {
-        var (tenantId, actorId) = await ValidateTenantAsync(); if (request.DTO is null || request.DTO.Id <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier); Validate(request.DTO);
+        var (tenantId, actorId) = await ValidateTenantPermissionAsync(request.DTO, cancellationToken); if (request.DTO is null || request.DTO.Id <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier); Validate(request.DTO);
         var entity = await UnitOfWork.EmployeeWorkModeOverrideRequestRepository.GetForUpdateAsync(tenantId, request.DTO.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkModeOverrideNotFound);
         await ValidateReferencesAsync(tenantId, request.DTO, cancellationToken); _mapper.Map(request.DTO, entity); entity.UpdatedById = actorId; entity.UpdatedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(cancellationToken);
         var stored = await UnitOfWork.EmployeeWorkModeOverrideRequestRepository.GetByIdAsync(tenantId, entity.Id, cancellationToken);
@@ -102,7 +102,7 @@ public sealed class UpdateEmployeeWorkModeOverrideStatusCommandHandler : TenantC
     private readonly IMapper _mapper;
     public UpdateEmployeeWorkModeOverrideStatusCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) => _mapper = mapper;
     public async Task<ApiResponse<EmployeeWorkModeOverrideResponseDTO>> Handle(UpdateEmployeeWorkModeOverrideStatusCommand request, CancellationToken cancellationToken)
-    { var (tenantId, actorId) = await ValidateTenantAsync(); if (request.DTO is null || request.DTO.Id <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier); var entity = await UnitOfWork.EmployeeWorkModeOverrideRequestRepository.GetForUpdateAsync(tenantId, request.DTO.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkModeOverrideNotFound); entity.IsActive = request.DTO.IsActive; entity.UpdatedById = actorId; entity.UpdatedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(cancellationToken); var stored = await UnitOfWork.EmployeeWorkModeOverrideRequestRepository.GetByIdAsync(tenantId, entity.Id, cancellationToken); return ApiResponse<EmployeeWorkModeOverrideResponseDTO>.Success(_mapper.Map<EmployeeWorkModeOverrideResponseDTO>(stored!), AppConstants.SuccessMessages.EmployeeWorkModeOverrideStatusUpdated); }
+    { var (tenantId, actorId) = await ValidateTenantPermissionAsync(request.DTO, cancellationToken); if (request.DTO is null || request.DTO.Id <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier); var entity = await UnitOfWork.EmployeeWorkModeOverrideRequestRepository.GetForUpdateAsync(tenantId, request.DTO.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkModeOverrideNotFound); entity.IsActive = request.DTO.IsActive; entity.UpdatedById = actorId; entity.UpdatedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(cancellationToken); var stored = await UnitOfWork.EmployeeWorkModeOverrideRequestRepository.GetByIdAsync(tenantId, entity.Id, cancellationToken); return ApiResponse<EmployeeWorkModeOverrideResponseDTO>.Success(_mapper.Map<EmployeeWorkModeOverrideResponseDTO>(stored!), AppConstants.SuccessMessages.EmployeeWorkModeOverrideStatusUpdated); }
 }
 
 /// <summary>Handles temporary override retrieval.</summary>
@@ -120,7 +120,7 @@ public sealed class GetEmployeeWorkModeOverridesQueryHandler : TenantConfigurati
     private readonly IMapper _mapper;
     public GetEmployeeWorkModeOverridesQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) => _mapper = mapper;
     public async Task<ApiResponse<List<EmployeeWorkModeOverrideResponseDTO>>> Handle(GetEmployeeWorkModeOverridesQuery request, CancellationToken cancellationToken)
-    { var (tenantId, _) = await ValidateTenantAsync(); var page = await UnitOfWork.EmployeeWorkModeOverrideRequestRepository.GetPagedAsync(tenantId, request.Filter ?? new EmployeeWorkModeOverrideFilterRequestDTO(), cancellationToken); return Paged(page.Data.Select(entity => _mapper.Map<EmployeeWorkModeOverrideResponseDTO>(entity)).ToList(), page.PageNumber, page.PageSize, page.TotalCount, "Work mode override requests retrieved successfully."); }
+    { var (tenantId, _) = await ValidateTenantPermissionAsync(request.Filter ?? new EmployeeWorkModeOverrideFilterRequestDTO(), cancellationToken); var page = await UnitOfWork.EmployeeWorkModeOverrideRequestRepository.GetPagedAsync(tenantId, request.Filter ?? new EmployeeWorkModeOverrideFilterRequestDTO(), cancellationToken); return Paged(page.Data.Select(entity => _mapper.Map<EmployeeWorkModeOverrideResponseDTO>(entity)).ToList(), page.PageNumber, page.PageSize, page.TotalCount, "Work mode override requests retrieved successfully."); }
 }
 
 #endregion
