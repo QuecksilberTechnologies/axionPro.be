@@ -6,9 +6,10 @@
 // ================================================================
 
 using axionpro.application.Constants;
-using axionpro.application.Exceptions;
 using axionpro.application.DTOS.Module.ParentModule;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -50,6 +51,7 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
     public class GetParentModuleByIdQueryHandler : IRequestHandler<GetParentModuleByIdQuery, ApiResponse<GetParentModuleResponseDTO>>
     {
         #region Fields
+        private readonly ICommonRequestService _commonRequestService;
 
         private readonly IUnitOfWork _unitOfWork;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -68,11 +70,13 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
         public GetParentModuleByIdQueryHandler(
             IUnitOfWork unitOfWork,
             IHttpContextAccessor httpContextAccessor,
-            ILogger<GetParentModuleByIdQueryHandler> logger)
+            ILogger<GetParentModuleByIdQueryHandler> logger,
+            ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
+            _commonRequestService = commonRequestService;
         }
 
         #endregion
@@ -91,7 +95,7 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
             GetParentModuleByIdQuery request,
             CancellationToken cancellationToken)
         {
-            GetAuthenticatedHostUserId();
+            var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
 
             if (request == null || request.Id <= 0)
             {
