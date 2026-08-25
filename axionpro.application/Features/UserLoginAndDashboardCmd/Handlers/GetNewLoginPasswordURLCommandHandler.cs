@@ -88,7 +88,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 var dto = request.DTO;
 
                 // 1️⃣ Common validation
-                var validation = await _commonRequestService.ValidateRequestAsync();
+                var validation = await _commonRequestService.ValidateTenantUserRequestAsync();
 
                 if (!validation.Success)
                     throw new UnauthorizedAccessException(validation.ErrorMessage);

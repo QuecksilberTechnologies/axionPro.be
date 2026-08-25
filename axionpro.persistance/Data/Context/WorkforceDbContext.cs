@@ -5,13 +5,13 @@
 // Purpose : Configures the AxionPro PostgreSQL persistence model.
 // ================================================================
 
-using axionpro.application.DTOs.Module.NewFolder;
-
 using axionpro.application.Common.Enums;
+using axionpro.application.DTOs.Module.NewFolder;
 using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOS.RoleModulePermission;
 using axionpro.application.DTOS.StoreProcedures;
 using axionpro.application.DTOS.StoreProcedures.DashboardSummeries;
+using axionpro.application.DTOS.Tenant;
 using axionpro.application.Interfaces.IContext;
 using axionpro.domain.Entity;
 using Microsoft.EntityFrameworkCore;
@@ -331,6 +331,9 @@ namespace axionpro.persistance.Data.Context
         public virtual DbSet<SubscribedModuleResponseDTO> SubscribedModuleResponseDTOs { get; set; }
         public virtual DbSet<FlatModuleOperationDto> TenantModulesConfigurations { get; set; }
         public virtual DbSet<GetEmployeeIdentitySp> GetEmployeeIdentitySps { get; set; }
+        public virtual DbSet<GetEmployeeCodePatternResponseDTO> GetEmployeeCodePatternResponseDTOs { get; set; }
+ 
+        
         public override int SaveChanges()
         {
             return base.SaveChanges();
@@ -396,8 +399,14 @@ namespace axionpro.persistance.Data.Context
             entity.Property(e => e.Remark).HasMaxLength(250);
             entity.Property(e => e.WorkflowName).HasMaxLength(150);
         });
+            modelBuilder.Entity<GetEmployeeCodePatternResponseDTO>(entity =>
+            {
+                entity.HasNoKey();
+                entity.ToView(null);
+            });
 
-        modelBuilder.Entity<Asset>(entity =>
+
+            modelBuilder.Entity<Asset>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Asset__3214EC076178ABAE");
 

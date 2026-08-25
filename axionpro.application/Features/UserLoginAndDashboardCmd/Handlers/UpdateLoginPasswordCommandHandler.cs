@@ -99,7 +99,7 @@ public class UpdateLoginPasswordCommandHandler : IRequestHandler<UpdateLoginPass
 
                 // 1️ COMMON VALIDATION (Mandatory)
                 #region Tenant Request Validation
-                var validation = await _commonRequestService.ValidateRequestAsync();
+                var validation = await _commonRequestService.ValidateTenantUserRequestAsync();
                 #endregion
 
                 if (!validation.Success)

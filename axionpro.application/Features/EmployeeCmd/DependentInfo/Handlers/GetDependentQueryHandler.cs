@@ -81,7 +81,7 @@ public class GetDependentInfoQueryHandler
 
                 //  STEP 1: COMMON VALIDATION (SAME AS CONTACT)
                 var validation =
-                    await _commonRequestService.ValidateRequestAsync();
+                    await _commonRequestService.ValidateTenantUserRequestAsync();
 
                 if (!validation.Success)
                 throw new UnauthorizedAccessException(validation.ErrorMessage);

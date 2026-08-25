@@ -68,7 +68,7 @@ public class UpdateHeaderCommandHandler
                 // ===============================
                 // 1️⃣ VALIDATION
                 // ===============================
-                var validation = await _commonRequestService.ValidateRequestAsync();
+                var validation = await _commonRequestService.ValidateTenantUserRequestAsync();
 
                 if (!validation.Success)
                     throw new UnauthorizedAccessException(validation.ErrorMessage);

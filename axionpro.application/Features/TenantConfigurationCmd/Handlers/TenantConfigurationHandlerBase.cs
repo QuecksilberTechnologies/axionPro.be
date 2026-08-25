@@ -36,7 +36,7 @@ public abstract class TenantConfigurationHandlerBase
     /// <returns>The authenticated Tenant identifier and employee identifier.</returns>
     protected async Task<(long TenantId, long ActorId)> ValidateTenantAsync()
     {
-        var validation = await CommonRequestService.ValidateRequestAsync();
+        var validation = await CommonRequestService.ValidateTenantUserRequestAsync();
         if (!validation.Success)
         {
             throw new UnauthorizedAccessException(validation.ErrorMessage);

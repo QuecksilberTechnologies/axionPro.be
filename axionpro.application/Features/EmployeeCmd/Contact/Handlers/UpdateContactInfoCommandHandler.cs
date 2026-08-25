@@ -64,7 +64,7 @@ public class UpdateContactInfoCommandHandler
             // ===============================
             #region Tenant Request Validation
             var validation =
-                await _commonRequestService.ValidateRequestAsync();
+                await _commonRequestService.ValidateTenantUserRequestAsync();
             #endregion
 
             if (!validation.Success)

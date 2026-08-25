@@ -98,7 +98,7 @@ public class UpdateIdentityInfoCommandHandler
                 // 1️⃣ VALIDATION
                 // ===============================
                 var validation =
-                    await _commonRequestService.ValidateRequestAsync();
+                    await _commonRequestService.ValidateTenantUserRequestAsync();
 
                 if (!validation.Success)
                     throw new UnauthorizedAccessException(validation.ErrorMessage);

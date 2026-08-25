@@ -71,7 +71,7 @@ public sealed class GetTenantUserAccessQueryHandler
         CancellationToken cancellationToken)
     {
         // Validate the Tenant identity before resolving current authorization state.
-        var validation = await _commonRequestService.ValidateRequestAsync();
+        var validation = await _commonRequestService.ValidateTenantUserRequestAsync();
         if (!validation.Success ||
             validation.Claims == null ||
             validation.LoggedInEmployeeId <= 0 ||

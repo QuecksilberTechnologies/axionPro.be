@@ -40,74 +40,103 @@ namespace axionpro.application.Features.TenantConfigurationCmd.Configuration.Emp
         }
 
         public async Task<ApiResponse<GetEmployeeCodePatternResponseDTO>> Handle(
-     GetEmployeeCodePatternQuery request,
-     CancellationToken cancellationToken)
+    GetEmployeeCodePatternQuery request,
+    CancellationToken cancellationToken)
         {
             try
             {
-                _logger.LogInformation("🔹 GetEmployeeCodePattern started");
+                _logger.LogInformation(
+                    "GetEmployeeCodePattern started.");
 
                 // ===============================
-                // 1️⃣ VALIDATION (AUTH)
-                // ===============================
-                var validation = await _commonRequestService.ValidateRequestAsync();
-
-                if (!validation.Success)
-                    throw new UnauthorizedAccessException(validation.ErrorMessage);
-
-                // ===============================
-                // 2️⃣ PERMISSION CHECK (RBAC)
-                // ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.Employee,
-                //    Operations.View);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("Access denied.");
-
-                // ===============================
-                // 3️⃣ NULL SAFETY
+                // 1️⃣ NULL SAFETY
                 // ===============================
                 if (request?.DTO == null)
-                    throw new ValidationErrorException("Invalid request data.");
-
-                request.DTO.TenantId = validation.TenantId;
+                {
+                    throw new ValidationErrorException(
+                        "Invalid request data.");
+                }
 
                 // ===============================
-                // 4️⃣ FETCH DATA
+                // 2️⃣ TENANT OR HOST VALIDATION
+                // ===============================
+                var tenantValidation =
+                    await _commonRequestService.ValidateTenantUserRequestAsync();
+
+                long targetTenantId;
+
+                if (tenantValidation.Success)
+                {
+                    // Tenant users can access only their own tenant.
+                    targetTenantId = tenantValidation.TenantId;
+
+                    // ===============================
+                    // 2️⃣ PERMISSION CHECK (RBAC)
+                    // ===============================
+                    //var hasAccess = await _permissionService.HasAccessAsync(
+                    //    validation.RoleId,
+                    //    Modules.Employee,
+                    //    Operations.View);
+
+                    //if (!hasAccess)
+                    //    throw new UnauthorizedAccessException("Access denied.");
+                }
+                else
+                {
+                    targetTenantId= request.DTO.TenantId; // Use the provided TenantId for Host users.
+                    var hostValidation =
+                        await _commonRequestService.ValidateHostUserRequestAsync();
+
+                    if (hostValidation<0)
+                    {
+                        throw new UnauthorizedAccessException(
+                            "A valid Tenant or Host access token is required.");
+                    }
+
+                    if (request.DTO.TenantId <= 0)
+                    {
+                        throw new ValidationErrorException(
+                            "TenantId is required for a Host user request.");
+                    }
+
+                    targetTenantId = request.DTO.TenantId;
+                }
+
+                // ===============================
+                // 3️⃣ FETCH DATA
                 // ===============================
                 var pattern = await _unitOfWork
                     .TenantEmployeeCodePatternRepository
                     .GetTenantEmployeeCodePatternAsync(
-                        request.DTO.TenantId,
+                        targetTenantId,
                         request.DTO.IsActive);
 
                 if (pattern == null)
                 {
                     _logger.LogInformation(
-                        "⚠️ No employee code pattern found for TenantId {TenantId}",
-                        validation.TenantId);
+                        "No employee code pattern found for TenantId {TenantId}.",
+                        targetTenantId);
 
                     return ApiResponse<GetEmployeeCodePatternResponseDTO>
                         .Success(null, "No pattern found.");
                 }
 
-                _logger.LogInformation("✅ Employee code pattern retrieved");
+                _logger.LogInformation(
+                    "Employee code pattern retrieved for TenantId {TenantId}.",
+                    targetTenantId);
 
-                // ===============================
-                // 5️⃣ SUCCESS
-                // ===============================
                 return ApiResponse<GetEmployeeCodePatternResponseDTO>
-                    .Success(pattern, "Pattern fetched successfully.");
+                    .Success(
+                        pattern,
+                        "Pattern fetched successfully.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(
                     ex,
-                    "❌ GetEmployeeCodePattern failed");
+                    "GetEmployeeCodePattern failed.");
 
-                throw; // ✅ CRITICAL
+                throw;
             }
         }
 

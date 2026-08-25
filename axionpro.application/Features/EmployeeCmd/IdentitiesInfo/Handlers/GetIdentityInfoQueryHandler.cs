@@ -65,7 +65,7 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
                 // ===============================
                 var validation =
                     await _commonRequestService
-                        .ValidateRequestAsync();
+                        .ValidateTenantUserRequestAsync();
 
                 if (!validation.Success)
                     throw new UnauthorizedAccessException(validation.ErrorMessage);

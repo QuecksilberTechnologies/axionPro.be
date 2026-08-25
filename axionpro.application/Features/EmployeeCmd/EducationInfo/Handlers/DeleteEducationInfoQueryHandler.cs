@@ -50,7 +50,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                 // 1️⃣ VALIDATION
                 // ===============================
                 var validation =
-                    await _commonRequestService.ValidateRequestAsync();
+                    await _commonRequestService.ValidateTenantUserRequestAsync();
 
                 if (!validation.Success)
                     throw new UnauthorizedAccessException(validation.ErrorMessage);

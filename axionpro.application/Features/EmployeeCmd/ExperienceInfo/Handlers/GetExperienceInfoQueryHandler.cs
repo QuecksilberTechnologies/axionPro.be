@@ -72,7 +72,7 @@ public class GetExperienceInfoQueryHandler
             // ===============================
             // 1️⃣ VALIDATION
             // ===============================
-            var validation = await _commonRequestService.ValidateRequestAsync();
+            var validation = await _commonRequestService.ValidateTenantUserRequestAsync();
 
             if (!validation.Success)
             {

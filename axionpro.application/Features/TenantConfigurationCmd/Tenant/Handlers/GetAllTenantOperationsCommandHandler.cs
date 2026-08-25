@@ -81,7 +81,7 @@ public class GetAllTenantOperationsCommandHandler
                     throw new ValidationErrorException("Invalid request data.");
 
                 var validation = await _commonRequestService
-                    .ValidateRequestAsync();
+                    .ValidateTenantUserRequestAsync();
 
                 if (!validation.Success)
                     throw new UnauthorizedAccessException(validation.ErrorMessage);

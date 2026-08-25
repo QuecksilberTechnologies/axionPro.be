@@ -77,7 +77,7 @@ public class ActivateEmployeeInfoQueryHandler
                 // ===============================
                 #region Tenant Request Validation
                 var validation = await _commonRequestService
-                    .ValidateRequestAsync();
+                    .ValidateTenantUserRequestAsync();
                 #endregion
 
                 if (!validation.Success)

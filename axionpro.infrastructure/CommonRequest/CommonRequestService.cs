@@ -47,7 +47,7 @@ namespace axionpro.infrastructure.CommonRequest
         /// Validates the current authenticated tenant request and resolves the trusted tenant, employee, and role context.
         /// </summary>
         /// <returns>The validated tenant request context.</returns>
-        public async Task<CommonDecodedResult> ValidateRequestAsync()
+        public async Task<CommonDecodedResult> ValidateTenantUserRequestAsync()
         {
             try
             {
@@ -128,7 +128,7 @@ namespace axionpro.infrastructure.CommonRequest
                 throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
             }
 
-            var tenantValidation = await ValidateRequestAsync();
+            var tenantValidation = await ValidateTenantUserRequestAsync();
             if (!tenantValidation.Success ||
                 tenantValidation.Claims == null ||
                 !string.Equals(

@@ -66,7 +66,7 @@ namespace axionpro.application.Features.StatsFeatures.EmployeesCmd.Handlers
                 // ===============================
                 #region Tenant Request Validation
                 var validation = await _commonRequestService
-                    .ValidateRequestAsync();
+                    .ValidateTenantUserRequestAsync();
                 #endregion
 
                 if (!validation.Success)

@@ -47,7 +47,7 @@ namespace axionpro.application.Features.TickeAllCmd.TicketType.Handlers
             try
             {
                 // 1️⃣ COMMON VALIDATION
-                var validation = await _commonRequestService.ValidateRequestAsync();
+                var validation = await _commonRequestService.ValidateTenantUserRequestAsync();
                 if (!validation.Success)
                     throw new UnauthorizedAccessException(validation.ErrorMessage);
 

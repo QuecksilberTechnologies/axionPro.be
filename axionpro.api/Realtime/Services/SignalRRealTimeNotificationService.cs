@@ -152,7 +152,7 @@ namespace axionpro.api.Realtime.Services
             T payload,
             CancellationToken cancellationToken = default)
         {
-            // Security: a future Host command/API must run ValidateRequestAsync(), Host validation, and permission checks first.
+            // Security: a future Host command/API must run ValidateTenantUserRequestAsync(), Host validation, and permission checks first.
             await SendAsync(
                 _hubContext.Clients.Group(SignalRGroupNameFactory.AllTenants()),
                 eventName,
@@ -168,7 +168,7 @@ namespace axionpro.api.Realtime.Services
             T payload,
             CancellationToken cancellationToken = default)
         {
-            // Security: a future Host command/API must run ValidateRequestAsync(), Host validation, and permission checks first.
+            // Security: a future Host command/API must run ValidateTenantUserRequestAsync(), Host validation, and permission checks first.
             var countryGroup = SignalRGroupNameFactory.CountryTenants(countryId);
             await SendAsync(_hubContext.Clients.Group(countryGroup), eventName, payload, cancellationToken);
             _logger.LogDebug("Published SignalR event to a country tenant group.");

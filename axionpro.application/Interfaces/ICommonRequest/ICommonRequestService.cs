@@ -18,7 +18,7 @@ namespace axionpro.application.Interfaces.ICommonRequest
         /// Validates the current authenticated tenant request and resolves the trusted tenant, employee, and role context.
         /// </summary>
         /// <returns>The validated tenant request context.</returns>
-        Task<CommonDecodedResult> ValidateRequestAsync();
+        Task<CommonDecodedResult> ValidateTenantUserRequestAsync();
         /// <summary>
         /// Validates the current authenticated Host or Tenant request by delegating to the established principal-specific validation path.
         /// </summary>

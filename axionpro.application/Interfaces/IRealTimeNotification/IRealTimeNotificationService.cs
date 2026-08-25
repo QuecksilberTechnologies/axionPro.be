@@ -135,7 +135,7 @@ namespace axionpro.application.Interfaces.IRealTimeNotification
 
         /// <summary>
         /// Sends an event to all active tenant connections.
-        /// Future Host command/API callers must run existing ValidateRequestAsync(), applicable Host validation, and Host permission checks before invoking this capability.
+        /// Future Host command/API callers must run existing ValidateTenantUserRequestAsync(), applicable Host validation, and Host permission checks before invoking this capability.
         /// </summary>
         /// <typeparam name="T">The event payload type.</typeparam>
         /// <param name="eventName">The client event name.</param>
@@ -150,7 +150,7 @@ namespace axionpro.application.Interfaces.IRealTimeNotification
         /// <summary>
         /// Sends an event to active tenant connections in one authoritative country.
         /// Country/state targeting is deferred until Tenant has an authoritative State relationship.
-        /// Future Host command/API callers must run existing ValidateRequestAsync(), applicable Host validation, and Host permission checks before invoking this capability.
+        /// Future Host command/API callers must run existing ValidateTenantUserRequestAsync(), applicable Host validation, and Host permission checks before invoking this capability.
         /// </summary>
         /// <typeparam name="T">The event payload type.</typeparam>
         /// <param name="countryId">The authoritative country identifier.</param>

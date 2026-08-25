@@ -76,7 +76,7 @@ namespace axionpro.application.Features.RoleCmd.Handlers
             DeleteRoleQuery request,
             CancellationToken cancellationToken)
         {
-            var validation = await _commonRequestService.ValidateRequestAsync();
+            var validation = await _commonRequestService.ValidateTenantUserRequestAsync();
             if (!validation.Success)
                 throw new UnauthorizedAccessException(validation.ErrorMessage);
 

@@ -98,7 +98,7 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
 
             // Validate the authenticated tenant-user context and confirm the request identity.
             #region Tenant Request Validation
-            var validation = await _commonRequestService.ValidateRequestAsync();
+            var validation = await _commonRequestService.ValidateTenantUserRequestAsync();
             #endregion
 
             if (!validation.Success)

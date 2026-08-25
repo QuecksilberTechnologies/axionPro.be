@@ -94,7 +94,7 @@ public class AddStatusCommandHandler : IRequestHandler<AddStatusCommand, ApiResp
         }
 
         // Resolve the trusted tenant-user context.
-        var validation = await _commonRequestService.ValidateRequestAsync();
+        var validation = await _commonRequestService.ValidateTenantUserRequestAsync();
         if (!validation.Success)
         {
             throw new UnauthorizedAccessException(validation.ErrorMessage);
