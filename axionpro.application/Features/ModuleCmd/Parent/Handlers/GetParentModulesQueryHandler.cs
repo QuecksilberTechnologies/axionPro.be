@@ -6,9 +6,10 @@
 // ================================================================
 
 using axionpro.application.Constants;
-using axionpro.application.Exceptions;
 using axionpro.application.DTOS.Module.ParentModule;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -54,6 +55,7 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
         private readonly IUnitOfWork _unitOfWork;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<GetParentModulesQueryHandler> _logger;
+        private readonly ICommonRequestService _commonRequestService;
 
         #endregion
 
@@ -65,14 +67,17 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
         /// <param name="unitOfWork">Provides the existing Module repository.</param>
         /// <param name="httpContextAccessor">Provides the ASP.NET Core-authenticated principal.</param>
         /// <param name="logger">Records unexpected processing failures.</param>
+        /// <param name="commonRequestService">Provides common request validation functionality.</param>
         public GetParentModulesQueryHandler(
             IUnitOfWork unitOfWork,
             IHttpContextAccessor httpContextAccessor,
-            ILogger<GetParentModulesQueryHandler> logger)
+            ILogger<GetParentModulesQueryHandler> logger,
+            ICommonRequestService commonRequestService)
         {
             _unitOfWork = unitOfWork;
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
+            _commonRequestService = commonRequestService;
         }
 
         #endregion
@@ -90,7 +95,8 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
             GetParentModulesQuery request,
             CancellationToken cancellationToken)
         {
-            GetAuthenticatedHostUserId();
+
+            var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
 
             if (request == null)
             {
@@ -129,29 +135,7 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
         /// </summary>
         /// <returns>The authenticated Host user identifier.</returns>
         /// <exception cref="UnauthorizedAccessException">Thrown when the principal is missing, unauthenticated, non-Host, or lacks a valid Host user identifier.</exception>
-        private long GetAuthenticatedHostUserId()
-        {
-            var principal = _httpContextAccessor.HttpContext?.User;
-            if (principal?.Identity?.IsAuthenticated != true)
-            {
-                throw new UnauthorizedAccessException("An authenticated Host principal is required.");
-            }
-
-            var userType = principal.FindFirst(AppConstants.UserTypeClaim)?.Value;
-            if (!string.Equals(userType, AppConstants.HostUserType, StringComparison.OrdinalIgnoreCase))
-            {
-                throw new UnauthorizedAccessException("Only Host users can retrieve Parent Modules.");
-            }
-
-            var hostUserIdValue = principal.FindFirst(AppConstants.HostUserIdClaim)?.Value;
-            if (!long.TryParse(hostUserIdValue, out var hostUserId) || hostUserId <= 0)
-            {
-                throw new UnauthorizedAccessException("A valid HostUserId claim is required.");
-            }
-
-            return hostUserId;
-        }
-
+       
         #endregion
 
         #region Validation
