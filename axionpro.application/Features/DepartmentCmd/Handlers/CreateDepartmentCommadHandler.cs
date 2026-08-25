@@ -352,8 +352,7 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
             department.AddedDateTime =
                 DateTime.UtcNow;
 
-            department.IsActive =
-                true;
+            department.IsActive =true;
 
             department.IsSoftDeleted =
                 false;
