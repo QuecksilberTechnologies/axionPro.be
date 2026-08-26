@@ -4,6 +4,7 @@ using axionpro.application.DTOs.Employee;
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.DTOS.Token;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 
@@ -34,12 +35,18 @@ namespace axionpro.infrastructure.Token
         private readonly IConfiguration _configuration;
         private readonly ILogger<TokenService> _logger;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IEncryptionService _encryptionService;
 
-        public TokenService(IConfiguration configuration, ILogger<TokenService> logger, IUnitOfWork _UOW)
+        public TokenService(
+            IConfiguration configuration,
+            ILogger<TokenService> logger,
+            IUnitOfWork unitOfWork,
+            IEncryptionService encryptionService)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _unitOfWork = _UOW ?? throw new ArgumentNullException(nameof(_UOW));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _encryptionService = encryptionService ?? throw new ArgumentNullException(nameof(encryptionService));
         }
 
         #region Tenant Access Token Generation
@@ -49,7 +56,7 @@ namespace axionpro.infrastructure.Token
         /// </summary>
         /// <param name="user">The Tenant Employee token information.</param>
         /// <returns>The signed Tenant access token, or <see langword="null"/> when generation fails.</returns>
-        public async Task<string> GenerateToken(GetTokenInfoDTO user)
+        public async Task<string> GenerateTenantToken(GetTokenInfoDTO user)
         {
             try
             {
@@ -119,12 +126,21 @@ namespace axionpro.infrastructure.Token
                     throw new ArgumentNullException(nameof(hostUser), "Host user object cannot be null.");
                 }
 
+                // A Host session has no Tenant dependency. Generate an ephemeral Host-scoped key using
+                // the established key-generation service and retain it only in the signed access token.
+                var hostTenantEncryptionKey = _encryptionService.GenerateKey();
+                if (string.IsNullOrWhiteSpace(hostTenantEncryptionKey))
+                {
+                    throw new InvalidOperationException("The Host Tenant identifier protection key could not be generated.");
+                }
+
                 var claims = new List<Claim>
                 {
                     new Claim(JwtRegisteredClaimNames.Sub, hostUser.HostUserId.ToString()),
                     new Claim(AppConstants.HostUserIdClaim, hostUser.HostUserId.ToString()),
                     new Claim(AppConstants.HostRoleIdClaim, hostUser.HostRoleId.ToString()),
                     new Claim(AppConstants.LoginIdClaim, hostUser.LoginId),
+                    new Claim("TenantEncriptionKey", hostTenantEncryptionKey),
                     new Claim("Name", hostUser.Name),
                     new Claim(AppConstants.UserTypeClaim, AppConstants.HostUserType),
                     new Claim("TokenPurpose", AppConstants.AccessTokenPurpose),

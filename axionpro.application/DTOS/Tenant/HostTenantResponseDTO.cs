@@ -2,29 +2,25 @@
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
-// Purpose : Defines only the client-editable Tenant fields accepted by the Host-managed route update endpoint.
+// Purpose : Defines the Host-facing Tenant response projection with a protected Tenant identifier.
 // ================================================================
-
-using axionpro.application.DTOs.BaseDTO;
 
 namespace axionpro.application.DTOs.Tenant;
 
 /// <summary>
-/// Represents editable Tenant details for the Host-managed route update endpoint.
+/// Represents Tenant management data returned to an authorized Host user.
 /// </summary>
-public class UpdateHostManagedTenantRequestDTO : PermissionRequestDTO
+public sealed class HostTenantResponseDTO
 {
-    #region Editable Tenant Properties
-
     /// <summary>
-    /// Gets or sets the Tenant industry identifier.
+    /// Gets or sets the encrypted Tenant identifier for Host API use.
     /// </summary>
-    public int TenantIndustryId { get; set; }
+    public string Id { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the Tenant company name.
     /// </summary>
-    public string? CompanyName { get; set; }
+    public string CompanyName { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the Tenant code.
@@ -34,22 +30,17 @@ public class UpdateHostManagedTenantRequestDTO : PermissionRequestDTO
     /// <summary>
     /// Gets or sets the Tenant company email domain.
     /// </summary>
-    public string? CompanyEmailDomain { get; set; }
+    public string CompanyEmailDomain { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the Tenant email address.
     /// </summary>
-    public string? TenantEmail { get; set; }
+    public string TenantEmail { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the Tenant contact person name.
     /// </summary>
     public string? ContactPersonName { get; set; }
-
-    /// <summary>
-    /// Gets or sets the Tenant contact-person gender identifier.
-    /// </summary>
-    public int? GenderId { get; set; }
 
     /// <summary>
     /// Gets or sets the Tenant contact number.
@@ -62,9 +53,12 @@ public class UpdateHostManagedTenantRequestDTO : PermissionRequestDTO
     public int CountryId { get; set; }
 
     /// <summary>
-    /// Gets or sets the Tenant default currency identifier.
+    /// Gets or sets whether the Tenant email is verified.
     /// </summary>
-    public int? DefaultCurrency { get; set; }
+    public bool IsVerified { get; set; }
 
-    #endregion
+    /// <summary>
+    /// Gets or sets whether the Tenant is active.
+    /// </summary>
+    public bool IsActive { get; set; }
 }

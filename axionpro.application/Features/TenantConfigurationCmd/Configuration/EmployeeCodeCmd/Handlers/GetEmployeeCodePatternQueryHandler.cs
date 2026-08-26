@@ -1,8 +1,16 @@
-﻿using axionpro.application.DTOS.Tenant;
+﻿// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Retrieves an employee-code pattern while preserving Tenant access and protecting the Host Tenant boundary.
+// ================================================================
+
+using axionpro.application.Common.Helpers;
+using axionpro.application.DTOS.Tenant;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
-using axionpro.application.Interfaces.IPermission;
+using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -11,7 +19,7 @@ namespace axionpro.application.Features.TenantConfigurationCmd.Configuration.Emp
 {
     // ======================= QUERY ============================
     public class GetEmployeeCodePatternQuery
-        : IRequest<ApiResponse<GetEmployeeCodePatternResponseDTO>>
+        : IRequest<ApiResponse<object>>
     {
         public EmployeeCodePatternRequestDTO DTO { get; }
 
@@ -23,23 +31,26 @@ namespace axionpro.application.Features.TenantConfigurationCmd.Configuration.Emp
 
     // ======================= HANDLER ============================
     public class GetEmployeeCodePatternQueryHandler
-        : IRequestHandler<GetEmployeeCodePatternQuery, ApiResponse<GetEmployeeCodePatternResponseDTO>>
+        : IRequestHandler<GetEmployeeCodePatternQuery, ApiResponse<object>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICommonRequestService _commonRequestService;
+        private readonly IEncryptionService _encryptionService;
         private readonly ILogger<GetEmployeeCodePatternQueryHandler> _logger;
 
         public GetEmployeeCodePatternQueryHandler(
             IUnitOfWork unitOfWork,
             ICommonRequestService commonRequestService,
+            IEncryptionService encryptionService,
             ILogger<GetEmployeeCodePatternQueryHandler> logger)
         {
             _unitOfWork = unitOfWork;
             _commonRequestService = commonRequestService;
+            _encryptionService = encryptionService;
             _logger = logger;
         }
 
-        public async Task<ApiResponse<GetEmployeeCodePatternResponseDTO>> Handle( GetEmployeeCodePatternQuery request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<object>> Handle(GetEmployeeCodePatternQuery request, CancellationToken cancellationToken)
         {
             try
             {
@@ -62,6 +73,7 @@ namespace axionpro.application.Features.TenantConfigurationCmd.Configuration.Emp
                     await _commonRequestService.ValidateTenantUserRequestAsync();
 
                 long targetTenantId;
+                string? hostTenantEncryptionKey = null;
 
                 if (tenantValidation.Success)
                 {
@@ -81,23 +93,18 @@ namespace axionpro.application.Features.TenantConfigurationCmd.Configuration.Emp
                 }
                 else
                 {
-                    targetTenantId= request.DTO.TenantId; // Use the provided TenantId for Host users.
-                    var hostValidation =
-                        await _commonRequestService.ValidateHostUserRequestAsync();
+                    var hostContext = await HostRuntimePermissionValidator.ValidateAsync(
+                        _commonRequestService,
+                        _unitOfWork.StoreProcedureRepository,
+                        request.DTO.ModuleId,
+                        request.DTO.OperationId,
+                        cancellationToken);
 
-                    if (hostValidation<0)
-                    {
-                        throw new UnauthorizedAccessException(
-                            "A valid Tenant or Host access token is required.");
-                    }
-
-                    if (request.DTO.TenantId <= 0)
-                    {
-                        throw new ValidationErrorException(
-                            "TenantId is required for a Host user request.");
-                    }
-
-                    targetTenantId = request.DTO.TenantId;
+                    targetTenantId = HostTenantIdentifierProtector.Decrypt(
+                        request.DTO.TenantId,
+                        hostContext.TenantEncryptionKey,
+                        _encryptionService);
+                    hostTenantEncryptionKey = hostContext.TenantEncryptionKey;
                 }
 
                 // ===============================
@@ -112,20 +119,22 @@ namespace axionpro.application.Features.TenantConfigurationCmd.Configuration.Emp
                 if (pattern == null)
                 {
                     _logger.LogInformation(
-                        "No employee code pattern found for TenantId {TenantId}.",
-                        targetTenantId);
+                        "No employee code pattern found.");
 
-                    return ApiResponse<GetEmployeeCodePatternResponseDTO>
+                    return ApiResponse<object>
                         .Success(null, "No pattern found.");
                 }
 
                 _logger.LogInformation(
-                    "Employee code pattern retrieved for TenantId {TenantId}.",
-                    targetTenantId);
+                    "Employee code pattern retrieved.");
 
-                return ApiResponse<GetEmployeeCodePatternResponseDTO>
+                object response = hostTenantEncryptionKey is null
+                    ? pattern
+                    : MapHostResponse(pattern, hostTenantEncryptionKey);
+
+                return ApiResponse<object>
                     .Success(
-                        pattern,
+                        response,
                         "Pattern fetched successfully.");
             }
             catch (Exception ex)
@@ -136,6 +145,32 @@ namespace axionpro.application.Features.TenantConfigurationCmd.Configuration.Emp
 
                 throw;
             }
+        }
+
+        private HostEmployeeCodePatternResponseDTO MapHostResponse(
+            GetEmployeeCodePatternResponseDTO pattern,
+            string tenantEncryptionKey)
+        {
+            return new HostEmployeeCodePatternResponseDTO
+            {
+                Id = pattern.Id,
+                TenantId = HostTenantIdentifierProtector.Encrypt(
+                    pattern.TenantId,
+                    tenantEncryptionKey,
+                    _encryptionService),
+                Prefix = pattern.Prefix,
+                IncludeYear = pattern.IncludeYear,
+                IncludeMonth = pattern.IncludeMonth,
+                IncludeDepartment = pattern.IncludeDepartment,
+                Separator = pattern.Separator,
+                RunningNumberLength = pattern.RunningNumberLength,
+                LastUsedNumber = pattern.LastUsedNumber,
+                IsActive = pattern.IsActive,
+                AddedById = pattern.AddedById,
+                AddedDateTime = pattern.AddedDateTime,
+                UpdatedById = pattern.UpdatedById,
+                UpdatedDateTime = pattern.UpdatedDateTime
+            };
         }
 
     }

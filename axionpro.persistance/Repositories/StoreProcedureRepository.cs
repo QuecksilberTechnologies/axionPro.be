@@ -10,6 +10,7 @@ using axionpro.application.DTOs.Module.NewFolder;
 using axionpro.application.DTOs.Operation;
 using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOs.UserLogin;
+using axionpro.application.DTOS.Host;
 using axionpro.application.DTOS.RoleModulePermission;
 using axionpro.application.DTOS.StoreProcedures;
 using axionpro.application.DTOS.StoreProcedures.DashboardSummeries;
@@ -445,6 +446,62 @@ namespace axionpro.persistance.Repositories
                 throw;
             }
         }
+
+        /// <summary>
+        /// Checks the authenticated Host user's current module-operation permission using the authoritative Host role model.
+        /// </summary>
+        /// <param name="hostUserId">The authenticated Host user identifier.</param>
+        /// <param name="tokenHostRoleId">The Host role identifier carried by the access token.</param>
+        /// <param name="moduleId">The requested Host module identifier.</param>
+        /// <param name="operationId">The requested Host operation identifier.</param>
+        /// <param name="cancellationToken">The token used to cancel the database operation.</param>
+        /// <returns>The current Host permission result.</returns>
+        public async Task<HostUserPermissionCheckResponseDTO> CheckHostUserPermissionAsync(
+            long hostUserId,
+            long tokenHostRoleId,
+            int moduleId,
+            int operationId,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var parameters = new[]
+                {
+                    new NpgsqlParameter("p_hostuserid", hostUserId),
+                    new NpgsqlParameter("p_tokenhostroleid", tokenHostRoleId),
+                    new NpgsqlParameter("p_moduleid", moduleId),
+                    new NpgsqlParameter("p_operationid", operationId)
+                };
+
+                return await _context
+                    .Set<HostUserPermissionCheckResponseDTO>()
+                    .FromSqlRaw(
+                        """
+                        SELECT *
+                        FROM axionpro."CheckHostUserPermission"(
+                            @p_hostuserid,
+                            @p_tokenhostroleid,
+                            @p_moduleid,
+                            @p_operationid
+                        )
+                        """,
+                        parameters)
+                    .AsNoTracking()
+                    .SingleAsync(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Error checking Host permission for ModuleId {ModuleId}, OperationId {OperationId}",
+                    moduleId,
+                    operationId);
+                throw;
+            }
+        }
+
         #region Tenant Operational Access Queries
 
         /// <summary>

@@ -5,19 +5,21 @@
 // Purpose : Defines the request contract for activating a Tenant with an administrative remark.
 // ================================================================
 
+using axionpro.application.DTOs.BaseDTO;
+
 namespace axionpro.application.DTOs.Tenant;
 
 /// <summary>
 /// Represents the Host-side request to activate a Tenant.
 /// </summary>
-public sealed class ActivateTenantRequestDTO
+public sealed class ActivateTenantRequestDTO : PermissionRequestDTO
 {
     #region Activation Properties
 
     /// <summary>
-    /// Gets or sets the Tenant identifier to activate.
+    /// Gets or sets the encrypted Tenant identifier to activate.
     /// </summary>
-    public long TenantId { get; set; }
+    public string TenantId { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the administrative reason for activating the Tenant.

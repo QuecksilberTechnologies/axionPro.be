@@ -6,6 +6,8 @@
 // ================================================================
 
 using axionpro.application.DTOs.Registration;
+using axionpro.application.DTOs.Tenant;
+using axionpro.application.DTOS.Pagination;
 
 using System;
 using System.Collections.Generic;
@@ -29,6 +31,16 @@ namespace axionpro.application.Interfaces.IRepositories
         Task DeleteTenantAsync(Tenant tenant, CancellationToken cancellationToken = default);
 
         #region Host Management
+
+        /// <summary>
+        /// Retrieves a filtered, paged, non-soft-deleted Tenant collection for Host-side management.
+        /// </summary>
+        /// <param name="request">The Host Tenant list filters and paging values.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The requested page of Tenant entities.</returns>
+        Task<PagedResponseDTO<Tenant>> GetHostManagedTenantsAsync(
+            GetAllTenantsRequestDTO request,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Retrieves a tracked, non-soft-deleted Tenant for a Host-managed operation.

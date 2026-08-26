@@ -6,6 +6,8 @@
 // ================================================================
 
 using axionpro.application.Constants;
+using axionpro.application.Common.Helpers;
+using axionpro.application.DTOs.BaseDTO;
 using axionpro.application.DTOS.Token;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -30,16 +32,31 @@ public sealed class ResendTenantVerificationCommand : IRequest<ApiResponse<bool>
     /// <summary>
     /// Initializes a new instance of the <see cref="ResendTenantVerificationCommand"/> class.
     /// </summary>
-    /// <param name="tenantId">The authoritative Tenant identifier from the route.</param>
-    public ResendTenantVerificationCommand(long tenantId)
+    /// <param name="encryptedTenantId">The encrypted Tenant identifier from the route.</param>
+    /// <param name="permissionRequest">The query-bound Host module-operation permission request.</param>
+    public ResendTenantVerificationCommand(
+        string encryptedTenantId,
+        PermissionRequestDTO? permissionRequest)
     {
-        TenantId = tenantId;
+        EncryptedTenantId = encryptedTenantId;
+        ModuleId = permissionRequest?.ModuleId ?? 0;
+        OperationId = permissionRequest?.OperationId ?? 0;
     }
 
     /// <summary>
-    /// Gets the authoritative Tenant identifier from the route.
+    /// Gets the encrypted Tenant identifier from the route.
     /// </summary>
-    public long TenantId { get; }
+    public string EncryptedTenantId { get; }
+
+    /// <summary>
+    /// Gets the requested Host module identifier.
+    /// </summary>
+    public int ModuleId { get; }
+
+    /// <summary>
+    /// Gets the requested Host operation identifier.
+    /// </summary>
+    public int OperationId { get; }
 }
 
 #endregion
@@ -58,6 +75,7 @@ public sealed class ResendTenantVerificationCommandHandler
     private readonly ICommonRequestService _commonRequestService;
     private readonly ITokenService _tokenService;
     private readonly IIdEncoderService _idEncoderService;
+    private readonly IEncryptionService _encryptionService;
     private readonly IEmailService _emailService;
     private readonly IConfiguration _configuration;
 
@@ -71,7 +89,8 @@ public sealed class ResendTenantVerificationCommandHandler
     /// <param name="unitOfWork">Provides Tenant and onboarding credential queries.</param>
     /// <param name="commonRequestService">Validates the current Host principal.</param>
     /// <param name="tokenService">Generates the established onboarding token format.</param>
-    /// <param name="idEncoderService">Encodes onboarding token identifiers using the existing convention.</param>
+    /// <param name="idEncoderService">Encodes identifiers used by the established Tenant onboarding token flow.</param>
+    /// <param name="encryptionService">Decrypts the Host-facing Tenant identifier before onboarding work begins.</param>
     /// <param name="emailService">Sends the established Tenant welcome template.</param>
     /// <param name="configuration">Provides the configured frontend base URL.</param>
     public ResendTenantVerificationCommandHandler(
@@ -79,6 +98,7 @@ public sealed class ResendTenantVerificationCommandHandler
         ICommonRequestService commonRequestService,
         ITokenService tokenService,
         IIdEncoderService idEncoderService,
+        IEncryptionService encryptionService,
         IEmailService emailService,
         IConfiguration configuration)
     {
@@ -86,6 +106,7 @@ public sealed class ResendTenantVerificationCommandHandler
         _commonRequestService = commonRequestService;
         _tokenService = tokenService;
         _idEncoderService = idEncoderService;
+        _encryptionService = encryptionService;
         _emailService = emailService;
         _configuration = configuration;
     }
@@ -107,15 +128,24 @@ public sealed class ResendTenantVerificationCommandHandler
         ResendTenantVerificationCommand request,
         CancellationToken cancellationToken)
     {
-        await _commonRequestService.ValidateHostUserRequestAsync();
-
-        if (request is null || request.TenantId <= 0)
+        if (request is null)
         {
             throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
         }
 
+        var hostContext = await HostRuntimePermissionValidator.ValidateAsync(
+            _commonRequestService,
+            _unitOfWork.StoreProcedureRepository,
+            request.ModuleId,
+            request.OperationId,
+            cancellationToken);
+        var tenantId = HostTenantIdentifierProtector.Decrypt(
+            request.EncryptedTenantId,
+            hostContext.TenantEncryptionKey,
+            _encryptionService);
+
         var tenant = await _unitOfWork.TenantRepository
-            .GetHostManagedTenantByIdAsync(request.TenantId, cancellationToken);
+            .GetHostManagedTenantByIdAsync(tenantId, cancellationToken);
 
         if (tenant is null)
         {
@@ -149,7 +179,7 @@ public sealed class ResendTenantVerificationCommandHandler
             ClientType = "Web"
         };
 
-        var token = await _tokenService.GenerateToken(tokenInfo);
+        var token = await _tokenService.GenerateTenantToken(tokenInfo);
         if (string.IsNullOrWhiteSpace(token))
         {
             throw new ApiException(

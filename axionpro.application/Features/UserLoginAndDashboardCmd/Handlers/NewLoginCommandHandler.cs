@@ -234,7 +234,7 @@ public sealed class NewLoginCommandHandler : IRequestHandler<NewLoginCommand, Ap
         }
 
         var trustedTenantKey = EncryptionSanitizer.SuperSanitize(tenantEncryptionKey.EncryptionKey);
-        var accessToken = await _tokenService.GenerateToken(
+        var accessToken = await _tokenService.GenerateTenantToken(
             CreateTokenInfo(request.LoginId, bootstrap, primaryRole, trustedTenantKey));
 
         if (string.IsNullOrWhiteSpace(accessToken))

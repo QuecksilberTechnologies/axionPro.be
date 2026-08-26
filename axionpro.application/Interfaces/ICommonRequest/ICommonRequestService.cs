@@ -33,5 +33,12 @@ namespace axionpro.application.Interfaces.ICommonRequest
         /// <returns>The validated Host user identifier.</returns>
         /// <exception cref="UnauthorizedAccessException">Thrown when the current request is not authenticated as a valid Host user.</exception>
         Task<long> ValidateHostUserRequestAsync();
+
+        /// <summary>
+        /// Validates the current Host JWT and returns the trusted Host context required for per-request runtime permission checks.
+        /// </summary>
+        /// <returns>The validated Host user identifier, token role snapshot, and Host-scoped identifier protection key.</returns>
+        /// <exception cref="UnauthorizedAccessException">Thrown when the current request is not authenticated as a valid Host user.</exception>
+        Task<HostUserRequestContext> ValidateHostUserPermissionRequestAsync();
     }
 }

@@ -227,7 +227,7 @@ public class CreateBaseEmployeeInfoCommandHandler
                 // ===============================
                 try
                 {
-                    var token = await _tokenService.GenerateToken(new GetTokenInfoDTO
+                    var token = await _tokenService.GenerateTenantToken(new GetTokenInfoDTO
                     {
                         EmployeeId = responseDto.Id,
                         Email = savedEmployee.OfficialEmail!,

@@ -473,7 +473,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Log
                 #region 🎫 Token Generation
 
                 //  Step 3: Generate tokens
-                var token = await _tokenService.GenerateToken(getTokenInfoDTO);
+                var token = await _tokenService.GenerateTenantToken(getTokenInfoDTO);
 
 
                 var refreshToken = await _tokenService.GenerateRefreshToken(); // PLAIN

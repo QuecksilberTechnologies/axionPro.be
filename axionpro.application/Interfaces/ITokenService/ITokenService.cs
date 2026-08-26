@@ -23,7 +23,7 @@ namespace axionpro.application.Interfaces.ITokenService
     /// </summary>
     public interface ITokenService
     {
-           public Task <string> GenerateToken(GetTokenInfoDTO dto);
+           public Task <string> GenerateTenantToken(GetTokenInfoDTO dto);
            public Task<string> GenerateHostToken(HostTokenInfoDTO dto);
        
            bool ValidateToken(string token);

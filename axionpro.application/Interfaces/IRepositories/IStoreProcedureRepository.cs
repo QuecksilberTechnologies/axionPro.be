@@ -9,6 +9,7 @@ using axionpro.application.DTOs.Module.NewFolder;
 using axionpro.application.DTOs.Operation;
 using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOs.UserLogin;
+using axionpro.application.DTOS.Host;
 using axionpro.application.DTOS.RoleModulePermission;
 using axionpro.application.DTOS.StoreProcedures;
 using axionpro.application.DTOS.StoreProcedures.DashboardSummeries;
@@ -45,6 +46,22 @@ namespace axionpro.application.Interfaces.IRepositories
                 int moduleId,
                 int operationId,
                 CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Checks whether the current Host user can execute the requested module operation using the current Host role.
+        /// </summary>
+        /// <param name="hostUserId">The authenticated Host user identifier.</param>
+        /// <param name="tokenHostRoleId">The Host role identifier captured in the signed access token.</param>
+        /// <param name="moduleId">The requested Host module identifier.</param>
+        /// <param name="operationId">The requested Host operation identifier.</param>
+        /// <param name="cancellationToken">The token used to cancel the database operation.</param>
+        /// <returns>The current Host authorization result including stale-role detection.</returns>
+        Task<HostUserPermissionCheckResponseDTO> CheckHostUserPermissionAsync(
+            long hostUserId,
+            long tokenHostRoleId,
+            int moduleId,
+            int operationId,
+            CancellationToken cancellationToken = default);
 
         Task<UpdateTenantEnabledOperationFromModuleOperationResponseDTO> UpdateTenantEnabledOperationFromModuleOperationRequestDTO(
             UpdateTenantEnabledOperationFromModuleOperationRequestDTO request);

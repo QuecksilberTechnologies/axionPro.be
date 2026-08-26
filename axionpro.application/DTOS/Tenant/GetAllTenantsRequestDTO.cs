@@ -5,12 +5,14 @@
 // Purpose : Defines Host-side filters for retrieving Tenant management records.
 // ================================================================
 
+using axionpro.application.DTOs.BaseDTO;
+
 namespace axionpro.application.DTOs.Tenant;
 
 /// <summary>
 /// Represents optional filters and paging values for the Tenant management list.
 /// </summary>
-public sealed class GetAllTenantsRequestDTO
+public sealed class GetAllTenantsRequestDTO : PermissionRequestDTO
 {
     #region Filter Properties
 

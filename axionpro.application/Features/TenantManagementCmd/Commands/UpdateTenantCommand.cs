@@ -6,10 +6,13 @@
 // ================================================================
 
 using axionpro.application.DTOs.Tenant;
+using axionpro.application.Common.Helpers;
+using axionpro.application.DTOs.BaseDTO;
 using axionpro.application.Constants;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
@@ -21,11 +24,7 @@ namespace axionpro.application.Features.TenantManagementCmd.Commands;
 /// <summary>
 /// Represents the Host-side request to update editable Tenant fields.
 /// </summary>
-/// <remarks>
-/// The future handler must validate the Host with <c>ValidateHostUserRequestAsync()</c> and derive
-/// all actor and audit information server-side. No Host user identifier or audit value is accepted from the client.
-/// </remarks>
-public sealed class UpdateTenantCommand : IRequest<ApiResponse<TenantResponseDTO>>
+public sealed class UpdateTenantCommand : IRequest<ApiResponse<HostTenantResponseDTO>>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="UpdateTenantCommand"/> class.
@@ -49,28 +48,44 @@ public sealed class UpdateTenantCommand : IRequest<ApiResponse<TenantResponseDTO
 /// <summary>
 /// Represents the Host-managed route request to update Tenant details using an authoritative route identifier.
 /// </summary>
-public sealed class UpdateHostManagedTenantCommand : IRequest<ApiResponse<TenantResponseDTO>>
+public sealed class UpdateHostManagedTenantCommand : IRequest<ApiResponse<HostTenantResponseDTO>>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="UpdateHostManagedTenantCommand"/> class.
     /// </summary>
-    /// <param name="tenantId">The authoritative Tenant identifier from the route.</param>
+    /// <param name="encryptedTenantId">The encrypted Tenant identifier from the route.</param>
     /// <param name="requestDTO">The client-editable Tenant details.</param>
-    public UpdateHostManagedTenantCommand(long tenantId, UpdateHostManagedTenantRequestDTO? requestDTO)
+    /// <param name="permissionRequest">The query-bound Host module-operation permission request.</param>
+    public UpdateHostManagedTenantCommand(
+        string encryptedTenantId,
+        UpdateHostManagedTenantRequestDTO? requestDTO,
+        PermissionRequestDTO? permissionRequest)
     {
-        TenantId = tenantId;
+        EncryptedTenantId = encryptedTenantId;
         RequestDTO = requestDTO;
+        ModuleId = permissionRequest?.ModuleId ?? 0;
+        OperationId = permissionRequest?.OperationId ?? 0;
     }
 
     /// <summary>
-    /// Gets the authoritative Tenant identifier from the route.
+    /// Gets the encrypted Tenant identifier from the route.
     /// </summary>
-    public long TenantId { get; }
+    public string EncryptedTenantId { get; }
 
     /// <summary>
     /// Gets the client-editable Tenant details.
     /// </summary>
     public UpdateHostManagedTenantRequestDTO? RequestDTO { get; }
+
+    /// <summary>
+    /// Gets the requested Host module identifier.
+    /// </summary>
+    public int ModuleId { get; }
+
+    /// <summary>
+    /// Gets the requested Host operation identifier.
+    /// </summary>
+    public int OperationId { get; }
 }
 
 #endregion
@@ -81,12 +96,13 @@ public sealed class UpdateHostManagedTenantCommand : IRequest<ApiResponse<Tenant
 /// Validates and updates Host-managed Tenant information using trusted audit context.
 /// </summary>
 public sealed class UpdateHostManagedTenantCommandHandler
-    : IRequestHandler<UpdateHostManagedTenantCommand, ApiResponse<TenantResponseDTO>>
+    : IRequestHandler<UpdateHostManagedTenantCommand, ApiResponse<HostTenantResponseDTO>>
 {
     #region Fields
 
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICommonRequestService _commonRequestService;
+    private readonly IEncryptionService _encryptionService;
 
     #endregion
 
@@ -97,12 +113,15 @@ public sealed class UpdateHostManagedTenantCommandHandler
     /// </summary>
     /// <param name="unitOfWork">Provides Tenant persistence and transaction operations.</param>
     /// <param name="commonRequestService">Validates the current Host principal.</param>
+    /// <param name="encryptionService">Protects Tenant identifiers at the Host API boundary.</param>
     public UpdateHostManagedTenantCommandHandler(
         IUnitOfWork unitOfWork,
-        ICommonRequestService commonRequestService)
+        ICommonRequestService commonRequestService,
+        IEncryptionService encryptionService)
     {
         _unitOfWork = unitOfWork;
         _commonRequestService = commonRequestService;
+        _encryptionService = encryptionService;
     }
 
     #endregion
@@ -118,20 +137,28 @@ public sealed class UpdateHostManagedTenantCommandHandler
     /// <exception cref="ValidationErrorException">Thrown when the route identifier or request is invalid.</exception>
     /// <exception cref="NotFoundException">Thrown when the Tenant is unavailable or soft deleted.</exception>
     /// <exception cref="ConflictException">Thrown when another active Tenant owns the submitted email or code.</exception>
-    public async Task<ApiResponse<TenantResponseDTO>> Handle(
+    public async Task<ApiResponse<HostTenantResponseDTO>> Handle(
         UpdateHostManagedTenantCommand request,
         CancellationToken cancellationToken)
     {
-        // Validate the current Host identity before accepting editable Tenant data.
-        var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
-
-        if (request?.RequestDTO is null || request.TenantId <= 0 || hostUserId <= 0)
+        if (request?.RequestDTO is null)
         {
             throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
         }
 
+        var hostContext = await HostRuntimePermissionValidator.ValidateAsync(
+            _commonRequestService,
+            _unitOfWork.StoreProcedureRepository,
+            request.ModuleId,
+            request.OperationId,
+            cancellationToken);
+        var tenantId = HostTenantIdentifierProtector.Decrypt(
+            request.EncryptedTenantId,
+            hostContext.TenantEncryptionKey,
+            _encryptionService);
+
         var tenant = await _unitOfWork.TenantRepository
-            .GetHostManagedTenantByIdAsync(request.TenantId, cancellationToken);
+            .GetHostManagedTenantByIdAsync(tenantId, cancellationToken);
 
         if (tenant is null)
         {
@@ -207,14 +234,14 @@ public sealed class UpdateHostManagedTenantCommandHandler
             tenant.DefaultCurrency = dto.DefaultCurrency;
         }
 
-        tenant.UpdatedById = hostUserId;
+        tenant.UpdatedById = hostContext.HostUserId;
         tenant.UpdatedDateTime = DateTime.UtcNow;
 
         await _unitOfWork.TenantRepository.StageHostManagedUpdateAsync(tenant, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return ApiResponse<TenantResponseDTO>.Success(
-            MapTenant(tenant),
+        return ApiResponse<HostTenantResponseDTO>.Success(
+            MapTenant(tenant, hostContext.TenantEncryptionKey),
             AppConstants.SuccessMessages.TenantUpdatedSuccessfully);
     }
 
@@ -227,11 +254,11 @@ public sealed class UpdateHostManagedTenantCommandHandler
     /// </summary>
     /// <param name="tenant">The Tenant to map.</param>
     /// <returns>The mapped Tenant response.</returns>
-    private static TenantResponseDTO MapTenant(Tenant tenant)
+    private HostTenantResponseDTO MapTenant(Tenant tenant, string tenantEncryptionKey)
     {
-        return new TenantResponseDTO
+        return new HostTenantResponseDTO
         {
-            Id = tenant.Id,
+            Id = HostTenantIdentifierProtector.Encrypt(tenant.Id, tenantEncryptionKey, _encryptionService),
             CompanyName = tenant.CompanyName,
             TenantCode = tenant.TenantCode,
             CompanyEmailDomain = tenant.CompanyEmailDomain,

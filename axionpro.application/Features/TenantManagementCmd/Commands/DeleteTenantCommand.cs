@@ -6,10 +6,13 @@
 // ================================================================
 
 using axionpro.application.DTOs.Tenant;
+using axionpro.application.Common.Helpers;
+using axionpro.application.DTOs.BaseDTO;
 using axionpro.application.Constants;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Wrappers;
 using MediatR;
 
@@ -20,10 +23,6 @@ namespace axionpro.application.Features.TenantManagementCmd.Commands;
 /// <summary>
 /// Represents the Host-side request to place a Tenant into the existing soft-delete lifecycle.
 /// </summary>
-/// <remarks>
-/// The future handler must validate the Host with <c>ValidateHostUserRequestAsync()</c>,
-/// apply the existing Tenant soft-delete convention, and perform dependency validation before persistence.
-/// </remarks>
 public sealed class DeleteTenantCommand : IRequest<ApiResponse<bool>>
 {
     /// <summary>
@@ -53,16 +52,31 @@ public sealed class DeleteHostManagedTenantCommand : IRequest<ApiResponse<bool>>
     /// <summary>
     /// Initializes a new instance of the <see cref="DeleteHostManagedTenantCommand"/> class.
     /// </summary>
-    /// <param name="tenantId">The authoritative Tenant identifier from the route.</param>
-    public DeleteHostManagedTenantCommand(long tenantId)
+    /// <param name="encryptedTenantId">The encrypted Tenant identifier from the route or request body.</param>
+    /// <param name="permissionRequest">The Host module-operation permission metadata.</param>
+    public DeleteHostManagedTenantCommand(
+        string encryptedTenantId,
+        PermissionRequestDTO? permissionRequest)
     {
-        TenantId = tenantId;
+        EncryptedTenantId = encryptedTenantId;
+        ModuleId = permissionRequest?.ModuleId ?? 0;
+        OperationId = permissionRequest?.OperationId ?? 0;
     }
 
     /// <summary>
-    /// Gets the authoritative Tenant identifier from the route.
+    /// Gets the encrypted Tenant identifier from the route or request body.
     /// </summary>
-    public long TenantId { get; }
+    public string EncryptedTenantId { get; }
+
+    /// <summary>
+    /// Gets the requested Host module identifier.
+    /// </summary>
+    public int ModuleId { get; }
+
+    /// <summary>
+    /// Gets the requested Host operation identifier.
+    /// </summary>
+    public int OperationId { get; }
 }
 
 #endregion
@@ -79,6 +93,7 @@ public sealed class DeleteHostManagedTenantCommandHandler
 
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICommonRequestService _commonRequestService;
+    private readonly IEncryptionService _encryptionService;
 
     #endregion
 
@@ -89,12 +104,15 @@ public sealed class DeleteHostManagedTenantCommandHandler
     /// </summary>
     /// <param name="unitOfWork">Provides Tenant persistence and transaction operations.</param>
     /// <param name="commonRequestService">Validates the current Host principal.</param>
+    /// <param name="encryptionService">Decrypts the Host-facing Tenant identifier before persistence.</param>
     public DeleteHostManagedTenantCommandHandler(
         IUnitOfWork unitOfWork,
-        ICommonRequestService commonRequestService)
+        ICommonRequestService commonRequestService,
+        IEncryptionService encryptionService)
     {
         _unitOfWork = unitOfWork;
         _commonRequestService = commonRequestService;
+        _encryptionService = encryptionService;
     }
 
     #endregion
@@ -113,16 +131,24 @@ public sealed class DeleteHostManagedTenantCommandHandler
         DeleteHostManagedTenantCommand request,
         CancellationToken cancellationToken)
     {
-        // Validate the current Host identity before transitioning Tenant lifecycle state.
-        var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
-
-        if (request is null || request.TenantId <= 0 || hostUserId <= 0)
+        if (request is null)
         {
             throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
         }
 
+        var hostContext = await HostRuntimePermissionValidator.ValidateAsync(
+            _commonRequestService,
+            _unitOfWork.StoreProcedureRepository,
+            request.ModuleId,
+            request.OperationId,
+            cancellationToken);
+        var tenantId = HostTenantIdentifierProtector.Decrypt(
+            request.EncryptedTenantId,
+            hostContext.TenantEncryptionKey,
+            _encryptionService);
+
         var tenant = await _unitOfWork.TenantRepository
-            .GetHostManagedTenantByIdAsync(request.TenantId, cancellationToken);
+            .GetHostManagedTenantByIdAsync(tenantId, cancellationToken);
 
         if (tenant is null)
         {
@@ -132,9 +158,9 @@ public sealed class DeleteHostManagedTenantCommandHandler
         var utcNow = DateTime.UtcNow;
         tenant.IsSoftDeleted = true;
         tenant.IsActive = false;
-        tenant.SoftDeletedById = hostUserId;
+        tenant.SoftDeletedById = hostContext.HostUserId;
         tenant.DeletedDateTime = utcNow;
-        tenant.UpdatedById = hostUserId;
+        tenant.UpdatedById = hostContext.HostUserId;
         tenant.UpdatedDateTime = utcNow;
 
         var transactionStarted = false;
@@ -145,7 +171,7 @@ public sealed class DeleteHostManagedTenantCommandHandler
 
             // Keep the Tenant and every related credential state transition atomic.
             await _unitOfWork.TenantRepository
-                .SoftDeleteTenantAndDeactivateCredentialsAsync(tenant, hostUserId, utcNow, cancellationToken);
+            .SoftDeleteTenantAndDeactivateCredentialsAsync(tenant, hostContext.HostUserId, utcNow, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             await _unitOfWork.CommitTransactionAsync(cancellationToken);
             transactionStarted = false;

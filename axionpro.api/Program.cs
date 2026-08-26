@@ -163,6 +163,12 @@ try
             Version = "v1"
         });
 
+        var apiXmlDocumentation = Path.Combine(AppContext.BaseDirectory, "axionpro.api.xml");
+        if (File.Exists(apiXmlDocumentation))
+        {
+            c.IncludeXmlComments(apiXmlDocumentation, includeControllerXmlComments: true);
+        }
+
         c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
         {
             Name = "Authorization",

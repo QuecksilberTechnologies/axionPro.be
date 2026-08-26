@@ -6,7 +6,14 @@
 // ================================================================
 
 using axionpro.application.DTOs.Tenant;
+using axionpro.application.Common.Helpers;
+using axionpro.application.Constants;
+using axionpro.application.Exceptions;
+using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Wrappers;
+using axionpro.domain.Entity;
 using MediatR;
 
 namespace axionpro.application.Features.TenantManagementCmd.Queries;
@@ -16,11 +23,7 @@ namespace axionpro.application.Features.TenantManagementCmd.Queries;
 /// <summary>
 /// Represents the Host-side request to retrieve one Tenant for details or editing.
 /// </summary>
-/// <remarks>
-/// The future handler must validate the Host with <c>ValidateHostUserRequestAsync()</c> before
-/// loading the Tenant. No Host user identifier is accepted from the client.
-/// </remarks>
-public sealed class GetTenantByIdQuery : IRequest<ApiResponse<TenantResponseDTO>>
+public sealed class GetTenantByIdQuery : IRequest<ApiResponse<HostTenantResponseDTO>>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GetTenantByIdQuery"/> class.
@@ -35,6 +38,88 @@ public sealed class GetTenantByIdQuery : IRequest<ApiResponse<TenantResponseDTO>
     /// Gets the Tenant identifier request.
     /// </summary>
     public GetTenantByIdRequestDTO RequestDTO { get; }
+}
+
+#endregion
+
+#region Handler
+
+/// <summary>
+/// Retrieves one Host-managed Tenant after validating current Host database permission.
+/// </summary>
+public sealed class GetTenantByIdQueryHandler
+    : IRequestHandler<GetTenantByIdQuery, ApiResponse<HostTenantResponseDTO>>
+{
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ICommonRequestService _commonRequestService;
+    private readonly IEncryptionService _encryptionService;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GetTenantByIdQueryHandler"/> class.
+    /// </summary>
+    /// <param name="unitOfWork">Provides Tenant and stored-function persistence operations.</param>
+    /// <param name="commonRequestService">Validates the trusted Host request context.</param>
+    /// <param name="encryptionService">Protects Tenant identifiers at the API boundary.</param>
+    public GetTenantByIdQueryHandler(
+        IUnitOfWork unitOfWork,
+        ICommonRequestService commonRequestService,
+        IEncryptionService encryptionService)
+    {
+        _unitOfWork = unitOfWork;
+        _commonRequestService = commonRequestService;
+        _encryptionService = encryptionService;
+    }
+
+    /// <summary>
+    /// Retrieves the requested Host-visible Tenant.
+    /// </summary>
+    /// <param name="request">The encrypted Tenant identifier request.</param>
+    /// <param name="cancellationToken">The token used to observe cancellation.</param>
+    /// <returns>The Host Tenant response with an encrypted identifier.</returns>
+    /// <exception cref="NotFoundException">Thrown when the decrypted Tenant is unavailable or soft deleted.</exception>
+    public async Task<ApiResponse<HostTenantResponseDTO>> Handle(
+        GetTenantByIdQuery request,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request?.RequestDTO);
+        var dto = request.RequestDTO;
+        var hostContext = await HostRuntimePermissionValidator.ValidateAsync(
+            _commonRequestService,
+            _unitOfWork.StoreProcedureRepository,
+            dto.ModuleId,
+            dto.OperationId,
+            cancellationToken);
+        var tenantId = HostTenantIdentifierProtector.Decrypt(
+            dto.TenantId,
+            hostContext.TenantEncryptionKey,
+            _encryptionService);
+        var tenant = await _unitOfWork.TenantRepository
+            .GetHostManagedTenantByIdAsync(tenantId, cancellationToken);
+
+        if (tenant is null)
+        {
+            throw new NotFoundException(AppConstants.ErrorMessages.ResourceNotFound);
+        }
+
+        return ApiResponse<HostTenantResponseDTO>.Success(
+            MapTenant(tenant, hostContext.TenantEncryptionKey),
+            "Tenant retrieved successfully.");
+    }
+
+    private HostTenantResponseDTO MapTenant(Tenant tenant, string tenantEncryptionKey) =>
+        new()
+        {
+            Id = HostTenantIdentifierProtector.Encrypt(tenant.Id, tenantEncryptionKey, _encryptionService),
+            CompanyName = tenant.CompanyName,
+            TenantCode = tenant.TenantCode,
+            CompanyEmailDomain = tenant.CompanyEmailDomain,
+            TenantEmail = tenant.TenantEmail,
+            ContactPersonName = tenant.ContactPersonName,
+            ContactNumber = tenant.ContactNumber,
+            CountryId = tenant.CountryId,
+            IsVerified = tenant.IsVerified,
+            IsActive = tenant.IsActive
+        };
 }
 
 #endregion

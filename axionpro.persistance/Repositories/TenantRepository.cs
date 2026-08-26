@@ -6,6 +6,8 @@
 // ================================================================
 
 using axionpro.application.Interfaces.IRepositories;
+using axionpro.application.DTOs.Tenant;
+using axionpro.application.DTOS.Pagination;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
 using Microsoft.EntityFrameworkCore;
@@ -249,6 +251,59 @@ namespace axionpro.persistance.Repositories
         }
 
         #region Host Management
+
+        /// <summary>
+        /// Retrieves a filtered, paged, non-soft-deleted Tenant collection for Host-side management.
+        /// </summary>
+        /// <param name="request">The Host Tenant list filters and paging values.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The requested page of Tenant entities.</returns>
+        public async Task<PagedResponseDTO<Tenant>> GetHostManagedTenantsAsync(
+            GetAllTenantsRequestDTO request,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+
+            var pageNumber = request.PageNumber > 0 ? request.PageNumber : 1;
+            var pageSize = request.PageSize is > 0 and <= 100 ? request.PageSize : 10;
+            var query = _context.Tenants
+                .AsNoTracking()
+                .Where(tenant => tenant.IsSoftDeleted != true);
+
+            if (request.IsActive.HasValue)
+            {
+                query = query.Where(tenant => tenant.IsActive == request.IsActive.Value);
+            }
+
+            if (request.IsVerified.HasValue)
+            {
+                query = query.Where(tenant => tenant.IsVerified == request.IsVerified.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.SearchKeyword))
+            {
+                var searchPattern = $"%{request.SearchKeyword.Trim()}%";
+                query = query.Where(tenant =>
+                    EF.Functions.ILike(tenant.CompanyName, searchPattern) ||
+                    (tenant.TenantCode != null && EF.Functions.ILike(tenant.TenantCode, searchPattern)) ||
+                    EF.Functions.ILike(tenant.CompanyEmailDomain, searchPattern) ||
+                    EF.Functions.ILike(tenant.TenantEmail, searchPattern) ||
+                    (tenant.ContactPersonName != null && EF.Functions.ILike(tenant.ContactPersonName, searchPattern)) ||
+                    (tenant.ContactNumber != null && EF.Functions.ILike(tenant.ContactNumber, searchPattern)));
+            }
+
+            var totalCount = await query.CountAsync(cancellationToken);
+            var data = await query
+                .OrderByDescending(tenant => tenant.Id)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+
+            return new PagedResponseDTO<Tenant>(data, totalCount, pageNumber, pageSize)
+            {
+                TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
+            };
+        }
 
         /// <summary>
         /// Retrieves a tracked, non-soft-deleted Tenant for a Host-managed operation.

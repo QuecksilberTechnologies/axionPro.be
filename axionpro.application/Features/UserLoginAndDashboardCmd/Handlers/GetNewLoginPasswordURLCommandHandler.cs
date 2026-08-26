@@ -133,7 +133,7 @@ namespace axionpro.application.Features.UserLoginAndDashboardCmd.Handlers
                 };
 
                 // 5️⃣ Generate token
-                var token = _tokenService.GenerateToken(tokenInfo);
+                var token = _tokenService.GenerateTenantToken(tokenInfo);
 
                 // 6️⃣ Build URL
                 var baseUrl = _config["FrontEndWebURL:BaseUrl"] ?? string.Empty;

@@ -7,6 +7,7 @@
 
 using axionpro.application.Common.Enums;
 using axionpro.application.DTOs.Module.NewFolder;
+using axionpro.application.DTOS.Host;
 using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOS.RoleModulePermission;
 using axionpro.application.DTOS.StoreProcedures;
@@ -400,6 +401,12 @@ namespace axionpro.persistance.Data.Context
             entity.Property(e => e.WorkflowName).HasMaxLength(150);
         });
             modelBuilder.Entity<GetEmployeeCodePatternResponseDTO>(entity =>
+            {
+                entity.HasNoKey();
+                entity.ToView(null);
+            });
+
+            modelBuilder.Entity<HostUserPermissionCheckResponseDTO>(entity =>
             {
                 entity.HasNoKey();
                 entity.ToView(null);

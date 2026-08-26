@@ -6,6 +6,7 @@
 // ================================================================
 
 using axionpro.application.DTOs.Tenant;
+using axionpro.application.DTOs.BaseDTO;
 using axionpro.application.DTOs.Verify;
 using axionpro.application.DTOS.Host;
 using axionpro.application.DTOS.Tenant;
@@ -19,6 +20,7 @@ using axionpro.application.Features.TenantManagementCmd.Commands;
 using axionpro.application.Features.TenantManagementCmd.Queries;
 using axionpro.application.Features.VerifyEmailCmd.Handlers;
 using axionpro.application.Interfaces.ILogger;
+using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -76,12 +78,17 @@ public class TenantController : ControllerBase
     #region Tenant Management Queries
 
     /// <summary>
-    /// Retrieves Tenant records for Host-side management using optional status, verification, search, and paging filters.
+    /// Retrieves Host-managed Tenant records.
+    /// An authenticated Host user must supply the requested ModuleId and OperationId. The current Host role is checked at runtime.
     /// </summary>
     /// <param name="requestDTO">The Tenant management filter and paging request.</param>
     /// <returns>The Tenant management list response.</returns>
     [Authorize]
     [HttpGet("get-all-tenants")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetAllTenantsAsync([FromQuery] GetAllTenantsRequestDTO requestDTO)
     {
         var result = await _mediator.Send(new GetAllTenantsQuery(requestDTO));
@@ -89,12 +96,18 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves a Tenant by its authoritative long identifier for Host-side management.
+    /// Retrieves one Host-managed Tenant by encrypted identifier.
+    /// The identifier is decrypted only after Host authentication and runtime module-operation authorization succeed.
     /// </summary>
     /// <param name="requestDTO">The Tenant identifier request.</param>
     /// <returns>The requested Tenant response.</returns>
     [Authorize]
     [HttpGet("get-tenant-by-id")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetTenantByIdAsync([FromQuery] GetTenantByIdRequestDTO requestDTO)
     {
         var result = await _mediator.Send(new GetTenantByIdQuery(requestDTO));
@@ -106,84 +119,122 @@ public class TenantController : ControllerBase
     #region Tenant Management Commands
 
     /// <summary>
-    /// Updates editable Tenant details using the authoritative route identifier.
+    /// Updates editable Host-managed Tenant details.
+    /// The route identifier is an encrypted string; ModuleId and OperationId are required query parameters for Host runtime authorization.
     /// </summary>
-    /// <param name="id">The authoritative Tenant identifier from the route.</param>
+    /// <param name="id">The encrypted Tenant identifier from the route.</param>
     /// <param name="requestDTO">The client-editable Tenant details.</param>
+    /// <param name="permissionRequest">The required Host module-operation permission metadata.</param>
     /// <param name="cancellationToken">The token used to observe request cancellation.</param>
     /// <returns>The updated Tenant response.</returns>
     [Authorize]
-    [HttpPut("{id:long}")]
+    [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateHostManagedTenantAsync(
-        long id,
+        string id,
         [FromBody] UpdateHostManagedTenantRequestDTO? requestDTO,
+        [FromQuery] PermissionRequestDTO? permissionRequest,
         CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(
-            new UpdateHostManagedTenantCommand(id, requestDTO),
+            new UpdateHostManagedTenantCommand(id, requestDTO, permissionRequest),
             cancellationToken);
 
         return Ok(result);
     }
 
     /// <summary>
-    /// Soft deletes a Tenant selected by the authoritative route identifier.
+    /// Soft deletes a Host-managed Tenant selected by encrypted route identifier.
+    /// ModuleId and OperationId are required query parameters and are verified against the current Host role.
     /// </summary>
-    /// <param name="id">The authoritative Tenant identifier from the route.</param>
+    /// <param name="id">The encrypted Tenant identifier from the route.</param>
+    /// <param name="permissionRequest">The required Host module-operation permission metadata.</param>
     /// <param name="cancellationToken">The token used to observe request cancellation.</param>
     /// <returns>The Tenant soft-delete result.</returns>
     [Authorize]
-    [HttpDelete("{id:long}")]
+    [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteHostManagedTenantAsync(
-        long id,
+        string id,
+        [FromQuery] PermissionRequestDTO? permissionRequest,
         CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(
-            new DeleteHostManagedTenantCommand(id),
+            new DeleteHostManagedTenantCommand(id, permissionRequest),
             cancellationToken);
 
         return Ok(result);
     }
 
     /// <summary>
-    /// Resends the existing Tenant onboarding welcome email when the Tenant is not verified.
+    /// Resends onboarding verification for an unverified Host-managed Tenant.
+    /// The route identifier is encrypted and ModuleId and OperationId are required query parameters.
     /// </summary>
-    /// <param name="id">The authoritative Tenant identifier from the route.</param>
+    /// <param name="id">The encrypted Tenant identifier from the route.</param>
+    /// <param name="permissionRequest">The required Host module-operation permission metadata.</param>
     /// <param name="cancellationToken">The token used to observe request cancellation.</param>
     /// <returns>The resend-verification result.</returns>
     [Authorize]
-    [HttpPost("{id:long}/resend-verification")]
+    [HttpPost("{id}/resend-verification")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> ResendTenantVerificationAsync(
-        long id,
+        string id,
+        [FromQuery] PermissionRequestDTO? permissionRequest,
         CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(
-            new ResendTenantVerificationCommand(id),
+            new ResendTenantVerificationCommand(id, permissionRequest),
             cancellationToken);
 
         return Ok(result);
     }
 
     /// <summary>
-    /// Updates the editable Tenant details supplied by a Host-side management request.
+    /// Updates Host-managed Tenant details using an encrypted TenantId in the request body.
+    /// The current Host role must grant the request ModuleId and OperationId.
     /// </summary>
     /// <param name="requestDTO">The editable Tenant details request.</param>
     /// <returns>The updated Tenant response.</returns>
     [Authorize]
     [HttpPost("update-tenant")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateTenantAsync([FromBody] UpdateTenantRequestDTO requestDTO)
     {
-        var result = await _mediator.Send(new UpdateTenantCommand(requestDTO));
+        var result = await _mediator.Send(
+            new UpdateHostManagedTenantCommand(requestDTO.TenantId, requestDTO, requestDTO));
         return Ok(result);
     }
 
     /// <summary>
-    /// Requests activation of a Tenant. Future handling will also activate its matching login credentials atomically.
+    /// Activates a Host-managed Tenant using an encrypted TenantId.
+    /// The current Host role must grant the request ModuleId and OperationId.
     /// </summary>
     /// <param name="requestDTO">The Tenant activation request.</param>
     /// <returns>The activated Tenant response.</returns>
     [Authorize]
     [HttpPost("activate-tenant")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ActivateTenantAsync([FromBody] ActivateTenantRequestDTO requestDTO)
     {
         var result = await _mediator.Send(new ActivateTenantCommand(requestDTO));
@@ -191,12 +242,18 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Requests deactivation of a Tenant. Future handling will also deactivate its matching login credentials atomically.
+    /// Deactivates a Host-managed Tenant using an encrypted TenantId.
+    /// The current Host role must grant the request ModuleId and OperationId.
     /// </summary>
     /// <param name="requestDTO">The Tenant deactivation request.</param>
     /// <returns>The deactivated Tenant response.</returns>
     [Authorize]
     [HttpPost("deactivate-tenant")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeactivateTenantAsync([FromBody] DeactivateTenantRequestDTO requestDTO)
     {
         var result = await _mediator.Send(new DeactivateTenantCommand(requestDTO));
@@ -204,15 +261,22 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Requests the future soft deletion of a Tenant independently from deactivation.
+    /// Soft deletes a Host-managed Tenant using an encrypted TenantId.
+    /// The current Host role must grant the request ModuleId and OperationId.
     /// </summary>
     /// <param name="requestDTO">The Tenant deletion request.</param>
     /// <returns>The deletion result.</returns>
     [Authorize]
     [HttpPost("delete-tenant")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteTenantAsync([FromBody] DeleteTenantRequestDTO requestDTO)
     {
-        var result = await _mediator.Send(new DeleteTenantCommand(requestDTO));
+        var result = await _mediator.Send(
+            new DeleteHostManagedTenantCommand(requestDTO.TenantId, requestDTO));
         return Ok(result);
     }
 
@@ -258,10 +322,15 @@ public class TenantController : ControllerBase
 
     /// <summary>
     /// Retrieves the existing employee-code pattern for a Tenant.
+    /// Tenant callers remain token-scoped. Host callers require a Host token, an encrypted <c>TenantId</c>, and a runtime-granted <c>ModuleId</c>/<c>OperationId</c> pair.
     /// </summary>
     /// <param name="code">The employee-code pattern request.</param>
     /// <returns>The employee-code pattern response.</returns>
     [HttpGet("get-employee-code-pattern")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetEmployeeCodePatternAsync([FromQuery] EmployeeCodePatternRequestDTO code)
     {
         _logger.LogInfo("Fetching employee code pattern for tenant.");

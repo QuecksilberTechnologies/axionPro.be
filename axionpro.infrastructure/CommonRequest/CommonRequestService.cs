@@ -6,6 +6,7 @@
 // ================================================================
 
 using axionpro.application.Common.Helpers.Converters;
+using axionpro.application.Common.Helpers.EncryptionHelper;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Common.Enums;
 using axionpro.application.Common.Models.Security;
@@ -158,6 +159,33 @@ namespace axionpro.infrastructure.CommonRequest
         /// <exception cref="UnauthorizedAccessException">Thrown when the current token, claims, Host user, or Host role are invalid.</exception>
         public async Task<long> ValidateHostUserRequestAsync()
         {
+            var hostContext = await ValidateHostUserContextAsync(
+                enforceTokenRoleMatch: true,
+                requireTenantEncryptionKey: false);
+
+            return hostContext.HostUserId;
+        }
+
+        /// <summary>
+        /// Validates a Host request for runtime permission enforcement without treating a changed database role as a valid session.
+        /// </summary>
+        /// <returns>The trusted Host context used by Host runtime permission and Tenant identifier protection logic.</returns>
+        /// <exception cref="UnauthorizedAccessException">Thrown when the current Host token or current Host principal is invalid.</exception>
+        public Task<HostUserRequestContext> ValidateHostUserPermissionRequestAsync() =>
+            ValidateHostUserContextAsync(
+                enforceTokenRoleMatch: false,
+                requireTenantEncryptionKey: true);
+
+        /// <summary>
+        /// Resolves a current Host principal from signed claims while preserving stale-role detection for the database permission function.
+        /// </summary>
+        /// <param name="enforceTokenRoleMatch">Whether callers require immediate role-snapshot equality.</param>
+        /// <param name="requireTenantEncryptionKey">Whether the Host-facing Tenant identifier key claim is required.</param>
+        /// <returns>The trusted Host context.</returns>
+        private async Task<HostUserRequestContext> ValidateHostUserContextAsync(
+            bool enforceTokenRoleMatch,
+            bool requireTenantEncryptionKey)
+        {
             const string unauthorizedMessage = "A valid Host user token is required.";
 
             var principal = _context.HttpContext?.User;
@@ -181,12 +209,14 @@ namespace axionpro.infrastructure.CommonRequest
             var hostUserIdValue = principal.FindFirst(AppConstants.HostUserIdClaim)?.Value;
             var hostRoleIdValue = principal.FindFirst(AppConstants.HostRoleIdClaim)?.Value;
             var loginId = principal.FindFirst(AppConstants.LoginIdClaim)?.Value;
+            var tenantEncryptionKey = principal.FindFirst("TenantEncriptionKey")?.Value;
 
             if (!long.TryParse(hostUserIdValue, out var hostUserId) ||
                 !long.TryParse(hostRoleIdValue, out var hostRoleId) ||
                 hostUserId <= 0 ||
                 hostRoleId <= 0 ||
-                string.IsNullOrWhiteSpace(loginId))
+                string.IsNullOrWhiteSpace(loginId) ||
+                (requireTenantEncryptionKey && string.IsNullOrWhiteSpace(tenantEncryptionKey)))
             {
                 throw new UnauthorizedAccessException(unauthorizedMessage);
             }
@@ -195,7 +225,7 @@ namespace axionpro.infrastructure.CommonRequest
             if (hostUser == null ||
                 !hostUser.IsActive ||
                 hostUser.IsSoftDeleted ||
-                hostUser.HostRoleId != hostRoleId ||
+                (enforceTokenRoleMatch && hostUser.HostRoleId != hostRoleId) ||
                 !string.Equals(hostUser.LoginId, loginId, StringComparison.Ordinal))
             {
                 throw new UnauthorizedAccessException(unauthorizedMessage);
@@ -207,7 +237,16 @@ namespace axionpro.infrastructure.CommonRequest
                 throw new UnauthorizedAccessException(unauthorizedMessage);
             }
 
-            return hostUser.Id;
+            // Permission checks intentionally defer role-snapshot comparison to the database function so a
+            // changed Host role returns the explicit stale-context result instead of silently authorizing.
+            return new HostUserRequestContext
+            {
+                HostUserId = hostUser.Id,
+                TokenHostRoleId = hostRoleId,
+                TenantEncryptionKey = requireTenantEncryptionKey
+                    ? EncryptionSanitizer.SuperSanitize(tenantEncryptionKey)
+                    : string.Empty
+            };
         }
 
         #endregion

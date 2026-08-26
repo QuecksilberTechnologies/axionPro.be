@@ -681,7 +681,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 // =====================================================
                 // STEP 23 : Generate token
                 // =====================================================
-                string token = await _tokenService.GenerateToken(getTokenInfoDTO);
+                string token = await _tokenService.GenerateTenantToken(getTokenInfoDTO);
 
                 // =====================================================
                 // STEP 24 : Commit transaction

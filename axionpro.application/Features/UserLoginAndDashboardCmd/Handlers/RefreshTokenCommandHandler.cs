@@ -452,7 +452,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
                 // =====================================================
                 // STEP 12: Generate new token pair
                 // =====================================================
-                var token = await _tokenService.GenerateToken(getTokenInfoDTO);
+                var token = await _tokenService.GenerateTenantToken(getTokenInfoDTO);
 
                 var newRefreshToken = await RotateRefreshTokenAsync(
                     oldToken,
