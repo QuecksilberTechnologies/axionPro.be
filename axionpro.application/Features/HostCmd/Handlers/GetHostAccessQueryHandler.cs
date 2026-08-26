@@ -85,7 +85,7 @@ public sealed class GetHostAccessQueryHandler
         // Read permissions from the Host-specific authorization model used by legacy Host login.
         var permissions = await _unitOfWork.HostRolePermissionRepository
             .GetHostUserPermissionsAsync(hostRole.Id, cancellationToken);
-
+        
         var response = new HostAccessResponseDTO
         {
             Modules = BuildModules(permissions)
