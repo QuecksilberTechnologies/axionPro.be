@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.EmployeeManagerMappings;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates employee-manager mapping HTTP requests.
+// ================================================================
+
+using axionpro.application.DTOS.EmployeeManagerMappings;
 //using axionpro.application.Features.EmployeeManagerMapping.Command;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

@@ -1,4 +1,11 @@
-﻿using axionpro.application.Common.Helpers.RequestHelper;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Enum operations.
+// ================================================================
+
+using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.DTOs.Entity;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.EnumDTO;
@@ -21,6 +28,14 @@ namespace axionpro.api.Controllers.EnumTypes
             _mediator = mediator;
             _logger = logger;
         }
+        /// <summary>
+        /// Get Currencies.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get currencies.
+        /// </remarks>
+        /// <param name="dto">The query parameters used to get currencies.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
 
         [HttpGet("get-all-currencies")]
 
@@ -42,6 +57,3 @@ namespace axionpro.api.Controllers.EnumTypes
     }
 }
 
- 
-
-  

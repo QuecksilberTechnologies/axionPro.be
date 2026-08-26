@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Contact operations.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.Contact;
 
@@ -28,13 +35,13 @@ namespace axionpro.api.Controllers.Employee
             _logger = logger;
         }
         /// <summary>
-        /// Validates IMEI number. Must be 15 digits and numeric only.
+        /// Create Contact Info.
         /// </summary>
-        /// <summary>
-        /// Creates a new Employee Contact record.
-        /// </summary>
-        /// <param name="DTO"></param>
-        /// <param name="Dto">Employee-Contact details</param>
+        /// <remarks>
+        /// Handles the request to create contact info.
+        /// </remarks>
+        /// <param name="Dto">The request body used to create contact info.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("create")]
         public async Task<IActionResult> CreateContactInfo([FromBody] CreateContactRequestDTO Dto)
         {
@@ -60,8 +67,13 @@ namespace axionpro.api.Controllers.Employee
 
 
         /// <summary>
-        /// Get all employee-contact based on TenantId or filters.
+        /// Get Bankinfo.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to get bankinfo.
+        /// </remarks>
+        /// <param name="requestDto">The query parameters used to get bankinfo.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]     
                 public async Task<IActionResult> GetBankinfo([FromQuery] GetContactRequestDTO requestDto)
        
@@ -77,8 +89,13 @@ namespace axionpro.api.Controllers.Employee
 
 
         /// <summary>
-        /// Updates employee details.
+        /// Update Contact.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to update contact.
+        /// </remarks>
+        /// <param name="dto">The request body used to update contact.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("update")]        
         public async Task<IActionResult> UpdateContact([FromBody] UpdateContactRequestDTO dto)
         {
@@ -96,12 +113,17 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Deletes employee record by Id.
+        /// Delete.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to delete.
+        /// </remarks>
+        /// <param name="dto">The query parameters used to delete.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]   
         public async Task<IActionResult> Delete([FromQuery] DeleteRequestDTO dto)
         {
-            
+
                 _logger.LogInfo($"Deleting employee with Id: {dto.Id}");
 
                 var command = new DeleteContactQuery(dto);

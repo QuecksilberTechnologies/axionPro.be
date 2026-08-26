@@ -1,4 +1,11 @@
-﻿
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Client operations.
+// ================================================================
+
+
 using axionpro.application.DTOs.Client;
 using axionpro.application.DTOS.Common;
 using axionpro.application.Features.ClientCmd.Commands;
@@ -22,6 +29,14 @@ namespace axionpro.api.Controllers.Client
                 _mediator = mediator;
                 _logger = logger;
             }
+        /// <summary>
+        /// Get All Client Type.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get all client type.
+        /// </remarks>
+        /// <param name="clientRequestType">The query parameters used to get all client type.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         
         [HttpGet("get")]  
         public async Task<IActionResult> GetAllClientType([FromQuery] GetOptionRequestDTO clientRequestType)
@@ -69,6 +84,14 @@ namespace axionpro.api.Controllers.Client
         //    }
         //    return Ok(result);
         //}
+        /// <summary>
+        /// Create Client Type.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to create client type.
+        /// </remarks>
+        /// <param name="createClientTypeDTO">The request body used to create client type.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("add")]   
         public async Task<IActionResult> CreateClientType([FromBody] CreateClientTypeDTO createClientTypeDTO)
         {
@@ -86,6 +109,14 @@ namespace axionpro.api.Controllers.Client
 
             return Ok(result);
         }
+        /// <summary>
+        /// Update Client Type.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to update client type.
+        /// </remarks>
+        /// <param name="updateClientTypeDTO">The request body used to update client type.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
 
         [HttpPost("update")]        
         public async Task<IActionResult> UpdateClientType([FromBody] UpdateClientTypeDTO updateClientTypeDTO)

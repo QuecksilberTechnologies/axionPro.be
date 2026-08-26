@@ -41,11 +41,14 @@ public class OperationsMasterController : ControllerBase
     #region Create
 
     /// <summary>
-    /// Creates a new operation.
+    /// Create Operation.
     /// </summary>
-    /// <param name="requestDTO">The operation details to create.</param>
-    /// <param name="cancellationToken">The token used to observe cancellation.</param>
-    /// <returns>The created operation response.</returns>
+    /// <remarks>
+    /// Handles the request to create operation.
+    /// </remarks>
+    /// <param name="requestDTO">The request body used to create operation.</param>
+    /// <param name="cancellationToken">The token used to cancel the request.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpPost("create-operation")]
     public async Task<IActionResult> CreateOperation(
         [FromBody] CreateOperationRequestDTO requestDTO,
@@ -63,11 +66,14 @@ public class OperationsMasterController : ControllerBase
     #region Update
 
     /// <summary>
-    /// Updates an existing operation.
+    /// Update Operation.
     /// </summary>
-    /// <param name="requestDTO">The operation details to update.</param>
-    /// <param name="cancellationToken">The token used to observe cancellation.</param>
-    /// <returns>The updated operation response.</returns>
+    /// <remarks>
+    /// Handles the request to update operation.
+    /// </remarks>
+    /// <param name="requestDTO">The request body used to update operation.</param>
+    /// <param name="cancellationToken">The token used to cancel the request.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpPost("update-operation")]
     public async Task<IActionResult> UpdateOperation(
         [FromBody] UpdateOperationRequestDTO requestDTO,
@@ -85,11 +91,14 @@ public class OperationsMasterController : ControllerBase
     #region Delete
 
     /// <summary>
-    /// Deactivates an operation by ID.
+    /// Delete Operation.
     /// </summary>
-    /// <param name="operationId">The ID of the operation to delete.</param>
-    /// <param name="cancellationToken">The token used to observe cancellation.</param>
-    /// <returns>The deletion response.</returns>
+    /// <remarks>
+    /// Handles the request to delete operation.
+    /// </remarks>
+    /// <param name="operationId">The identifier supplied in the route.</param>
+    /// <param name="cancellationToken">The token used to cancel the request.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpDelete("delete-operation/{operationId:int}")]
     public async Task<IActionResult> DeleteOperation(
         int operationId,
@@ -107,11 +116,14 @@ public class OperationsMasterController : ControllerBase
     #region GetById
 
     /// <summary>
-    /// Retrieves an operation by ID.
+    /// Get Operation By ID.
     /// </summary>
-    /// <param name="operationId">The ID of the operation to retrieve.</param>
-    /// <param name="cancellationToken">The token used to observe cancellation.</param>
-    /// <returns>The requested operation.</returns>
+    /// <remarks>
+    /// Handles the request to get operation by id.
+    /// </remarks>
+    /// <param name="operationId">The identifier supplied in the route.</param>
+    /// <param name="cancellationToken">The token used to cancel the request.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("get-operation/{operationId:int}")]
     public async Task<IActionResult> GetOperationById(
         int operationId,
@@ -129,10 +141,13 @@ public class OperationsMasterController : ControllerBase
     #region GetAll
 
     /// <summary>
-    /// Retrieves all operations.
+    /// Get All Operations.
     /// </summary>
-    /// <param name="cancellationToken">The token used to observe cancellation.</param>
-    /// <returns>All operation records.</returns>
+    /// <remarks>
+    /// Handles the request to get all operations.
+    /// </remarks>
+    /// <param name="cancellationToken">The token used to cancel the request.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("get-all-operations")]
     public async Task<IActionResult> GetAllOperations(CancellationToken cancellationToken)
     {

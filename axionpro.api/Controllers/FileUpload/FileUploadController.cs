@@ -1,4 +1,11 @@
-﻿
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for File Upload operations.
+// ================================================================
+
+
 using axionpro.application.DTOS.DocFile.axionpro.application.DTOS.FileUpload;
 using axionpro.application.Interfaces.IFileStorage;
 using axionpro.application.Interfaces.ILogger;
@@ -26,8 +33,13 @@ namespace axionpro.api.Controllers.FileUpload
         }
 
         /// <summary>
-        /// Uploads an any image/doc/pdf and saves it to the server.
+        /// Upload Asset.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to upload asset.
+        /// </remarks>
+        /// <param name="dto">The request body used to upload asset.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("UploadAsset/upload")]     
         public async Task<IActionResult> UploadAsset([FromBody] UploadFileDTO dto)
         {

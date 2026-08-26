@@ -42,9 +42,14 @@ namespace axionpro.api.Controllers.Employee
 
 
         /// <summary>
-        /// Creates a new employee record.
+        /// Create Employee.
         /// </summary>
-        /// <param name="employeeCreateDto">Employee details</param>
+        /// <remarks>
+        /// Handles the request to create employee.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="employeeCreateDto">The request body used to create employee.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [Authorize]
         [HttpPost("create")]
         public async Task<IActionResult> CreateEmployee([FromBody] CreateBaseEmployeeRequestDTO employeeCreateDto)
@@ -67,6 +72,15 @@ namespace axionpro.api.Controllers.Employee
            
            
         }
+        /// <summary>
+        /// Update Profie Image.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to update profie image.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="requestDto">The form data used to update profie image.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
 
 
         [Authorize]
@@ -84,8 +98,14 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Get all employees based on TenantId or filters.
+        /// Get All Employee Image.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to get all employee image.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="requestDto">The query parameters used to get all employee image.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [Authorize]
         [HttpGet("Image/get")]     
         public async Task<IActionResult> GetAllEmployeeImage([FromQuery] GetEmployeeImageRequestDTO requestDto)
@@ -101,8 +121,14 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        ///  update  edit permission status for an employee.
+        /// Update Section Status Bulk.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to update section status bulk.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="dto">The request body used to update section status bulk.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [Authorize]
         [HttpPost("update-edit-status")]
         public async Task<IActionResult> UpdateSectionStatusBulk([FromBody] UpdateEditStatusRequestDTO_ dto)
@@ -118,8 +144,13 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        ///  update  verification permission status for an employee.
+        /// Update Verification Status.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to update verification status.
+        /// </remarks>
+        /// <param name="dto">The request body used to update verification status.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("update-verification-status")]
         public async Task<IActionResult> UpdateVerificationStatus([FromBody] UpdateVerificationStatusRequestDTO_ dto)
         {
@@ -132,8 +163,14 @@ namespace axionpro.api.Controllers.Employee
 
 
         /// <summary>
-        /// Bulk update section verification + edit permission status for an employee.
+        /// Update Section Status Bulk.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to update section status bulk.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="dto">The request body used to update section status bulk.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [Authorize]
         [HttpPost("update-bulk")]
         public async Task<IActionResult> UpdateSectionStatusBulk([FromBody] UpdateEmployeeSectionStatusRequestDTO dto)
@@ -144,6 +181,15 @@ namespace axionpro.api.Controllers.Employee
 
             return Ok(result);
         }
+        /// <summary>
+        /// Get All Employee Percentage.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get all employee percentage.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="employeeId">The query parameters used to get all employee percentage.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [Authorize]
         [HttpGet("get-all-percentage")]
         public async Task<IActionResult> GetAllEmployeePercentageAsync([FromQuery] string employeeId)
@@ -170,8 +216,14 @@ namespace axionpro.api.Controllers.Employee
 
 
         /// <summary>
-        /// Get all employees based on TenantId or filters.
+        /// Get Employee.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to get employee.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="requestDto">The query parameters used to get employee.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [Authorize]
         [HttpGet("get")]
         public async Task<IActionResult> GetEmployee([FromQuery] GetBaseEmployeeRequestDTO requestDto)
@@ -188,8 +240,14 @@ namespace axionpro.api.Controllers.Employee
            
         }
         /// <summary>
-        /// Get  summary based on TenantId or filters.
+        /// Get Employee Summary.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to get employee summary.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="requestDto">The query parameters used to get employee summary.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [Authorize]
         [HttpGet("get-summary")]
         public async Task<IActionResult> GetEmployeeSummary([FromQuery] GetEmployeeSummaryRequestDTO requestDto)
@@ -210,6 +268,15 @@ namespace axionpro.api.Controllers.Employee
 
 
         }
+        /// <summary>
+        /// Get Employee Profile Summary.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get employee profile summary.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="requestDto">The query parameters used to get employee profile summary.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [Authorize]
         [HttpGet("get-profile-summary")]
         public async Task<IActionResult> GetEmployeeProfileSummary([FromQuery] GetEmployeeSummaryRequestDTO requestDto)
@@ -226,8 +293,14 @@ namespace axionpro.api.Controllers.Employee
            
         }
         /// <summary>
-        /// Get all employees based on TenantId or filters.
+        /// Get All Employee.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to get all employee.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="requestDto">The query parameters used to get all employee.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [Authorize]
         [HttpGet("get-all")]
         public async Task<IActionResult> GetAllEmployee([FromQuery] GetAllEmployeeInfoRequestDTO requestDto)
@@ -243,8 +316,14 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Deletes employee record by Id.
+        /// Delete.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to delete.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="dto">The query parameters used to delete.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [Authorize]
         [HttpDelete("delete-all")]
         public async Task<IActionResult> Delete([FromQuery] DeleteBaseEmployeeRequestDTO dto)
@@ -259,8 +338,14 @@ namespace axionpro.api.Controllers.Employee
             
         }
         /// <summary>
-        /// Activate or deactivate employee and all related records by Employee Id.
+        /// Update Employee Status.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to update employee status.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="dto">The query parameters used to update employee status.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [Authorize]
         [HttpPut("update-status")]
         public async Task<IActionResult> UpdateEmployeeStatus(
@@ -283,6 +368,15 @@ namespace axionpro.api.Controllers.Employee
         /// <summary>
         // Updates employee details.
         // </summary>
+        /// <summary>
+        /// Update.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to update.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="dto">The request body used to update.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [Authorize]
         [HttpPost("update")]
         public async Task<IActionResult> Update([FromBody] UpdateEmployeeRequestDTO dto)
@@ -301,6 +395,15 @@ namespace axionpro.api.Controllers.Employee
         /// <summary>
         // Updates employee details.
         // </summary>
+        /// <summary>
+        /// Official Update.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to official update.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="dto">The request body used to official update.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [Authorize]
         [HttpPost("official/update")]
         

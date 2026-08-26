@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOs.PolicyType;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Policy Type operations.
+// ================================================================
+
+using axionpro.application.DTOs.PolicyType;
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.PolicyType;
 using axionpro.application.Features.PolicyTypeCmd.Handlers;
@@ -27,9 +34,13 @@ namespace axionpro.api.Controllers.Policies
             _logger = logger;
         }
         /// <summary>
-        /// Get all Policy Types.
+        /// Get All Policy Types.
         /// </summary>
-        /// 
+        /// <remarks>
+        /// Handles the request to get all policy types.
+        /// </remarks>
+        /// <param name="requestDTO">The query parameters used to get all policy types.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-all")]    
         public async Task<IActionResult> GetAllPolicyTypesAsync([FromQuery] GetPolicyTypeRequestDTO requestDTO)
         {
@@ -42,6 +53,14 @@ namespace axionpro.api.Controllers.Policies
             return Ok(result);         
             
         }
+        /// <summary>
+        /// Get DDL Policy Types.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get ddl policy types.
+        /// </remarks>
+        /// <param name="requestDTO">The query parameters used to get ddl policy types.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-ddl")]     
         public async Task<IActionResult> GetDDLPolicyTypesAsync(
              [FromQuery] GetAllPolicyTypeRequestDTO requestDTO)
@@ -64,6 +83,14 @@ namespace axionpro.api.Controllers.Policies
           
            
         }
+        /// <summary>
+        /// Get Unstructured Policy Types.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get unstructured policy types.
+        /// </remarks>
+        /// <param name="requestDTO">The query parameters used to get unstructured policy types.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-all-unstruct")]     
         public async Task<IActionResult> GetUnstructuredPolicyTypesAsync(
              [FromQuery] GetAllUnStructuredPolicyTypeRequestDTO requestDTO)
@@ -89,8 +116,13 @@ namespace axionpro.api.Controllers.Policies
  
 
         /// <summary>
-        /// Create new Policy Type.
+        /// Create Policy Type.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to create policy type.
+        /// </remarks>
+        /// <param name="requestDTO">The form data used to create policy type.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("create")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> CreatePolicyTypeAsync([FromForm] CreatePolicyTypeRequestDTO requestDTO)
@@ -102,8 +134,13 @@ namespace axionpro.api.Controllers.Policies
         }
 
         /// <summary>
-        /// Update new Policy Type.
+        /// Update Policy Type.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to update policy type.
+        /// </remarks>
+        /// <param name="requestDTO">The form data used to update policy type.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("update")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> UpdatePolicyTypeAsync([FromForm] UpdatePolicyTypeRequestDTO requestDTO)
@@ -116,8 +153,13 @@ namespace axionpro.api.Controllers.Policies
         }
 
         /// <summary>
-        /// Delete   Policy Type.
+        /// Delete Policy Type.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to delete policy type.
+        /// </remarks>
+        /// <param name="requestDTO">The query parameters used to delete policy type.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]        
         public async Task<IActionResult> DeletePolicyTypeAsync([FromQuery] DeletePolicyTypeDTO requestDTO)
         {
@@ -126,6 +168,14 @@ namespace axionpro.api.Controllers.Policies
             var result = await _mediator.Send(command);
             return Ok(result);
         }
+        /// <summary>
+        /// Delete Policy Type Doc Only.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to delete policy type doc only.
+        /// </remarks>
+        /// <param name="requestDTO">The query parameters used to delete policy type doc only.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete-doc")]
         public async Task<IActionResult> DeletePolicyTypeDocOnlyAsync([FromQuery] DeleteRequestDTO requestDTO)
         {

@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Employee.Bank;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Client Info operations.
+// ================================================================
+
+using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.Wrappers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -21,6 +28,13 @@ public class ClientInfoController : ControllerBase
 
         return ip;
     }
+    /// <summary>
+    /// Get Device Info.
+    /// </summary>
+    /// <remarks>
+    /// Handles the request to get device info.
+    /// </remarks>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("detect-device")]
     public IActionResult GetDeviceInfo()
     {

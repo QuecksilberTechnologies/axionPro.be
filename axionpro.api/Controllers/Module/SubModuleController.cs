@@ -1,9 +1,9 @@
-// ============================================================================
-// Author      : Deepesh Gupta
-// Company     : Quecksilber Technologies
-// Role        : CEO
-// Purpose     : Exposes Host-admin controlled direct SubModule CRUD endpoints.
-// ============================================================================
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates Host-admin requests for direct SubModule management.
+// ================================================================
 
 using axionpro.application.DTOS.Module.SubModule;
 using axionpro.application.Features.ModuleCmd.SubModule.Commands;
@@ -41,11 +41,14 @@ namespace axionpro.api.Controllers.Module
         #region SubModule CRUD
 
         /// <summary>
-        /// Creates a direct child SubModule for the authenticated Host user.
+        /// Add Module.
         /// </summary>
-        /// <param name="createSubModuleRequestDTO">The client-editable child Module values.</param>
-        /// <param name="cancellationToken">A token used to cancel the request.</param>
-        /// <returns>The created SubModule response.</returns>
+        /// <remarks>
+        /// Handles the request to add module.
+        /// </remarks>
+        /// <param name="createSubModuleRequestDTO">The request body used to add module.</param>
+        /// <param name="cancellationToken">The token used to cancel the request.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("add")]
         public async Task<IActionResult> AddModule(
             [FromBody] CreateSubModuleRequestDTO? createSubModuleRequestDTO,
@@ -59,12 +62,15 @@ namespace axionpro.api.Controllers.Module
         }
 
         /// <summary>
-        /// Updates a direct child SubModule and, when requested, moves it to a compatible Header Module.
+        /// Update Module.
         /// </summary>
-        /// <param name="id">The SubModule identifier.</param>
-        /// <param name="updateSubModuleRequestDTO">The editable SubModule values.</param>
-        /// <param name="cancellationToken">A token used to cancel the request.</param>
-        /// <returns>The updated SubModule response.</returns>
+        /// <remarks>
+        /// Handles the request to update module.
+        /// </remarks>
+        /// <param name="id">The identifier supplied in the route.</param>
+        /// <param name="updateSubModuleRequestDTO">The request body used to update module.</param>
+        /// <param name="cancellationToken">The token used to cancel the request.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateModule(
             int id,
@@ -79,12 +85,15 @@ namespace axionpro.api.Controllers.Module
         }
 
         /// <summary>
-        /// Retrieves one direct child SubModule in the required module scope.
+        /// Get Module By ID.
         /// </summary>
-        /// <param name="id">The SubModule identifier.</param>
-        /// <param name="moduleScope">The required module scope.</param>
-        /// <param name="cancellationToken">A token used to cancel the request.</param>
-        /// <returns>The matching SubModule response.</returns>
+        /// <remarks>
+        /// Handles the request to get module by id.
+        /// </remarks>
+        /// <param name="id">The identifier supplied in the route.</param>
+        /// <param name="moduleScope">The query parameters used to get module by id.</param>
+        /// <param name="cancellationToken">The token used to cancel the request.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetModuleById(
             int id,
@@ -99,13 +108,16 @@ namespace axionpro.api.Controllers.Module
         }
 
         /// <summary>
-        /// Retrieves direct child SubModules in the required module scope.
+        /// Get Modules.
         /// </summary>
-        /// <param name="moduleScope">The required module scope.</param>
-        /// <param name="parentModuleId">When supplied, filters by direct Header Module identifier.</param>
-        /// <param name="isActive">When supplied, filters by active state.</param>
-        /// <param name="cancellationToken">A token used to cancel the request.</param>
-        /// <returns>The ordered SubModule list.</returns>
+        /// <remarks>
+        /// Handles the request to get modules.
+        /// </remarks>
+        /// <param name="moduleScope">The query parameters used to get modules.</param>
+        /// <param name="parentModuleId">The query parameters used to get modules.</param>
+        /// <param name="isActive">The query parameters used to get modules.</param>
+        /// <param name="cancellationToken">The token used to cancel the request.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("list")]
         public async Task<IActionResult> GetModules(
             [FromQuery] short moduleScope,
@@ -121,13 +133,16 @@ namespace axionpro.api.Controllers.Module
         }
 
         /// <summary>
-        /// Retrieves direct children for a validated Header Module.
+        /// Get Modules By Parent.
         /// </summary>
-        /// <param name="parentModuleId">The Header Module identifier.</param>
-        /// <param name="moduleScope">The required module scope.</param>
-        /// <param name="isActive">When supplied, filters by active state.</param>
-        /// <param name="cancellationToken">A token used to cancel the request.</param>
-        /// <returns>The ordered direct-child SubModule list.</returns>
+        /// <remarks>
+        /// Handles the request to get modules by parent.
+        /// </remarks>
+        /// <param name="parentModuleId">The identifier supplied in the route.</param>
+        /// <param name="moduleScope">The query parameters used to get modules by parent.</param>
+        /// <param name="isActive">The query parameters used to get modules by parent.</param>
+        /// <param name="cancellationToken">The token used to cancel the request.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("parent/{parentModuleId:int}")]
         public async Task<IActionResult> GetModulesByParent(
             int parentModuleId,
@@ -143,12 +158,15 @@ namespace axionpro.api.Controllers.Module
         }
 
         /// <summary>
-        /// Changes the active state of a direct SubModule without deleting it.
+        /// Update Module Status.
         /// </summary>
-        /// <param name="id">The SubModule identifier.</param>
-        /// <param name="statusRequestDTO">The required target active state.</param>
-        /// <param name="cancellationToken">A token used to cancel the request.</param>
-        /// <returns>The SubModule after its status changes.</returns>
+        /// <remarks>
+        /// Handles the request to update module status.
+        /// </remarks>
+        /// <param name="id">The identifier supplied in the route.</param>
+        /// <param name="statusRequestDTO">The request body used to update module status.</param>
+        /// <param name="cancellationToken">The token used to cancel the request.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPatch("{id:int}/status")]
         public async Task<IActionResult> UpdateModuleStatus(
             int id,

@@ -1,4 +1,11 @@
-﻿using axionpro.api.Controllers.Leave;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Compliance Rule operations.
+// ================================================================
+
+using axionpro.api.Controllers.Leave;
 using axionpro.application.DTOs.Leave;
 using axionpro.application.DTOS.EmployeeLeavePolicyMap;
 using axionpro.application.Features.EmployeeLeavePolicyMapCmd.Commands;
@@ -20,6 +27,14 @@ namespace axionpro.api.Controllers.Compliance
             _mediator = mediator;
             _logger = logger;
         }
+        /// <summary>
+        /// Update Compliance Ruley.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to update compliance ruley.
+        /// </remarks>
+        /// <param name="requestDTO">The request body used to update compliance ruley.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
 
 
         [HttpPost("update")]

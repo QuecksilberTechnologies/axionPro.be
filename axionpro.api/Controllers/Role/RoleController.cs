@@ -40,10 +40,13 @@ namespace axionpro.api.Controllers.Role
         }
 
         /// <summary>
-        /// Updates an existing role.
+        /// Update Role.
         /// </summary>
-        /// <param name="updateRoleDTO">DTO containing updated role details.</param>
-        /// <returns>Returns the result of the update operation.</returns>
+        /// <remarks>
+        /// Handles the request to update role.
+        /// </remarks>
+        /// <param name="updateRoleDTO">The request body used to update role.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPut("update")]        
         // [Authorize]
         public async Task<IActionResult> UpdateRole([FromBody] UpdateRoleRequestDTO updateRoleDTO)
@@ -54,8 +57,13 @@ namespace axionpro.api.Controllers.Role
             return Ok(result);
         }
         /// <summary>
-        /// Get all Role.
+        /// get Role.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to get role.
+        /// </remarks>
+        /// <param name="requestDTO">The query parameters used to get role.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("option")]      
         public async Task<IActionResult> getRole([FromQuery] GetRoleOptionRequestDTO requestDTO)
         {
@@ -68,10 +76,13 @@ namespace axionpro.api.Controllers.Role
         }
 
         /// <summary>
-        /// Creates a new role.
+        /// Create Role.
         /// </summary>
-        /// <param name="createRoleDTO">DTO containing details of the role to be created.</param>
-        /// <returns>Returns the result of the creation operation.</returns>
+        /// <remarks>
+        /// Handles the request to create role.
+        /// </remarks>
+        /// <param name="createRoleDTO">The request body used to create role.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("add")]        
         // [Authorize]
         public async Task<IActionResult> CreateRole([FromBody] CreateRoleRequestDTO createRoleDTO)
@@ -83,10 +94,13 @@ namespace axionpro.api.Controllers.Role
         }
 
         /// <summary>
-        /// Retrieves all roles based on provided filters.
+        /// Get All Roles.
         /// </summary>
-        /// <param name="roleRequestDTO">Query parameters for filtering roles.</param>
-        /// <returns>Returns a list of roles that match the filter criteria.</returns>
+        /// <remarks>
+        /// Handles the request to get all roles.
+        /// </remarks>
+        /// <param name="roleRequestDTO">The query parameters used to get all roles.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]      
         
         public async Task<IActionResult> GetAllRoles([FromQuery] GetRoleRequestDTO? roleRequestDTO)
@@ -98,10 +112,13 @@ namespace axionpro.api.Controllers.Role
         }
 
         /// <summary>
-        /// Deletes a role.
+        /// Delete Role.
         /// </summary>
-        /// <param name="deleteRole">DTO containing the ID of the role to delete.</param>
-        /// <returns>Returns the result of the deletion operation.</returns>
+        /// <remarks>
+        /// Handles the request to delete role.
+        /// </remarks>
+        /// <param name="deleteRole">The query parameters used to delete role.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")] 
         public async Task<IActionResult> DeleteRole([FromQuery] DeleteRoleRequestDTO deleteRole)
         {         

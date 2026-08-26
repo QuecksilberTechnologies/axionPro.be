@@ -44,6 +44,7 @@ namespace axionpro.application.Interfaces
         IForgotPasswordOtpRepository ForgotPasswordOtpRepository { get; }
         ISandwitchRuleRepository SandwitchRuleRepository { get; }
         ITenantModuleConfigurationRepository TenantModuleConfigurationRepository { get; }
+        ITenantParentModuleRepository TenantParentModuleRepository { get; }
         ITenantEncryptionKeyRepository TenantEncryptionKeyRepository { get; }
         IHolidayCalandarRepository HolidayCalandarRepository { get; }
         IHostUserRepository HostUserRepository { get; }

@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.AssetDTO.category;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Category operations.
+// ================================================================
+
+using axionpro.application.DTOS.AssetDTO.category;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.Features.AssetFeatures.Category.Handlers;
 using axionpro.application.Interfaces.ILogger;
@@ -30,8 +37,13 @@ namespace axionpro.api.Controllers.Asset
         #region Tenant Admin - Asset Category CRUD
 
         /// <summary>
-        /// Retrieves all asset categories for a specific tenant.
+        /// Get All Asset Category.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to get all asset category.
+        /// </remarks>
+        /// <param name="request">The query parameters used to get all asset category.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]        
         public async Task<IActionResult> GetAllAssetCategory([FromQuery] GetCategoryReqestDTO request)
         {
@@ -45,8 +57,13 @@ namespace axionpro.api.Controllers.Asset
 
         
         /// <summary>
-        /// Adds a new asset category record for a tenant.
+        /// Add Asset Category.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to add asset category.
+        /// </remarks>
+        /// <param name="request">The request body used to add asset category.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("add")]
         public async Task<IActionResult> AddAssetCategory([FromBody] AddCategoryReqestDTO request)
         {
@@ -58,8 +75,13 @@ namespace axionpro.api.Controllers.Asset
         }
 
         /// <summary>
-        /// Updates an existing asset category record.
+        /// Update Asset Category.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to update asset category.
+        /// </remarks>
+        /// <param name="request">The request body used to update asset category.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPut("update")] 
         public async Task<IActionResult> UpdateAssetCategory([FromBody] UpdateCategoryReqestDTO request)
         {
@@ -72,12 +94,17 @@ namespace axionpro.api.Controllers.Asset
         }
 
         /// <summary>
-        /// Deletes an existing asset category record (soft delete).
+        /// Delete Asset Category.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to delete asset category.
+        /// </remarks>
+        /// <param name="request">The query parameters used to delete asset category.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]     
         public async Task<IActionResult> DeleteAssetCategory([FromQuery] DeleteCategoryReqestDTO request)
         {
-           
+
                 _logger.LogInfo($"Delete Asset Category request received for ID: {request.Id}");
                 var command = new DeleteCategoryCommand(request);
                 var result = await _mediator.Send(command);

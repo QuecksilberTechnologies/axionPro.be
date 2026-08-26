@@ -41,11 +41,14 @@ public sealed class PlanModuleMappingController : ControllerBase
     #region Plan Module Mapping Endpoints
 
     /// <summary>
-    /// Retrieves the eligible Module hierarchy and current active mapping state for a Subscription Plan.
+    /// Get Options.
     /// </summary>
-    /// <param name="subscriptionPlanId">The Subscription Plan identifier.</param>
-    /// <param name="cancellationToken">The token used to observe request cancellation.</param>
-    /// <returns>The Module mapping popup options.</returns>
+    /// <remarks>
+    /// Handles the request to get options.
+    /// </remarks>
+    /// <param name="subscriptionPlanId">The identifier supplied in the route.</param>
+    /// <param name="cancellationToken">The token used to cancel the request.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("options/{subscriptionPlanId:int}")]
     public async Task<IActionResult> GetOptions(
         int subscriptionPlanId,
@@ -59,11 +62,14 @@ public sealed class PlanModuleMappingController : ControllerBase
     }
 
     /// <summary>
-    /// Atomically synchronizes selected Modules for a Subscription Plan using an add, reactivate, and unmap delta.
+    /// Save.
     /// </summary>
-    /// <param name="requestDTO">The Subscription Plan Module selection request.</param>
-    /// <param name="cancellationToken">The token used to observe request cancellation.</param>
-    /// <returns>The applied mapping delta summary.</returns>
+    /// <remarks>
+    /// Handles the request to save.
+    /// </remarks>
+    /// <param name="requestDTO">The request body used to save.</param>
+    /// <param name="cancellationToken">The token used to cancel the request.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpPost("save")]
     public async Task<IActionResult> Save(
         [FromBody] SavePlanModuleMappingRequestDTO requestDTO,

@@ -42,11 +42,14 @@ public class ModuleOperationController : ControllerBase
     #region ModuleOperation CRUD
 
     /// <summary>
-    /// Creates a module-operation mapping for the authenticated Host user.
+    /// Create Module Operation.
     /// </summary>
-    /// <param name="dto">The client-editable mapping values.</param>
-    /// <param name="cancellationToken">The token used to observe cancellation.</param>
-    /// <returns>The created module-operation mapping.</returns>
+    /// <remarks>
+    /// Handles the request to create module operation.
+    /// </remarks>
+    /// <param name="dto">The request body used to create module operation.</param>
+    /// <param name="cancellationToken">The token used to cancel the request.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpPost("create")]
     public async Task<IActionResult> CreateModuleOperation(
         [FromBody] CreateModuleOperationRequestDTO? dto,
@@ -60,11 +63,14 @@ public class ModuleOperationController : ControllerBase
     }
 
     /// <summary>
-    /// Updates a module-operation mapping for the authenticated Host user.
+    /// Update Module Operation.
     /// </summary>
-    /// <param name="dto">The client-editable mapping values.</param>
-    /// <param name="cancellationToken">The token used to observe cancellation.</param>
-    /// <returns>The updated module-operation mapping.</returns>
+    /// <remarks>
+    /// Handles the request to update module operation.
+    /// </remarks>
+    /// <param name="dto">The request body used to update module operation.</param>
+    /// <param name="cancellationToken">The token used to cancel the request.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpPost("update")]
     public async Task<IActionResult> UpdateModuleOperation(
         [FromBody] UpdateModuleOperationMappingByProductOwnerRequestDTO? dto,
@@ -78,11 +84,14 @@ public class ModuleOperationController : ControllerBase
     }
 
     /// <summary>
-    /// Deactivates a module-operation mapping for the authenticated Host user.
+    /// Delete Module Operation.
     /// </summary>
-    /// <param name="id">The mapping identifier to deactivate.</param>
-    /// <param name="cancellationToken">The token used to observe cancellation.</param>
-    /// <returns>The deletion response.</returns>
+    /// <remarks>
+    /// Handles the request to delete module operation.
+    /// </remarks>
+    /// <param name="id">The identifier supplied in the route.</param>
+    /// <param name="cancellationToken">The token used to cancel the request.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpDelete("delete/{id:int}")]
     public async Task<IActionResult> DeleteModuleOperation(
         int id,
@@ -96,11 +105,14 @@ public class ModuleOperationController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves one module-operation mapping for the authenticated Host user.
+    /// Get Module Operation By ID.
     /// </summary>
-    /// <param name="id">The mapping identifier to retrieve.</param>
-    /// <param name="cancellationToken">The token used to observe cancellation.</param>
-    /// <returns>The requested module-operation mapping.</returns>
+    /// <remarks>
+    /// Handles the request to get module operation by id.
+    /// </remarks>
+    /// <param name="id">The identifier supplied in the route.</param>
+    /// <param name="cancellationToken">The token used to cancel the request.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("get-by-id/{id:int}")]
     public async Task<IActionResult> GetModuleOperationById(
         int id,
@@ -114,10 +126,13 @@ public class ModuleOperationController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves all module-operation mappings for the authenticated Host user.
+    /// Get All Module Operations.
     /// </summary>
-    /// <param name="cancellationToken">The token used to observe cancellation.</param>
-    /// <returns>All module-operation mappings.</returns>
+    /// <remarks>
+    /// Handles the request to get all module operations.
+    /// </remarks>
+    /// <param name="cancellationToken">The token used to cancel the request.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("get-all")]
     public async Task<IActionResult> GetAllModuleOperations(CancellationToken cancellationToken)
     {

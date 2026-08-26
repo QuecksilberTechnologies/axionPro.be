@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOs.Leave;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Policy Mapping Leave Type operations.
+// ================================================================
+
+using axionpro.application.DTOs.Leave;
 using axionpro.application.DTOS.EmployeeLeavePolicyMap;
 using axionpro.application.Features.EmployeeLeavePolicyMapCmd.Commands;
 using axionpro.application.Features.LeaveCmd.Commands;
@@ -24,6 +31,14 @@ namespace axionpro.api.Controllers.Leave
         }
         
         // ✅ Create LeavePolicy
+             /// <summary>
+             /// Create Leave Policy.
+             /// </summary>
+             /// <remarks>
+             /// Handles the request to create leave policy.
+             /// </remarks>
+             /// <param name="requestDTO">The request body used to create leave policy.</param>
+             /// <returns>An HTTP response containing the result of the operation.</returns>
              [HttpPost("map")]         
         public async Task<IActionResult> CreateLeavePolicyAsync([FromBody] GetPolicyLeaveTypeMappingRequestDTO requestDTO)
         {
@@ -34,6 +49,14 @@ namespace axionpro.api.Controllers.Leave
         }
 
        //  ✅ Get All LeavePolicies
+        /// <summary>
+        /// Get All Leave Policies.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get all leave policies.
+        /// </remarks>
+        /// <param name="getLeavePolicyRequestDTO">The query parameters used to get all leave policies.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")] 
         public async Task<IActionResult> GetAllLeavePoliciesAsync([FromQuery]  GetLeaveTypeWithPolicyMappingRequestDTO getLeavePolicyRequestDTO)
         {
@@ -44,6 +67,14 @@ namespace axionpro.api.Controllers.Leave
         }
 
         //  ✅ Get All LeavePolicies
+        /// <summary>
+        /// Get All Leave Policies By Employee ID.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get all leave policies by employee id.
+        /// </remarks>
+        /// <param name="dTO">The query parameters used to get all leave policies by employee id.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("LeavePolicy/EmployeeType/get")] 
         public async Task<IActionResult> GetAllLeavePoliciesByEmployeeIdAsync([FromQuery] GetPolicyLeaveTypeByEmpTypeIdRequestDTO dTO)
         {
@@ -53,7 +84,14 @@ namespace axionpro.api.Controllers.Leave
             return Ok(result);
         }
 
-        //// ✅ Update LeavePolicy
+        /// <summary>
+        /// Update Leave Policy.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to update leave policy.
+        /// </remarks>
+        /// <param name="requestDTO">The request body used to update leave policy.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("update")]       
         public async Task<IActionResult> UpdateLeavePolicyAsync([FromBody] UpdateEmployeeLeavePolicyMappingRequestDTO requestDTO)
         {
@@ -62,6 +100,14 @@ namespace axionpro.api.Controllers.Leave
             var result = await _mediator.Send(command);
             return Ok(result);
         }
+        /// <summary>
+        /// Delete Leave Policy.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to delete leave policy.
+        /// </remarks>
+        /// <param name="request">The query parameters used to delete leave policy.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("delete")]        
         // [Authorize]
         public async Task<IActionResult> DeleteLeavePolicy([FromQuery] DeletePolicyLeaveTypeMappingRequestDTO request)

@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOs.Manager.ReportingType;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Reporting Type operations.
+// ================================================================
+
+using axionpro.application.DTOs.Manager.ReportingType;
 using axionpro.application.Features.ReportTypeCmd.Handlers;
  
 using axionpro.application.Wrappers;
@@ -38,10 +45,13 @@ namespace axionpro.api.Controllers.ReportingType
         // =============================================================================================
 
         /// <summary>
-        /// Creates a new reporting type record.
+        /// Create Reporting Type.
         /// </summary>
-        /// <param name="dto">reporting type creation data.</param>
-        /// <returns>Returns a response containing success status and message.</returns>
+        /// <remarks>
+        /// Handles the request to create reporting type.
+        /// </remarks>
+        /// <param name="dto">The request body used to create reporting type.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
 
         [HttpPost("create")]       
         
@@ -63,10 +73,13 @@ namespace axionpro.api.Controllers.ReportingType
         // =============================================================================================
 
         /// <summary>
-        /// Retrieves all reporting types.
+        /// Get All Reporting Types.
         /// </summary>
-        /// <param name="dto">Filter criteria (optional).</param>
-        /// <returns>Returns list of reporting types.</returns>
+        /// <remarks>
+        /// Handles the request to get all reporting types.
+        /// </remarks>
+        /// <param name="dto">The query parameters used to get all reporting types.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-all")]
         public async Task<IActionResult> GetAllReportingTypes([FromQuery] GetReportingTypeRequestDTO dto)
         {
@@ -84,10 +97,13 @@ namespace axionpro.api.Controllers.ReportingType
         // =============================================================================================
 
         /// <summary>
-        /// Retrieves details of a specific reporting type by ID.
+        /// Get Reporting Type By ID.
         /// </summary>
-        /// <param name="dto">DTO containing reporting type ID.</param>
-        /// <returns>Returns reporting type details.</returns>
+        /// <remarks>
+        /// Handles the request to get reporting type by id.
+        /// </remarks>
+        /// <param name="dto">The query parameters used to get reporting type by id.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-by-id")]   
         public async Task<IActionResult> GetReportingTypeById([FromQuery] GetReportingTypeByIdRequestDTO dto)
         {         
@@ -105,10 +121,13 @@ namespace axionpro.api.Controllers.ReportingType
         // =============================================================================================
 
         /// <summary>
-        /// Updates an existing reporting type record.
+        /// Update Reporting Type.
         /// </summary>
-        /// <param name="dto">reporting type update details.</param>
-        /// <returns>Returns a response indicating success or failure.</returns>
+        /// <remarks>
+        /// Handles the request to update reporting type.
+        /// </remarks>
+        /// <param name="dto">The request body used to update reporting type.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPut("update")]  
         public async Task<IActionResult> UpdateReportingType([FromBody] UpdateReportingTypeRequestDTO dto)
         {
@@ -127,14 +146,17 @@ namespace axionpro.api.Controllers.ReportingType
         // =============================================================================================
 
         /// <summary>
-        /// Soft deletes a reporting type by ID.
+        /// Delete Reporting Type.
         /// </summary>
-        /// <param name="dto">reporting type ID to be deleted.</param>
-        /// <returns>Returns success or failure message.</returns>
+        /// <remarks>
+        /// Handles the request to delete reporting type.
+        /// </remarks>
+        /// <param name="dto">The query parameters used to delete reporting type.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]       
         public async Task<IActionResult> DeleteReportingType([FromQuery] DeleteReportingTypeRequestDTO dto)
         {
-           
+
                 var result = await _mediator.Send(new DeleteReportingTypeCommand(dto));
                 return Ok(result);
            

@@ -1,4 +1,10 @@
-﻿ 
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Asset operations.
+// ================================================================
+
 using axionpro.application.DTOS.AssetDTO.asset;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.Features.AssetFeatures.Assets.Handlers;
@@ -36,10 +42,13 @@ namespace axionpro.api.Controllers.Asset
 
 
         /// <summary>
-        /// Retrieves all assets based on filter criteria.
+        /// Get All Assets.
         /// </summary>
-        /// <param name="assetRequestDTO">Filter parameters like TenantId, TypeId, etc.</param>
-        /// <returns>List of assets matching the criteria.</returns>
+        /// <remarks>
+        /// Handles the request to get all assets.
+        /// </remarks>
+        /// <param name="assetRequestDTO">The query parameters used to get all assets.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")] 
         public async Task<IActionResult> GetAllAssets([FromQuery] GetAssetRequestDTO assetRequestDTO)
         {
@@ -49,10 +58,13 @@ namespace axionpro.api.Controllers.Asset
         }
 
         /// <summary>
-        /// Adds a new asset.
+        /// Add Asset.
         /// </summary>
-        /// <param name="addAssetDTO">DTO containing asset details to create.</param>
-        /// <returns>Returns the created asset with its Id and other details.</returns>
+        /// <remarks>
+        /// Handles the request to add asset.
+        /// </remarks>
+        /// <param name="addAssetDTO">The form data used to add asset.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("add")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> AddAsset([FromForm] AddAssetRequestDTO  addAssetDTO)
@@ -64,10 +76,13 @@ namespace axionpro.api.Controllers.Asset
         }
 
         /// <summary>
-        /// Updates an existing asset.
+        /// Update Asset.
         /// </summary>
-        /// <param name="updateAssetDTO">DTO containing updated asset details including Id.</param>
-        /// <returns>Returns the updated asset information.</returns>
+        /// <remarks>
+        /// Handles the request to update asset.
+        /// </remarks>
+        /// <param name="updateAssetDTO">The form data used to update asset.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPut("update")]    
         
         public async Task<IActionResult> UpdateAsset([FromForm] UpdateAssetRequestDTO updateAssetDTO)
@@ -79,10 +94,13 @@ namespace axionpro.api.Controllers.Asset
         }
 
         /// <summary>
-        /// Deletes an asset logically(soft delete).
+        /// Delete Asset.
         /// </summary>
-        /// <param name = "deleteAssetDTO" > DTO containing the Id of the asset to delete.</param>
-        /// <returns>Returns status of the delete operation.</returns>
+        /// <remarks>
+        /// Handles the request to delete asset.
+        /// </remarks>
+        /// <param name="deleteAssetDTO">The query parameters used to delete asset.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]        
         public async Task<IActionResult> DeleteAsset([FromQuery] DeleteAssetReqestDTO deleteAssetDTO)
         {

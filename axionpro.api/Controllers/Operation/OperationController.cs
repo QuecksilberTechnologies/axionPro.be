@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOs.Operation;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Option operations.
+// ================================================================
+
+using axionpro.application.DTOs.Operation;
  
 using axionpro.application.Features.OperationCmd.Commands;
 using axionpro.application.Features.OperationCmd.Queries;
@@ -30,8 +37,13 @@ namespace axionpro.api.Controllers.Operation
         }
 
         /// <summary>
-        /// Get all operations.
+        /// Get All Operation Asyc.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to get all operation asyc.
+        /// </remarks>
+        /// <param name="operationRequestDTO">The query parameters used to get all operation asyc.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]        
         public async Task<IActionResult> GetAllOperationAsyc([FromQuery] GetOperationRequestDTO operationRequestDTO)
         {
@@ -44,8 +56,13 @@ namespace axionpro.api.Controllers.Operation
         }
 
         /// <summary>
-        /// Get insert operation.
+        /// Create Operation.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to create operation.
+        /// </remarks>
+        /// <param name="createOperationDTO">The request body used to create operation.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("create")]
         
         public async Task<IActionResult> CreateOperation([FromBody] CreateOperationRequestDTO createOperationDTO)
@@ -63,6 +80,11 @@ namespace axionpro.api.Controllers.Operation
         /// <summary>
         /// Update Operation.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to update operation.
+        /// </remarks>
+        /// <param name="updateOperationDTO">The request body used to update operation.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("update")]
                
         public async Task<IActionResult> UpdateOperation([FromBody] UpdateOperationRequestDTO updateOperationDTO)
@@ -72,6 +94,15 @@ namespace axionpro.api.Controllers.Operation
             var result = await _mediator.Send(command);            
             return Ok(result);
         }
+        /// <summary>
+        /// Has Page Operation Access.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to has page operation access.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="checkOperationPermissionRequest">The query parameters used to has page operation access.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
          [Authorize]
         [HttpGet("has-access")]
         public async Task<IActionResult> HasPageOperationAccess([FromQuery] GetCheckOperationPermissionRequestDTO? checkOperationPermissionRequest)

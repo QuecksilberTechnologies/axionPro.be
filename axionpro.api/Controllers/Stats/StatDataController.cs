@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.StoreProcedures.DashboardSummeries;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Stat Data operations.
+// ================================================================
+
+using axionpro.application.DTOS.StoreProcedures.DashboardSummeries;
 using axionpro.application.Features.StatsFeatures.EmployeesCmd.Handlers;
 using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
@@ -29,6 +36,14 @@ namespace axionpro.api.Controllers.Stats
         /// <summary>
         ///Dashboard statistics.
         // Returns employee summary statistics for dashboard widgets      
+        /// <summary>
+        /// Get Employee Dashboard Summary.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get employee dashboard summary.
+        /// </remarks>
+        /// <param name="dto">The query parameters used to get employee dashboard summary.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("Dashboard/Employees/Statistics")]        
         public async Task<IActionResult> GetEmployeeDashboardSummaryAsync(
             [FromQuery] EmployeeCountRequestStatsSp dto)
@@ -43,8 +58,13 @@ namespace axionpro.api.Controllers.Stats
 
     
         /// <summary>
-        ///Dashboard statistics.
+        /// dashboard.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to dashboard.
+        /// </remarks>
+        /// <param name="request">The query parameters used to dashboard.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("Manager/Statistics/Dashboard/get")]        
         public async Task<IActionResult> dashboard([FromQuery] GetSummaryRequestDTO request)
         {
@@ -62,8 +82,13 @@ namespace axionpro.api.Controllers.Stats
 
      
         /// <summary>
-        /// Asset-related dashboard statistics.
+        /// Asset.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to asset.
+        /// </remarks>
+        /// <param name="request">The query parameters used to asset.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("Manager/Statistic/Asset")]    
         public async Task<IActionResult> Asset([FromQuery] GetSummaryRequestDTO request)
         {

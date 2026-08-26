@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOs.Employee;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Holiday Calandar operations.
+// ================================================================
+
+using axionpro.application.DTOs.Employee;
 using axionpro.application.DTOs.OrganizationHolidayCalendar;
 
 using axionpro.application.Features.HolidayCalandarCmd.Queries;
@@ -24,8 +31,13 @@ namespace axionpro.api.Controllers.HolidayCalandar
             _logger = logger;  // Logger service ko inject karna
         }
         /// <summary>
-        /// Get all employees that belong to the specified tenant.
+        /// Get All Employee Info.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to get all employee info.
+        /// </remarks>
+        /// <param name="basicRequestDTO">The query parameters used to get all employee info.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
 
         [HttpGet("get")]      
         public async Task<IActionResult> GetAllEmployeeInfo([FromQuery] BasicRequestDTO basicRequestDTO)

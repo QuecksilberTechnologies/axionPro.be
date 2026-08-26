@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOs.Tenant;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Tenant Industry operations.
+// ================================================================
+
+using axionpro.application.DTOs.Tenant;
 using axionpro.application.DTOs.TenantIndustry;
 using axionpro.application.Features.TenantConfigurationCmd.Tenant.Queries;
 using axionpro.application.Features.TenantIndustryCmd.Handlers;
@@ -29,8 +36,13 @@ namespace axionpro.api.Controllers.TenantIndustry
 
 
         /// <summary>
-        /// get all industry.
+        /// Get All Tenant By Subscription ID.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to get all tenant by subscription id.
+        /// </remarks>
+        /// <param name="planId">The query parameters used to get all tenant by subscription id.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-industries")]
         public async Task<IActionResult> GetAllTenantBySubscriptionIdAsync([FromQuery] int planId)
         {
@@ -41,8 +53,13 @@ namespace axionpro.api.Controllers.TenantIndustry
         }
 
         /// <summary>
-        /// get tenant subscription plan detail.
+        /// Get Tenant Subscription Plan Info.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to get tenant subscription plan info.
+        /// </remarks>
+        /// <param name="code">The query parameters used to get tenant subscription plan info.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-tenant-subscription-plan")]       
         public async Task<IActionResult> GetTenantSubscriptionPlanInfoAsync([FromQuery] TenantSubscriptionPlanRequestDTO code)
         {

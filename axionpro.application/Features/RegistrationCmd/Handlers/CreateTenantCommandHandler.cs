@@ -234,20 +234,17 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                     .Where(m => m.IsLeafNode == true)
                     .ToList();
 
-                var headerModules = subscriptionModules
-                    .Where(m => m.IsLeafNode != true && m.ParentModule == null)
-                    .ToList();
-
                 // =====================================================
                 // STEP 9 : Prepare tenant enabled modules
                 // =====================================================
-                List<TenantEnabledModule> tenantEnabledModules = headerModules
+                List<TenantEnabledModule> tenantEnabledModules = subscriptionModules
                     .Select(m => new TenantEnabledModule
                     {
                         TenantId = newTenantId,
                         ModuleId = m.Id,
-                        IsEnabled = true,
                         ParentModuleId = m.ParentModuleId,
+                        IsLeafNode = m.IsLeafNode,
+                        IsEnabled = true,
                         AddedById = newTenantId,
                         AddedDateTime = DateTime.UtcNow
                     })

@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Experience operations.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.DTOS.Employee.Experience;
@@ -30,6 +37,14 @@ namespace axionpro.api.Controllers.Employee
         // <summary>
         // Create new employee experience record.
         // </summary>
+        /// <summary>
+        /// Create Experience.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to create experience.
+        /// </remarks>
+        /// <param name="dto">The form data used to create experience.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("create")]       
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> CreateExperience([FromForm] CreateExperienceRequestDTO dto)
@@ -41,8 +56,13 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Get all experience records (Paginated).
+        /// Get Allexperince Info.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to get allexperince info.
+        /// </remarks>
+        /// <param name="commandDto">The query parameters used to get allexperince info.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]
         //    
         //    
@@ -57,8 +77,13 @@ namespace axionpro.api.Controllers.Employee
             
         }
         /// <summary>
-        /// Updates employee details.
+        /// Update.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to update.
+        /// </remarks>
+        /// <param name="dto">The form data used to update.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("update")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Update([FromForm] UpdateExperienceRequestDTO dto)
@@ -71,8 +96,13 @@ namespace axionpro.api.Controllers.Employee
             
         }
         /// <summary>
-        /// Deletes employee education record by Id.
+        /// Delete.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to delete.
+        /// </remarks>
+        /// <param name="dto">The query parameters used to delete.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]
         public async Task<IActionResult> Delete([FromQuery] DeleteRequestDTO dto)
         {
@@ -88,8 +118,13 @@ namespace axionpro.api.Controllers.Employee
 
         }
         /// <summary>
-        /// Deletes employee education record by Id.
+        /// Delete Doc.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to delete doc.
+        /// </remarks>
+        /// <param name="dto">The query parameters used to delete doc.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete-doc")]
         public async Task<IActionResult> DeleteDoc([FromQuery] DeleteRequestDTO dto)
         {

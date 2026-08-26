@@ -1,4 +1,11 @@
-﻿
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Sensitive operations.
+// ================================================================
+
+
 using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.DTOS.Employee.Sensitive;
 using axionpro.application.DTOS.StoreProcedures;
@@ -26,9 +33,14 @@ namespace axionpro.api.Controllers.Employee
             _logger = logger;
         }
 
-        /// <summary>
-        /// Create new employee personal info record.
-        /// </summary>
+         /// <summary>
+         /// Createpersonalinfo.
+         /// </summary>
+         /// <remarks>
+         /// Handles the request to createpersonalinfo.
+         /// </remarks>
+         /// <param name="dto">The form data used to createpersonalinfo.</param>
+         /// <returns>An HTTP response containing the result of the operation.</returns>
         
          [HttpPost("Create")]         
         public async Task<IActionResult> Createpersonalinfo([FromForm] CreateEmployeeIdentityRequestDTO dto)
@@ -43,8 +55,13 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Get all personal info records (Paginated).
+        /// Get Sensitive Data.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to get sensitive data.
+        /// </remarks>
+        /// <param name="commandDto">The query parameters used to get sensitive data.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]        
         public async Task<IActionResult> GetSensitiveData([FromQuery] GetIdentityRequestDTO commandDto)
         {

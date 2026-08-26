@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.InsurancePolicy;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Insurance operations.
+// ================================================================
+
+using axionpro.application.DTOS.InsurancePolicy;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Features.InsuranceInfo.Handlers;
 using axionpro.application.Interfaces.ILogger;
@@ -23,6 +30,14 @@ namespace axionpro.api.Controllers.Insurance
         }
 
         // 🔹 CREATE INSURANCE POLICY
+        /// <summary>
+        /// Create.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to create.
+        /// </remarks>
+        /// <param name="dto">The request body used to create.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("create")]  
         public async Task<IActionResult> Create(
             [FromBody] CreateInsurancePolicyRequestDTO dto)
@@ -38,6 +53,14 @@ namespace axionpro.api.Controllers.Insurance
         }
 
         // 🔹 GET INSURANCE LIST (GRID)
+        /// <summary>
+        /// Get List.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get list.
+        /// </remarks>
+        /// <param name="requestDto">The query parameters used to get list.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-ddl")]     
         
         public async Task<IActionResult> GetList(
@@ -53,6 +76,14 @@ namespace axionpro.api.Controllers.Insurance
         }
 
         // 🔹 GET INSURANCE LIST (GRID)
+        /// <summary>
+        /// Get Detail List.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get detail list.
+        /// </remarks>
+        /// <param name="requestDto">The query parameters used to get detail list.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-detail-ddl")]     
         
         public async Task<IActionResult> GetDetailList(
@@ -68,6 +99,14 @@ namespace axionpro.api.Controllers.Insurance
         }
 
         // 🔹 GET INSURANCE LIST (GRID)
+        /// <summary>
+        /// Get List.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get list.
+        /// </remarks>
+        /// <param name="requestDto">The query parameters used to get list.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-all")]        
         public async Task<IActionResult> GetList(
             [FromQuery] GetInsurancePolicyRequestDTO requestDto)
@@ -80,6 +119,14 @@ namespace axionpro.api.Controllers.Insurance
            }
 
         // 🔹 DELETE INSURANCE POLICY
+        /// <summary>
+        /// Delete.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to delete.
+        /// </remarks>
+        /// <param name="requestDto">The query parameters used to delete.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]        
         public async Task<IActionResult> Delete(
             [FromQuery] DeleteInsurancePolicyRequestDTO requestDto)
@@ -93,6 +140,14 @@ namespace axionpro.api.Controllers.Insurance
         }
 
         // 🔹 UPDATE INSURANCE POLICY
+        /// <summary>
+        /// Update.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to update.
+        /// </remarks>
+        /// <param name="requestDto">The request body used to update.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPut("update")]        
         public async Task<IActionResult> Update(
             [FromBody] UpdateInsurancePolicyRequestDTO requestDto)

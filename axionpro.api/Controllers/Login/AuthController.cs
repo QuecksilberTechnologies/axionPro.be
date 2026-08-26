@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOs.PageTypeEnum;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Auth operations.
+// ================================================================
+
+using axionpro.application.DTOs.PageTypeEnum;
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.DTOS.Token;
 using axionpro.application.DTOS.Token.ems.application.DTOs.UserLogin;
@@ -28,6 +35,14 @@ namespace axionpro.api.Controllers.Login
             _mediator = mediator;
             _logger = logger;
         }
+        /// <summary>
+        /// Login.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to login.
+        /// </remarks>
+        /// <param name="logindto">The request body used to login.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
        
 
         [HttpPost("login")]       
@@ -42,6 +57,14 @@ namespace axionpro.api.Controllers.Login
             }
            return Ok(result);
         }
+        /// <summary>
+        /// Refresh Token.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to refresh token.
+        /// </remarks>
+        /// <param name="request">The request body used to refresh token.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("refresh-token")]    
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDTO request)
         {
@@ -131,6 +154,14 @@ namespace axionpro.api.Controllers.Login
 
 
         // ...
+        /// <summary>
+        /// Set Login Password.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to set login password.
+        /// </remarks>
+        /// <param name="request">The request body used to set login password.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
 
         [HttpPost("update-login-password")]
                 
@@ -144,6 +175,14 @@ namespace axionpro.api.Controllers.Login
             
 
         }
+        /// <summary>
+        /// Create New Login Password URL.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to create new login password url.
+        /// </remarks>
+        /// <param name="request">The request body used to create new login password url.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("resend-credential")]        
         public async Task<IActionResult> CreateNewLoginPasswordURL([FromBody] SetNewPasswordLinkRequestDTO request)
         {
@@ -157,6 +196,14 @@ namespace axionpro.api.Controllers.Login
                 return Ok(result);
             
         }
+        /// <summary>
+        /// Create Login Password.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to create login password.
+        /// </remarks>
+        /// <param name="request">The request body used to create login password.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("create-new-password")]                
         public async Task<IActionResult> CreateLoginPassword([FromBody] NewLoginPasswordRequestDTO request)
         {
@@ -188,6 +235,14 @@ namespace axionpro.api.Controllers.Login
         //        return StatusCode(500, "An error occurred while fetching page types.");
         //    }
         //}
+        /// <summary>
+        /// Enter Login ID.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to enter login id.
+        /// </remarks>
+        /// <param name="request">The request body used to enter login id.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
 
 
         [HttpPost("forgot-password")]       
@@ -233,6 +288,14 @@ namespace axionpro.api.Controllers.Login
 
 
         //}
+        /// <summary>
+        /// Validate Forgot Password Otp.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to validate forgot password otp.
+        /// </remarks>
+        /// <param name="request">The request body used to validate forgot password otp.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
 
 
         [HttpPost("validate-forgot-password-otp")]    

@@ -42,10 +42,14 @@ public sealed class TenantUserAccessController : ControllerBase
     #region Tenant Access Endpoints
 
     /// <summary>
-    /// Retrieves the authenticated employee's current Tenant-scoped operational navigation and allowed module operations.
+    /// Get Bootstrap.
     /// </summary>
-    /// <param name="cancellationToken">Token used to cancel the asynchronous request.</param>
-    /// <returns>The current effective Tenant access bootstrap.</returns>
+    /// <remarks>
+    /// Handles the request to get bootstrap.
+    /// Requires an authenticated user.
+    /// </remarks>
+    /// <param name="cancellationToken">The token used to cancel the request.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("bootstrap")]
     public async Task<IActionResult> GetBootstrap(CancellationToken cancellationToken)
     {

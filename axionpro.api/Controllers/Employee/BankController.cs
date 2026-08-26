@@ -1,4 +1,11 @@
-﻿
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Bank operations.
+// ================================================================
+
+
 
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.Bank;
@@ -35,10 +42,13 @@ namespace axionpro.api.Controllers.Employee
 
 
         /// <summary>
-        /// Creates a new employee record.
+        /// Create Bank Info.
         /// </summary>
-        /// <param name="DTO"></param>
-        /// <param name="Dto">Employee-Bank details</param>
+        /// <remarks>
+        /// Handles the request to create bank info.
+        /// </remarks>
+        /// <param name="Dto">The form data used to create bank info.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("create")]        
         public async Task<IActionResult> CreateBankInfo([FromForm] CreateBankRequestDTO Dto)
         {
@@ -65,8 +75,13 @@ namespace axionpro.api.Controllers.Employee
  
 
         /// <summary>
-        /// Get all employees based on TenantId or filters.
+        /// Get Bankinfo.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to get bankinfo.
+        /// </remarks>
+        /// <param name="requestDto">The query parameters used to get bankinfo.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]
         
         
@@ -84,8 +99,13 @@ namespace axionpro.api.Controllers.Employee
           
      
         /// <summary>
-        /// Deletes employee bank info record by Id.
+        /// Delete.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to delete.
+        /// </remarks>
+        /// <param name="dto">The query parameters used to delete.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]
                 public async Task<IActionResult> Delete([FromQuery] DeleteBankRequestDTO dto)
        
@@ -101,8 +121,13 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Updates employee details.
+        /// Update.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to update.
+        /// </remarks>
+        /// <param name="dto">The form data used to update.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("update")]
         public async Task<IActionResult> Update([FromForm] UpdateBankReqestDTO dto)
         {

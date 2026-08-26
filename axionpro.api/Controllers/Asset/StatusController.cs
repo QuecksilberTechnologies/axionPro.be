@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.AssetDTO.status;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Status operations.
+// ================================================================
+
+using axionpro.application.DTOS.AssetDTO.status;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.Features.AssetFeatures.Status.Handlers;
 using axionpro.application.Interfaces.ILogger;
@@ -31,10 +38,13 @@ namespace axionpro.api.Controllers.Asset
 
  
         /// <summary>
-        /// Retrieves all asset statuses based on tenant context or filters.
+        /// Get By ID Asset Status.
         /// </summary>
-        /// <param name="request">Request DTO containing filter criteria.</param>
-        /// <returns>Returns a list of asset statuses.</returns>
+        /// <remarks>
+        /// Handles the request to get by id asset status.
+        /// </remarks>
+        /// <param name="request">The query parameters used to get by id asset status.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]
         public async Task<IActionResult> GetByIdAssetStatus([FromQuery] GetStatusRequestDTO request)
         {
@@ -45,10 +55,13 @@ namespace axionpro.api.Controllers.Asset
         }
 
         /// <summary>
-        /// Adds a new asset status record for a tenant.
+        /// Add Asset Status.
         /// </summary>
-        /// <param name="request">Request DTO containing asset status details.</param>
-        /// <returns>Returns success message after insertion.</returns>
+        /// <remarks>
+        /// Handles the request to add asset status.
+        /// </remarks>
+        /// <param name="request">The request body used to add asset status.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("add")]
         public async Task<IActionResult> AddAssetStatus([FromBody] CreateStatusRequestDTO request)
         {
@@ -60,11 +73,13 @@ namespace axionpro.api.Controllers.Asset
         }
 
         /// <summary>
-        /// Updates an existing asset status for the given ID.
+        /// Update Asset Status.
         /// </summary>
-        /// <param name="id">Asset status ID to be updated.</param>
-        /// <param name="request">Request DTO with updated data.</param>
-        /// <returns>Returns success message after update.</returns>
+        /// <remarks>
+        /// Handles the request to update asset status.
+        /// </remarks>
+        /// <param name="request">The request body used to update asset status.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPut("update")]
         public async Task<IActionResult> UpdateAssetStatus( [FromBody] UpdateStatusRequestDTO request)
         {
@@ -77,10 +92,13 @@ namespace axionpro.api.Controllers.Asset
         }
 
         /// <summary>
-        /// Deletes an existing asset status record.
+        /// Delete Asset Status.
         /// </summary>
-        /// <param name="request">Request DTO containing ID of status to delete.</param>
-        /// <returns>Returns success message after deletion.</returns>
+        /// <remarks>
+        /// Handles the request to delete asset status.
+        /// </remarks>
+        /// <param name="request">The query parameters used to delete asset status.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]    
         
         public async Task<IActionResult> DeleteAssetStatus([FromQuery] DeleteStatusReqestDTO request)
@@ -96,4 +114,3 @@ namespace axionpro.api.Controllers.Asset
         #endregion
     }
 }
- 

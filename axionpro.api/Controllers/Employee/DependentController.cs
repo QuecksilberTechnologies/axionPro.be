@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Common;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Dependent operations.
+// ================================================================
+
+using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.Dependent;
 using axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers;
@@ -33,10 +40,13 @@ namespace axionpro.api.Controllers.Employee
 
 
         /// <summary>
-        /// Creates a new Employee Dependent record.
+        /// Create Dependent Info.
         /// </summary>
-        /// <param name="DTO"></param>
-        /// <param name="Dto">Employee-Dependent details</param>
+        /// <remarks>
+        /// Handles the request to create dependent info.
+        /// </remarks>
+        /// <param name="Dto">The form data used to create dependent info.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("create")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> CreateDependentInfo([FromForm] CreateDependentRequestDTO Dto)
@@ -60,8 +70,13 @@ namespace axionpro.api.Controllers.Employee
 
 
         /// <summary>
-        /// Get all employee-Dependent based on TenantId or filters.
+        /// Getinfo.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to getinfo.
+        /// </remarks>
+        /// <param name="requestDto">The query parameters used to getinfo.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]    
         public async Task<IActionResult> Getinfo([FromQuery] GetDependentRequestDTO requestDto)
         {
@@ -75,8 +90,13 @@ namespace axionpro.api.Controllers.Employee
            
         }
         /// <summary>
-        /// Get all employee-Dependent based on TenantId or filters.
+        /// Get In Detail.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to get in detail.
+        /// </remarks>
+        /// <param name="requestDto">The query parameters used to get in detail.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-in-detail")]    
         public async Task<IActionResult> GetInDetail([FromQuery] GetDependentRequestDTO requestDto)
         {
@@ -92,8 +112,13 @@ namespace axionpro.api.Controllers.Employee
         
 
       /// <summary>
-      /// Deletes employee education record by Id. 
+      /// Delete.
       /// </summary>
+      /// <remarks>
+      /// Handles the request to delete.
+      /// </remarks>
+      /// <param name="dto">The query parameters used to delete.</param>
+      /// <returns>An HTTP response containing the result of the operation.</returns>
       [HttpDelete("delete")]               
         public async Task<IActionResult> Delete([FromQuery] DeleteRequestDTO dto)
         {
@@ -113,8 +138,13 @@ namespace axionpro.api.Controllers.Employee
 
 
         /// <summary>
-        /// Updates employee details.
+        /// Update.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to update.
+        /// </remarks>
+        /// <param name="dto">The form data used to update.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("update")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Update([FromForm] UpdateDependentRequestDTO dto)

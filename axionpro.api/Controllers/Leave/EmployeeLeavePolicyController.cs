@@ -1,4 +1,11 @@
-﻿
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Employee Leave Policy operations.
+// ================================================================
+
+
 
 using axionpro.application.DTOs.Leave;
 using axionpro.application.DTOS.EmployeeLeavePolicyMap;
@@ -23,6 +30,14 @@ namespace axionpro.api.Controllers.Leave
             _logger = logger;
         }
         // ✅ Map EmployeeLeavePolicyMapping 
+        /// <summary>
+        /// Map Employeey.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to map employeey.
+        /// </remarks>
+        /// <param name="requestDTO">The request body used to map employeey.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("add")]     
         
         public async Task<IActionResult> MapEmployeeyAsync([FromBody] AddLeaveBalanceToEmployeeRequestDTO requestDTO)
@@ -33,6 +48,14 @@ namespace axionpro.api.Controllers.Leave
             return Ok(result);
         }
         // ✅ Map EmployeeLeavePolicyMapping 
+        /// <summary>
+        /// Update Employeey.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to update employeey.
+        /// </remarks>
+        /// <param name="requestDTO">The request body used to update employeey.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("LeaveBalance/update")]        
         public async Task<IActionResult> UpdateEmployeeyAsync([FromBody] UpdateLeaveBalanceToEmployeeRequestDTO requestDTO)
         {
@@ -44,6 +67,14 @@ namespace axionpro.api.Controllers.Leave
         }
 
         // ✅ Map EmployeeLeavePolicyMapping 
+        /// <summary>
+        /// Map Employeey.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to map employeey.
+        /// </remarks>
+        /// <param name="requestDTO">The request body used to map employeey.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("map")]       
         public async Task<IActionResult> MapEmployeeyAsync([FromBody] CreateEmployeeLeavePolicyMappingRequestDTO requestDTO)
         {
@@ -54,6 +85,14 @@ namespace axionpro.api.Controllers.Leave
         }
 
         //  ✅ Get All Employee mapped EmployeeLeavePolicyMapping
+        /// <summary>
+        /// Get All Leave Policies.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get all leave policies.
+        /// </remarks>
+        /// <param name="getLeavePolicyRequestDTO">The query parameters used to get all leave policies.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("Mapped/Leave/Policy/get")]        
         public async Task<IActionResult> GetAllLeavePoliciesAsync([FromQuery] GetLeaveTypeWithPolicyMappingRequestDTO getLeavePolicyRequestDTO)
         {
@@ -63,6 +102,14 @@ namespace axionpro.api.Controllers.Leave
             return Ok(result);
         }
         //  ✅ Get All Employee mapped EmployeeLeavePolicyMapping
+        /// <summary>
+        /// Get All Employee Leave Policies.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get all employee leave policies.
+        /// </remarks>
+        /// <param name="requestDTO">The query parameters used to get all employee leave policies.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("EmployeeLeavePolicy/Mapped/get")]             
         public async Task<IActionResult> GetAllEmployeeLeavePoliciesAsync([FromQuery] GetEmployeeLeavePolicyMappingRequestDTO requestDTO)
         {
@@ -72,7 +119,14 @@ namespace axionpro.api.Controllers.Leave
             return Ok(result);
         }
 
-        //// ✅ Update EmployeeLeavePolicyMapping
+        /// <summary>
+        /// Update Leave Policy.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to update leave policy.
+        /// </remarks>
+        /// <param name="requestDTO">The request body used to update leave policy.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("update")]       
         
         public async Task<IActionResult> UpdateLeavePolicyAsync([FromBody] UpdateEmployeeLeavePolicyMappingRequestDTO requestDTO)

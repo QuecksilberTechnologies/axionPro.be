@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOs.Leave;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Leave Rule operations.
+// ================================================================
+
+using axionpro.application.DTOs.Leave;
 using axionpro.application.DTOs.Leave.LeaveRule;
  
 using axionpro.application.Features.LeaveRuleCmd.Commands;
@@ -23,6 +30,14 @@ namespace axionpro.api.Controllers.Leave
         }
 
         // ✅ Create PolicyMappingLeaveType
+        /// <summary>
+        /// Create Leave Rule.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to create leave rule.
+        /// </remarks>
+        /// <param name="requestDTO">The request body used to create leave rule.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("create")]        
         public async Task<IActionResult> CreateLeaveRuleAsync([FromBody] CreateLeaveRuleDTORequest requestDTO)
         {
@@ -33,6 +48,14 @@ namespace axionpro.api.Controllers.Leave
         }
 
         //  ✅ Get All LeavePolicies
+        /// <summary>
+        /// Get All Leave Rule.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get all leave rule.
+        /// </remarks>
+        /// <param name="getLeavePolicyRequestDTO">The query parameters used to get all leave rule.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]        
         public async Task<IActionResult> GetAllLeaveRuleAsync([FromQuery] GetLeaveRuleRequestDTO getLeavePolicyRequestDTO)
         {
@@ -43,6 +66,14 @@ namespace axionpro.api.Controllers.Leave
             return Ok(result);
         }
         //  ✅ Get All leave rule sandwich 
+        /// <summary>
+        /// Get All Leave Rule Sandwich.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get all leave rule sandwich.
+        /// </remarks>
+        /// <param name="getLeavePolicyRequestDTO">The query parameters used to get all leave rule sandwich.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("LeaveRule/Sandwich/get")]       
         
         public async Task<IActionResult> GetAllLeaveRuleSandwichAsync([FromQuery] GetLeaveRuleRequestDTO getLeavePolicyRequestDTO)
@@ -54,7 +85,14 @@ namespace axionpro.api.Controllers.Leave
             return Ok(result);
         }
 
-        //// ✅ Update LeavePolicy
+        /// <summary>
+        /// Update Leave Policy.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to update leave policy.
+        /// </remarks>
+        /// <param name="requestDTO">The request body used to update leave policy.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("update")]    
         
         public async Task<IActionResult> UpdateLeavePolicyAsync([FromBody] UpdateLeaveRuleRequestDTO requestDTO)
@@ -65,6 +103,14 @@ namespace axionpro.api.Controllers.Leave
 
             return Ok(result);
         }
+        /// <summary>
+        /// Delete Leave Policy.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to delete leave policy.
+        /// </remarks>
+        /// <param name="request">The request body used to delete leave policy.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("delete")]      
         
         // [Authorize]

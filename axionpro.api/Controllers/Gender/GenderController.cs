@@ -1,4 +1,11 @@
-﻿using axionpro.api.Controllers.Leave;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Gender operations.
+// ================================================================
+
+using axionpro.api.Controllers.Leave;
 using axionpro.application.DTOs.Gender;
 using axionpro.application.DTOs.Leave;
 using axionpro.application.DTOS.Common;
@@ -28,8 +35,13 @@ namespace axionpro.api.Controllers.Gender
         }
 
         /// <summary>
-        /// Get all designation.
+        /// get Gender.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to get gender.
+        /// </remarks>
+        /// <param name="requestDTO">The query parameters used to get gender.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("option")]               
         public async Task<IActionResult> getGender([FromQuery] GetOptionRequestDTO requestDTO)
         {
@@ -42,6 +54,14 @@ namespace axionpro.api.Controllers.Gender
         }
 
         //  ✅ Get All Gender 
+        /// <summary>
+        /// Get All Gender.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get all gender.
+        /// </remarks>
+        /// <param name="getGenderRequestDTO">The query parameters used to get all gender.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]       
         public async Task<IActionResult> GetAllGenderAsync([FromQuery] GetGenderRequestDTO? getGenderRequestDTO)
         {

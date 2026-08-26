@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.TicketDTO.Header;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Ticket Header operations.
+// ================================================================
+
+using axionpro.application.DTOS.TicketDTO.Header;
 using axionpro.application.DTOS.TicketDTO.TicketType;
 using axionpro.application.Features.TickeAllCmd.TicketHeader.Handlers;
 using axionpro.application.Features.TickeAllCmd.TicketType.Handlers;
@@ -29,11 +36,14 @@ namespace axionpro.api.Controllers.Ticket
         // ----------------------------------------------------------------------------------------------------
         // 1️⃣ CREATE - Add new Ticket Header
         // ----------------------------------------------------------------------------------------------------
-        /// <summary>
-        /// Creates a new Ticket Header record.
-        /// </summary>
-        /// <param name="dto">Ticket header data to be created.</param>
-        /// <returns>Returns the created Ticket Header with a success message.</returns>
+           /// <summary>
+           /// Create Header.
+           /// </summary>
+           /// <remarks>
+           /// Handles the request to create header.
+           /// </remarks>
+           /// <param name="dto">The request body used to create header.</param>
+           /// <returns>An HTTP response containing the result of the operation.</returns>
            [HttpPost("create")] 
          public async Task<IActionResult> CreateHeader([FromBody] AddHeaderRequestDTO dto)
          {
@@ -48,26 +58,13 @@ namespace axionpro.api.Controllers.Ticket
         // 2️⃣ READ - Get all Ticket Headers with filters
         // ----------------------------------------------------------------------------------------------------
         /// <summary>
-        /// 🔍 Retrieves Ticket Headers based on provided filters.
+        /// Get All Header Filter.
         /// </summary>
         /// <remarks>
-        /// This API supports multiple optional filters for flexible querying.  
-        /// Provide only the parameters you want to filter by.
-        /// <br/><br/>
-        /// <b>Available Filters:</b><br/>
-        /// - <b>TenantId</b> (required): Fetch headers under a specific tenant. <br/>
-        /// - <b>Id</b>: Fetch a specific header by its ID. <br/>
-        /// - <b>HeaderName</b>: Filter by partial or full header name (case-insensitive). <br/>
-        /// - <b>Description</b>: Filter by description text. <br/>
-        /// - <b>IsActive</b>: Filter by active/inactive headers. <br/>
-        /// - <b>TicketClassificationId</b>: Filter by classification ID. <br/>
-        /// - <b>IsAssetRelated</b>: Filter headers related to assets. <br/>
-        /// <br/>
-        /// Example Request:  
-        /// <code>
-        /// GET /api/Ticket/Header/get-filter?TenantId=1&HeaderName=Network&IsActive=true
-        /// </code>
+        /// Handles the request to get all header filter.
         /// </remarks>
+        /// <param name="dto">The query parameters used to get all header filter.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-by-classification-id")]    
         public async Task<IActionResult> GetAllHeaderFilterAsync([FromQuery] GetTicketHeaderByClassifyIdRequestDTO dto)
         {
@@ -98,9 +95,14 @@ namespace axionpro.api.Controllers.Ticket
         // ----------------------------------------------------------------------------------------------------
         // 3️⃣ UPDATE - Modify existing Ticket Header
         // ----------------------------------------------------------------------------------------------------
-        /// <summary>
-        /// Updates the details of an existing Ticket Header.
-        /// </summary>
+          /// <summary>
+          /// Update Header.
+          /// </summary>
+          /// <remarks>
+          /// Handles the request to update header.
+          /// </remarks>
+          /// <param name="dto">The request body used to update header.</param>
+          /// <returns>An HTTP response containing the result of the operation.</returns>
           [HttpPut("update")]
 
 
@@ -133,8 +135,13 @@ namespace axionpro.api.Controllers.Ticket
         // 4️⃣ DELETE - Soft delete Ticket Header
         // ----------------------------------------------------------------------------------------------------
         /// <summary>
-        /// Soft deletes a Ticket Header based on its unique ID.
+        /// Delete Ticket Header.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to delete ticket header.
+        /// </remarks>
+        /// <param name="dto">The request body used to delete ticket header.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]
  
         public async Task<IActionResult> DeleteTicketHeader([FromBody]  DeleteHeaderRequestDTO dto)

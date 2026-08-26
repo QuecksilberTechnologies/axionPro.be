@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.Employee.Bank;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Education operations.
+// ================================================================
+
+using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers;
 using axionpro.application.Interfaces.ILogger;
@@ -24,8 +31,13 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Create new employee education record.
+        /// Create Employee.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to create employee.
+        /// </remarks>
+        /// <param name="dto">The form data used to create employee.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("create")]        
         public async Task<IActionResult> CreateEmployee([FromForm] CreateEducationRequestDTO dto)
 
@@ -39,8 +51,13 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Get all education records (Paginated).
+        /// Get All Employee Info.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to get all employee info.
+        /// </remarks>
+        /// <param name="commandDto">The query parameters used to get all employee info.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")] 
         public async Task<IActionResult> GetAllEmployeeInfo([FromQuery] GetEducationRequestDTO commandDto)
         {
@@ -54,8 +71,13 @@ namespace axionpro.api.Controllers.Employee
 
         
        /// <summary>
-       /// Deletes employee education record by Id.
+       /// Delete.
        /// </summary>
+       /// <remarks>
+       /// Handles the request to delete.
+       /// </remarks>
+       /// <param name="dto">The query parameters used to delete.</param>
+       /// <returns>An HTTP response containing the result of the operation.</returns>
        [HttpDelete("delete")]
         public async Task<IActionResult> Delete([FromQuery] DeleteEducationRequestDTO dto)
         {
@@ -71,8 +93,13 @@ namespace axionpro.api.Controllers.Employee
           
         }
         /// <summary>
-        /// Updates employee details.
+        /// Update Education.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to update education.
+        /// </remarks>
+        /// <param name="dto">The dto used to update education.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("update-education")]     
         public async Task<IActionResult> UpdateEducation(UpdateEducationRequestDTO dto)
 

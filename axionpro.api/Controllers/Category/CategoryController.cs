@@ -1,4 +1,11 @@
-﻿
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Category operations.
+// ================================================================
+
+
 using axionpro.application.DTOs.Category;
 
 
@@ -23,6 +30,14 @@ namespace axionpro.api.Controllers.Category
             _mediator = mediator;
             _logger = logger;
         }
+        /// <summary>
+        /// Get All Main Categories.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get all main categories.
+        /// </remarks>
+        /// <param name="categoryRequestDTO">The request body used to get all main categories.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("get")]   
         
         public async Task<IActionResult> GetAllMainCategories([FromBody] CategoryRequestDTO? categoryRequestDTO)
@@ -50,6 +65,14 @@ namespace axionpro.api.Controllers.Category
         //    }
         //    return Ok(result);
         //}
+        /// <summary>
+        /// Get All Main Child Categories.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get all main child categories.
+        /// </remarks>
+        /// <param name="categoryRequestDTO">The request body used to get all main child categories.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
 
 
         [HttpPost("getallmainchildcategory")]    

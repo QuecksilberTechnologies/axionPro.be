@@ -65,6 +65,7 @@ public class UnitOfWork : IUnitOfWork
     private ITenantEmailConfigRepository? _tenantEmailConfigRepository;
     private IHolidayCalandarRepository? _holidayCalandarRepository;
     private ITenantModuleConfigurationRepository? _tenantModuleConfigurationRepository;
+    private ITenantParentModuleRepository? _tenantParentModuleRepository;
     private IPlanModuleMappingRepository? _planModuleMappingRepository;
     private ILeaveRepository? _leaveRepository;
     private ITicketTypeRepository? _ticketTypeRepository;
@@ -386,6 +387,9 @@ public class UnitOfWork : IUnitOfWork
 
     public ITenantModuleConfigurationRepository TenantModuleConfigurationRepository =>
         _tenantModuleConfigurationRepository ??= new TenantModuleConfigurationRepository(_context, _loggerFactory.CreateLogger<TenantModuleConfigurationRepository>(), _mapper);
+
+    public ITenantParentModuleRepository TenantParentModuleRepository =>
+        _tenantParentModuleRepository ??= new TenantParentModuleRepository(_context);
 
     public IReportingTypeRepository ReportingTypeRepository =>
         _reportingTypeRepository ??= new ReportingTypeRepository(_context, _loggerFactory.CreateLogger<ReportingTypeRepository>(), _mapper);

@@ -37,10 +37,14 @@ namespace axionpro.api.Controllers.Host
     }
 
         /// <summary>
-        /// Creates a Host user.
+        /// Create Host User.
         /// </summary>
-        /// <param name="tenantCreateRequestDTO">The Host-user creation request.</param>
-        /// <returns>The created Host-user response.</returns>
+        /// <remarks>
+        /// Handles the request to create host user.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="tenantCreateRequestDTO">The request body used to create host user.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("create-host-user")]
         public async Task<IActionResult> CreateHostUser([FromBody] CreateHostUserRequestDTO tenantCreateRequestDTO)
         {
@@ -51,10 +55,14 @@ namespace axionpro.api.Controllers.Host
             return Ok(result);
         }
         /// <summary>
-        /// Creates a Host role.
+        /// Create Host Role.
         /// </summary>
-        /// <param name="hostRoleRequestDTO">The Host-role creation request.</param>
-        /// <returns>The created Host-role response.</returns>
+        /// <remarks>
+        /// Handles the request to create host role.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="hostRoleRequestDTO">The request body used to create host role.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("create-host-role")]
         public async Task<IActionResult> CreateHostRole( [FromBody] CreateHostRoleRequestDTO hostRoleRequestDTO)
         {
@@ -71,10 +79,14 @@ namespace axionpro.api.Controllers.Host
         #region Host User CRUD
 
         /// <summary>
-        /// Retrieves a host user by identifier.
+        /// Get Host User By ID.
         /// </summary>
-        /// <param name="id">The host-user identifier.</param>
-        /// <returns>An HTTP response containing the requested host user.</returns>
+        /// <remarks>
+        /// Handles the request to get host user by id.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="id">The identifier supplied in the route.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-host-user-by-id/{id}")]
         public async Task<IActionResult> GetHostUserById(long id)
         {
@@ -88,12 +100,16 @@ namespace axionpro.api.Controllers.Host
         }
 
         /// <summary>
-        /// Retrieves filtered and database-paged host users.
+        /// Get All Host Users.
         /// </summary>
-        /// <param name="isActive">When supplied, filters users by active status.</param>
-        /// <param name="pageNumber">The one-based page number.</param>
-        /// <param name="pageSize">The requested number of rows per page.</param>
-        /// <returns>An HTTP response containing the requested Host-user page.</returns>
+        /// <remarks>
+        /// Handles the request to get all host users.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="isActive">The query parameters used to get all host users.</param>
+        /// <param name="pageNumber">The query parameters used to get all host users.</param>
+        /// <param name="pageSize">The query parameters used to get all host users.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-all-host-users")]
         public async Task<IActionResult> GetAllHostUsers(
             [FromQuery] bool? isActive = null,
@@ -109,10 +125,14 @@ namespace axionpro.api.Controllers.Host
         }
 
         /// <summary>
-        /// Updates editable details for a host user.
+        /// Update Host User.
         /// </summary>
-        /// <param name="requestDTO">The host-user details to update.</param>
-        /// <returns>An HTTP response containing the updated host user.</returns>
+        /// <remarks>
+        /// Handles the request to update host user.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="requestDTO">The request body used to update host user.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("update-host-user")]
         public async Task<IActionResult> UpdateHostUser(
             [FromBody] UpdateHostUserRequestDTO requestDTO)
@@ -127,10 +147,14 @@ namespace axionpro.api.Controllers.Host
         }
 
         /// <summary>
-        /// Soft deletes a host user.
+        /// Delete Host User.
         /// </summary>
-        /// <param name="requestDTO">The host-user identifier to delete.</param>
-        /// <returns>An HTTP response indicating whether the host user was soft deleted.</returns>
+        /// <remarks>
+        /// Handles the request to delete host user.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="requestDTO">The request body used to delete host user.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("delete-host-user")]
         public async Task<IActionResult> DeleteHostUser(
             [FromBody] DeleteHostUserRequestDTO requestDTO)
@@ -149,10 +173,14 @@ namespace axionpro.api.Controllers.Host
         #region Host User Password Management
 
         /// <summary>
-        /// Changes a host user's password after verifying the old password.
+        /// Change Host User Password.
         /// </summary>
-        /// <param name="requestDTO">The password-change details.</param>
-        /// <returns>An HTTP response indicating whether the password was changed.</returns>
+        /// <remarks>
+        /// Handles the request to change host user password.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="requestDTO">The request body used to change host user password.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("change-host-user-password")]
         public async Task<IActionResult> ChangeHostUserPassword(
             [FromBody] ChangeHostUserPasswordRequestDTO requestDTO)
@@ -167,10 +195,14 @@ namespace axionpro.api.Controllers.Host
         }
 
         /// <summary>
-        /// Resets a host user's password without requiring the old password.
+        /// Reset Host User Password.
         /// </summary>
-        /// <param name="requestDTO">The password-reset details.</param>
-        /// <returns>An HTTP response indicating whether the password was reset.</returns>
+        /// <remarks>
+        /// Handles the request to reset host user password.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="requestDTO">The request body used to reset host user password.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("reset-host-user-password")]
         public async Task<IActionResult> ResetHostUserPassword(
             [FromBody] ResetHostUserPasswordRequestDTO requestDTO)
@@ -189,10 +221,14 @@ namespace axionpro.api.Controllers.Host
         #region Host Role CRUD
 
         /// <summary>
-        /// Retrieves a host role by identifier.
+        /// Get Host Role By ID.
         /// </summary>
-        /// <param name="id">The host-role identifier.</param>
-        /// <returns>An HTTP response containing the requested host role.</returns>
+        /// <remarks>
+        /// Handles the request to get host role by id.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="id">The identifier supplied in the route.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-host-role-by-id/{id}")]
         public async Task<IActionResult> GetHostRoleById(long id)
         {
@@ -206,9 +242,13 @@ namespace axionpro.api.Controllers.Host
         }
 
         /// <summary>
-        /// Retrieves all host roles.
+        /// Get All Host Roles.
         /// </summary>
-        /// <returns>An HTTP response containing all host roles.</returns>
+        /// <remarks>
+        /// Handles the request to get all host roles.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-all-host-roles")]
         public async Task<IActionResult> GetAllHostRoles()
         {
@@ -221,10 +261,14 @@ namespace axionpro.api.Controllers.Host
         }
 
         /// <summary>
-        /// Updates editable details for a host role.
+        /// Update Host Role.
         /// </summary>
-        /// <param name="requestDTO">The host-role details to update.</param>
-        /// <returns>An HTTP response containing the updated host role.</returns>
+        /// <remarks>
+        /// Handles the request to update host role.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="requestDTO">The request body used to update host role.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("update-host-role")]
         public async Task<IActionResult> UpdateHostRole(
             [FromBody] UpdateHostRoleRequestDTO requestDTO)
@@ -239,10 +283,14 @@ namespace axionpro.api.Controllers.Host
         }
 
         /// <summary>
-        /// Soft deletes a host role.
+        /// Delete Host Role.
         /// </summary>
-        /// <param name="requestDTO">The host-role identifier to delete.</param>
-        /// <returns>An HTTP response indicating whether the host role was soft deleted.</returns>
+        /// <remarks>
+        /// Handles the request to delete host role.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="requestDTO">The request body used to delete host role.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("delete-host-role")]
         public async Task<IActionResult> DeleteHostRole(
             [FromBody] DeleteHostRoleRequestDTO requestDTO)
@@ -261,12 +309,16 @@ namespace axionpro.api.Controllers.Host
         #region Host Module Queries
 
         /// <summary>
-        /// Retrieves modules that belong to the Host application scope.
+        /// Get Host Modules.
         /// </summary>
-        /// <param name="isActive">When supplied, filters Host modules by their active state.</param>
-        /// <param name="pageNumber">The one-based page number.</param>
-        /// <param name="pageSize">The requested number of rows per page.</param>
-        /// <returns>An HTTP response containing the requested Host-module page.</returns>
+        /// <remarks>
+        /// Handles the request to get host modules.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="isActive">The query parameters used to get host modules.</param>
+        /// <param name="pageNumber">The query parameters used to get host modules.</param>
+        /// <param name="pageSize">The query parameters used to get host modules.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-host-modules")]
         public async Task<IActionResult> GetHostModules(
             [FromQuery] bool? isActive = null,
@@ -282,11 +334,15 @@ namespace axionpro.api.Controllers.Host
         }
 
         /// <summary>
-        /// Retrieves one module from the Host application scope by identifier.
+        /// Get Host Module By ID.
         /// </summary>
-        /// <param name="id">The module identifier.</param>
-        /// <param name="isActive">When supplied, filters the Host module by its active state.</param>
-        /// <returns>An HTTP response containing the requested Host module.</returns>
+        /// <remarks>
+        /// Handles the request to get host module by id.
+        /// Requires an authenticated user.
+        /// </remarks>
+        /// <param name="id">The identifier supplied in the route.</param>
+        /// <param name="isActive">The query parameters used to get host module by id.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-host-module-by-id/{id:int}")]
         public async Task<IActionResult> GetHostModuleById(
             int id,

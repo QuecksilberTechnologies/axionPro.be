@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOs.EmailTemplate;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Email Template operations.
+// ================================================================
+
+using axionpro.application.DTOs.EmailTemplate;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.Features.EmailTemplateCmd.Queries;
 using axionpro.application.Interfaces.IEmail;
@@ -27,10 +34,13 @@ namespace axionpro.api.Controllers.EmailTemplate
         }
 
         /// <summary>
-        /// Get email templates by template code
+        /// Get Template By Code.
         /// </summary>
-        /// <param name="code">Template code</param>
-        /// <returns>List of matching email templates</returns>
+        /// <remarks>
+        /// Handles the request to get template by code.
+        /// </remarks>
+        /// <param name="code">The query parameters used to get template by code.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-template-by-code")]      
         public async Task<IActionResult> GetTemplateByCodeAsync([FromQuery] string code)
         {
@@ -43,8 +53,13 @@ namespace axionpro.api.Controllers.EmailTemplate
         }
 
         /// <summary>
-        /// Send email using template
+        /// Send Templated Email.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to send templated email.
+        /// </remarks>
+        /// <param name="request">The request body used to send templated email.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("send-template")]
         public async Task<IActionResult> SendTemplatedEmail([FromBody] SendEmailTemplatRequestDTO request)
         {

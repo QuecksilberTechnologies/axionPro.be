@@ -41,11 +41,14 @@ public sealed class NewLoginController : ControllerBase
     #region Authentication Endpoints
 
     /// <summary>
-    /// Authenticates a Host user or Tenant Employee and returns the applicable compact session bootstrap response.
+    /// Login.
     /// </summary>
-    /// <param name="request">The existing login request contract shared with the legacy login endpoint.</param>
-    /// <param name="cancellationToken">A token used to cancel request processing.</param>
-    /// <returns>The compact authenticated Host or Tenant Employee session response.</returns>
+    /// <remarks>
+    /// Handles the request to login.
+    /// </remarks>
+    /// <param name="request">The request body used to login.</param>
+    /// <param name="cancellationToken">The token used to cancel the request.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpPost("login")]
     public async Task<IActionResult> Login(
         [FromBody] LoginRequestDTO request,

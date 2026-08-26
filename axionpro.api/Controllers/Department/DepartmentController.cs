@@ -34,10 +34,13 @@ namespace axionpro.api.Controllers.Department
         // -------------------------------------------------------
 
         /// <summary>
-        /// Retrieves all departments based on filters such as TenantId, IsActive, and search criteria.
+        /// Get All Departments.
         /// </summary>
-        /// <param name="departmentRequestDTO">Filter criteria for departments.</param>
-        /// <returns>List of departments matching the filter.</returns>
+        /// <remarks>
+        /// Handles the request to get all departments.
+        /// </remarks>
+        /// <param name="departmentRequestDTO">The query parameters used to get all departments.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]
         
         
@@ -57,10 +60,13 @@ namespace axionpro.api.Controllers.Department
         // -------------------------------------------------------
 
         /// <summary>
-        /// Creates a new department entry for the given tenant.
+        /// Create Department.
         /// </summary>
-        /// <param name="createDto">Department details to create.</param>
-        /// <returns>Success or failure response with created data.</returns>
+        /// <remarks>
+        /// Handles the request to create department.
+        /// </remarks>
+        /// <param name="createDto">The request body used to create department.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("add")]
         public async Task<IActionResult> CreateDepartmentAsync([FromBody] CreateDepartmentRequestDTO createDto)
         {
@@ -83,10 +89,13 @@ namespace axionpro.api.Controllers.Department
         // -------------------------------------------------------
 
         /// <summary>
-        /// Updates an existing department's information.
+        /// Update Department.
         /// </summary>
-        /// <param name="updateDto">Updated department details.</param>
-        /// <returns>Boolean status indicating success or failure.</returns>
+        /// <remarks>
+        /// Handles the request to update department.
+        /// </remarks>
+        /// <param name="updateDto">The request body used to update department.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPut("update")]        
         public async Task<IActionResult> UpdateDepartmentAsync([FromBody] UpdateDepartmentRequestDTO updateDto)
         {
@@ -104,8 +113,13 @@ namespace axionpro.api.Controllers.Department
             return Ok(result);
         }
         /// <summary>
-        /// Get all department.
+        /// get Department.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to get department.
+        /// </remarks>
+        /// <param name="requestDTO">The query parameters used to get department.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("option")]        
         public async Task<IActionResult> getDepartment([FromQuery] GetOptionRequestDTO requestDTO)
         {
@@ -121,10 +135,13 @@ namespace axionpro.api.Controllers.Department
         // -------------------------------------------------------
 
         /// <summary>
-        /// Soft deletes (deactivates) a department based on Id and Tenant.
+        /// Delete Department.
         /// </summary>
-        /// <param name="deleteDto">Department delete request DTO.</param>
-        /// <returns>Boolean status indicating success or failure.</returns>
+        /// <remarks>
+        /// Handles the request to delete department.
+        /// </remarks>
+        /// <param name="deleteDto">The query parameters used to delete department.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]        
         public async Task<IActionResult> DeleteDepartmentAsync([FromQuery] DeleteDepartmentRequestDTO deleteDto)
         {

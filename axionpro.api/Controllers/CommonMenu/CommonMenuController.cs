@@ -42,10 +42,14 @@ public sealed class CommonMenuController : ControllerBase
     #region Common Menu Endpoints
 
     /// <summary>
-    /// Retrieves the application-wide Common menu available to the authenticated principal.
+    /// Get.
     /// </summary>
-    /// <param name="cancellationToken">Token used to cancel the asynchronous request.</param>
-    /// <returns>The shared Common navigation hierarchy.</returns>
+    /// <remarks>
+    /// Handles the request to get.
+    /// Requires an authenticated user.
+    /// </remarks>
+    /// <param name="cancellationToken">The token used to cancel the request.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet]
     public async Task<IActionResult> Get(CancellationToken cancellationToken)
     {

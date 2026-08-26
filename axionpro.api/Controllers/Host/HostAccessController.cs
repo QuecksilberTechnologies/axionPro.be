@@ -42,10 +42,14 @@ public sealed class HostAccessController : ControllerBase
     #region Host Access Endpoints
 
     /// <summary>
-    /// Retrieves the authenticated Host user's current role-based module and operation access.
+    /// Get Bootstrap.
     /// </summary>
-    /// <param name="cancellationToken">Token used to cancel the asynchronous request.</param>
-    /// <returns>The current effective Host access bootstrap.</returns>
+    /// <remarks>
+    /// Handles the request to get bootstrap.
+    /// Requires an authenticated user.
+    /// </remarks>
+    /// <param name="cancellationToken">The token used to cancel the request.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("bootstrap")]
     public async Task<IActionResult> GetBootstrap(CancellationToken cancellationToken)
     {

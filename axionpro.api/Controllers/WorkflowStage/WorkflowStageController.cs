@@ -1,4 +1,11 @@
-﻿
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Workflow Stage operations.
+// ================================================================
+
+
 using axionpro.application.DTOs.WorkflowStage;
 using axionpro.application.Features.WorkflowStage.Commands;
 using axionpro.application.Features.WorkflowStage.Queries;
@@ -37,10 +44,13 @@ namespace axionpro.api.Controllers.WorkflowStage
         // =============================================================================================
 
         /// <summary>
-        /// Creates a new workflow stage record.
+        /// Create Workflow Stage.
         /// </summary>
-        /// <param name="dto">Workflow stage creation data.</param>
-        /// <returns>Returns a response containing success status and message.</returns>
+        /// <remarks>
+        /// Handles the request to create workflow stage.
+        /// </remarks>
+        /// <param name="dto">The request body used to create workflow stage.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("create")]
         public async Task<IActionResult> CreateWorkflowStage([FromBody] CreateWorkflowStageRequestDTO dto)
         {
@@ -58,10 +68,13 @@ namespace axionpro.api.Controllers.WorkflowStage
         // =============================================================================================
 
         /// <summary>
-        /// Retrieves all workflow stages.
+        /// Get All Workflow Stages.
         /// </summary>
-        /// <param name="dto">Filter criteria (optional).</param>
-        /// <returns>Returns list of workflow stages.</returns>
+        /// <remarks>
+        /// Handles the request to get all workflow stages.
+        /// </remarks>
+        /// <param name="dto">The query parameters used to get all workflow stages.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-all")]   
         public async Task<IActionResult> GetAllWorkflowStages([FromQuery] GetWorkflowStageRequestDTO dto)
         {
@@ -81,10 +94,13 @@ namespace axionpro.api.Controllers.WorkflowStage
         // =============================================================================================
 
         /// <summary>
-        /// Retrieves details of a specific workflow stage by ID.
+        /// Get Workflow Stage By ID.
         /// </summary>
-        /// <param name="dto">DTO containing workflow stage ID.</param>
-        /// <returns>Returns workflow stage details.</returns>
+        /// <remarks>
+        /// Handles the request to get workflow stage by id.
+        /// </remarks>
+        /// <param name="dto">The query parameters used to get workflow stage by id.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]    
         public async Task<IActionResult> GetWorkflowStageById([FromQuery] GetWorkflowStageByIdRequestDTO dto)
         {
@@ -103,10 +119,13 @@ namespace axionpro.api.Controllers.WorkflowStage
         // =============================================================================================
 
         /// <summary>
-        /// Updates an existing workflow stage record.
+        /// Update Workflow Stage.
         /// </summary>
-        /// <param name="dto">Workflow stage update details.</param>
-        /// <returns>Returns a response indicating success or failure.</returns>
+        /// <remarks>
+        /// Handles the request to update workflow stage.
+        /// </remarks>
+        /// <param name="dto">The request body used to update workflow stage.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPut("update")]      
         public async Task<IActionResult> UpdateWorkflowStage([FromBody] UpdateWorkflowStageRequestDTO dto)        {
             
@@ -123,14 +142,17 @@ namespace axionpro.api.Controllers.WorkflowStage
         // =============================================================================================
 
         /// <summary>
-        /// Soft deletes a workflow stage by ID.
+        /// Delete Workflow Stage.
         /// </summary>
-        /// <param name="dto">Workflow stage ID to be deleted.</param>
-        /// <returns>Returns success or failure message.</returns>
+        /// <remarks>
+        /// Handles the request to delete workflow stage.
+        /// </remarks>
+        /// <param name="dto">The request body used to delete workflow stage.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]       
         public async Task<IActionResult> DeleteWorkflowStage([FromBody] DeleteWorkflowStageRequestDTO dto)
         {
-           
+
                 _logger.LogInformation("🗑️ Request received to delete WorkflowStage with Id = {Id}", dto.Id);
                 var result = await _mediator.Send(new DeleteWorkflowStageCommand(dto));     
                 return Ok(result);

@@ -1,4 +1,11 @@
-﻿
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Rule operations.
+// ================================================================
+
+
 using axionpro.application.DTOs.Department;
 using axionpro.application.DTOs.SandwitchRule;
 using axionpro.application.DTOs.SandwitchRule.DayCombination;
@@ -31,6 +38,14 @@ namespace axionpro.api.Controllers.SandwichRule
             _logger = logger;
         }
         #region CRUD-GET-DAY-COMBINATION BY-TENANT-ADMIN
+        /// <summary>
+        /// Get All Day Combination By Tenant User.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get all day combination by tenant user.
+        /// </remarks>
+        /// <param name="dTO">The request body used to get all day combination by tenant user.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
 
         [HttpPost("/Sandwich/DayCombination/add")]
         public async Task<IActionResult> GetAllDayCombinationByTenantUser([FromBody] CreateDayCombinationRequestDTO dTO)
@@ -43,6 +58,14 @@ namespace axionpro.api.Controllers.SandwichRule
         }
         #endregion
         #region Update--DAY-COMBINATION BY-TENANT-ADMIN
+        /// <summary>
+        /// Update Day Combination By Tenant User.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to update day combination by tenant user.
+        /// </remarks>
+        /// <param name="dto">The request body used to update day combination by tenant user.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
 
         [HttpPost("/Sandwich/DayCombination/update")]        
         public async Task<IActionResult> UpdateDayCombinationByTenantUser([FromBody] UpdateDayCombinationRequestDTO dto)
@@ -54,6 +77,14 @@ namespace axionpro.api.Controllers.SandwichRule
         }
         #endregion
         #region Update-DAY-COMBINATION BY-TENANT-ADMIN
+        /// <summary>
+        /// Delete Day Combination By Tenant User.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to delete day combination by tenant user.
+        /// </remarks>
+        /// <param name="dto">The request body used to delete day combination by tenant user.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
 
         [HttpPost("/Sandwich/DayCombination/delete")]                  
         public async Task<IActionResult> DeleteDayCombinationByTenantUser([FromBody] DeleteDayCombinationRequestDTO dto)
@@ -66,6 +97,14 @@ namespace axionpro.api.Controllers.SandwichRule
             return Ok(result);
         }
         #endregion
+        /// <summary>
+        /// Get All Day Combination By Tenant User.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get all day combination by tenant user.
+        /// </remarks>
+        /// <param name="dTO">The request body used to get all day combination by tenant user.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
 
         [HttpPost("/Sandwich/DayCombination/get")]        
         public async Task<IActionResult> GetAllDayCombinationByTenantUser([FromBody] GetDayCombinationRequestDTO dTO)
@@ -82,6 +121,14 @@ namespace axionpro.api.Controllers.SandwichRule
         #region CRUD-SANDWICH-RULE-BY-TENANT-ADMIN
 
         // 🔹 GET ALL
+        /// <summary>
+        /// Get All Sandwich Rule.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get all sandwich rule.
+        /// </remarks>
+        /// <param name="dto">The query parameters used to get all sandwich rule.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("/Sandwich/get")] 
         public async Task<IActionResult> GetAllSandwichRule([FromQuery] GetLeaveSandwitchRuleRequestDTO dto)
         { 
@@ -93,6 +140,14 @@ namespace axionpro.api.Controllers.SandwichRule
         }
 
         // 🔹 CREATE
+        /// <summary>
+        /// Create Sandwich Rule.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to create sandwich rule.
+        /// </remarks>
+        /// <param name="dto">The request body used to create sandwich rule.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("/Sandwich/add")]        
         public async Task<IActionResult> CreateSandwichRule([FromBody] CreateLeaveSandwichRuleRequestDTO dto)
         {   
@@ -103,6 +158,14 @@ namespace axionpro.api.Controllers.SandwichRule
         }
 
         // 🔹 UPDATE
+        /// <summary>
+        /// Update Sandwich Rule.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to update sandwich rule.
+        /// </remarks>
+        /// <param name="dto">The request body used to update sandwich rule.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("/Sandwich/update")]        
         public async Task<IActionResult> UpdateSandwichRule([FromBody] UpdateLeaveSandwitchRuleRequestDTO dto)
         {
@@ -116,6 +179,14 @@ namespace axionpro.api.Controllers.SandwichRule
         }
 
         // 🔹 DELETE (Soft Delete)
+        /// <summary>
+        /// Delete Sandwich Rule.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to delete sandwich rule.
+        /// </remarks>
+        /// <param name="dto">The query parameters used to delete sandwich rule.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("/Sandwich/delete")]        
         public async Task<IActionResult> DeleteSandwichRule([FromQuery] DeleteLeaveSandwitchRuleRequestDTO dto)
         {

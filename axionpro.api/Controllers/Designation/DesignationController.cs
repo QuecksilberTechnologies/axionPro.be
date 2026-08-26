@@ -36,13 +36,13 @@ namespace axionpro.api.Controllers.Designation
         }
 
         /// <summary>
-        /// Fetches all designations for a given tenant with optional filters.
+        /// Get All Designation Asyc.
         /// </summary>
-        /// <param name="designationRequestDTO">The filter criteria for fetching designations.</param>
-        /// <returns>List of matching designations wrapped in ApiResponse.</returns>
-        /// <response code="200">Successfully fetched designation list.</response>
-        /// <response code="400">Invalid request parameters.</response>
-        /// <response code="401">Unauthorized request or invalid tenant.</response>
+        /// <remarks>
+        /// Handles the request to get all designation asyc.
+        /// </remarks>
+        /// <param name="designationRequestDTO">The query parameters used to get all designation asyc.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]
         public async Task<IActionResult> GetAllDesignationAsyc([FromQuery] GetDesignationRequestDTO designationRequestDTO)
         {
@@ -54,13 +54,13 @@ namespace axionpro.api.Controllers.Designation
             return Ok(result);
         }
         /// <summary>
-        /// Fetches all department for a given tenant with optional filters.
+        /// Get All Department Asyc.
         /// </summary>
-        /// <param name="designationRequestDTO">The filter criteria for fetching departments.</param>
-        /// <returns>List of matching department wrapped in ApiResponse.</returns>
-        /// <response code="200">Successfully fetched department list.</response>
-        /// <response code="400">Invalid request parameters.</response>
-        /// <response code="401">Unauthorized request or invalid tenant.</response>
+        /// <remarks>
+        /// Handles the request to get all department asyc.
+        /// </remarks>
+        /// <param name="designationRequestDTO">The request body used to get all department asyc.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("Department/Group/get")]
         
         
@@ -76,8 +76,13 @@ namespace axionpro.api.Controllers.Designation
         }
 
         /// <summary>
-        /// Get all designation.
+        /// get Designation.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to get designation.
+        /// </remarks>
+        /// <param name="requestDTO">The query parameters used to get designation.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("option")]      
         
         public async Task<IActionResult> getDesignation([FromQuery] GetDesignationOptionRequestDTO requestDTO)
@@ -91,12 +96,13 @@ namespace axionpro.api.Controllers.Designation
         }
 
         /// <summary>
-        /// Creates a new designation for the specified tenant.
+        /// Create Designation.
         /// </summary>
-        /// <param name="dTO">Designation details to be created.</param>
-        /// <returns>Operation result wrapped in ApiResponse.</returns>
-        /// <response code="200">Designation created successfully.</response>
-        /// <response code="400">invalid request payload.</response>
+        /// <remarks>
+        /// Handles the request to create designation.
+        /// </remarks>
+        /// <param name="dTO">The request body used to create designation.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("add")]       
         
         public async Task<IActionResult> CreateDesignation([FromBody] CreateDesignationRequestDTO dTO)
@@ -116,12 +122,13 @@ namespace axionpro.api.Controllers.Designation
         }
 
         /// <summary>
-        /// Deletes (soft delete) an existing designation.
+        /// Delete.
         /// </summary>
-        /// <param name="dTO">The designation delete request details.</param>
-        /// <returns>Operation result wrapped in ApiResponse.</returns>
-        /// <response code="200">Designation deleted successfully.</response>
-        /// <response code="400">Invalid request payload.</response>
+        /// <remarks>
+        /// Handles the request to delete.
+        /// </remarks>
+        /// <param name="dTO">The query parameters used to delete.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]       
         public async Task<IActionResult> Delete([FromQuery] DeleteDesignationRequestDTO dTO)
         {
@@ -140,12 +147,13 @@ namespace axionpro.api.Controllers.Designation
         }
 
         /// <summary>
-        /// Updates an existing designation’s information.
+        /// Update Designation.
         /// </summary>
-        /// <param name="updateDesignationDTO">The updated designation details.</param>
-        /// <returns>Operation result wrapped in ApiResponse.</returns>
-        /// <response code="200">Designation updated successfully.</response>
-        /// <response code="400">Invalid update request.</response>
+        /// <remarks>
+        /// Handles the request to update designation.
+        /// </remarks>
+        /// <param name="updateDesignationDTO">The request body used to update designation.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPut("update")]       
         public async Task<IActionResult> UpdateDesignation([FromBody] UpdateDesignationRequestDTO updateDesignationDTO)
         {

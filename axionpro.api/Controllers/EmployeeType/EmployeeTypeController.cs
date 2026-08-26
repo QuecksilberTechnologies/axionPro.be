@@ -48,8 +48,13 @@ namespace axionpro.api.Controllers.EmployeeType
         #region Queries
 
         /// <summary>
-        /// Gets the currently configured employee-type display data.
+        /// Get All Employee Type.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to get all employee type.
+        /// </remarks>
+        /// <param name="requestDto">The query parameters used to get all employee type.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]
         public IActionResult GetAllEmployeeType(
             [FromQuery] application.DTOS.Employee.Type.GetEmployeeTypeRequestDTO requestDto)
@@ -94,8 +99,13 @@ namespace axionpro.api.Controllers.EmployeeType
         }
 
         /// <summary>
-        /// Gets employee-type options through the application query handler.
+        /// Get All Employee Type.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to get all employee type.
+        /// </remarks>
+        /// <param name="requestDTO">The query parameters used to get all employee type.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("option")]
         public async Task<IActionResult> GetAllEmployeeType([FromQuery] GetOptionRequestDTO requestDTO)
         {

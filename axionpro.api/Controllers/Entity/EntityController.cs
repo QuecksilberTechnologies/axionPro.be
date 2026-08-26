@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOs.Entity;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Entity operations.
+// ================================================================
+
+using axionpro.application.DTOs.Entity;
 using axionpro.application.Interfaces.ILogger;
 using axionpro.application.Wrappers;
 using MediatR;
@@ -19,6 +26,14 @@ namespace axionpro.api.Controllers.Entity
             _mediator = mediator;
             _logger = logger;
         }
+        /// <summary>
+        /// Get Static Entity Names.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get static entity names.
+        /// </remarks>
+        /// <param name="dTO">The query parameters used to get static entity names.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]
         public IActionResult GetStaticEntityNames([FromQuery] GetEntityNameRequestDTO dTO)
         {

@@ -1,4 +1,10 @@
-﻿ 
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Travel operations.
+// ================================================================
+
 using axionpro.application.DTOs.Transport;
 using axionpro.application.Features.ClientCmd.Commands;
 using axionpro.application.Features.ClientCmd.Queries;
@@ -23,6 +29,14 @@ namespace axionpro.api.Controllers.Travel
             _mediator = mediator;
             _logger = logger;
         }
+        /// <summary>
+        /// Get All Travel Mode Type.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get all travel mode type.
+        /// </remarks>
+        /// <param name="travelModeRequestDTO">The query parameters used to get all travel mode type.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
 
 
         [HttpGet("getalltravelmodetype")]       
@@ -34,6 +48,14 @@ namespace axionpro.api.Controllers.Travel
             var result = await _mediator.Send(command);
             return Ok(result);
         }
+        /// <summary>
+        /// Create Travel Mode Type.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to create travel mode type.
+        /// </remarks>
+        /// <param name="createTravelModeDTO">The request body used to create travel mode type.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("addtravelmode")] 
         public async Task<IActionResult> CreateTravelModeType([FromBody] CreateTravelModeDTO createTravelModeDTO)
         {   
@@ -42,6 +64,14 @@ namespace axionpro.api.Controllers.Travel
             var command = new CreateTravelModeTypeCommand(createTravelModeDTO);
             var result = await _mediator.Send(command);
             return Ok(result);        }
+        /// <summary>
+        /// Update Travel Mode Type.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to update travel mode type.
+        /// </remarks>
+        /// <param name="updateTravelModeDTO">The request body used to update travel mode type.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
 
         [HttpPost("updatetravelmodetype")]        
         public async Task<IActionResult> UpdateTravelModeType([FromBody] UpdateTravelModeDTO updateTravelModeDTO)

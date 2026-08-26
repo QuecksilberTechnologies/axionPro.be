@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOs.Module;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Common Module operations.
+// ================================================================
+
+using axionpro.application.DTOs.Module;
 
 using axionpro.application.DTOS.Module.CommonModule;
 using axionpro.application.DTOS.Module.ParentModule;
@@ -29,12 +36,17 @@ namespace axionpro.api.Controllers.Module
         #region Create Module
 
         /// <summary>
-        /// Creates a new Common module.
+        /// Add Module.
         /// </summary>
+        /// <remarks>
+        /// Handles the request to add module.
+        /// </remarks>
+        /// <param name="requestDto">The request body used to add module.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("add")]       
         public async Task<IActionResult> AddModule([FromBody] CreateCommonModuleRequestDTO? requestDto)
         {
-           
+
 
             var command = new CreateCommonModuleCommand(requestDto);
             var result = await _mediator.Send(command);

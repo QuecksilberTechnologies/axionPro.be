@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.TicketDTO.TicketType;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Ticket Type operations.
+// ================================================================
+
+using axionpro.application.DTOS.TicketDTO.TicketType;
  
 using axionpro.application.Features.TickeAllCmd.TicketType.Handlers;
 using axionpro.application.Wrappers;
@@ -35,10 +42,13 @@ namespace axionpro.api.Controllers.Ticket
         // ----------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Creates a new Ticket Type record.
+        /// Create Ticket Type.
         /// </summary>
-        /// <param name="dto">Ticket type data to be created.</param>
-        /// <returns>Returns the created Ticket Type list with success message.</returns>
+        /// <remarks>
+        /// Handles the request to create ticket type.
+        /// </remarks>
+        /// <param name="dto">The request body used to create ticket type.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("create")]
         public async Task<IActionResult> CreateTicketType([FromBody] AddTicketTypeRequestDTO dto)
         {
@@ -55,10 +65,14 @@ namespace axionpro.api.Controllers.Ticket
         // ----------------------------------------------------------------------------------------------------
 
         // <summary>
-       /// <summary>
-       /// Retrieves all Ticket Types available in the system.
+        /// <summary>
+        /// Get All Ticket Types.
         /// </summary>
-        /// <returns>Returns a list of all Ticket Types.</returns>
+        /// <remarks>
+        /// Handles the request to get all ticket types.
+        /// </remarks>
+        /// <param name="dto">The query parameters used to get all ticket types.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
 
 
         [HttpGet("get-all")]
@@ -69,6 +83,14 @@ namespace axionpro.api.Controllers.Ticket
             var result = await _mediator.Send(new GetAllTicketTypeQuery(dto));
             return Ok(result);
         }
+        /// <summary>
+        /// Get DDL Ticket Types.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get ddl ticket types.
+        /// </remarks>
+        /// <param name="dto">The query parameters used to get ddl ticket types.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
 
         [HttpGet("ddl-list")]
         public async Task<IActionResult> GetDDLTicketTypes([FromQuery] GetDDLTicketTypeRequestDTO dto)
@@ -84,10 +106,13 @@ namespace axionpro.api.Controllers.Ticket
         // ----------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Retrieves Ticket Type details by its unique ID.
+        /// Get Ticket Type By ID.
         /// </summary>
-        /// <param name="dto">Unique identifier of the Ticket Type.</param>
-        /// <returns>Returns Ticket Type details.</returns>
+        /// <remarks>
+        /// Handles the request to get ticket type by id.
+        /// </remarks>
+        /// <param name="dto">The query parameters used to get ticket type by id.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-by-id")]
         public async Task<IActionResult> GetTicketTypeById([FromQuery] GetTicketTypeByIdRequestDTO dto)
         {
@@ -103,10 +128,13 @@ namespace axionpro.api.Controllers.Ticket
         // ----------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Updates the details of an existing Ticket Type.
+        /// Update Ticket Type.
         /// </summary>
-        /// <param name="dto">Ticket type update data.</param>
-        /// <returns>Returns success message after update.</returns>
+        /// <remarks>
+        /// Handles the request to update ticket type.
+        /// </remarks>
+        /// <param name="dto">The request body used to update ticket type.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPut("update")]      
         public async Task<IActionResult> UpdateTicketType([FromBody] UpdateTicketTypeRequestDTO dto)
         {
@@ -122,10 +150,13 @@ namespace axionpro.api.Controllers.Ticket
         // ----------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Soft deletes a Ticket Type based on its unique ID.
+        /// Delete Ticket Type.
         /// </summary>
-        /// <param name="dto">Ticket Type ID to be deleted.</param>
-        /// <returns>Returns confirmation message.</returns>
+        /// <remarks>
+        /// Handles the request to delete ticket type.
+        /// </remarks>
+        /// <param name="dto">The request body used to delete ticket type.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]        
         public async Task<IActionResult> DeleteTicketType([FromBody]DeleteTicketTypeRequestDTO dto)
         {
@@ -144,12 +175,18 @@ namespace axionpro.api.Controllers.Ticket
         /// Retrieves Ticket Types associated with a specific Module ID.
         /// </summary>
 
-        /// <param name="dto">Module ID to filter Ticket Types.</param>
-        /// <returns>Returns a list of Ticket Types linked to the provided Module ID.</returns>
+        /// <summary>
+        /// Get Ticket Types By Header ID.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get ticket types by header id.
+        /// </remarks>
+        /// <param name="dto">The query parameters used to get ticket types by header id.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-by-header-id")]
         public async Task<IActionResult> GetTicketTypesByHeaderId( [FromQuery] GetTicketTypeByHeaderIdRequestDTO dto)
         {
-            
+
                 _logger.LogInformation("📂 Fetching Ticket Types for ModuleId = {ModuleId}", dto.TicketHeaderId);
                 var result = await _mediator.Send(new GetAllTicketTypeByHeaderIdQuery(dto));
             return Ok(result);

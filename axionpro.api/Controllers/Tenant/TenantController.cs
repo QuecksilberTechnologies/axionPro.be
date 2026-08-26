@@ -59,10 +59,13 @@ public class TenantController : ControllerBase
     #region Existing Tenant Creation Command
 
     /// <summary>
-    /// Creates a Tenant through the existing registration flow.
+    /// Tenant Creation.
     /// </summary>
-    /// <param name="tenantCreateRequestDTO">The existing Tenant registration request.</param>
-    /// <returns>The result returned by the existing Tenant creation command.</returns>
+    /// <remarks>
+    /// Handles the request to tenant creation.
+    /// </remarks>
+    /// <param name="tenantCreateRequestDTO">The request body used to tenant creation.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpPost("create-tenant")]
     public async Task<IActionResult> TenantCreation([FromBody] application.DTOs.Registration.TenantCreateRequestDTO tenantCreateRequestDTO)
     {
@@ -78,11 +81,14 @@ public class TenantController : ControllerBase
     #region Tenant Management Queries
 
     /// <summary>
-    /// Retrieves Host-managed Tenant records.
-    /// An authenticated Host user must supply the requested ModuleId and OperationId. The current Host role is checked at runtime.
+    /// Get All Tenants.
     /// </summary>
-    /// <param name="requestDTO">The Tenant management filter and paging request.</param>
-    /// <returns>The Tenant management list response.</returns>
+    /// <remarks>
+    /// Handles the request to get all tenants.
+    /// Requires an authenticated user.
+    /// </remarks>
+    /// <param name="requestDTO">The query parameters used to get all tenants.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [Authorize]
     [HttpGet("get-all-tenants")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -96,11 +102,14 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves one Host-managed Tenant by encrypted identifier.
-    /// The identifier is decrypted only after Host authentication and runtime module-operation authorization succeed.
+    /// Get Tenant By ID.
     /// </summary>
-    /// <param name="requestDTO">The Tenant identifier request.</param>
-    /// <returns>The requested Tenant response.</returns>
+    /// <remarks>
+    /// Handles the request to get tenant by id.
+    /// Requires an authenticated user.
+    /// </remarks>
+    /// <param name="requestDTO">The query parameters used to get tenant by id.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [Authorize]
     [HttpGet("get-tenant-by-id")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -119,14 +128,17 @@ public class TenantController : ControllerBase
     #region Tenant Management Commands
 
     /// <summary>
-    /// Updates editable Host-managed Tenant details.
-    /// The route identifier is an encrypted string; ModuleId and OperationId are required query parameters for Host runtime authorization.
+    /// Update Host Managed Tenant.
     /// </summary>
-    /// <param name="id">The encrypted Tenant identifier from the route.</param>
-    /// <param name="requestDTO">The client-editable Tenant details.</param>
-    /// <param name="permissionRequest">The required Host module-operation permission metadata.</param>
-    /// <param name="cancellationToken">The token used to observe request cancellation.</param>
-    /// <returns>The updated Tenant response.</returns>
+    /// <remarks>
+    /// Handles the request to update host managed tenant.
+    /// Requires an authenticated user.
+    /// </remarks>
+    /// <param name="id">The identifier supplied in the route.</param>
+    /// <param name="requestDTO">The request body used to update host managed tenant.</param>
+    /// <param name="permissionRequest">The query parameters used to update host managed tenant.</param>
+    /// <param name="cancellationToken">The token used to cancel the request.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [Authorize]
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -148,13 +160,16 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Soft deletes a Host-managed Tenant selected by encrypted route identifier.
-    /// ModuleId and OperationId are required query parameters and are verified against the current Host role.
+    /// Delete Host Managed Tenant.
     /// </summary>
-    /// <param name="id">The encrypted Tenant identifier from the route.</param>
-    /// <param name="permissionRequest">The required Host module-operation permission metadata.</param>
-    /// <param name="cancellationToken">The token used to observe request cancellation.</param>
-    /// <returns>The Tenant soft-delete result.</returns>
+    /// <remarks>
+    /// Handles the request to delete host managed tenant.
+    /// Requires an authenticated user.
+    /// </remarks>
+    /// <param name="id">The identifier supplied in the route.</param>
+    /// <param name="permissionRequest">The query parameters used to delete host managed tenant.</param>
+    /// <param name="cancellationToken">The token used to cancel the request.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [Authorize]
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -175,13 +190,16 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Resends onboarding verification for an unverified Host-managed Tenant.
-    /// The route identifier is encrypted and ModuleId and OperationId are required query parameters.
+    /// Resend Tenant Verification.
     /// </summary>
-    /// <param name="id">The encrypted Tenant identifier from the route.</param>
-    /// <param name="permissionRequest">The required Host module-operation permission metadata.</param>
-    /// <param name="cancellationToken">The token used to observe request cancellation.</param>
-    /// <returns>The resend-verification result.</returns>
+    /// <remarks>
+    /// Handles the request to resend tenant verification.
+    /// Requires an authenticated user.
+    /// </remarks>
+    /// <param name="id">The identifier supplied in the route.</param>
+    /// <param name="permissionRequest">The query parameters used to resend tenant verification.</param>
+    /// <param name="cancellationToken">The token used to cancel the request.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [Authorize]
     [HttpPost("{id}/resend-verification")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -203,11 +221,14 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Updates Host-managed Tenant details using an encrypted TenantId in the request body.
-    /// The current Host role must grant the request ModuleId and OperationId.
+    /// Update Tenant.
     /// </summary>
-    /// <param name="requestDTO">The editable Tenant details request.</param>
-    /// <returns>The updated Tenant response.</returns>
+    /// <remarks>
+    /// Handles the request to update tenant.
+    /// Requires an authenticated user.
+    /// </remarks>
+    /// <param name="requestDTO">The request body used to update tenant.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [Authorize]
     [HttpPost("update-tenant")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -223,11 +244,14 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Activates a Host-managed Tenant using an encrypted TenantId.
-    /// The current Host role must grant the request ModuleId and OperationId.
+    /// Activate Tenant.
     /// </summary>
-    /// <param name="requestDTO">The Tenant activation request.</param>
-    /// <returns>The activated Tenant response.</returns>
+    /// <remarks>
+    /// Handles the request to activate tenant.
+    /// Requires an authenticated user.
+    /// </remarks>
+    /// <param name="requestDTO">The request body used to activate tenant.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [Authorize]
     [HttpPost("activate-tenant")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -242,11 +266,14 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Deactivates a Host-managed Tenant using an encrypted TenantId.
-    /// The current Host role must grant the request ModuleId and OperationId.
+    /// Deactivate Tenant.
     /// </summary>
-    /// <param name="requestDTO">The Tenant deactivation request.</param>
-    /// <returns>The deactivated Tenant response.</returns>
+    /// <remarks>
+    /// Handles the request to deactivate tenant.
+    /// Requires an authenticated user.
+    /// </remarks>
+    /// <param name="requestDTO">The request body used to deactivate tenant.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [Authorize]
     [HttpPost("deactivate-tenant")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -261,11 +288,14 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Soft deletes a Host-managed Tenant using an encrypted TenantId.
-    /// The current Host role must grant the request ModuleId and OperationId.
+    /// Delete Tenant.
     /// </summary>
-    /// <param name="requestDTO">The Tenant deletion request.</param>
-    /// <returns>The deletion result.</returns>
+    /// <remarks>
+    /// Handles the request to delete tenant.
+    /// Requires an authenticated user.
+    /// </remarks>
+    /// <param name="requestDTO">The request body used to delete tenant.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [Authorize]
     [HttpPost("delete-tenant")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -285,10 +315,14 @@ public class TenantController : ControllerBase
     #region Existing Host User Command
 
     /// <summary>
-    /// Creates a Host user through the existing Host user flow.
+    /// Create Host User.
     /// </summary>
-    /// <param name="tenantCreateRequestDTO">The Host user creation request.</param>
-    /// <returns>The result returned by the existing Host user creation command.</returns>
+    /// <remarks>
+    /// Handles the request to create host user.
+    /// Requires an authenticated user.
+    /// </remarks>
+    /// <param name="tenantCreateRequestDTO">The request body used to create host user.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [Authorize]
     [HttpPost("create-host-user")]
     public async Task<IActionResult> CreateHostUser([FromBody] CreateHostUserRequestDTO tenantCreateRequestDTO)
@@ -305,10 +339,13 @@ public class TenantController : ControllerBase
     #region Existing Tenant Configuration Queries
 
     /// <summary>
-    /// Retrieves Tenants associated with a subscription plan through the existing configuration query.
+    /// Get All Tenant By Subscription ID.
     /// </summary>
-    /// <param name="code">The existing subscription-plan Tenant request.</param>
-    /// <returns>The existing subscription-plan Tenant response.</returns>
+    /// <remarks>
+    /// Handles the request to get all tenant by subscription id.
+    /// </remarks>
+    /// <param name="code">The query parameters used to get all tenant by subscription id.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("get-all-tenant-by-subscription-plan-Id")]
     public async Task<IActionResult> GetAllTenantBySubscriptionIdAsync([FromQuery] application.DTOs.Tenant.TenantRequestDTO code)
     {
@@ -321,11 +358,13 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves the existing employee-code pattern for a Tenant.
-    /// Tenant callers remain token-scoped. Host callers require a Host token, an encrypted <c>TenantId</c>, and a runtime-granted <c>ModuleId</c>/<c>OperationId</c> pair.
+    /// Get Employee Code Pattern.
     /// </summary>
-    /// <param name="code">The employee-code pattern request.</param>
-    /// <returns>The employee-code pattern response.</returns>
+    /// <remarks>
+    /// Handles the request to get employee code pattern.
+    /// </remarks>
+    /// <param name="code">The query parameters used to get employee code pattern.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("get-employee-code-pattern")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -342,10 +381,13 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves the enabled module operations for a Tenant through the existing configuration command.
+    /// Get All Tenant Enabled Module Operations By Tenant ID.
     /// </summary>
-    /// <param name="code">The enabled-module request.</param>
-    /// <returns>The enabled module operations response.</returns>
+    /// <remarks>
+    /// Handles the request to get all tenant enabled module operations by tenant id.
+    /// </remarks>
+    /// <param name="code">The request body used to get all tenant enabled module operations by tenant id.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpPost("get")]
     public async Task<IActionResult> GetAllTenantEnabledModuleOperationsByTenantIdAsync([FromBody] TenantEnabledModuleRequestDTO code)
     {
@@ -357,10 +399,13 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves the existing Tenant operations configuration.
+    /// Get All Node Leafe With Operations.
     /// </summary>
-    /// <param name="code">The enabled operations request.</param>
-    /// <returns>The Tenant operations configuration response.</returns>
+    /// <remarks>
+    /// Handles the request to get all node leafe with operations.
+    /// </remarks>
+    /// <param name="code">The query parameters used to get all node leafe with operations.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("get-all-tenant-operations")]
     public async Task<IActionResult> GetAllNodeLeafeWithOperationsAsync([FromQuery] TenantEnabledOperationsRequestDTO code)
     {
@@ -377,10 +422,13 @@ public class TenantController : ControllerBase
     #region Existing Tenant Configuration Command
 
     /// <summary>
-    /// Updates the existing Tenant module and operation configuration.
+    /// Tenant Module Operations Update.
     /// </summary>
-    /// <param name="code">The Tenant module and operation update request.</param>
-    /// <returns>The Tenant module and operation update response.</returns>
+    /// <remarks>
+    /// Handles the request to tenant module operations update.
+    /// </remarks>
+    /// <param name="code">The request body used to tenant module operations update.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpPost("update-modules-and-operations")]
     public async Task<IActionResult> TenantModuleOperationsUpdate([FromBody] TenantModuleOperationsUpdateRequestDTO code)
     {
@@ -396,10 +444,13 @@ public class TenantController : ControllerBase
     #region Existing Tenant Verification Command
 
     /// <summary>
-    /// Verifies a Tenant email address through the existing verification flow.
+    /// Verify Email.
     /// </summary>
-    /// <param name="request">The email verification request.</param>
-    /// <returns>The email verification result.</returns>
+    /// <remarks>
+    /// Handles the request to verify email.
+    /// </remarks>
+    /// <param name="request">The request body used to verify email.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpPost("verify")]
     public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequestDTO request)
     {

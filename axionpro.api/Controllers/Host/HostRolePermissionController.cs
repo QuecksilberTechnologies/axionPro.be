@@ -43,11 +43,15 @@ public class HostRolePermissionController : ControllerBase
     #region HostRole Module Permissions
 
     /// <summary>
-    /// Retrieves available module-operation permissions and selection state for one Host role.
+    /// Get Role Module Permissions.
     /// </summary>
-    /// <param name="hostRoleId">The Host-role identifier.</param>
-    /// <param name="cancellationToken">The token used to observe cancellation.</param>
-    /// <returns>The HostRole permission selection structure.</returns>
+    /// <remarks>
+    /// Handles the request to get role module permissions.
+    /// Requires an authenticated user.
+    /// </remarks>
+    /// <param name="hostRoleId">The identifier supplied in the route.</param>
+    /// <param name="cancellationToken">The token used to cancel the request.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("get-role-module-permissions/{hostRoleId:long}")]
     public async Task<IActionResult> GetRoleModulePermissions(
         long hostRoleId,
@@ -61,11 +65,15 @@ public class HostRolePermissionController : ControllerBase
     }
 
     /// <summary>
-    /// Saves the complete selected module-operation permission set for one Host role.
+    /// Save Role Module Permissions.
     /// </summary>
-    /// <param name="dto">The selected module-operation permissions.</param>
-    /// <param name="cancellationToken">The token used to observe cancellation.</param>
-    /// <returns>The number of permissions inserted, reactivated, or deactivated.</returns>
+    /// <remarks>
+    /// Handles the request to save role module permissions.
+    /// Requires an authenticated user.
+    /// </remarks>
+    /// <param name="dto">The request body used to save role module permissions.</param>
+    /// <param name="cancellationToken">The token used to cancel the request.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpPost("save-role-module-permissions")]
     public async Task<IActionResult> SaveRoleModulePermissions(
         [FromBody] SaveHostRoleModulePermissionsRequestDTO? dto,

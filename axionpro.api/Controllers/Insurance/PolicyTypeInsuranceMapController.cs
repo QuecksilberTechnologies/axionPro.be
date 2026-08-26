@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOS.InsurancePoliciesMapping;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Policy Type Insurance Map operations.
+// ================================================================
+
+using axionpro.application.DTOS.InsurancePoliciesMapping;
 using axionpro.application.DTOS.Module.ParentModule;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.Features.InsuranceInfo.Handlers;
@@ -24,6 +31,14 @@ namespace axionpro.api.Controllers.Insurance
         }
 
         // 🔹 CREATE INSURANCE And POLICY TYPE MAPPING
+        /// <summary>
+        /// Create.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to create.
+        /// </remarks>
+        /// <param name="dto">The request body used to create.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("map")]     
         
         public async Task<IActionResult> Create(
@@ -40,6 +55,14 @@ namespace axionpro.api.Controllers.Insurance
         }
 
         // 🔹 GET INSURANCE LIST (GRID)
+        /// <summary>
+        /// Get List.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get list.
+        /// </remarks>
+        /// <param name="requestDto">The query parameters used to get list.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-all-map-insurance")]
         
         public async Task<IActionResult> GetList( [FromQuery] GetInsuranceForEmployeeDDLRequestDTO  requestDto)
@@ -52,6 +75,14 @@ namespace axionpro.api.Controllers.Insurance
             return Ok(result);
         }
         // 🔹 GET INSURANCE LIST (GRID)
+        /// <summary>
+        /// Get List.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get list.
+        /// </remarks>
+        /// <param name="requestDto">The query parameters used to get list.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-all")]
                
         public async Task<IActionResult> GetList( [FromQuery] GetPolicyTypeInsuranceMappingRequestDTO requestDto)
@@ -64,6 +95,14 @@ namespace axionpro.api.Controllers.Insurance
             return Ok(result);
         }
         // 🔹 GET INSURANCE LIST (GRID)
+        /// <summary>
+        /// Get Detail List.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to get detail list.
+        /// </remarks>
+        /// <param name="requestDto">The query parameters used to get detail list.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-details")]
         
         public async Task<IActionResult> GetDetailList( [FromQuery] GetPolicyTypeInsuranceMapDetailsRequestDTO requestDto)
@@ -74,6 +113,14 @@ namespace axionpro.api.Controllers.Insurance
             return Ok(result);
         }
         // 🔹 DELETE POLICY INSURANCE MAPPING
+        /// <summary>
+        /// Delete.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to delete.
+        /// </remarks>
+        /// <param name="requestDto">The query parameters used to delete.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]        
         public async Task<IActionResult> Delete(
             [FromQuery] DeletePolicyTypeInsuranceMappingRequestDTO requestDto)        {
@@ -84,6 +131,14 @@ namespace axionpro.api.Controllers.Insurance
         }
 
         // 🔹 UPDATE POLICY INSURANCE MAPPING
+        /// <summary>
+        /// Update.
+        /// </summary>
+        /// <remarks>
+        /// Handles the request to update.
+        /// </remarks>
+        /// <param name="requestDto">The request body used to update.</param>
+        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPut("update")]    
         public async Task<IActionResult> Update(
             [FromBody] UpdatePolicyTypeInsuranceMappingRequestDTO requestDto)

@@ -1,4 +1,11 @@
-﻿
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for Insurance operations.
+// ================================================================
+
+
  
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.Contact;
@@ -32,8 +39,13 @@ public class InsuranceController : ControllerBase
  
 
     /// <summary>
-    ///Create new employee.
+    /// Enrolled Employee.
     /// </summary>
+    /// <remarks>
+    /// Handles the request to enrolled employee.
+    /// </remarks>
+    /// <param name="employeeCreateDto">The request body used to enrolled employee.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     
     [HttpPost("employee-insurance-enroll")]
     //  [Authorize]   
@@ -45,6 +57,14 @@ public class InsuranceController : ControllerBase
          var result = await _mediator.Send(command);       
         return Ok(result);
     }
+    /// <summary>
+    /// Delete Enrolled Employee.
+    /// </summary>
+    /// <remarks>
+    /// Handles the request to delete enrolled employee.
+    /// </remarks>
+    /// <param name="Dto">The request body used to delete enrolled employee.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpDelete("delete")]
     //  [Authorize]   
     public async Task<IActionResult> DeleteEnrolledEmployee([FromBody] DeleteEnrolledEmployeePolicyRequestDTO Dto)
@@ -57,12 +77,17 @@ public class InsuranceController : ControllerBase
     }
 
     /// <summary>
-    /// Get all employees that belong to the specified tenant.
+    /// Get.
     /// </summary>
+    /// <remarks>
+    /// Handles the request to get.
+    /// </remarks>
+    /// <param name="requestDto">The query parameters used to get.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("get-all-enroll")]  
     public async Task<IActionResult> Get([FromQuery] GetEnrolledEmployeeRequestDTO requestDto)
     {
-      
+
             var command = new GetAllEnrollEmployeePoliciesCommand(requestDto);
         _logger.LogInfo("Get enrolled employee"); // Log the info message
         var result = await _mediator.Send(command);

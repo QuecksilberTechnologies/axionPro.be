@@ -1,4 +1,11 @@
-﻿using axionpro.application.DTOs.RoleModulePermission;
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates HTTP requests for User Role operations.
+// ================================================================
+
+using axionpro.application.DTOs.RoleModulePermission;
 using axionpro.application.DTOS.UserRoles;
 using axionpro.application.Features.RoleCmd.ModuleOperationMappingRepository.Handlers;
 using axionpro.application.Features.UserRolesCmd.Handlers;
@@ -20,6 +27,14 @@ public class UserRoleController : ControllerBase
         _mediator = mediator;
         _logger = logger;
     }
+    /// <summary>
+    /// Create Permission.
+    /// </summary>
+    /// <remarks>
+    /// Handles the request to create permission.
+    /// </remarks>
+    /// <param name="insertRoleModulePermissionsRequestDTO">The request body used to create permission.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
 
     [HttpPost("assign-roles-to-user")]    
     
@@ -33,8 +48,13 @@ public class UserRoleController : ControllerBase
         return Ok(result);
     }
     /// <summary>
-    /// Get all tenant enabled modules with operations
+    /// Get Tenant Enabled Operations.
     /// </summary>
+    /// <remarks>
+    /// Handles the request to get tenant enabled operations.
+    /// </remarks>
+    /// <param name="dTO">The query parameters used to get tenant enabled operations.</param>
+    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("get-all-user-roles")]
     public async Task<IActionResult> GetTenantEnabledOperations([FromQuery] GetUserRoleRequestDTO dTO)
     {
@@ -46,4 +66,3 @@ public class UserRoleController : ControllerBase
         return Ok(result);
     }
 }
- 

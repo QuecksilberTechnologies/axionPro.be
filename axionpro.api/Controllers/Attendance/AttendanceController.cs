@@ -1,11 +1,10 @@
-﻿
-// ============================================================================
-// Author      : Deepesh Gupta
-// Company     : Quecksilber Technologies
-// Role        : CEO
-// Purpose     : Provides attendance API endpoints and a temporary TIMMY HTTPS
-//               connectivity test endpoint.
-// ============================================================================
+
+// ================================================================
+// Author  : Deepesh Gupta
+// Company : Quecksilber Technologies
+// Role    : CEO
+// Purpose : Coordinates attendance requests and temporary TIMMY biometric-device diagnostics.
+// ================================================================
 
 using axionpro.application.DTOs.Attendance;
 using axionpro.application.DTOs.UserLogin;
@@ -38,6 +37,14 @@ namespace axionpro.api.Controllers.Attendance
         }
 
 
+        /// <summary>
+        /// Mark attendance.
+        /// </summary>
+        /// <remarks>
+        /// Receives an attendance request. The current implementation does not dispatch an attendance command and returns no action result.
+        /// </remarks>
+        /// <param name="attendanceRequestDTO">The attendance request body. The value may be null.</param>
+        /// <returns>The current action result, which is not implemented by this endpoint.</returns>
         [HttpPost("mark-attendance")]
         public async Task<IActionResult> MarkAttendance([FromBody] AttendanceRequestDTO? attendanceRequestDTO)
         {
@@ -54,9 +61,13 @@ namespace axionpro.api.Controllers.Attendance
         #region TIMMY HTTPS Test
 
         /// <summary>
-        /// Temporary endpoint used only to verify direct HTTPS communication
-        /// and biometric attendance payloads from the TIMMY biometric device.
+        /// Receive TIMMY biometric-device test requests.
         /// </summary>
+        /// <remarks>
+        /// Temporary diagnostic endpoint that accepts direct TIMMY HTTPS registration, attendance-log, and heartbeat test requests.
+        /// This endpoint allows anonymous device traffic and returns the appropriate temporary acknowledgement for the received command.
+        /// </remarks>
+        /// <returns>The TIMMY acknowledgement response for the received test request.</returns>
         [AllowAnonymous]
         [HttpPost("timmy-test")]
         public async Task<IActionResult> TimmyTest()
