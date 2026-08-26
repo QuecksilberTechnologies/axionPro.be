@@ -316,6 +316,11 @@ namespace axionpro.application.Constants
         public const string HostUserType = "Host";
 
         /// <summary>
+        /// Identifies the verified current Host role authorized to administer Parent Modules.
+        /// </summary>
+        public const long SuperAdminHostRoleId = 1;
+
+        /// <summary>
         /// Identifies an access token in the token-purpose claim.
         /// </summary>
         public const string AccessTokenPurpose = "Access";

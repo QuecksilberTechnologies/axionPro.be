@@ -660,12 +660,6 @@ namespace axionpro.application.Mappings
 
             CreateMap<MainModuleResponseDTO, domain.Entity.Module>();
             CreateMap<domain.Entity.Module, MainModuleResponseDTO>();
-            CreateMap<domain.Entity.Module, GetParentModuleRequestDTO>().ReverseMap();
-
-
-
-
-
 
             CreateMap<CreateSubModuleRequestDTO, domain.Entity.Module>();
             CreateMap<domain.Entity.Module, CreateSubModuleRequestDTO>();

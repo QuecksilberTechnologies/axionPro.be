@@ -319,132 +319,89 @@ namespace axionpro.persistance.Repositories
 
         #endregion
 
-        public async Task<List<GetModuleChildInversResponseDTO>> GetAllOnlyModuleTreeAsync()
+        /// <summary>
+        /// Retrieves visible top-level Parent Modules and their direct non-leaf child headers for the requested scope and optional active-state filter.
+        /// </summary>
+        /// <param name="moduleScope">The validated module scope.</param>
+        /// <param name="isActive">When supplied, limits modules in the tree to the specified active state.</param>
+        /// <param name="cancellationToken">A token to observe while executing the query.</param>
+        /// <returns>The existing module-header tree response model.</returns>
+        public async Task<List<GetModuleChildInversResponseDTO>> GetAllOnlyModuleTreeAsync(
+            short moduleScope,
+            bool? isActive,
+            CancellationToken cancellationToken)
         {
-            // ✅ Step 1: Load all active modules
-            var allModules = await _context.Modules
-                .Where(m => m.IsActive == true)
-                .OrderBy(m => m.ItemPriority)
-                .ToListAsync();
+            var parentQuery = _context.Modules
+                .Where(module =>
+                    module.ParentModuleId == null &&
+                    module.IsModuleDisplayInUI &&
+                    module.ModuleScope == moduleScope);
 
-            if (allModules == null || allModules.Count == 0)
-                return new List<GetModuleChildInversResponseDTO>();
-
-            // ✅ Step 2: Prepare lookup by parent ID
-            var childrenLookup = allModules
-                .GroupBy(m => m.ParentModuleId ?? 0)
-                .ToDictionary(g => g.Key, g => g.ToList());
-
-            // ✅ Step 3: Recursive builder — include only non-leaf nodes
-            GetModuleChildInversResponseDTO? BuildTree(Module module)
+            if (isActive.HasValue)
             {
-                // Skip if this module is a leaf node
-                if (module.IsLeafNode==true)
-                    return null;
-
-                var dto = new GetModuleChildInversResponseDTO
-                {
-                    Id = module.Id,
-                    ModuleName = module.ModuleName,
-                    DisplayName = module.DisplayName,
-                    SubModuleUrl = module.Urlpath,
-                    URLPath = module.Urlpath,
-                    ImageIconWeb = module.ImageIconWeb,
-                    ImageIconMobile = module.ImageIconMobile,
-                    ItemPriority = module.ItemPriority,
-                    IsLeafNode = module.IsLeafNode,
-                    Children = new List<GetModuleChildInversResponseDTO>()
-                };
-
-                // If this module has children
-                if (childrenLookup.TryGetValue(module.Id, out var childModules))
-                {
-                    foreach (var child in childModules.OrderBy(c => c.ItemPriority))
-                    {
-                        // Recursive build — only add non-leaf children
-                        var childDto = BuildTree(child);
-                        if (childDto != null)
-                            dto.Children.Add(childDto);
-                    }
-                }
-
-                // ⚠️ Extra Safety: if a non-leaf node has only leaf children → keep it (because itself is non-leaf)
-                return dto;
+                parentQuery = parentQuery.Where(module => module.IsActive == isActive.Value);
             }
 
-            // ✅ Step 4: Select root-level non-leaf modules
-            var rootModules = allModules
-                .Where(m => (m.ParentModuleId == null || m.ParentModuleId == 0) && m.IsLeafNode == false)
-                .OrderBy(m => m.ItemPriority)
-                .ToList();
+            var parentModules = await parentQuery
+                .OrderBy(module => module.ItemPriority)
+                .ToListAsync(cancellationToken);
 
-           
-
-            // ✅ Step 5: Build final hierarchy
-            var result = rootModules .Select(BuildTree).Where(x => x != null)
-                .ToList();
-            result = result
-                      .Where(x => x.Children != null && x.Children.Count > 0)
-                         .ToList();
-            return result!;
-
-        }
-
-        public async Task<List<GetModuleChildInversResponseDTO>> GetAllModuleTreeAsync()
-        {
-            // Step 1: Load all active modules
-            var allModules = await _context.Modules
-                .Where(m => m.IsActive == true)
-                .OrderBy(m => m.ItemPriority)
-                .ToListAsync();
-
-            if (!allModules.Any())
-                return new List<GetModuleChildInversResponseDTO>();
-
-            // Step 2: Prepare lookup (ParentId -> List of children)
-            var childrenLookup = allModules
-                .GroupBy(m => m.ParentModuleId ?? 0)
-                .ToDictionary(g => g.Key, g => g.ToList());
-
-            // Step 3: Recursive builder (include all children, leaf or not)
-            GetModuleChildInversResponseDTO BuildTree(Module module)
+            if (parentModules.Count == 0)
             {
-                var dto = new GetModuleChildInversResponseDTO
-                {
-                    Id = module.Id,
-                    ModuleName = module.ModuleName,
-                    DisplayName = module.DisplayName,
-                    SubModuleUrl = module.Urlpath,
-                    URLPath = module.Urlpath,
-                    ImageIconWeb = module.ImageIconWeb,
-                    ImageIconMobile = module.ImageIconMobile,
-                    ItemPriority = module.ItemPriority,
-                    IsLeafNode = module.IsLeafNode,
-                    Children = new List<GetModuleChildInversResponseDTO>()
-                };
-
-                if (childrenLookup.TryGetValue(module.Id, out var childModules))
-                {
-                    foreach (var child in childModules.OrderBy(c => c.ItemPriority))
-                    {
-                        dto.Children.Add(BuildTree(child)); // include all children
-                    }
-                }
-
-                return dto;
+                return new List<GetModuleChildInversResponseDTO>();
             }
 
-            // Step 4: Root modules (ParentModuleId null or 0)
-            var rootModules = allModules
-                .Where(m => m.ParentModuleId == null || m.ParentModuleId == 0)
-                .OrderBy(m => m.ItemPriority)
+            var parentModuleIds = parentModules.Select(module => module.Id).ToList();
+            var childQuery = _context.Modules
+                .Where(module =>
+                    module.ParentModuleId.HasValue &&
+                    parentModuleIds.Contains(module.ParentModuleId.Value) &&
+                    module.IsLeafNode == false &&
+                    module.ModuleScope == moduleScope);
+
+            if (isActive.HasValue)
+            {
+                childQuery = childQuery.Where(module => module.IsActive == isActive.Value);
+            }
+
+            var childModules = await childQuery
+                .OrderBy(module => module.ItemPriority)
+                .ToListAsync(cancellationToken);
+
+            var childrenByParentId = childModules
+                .GroupBy(module => module.ParentModuleId!.Value)
+                .ToDictionary(group => group.Key, group => group.ToList());
+
+            return parentModules
+                .Select(parentModule => new GetModuleChildInversResponseDTO
+                {
+                    Id = parentModule.Id,
+                    ModuleName = parentModule.ModuleName,
+                    DisplayName = parentModule.DisplayName,
+                    SubModuleUrl = parentModule.Urlpath,
+                    URLPath = parentModule.Urlpath,
+                    ImageIconWeb = parentModule.ImageIconWeb,
+                    ImageIconMobile = parentModule.ImageIconMobile,
+                    ItemPriority = parentModule.ItemPriority,
+                    IsLeafNode = parentModule.IsLeafNode,
+                    Children = childrenByParentId.TryGetValue(parentModule.Id, out var directChildModules)
+                        ? directChildModules.Select(childModule => new GetModuleChildInversResponseDTO
+                        {
+                            Id = childModule.Id,
+                            ModuleName = childModule.ModuleName,
+                            DisplayName = childModule.DisplayName,
+                            SubModuleUrl = childModule.Urlpath,
+                            URLPath = childModule.Urlpath,
+                            ImageIconWeb = childModule.ImageIconWeb,
+                            ImageIconMobile = childModule.ImageIconMobile,
+                            ItemPriority = childModule.ItemPriority,
+                            IsLeafNode = childModule.IsLeafNode,
+                            Children = new List<GetModuleChildInversResponseDTO>()
+                        }).ToList()
+                        : new List<GetModuleChildInversResponseDTO>()
+                })
                 .ToList();
-
-            // Step 5: Build tree for each root
-            return rootModules.Select(BuildTree).ToList();
         }
-
-
 
         #region ParentAdded
 
@@ -484,43 +441,11 @@ namespace axionpro.persistance.Repositories
                 .Where(module =>
                     module.Id == id &&
                     module.ModuleScope == moduleScope &&
-                    module.ParentModuleId == null &&
-                    module.IsLeafNode == false)
+                    (module.ParentModuleId == null ||
+                     (module.ParentModuleId != null &&
+                      module.IsLeafNode == false)))
                 .Select(ParentModuleProjection)
                 .FirstOrDefaultAsync(cancellationToken);
-        }
-
-        /// <summary>
-        /// Retrieves Parent/Header Modules for one validated module scope.
-        /// </summary>
-        /// <param name="moduleScope">The requested validated module scope.</param>
-        /// <param name="isActive">When supplied, limits the results to the requested active state.</param>
-        /// <param name="cancellationToken">A token to observe while executing the query.</param>
-        /// <returns>The ordered Parent/Header Module list.</returns>
-        public async Task<List<GetParentModuleResponseDTO>> GetParentModulesAsync(
-            short moduleScope,
-            bool? isActive,
-            CancellationToken cancellationToken)
-        {
-            var context = _context ?? throw new InvalidOperationException("Module context is unavailable.");
-
-            var modules = context.Modules
-                .AsNoTracking()
-                .Where(module =>
-                    module.ModuleScope == moduleScope &&
-                    module.ParentModuleId == null &&
-                    module.IsLeafNode == false);
-
-            if (isActive.HasValue)
-            {
-                modules = modules.Where(module => module.IsActive == isActive.Value);
-            }
-
-            return await modules
-                .OrderBy(module => module.ItemPriority)
-                .ThenBy(module => module.ModuleName)
-                .Select(ParentModuleProjection)
-                .ToListAsync(cancellationToken);
         }
 
         /// <summary>
@@ -620,35 +545,88 @@ namespace axionpro.persistance.Repositories
         #region Module Status Cascade
 
         /// <summary>
-        /// Retrieves tracked direct child modules for one Parent Module status cascade.
-        /// The current Module schema has no soft-delete field, so every direct child in the requested scope is returned.
+        /// Retrieves a tracked non-leaf Header Module for a status cascade.
+        /// Root and nested Header Modules are valid targets; leaf modules are excluded.
         /// </summary>
-        /// <param name="parentModuleId">The validated Parent Module identifier.</param>
-        /// <param name="moduleScope">The validated module scope.</param>
+        /// <param name="id">The requested Header Module identifier.</param>
+        /// <param name="moduleScope">The requested validated module scope.</param>
         /// <param name="cancellationToken">A token to observe while executing the query.</param>
-        /// <returns>The tracked direct child modules.</returns>
-        public async Task<List<Module>> GetDirectChildModulesForStatusUpdateAsync(
-            int parentModuleId,
+        /// <returns>The matching tracked Header Module, or <see langword="null"/> when it does not exist.</returns>
+        public async Task<Module?> GetHeaderModuleForStatusUpdateAsync(
+            int id,
             short moduleScope,
             CancellationToken cancellationToken)
         {
             var context = _context ?? throw new InvalidOperationException("Module context is unavailable.");
 
             return await context.Modules
-                .Where(module =>
-                    module.ParentModuleId == parentModuleId &&
+                .FirstOrDefaultAsync(module =>
+                    module.Id == id &&
                     module.ModuleScope == moduleScope &&
-                    module.IsLeafNode == true)
-                .ToListAsync(cancellationToken);
+                    module.IsLeafNode == false,
+                    cancellationToken);
         }
 
         /// <summary>
-        /// Retrieves tracked operation mappings for all affected direct child modules in one query.
-        /// The current mapping schema has no soft-delete field, so every mapping for the affected children is returned.
+        /// Retrieves all tracked descendants for one Parent Module status cascade.
+        /// The current Module schema has no soft-delete field, so every descendant in the requested scope is returned.
         /// </summary>
-        /// <param name="moduleIds">The affected direct child module identifiers.</param>
+        /// <param name="parentModuleId">The validated Parent Module identifier.</param>
+        /// <param name="moduleScope">The validated module scope.</param>
         /// <param name="cancellationToken">A token to observe while executing the query.</param>
-        /// <returns>The tracked operation mappings for the affected child modules.</returns>
+        /// <returns>The tracked descendant modules at every depth.</returns>
+        public async Task<List<Module>> GetDescendantModulesForStatusUpdateAsync(
+            int parentModuleId,
+            short moduleScope,
+            CancellationToken cancellationToken)
+        {
+            var context = _context ?? throw new InvalidOperationException("Module context is unavailable.");
+
+            var scopedModules = await context.Modules
+                .Where(module =>
+                    module.ModuleScope == moduleScope &&
+                    module.ParentModuleId.HasValue)
+                .ToListAsync(cancellationToken);
+
+            var childrenByParentId = scopedModules
+                .GroupBy(module => module.ParentModuleId!.Value)
+                .ToDictionary(group => group.Key, group => group.ToList());
+
+            var descendants = new List<Module>();
+            var visitedModuleIds = new HashSet<int> { parentModuleId };
+            var pendingParentIds = new Queue<int>();
+            pendingParentIds.Enqueue(parentModuleId);
+
+            while (pendingParentIds.Count > 0)
+            {
+                var currentParentId = pendingParentIds.Dequeue();
+                if (!childrenByParentId.TryGetValue(currentParentId, out var children))
+                {
+                    continue;
+                }
+
+                foreach (var childModule in children)
+                {
+                    if (!visitedModuleIds.Add(childModule.Id))
+                    {
+                        continue;
+                    }
+
+                    descendants.Add(childModule);
+                    pendingParentIds.Enqueue(childModule.Id);
+                }
+            }
+
+            return descendants;
+        }
+
+        /// <summary>
+        /// Retrieves tracked operation mappings for all affected modules in one query.
+        /// The current mapping schema has no soft-delete field, so every mapping for the affected modules is returned.
+        /// </summary>
+        /// <param name="moduleIds">The affected Parent Module and descendant module identifiers.</param>
+        /// <param name="cancellationToken">A token to observe while executing the query.</param>
+        /// <returns>The tracked operation mappings for the affected modules.</returns>
         public async Task<List<ModuleOperationMapping>> GetModuleOperationMappingsForStatusUpdateAsync(
             IReadOnlyCollection<int> moduleIds,
             CancellationToken cancellationToken)
@@ -917,44 +895,6 @@ namespace axionpro.persistance.Repositories
 
         #endregion
 
-        public async Task<List<GetModuleChildInversResponseDTO>> GetSubParentModuleAsync(GetParentModuleRequestDTO module)
-        {
-            try
-            {
-                if (module == null)
-                {
-                    _logger.LogWarning("GetAllSubParentModuleAsync called with null module entity.");
-                    return new List<GetModuleChildInversResponseDTO>();
-                }
-
-               
-
-                if (_context.Modules == null)
-                {
-                    _logger.LogError("❌ DbSet<Module> is null in context.");
-                    return new List<GetModuleChildInversResponseDTO>();
-                }
-
-                // ✅ Fetch parent modules based on flags
-                var parentModules = await _context.Modules
-                    .Where(m => m.IsActive
-                             && m.IsLeafNode == false
-                             && m.IsModuleDisplayInUI == module.IsModuleDisplayInUi
-                             && m.ParentModuleId == null && m.IsCommonMenu == false)
-                    .OrderBy(m => m.ModuleName)
-                    .ToListAsync();
-
-                // ✅ Return mapped list
-                return _mapper.Map<List<GetModuleChildInversResponseDTO>>(parentModules);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error in GetAllParentModuleAsync.");
-                return new List<GetModuleChildInversResponseDTO>();
-            }
-        }
-
-
         #endregion
         #region SubModuleAdded
 
@@ -1000,11 +940,6 @@ namespace axionpro.persistance.Repositories
         }
 
         #endregion
-
-        //public async Task<Module> AddSubModuleAsync(Module module)
-        //{
-        //    return await AddParentModuleAsync(module); // Same logic as AddModule
-        //}
 
         public async Task<bool> UpdateModuleAsync(Module module)
         {

@@ -27,12 +27,18 @@ namespace axionpro.application.Interfaces.ICommonRequest
         Task<AuthenticatedRequestContext> ValidateAuthenticatedRequestAsync();
 
         /// <summary>
-
         /// Validates that the current JWT belongs to an active Host user with an active Host role.
         /// </summary>
         /// <returns>The validated Host user identifier.</returns>
         /// <exception cref="UnauthorizedAccessException">Thrown when the current request is not authenticated as a valid Host user.</exception>
         Task<long> ValidateHostUserRequestAsync();
+
+        /// <summary>
+        /// Validates the current Host JWT and requires the current Host user to hold the verified Super Admin role.
+        /// </summary>
+        /// <returns>The trusted Host context containing the principal type and current database role.</returns>
+        /// <exception cref="UnauthorizedAccessException">Thrown when the current request is not an authenticated Host Super Admin.</exception>
+        Task<HostUserRequestContext> ValidateHostSuperAdminRequestAsync();
 
         /// <summary>
         /// Validates the current Host JWT and returns the trusted Host context required for per-request runtime permission checks.

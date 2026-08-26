@@ -2,7 +2,7 @@
 // Author  : Deepesh Gupta
 // Company : Quecksilber Technologies
 // Role    : CEO
-// Purpose : Handles Parent Module status changes and cascades active state to direct Child Modules and their operation mappings.
+// Purpose : Handles Parent Module status changes and cascades active and visible state through descendant modules and their operation mappings.
 // ================================================================
 
 using axionpro.application.Constants;
@@ -13,7 +13,6 @@ using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace axionpro.application.Features.ModuleCmd.Parent.Commands
@@ -48,7 +47,7 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
     #region Handler
 
     /// <summary>
-    /// Handles Host-authorized Parent Module status changes and cascades the requested state to direct child modules and their operation mappings.
+    /// Handles Host Super Admin-authorized Parent/Header Module status changes and cascades the requested state downward through every descendant module and applicable operation mapping.
     /// </summary>
     public class UpdateParentModuleStatusCommandHandler : IRequestHandler<UpdateParentModuleStatusCommand, ApiResponse<GetParentModuleResponseDTO>>
     {
@@ -79,7 +78,7 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
         #region Handle
 
         /// <summary>
-        /// Updates a Parent Module's active state and cascades the same value to its direct child modules and their operation mappings.
+        /// Updates a Parent/Header Module's active and visible state and cascades the same values downward to every descendant module and applicable operation mapping.
         /// </summary>
         /// <param name="request">The status change request.</param>
         /// <param name="cancellationToken">A token used to cancel the operation.</param>
@@ -90,8 +89,9 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
             UpdateParentModuleStatusCommand request,
             CancellationToken cancellationToken)
         {
-            // Resolve the authenticated Host actor before processing client-provided data.
-            var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
+            // Resolve the authenticated Host Super Admin actor before processing client-provided data.
+            var hostContext = await _commonRequestService.ValidateHostSuperAdminRequestAsync();
+            var hostUserId = hostContext.HostUserId;
             cancellationToken.ThrowIfCancellationRequested();
 
             if (request == null || request.Id <= 0 || request.DTO == null)
@@ -105,59 +105,72 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
                 throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
             }
 
-            // Load the tracked Parent Module; a child identifier does not match this parent-only query.
-            var parentModule = await _unitOfWork.ModuleRepository.GetParentModuleForUpdateAsync(
-                request.Id,
-                request.DTO.ModuleScope,
-                cancellationToken);
-
-            if (parentModule == null)
+            try
             {
-                throw new NotFoundException(AppConstants.ErrorMessages.ParentModuleNotFound);
-            }
+                await _unitOfWork.BeginTransactionAsync(cancellationToken);
 
-            // Load all direct child modules in one database query.
-            var childModules = await _unitOfWork.ModuleRepository.GetDirectChildModulesForStatusUpdateAsync(
-                parentModule.Id,
-                parentModule.ModuleScope,
-                cancellationToken);
-
-            var childModuleIds = childModules.Select(module => module.Id).ToList();
-            var operationMappings = childModuleIds.Count == 0
-                ? new List<ModuleOperationMapping>()
-                : await _unitOfWork.ModuleRepository.GetModuleOperationMappingsForStatusUpdateAsync(
-                    childModuleIds,
+                // Root and nested Header Modules are valid cascade targets; leaf modules remain excluded.
+                var parentModule = await _unitOfWork.ModuleRepository.GetHeaderModuleForStatusUpdateAsync(
+                    request.Id,
+                    request.DTO.ModuleScope,
                     cancellationToken);
 
-            var updatedDateTime = DateTime.UtcNow;
+                if (parentModule == null)
+                {
+                    throw new NotFoundException(AppConstants.ErrorMessages.ParentModuleNotFound);
+                }
 
-            // Apply the requested active state while preserving module hierarchy and creation data.
-            parentModule.IsActive = dto.IsActive;
-            parentModule.UpdatedById = hostUserId;
-            parentModule.UpdatedDateTime = updatedDateTime;
+                // Traverse every level below the selected Header Module in its scope.
+                var descendantModules = await _unitOfWork.ModuleRepository.GetDescendantModulesForStatusUpdateAsync(
+                    parentModule.Id,
+                    parentModule.ModuleScope,
+                    cancellationToken);
 
-            // Apply the requested active state to the affected direct children only.
-            foreach (var childModule in childModules)
-            {
-                childModule.IsActive = dto.IsActive;
-                childModule.UpdatedById = hostUserId;
-                childModule.UpdatedDateTime = updatedDateTime;
+                var affectedModuleIds = descendantModules
+                    .Select(module => module.Id)
+                    .Append(parentModule.Id)
+                    .ToList();
+                var operationMappings = await _unitOfWork.ModuleRepository.GetModuleOperationMappingsForStatusUpdateAsync(
+                    affectedModuleIds,
+                    cancellationToken);
+
+                var updatedDateTime = DateTime.UtcNow;
+
+                // Apply the requested active state while preserving module hierarchy and creation data.
+                parentModule.IsActive = dto.IsActive;
+                parentModule.IsModuleDisplayInUI = dto.IsActive;
+                parentModule.UpdatedById = hostUserId;
+                parentModule.UpdatedDateTime = updatedDateTime;
+
+                // Apply the requested active and visible state only to descendants, including nested headers and leaf modules.
+                foreach (var descendantModule in descendantModules)
+                {
+                    descendantModule.IsActive = dto.IsActive;
+                    descendantModule.IsModuleDisplayInUI = dto.IsActive;
+                    descendantModule.UpdatedById = hostUserId;
+                    descendantModule.UpdatedDateTime = updatedDateTime;
+                }
+
+                // Module-operation mappings are directly linked to modules, so only mappings for the affected tree are updated.
+                foreach (var operationMapping in operationMappings)
+                {
+                    operationMapping.IsActive = dto.IsActive;
+                    operationMapping.UpdatedById = hostUserId;
+                    operationMapping.UpdatedDateTime = updatedDateTime;
+                }
+
+                await _unitOfWork.ModuleRepository.SaveModuleStatusCascadeAsync(cancellationToken);
+                await _unitOfWork.CommitTransactionAsync(cancellationToken);
+
+                return ApiResponse<GetParentModuleResponseDTO>.Success(
+                    ToResponse(parentModule),
+                    AppConstants.SuccessMessages.ParentModuleStatusUpdatedSuccessfully);
             }
-
-            // Apply the requested active state to mappings belonging to the affected child modules only.
-            foreach (var operationMapping in operationMappings)
+            catch
             {
-                operationMapping.IsActive = dto.IsActive;
-                operationMapping.UpdatedById = hostUserId;
-                operationMapping.UpdatedDateTime = updatedDateTime;
+                await _unitOfWork.RollbackTransactionAsync(CancellationToken.None);
+                throw;
             }
-
-            // Persist the complete tracked cascade with one SaveChangesAsync call.
-            await _unitOfWork.ModuleRepository.SaveModuleStatusCascadeAsync(cancellationToken);
-
-            return ApiResponse<GetParentModuleResponseDTO>.Success(
-                ToResponse(parentModule),
-                AppConstants.SuccessMessages.ParentModuleStatusUpdatedSuccessfully);
         }
 
         #endregion

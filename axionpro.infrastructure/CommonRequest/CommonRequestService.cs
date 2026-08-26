@@ -167,6 +167,26 @@ namespace axionpro.infrastructure.CommonRequest
         }
 
         /// <summary>
+        /// Validates the authenticated Host token and requires the current active Host role to be the verified Super Admin role.
+        /// </summary>
+        /// <returns>The trusted Host JWT and current database context.</returns>
+        /// <exception cref="UnauthorizedAccessException">Thrown when the principal is not a Host user or no longer holds the Super Admin role.</exception>
+        public async Task<HostUserRequestContext> ValidateHostSuperAdminRequestAsync()
+        {
+            var hostContext = await ValidateHostUserContextAsync(
+                enforceTokenRoleMatch: true,
+                requireTenantEncryptionKey: false);
+
+            if (!string.Equals(hostContext.UserType, AppConstants.HostUserType, StringComparison.Ordinal) ||
+                hostContext.CurrentHostRoleId != AppConstants.SuperAdminHostRoleId)
+            {
+                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            }
+
+            return hostContext;
+        }
+
+        /// <summary>
         /// Validates a Host request for runtime permission enforcement without treating a changed database role as a valid session.
         /// </summary>
         /// <returns>The trusted Host context used by Host runtime permission and Tenant identifier protection logic.</returns>
@@ -243,6 +263,8 @@ namespace axionpro.infrastructure.CommonRequest
             {
                 HostUserId = hostUser.Id,
                 TokenHostRoleId = hostRoleId,
+                CurrentHostRoleId = hostUser.HostRoleId,
+                UserType = userType,
                 TenantEncryptionKey = requireTenantEncryptionKey
                     ? EncryptionSanitizer.SuperSanitize(tenantEncryptionKey)
                     : string.Empty

@@ -87,7 +87,8 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
             CreateParentModuleCommand request,
             CancellationToken cancellationToken)
         {
-            var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
+            var hostContext = await _commonRequestService.ValidateHostSuperAdminRequestAsync();
+            var hostUserId = hostContext.HostUserId;
 
             if (request?.DTO == null)
             {

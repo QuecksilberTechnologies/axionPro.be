@@ -192,8 +192,6 @@ namespace axionpro.application.Interfaces.IRepositories
         #endregion
         #region Get All module
 
-     //   Task<List<GetSubModuleResponseDTO>> GetSubModuleAsync(GetCommonModuleRequestDTO Dto);
-
         /// <summary>
         /// Retrieves one scope-filtered Parent/Header Module by identifier.
         /// </summary>
@@ -204,18 +202,6 @@ namespace axionpro.application.Interfaces.IRepositories
         Task<GetParentModuleResponseDTO?> GetParentModuleByIdAsync(
             int id,
             short moduleScope,
-            CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Retrieves scope-filtered Parent/Header Modules, optionally filtered by active state.
-        /// </summary>
-        /// <param name="moduleScope">The requested validated module scope.</param>
-        /// <param name="isActive">When supplied, limits results to the requested active state.</param>
-        /// <param name="cancellationToken">A token to observe while executing the query.</param>
-        /// <returns>The ordered Parent/Header Module list.</returns>
-        Task<List<GetParentModuleResponseDTO>> GetParentModulesAsync(
-            short moduleScope,
-            bool? isActive,
             CancellationToken cancellationToken);
 
         /// <summary>
@@ -269,25 +255,38 @@ namespace axionpro.application.Interfaces.IRepositories
         #region Module Status Cascade
 
         /// <summary>
-        /// Retrieves tracked direct child modules for a Parent Module status cascade.
-        /// The current Module schema has no soft-delete field, so every direct child in the requested scope is returned.
+        /// Retrieves a tracked non-leaf Header Module for a status cascade in the requested scope.
+        /// Root and nested Header Modules are valid targets; leaf modules are excluded.
+        /// </summary>
+        /// <param name="id">The requested Header Module identifier.</param>
+        /// <param name="moduleScope">The requested validated module scope.</param>
+        /// <param name="cancellationToken">A token to observe while executing the query.</param>
+        /// <returns>The matching tracked Header Module, or <see langword="null"/> when it does not exist.</returns>
+        Task<Module?> GetHeaderModuleForStatusUpdateAsync(
+            int id,
+            short moduleScope,
+            CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Retrieves all tracked descendants for a Parent Module status cascade.
+        /// The current Module schema has no soft-delete field, so every descendant in the requested scope is returned.
         /// </summary>
         /// <param name="parentModuleId">The validated Parent Module identifier.</param>
         /// <param name="moduleScope">The validated module scope.</param>
         /// <param name="cancellationToken">A token to observe while executing the query.</param>
-        /// <returns>The tracked direct child modules.</returns>
-        Task<List<Module>> GetDirectChildModulesForStatusUpdateAsync(
+        /// <returns>The tracked descendant modules at every depth.</returns>
+        Task<List<Module>> GetDescendantModulesForStatusUpdateAsync(
             int parentModuleId,
             short moduleScope,
             CancellationToken cancellationToken);
 
         /// <summary>
-        /// Retrieves tracked operation mappings for the supplied direct child module identifiers.
-        /// The current mapping schema has no soft-delete field, so every mapping for the affected children is returned.
+        /// Retrieves tracked operation mappings for the supplied affected module identifiers.
+        /// The current mapping schema has no soft-delete field, so every mapping for the affected modules is returned.
         /// </summary>
-        /// <param name="moduleIds">The affected direct child module identifiers.</param>
+        /// <param name="moduleIds">The affected Parent Module and descendant module identifiers.</param>
         /// <param name="cancellationToken">A token to observe while executing the query.</param>
-        /// <returns>The tracked operation mappings for the affected child modules.</returns>
+        /// <returns>The tracked operation mappings for the affected modules.</returns>
         Task<List<ModuleOperationMapping>> GetModuleOperationMappingsForStatusUpdateAsync(
             IReadOnlyCollection<int> moduleIds,
             CancellationToken cancellationToken);
@@ -389,8 +388,18 @@ namespace axionpro.application.Interfaces.IRepositories
 
         Task<List<GetParentModuleResponseDTO>> GetSubParentModuleAsync(GetSubParentModulRequestDTO Dto);
         Task<List<GetCommonModuleResponseDTO>> GetCommonModuleAsync(GetCommonModuleRequestDTO Dto);
-        Task<List<GetModuleChildInversResponseDTO>> GetAllOnlyModuleTreeAsync();
-        Task<List<GetModuleChildInversResponseDTO>> GetAllModuleTreeAsync();
+
+        /// <summary>
+        /// Retrieves visible top-level Parent Modules and their direct non-leaf child headers for a validated scope and optional active-state filter.
+        /// </summary>
+        /// <param name="moduleScope">The validated module scope.</param>
+        /// <param name="isActive">When supplied, limits modules in the tree to the specified active state.</param>
+        /// <param name="cancellationToken">A token to observe while executing the query.</param>
+        /// <returns>The existing module-header tree response model.</returns>
+        Task<List<GetModuleChildInversResponseDTO>> GetAllOnlyModuleTreeAsync(
+            short moduleScope,
+            bool? isActive,
+            CancellationToken cancellationToken);
         #endregion
         /// <summary>
         /// Module ko update karta hai
