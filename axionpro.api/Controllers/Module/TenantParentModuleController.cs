@@ -56,9 +56,6 @@ public sealed class TenantParentModuleController : ControllerBase
     /// <returns>The Tenant-entitled Header tree.</returns>
     [HttpGet("get-module-headers")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetModuleHeaders(
         [FromQuery] TenantParentModuleHeaderRequestDTO requestDTO,
         CancellationToken cancellationToken)
@@ -83,8 +80,6 @@ public sealed class TenantParentModuleController : ControllerBase
     /// <returns>The requested page of Main Parent Header entitlements.</returns>
     [HttpGet("list")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetModules(
         [FromQuery] TenantParentModuleListRequestDTO requestDTO,
         CancellationToken cancellationToken)
@@ -109,9 +104,6 @@ public sealed class TenantParentModuleController : ControllerBase
     /// <returns>The Tenant-entitled Header Module.</returns>
     [HttpGet("{id:int}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetModuleById(
         int id,
         [FromQuery] TenantParentModuleByIdRequestDTO requestDTO,
@@ -143,9 +135,6 @@ public sealed class TenantParentModuleController : ControllerBase
     /// <returns>The updated target Header Module.</returns>
     [HttpPatch("{id:int}/status")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateModuleStatus(
         int id,
         [FromBody] UpdateTenantParentModuleStatusRequestDTO requestDTO,

@@ -54,8 +54,6 @@ namespace axionpro.api.Controllers.Module
         /// <returns>The created Parent/Header Module response.</returns>
         [HttpPost("add")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<IActionResult> AddModule(
             [FromBody] CreateParentModuleRequestDTO? createModuleRequestDTO,
@@ -81,9 +79,6 @@ namespace axionpro.api.Controllers.Module
         /// <returns>The updated Parent/Header Module response.</returns>
         [HttpPut("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<IActionResult> UpdateModule(
             int id,
@@ -111,10 +106,7 @@ namespace axionpro.api.Controllers.Module
         /// <returns>The Parent/Header Module after the status cascade completes.</returns>
         [HttpPatch("{id:int}/status")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UpdateModuleStatus(
+                    public async Task<IActionResult> UpdateModuleStatus(
             int id,
             [FromBody] UpdateParentModuleStatusRequestDTO? statusRequestDTO,
             CancellationToken cancellationToken)
@@ -143,10 +135,7 @@ namespace axionpro.api.Controllers.Module
         /// <returns>The matching Parent/Header Module response.</returns>
         [HttpGet("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetModuleById(
+                    public async Task<IActionResult> GetModuleById(
             int id,
             [FromQuery] short moduleScope,
             CancellationToken cancellationToken)
@@ -172,9 +161,7 @@ namespace axionpro.api.Controllers.Module
         /// <returns>The module-header tree response.</returns>
         [HttpGet("get-module-headers")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> GetModuleHeaders(
+                public async Task<IActionResult> GetModuleHeaders(
             [FromQuery] GetParentModuleFilterRequestDTO requestDTO,
             CancellationToken cancellationToken)
         {

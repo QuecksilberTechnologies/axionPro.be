@@ -7,6 +7,7 @@
 
 using axionpro.api.Middlewares;
 using axionpro.api.Realtime;
+using axionpro.api.Common.Swagger;
 using axionpro.application;
 using axionpro.application.Constants;
 using axionpro.infrastructure;
@@ -183,6 +184,8 @@ try
         {
             [new OpenApiSecuritySchemeReference("Bearer", document, null)] = new List<string>()
         });
+
+        c.OperationFilter<CommonErrorResponsesOperationFilter>();
     });
 
     // ============================

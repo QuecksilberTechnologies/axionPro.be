@@ -93,9 +93,6 @@ public class TenantController : ControllerBase
     [Authorize]
     [HttpGet("get-all-tenants")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetAllTenantsAsync([FromQuery] GetAllTenantsRequestDTO requestDTO)
     {
         var result = await _mediator.Send(new GetAllTenantsQuery(requestDTO));
@@ -114,10 +111,6 @@ public class TenantController : ControllerBase
     [Authorize]
     [HttpGet("get-tenant-by-id")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetTenantByIdAsync([FromQuery] GetTenantByIdRequestDTO requestDTO)
     {
         var result = await _mediator.Send(new GetTenantByIdQuery(requestDTO));
@@ -143,10 +136,6 @@ public class TenantController : ControllerBase
     [Authorize]
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateHostManagedTenantAsync(
         string id,
         [FromBody] UpdateHostManagedTenantRequestDTO? requestDTO,
@@ -174,10 +163,6 @@ public class TenantController : ControllerBase
     [Authorize]
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteHostManagedTenantAsync(
         string id,
         [FromQuery] PermissionRequestDTO? permissionRequest,
@@ -204,10 +189,6 @@ public class TenantController : ControllerBase
     [Authorize]
     [HttpPost("{id}/resend-verification")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> ResendTenantVerificationAsync(
         string id,
@@ -233,10 +214,6 @@ public class TenantController : ControllerBase
     [Authorize]
     [HttpPost("update-tenant")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateTenantAsync([FromBody] UpdateTenantRequestDTO requestDTO)
     {
         var result = await _mediator.Send(
@@ -256,10 +233,6 @@ public class TenantController : ControllerBase
     [Authorize]
     [HttpPost("activate-tenant")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ActivateTenantAsync([FromBody] ActivateTenantRequestDTO requestDTO)
     {
         var result = await _mediator.Send(new ActivateTenantCommand(requestDTO));
@@ -278,10 +251,6 @@ public class TenantController : ControllerBase
     [Authorize]
     [HttpPost("deactivate-tenant")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeactivateTenantAsync([FromBody] DeactivateTenantRequestDTO requestDTO)
     {
         var result = await _mediator.Send(new DeactivateTenantCommand(requestDTO));
@@ -300,10 +269,6 @@ public class TenantController : ControllerBase
     [Authorize]
     [HttpPost("delete-tenant")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteTenantAsync([FromBody] DeleteTenantRequestDTO requestDTO)
     {
         var result = await _mediator.Send(
@@ -368,9 +333,6 @@ public class TenantController : ControllerBase
     /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("get-employee-code-pattern")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetEmployeeCodePatternAsync([FromQuery] EmployeeCodePatternRequestDTO code)
     {
         _logger.LogInfo("Fetching employee code pattern for tenant.");
