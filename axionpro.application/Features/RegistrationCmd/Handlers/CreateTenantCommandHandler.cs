@@ -100,6 +100,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
             long newTenantId = 0;
             var dto = request?.TenantCreateRequestDTO
                 ?? throw new ArgumentNullException(nameof(request.TenantCreateRequestDTO));
+            var onboardingRequest = dto as INewTenantOnboardingConfiguration;
 
             // Central validation permits the current Super Admin directly and requires a current
             // Host-role module-operation permission for every other Host user.
@@ -191,6 +192,44 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 }
 
                 _logger.LogInformation("Tenant created successfully with TenantId: {TenantId}", newTenantId);
+
+                if (onboardingRequest is not null)
+                {
+                    var location = onboardingRequest.InitialLocation;
+                    if (location.LocationType is < 1 or > 4 ||
+                        string.IsNullOrWhiteSpace(location.LocationCode) ||
+                        string.IsNullOrWhiteSpace(location.TimeZoneId))
+                    {
+                        await SafeRollbackAsync();
+                        return Fail("A valid initial Tenant location is required.");
+                    }
+
+                    await _unitOfWork.TenantLocationRepository.AddAsync(new TenantLocation
+                    {
+                        TenantId = newTenantId,
+                        LocationCode = location.LocationCode.Trim(),
+                        LocationName = string.IsNullOrWhiteSpace(location.LocationName) ? tenantEntity.CompanyName : location.LocationName.Trim(),
+                        LocationType = location.LocationType,
+                        CountryId = dto.CountryId,
+                        StateId = location.StateId,
+                        CityId = location.CityId,
+                        Address = location.Address,
+                        Landmark = location.Landmark,
+                        PostalCode = location.PostalCode,
+                        Latitude = location.Latitude,
+                        Longitude = location.Longitude,
+                        GeoFenceRadiusMeters = location.GeoFenceRadiusMeters,
+                        TimeZoneId = location.TimeZoneId.Trim(),
+                        IsHeadOffice = location.LocationType == 1,
+                        IsGeoFenceEnabled = location.IsGeoFenceEnabled,
+                        IsAttendanceAllowed = location.IsAttendanceAllowed,
+                        IsBiometricEnabled = location.IsBiometricEnabled,
+                        IsActive = true,
+                        IsSoftDeleted = false,
+                        AddedById = newTenantId,
+                        AddedDateTime = DateTime.UtcNow
+                    }, cancellationToken);
+                }
 
                 // =====================================================
                 // STEP 6 : Create tenant subscription
@@ -632,7 +671,16 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                 // =====================================================
                 var tenantProfile = new TenantProfile
                 {
-                    TenantId = newTenantId
+                    TenantId = newTenantId,
+                    Address = onboardingRequest?.Profile.Address,
+                    LogoUrl = onboardingRequest?.Profile.LogoUrl,
+                    ThemeColor = onboardingRequest?.Profile.ThemeColor,
+                    BusinessType = onboardingRequest?.Profile.BusinessType,
+                    Industry = onboardingRequest?.Profile.Industry,
+                    TotalEmployees = onboardingRequest?.Profile.TotalEmployees,
+                    TotalBranches = onboardingRequest?.Profile.TotalBranches,
+                    FoundedYear = onboardingRequest?.Profile.FoundedYear,
+                    WebsiteUrl = onboardingRequest?.Profile.WebsiteUrl
                 };
 
                 await _unitOfWork.TenantRepository.AddTenantProfileAsync(tenantProfile);
@@ -644,14 +692,14 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
                     new TenantEmailConfig
                     {
                         TenantId = newTenantId,
-                        SmtpHost = ConstantValues.DefaultSmtpHost,
-                        SmtpPort = ConstantValues.DefaultSmtpPort,
-                        SmtpUsername = ConstantValues.DefaultSmtpUserName,
-                        SmtpPasswordEncrypted = _emailConfig.Secret,
-                        FromEmail = ConstantValues.DefaultFromEmail,
-                        FromName = ConstantValues.DefaultFromName,
-                        IsActive = true,
-                        SecrateKey = _emailConfig.Secret
+                        SmtpHost = onboardingRequest?.EmailConfiguration.SmtpHost ?? ConstantValues.DefaultSmtpHost,
+                        SmtpPort = onboardingRequest?.EmailConfiguration.SmtpPort ?? ConstantValues.DefaultSmtpPort,
+                        SmtpUsername = onboardingRequest?.EmailConfiguration.SmtpUsername ?? ConstantValues.DefaultSmtpUserName,
+                        SmtpPasswordEncrypted = onboardingRequest?.EmailConfiguration.SmtpPasswordEncrypted ?? _emailConfig.Secret,
+                        FromEmail = onboardingRequest?.EmailConfiguration.FromEmail ?? ConstantValues.DefaultFromEmail,
+                        FromName = onboardingRequest?.EmailConfiguration.FromName ?? ConstantValues.DefaultFromName,
+                        IsActive = onboardingRequest?.EmailConfiguration.IsActive ?? true,
+                        SecrateKey = onboardingRequest?.EmailConfiguration.SecrateKey ?? _emailConfig.Secret
                     });
 
                 // =====================================================

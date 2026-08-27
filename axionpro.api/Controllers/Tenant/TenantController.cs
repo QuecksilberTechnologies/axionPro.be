@@ -82,6 +82,26 @@ public class TenantController : ControllerBase
     #region Tenant Management Queries
 
     /// <summary>
+    /// Creates a new Tenant with its initial subscription, profile, location, administrator, and seeded configuration.
+    /// </summary>
+    /// <remarks>
+    /// Uses the established Host authorization and transactional Tenant onboarding flow. Encryption material is generated internally and is never returned by this endpoint.
+    /// </remarks>
+    /// <param name="requestDTO">The Tenant company, administrator, profile, location, subscription-plan, and employee-code-pattern values.</param>
+    /// <param name="cancellationToken">The token used to observe request cancellation.</param>
+    /// <returns>The Tenant onboarding result.</returns>
+    [Authorize]
+    [HttpPost("new-tentant-creaion")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> CreateNewTenantAsync(
+        [FromBody] NewTenantCreationRequestDTO requestDTO,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new CreateNewTenantCommand(requestDTO), cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Retrieves a page of Host-managed Tenants.
     /// </summary>
     /// <remarks>
