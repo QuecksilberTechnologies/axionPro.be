@@ -106,7 +106,7 @@ public class UpdateModuleOperationMappingByProductOwnerCommandHandler
             .GetModuleOperationMappingByIdAsync(mappingId, cancellationToken)
             ?? throw new ApiException("Module operation mapping not found.", 404);
 
-        if (dto.IsActive == true)
+        if (dto.IsActive == true && existing.IsActive != true)
         {
             await ValidateModuleHierarchyForOperationAsync(dto.ModuleId, cancellationToken);
         }
@@ -176,7 +176,7 @@ public class UpdateModuleOperationMappingByProductOwnerCommandHandler
     }
 
     /// <summary>
-    /// Validates that an operation's owning Module and every ancestor are active before a mapping is activated.
+    /// Validates that a mapping's exact owning Module and every ancestor are active before the mapping is activated.
     /// </summary>
     /// <param name="moduleId">The exact owning Module identifier.</param>
     /// <param name="cancellationToken">The token used to observe cancellation.</param>
@@ -190,15 +190,25 @@ public class UpdateModuleOperationMappingByProductOwnerCommandHandler
         if (hierarchy is null || hierarchy.Count == 0)
         {
             throw new ValidationErrorException(
-                "The operation cannot be created or activated because its module is deleted or unavailable.");
+                "The module operation cannot be activated because its module is deleted or unavailable.");
         }
 
-        // An operation can be active only when its owning Module and complete ancestor hierarchy are active.
-        var inactiveModule = hierarchy.FirstOrDefault(module => !module.IsActive);
-        if (inactiveModule is not null)
+        // A module operation can be active only when its exact child Module and complete ancestor hierarchy are active.
+        var childModule = hierarchy[0];
+        if (!childModule.IsActive)
         {
             throw new ValidationErrorException(
-                $"The operation cannot be created or activated because the module '{inactiveModule.ModuleName}' is inactive.");
+                $"The module operation cannot be activated because the child module '{childModule.ModuleName}' is inactive.");
+        }
+
+        for (var hierarchyIndex = 1; hierarchyIndex < hierarchy.Count; hierarchyIndex++)
+        {
+            var parentModule = hierarchy[hierarchyIndex];
+            if (!parentModule.IsActive)
+            {
+                throw new ValidationErrorException(
+                    $"The module operation cannot be activated because the parent module '{parentModule.ModuleName}' is inactive.");
+            }
         }
     }
 

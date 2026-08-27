@@ -84,7 +84,7 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
         #region MediatR Handler
 
         /// <summary>
-        /// Changes a direct child status without cascading and only activates under an active Header Module.
+        /// Changes a direct child status, cascades the state to its linked operation mappings, and only activates under an active ancestor hierarchy.
         /// </summary>
         /// <param name="request">The status change request.</param>
         /// <param name="cancellationToken">A token used to cancel the operation.</param>
@@ -112,6 +112,8 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
 
             try
             {
+                await _unitOfWork.BeginTransactionAsync(cancellationToken);
+
                 var entity = await _unitOfWork.ModuleRepository.GetSubModuleForUpdateAsync(
                     request.Id,
                     dto.ModuleScope,
@@ -122,9 +124,9 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
                     throw new KeyNotFoundException("SubModule was not found in the requested ModuleScope.");
                 }
 
-                if (dto.IsActive && !entity.IsActive)
+                if (dto.IsActive)
                 {
-                    // A SubModule cannot be activated while any ancestor in its ownership chain is inactive.
+                    // A SubModule and its linked operation mappings cannot be activated while any ancestor is inactive.
                     var hierarchy = await _unitOfWork.ModuleRepository
                         .GetModuleHierarchyForOperationActivationAsync(entity.Id, cancellationToken);
 
@@ -155,21 +157,40 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
                     throw new KeyNotFoundException("Parent Module was not found in the requested ModuleScope.");
                 }
 
-                entity.ParentModuleId = parentModule.Id;
-                entity.IsLeafNode = true;
-                entity.IsActive = dto.IsActive;
                 var utcNow = DateTime.UtcNow;
-                entity.UpdatedById = hostUserId;
-                entity.UpdatedDateTime = utcNow;
+                var operationMappings = await _unitOfWork.ModuleRepository
+                    .GetModuleOperationMappingsForStatusUpdateAsync(new[] { entity.Id }, cancellationToken);
 
-                var updated = await _unitOfWork.ModuleRepository.UpdateSubModuleAsync(entity, cancellationToken);
+                if (entity.IsActive != dto.IsActive)
+                {
+                    entity.ParentModuleId = parentModule.Id;
+                    entity.IsLeafNode = true;
+                    entity.IsActive = dto.IsActive;
+                    entity.UpdatedById = hostUserId;
+                    entity.UpdatedDateTime = utcNow;
+                }
+
+                // Only mappings belonging to this direct SubModule receive the requested state.
+                foreach (var operationMapping in operationMappings)
+                {
+                    if (operationMapping.IsActive != dto.IsActive)
+                    {
+                        operationMapping.IsActive = dto.IsActive;
+                        operationMapping.UpdatedById = hostUserId;
+                        operationMapping.UpdatedDateTime = utcNow;
+                    }
+                }
+
+                await _unitOfWork.ModuleRepository.SaveModuleStatusCascadeAsync(cancellationToken);
+                await _unitOfWork.CommitTransactionAsync(cancellationToken);
 
                 return ApiResponse<GetSubModuleResponseDTO>.Success(
-                    ToResponse(updated, parentModule),
+                    ToResponse(entity, parentModule),
                     "SubModule status updated successfully.");
             }
             catch (Exception exception)
             {
+                await _unitOfWork.RollbackTransactionAsync(CancellationToken.None);
                 _logger.LogError(exception, "Unable to update SubModule {ModuleId} status in ModuleScope {ModuleScope}.", request.Id, dto.ModuleScope);
                 throw;
             }
