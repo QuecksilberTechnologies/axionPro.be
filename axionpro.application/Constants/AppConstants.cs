@@ -70,6 +70,11 @@ namespace axionpro.application.Constants
             public const string OperationLinkedToModule = "The operation cannot be deactivated or deleted because it is linked to one or more modules. Unlink the operation from all module-operation mappings first.";
 
             /// <summary>
+            /// Indicates that an operation remains assigned to one or more current Host-role permissions.
+            /// </summary>
+            public const string OperationAssignedToHostRolePermission = "The operation cannot be updated or deleted because it is assigned to Host-role module permissions.";
+
+            /// <summary>
             /// Indicates that verification cannot be resent for an already verified Tenant.
             /// </summary>
             public const string TenantAlreadyVerified = "Tenant is already verified.";

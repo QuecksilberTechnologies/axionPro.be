@@ -116,6 +116,12 @@ public class UpdateOperationCommandHandler
             .GetOperationByIdAsync(dto.Id)
             ?? throw new ApiException("Operation not found.", 404);
 
+        if (await _unitOfWork.HostRolePermissionRepository
+                .IsOperationAssignedToNonDeletedPermissionAsync(operation.Id, cancellationToken))
+        {
+            throw new ConflictException(AppConstants.ErrorMessages.OperationAssignedToHostRolePermission);
+        }
+
         if (dto.IsActive == false && await _unitOfWork.ModuleRepository
                 .IsOperationLinkedToAnyModuleAsync(operation.Id, cancellationToken))
         {

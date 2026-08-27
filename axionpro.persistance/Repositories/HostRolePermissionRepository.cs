@@ -82,6 +82,37 @@ namespace axionpro.persistance.Repositories
         }
 
         /// <inheritdoc />
+        public Task<List<HostRoleModuleAndPermission>> GetNonDeletedByModuleIdsAsync(
+            IReadOnlyCollection<int> moduleIds,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(moduleIds);
+
+            if (moduleIds.Count == 0)
+            {
+                return Task.FromResult(new List<HostRoleModuleAndPermission>());
+            }
+
+            return _context.HostRoleModuleAndPermissions
+                .Where(permission =>
+                    moduleIds.Contains(permission.ModuleId) &&
+                    !permission.IsSoftDeleted)
+                .ToListAsync(cancellationToken);
+        }
+
+        /// <inheritdoc />
+        public Task<bool> IsOperationAssignedToNonDeletedPermissionAsync(
+            int operationId,
+            CancellationToken cancellationToken = default)
+        {
+            return _context.HostRoleModuleAndPermissions
+                .AnyAsync(permission =>
+                    permission.OperationId == operationId &&
+                    !permission.IsSoftDeleted,
+                    cancellationToken);
+        }
+
+        /// <inheritdoc />
         public async Task BulkInsertAsync(
             List<HostRoleModuleAndPermission> permissions,
             CancellationToken cancellationToken = default)

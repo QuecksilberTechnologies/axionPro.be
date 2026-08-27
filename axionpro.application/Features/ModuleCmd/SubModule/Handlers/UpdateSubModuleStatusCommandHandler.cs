@@ -160,6 +160,8 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
                 var utcNow = DateTime.UtcNow;
                 var operationMappings = await _unitOfWork.ModuleRepository
                     .GetModuleOperationMappingsForStatusUpdateAsync(new[] { entity.Id }, cancellationToken);
+                var hostRolePermissions = await _unitOfWork.HostRolePermissionRepository
+                    .GetNonDeletedByModuleIdsAsync(new[] { entity.Id }, cancellationToken);
 
                 if (entity.IsActive != dto.IsActive)
                 {
@@ -178,6 +180,16 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
                         operationMapping.IsActive = dto.IsActive;
                         operationMapping.UpdatedById = hostUserId;
                         operationMapping.UpdatedDateTime = utcNow;
+                    }
+                }
+
+                foreach (var hostRolePermission in hostRolePermissions)
+                {
+                    if (hostRolePermission.IsActive != dto.IsActive)
+                    {
+                        hostRolePermission.IsActive = dto.IsActive;
+                        hostRolePermission.UpdatedById = hostUserId;
+                        hostRolePermission.UpdatedDateTime = utcNow;
                     }
                 }
 

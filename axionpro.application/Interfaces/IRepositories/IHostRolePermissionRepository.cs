@@ -39,6 +39,26 @@ namespace axionpro.application.Interfaces.IRepositories
             CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Retrieves tracked, non-soft-deleted Host-role permissions for the supplied Module identifiers.
+        /// </summary>
+        /// <param name="moduleIds">The affected Module identifiers.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The matching Host-role permissions that may be synchronized with Module status.</returns>
+        Task<List<HostRoleModuleAndPermission>> GetNonDeletedByModuleIdsAsync(
+            IReadOnlyCollection<int> moduleIds,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Determines whether an Operation is assigned to any non-soft-deleted Host-role permission.
+        /// </summary>
+        /// <param name="operationId">The Operation identifier to check.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns><see langword="true"/> when the Operation is assigned to a current Host-role permission.</returns>
+        Task<bool> IsOperationAssignedToNonDeletedPermissionAsync(
+            int operationId,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Adds new Host-role permission assignments to the current unit-of-work change set.
         /// </summary>
         /// <param name="permissions">The new unique permission assignments to add.</param>

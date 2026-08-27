@@ -6,6 +6,7 @@
 // ================================================================
 
 using axionpro.application.DTOS.Host;
+using axionpro.application.Constants;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
@@ -76,7 +77,7 @@ public class GetHostRoleModulePermissionsQueryHandler
     #region Handle
 
     /// <summary>
-    /// Retrieves all active module-operation mappings and marks those assigned to the requested Host role.
+    /// Retrieves active, operational Host-scope module-operation mappings and marks those assigned to the requested Host role.
     /// </summary>
     /// <param name="request">The HostRole permission selection query.</param>
     /// <param name="cancellationToken">The token used to observe cancellation.</param>
@@ -85,7 +86,7 @@ public class GetHostRoleModulePermissionsQueryHandler
         GetHostRoleModulePermissionsQuery request,
         CancellationToken cancellationToken)
     {
-        await _commonRequestService.ValidateHostUserRequestAsync();
+        await _commonRequestService.ValidateHostSuperAdminRequestAsync();
         cancellationToken.ThrowIfCancellationRequested();
 
         if (request == null || request.HostRoleId <= 0)
@@ -99,7 +100,11 @@ public class GetHostRoleModulePermissionsQueryHandler
 
         var activeMappings = (await _unitOfWork.ModuleRepository
                 .GetAllModuleOperationMappingsAsync(cancellationToken))
-            .Where(mapping => mapping.IsActive == true)
+            .Where(mapping =>
+                mapping.IsActive == true &&
+                mapping.IsOperational == true &&
+                mapping.Module.ModuleScope == (short)AppConstants.HostModuleScope &&
+                !mapping.Module.IsCommonMenu)
             .ToList();
 
         var assignedPermissions = await _unitOfWork.HostRolePermissionRepository

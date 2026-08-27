@@ -133,6 +133,11 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
                 var operationMappings = await _unitOfWork.ModuleRepository.GetModuleOperationMappingsForStatusUpdateAsync(
                     affectedModuleIds,
                     cancellationToken);
+                var childModuleIds = descendantModules
+                    .Select(module => module.Id)
+                    .ToList();
+                var hostRolePermissions = await _unitOfWork.HostRolePermissionRepository
+                    .GetNonDeletedByModuleIdsAsync(childModuleIds, cancellationToken);
 
                 var updatedDateTime = DateTime.UtcNow;
 
@@ -167,6 +172,17 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
                         operationMapping.IsActive = dto.IsActive;
                         operationMapping.UpdatedById = hostUserId;
                         operationMapping.UpdatedDateTime = updatedDateTime;
+                    }
+                }
+
+                // Host-role permissions are assigned to operational child Modules, not necessarily the Header itself.
+                foreach (var hostRolePermission in hostRolePermissions)
+                {
+                    if (hostRolePermission.IsActive != dto.IsActive)
+                    {
+                        hostRolePermission.IsActive = dto.IsActive;
+                        hostRolePermission.UpdatedById = hostUserId;
+                        hostRolePermission.UpdatedDateTime = updatedDateTime;
                     }
                 }
 
