@@ -81,7 +81,8 @@ public class DeleteModuleOperationCommandHandler
         DeleteModuleOperationCommand request,
         CancellationToken cancellationToken)
     {
-        var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
+        var hostContext = await _commonRequestService.ValidateHostSuperAdminRequestAsync();
+        var hostUserId = hostContext.HostUserId;
         cancellationToken.ThrowIfCancellationRequested();
 
         if (request is null || request.Id <= 0)

@@ -117,6 +117,16 @@ namespace axionpro.application.Interfaces.IRepositories
             CancellationToken cancellationToken);
 
         /// <summary>
+        /// Retrieves a module with its direct Parent Module Header for module-operation activation validation.
+        /// </summary>
+        /// <param name="moduleId">The destination module identifier.</param>
+        /// <param name="cancellationToken">A token to observe while querying.</param>
+        /// <returns>The module and its related Parent Module Header, or <see langword="null"/> when unavailable.</returns>
+        Task<Module?> GetModuleForOperationActivationAsync(
+            int moduleId,
+            CancellationToken cancellationToken);
+
+        /// <summary>
         /// Retrieves all module-operation mappings with their module configuration lookups.
         /// </summary>
         /// <param name="cancellationToken">A token to observe while querying.</param>

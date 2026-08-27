@@ -1216,6 +1216,19 @@ namespace axionpro.persistance.Repositories
                 .FirstOrDefaultAsync(item => item.Id == id, cancellationToken);
         }
 
+        /// <inheritdoc />
+        public async Task<Module?> GetModuleForOperationActivationAsync(
+            int moduleId,
+            CancellationToken cancellationToken)
+        {
+            var context = _context ?? throw new InvalidOperationException("Module context is unavailable.");
+
+            return await context.Modules
+                .AsNoTracking()
+                .Include(module => module.ParentModule)
+                .FirstOrDefaultAsync(module => module.Id == moduleId, cancellationToken);
+        }
+
         /// <summary>
         /// Retrieves all module-operation mappings with their module configuration lookups.
         /// </summary>

@@ -91,7 +91,9 @@ public class UpdateModuleOperationMappingByProductOwnerCommandHandler
         UpdateModuleOperationMappingByProductOwnerCommand request,
         CancellationToken cancellationToken)
     {
-        var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
+        var hostContext = await _commonRequestService.ValidateHostSuperAdminRequestAsync();
+        var hostUserId = hostContext.HostUserId;
+        
         cancellationToken.ThrowIfCancellationRequested();
 
         var dto = request?.DTO
@@ -103,6 +105,22 @@ public class UpdateModuleOperationMappingByProductOwnerCommandHandler
         var existing = await _unitOfWork.ModuleRepository
             .GetModuleOperationMappingByIdAsync(mappingId, cancellationToken)
             ?? throw new ApiException("Module operation mapping not found.", 404);
+
+        if (dto.IsActive == true)
+        {
+            var module = await _unitOfWork.ModuleRepository
+                .GetModuleForOperationActivationAsync(dto.ModuleId, cancellationToken);
+            var parentModuleHeader = module?.IsLeafNode == false
+                ? module
+                : module?.ParentModule;
+
+            // An operation cannot be active when its owning Parent Module Header is inactive or unavailable.
+            if (parentModuleHeader?.IsActive != true)
+            {
+                throw new ValidationErrorException(
+                    "This operation cannot be activated because its parent module header is inactive.");
+            }
+        }
 
         _mapper.Map(dto, existing);
         var utcNow = DateTime.UtcNow;

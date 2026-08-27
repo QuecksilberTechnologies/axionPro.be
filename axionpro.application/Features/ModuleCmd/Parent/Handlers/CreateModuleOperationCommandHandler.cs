@@ -92,7 +92,8 @@ public class CreateModuleOperationCommandHandler
         CreateModuleOperationCommand request,
         CancellationToken cancellationToken)
     {
-        var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
+        var hostContext = await _commonRequestService.ValidateHostSuperAdminRequestAsync();
+        var hostUserId = hostContext.HostUserId;
         cancellationToken.ThrowIfCancellationRequested();
 
         var dto = request?.DTO
