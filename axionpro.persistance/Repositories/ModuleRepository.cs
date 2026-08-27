@@ -1217,16 +1217,35 @@ namespace axionpro.persistance.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<Module?> GetModuleForOperationActivationAsync(
+        public async Task<IReadOnlyList<Module>?> GetModuleHierarchyForOperationActivationAsync(
             int moduleId,
             CancellationToken cancellationToken)
         {
             var context = _context ?? throw new InvalidOperationException("Module context is unavailable.");
+            var hierarchy = new List<Module>();
+            var visitedModuleIds = new HashSet<int>();
+            int? currentModuleId = moduleId;
 
-            return await context.Modules
-                .AsNoTracking()
-                .Include(module => module.ParentModule)
-                .FirstOrDefaultAsync(module => module.Id == moduleId, cancellationToken);
+            while (currentModuleId.HasValue)
+            {
+                if (!visitedModuleIds.Add(currentModuleId.Value))
+                {
+                    return null;
+                }
+
+                var module = await context.Modules
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(item => item.Id == currentModuleId.Value, cancellationToken);
+                if (module is null)
+                {
+                    return null;
+                }
+
+                hierarchy.Add(module);
+                currentModuleId = module.ParentModuleId;
+            }
+
+            return hierarchy;
         }
 
         /// <summary>

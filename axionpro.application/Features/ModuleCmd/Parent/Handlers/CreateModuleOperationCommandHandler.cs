@@ -100,6 +100,7 @@ public class CreateModuleOperationCommandHandler
             ?? throw new ValidationErrorException("Module operation mapping details are required.");
 
         ValidateMappingValues(dto.ModuleId, dto.OperationId, dto.DataViewStructureId, dto.PageTypeId);
+        await ValidateModuleHierarchyForOperationAsync(dto.ModuleId, cancellationToken);
 
         var utcNow = DateTime.UtcNow;
         var entity = _mapper.Map<ModuleOperationMapping>(dto);
@@ -145,6 +146,33 @@ public class CreateModuleOperationCommandHandler
         if (dataViewStructureId is <= 0 || pageTypeId is <= 0)
         {
             throw new ValidationErrorException("Optional related IDs must be positive when supplied.");
+        }
+    }
+
+    /// <summary>
+    /// Validates that an operation's owning Module and every ancestor are active before a mapping is created.
+    /// </summary>
+    /// <param name="moduleId">The exact owning Module identifier.</param>
+    /// <param name="cancellationToken">The token used to observe cancellation.</param>
+    private async Task ValidateModuleHierarchyForOperationAsync(
+        int moduleId,
+        CancellationToken cancellationToken)
+    {
+        var hierarchy = await _unitOfWork.ModuleRepository
+            .GetModuleHierarchyForOperationActivationAsync(moduleId, cancellationToken);
+
+        if (hierarchy is null || hierarchy.Count == 0)
+        {
+            throw new ValidationErrorException(
+                "The operation cannot be created or activated because its module is deleted or unavailable.");
+        }
+
+        // An operation can be active only when its owning Module and complete ancestor hierarchy are active.
+        var inactiveModule = hierarchy.FirstOrDefault(module => !module.IsActive);
+        if (inactiveModule is not null)
+        {
+            throw new ValidationErrorException(
+                $"The operation cannot be created or activated because the module '{inactiveModule.ModuleName}' is inactive.");
         }
     }
 

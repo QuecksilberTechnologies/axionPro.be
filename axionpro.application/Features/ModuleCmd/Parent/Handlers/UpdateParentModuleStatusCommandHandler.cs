@@ -137,26 +137,37 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
                 var updatedDateTime = DateTime.UtcNow;
 
                 // Apply the requested active state while preserving module hierarchy and creation data.
-                parentModule.IsActive = dto.IsActive;
-                parentModule.IsModuleDisplayInUI = dto.IsActive;
-                parentModule.UpdatedById = hostUserId;
-                parentModule.UpdatedDateTime = updatedDateTime;
+                if (parentModule.IsActive != dto.IsActive ||
+                    parentModule.IsModuleDisplayInUI != dto.IsActive)
+                {
+                    parentModule.IsActive = dto.IsActive;
+                    parentModule.IsModuleDisplayInUI = dto.IsActive;
+                    parentModule.UpdatedById = hostUserId;
+                    parentModule.UpdatedDateTime = updatedDateTime;
+                }
 
                 // Apply the requested active and visible state only to descendants, including nested headers and leaf modules.
                 foreach (var descendantModule in descendantModules)
                 {
-                    descendantModule.IsActive = dto.IsActive;
-                    descendantModule.IsModuleDisplayInUI = dto.IsActive;
-                    descendantModule.UpdatedById = hostUserId;
-                    descendantModule.UpdatedDateTime = updatedDateTime;
+                    if (descendantModule.IsActive != dto.IsActive ||
+                        descendantModule.IsModuleDisplayInUI != dto.IsActive)
+                    {
+                        descendantModule.IsActive = dto.IsActive;
+                        descendantModule.IsModuleDisplayInUI = dto.IsActive;
+                        descendantModule.UpdatedById = hostUserId;
+                        descendantModule.UpdatedDateTime = updatedDateTime;
+                    }
                 }
 
                 // Module-operation mappings are directly linked to modules, so only mappings for the affected tree are updated.
                 foreach (var operationMapping in operationMappings)
                 {
-                    operationMapping.IsActive = dto.IsActive;
-                    operationMapping.UpdatedById = hostUserId;
-                    operationMapping.UpdatedDateTime = updatedDateTime;
+                    if (operationMapping.IsActive != dto.IsActive)
+                    {
+                        operationMapping.IsActive = dto.IsActive;
+                        operationMapping.UpdatedById = hostUserId;
+                        operationMapping.UpdatedDateTime = updatedDateTime;
+                    }
                 }
 
                 await _unitOfWork.ModuleRepository.SaveModuleStatusCascadeAsync(cancellationToken);
