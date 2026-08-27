@@ -19,6 +19,7 @@ using axionpro.application.Interfaces;
 using axionpro.application.Features.OperationCmd.Commands;
 using axionpro.application.Constants;
 using axionpro.application.Exceptions;
+using axionpro.application.Interfaces.ICommonRequest;
 
 namespace axionpro.application.Features.OperationCmd.Commands
 {
@@ -57,6 +58,7 @@ public class UpdateOperationCommandHandler : IRequestHandler<UpdateOperationComm
         private readonly IOperationRepository operationRepository;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICommonRequestService _commonRequestService;
         #endregion
 
         #region Constructor
@@ -65,11 +67,16 @@ public class UpdateOperationCommandHandler : IRequestHandler<UpdateOperationComm
         /// </summary>
 
 
-        public UpdateOperationCommandHandler(IOperationRepository operationRepository, IMapper mapper, IUnitOfWork unitOfWork)
+        public UpdateOperationCommandHandler(
+            IOperationRepository operationRepository,
+            IMapper mapper,
+            IUnitOfWork unitOfWork,
+            ICommonRequestService commonRequestService)
         {
             this.operationRepository = operationRepository;
             _mapper = mapper;
             _unitOfWork = unitOfWork;
+            _commonRequestService = commonRequestService;
         }
         #endregion
 
@@ -87,6 +94,9 @@ public class UpdateOperationCommandHandler : IRequestHandler<UpdateOperationComm
 
             try
             {
+                var hostContext =
+                    await _commonRequestService.ValidateHostSuperAdminRequestAsync();
+                var hostUserId = hostContext.HostUserId;
 
                 var dto = request?.updateOperationDTO
                     ?? throw new ValidationErrorException("Operation details are required.");
@@ -103,7 +113,7 @@ public class UpdateOperationCommandHandler : IRequestHandler<UpdateOperationComm
 
                 Operation operation = _mapper.Map<Operation>(dto);
                 operation.IsActive = dto.IsActive ?? existingOperation.IsActive;
-                operation.UpdatedById = (long)dto.ProductOwnerId;
+                operation.UpdatedById = hostUserId;
                 operation.UpdateDateTime = DateTime.UtcNow;
                 List<Operation> operations = await operationRepository.UpdateOperationAsync(operation);
 

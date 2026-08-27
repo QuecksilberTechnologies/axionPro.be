@@ -95,7 +95,9 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
             UpdateSubModuleStatusCommand request,
             CancellationToken cancellationToken)
         {
-            var hostUserId = await _commonRequestService.ValidateHostUserRequestAsync();
+            var hostContext =
+                await _commonRequestService.ValidateHostSuperAdminRequestAsync();
+            var hostUserId = hostContext.HostUserId;
 
             if (request == null || request.Id <= 0 || request.DTO == null)
             {
@@ -120,6 +122,29 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
                     throw new KeyNotFoundException("SubModule was not found in the requested ModuleScope.");
                 }
 
+                if (dto.IsActive && !entity.IsActive)
+                {
+                    // A SubModule cannot be activated while any ancestor in its ownership chain is inactive.
+                    var hierarchy = await _unitOfWork.ModuleRepository
+                        .GetModuleHierarchyForOperationActivationAsync(entity.Id, cancellationToken);
+
+                    if (hierarchy == null || hierarchy.Count < 2)
+                    {
+                        throw new ConflictException(
+                            "The sub-module cannot be activated because its parent module is deleted or unavailable.");
+                    }
+
+                    for (var hierarchyIndex = 1; hierarchyIndex < hierarchy.Count; hierarchyIndex++)
+                    {
+                        var ancestor = hierarchy[hierarchyIndex];
+                        if (!ancestor.IsActive)
+                        {
+                            throw new ConflictException(
+                                $"The sub-module cannot be activated because its parent module '{ancestor.ModuleName}' is inactive.");
+                        }
+                    }
+                }
+
                 var parentModule = await _unitOfWork.ModuleRepository.GetParentModuleForSubModuleAsync(
                     entity.ParentModuleId!.Value,
                     entity.ModuleScope,
@@ -128,11 +153,6 @@ namespace axionpro.application.Features.ModuleCmd.SubModule.Handlers
                 if (parentModule == null)
                 {
                     throw new KeyNotFoundException("Parent Module was not found in the requested ModuleScope.");
-                }
-
-                if (dto.IsActive && !parentModule.IsActive)
-                {
-                    throw new ConflictException(AppConstants.ErrorMessages.ResourceConflict);
                 }
 
                 entity.ParentModuleId = parentModule.Id;
