@@ -66,6 +66,7 @@ public class TenantController : ControllerBase
     /// </remarks>
     /// <param name="tenantCreateRequestDTO">The request body used to tenant creation.</param>
     /// <returns>An HTTP response containing the result of the operation.</returns>
+    [Authorize]
     [HttpPost("create-tenant")]
     public async Task<IActionResult> TenantCreation([FromBody] application.DTOs.Registration.TenantCreateRequestDTO tenantCreateRequestDTO)
     {
@@ -81,11 +82,11 @@ public class TenantController : ControllerBase
     #region Tenant Management Queries
 
     /// <summary>
-    /// Get All Tenants.
+    /// Retrieves a page of Host-managed Tenants.
     /// </summary>
     /// <remarks>
-    /// Handles the request to get all tenants.
-    /// Requires an authenticated user.
+    /// Requires an authenticated Host request. The current Super Admin may omit ModuleId and
+    /// OperationId; every other Host role must provide an assigned module-operation permission pair.
     /// </remarks>
     /// <param name="requestDTO">The query parameters used to get all tenants.</param>
     /// <returns>An HTTP response containing the result of the operation.</returns>

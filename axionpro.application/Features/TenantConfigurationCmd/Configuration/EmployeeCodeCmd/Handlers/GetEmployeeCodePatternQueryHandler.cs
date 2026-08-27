@@ -35,18 +35,18 @@ namespace axionpro.application.Features.TenantConfigurationCmd.Configuration.Emp
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICommonRequestService _commonRequestService;
-        private readonly IEncryptionService _encryptionService;
+        private readonly IIdEncoderService _idEncoderService;
         private readonly ILogger<GetEmployeeCodePatternQueryHandler> _logger;
 
         public GetEmployeeCodePatternQueryHandler(
             IUnitOfWork unitOfWork,
             ICommonRequestService commonRequestService,
-            IEncryptionService encryptionService,
+            IIdEncoderService idEncoderService,
             ILogger<GetEmployeeCodePatternQueryHandler> logger)
         {
             _unitOfWork = unitOfWork;
             _commonRequestService = commonRequestService;
-            _encryptionService = encryptionService;
+            _idEncoderService = idEncoderService;
             _logger = logger;
         }
 
@@ -103,7 +103,7 @@ namespace axionpro.application.Features.TenantConfigurationCmd.Configuration.Emp
                     targetTenantId = HostTenantIdentifierProtector.Decrypt(
                         request.DTO.TenantId,
                         hostContext.TenantEncryptionKey,
-                        _encryptionService);
+                        _idEncoderService);
                     hostTenantEncryptionKey = hostContext.TenantEncryptionKey;
                 }
 
@@ -157,7 +157,7 @@ namespace axionpro.application.Features.TenantConfigurationCmd.Configuration.Emp
                 TenantId = HostTenantIdentifierProtector.Encrypt(
                     pattern.TenantId,
                     tenantEncryptionKey,
-                    _encryptionService),
+                    _idEncoderService),
                 Prefix = pattern.Prefix,
                 IncludeYear = pattern.IncludeYear,
                 IncludeMonth = pattern.IncludeMonth,

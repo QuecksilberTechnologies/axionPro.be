@@ -102,7 +102,7 @@ public sealed class UpdateHostManagedTenantCommandHandler
 
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICommonRequestService _commonRequestService;
-    private readonly IEncryptionService _encryptionService;
+    private readonly IIdEncoderService _idEncoderService;
 
     #endregion
 
@@ -117,11 +117,11 @@ public sealed class UpdateHostManagedTenantCommandHandler
     public UpdateHostManagedTenantCommandHandler(
         IUnitOfWork unitOfWork,
         ICommonRequestService commonRequestService,
-        IEncryptionService encryptionService)
+        IIdEncoderService idEncoderService)
     {
         _unitOfWork = unitOfWork;
         _commonRequestService = commonRequestService;
-        _encryptionService = encryptionService;
+        _idEncoderService = idEncoderService;
     }
 
     #endregion
@@ -155,7 +155,7 @@ public sealed class UpdateHostManagedTenantCommandHandler
         var tenantId = HostTenantIdentifierProtector.Decrypt(
             request.EncryptedTenantId,
             hostContext.TenantEncryptionKey,
-            _encryptionService);
+            _idEncoderService);
 
         var tenant = await _unitOfWork.TenantRepository
             .GetHostManagedTenantByIdAsync(tenantId, cancellationToken);
@@ -258,7 +258,7 @@ public sealed class UpdateHostManagedTenantCommandHandler
     {
         return new HostTenantResponseDTO
         {
-            Id = HostTenantIdentifierProtector.Encrypt(tenant.Id, tenantEncryptionKey, _encryptionService),
+            Id = HostTenantIdentifierProtector.Encrypt(tenant.Id, tenantEncryptionKey, _idEncoderService),
             CompanyName = tenant.CompanyName,
             TenantCode = tenant.TenantCode,
             CompanyEmailDomain = tenant.CompanyEmailDomain,

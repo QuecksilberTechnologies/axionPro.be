@@ -97,12 +97,12 @@ public sealed class GetTenantParentModuleHeadersQueryHandler
     /// </summary>
     /// <param name="unitOfWork">Provides Tenant entitlement and Tenant persistence operations.</param>
     /// <param name="commonRequestService">Validates the current Host Super Admin and Host encryption-key context.</param>
-    /// <param name="encryptionService">Protects Tenant identifiers at the Host API boundary.</param>
+    /// <param name="idEncoderService">Encodes Tenant identifiers at the Host API boundary.</param>
     public GetTenantParentModuleHeadersQueryHandler(
         IUnitOfWork unitOfWork,
         ICommonRequestService commonRequestService,
-        IEncryptionService encryptionService)
-        : base(unitOfWork, commonRequestService, encryptionService)
+        IIdEncoderService idEncoderService)
+        : base(unitOfWork, commonRequestService, idEncoderService)
     {
     }
 
@@ -138,12 +138,12 @@ public sealed class GetTenantParentModulesQueryHandler
     /// </summary>
     /// <param name="unitOfWork">Provides Tenant entitlement and Tenant persistence operations.</param>
     /// <param name="commonRequestService">Validates the current Host Super Admin and Host encryption-key context.</param>
-    /// <param name="encryptionService">Protects Tenant identifiers at the Host API boundary.</param>
+    /// <param name="idEncoderService">Encodes Tenant identifiers at the Host API boundary.</param>
     public GetTenantParentModulesQueryHandler(
         IUnitOfWork unitOfWork,
         ICommonRequestService commonRequestService,
-        IEncryptionService encryptionService)
-        : base(unitOfWork, commonRequestService, encryptionService)
+        IIdEncoderService idEncoderService)
+        : base(unitOfWork, commonRequestService, idEncoderService)
     {
     }
 
@@ -184,12 +184,12 @@ public sealed class GetTenantParentModuleByIdQueryHandler
     /// </summary>
     /// <param name="unitOfWork">Provides Tenant entitlement and Tenant persistence operations.</param>
     /// <param name="commonRequestService">Validates the current Host Super Admin and Host encryption-key context.</param>
-    /// <param name="encryptionService">Protects Tenant identifiers at the Host API boundary.</param>
+    /// <param name="idEncoderService">Encodes Tenant identifiers at the Host API boundary.</param>
     public GetTenantParentModuleByIdQueryHandler(
         IUnitOfWork unitOfWork,
         ICommonRequestService commonRequestService,
-        IEncryptionService encryptionService)
-        : base(unitOfWork, commonRequestService, encryptionService)
+        IIdEncoderService idEncoderService)
+        : base(unitOfWork, commonRequestService, idEncoderService)
     {
     }
 
@@ -236,22 +236,22 @@ public abstract class TenantParentModuleQueryHandlerBase
     protected IUnitOfWork UnitOfWork { get; }
 
     private readonly ICommonRequestService _commonRequestService;
-    private readonly IEncryptionService _encryptionService;
+    private readonly IIdEncoderService _idEncoderService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TenantParentModuleQueryHandlerBase"/> class.
     /// </summary>
     /// <param name="unitOfWork">Provides Tenant entitlement and Tenant persistence operations.</param>
     /// <param name="commonRequestService">Validates the current Host request contexts.</param>
-    /// <param name="encryptionService">Protects Tenant identifiers at the Host API boundary.</param>
+    /// <param name="idEncoderService">Encodes Tenant identifiers at the Host API boundary.</param>
     protected TenantParentModuleQueryHandlerBase(
         IUnitOfWork unitOfWork,
         ICommonRequestService commonRequestService,
-        IEncryptionService encryptionService)
+        IIdEncoderService idEncoderService)
     {
         UnitOfWork = unitOfWork;
         _commonRequestService = commonRequestService;
-        _encryptionService = encryptionService;
+        _idEncoderService = idEncoderService;
     }
 
     /// <summary>
@@ -271,7 +271,7 @@ public abstract class TenantParentModuleQueryHandlerBase
         var tenantId = HostTenantIdentifierProtector.Decrypt(
             encryptedTenantId,
             hostKeyContext.TenantEncryptionKey,
-            _encryptionService);
+            _idEncoderService);
         var tenant = await UnitOfWork.TenantRepository.GetHostManagedTenantByIdAsync(tenantId, cancellationToken);
         if (tenant is null)
         {
@@ -315,7 +315,7 @@ public abstract class TenantParentModuleQueryHandlerBase
     {
         return new TenantParentModuleResponseDTO
         {
-            TenantId = HostTenantIdentifierProtector.Encrypt(module.TenantId, tenantEncryptionKey, _encryptionService),
+            TenantId = HostTenantIdentifierProtector.Encrypt(module.TenantId, tenantEncryptionKey, _idEncoderService),
             Id = module.Id,
             ModuleCode = module.ModuleCode,
             ModuleName = module.ModuleName,

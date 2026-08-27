@@ -93,7 +93,7 @@ public sealed class DeleteHostManagedTenantCommandHandler
 
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICommonRequestService _commonRequestService;
-    private readonly IEncryptionService _encryptionService;
+    private readonly IIdEncoderService _idEncoderService;
 
     #endregion
 
@@ -108,11 +108,11 @@ public sealed class DeleteHostManagedTenantCommandHandler
     public DeleteHostManagedTenantCommandHandler(
         IUnitOfWork unitOfWork,
         ICommonRequestService commonRequestService,
-        IEncryptionService encryptionService)
+        IIdEncoderService idEncoderService)
     {
         _unitOfWork = unitOfWork;
         _commonRequestService = commonRequestService;
-        _encryptionService = encryptionService;
+        _idEncoderService = idEncoderService;
     }
 
     #endregion
@@ -145,7 +145,7 @@ public sealed class DeleteHostManagedTenantCommandHandler
         var tenantId = HostTenantIdentifierProtector.Decrypt(
             request.EncryptedTenantId,
             hostContext.TenantEncryptionKey,
-            _encryptionService);
+            _idEncoderService);
 
         var tenant = await _unitOfWork.TenantRepository
             .GetHostManagedTenantByIdAsync(tenantId, cancellationToken);

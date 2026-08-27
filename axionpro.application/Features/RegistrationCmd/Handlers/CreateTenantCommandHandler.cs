@@ -6,6 +6,7 @@
 // ================================================================
 
 using AutoMapper;
+using axionpro.application.Common.Helpers;
 using axionpro.application.Common.SeedData;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.Registration;
@@ -13,6 +14,7 @@ using axionpro.application.DTOs.Tenant;
 using axionpro.application.DTOS.Configruations;
 using axionpro.application.DTOS.Token;
 using axionpro.application.Interfaces;
+using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEmail;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IHashed;
@@ -59,6 +61,7 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
         private readonly IIdEncoderService _idEncoderService;
         private readonly IConfiguration _configuration;
         private readonly EmailConfig _emailConfig;
+        private readonly ICommonRequestService _commonRequestService;
 
         public CreateTenantCommandHandler(
             ITenantRepository tenantRepository,
@@ -73,7 +76,8 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
             IEncryptionService encryptionService,
             IIdEncoderService idEncoderService,
             IConfiguration configuration,
-            IOptions<EmailConfig> emailConfig)
+            IOptions<EmailConfig> emailConfig,
+            ICommonRequestService commonRequestService)
         {
             _tenantRepository = tenantRepository;
             _tokenService = tokenService;
@@ -88,16 +92,26 @@ namespace axionpro.application.Features.RegistrationCmd.Handlers
             _idEncoderService = idEncoderService;
             _configuration = configuration;
             _emailConfig = emailConfig.Value;
+            _commonRequestService = commonRequestService;
         }
 
         public async Task<ApiResponse<TenantCreateResponseDTO>> Handle(CreateTenantCommand request, CancellationToken cancellationToken)
         {
             long newTenantId = 0;
+            var dto = request?.TenantCreateRequestDTO
+                ?? throw new ArgumentNullException(nameof(request.TenantCreateRequestDTO));
+
+            // Central validation permits the current Super Admin directly and requires a current
+            // Host-role module-operation permission for every other Host user.
+            await HostRuntimePermissionValidator.ValidateAsync(
+                _commonRequestService,
+                _commonRepository,
+                dto.ModuleId,
+                dto.OperationId,
+                cancellationToken);
 
             try
             {
-                var dto = request.TenantCreateRequestDTO;
-
                 // =====================================================
                 // STEP 1 : Validate request
                 // =====================================================

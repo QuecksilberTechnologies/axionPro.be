@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
+using System.Threading.Tasks; using axionpro.application.DTOs.BaseDTO; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOs.Registration
 {
-    public class TenantCreateRequestDTO
+    public class TenantCreateRequestDTO : PermissionRequestDTO
     {
        
         public int SubscriptionPlanId { get; set; } 

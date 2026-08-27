@@ -61,12 +61,12 @@ public sealed class UpdateTenantParentModuleStatusCommandHandler
     /// </summary>
     /// <param name="unitOfWork">Provides Tenant entitlement persistence and transaction operations.</param>
     /// <param name="commonRequestService">Validates the current Host Super Admin and Host encryption-key context.</param>
-    /// <param name="encryptionService">Protects Tenant identifiers at the Host API boundary.</param>
+    /// <param name="idEncoderService">Encodes Tenant identifiers at the Host API boundary.</param>
     public UpdateTenantParentModuleStatusCommandHandler(
         IUnitOfWork unitOfWork,
         ICommonRequestService commonRequestService,
-        IEncryptionService encryptionService)
-        : base(unitOfWork, commonRequestService, encryptionService)
+        IIdEncoderService idEncoderService)
+        : base(unitOfWork, commonRequestService, idEncoderService)
     {
     }
 

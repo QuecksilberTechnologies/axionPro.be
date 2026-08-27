@@ -75,7 +75,6 @@ public sealed class ResendTenantVerificationCommandHandler
     private readonly ICommonRequestService _commonRequestService;
     private readonly ITokenService _tokenService;
     private readonly IIdEncoderService _idEncoderService;
-    private readonly IEncryptionService _encryptionService;
     private readonly IEmailService _emailService;
     private readonly IConfiguration _configuration;
 
@@ -98,7 +97,6 @@ public sealed class ResendTenantVerificationCommandHandler
         ICommonRequestService commonRequestService,
         ITokenService tokenService,
         IIdEncoderService idEncoderService,
-        IEncryptionService encryptionService,
         IEmailService emailService,
         IConfiguration configuration)
     {
@@ -106,7 +104,6 @@ public sealed class ResendTenantVerificationCommandHandler
         _commonRequestService = commonRequestService;
         _tokenService = tokenService;
         _idEncoderService = idEncoderService;
-        _encryptionService = encryptionService;
         _emailService = emailService;
         _configuration = configuration;
     }
@@ -142,7 +139,7 @@ public sealed class ResendTenantVerificationCommandHandler
         var tenantId = HostTenantIdentifierProtector.Decrypt(
             request.EncryptedTenantId,
             hostContext.TenantEncryptionKey,
-            _encryptionService);
+            _idEncoderService);
 
         var tenant = await _unitOfWork.TenantRepository
             .GetHostManagedTenantByIdAsync(tenantId, cancellationToken);

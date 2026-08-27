@@ -50,7 +50,7 @@ public sealed class GetAllTenantsQueryHandler
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICommonRequestService _commonRequestService;
-    private readonly IEncryptionService _encryptionService;
+    private readonly IIdEncoderService _idEncoderService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GetAllTenantsQueryHandler"/> class.
@@ -61,11 +61,11 @@ public sealed class GetAllTenantsQueryHandler
     public GetAllTenantsQueryHandler(
         IUnitOfWork unitOfWork,
         ICommonRequestService commonRequestService,
-        IEncryptionService encryptionService)
+        IIdEncoderService idEncoderService)
     {
         _unitOfWork = unitOfWork;
         _commonRequestService = commonRequestService;
-        _encryptionService = encryptionService;
+        _idEncoderService = idEncoderService;
     }
 
     /// <summary>
@@ -104,7 +104,7 @@ public sealed class GetAllTenantsQueryHandler
     private HostTenantResponseDTO MapTenant(Tenant tenant, string tenantEncryptionKey) =>
         new()
         {
-            Id = HostTenantIdentifierProtector.Encrypt(tenant.Id, tenantEncryptionKey, _encryptionService),
+            Id = HostTenantIdentifierProtector.Encrypt(tenant.Id, tenantEncryptionKey, _idEncoderService),
             CompanyName = tenant.CompanyName,
             TenantCode = tenant.TenantCode,
             CompanyEmailDomain = tenant.CompanyEmailDomain,

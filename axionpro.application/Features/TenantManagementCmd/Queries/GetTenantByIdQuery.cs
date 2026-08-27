@@ -52,7 +52,7 @@ public sealed class GetTenantByIdQueryHandler
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICommonRequestService _commonRequestService;
-    private readonly IEncryptionService _encryptionService;
+    private readonly IIdEncoderService _idEncoderService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GetTenantByIdQueryHandler"/> class.
@@ -63,11 +63,11 @@ public sealed class GetTenantByIdQueryHandler
     public GetTenantByIdQueryHandler(
         IUnitOfWork unitOfWork,
         ICommonRequestService commonRequestService,
-        IEncryptionService encryptionService)
+        IIdEncoderService idEncoderService)
     {
         _unitOfWork = unitOfWork;
         _commonRequestService = commonRequestService;
-        _encryptionService = encryptionService;
+        _idEncoderService = idEncoderService;
     }
 
     /// <summary>
@@ -92,7 +92,7 @@ public sealed class GetTenantByIdQueryHandler
         var tenantId = HostTenantIdentifierProtector.Decrypt(
             dto.TenantId,
             hostContext.TenantEncryptionKey,
-            _encryptionService);
+            _idEncoderService);
         var tenant = await _unitOfWork.TenantRepository
             .GetHostManagedTenantByIdAsync(tenantId, cancellationToken);
 
@@ -109,7 +109,7 @@ public sealed class GetTenantByIdQueryHandler
     private HostTenantResponseDTO MapTenant(Tenant tenant, string tenantEncryptionKey) =>
         new()
         {
-            Id = HostTenantIdentifierProtector.Encrypt(tenant.Id, tenantEncryptionKey, _encryptionService),
+            Id = HostTenantIdentifierProtector.Encrypt(tenant.Id, tenantEncryptionKey, _idEncoderService),
             CompanyName = tenant.CompanyName,
             TenantCode = tenant.TenantCode,
             CompanyEmailDomain = tenant.CompanyEmailDomain,
