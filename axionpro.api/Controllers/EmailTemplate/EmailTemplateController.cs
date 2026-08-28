@@ -33,14 +33,6 @@ namespace axionpro.api.Controllers.EmailTemplate
             _logger = logger;
         }
 
-        /// <summary>
-        /// Get Template By Code.
-        /// </summary>
-        /// <remarks>
-        /// Handles the request to get template by code.
-        /// </remarks>
-        /// <param name="code">The query parameters used to get template by code.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-template-by-code")]      
         public async Task<IActionResult> GetTemplateByCodeAsync([FromQuery] string code)
         {
@@ -52,14 +44,6 @@ namespace axionpro.api.Controllers.EmailTemplate
             return Ok(result);
         }
 
-        /// <summary>
-        /// Send Templated Email.
-        /// </summary>
-        /// <remarks>
-        /// Handles the request to send templated email.
-        /// </remarks>
-        /// <param name="request">The request body used to send templated email.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("send-template")]
         public async Task<IActionResult> SendTemplatedEmail([FromBody] SendEmailTemplatRequestDTO request)
         {

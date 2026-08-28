@@ -40,13 +40,13 @@ namespace axionpro.api.Controllers.Employee
 
 
         /// <summary>
-        /// Create Dependent Info.
+        /// Supports the Angular UI flow for create dependent info.
         /// </summary>
         /// <remarks>
-        /// Handles the request to create dependent info.
+        /// <para>Angular purpose: creates employee dependent.</para>
+        /// <para>Angular page(s): /app/profile/dependent-info.</para>
+        /// <para>Angular API service call(s): EmployeeDependentApi.createEmployeeDependent (app/core/services/employee-dependent-api.ts:68).</para>
         /// </remarks>
-        /// <param name="Dto">The form data used to create dependent info.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("create")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> CreateDependentInfo([FromForm] CreateDependentRequestDTO Dto)
@@ -70,13 +70,13 @@ namespace axionpro.api.Controllers.Employee
 
 
         /// <summary>
-        /// Getinfo.
+        /// Supports the Angular UI flow for getinfo.
         /// </summary>
         /// <remarks>
-        /// Handles the request to getinfo.
+        /// <para>Angular purpose: retrieves employee dependents.</para>
+        /// <para>Angular page(s): /app/profile/dependent-info.</para>
+        /// <para>Angular API service call(s): EmployeeDependentApi.getEmployeeDependents (app/core/services/employee-dependent-api.ts:75).</para>
         /// </remarks>
-        /// <param name="requestDto">The query parameters used to getinfo.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]    
         public async Task<IActionResult> Getinfo([FromQuery] GetDependentRequestDTO requestDto)
         {
@@ -90,13 +90,13 @@ namespace axionpro.api.Controllers.Employee
            
         }
         /// <summary>
-        /// Get In Detail.
+        /// Supports the Angular UI flow for get in detail.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get in detail.
+        /// <para>Angular purpose: retrieves employee dependents.</para>
+        /// <para>Angular page(s): /app/profile/dependent-info.</para>
+        /// <para>Angular API service call(s): EmployeeDependentApi.getEmployeeDependents (app/core/services/employee-dependent-api.ts:84).</para>
         /// </remarks>
-        /// <param name="requestDto">The query parameters used to get in detail.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-in-detail")]    
         public async Task<IActionResult> GetInDetail([FromQuery] GetDependentRequestDTO requestDto)
         {
@@ -112,13 +112,13 @@ namespace axionpro.api.Controllers.Employee
         
 
       /// <summary>
-      /// Delete.
+      /// Supports the Angular UI flow for delete.
       /// </summary>
       /// <remarks>
-      /// Handles the request to delete.
+      /// <para>Angular purpose: deletes employee dependent.</para>
+      /// <para>Angular page(s): /app/profile/dependent-info.</para>
+      /// <para>Angular API service call(s): EmployeeDependentApi.deleteEmployeeDependent (app/core/services/employee-dependent-api.ts:99).</para>
       /// </remarks>
-      /// <param name="dto">The query parameters used to delete.</param>
-      /// <returns>An HTTP response containing the result of the operation.</returns>
       [HttpDelete("delete")]               
         public async Task<IActionResult> Delete([FromQuery] DeleteRequestDTO dto)
         {
@@ -138,13 +138,13 @@ namespace axionpro.api.Controllers.Employee
 
 
         /// <summary>
-        /// Update.
+        /// Supports the Angular UI flow for update.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update.
+        /// <para>Angular purpose: updates employee dependent.</para>
+        /// <para>Angular page(s): /app/profile/dependent-info.</para>
+        /// <para>Angular API service call(s): EmployeeDependentApi.updateEmployeeDependent (app/core/services/employee-dependent-api.ts:92).</para>
         /// </remarks>
-        /// <param name="dto">The form data used to update.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("update")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Update([FromForm] UpdateDependentRequestDTO dto)

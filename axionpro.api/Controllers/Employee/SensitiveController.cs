@@ -34,13 +34,13 @@ namespace axionpro.api.Controllers.Employee
         }
 
          /// <summary>
-         /// Createpersonalinfo.
+         /// Supports the Angular UI flow for createpersonalinfo.
          /// </summary>
          /// <remarks>
-         /// Handles the request to createpersonalinfo.
+         /// <para>Angular purpose: creates employee sensitive.</para>
+         /// <para>Angular page(s): /app/profile/identity-info.</para>
+         /// <para>Angular API service call(s): EmployeeIdentityApi.createEmployeeSensitive (app/core/services/employee-identity-api.ts:72).</para>
          /// </remarks>
-         /// <param name="dto">The form data used to createpersonalinfo.</param>
-         /// <returns>An HTTP response containing the result of the operation.</returns>
         
          [HttpPost("Create")]         
         public async Task<IActionResult> Createpersonalinfo([FromForm] CreateEmployeeIdentityRequestDTO dto)
@@ -55,13 +55,13 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Get Sensitive Data.
+        /// Supports the Angular UI flow for get sensitive data.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get sensitive data.
+        /// <para>Angular purpose: retrieves employee identities.</para>
+        /// <para>Angular page(s): /app/profile/identity-info.</para>
+        /// <para>Angular API service call(s): EmployeeIdentityApi.getEmployeeIdentities (app/core/services/employee-identity-api.ts:66).</para>
         /// </remarks>
-        /// <param name="commandDto">The query parameters used to get sensitive data.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]        
         public async Task<IActionResult> GetSensitiveData([FromQuery] GetIdentityRequestDTO commandDto)
         {

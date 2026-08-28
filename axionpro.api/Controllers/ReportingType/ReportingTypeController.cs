@@ -45,13 +45,13 @@ namespace axionpro.api.Controllers.ReportingType
         // =============================================================================================
 
         /// <summary>
-        /// Create Reporting Type.
+        /// Supports the Angular UI flow for create reporting type.
         /// </summary>
         /// <remarks>
-        /// Handles the request to create reporting type.
+        /// <para>Angular purpose: creates report type.</para>
+        /// <para>Angular page(s): /app/report-types.</para>
+        /// <para>Angular API service call(s): ReportTypeApi.addReportType (app/core/services/report-type-api.ts:31).</para>
         /// </remarks>
-        /// <param name="dto">The request body used to create reporting type.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
 
         [HttpPost("create")]       
         
@@ -73,13 +73,13 @@ namespace axionpro.api.Controllers.ReportingType
         // =============================================================================================
 
         /// <summary>
-        /// Get All Reporting Types.
+        /// Supports the Angular UI flow for get all reporting types.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get all reporting types.
+        /// <para>Angular purpose: retrieves report types.</para>
+        /// <para>Angular page(s): /app/report-types.</para>
+        /// <para>Angular API service call(s): ReportTypeApi.getReportTypes (app/core/services/report-type-api.ts:25).</para>
         /// </remarks>
-        /// <param name="dto">The query parameters used to get all reporting types.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-all")]
         public async Task<IActionResult> GetAllReportingTypes([FromQuery] GetReportingTypeRequestDTO dto)
         {
@@ -96,14 +96,6 @@ namespace axionpro.api.Controllers.ReportingType
         #region 🔹 GET reporting type BY ID
         // =============================================================================================
 
-        /// <summary>
-        /// Get Reporting Type By ID.
-        /// </summary>
-        /// <remarks>
-        /// Handles the request to get reporting type by id.
-        /// </remarks>
-        /// <param name="dto">The query parameters used to get reporting type by id.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-by-id")]   
         public async Task<IActionResult> GetReportingTypeById([FromQuery] GetReportingTypeByIdRequestDTO dto)
         {         
@@ -121,13 +113,13 @@ namespace axionpro.api.Controllers.ReportingType
         // =============================================================================================
 
         /// <summary>
-        /// Update Reporting Type.
+        /// Supports the Angular UI flow for update reporting type.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update reporting type.
+        /// <para>Angular purpose: updates report type.</para>
+        /// <para>Angular page(s): /app/report-types.</para>
+        /// <para>Angular API service call(s): ReportTypeApi.updateReportType (app/core/services/report-type-api.ts:37).</para>
         /// </remarks>
-        /// <param name="dto">The request body used to update reporting type.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPut("update")]  
         public async Task<IActionResult> UpdateReportingType([FromBody] UpdateReportingTypeRequestDTO dto)
         {
@@ -146,13 +138,13 @@ namespace axionpro.api.Controllers.ReportingType
         // =============================================================================================
 
         /// <summary>
-        /// Delete Reporting Type.
+        /// Supports the Angular UI flow for delete reporting type.
         /// </summary>
         /// <remarks>
-        /// Handles the request to delete reporting type.
+        /// <para>Angular purpose: deletes report type.</para>
+        /// <para>Angular page(s): /app/report-types.</para>
+        /// <para>Angular API service call(s): ReportTypeApi.deleteReportType (app/core/services/report-type-api.ts:44).</para>
         /// </remarks>
-        /// <param name="dto">The query parameters used to delete reporting type.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]       
         public async Task<IActionResult> DeleteReportingType([FromQuery] DeleteReportingTypeRequestDTO dto)
         {

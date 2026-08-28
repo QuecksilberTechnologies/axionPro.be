@@ -10,8 +10,22 @@ using axionpro.domain.Entity;
 
 namespace axionpro.application.DTOS.TenantConfiguration;
 
+/// <summary>
+/// Carries the encrypted Host-selected Tenant identifier and the module-operation
+/// permission context required by TenantLocation endpoints.
+/// </summary>
+public class TenantLocationAccessRequestDTO : PermissionRequestDTO
+{
+    /// <summary>
+    /// Gets or sets the encrypted Tenant identifier selected by a Host user.
+    /// Tenant Employee requests are always scoped from their trusted token and
+    /// therefore do not use this value.
+    /// </summary>
+    public string? TenantId { get; set; }
+}
+
 /// <summary>Supplies client-editable values for a Tenant location.</summary>
-public class CreateTenantLocationRequestDTO
+public class CreateTenantLocationRequestDTO : TenantLocationAccessRequestDTO
 {
     #region Properties
     public string LocationCode { get; set; } = string.Empty;
@@ -42,14 +56,14 @@ public sealed class UpdateTenantLocationRequestDTO : CreateTenantLocationRequest
 }
 
 /// <summary>Supplies a Tenant-location active-state change.</summary>
-public sealed class UpdateTenantLocationStatusRequestDTO
+public sealed class UpdateTenantLocationStatusRequestDTO : TenantLocationAccessRequestDTO
 {
     public long Id { get; set; }
     public bool IsActive { get; set; }
 }
 
 /// <summary>Defines database-side filters for Tenant locations.</summary>
-public sealed class TenantLocationFilterRequestDTO
+public sealed class TenantLocationFilterRequestDTO : TenantLocationAccessRequestDTO
 {
     public string? Search { get; set; }
     public int? CountryId { get; set; }

@@ -35,13 +35,13 @@ namespace axionpro.api.Controllers.Employee
             _logger = logger;
         }
         /// <summary>
-        /// Create Contact Info.
+        /// Supports the Angular UI flow for create contact info.
         /// </summary>
         /// <remarks>
-        /// Handles the request to create contact info.
+        /// <para>Angular purpose: creates employee contact.</para>
+        /// <para>Angular page(s): /app/profile/contact-info.</para>
+        /// <para>Angular API service call(s): EmployeeContactsAPI.createEmployeeContact (app/core/services/employee-contacts-api.ts:75).</para>
         /// </remarks>
-        /// <param name="Dto">The request body used to create contact info.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("create")]
         public async Task<IActionResult> CreateContactInfo([FromBody] CreateContactRequestDTO Dto)
         {
@@ -67,13 +67,13 @@ namespace axionpro.api.Controllers.Employee
 
 
         /// <summary>
-        /// Get Bankinfo.
+        /// Supports the Angular UI flow for get bankinfo.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get bankinfo.
+        /// <para>Angular purpose: retrieves employee contacts.</para>
+        /// <para>Angular page(s): /app/profile/contact-info.</para>
+        /// <para>Angular API service call(s): EmployeeContactsAPI.getEmployeeContacts (app/core/services/employee-contacts-api.ts:82).</para>
         /// </remarks>
-        /// <param name="requestDto">The query parameters used to get bankinfo.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]     
                 public async Task<IActionResult> GetBankinfo([FromQuery] GetContactRequestDTO requestDto)
        
@@ -89,13 +89,13 @@ namespace axionpro.api.Controllers.Employee
 
 
         /// <summary>
-        /// Update Contact.
+        /// Supports the Angular UI flow for update contact.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update contact.
+        /// <para>Angular purpose: updates employee contact.</para>
+        /// <para>Angular page(s): /app/profile/contact-info.</para>
+        /// <para>Angular API service call(s): EmployeeContactsAPI.updateEmployeeContact (app/core/services/employee-contacts-api.ts:88).</para>
         /// </remarks>
-        /// <param name="dto">The request body used to update contact.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("update")]        
         public async Task<IActionResult> UpdateContact([FromBody] UpdateContactRequestDTO dto)
         {
@@ -113,13 +113,13 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Delete.
+        /// Supports the Angular UI flow for delete.
         /// </summary>
         /// <remarks>
-        /// Handles the request to delete.
+        /// <para>Angular purpose: deletes employee contact.</para>
+        /// <para>Angular page(s): /app/profile/contact-info.</para>
+        /// <para>Angular API service call(s): EmployeeContactsAPI.deleteEmployeeContact (app/core/services/employee-contacts-api.ts:95).</para>
         /// </remarks>
-        /// <param name="dto">The query parameters used to delete.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]   
         public async Task<IActionResult> Delete([FromQuery] DeleteRequestDTO dto)
         {

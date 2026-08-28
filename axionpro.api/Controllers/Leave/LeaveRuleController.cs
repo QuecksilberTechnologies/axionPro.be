@@ -31,13 +31,13 @@ namespace axionpro.api.Controllers.Leave
 
         // ✅ Create PolicyMappingLeaveType
         /// <summary>
-        /// Create Leave Rule.
+        /// Supports the Angular UI flow for create leave rule async.
         /// </summary>
         /// <remarks>
-        /// Handles the request to create leave rule.
+        /// <para>Angular purpose: creates leave rule.</para>
+        /// <para>Angular page(s): /app/leave/rules.</para>
+        /// <para>Angular API service call(s): LeaveRule.createLeaveRule (app/core/services/leave-rule.ts:42).</para>
         /// </remarks>
-        /// <param name="requestDTO">The request body used to create leave rule.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("create")]        
         public async Task<IActionResult> CreateLeaveRuleAsync([FromBody] CreateLeaveRuleDTORequest requestDTO)
         {
@@ -49,13 +49,13 @@ namespace axionpro.api.Controllers.Leave
 
         //  ✅ Get All LeavePolicies
         /// <summary>
-        /// Get All Leave Rule.
+        /// Supports the Angular UI flow for get all leave rule async.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get all leave rule.
+        /// <para>Angular purpose: performs constructor.</para>
+        /// <para>Angular page(s): No Angular component caller was statically resolved; the Angular API-service wrapper is documented below..</para>
+        /// <para>Angular API service call(s): LeaveRule.constructor (app/core/services/leave-rule.ts:36).</para>
         /// </remarks>
-        /// <param name="getLeavePolicyRequestDTO">The query parameters used to get all leave rule.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]        
         public async Task<IActionResult> GetAllLeaveRuleAsync([FromQuery] GetLeaveRuleRequestDTO getLeavePolicyRequestDTO)
         {
@@ -66,14 +66,6 @@ namespace axionpro.api.Controllers.Leave
             return Ok(result);
         }
         //  ✅ Get All leave rule sandwich 
-        /// <summary>
-        /// Get All Leave Rule Sandwich.
-        /// </summary>
-        /// <remarks>
-        /// Handles the request to get all leave rule sandwich.
-        /// </remarks>
-        /// <param name="getLeavePolicyRequestDTO">The query parameters used to get all leave rule sandwich.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("LeaveRule/Sandwich/get")]       
         
         public async Task<IActionResult> GetAllLeaveRuleSandwichAsync([FromQuery] GetLeaveRuleRequestDTO getLeavePolicyRequestDTO)
@@ -86,13 +78,13 @@ namespace axionpro.api.Controllers.Leave
         }
 
         /// <summary>
-        /// Update Leave Policy.
+        /// Supports the Angular UI flow for update leave policy async.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update leave policy.
+        /// <para>Angular purpose: updates leave rule.</para>
+        /// <para>Angular page(s): /app/leave/rules.</para>
+        /// <para>Angular API service call(s): LeaveRule.updateLeaveRule (app/core/services/leave-rule.ts:48).</para>
         /// </remarks>
-        /// <param name="requestDTO">The request body used to update leave policy.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("update")]    
         
         public async Task<IActionResult> UpdateLeavePolicyAsync([FromBody] UpdateLeaveRuleRequestDTO requestDTO)
@@ -104,13 +96,13 @@ namespace axionpro.api.Controllers.Leave
             return Ok(result);
         }
         /// <summary>
-        /// Delete Leave Policy.
+        /// Supports the Angular UI flow for delete leave policy.
         /// </summary>
         /// <remarks>
-        /// Handles the request to delete leave policy.
+        /// <para>Angular purpose: deletes leave rule.</para>
+        /// <para>Angular page(s): /app/leave/rules; /app/leave/history; /app/leave/my; /app/leave/balances; /app/leave/inbox; /app/leave/status; /app/leave/types; /app/profile/leave-info; and 1 more.</para>
+        /// <para>Angular API service call(s): LeaveRule.deleteLeaveRule (app/core/services/leave-rule.ts:54).</para>
         /// </remarks>
-        /// <param name="request">The request body used to delete leave policy.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("delete")]      
         
         // [Authorize]

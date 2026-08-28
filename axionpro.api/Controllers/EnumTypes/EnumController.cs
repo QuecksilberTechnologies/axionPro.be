@@ -28,14 +28,6 @@ namespace axionpro.api.Controllers.EnumTypes
             _mediator = mediator;
             _logger = logger;
         }
-        /// <summary>
-        /// Get Currencies.
-        /// </summary>
-        /// <remarks>
-        /// Handles the request to get currencies.
-        /// </remarks>
-        /// <param name="dto">The query parameters used to get currencies.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
 
         [HttpGet("get-all-currencies")]
 

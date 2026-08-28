@@ -42,13 +42,13 @@ namespace axionpro.api.Controllers.Employee
 
 
         /// <summary>
-        /// Create Bank Info.
+        /// Supports the Angular UI flow for create bank info.
         /// </summary>
         /// <remarks>
-        /// Handles the request to create bank info.
+        /// <para>Angular purpose: creates employee bank.</para>
+        /// <para>Angular page(s): /app/profile/bank-info.</para>
+        /// <para>Angular API service call(s): EmployeeBanksAPI.createEmployeeBank (app/core/services/employee-banks-api.ts:85).</para>
         /// </remarks>
-        /// <param name="Dto">The form data used to create bank info.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("create")]        
         public async Task<IActionResult> CreateBankInfo([FromForm] CreateBankRequestDTO Dto)
         {
@@ -75,13 +75,13 @@ namespace axionpro.api.Controllers.Employee
  
 
         /// <summary>
-        /// Get Bankinfo.
+        /// Supports the Angular UI flow for get bankinfo.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get bankinfo.
+        /// <para>Angular purpose: retrieves employee banks.</para>
+        /// <para>Angular page(s): /app/profile/bank-info.</para>
+        /// <para>Angular API service call(s): EmployeeBanksAPI.getEmployeeBanks (app/core/services/employee-banks-api.ts:92).</para>
         /// </remarks>
-        /// <param name="requestDto">The query parameters used to get bankinfo.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]
         
         
@@ -99,13 +99,13 @@ namespace axionpro.api.Controllers.Employee
           
      
         /// <summary>
-        /// Delete.
+        /// Supports the Angular UI flow for delete.
         /// </summary>
         /// <remarks>
-        /// Handles the request to delete.
+        /// <para>Angular purpose: deletes employee bank.</para>
+        /// <para>Angular page(s): /app/profile/bank-info.</para>
+        /// <para>Angular API service call(s): EmployeeBanksAPI.deleteEmployeeBank (app/core/services/employee-banks-api.ts:105).</para>
         /// </remarks>
-        /// <param name="dto">The query parameters used to delete.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]
                 public async Task<IActionResult> Delete([FromQuery] DeleteBankRequestDTO dto)
        
@@ -121,13 +121,13 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Update.
+        /// Supports the Angular UI flow for update.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update.
+        /// <para>Angular purpose: updates employee bank.</para>
+        /// <para>Angular page(s): /app/profile/bank-info.</para>
+        /// <para>Angular API service call(s): EmployeeBanksAPI.updateEmployeeBank (app/core/services/employee-banks-api.ts:98).</para>
         /// </remarks>
-        /// <param name="dto">The form data used to update.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("update")]
         public async Task<IActionResult> Update([FromForm] UpdateBankReqestDTO dto)
         {

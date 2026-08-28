@@ -41,15 +41,6 @@ public sealed class HostAccessController : ControllerBase
 
     #region Host Access Endpoints
 
-    /// <summary>
-    /// Get Bootstrap.
-    /// </summary>
-    /// <remarks>
-    /// Handles the request to get bootstrap.
-    /// Requires an authenticated user.
-    /// </remarks>
-    /// <param name="cancellationToken">The token used to cancel the request.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("bootstrap")]
     public async Task<IActionResult> GetBootstrap(CancellationToken cancellationToken)
     {

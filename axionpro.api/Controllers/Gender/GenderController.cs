@@ -35,13 +35,13 @@ namespace axionpro.api.Controllers.Gender
         }
 
         /// <summary>
-        /// get Gender.
+        /// Supports the Angular UI flow for get gender.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get gender.
+        /// <para>Angular purpose: retrieves gender options.</para>
+        /// <para>Angular page(s): /auth/register-tenant; /app/designations; /app/employees; /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants; /app/tenant-locations/new; /app/tenant-locations/:tenantLocationId/edit; and 13 more.</para>
+        /// <para>Angular API service call(s): UsersApi.getGenderOptions (app/core/services/users-api.ts:44).</para>
         /// </remarks>
-        /// <param name="requestDTO">The query parameters used to get gender.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("option")]               
         public async Task<IActionResult> getGender([FromQuery] GetOptionRequestDTO requestDTO)
         {
@@ -54,14 +54,6 @@ namespace axionpro.api.Controllers.Gender
         }
 
         //  ✅ Get All Gender 
-        /// <summary>
-        /// Get All Gender.
-        /// </summary>
-        /// <remarks>
-        /// Handles the request to get all gender.
-        /// </remarks>
-        /// <param name="getGenderRequestDTO">The query parameters used to get all gender.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]       
         public async Task<IActionResult> GetAllGenderAsync([FromQuery] GetGenderRequestDTO? getGenderRequestDTO)
         {

@@ -32,14 +32,6 @@ namespace axionpro.api.Controllers.FileUpload
             _fileStorageService = fileStorageService;
         }
 
-        /// <summary>
-        /// Upload Asset.
-        /// </summary>
-        /// <remarks>
-        /// Handles the request to upload asset.
-        /// </remarks>
-        /// <param name="dto">The request body used to upload asset.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("UploadAsset/upload")]     
         public async Task<IActionResult> UploadAsset([FromBody] UploadFileDTO dto)
         {

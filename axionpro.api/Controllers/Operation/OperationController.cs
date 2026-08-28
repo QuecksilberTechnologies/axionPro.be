@@ -37,13 +37,13 @@ namespace axionpro.api.Controllers.Operation
         }
 
         /// <summary>
-        /// Get All Operation Asyc.
+        /// Supports the Angular UI flow for get all operation asyc.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get all operation asyc.
+        /// <para>Angular purpose: retrieves options.</para>
+        /// <para>Angular page(s): No Angular component caller was statically resolved; the Angular API-service wrapper is documented below..</para>
+        /// <para>Angular API service call(s): OptionApi.getOptions (app/core/services/option-api.ts:26).</para>
         /// </remarks>
-        /// <param name="operationRequestDTO">The query parameters used to get all operation asyc.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]        
         public async Task<IActionResult> GetAllOperationAsyc([FromQuery] GetOperationRequestDTO operationRequestDTO)
         {
@@ -56,13 +56,13 @@ namespace axionpro.api.Controllers.Operation
         }
 
         /// <summary>
-        /// Create Operation.
+        /// Supports the Angular UI flow for create operation.
         /// </summary>
         /// <remarks>
-        /// Handles the request to create operation.
+        /// <para>Angular purpose: creates option.</para>
+        /// <para>Angular page(s): No Angular component caller was statically resolved; the Angular API-service wrapper is documented below..</para>
+        /// <para>Angular API service call(s): OptionApi.addOption (app/core/services/option-api.ts:32).</para>
         /// </remarks>
-        /// <param name="createOperationDTO">The request body used to create operation.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("create")]
         
         public async Task<IActionResult> CreateOperation([FromBody] CreateOperationRequestDTO createOperationDTO)
@@ -78,13 +78,13 @@ namespace axionpro.api.Controllers.Operation
         }
 
         /// <summary>
-        /// Update Operation.
+        /// Supports the Angular UI flow for update operation.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update operation.
+        /// <para>Angular purpose: updates option.</para>
+        /// <para>Angular page(s): No Angular component caller was statically resolved; the Angular API-service wrapper is documented below..</para>
+        /// <para>Angular API service call(s): OptionApi.updateOption (app/core/services/option-api.ts:38).</para>
         /// </remarks>
-        /// <param name="updateOperationDTO">The request body used to update operation.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("update")]
                
         public async Task<IActionResult> UpdateOperation([FromBody] UpdateOperationRequestDTO updateOperationDTO)
@@ -95,14 +95,13 @@ namespace axionpro.api.Controllers.Operation
             return Ok(result);
         }
         /// <summary>
-        /// Has Page Operation Access.
+        /// Supports the Angular UI flow for has page operation access.
         /// </summary>
         /// <remarks>
-        /// Handles the request to has page operation access.
-        /// Requires an authenticated user.
+        /// <para>Angular purpose: performs has access.</para>
+        /// <para>Angular page(s): No Angular component caller was statically resolved; the Angular API-service wrapper is documented below..</para>
+        /// <para>Angular API service call(s): OptionApi.hasAccess (app/core/services/option-api.ts:45).</para>
         /// </remarks>
-        /// <param name="checkOperationPermissionRequest">The query parameters used to has page operation access.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
          [Authorize]
         [HttpGet("has-access")]
         public async Task<IActionResult> HasPageOperationAccess([FromQuery] GetCheckOperationPermissionRequestDTO? checkOperationPermissionRequest)

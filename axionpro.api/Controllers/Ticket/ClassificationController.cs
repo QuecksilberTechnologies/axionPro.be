@@ -34,13 +34,13 @@ public class TicketClassificationController : ControllerBase
     // 1️⃣ CREATE - Add new Ticket Classification
     // ----------------------------------------------------------------------------------------------------
     /// <summary>
-    /// Create Ticket Classification.
+    /// Supports the Angular UI flow for create ticket classification.
     /// </summary>
     /// <remarks>
-    /// Handles the request to create ticket classification.
+    /// <para>Angular purpose: retrieves classification ddl.</para>
+    /// <para>Angular page(s): /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers; /app/tickets/types.</para>
+    /// <para>Angular API service call(s): TicketApi.getClassificationDdl (app/features/tickets/ticket-api.ts:53).</para>
     /// </remarks>
-    /// <param name="dto">The request body used to create ticket classification.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpPost("create")]   
     public async Task<IActionResult> CreateTicketClassification([FromBody] AddClassificationRequestDTO dto)
     {
@@ -57,13 +57,13 @@ public class TicketClassificationController : ControllerBase
     // 2️⃣ READ - Get all Ticket Classifications
     // ----------------------------------------------------------------------------------------------------
     /// <summary>
-    /// Get All Ticket Classifications.
+    /// Supports the Angular UI flow for get all ticket classifications.
     /// </summary>
     /// <remarks>
-    /// Handles the request to get all ticket classifications.
+    /// <para>Angular purpose: retrieves classification ddl.</para>
+    /// <para>Angular page(s): /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers; /app/tickets/types.</para>
+    /// <para>Angular API service call(s): TicketApi.getClassificationDdl (app/features/tickets/ticket-api.ts:45).</para>
     /// </remarks>
-    /// <param name="dto">The query parameters used to get all ticket classifications.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("all")]
     public async Task<IActionResult> GetAllTicketClassifications([FromQuery] GetAllClassificationRequestDTO dto)
     {
@@ -76,13 +76,13 @@ public class TicketClassificationController : ControllerBase
 
     }
     /// <summary>
-    /// Get All Ticket Classifications.
+    /// Supports the Angular UI flow for get all ticket classifications.
     /// </summary>
     /// <remarks>
-    /// Handles the request to get all ticket classifications.
+    /// <para>Angular purpose: retrieves classification ddl.</para>
+    /// <para>Angular page(s): /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers; /app/tickets/types.</para>
+    /// <para>Angular API service call(s): TicketApi.getClassificationDdl (app/features/tickets/ticket-api.ts:34).</para>
     /// </remarks>
-    /// <param name="dto">The query parameters used to get all ticket classifications.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("ddl-list")]
     public async Task<IActionResult> GetAllTicketClassifications([FromQuery] DDLClassificationRequestDTO dto)
     {
@@ -98,14 +98,6 @@ public class TicketClassificationController : ControllerBase
     // ----------------------------------------------------------------------------------------------------
     // 3️⃣ READ (BY ID) - Get specific Ticket Classification
     // ----------------------------------------------------------------------------------------------------
-    /// <summary>
-    /// Get Ticket Classification By ID.
-    /// </summary>
-    /// <remarks>
-    /// Handles the request to get ticket classification by id.
-    /// </remarks>
-    /// <param name="dto">The query parameters used to get ticket classification by id.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("get")]
     public async Task<IActionResult> GetTicketClassificationById([FromQuery] GetClassificationRequestDTO dto)
     {
@@ -121,13 +113,13 @@ public class TicketClassificationController : ControllerBase
     // 4️⃣ UPDATE - Modify existing Ticket Classification
     // ----------------------------------------------------------------------------------------------------
     /// <summary>
-    /// Update Ticket Classification.
+    /// Supports the Angular UI flow for update ticket classification.
     /// </summary>
     /// <remarks>
-    /// Handles the request to update ticket classification.
+    /// <para>Angular purpose: retrieves classification ddl.</para>
+    /// <para>Angular page(s): /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers; /app/tickets/types.</para>
+    /// <para>Angular API service call(s): TicketApi.getClassificationDdl (app/features/tickets/ticket-api.ts:61).</para>
     /// </remarks>
-    /// <param name="dto">The request body used to update ticket classification.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpPut("update")]
     public async Task<IActionResult> UpdateTicketClassification([FromBody] UpdateClassificationRequestDTO dto)
     {
@@ -143,13 +135,13 @@ public class TicketClassificationController : ControllerBase
     // 5️⃣ DELETE - Soft delete Ticket Classification
     // ----------------------------------------------------------------------------------------------------
     /// <summary>
-    /// Delete Ticket Classification.
+    /// Supports the Angular UI flow for delete ticket classification.
     /// </summary>
     /// <remarks>
-    /// Handles the request to delete ticket classification.
+    /// <para>Angular purpose: retrieves classification ddl.</para>
+    /// <para>Angular page(s): /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers; /app/tickets/types.</para>
+    /// <para>Angular API service call(s): TicketApi.getClassificationDdl (app/features/tickets/ticket-api.ts:69).</para>
     /// </remarks>
-    /// <param name="dto">The request body used to delete ticket classification.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpDelete("delete")] 
     public async Task<IActionResult> DeleteTicketClassification([FromBody] DeleteClassificationRequestDTO dto)
     {

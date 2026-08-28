@@ -40,13 +40,13 @@ namespace axionpro.api.Controllers.Role
         }
 
         /// <summary>
-        /// Update Role.
+        /// Supports the Angular UI flow for update role.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update role.
+        /// <para>Angular purpose: updates role.</para>
+        /// <para>Angular page(s): /app/roles.</para>
+        /// <para>Angular API service call(s): RolesApi.updateRole (app/core/services/roles-api.ts:121).</para>
         /// </remarks>
-        /// <param name="updateRoleDTO">The request body used to update role.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPut("update")]        
         // [Authorize]
         public async Task<IActionResult> UpdateRole([FromBody] UpdateRoleRequestDTO updateRoleDTO)
@@ -57,13 +57,13 @@ namespace axionpro.api.Controllers.Role
             return Ok(result);
         }
         /// <summary>
-        /// get Role.
+        /// Supports the Angular UI flow for get role.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get role.
+        /// <para>Angular purpose: retrieves role options.</para>
+        /// <para>Angular page(s): /app/tickets/types; /app/employees; /app/profile/basic-info.</para>
+        /// <para>Angular API service call(s): RolesApi.getRoleOptions (app/core/services/roles-api.ts:115).</para>
         /// </remarks>
-        /// <param name="requestDTO">The query parameters used to get role.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("option")]      
         public async Task<IActionResult> getRole([FromQuery] GetRoleOptionRequestDTO requestDTO)
         {
@@ -76,13 +76,13 @@ namespace axionpro.api.Controllers.Role
         }
 
         /// <summary>
-        /// Create Role.
+        /// Supports the Angular UI flow for create role.
         /// </summary>
         /// <remarks>
-        /// Handles the request to create role.
+        /// <para>Angular purpose: creates role.</para>
+        /// <para>Angular page(s): /app/roles.</para>
+        /// <para>Angular API service call(s): RolesApi.addRole (app/core/services/roles-api.ts:101).</para>
         /// </remarks>
-        /// <param name="createRoleDTO">The request body used to create role.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("add")]        
         // [Authorize]
         public async Task<IActionResult> CreateRole([FromBody] CreateRoleRequestDTO createRoleDTO)
@@ -94,13 +94,13 @@ namespace axionpro.api.Controllers.Role
         }
 
         /// <summary>
-        /// Get All Roles.
+        /// Supports the Angular UI flow for get all roles.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get all roles.
+        /// <para>Angular purpose: retrieves roles.</para>
+        /// <para>Angular page(s): /app/roles; /app/host-roles/permissions/:hostRoleId; /app/roles/permissions/:roleId; /app/employees; /app/profile/basic-info.</para>
+        /// <para>Angular API service call(s): RolesApi.getRoles (app/core/services/roles-api.ts:108).</para>
         /// </remarks>
-        /// <param name="roleRequestDTO">The query parameters used to get all roles.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]      
         
         public async Task<IActionResult> GetAllRoles([FromQuery] GetRoleRequestDTO? roleRequestDTO)
@@ -112,13 +112,13 @@ namespace axionpro.api.Controllers.Role
         }
 
         /// <summary>
-        /// Delete Role.
+        /// Supports the Angular UI flow for delete role.
         /// </summary>
         /// <remarks>
-        /// Handles the request to delete role.
+        /// <para>Angular purpose: deletes role.</para>
+        /// <para>Angular page(s): /app/roles.</para>
+        /// <para>Angular API service call(s): RolesApi.deleteRole (app/core/services/roles-api.ts:128).</para>
         /// </remarks>
-        /// <param name="deleteRole">The query parameters used to delete role.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")] 
         public async Task<IActionResult> DeleteRole([FromQuery] DeleteRoleRequestDTO deleteRole)
         {         

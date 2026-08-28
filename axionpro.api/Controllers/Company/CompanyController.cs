@@ -35,15 +35,6 @@ public class CompanyController : ControllerBase
     }
    
 
-    /// <summary>
-    /// Execute the current Company diagnostic route.
-    /// </summary>
-    /// <remarks>
-    /// Accepts the supplied first and last names, writes the current fixed Company diagnostic message to the logger, and returns an empty successful response.
-    /// </remarks>
-    /// <param name="firstname">The first-name value supplied in the route.</param>
-    /// <param name="lastname">The last-name value supplied in the route.</param>
-    /// <returns>An empty successful HTTP response.</returns>
     [HttpGet("{firstname}/{lastname}")]
    // [Authorize]
     public async Task<IActionResult> Get(string firstname, string lastname)

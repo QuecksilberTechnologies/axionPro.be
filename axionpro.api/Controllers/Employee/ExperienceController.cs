@@ -38,13 +38,13 @@ namespace axionpro.api.Controllers.Employee
         // Create new employee experience record.
         // </summary>
         /// <summary>
-        /// Create Experience.
+        /// Supports the Angular UI flow for create experience.
         /// </summary>
         /// <remarks>
-        /// Handles the request to create experience.
+        /// <para>Angular purpose: creates employee experience.</para>
+        /// <para>Angular page(s): /app/profile/experience-info.</para>
+        /// <para>Angular API service call(s): EmployeeExperienceAPI.createEmployeeExperience (app/core/services/employee-experience-api.ts:100).</para>
         /// </remarks>
-        /// <param name="dto">The form data used to create experience.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("create")]       
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> CreateExperience([FromForm] CreateExperienceRequestDTO dto)
@@ -56,13 +56,13 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Get Allexperince Info.
+        /// Supports the Angular UI flow for get allexperince info.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get allexperince info.
+        /// <para>Angular purpose: retrieves employee experience.</para>
+        /// <para>Angular page(s): /app/profile/experience-info.</para>
+        /// <para>Angular API service call(s): EmployeeExperienceAPI.getEmployeeExperience (app/core/services/employee-experience-api.ts:94).</para>
         /// </remarks>
-        /// <param name="commandDto">The query parameters used to get allexperince info.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]
         //    
         //    
@@ -77,13 +77,13 @@ namespace axionpro.api.Controllers.Employee
             
         }
         /// <summary>
-        /// Update.
+        /// Supports the Angular UI flow for update.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update.
+        /// <para>Angular purpose: updates employee experience.</para>
+        /// <para>Angular page(s): /app/profile/experience-info.</para>
+        /// <para>Angular API service call(s): EmployeeExperienceAPI.updateEmployeeExperience (app/core/services/employee-experience-api.ts:106).</para>
         /// </remarks>
-        /// <param name="dto">The form data used to update.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("update")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Update([FromForm] UpdateExperienceRequestDTO dto)
@@ -96,13 +96,13 @@ namespace axionpro.api.Controllers.Employee
             
         }
         /// <summary>
-        /// Delete.
+        /// Supports the Angular UI flow for delete.
         /// </summary>
         /// <remarks>
-        /// Handles the request to delete.
+        /// <para>Angular purpose: deletes employee experience.</para>
+        /// <para>Angular page(s): /app/profile/experience-info.</para>
+        /// <para>Angular API service call(s): EmployeeExperienceAPI.deleteEmployeeExperience (app/core/services/employee-experience-api.ts:113).</para>
         /// </remarks>
-        /// <param name="dto">The query parameters used to delete.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]
         public async Task<IActionResult> Delete([FromQuery] DeleteRequestDTO dto)
         {
@@ -118,13 +118,13 @@ namespace axionpro.api.Controllers.Employee
 
         }
         /// <summary>
-        /// Delete Doc.
+        /// Supports the Angular UI flow for delete doc.
         /// </summary>
         /// <remarks>
-        /// Handles the request to delete doc.
+        /// <para>Angular purpose: deletes employee experience doc.</para>
+        /// <para>Angular page(s): /app/profile/experience-info.</para>
+        /// <para>Angular API service call(s): EmployeeExperienceAPI.deleteEmployeeExperienceDoc (app/core/services/employee-experience-api.ts:119).</para>
         /// </remarks>
-        /// <param name="dto">The query parameters used to delete doc.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete-doc")]
         public async Task<IActionResult> DeleteDoc([FromQuery] DeleteRequestDTO dto)
         {

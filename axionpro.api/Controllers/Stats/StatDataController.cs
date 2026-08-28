@@ -37,13 +37,13 @@ namespace axionpro.api.Controllers.Stats
         ///Dashboard statistics.
         // Returns employee summary statistics for dashboard widgets      
         /// <summary>
-        /// Get Employee Dashboard Summary.
+        /// Supports the Angular UI flow for get employee dashboard summary async.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get employee dashboard summary.
+        /// <para>Angular purpose: retrieves employee statistics.</para>
+        /// <para>Angular page(s): /app/admin-dashboard; /app/employees.</para>
+        /// <para>Angular API service call(s): EmployeesApi.getEmployeeStatistics (app/core/services/employee-api.ts:146).</para>
         /// </remarks>
-        /// <param name="dto">The query parameters used to get employee dashboard summary.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("Dashboard/Employees/Statistics")]        
         public async Task<IActionResult> GetEmployeeDashboardSummaryAsync(
             [FromQuery] EmployeeCountRequestStatsSp dto)
@@ -58,13 +58,13 @@ namespace axionpro.api.Controllers.Stats
 
     
         /// <summary>
-        /// dashboard.
+        /// Supports the Angular UI flow for dashboard.
         /// </summary>
         /// <remarks>
-        /// Handles the request to dashboard.
+        /// <para>Angular purpose: retrieves dashboard statistics.</para>
+        /// <para>Angular page(s): /app/admin-dashboard; /app/setting/billing.</para>
+        /// <para>Angular API service call(s): DashboardApi.getDashboardStatistics (app/core/services/dashboard-api.ts:56).</para>
         /// </remarks>
-        /// <param name="request">The query parameters used to dashboard.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("Manager/Statistics/Dashboard/get")]        
         public async Task<IActionResult> dashboard([FromQuery] GetSummaryRequestDTO request)
         {
@@ -82,13 +82,13 @@ namespace axionpro.api.Controllers.Stats
 
      
         /// <summary>
-        /// Asset.
+        /// Supports the Angular UI flow for asset.
         /// </summary>
         /// <remarks>
-        /// Handles the request to asset.
+        /// <para>Angular purpose: retrieves asset statistics.</para>
+        /// <para>Angular page(s): /app/assets/list.</para>
+        /// <para>Angular API service call(s): DashboardApi.getAssetStatistics (app/core/services/dashboard-api.ts:63).</para>
         /// </remarks>
-        /// <param name="request">The query parameters used to asset.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("Manager/Statistic/Asset")]    
         public async Task<IActionResult> Asset([FromQuery] GetSummaryRequestDTO request)
         {

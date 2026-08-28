@@ -41,14 +41,13 @@ public sealed class NewLoginController : ControllerBase
     #region Authentication Endpoints
 
     /// <summary>
-    /// Login.
+    /// Supports the Angular UI flow for login.
     /// </summary>
     /// <remarks>
-    /// Handles the request to login.
+    /// <para>Angular purpose: performs login.</para>
+    /// <para>Angular page(s): /auth/login.</para>
+    /// <para>Angular API service call(s): AuthApi.login (app/core/services/auth-api.ts:153).</para>
     /// </remarks>
-    /// <param name="request">The request body used to login.</param>
-    /// <param name="cancellationToken">The token used to cancel the request.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpPost("login")]
     public async Task<IActionResult> Login(
         [FromBody] LoginRequestDTO request,

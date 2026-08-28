@@ -6,11 +6,14 @@
 // ================================================================
 
 using AutoMapper;
+using axionpro.application.Common.Enums;
+using axionpro.application.Common.Helpers;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.TenantConfiguration;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
@@ -42,9 +45,15 @@ public sealed class UpdateTenantLocationCommand : IRequest<ApiResponse<TenantLoc
 public sealed class DeleteTenantLocationCommand : IRequest<ApiResponse<bool>>
 {
     /// <summary>Initializes a command with the target location identifier.</summary>
-    public DeleteTenantLocationCommand(long id) => Id = id;
+    public DeleteTenantLocationCommand(long id, TenantLocationAccessRequestDTO accessRequest)
+    {
+        Id = id;
+        AccessRequest = accessRequest;
+    }
     /// <summary>Gets the target location identifier.</summary>
     public long Id { get; }
+    /// <summary>Gets the encrypted Host Tenant scope and permission context.</summary>
+    public TenantLocationAccessRequestDTO AccessRequest { get; }
 }
 
 /// <summary>Changes the active state of a Tenant-owned work location.</summary>
@@ -64,9 +73,15 @@ public sealed class UpdateTenantLocationStatusCommand : IRequest<ApiResponse<Ten
 public sealed class GetTenantLocationByIdQuery : IRequest<ApiResponse<TenantLocationResponseDTO>>
 {
     /// <summary>Initializes a query with the target location identifier.</summary>
-    public GetTenantLocationByIdQuery(long id) => Id = id;
+    public GetTenantLocationByIdQuery(long id, TenantLocationAccessRequestDTO accessRequest)
+    {
+        Id = id;
+        AccessRequest = accessRequest;
+    }
     /// <summary>Gets the target location identifier.</summary>
     public long Id { get; }
+    /// <summary>Gets the encrypted Host Tenant scope and permission context.</summary>
+    public TenantLocationAccessRequestDTO AccessRequest { get; }
 }
 
 /// <summary>Retrieves filtered and paginated Tenant-owned work locations.</summary>
@@ -82,22 +97,76 @@ public sealed class GetTenantLocationsQuery : IRequest<ApiResponse<List<TenantLo
 
 #region Handler
 
+/// <summary>
+/// Resolves the trusted Tenant scope for TenantLocation endpoints. Host requests
+/// must supply an encrypted Tenant identifier, while Tenant Employee requests
+/// are constrained to the Tenant in their authenticated token.
+/// </summary>
+public abstract class TenantLocationAccessHandlerBase : TenantConfigurationHandlerBase
+{
+    private readonly IIdEncoderService _idEncoderService;
+
+    protected TenantLocationAccessHandlerBase(
+        IUnitOfWork unitOfWork,
+        ICommonRequestService commonRequestService,
+        IIdEncoderService idEncoderService,
+        ILogger<TenantConfigurationHandlerBase> logger)
+        : base(unitOfWork, commonRequestService, logger)
+    {
+        _idEncoderService = idEncoderService;
+    }
+
+    /// <summary>Validates the principal and resolves its authoritative Tenant and audit actor.</summary>
+    protected async Task<(long TenantId, long ActorId)> ResolveTenantScopeAsync(
+        TenantLocationAccessRequestDTO accessRequest,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(accessRequest);
+
+        var principal = await CommonRequestService.ValidateAuthenticatedRequestAsync();
+        return principal.UserType switch
+        {
+            LoginUserType.Host => await ResolveHostTenantScopeAsync(accessRequest, cancellationToken),
+            LoginUserType.TenantEmployee => await ValidateTenantPermissionAsync(accessRequest, cancellationToken),
+            _ => throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized)
+        };
+    }
+
+    private async Task<(long TenantId, long ActorId)> ResolveHostTenantScopeAsync(
+        TenantLocationAccessRequestDTO accessRequest,
+        CancellationToken cancellationToken)
+    {
+        var hostContext = await HostRuntimePermissionValidator.ValidateAsync(
+            CommonRequestService,
+            UnitOfWork.StoreProcedureRepository,
+            accessRequest.ModuleId,
+            accessRequest.OperationId,
+            cancellationToken);
+        var tenantId = HostTenantIdentifierProtector.Decrypt(
+            accessRequest.TenantId,
+            hostContext.TenantEncryptionKey,
+            _idEncoderService);
+
+        return (tenantId, hostContext.HostUserId);
+    }
+}
+
 /// <summary>Handles creation of Tenant-owned work locations.</summary>
-public sealed class CreateTenantLocationCommandHandler : TenantConfigurationHandlerBase, IRequestHandler<CreateTenantLocationCommand, ApiResponse<TenantLocationResponseDTO>>
+public sealed class CreateTenantLocationCommandHandler : TenantLocationAccessHandlerBase, IRequestHandler<CreateTenantLocationCommand, ApiResponse<TenantLocationResponseDTO>>
 {
     #region Fields
     private readonly IMapper _mapper;
     #endregion
     #region Constructor
     /// <summary>Initializes the handler.</summary>
-    public CreateTenantLocationCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) => _mapper = mapper;
+    public CreateTenantLocationCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, IIdEncoderService idEncoderService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, idEncoderService, logger) => _mapper = mapper;
     #endregion
     #region Handle
     /// <summary>Creates the validated Tenant location.</summary>
     /// <param name="request">The creation command.</param><param name="cancellationToken">Cancellation token.</param><returns>The created location.</returns>
     public async Task<ApiResponse<TenantLocationResponseDTO>> Handle(CreateTenantLocationCommand request, CancellationToken cancellationToken)
     {
-        var (tenantId, actorId) = await ValidateTenantAsync();
+        var (tenantId, actorId) = await ResolveTenantScopeAsync(request.DTO, cancellationToken);
         Validate(request.DTO);
         if (!await UnitOfWork.TenantLocationRepository.IsValidGeographyAsync(request.DTO.CountryId, request.DTO.StateId, request.DTO.CityId, cancellationToken)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
         if (await UnitOfWork.TenantLocationRepository.LocationCodeExistsAsync(tenantId, request.DTO.LocationCode.Trim(), null, cancellationToken)) throw new ConflictException(AppConstants.ErrorMessages.DuplicateTenantLocationCode);
@@ -118,21 +187,21 @@ public sealed class CreateTenantLocationCommandHandler : TenantConfigurationHand
 }
 
 /// <summary>Handles updates to Tenant-owned work locations.</summary>
-public sealed class UpdateTenantLocationCommandHandler : TenantConfigurationHandlerBase, IRequestHandler<UpdateTenantLocationCommand, ApiResponse<TenantLocationResponseDTO>>
+public sealed class UpdateTenantLocationCommandHandler : TenantLocationAccessHandlerBase, IRequestHandler<UpdateTenantLocationCommand, ApiResponse<TenantLocationResponseDTO>>
 {
     #region Fields
     private readonly IMapper _mapper;
     #endregion
     #region Constructor
     /// <summary>Initializes the handler.</summary>
-    public UpdateTenantLocationCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) => _mapper = mapper;
+    public UpdateTenantLocationCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, IIdEncoderService idEncoderService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, idEncoderService, logger) => _mapper = mapper;
     #endregion
     #region Handle
     /// <summary>Updates the validated Tenant location.</summary>
     /// <param name="request">The update command.</param><param name="cancellationToken">Cancellation token.</param><returns>The updated location.</returns>
     public async Task<ApiResponse<TenantLocationResponseDTO>> Handle(UpdateTenantLocationCommand request, CancellationToken cancellationToken)
     {
-        var (tenantId, actorId) = await ValidateTenantAsync();
+        var (tenantId, actorId) = await ResolveTenantScopeAsync(request.DTO, cancellationToken);
         if (request.DTO is null || request.DTO.Id <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
         Validate(request.DTO);
         var entity = await UnitOfWork.TenantLocationRepository.GetForUpdateAsync(tenantId, request.DTO.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.TenantLocationNotFound);
@@ -152,18 +221,18 @@ public sealed class UpdateTenantLocationCommandHandler : TenantConfigurationHand
 }
 
 /// <summary>Handles safe soft deletion of Tenant-owned work locations.</summary>
-public sealed class DeleteTenantLocationCommandHandler : TenantConfigurationHandlerBase, IRequestHandler<DeleteTenantLocationCommand, ApiResponse<bool>>
+public sealed class DeleteTenantLocationCommandHandler : TenantLocationAccessHandlerBase, IRequestHandler<DeleteTenantLocationCommand, ApiResponse<bool>>
 {
     #region Constructor
     /// <summary>Initializes the handler.</summary>
-    public DeleteTenantLocationCommandHandler(IUnitOfWork unitOfWork, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) { }
+    public DeleteTenantLocationCommandHandler(IUnitOfWork unitOfWork, ICommonRequestService commonRequestService, IIdEncoderService idEncoderService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, idEncoderService, logger) { }
     #endregion
     #region Handle
     /// <summary>Soft deletes an unused Tenant location.</summary>
     /// <param name="request">The deletion command.</param><param name="cancellationToken">Cancellation token.</param><returns>A successful deletion acknowledgement.</returns>
     public async Task<ApiResponse<bool>> Handle(DeleteTenantLocationCommand request, CancellationToken cancellationToken)
     {
-        var (tenantId, actorId) = await ValidateTenantAsync();
+        var (tenantId, actorId) = await ResolveTenantScopeAsync(request.AccessRequest, cancellationToken);
         var entity = await UnitOfWork.TenantLocationRepository.GetForUpdateAsync(tenantId, request.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.TenantLocationNotFound);
         if (await UnitOfWork.TenantLocationRepository.HasAnyDependenciesAsync(tenantId, entity.Id, cancellationToken)) throw new ConflictException(AppConstants.ErrorMessages.TenantLocationInUse);
         entity.IsSoftDeleted = true; entity.IsActive = false; entity.SoftDeletedById = actorId; entity.SoftDeletedDateTime = DateTime.UtcNow;
@@ -175,19 +244,19 @@ public sealed class DeleteTenantLocationCommandHandler : TenantConfigurationHand
 }
 
 /// <summary>Handles active-state changes to Tenant-owned work locations.</summary>
-public sealed class UpdateTenantLocationStatusCommandHandler : TenantConfigurationHandlerBase, IRequestHandler<UpdateTenantLocationStatusCommand, ApiResponse<TenantLocationResponseDTO>>
+public sealed class UpdateTenantLocationStatusCommandHandler : TenantLocationAccessHandlerBase, IRequestHandler<UpdateTenantLocationStatusCommand, ApiResponse<TenantLocationResponseDTO>>
 {
     private readonly IMapper _mapper;
     #region Constructor
     /// <summary>Initializes the handler.</summary>
-    public UpdateTenantLocationStatusCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) => _mapper = mapper;
+    public UpdateTenantLocationStatusCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, IIdEncoderService idEncoderService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, idEncoderService, logger) => _mapper = mapper;
     #endregion
     #region Handle
     /// <summary>Changes the active state after dependency validation.</summary>
     /// <param name="request">The status command.</param><param name="cancellationToken">Cancellation token.</param><returns>The location after the status change.</returns>
     public async Task<ApiResponse<TenantLocationResponseDTO>> Handle(UpdateTenantLocationStatusCommand request, CancellationToken cancellationToken)
     {
-        var (tenantId, actorId) = await ValidateTenantAsync();
+        var (tenantId, actorId) = await ResolveTenantScopeAsync(request.DTO, cancellationToken);
         if (request.DTO is null || request.DTO.Id <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
         var entity = await UnitOfWork.TenantLocationRepository.GetForUpdateAsync(tenantId, request.DTO.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.TenantLocationNotFound);
         if (!request.DTO.IsActive && entity.IsActive && await UnitOfWork.TenantLocationRepository.HasLiveActiveDependenciesAsync(tenantId, entity.Id, cancellationToken)) throw new ConflictException(AppConstants.ErrorMessages.TenantLocationInUse);
@@ -199,19 +268,19 @@ public sealed class UpdateTenantLocationStatusCommandHandler : TenantConfigurati
 }
 
 /// <summary>Handles retrieval of a Tenant-owned work location.</summary>
-public sealed class GetTenantLocationByIdQueryHandler : TenantConfigurationHandlerBase, IRequestHandler<GetTenantLocationByIdQuery, ApiResponse<TenantLocationResponseDTO>>
+public sealed class GetTenantLocationByIdQueryHandler : TenantLocationAccessHandlerBase, IRequestHandler<GetTenantLocationByIdQuery, ApiResponse<TenantLocationResponseDTO>>
 {
     private readonly IMapper _mapper;
     #region Constructor
     /// <summary>Initializes the handler.</summary>
-    public GetTenantLocationByIdQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) => _mapper = mapper;
+    public GetTenantLocationByIdQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, IIdEncoderService idEncoderService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, idEncoderService, logger) => _mapper = mapper;
     #endregion
     #region Handle
     /// <summary>Retrieves one Tenant-owned location.</summary>
     /// <param name="request">The identifier query.</param><param name="cancellationToken">Cancellation token.</param><returns>The requested location.</returns>
     public async Task<ApiResponse<TenantLocationResponseDTO>> Handle(GetTenantLocationByIdQuery request, CancellationToken cancellationToken)
     {
-        var (tenantId, _) = await ValidateTenantAsync();
+        var (tenantId, _) = await ResolveTenantScopeAsync(request.AccessRequest, cancellationToken);
         var entity = await UnitOfWork.TenantLocationRepository.GetByIdAsync(tenantId, request.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.TenantLocationNotFound);
         return ApiResponse<TenantLocationResponseDTO>.Success(_mapper.Map<TenantLocationResponseDTO>(entity), AppConstants.SuccessMessages.TenantLocationRetrieved);
     }
@@ -219,20 +288,22 @@ public sealed class GetTenantLocationByIdQueryHandler : TenantConfigurationHandl
 }
 
 /// <summary>Handles filtered retrieval of Tenant-owned work locations.</summary>
-public sealed class GetTenantLocationsQueryHandler : TenantConfigurationHandlerBase, IRequestHandler<GetTenantLocationsQuery, ApiResponse<List<TenantLocationResponseDTO>>>
+public sealed class GetTenantLocationsQueryHandler : TenantLocationAccessHandlerBase, IRequestHandler<GetTenantLocationsQuery, ApiResponse<List<TenantLocationResponseDTO>>>
 {
     private readonly IMapper _mapper;
     #region Constructor
     /// <summary>Initializes the handler.</summary>
-    public GetTenantLocationsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) => _mapper = mapper;
+    public GetTenantLocationsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, IIdEncoderService idEncoderService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, idEncoderService, logger) => _mapper = mapper;
     #endregion
     #region Handle
     /// <summary>Retrieves a database-paged Tenant location list.</summary>
     /// <param name="request">The filter query.</param><param name="cancellationToken">Cancellation token.</param><returns>A flattened paginated location response.</returns>
     public async Task<ApiResponse<List<TenantLocationResponseDTO>>> Handle(GetTenantLocationsQuery request, CancellationToken cancellationToken)
     {
-        var (tenantId, _) = await ValidateTenantAsync();
-        var page = await UnitOfWork.TenantLocationRepository.GetPagedAsync(tenantId, request.Filter ?? new TenantLocationFilterRequestDTO(), cancellationToken);
+        var filter = request.Filter ?? new TenantLocationFilterRequestDTO();
+        var (tenantId, _) = await ResolveTenantScopeAsync(filter, cancellationToken);
+        var page = await UnitOfWork.TenantLocationRepository.GetPagedAsync(tenantId, filter, cancellationToken);
+
         return Paged(page.Data.Select(entity => _mapper.Map<TenantLocationResponseDTO>(entity)).ToList(), page.PageNumber, page.PageSize, page.TotalCount, AppConstants.SuccessMessages.TenantLocationRetrieved);
     }
     #endregion

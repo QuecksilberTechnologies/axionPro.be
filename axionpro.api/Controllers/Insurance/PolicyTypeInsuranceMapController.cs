@@ -32,13 +32,13 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 CREATE INSURANCE And POLICY TYPE MAPPING
         /// <summary>
-        /// Create.
+        /// Supports the Angular UI flow for create.
         /// </summary>
         /// <remarks>
-        /// Handles the request to create.
+        /// <para>Angular purpose: updates total records.</para>
+        /// <para>Angular page(s): /app/policies/insurance-policy-type-mapping.</para>
+        /// <para>Angular API service call(s): PolicyTypeInsuranceMapApi.setTotalRecords (app/core/services/policy-type-insurance-map-api.ts:85).</para>
         /// </remarks>
-        /// <param name="dto">The request body used to create.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("map")]     
         
         public async Task<IActionResult> Create(
@@ -55,14 +55,6 @@ namespace axionpro.api.Controllers.Insurance
         }
 
         // 🔹 GET INSURANCE LIST (GRID)
-        /// <summary>
-        /// Get List.
-        /// </summary>
-        /// <remarks>
-        /// Handles the request to get list.
-        /// </remarks>
-        /// <param name="requestDto">The query parameters used to get list.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-all-map-insurance")]
         
         public async Task<IActionResult> GetList( [FromQuery] GetInsuranceForEmployeeDDLRequestDTO  requestDto)
@@ -76,13 +68,13 @@ namespace axionpro.api.Controllers.Insurance
         }
         // 🔹 GET INSURANCE LIST (GRID)
         /// <summary>
-        /// Get List.
+        /// Supports the Angular UI flow for get list.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get list.
+        /// <para>Angular purpose: updates total records.</para>
+        /// <para>Angular page(s): /app/policies/insurance-policy-type-mapping.</para>
+        /// <para>Angular API service call(s): PolicyTypeInsuranceMapApi.setTotalRecords (app/core/services/policy-type-insurance-map-api.ts:60).</para>
         /// </remarks>
-        /// <param name="requestDto">The query parameters used to get list.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-all")]
                
         public async Task<IActionResult> GetList( [FromQuery] GetPolicyTypeInsuranceMappingRequestDTO requestDto)
@@ -96,13 +88,13 @@ namespace axionpro.api.Controllers.Insurance
         }
         // 🔹 GET INSURANCE LIST (GRID)
         /// <summary>
-        /// Get Detail List.
+        /// Supports the Angular UI flow for get detail list.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get detail list.
+        /// <para>Angular purpose: updates total records.</para>
+        /// <para>Angular page(s): /app/policies/insurance-policy-type-mapping.</para>
+        /// <para>Angular API service call(s): PolicyTypeInsuranceMapApi.setTotalRecords (app/core/services/policy-type-insurance-map-api.ts:70).</para>
         /// </remarks>
-        /// <param name="requestDto">The query parameters used to get detail list.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-details")]
         
         public async Task<IActionResult> GetDetailList( [FromQuery] GetPolicyTypeInsuranceMapDetailsRequestDTO requestDto)
@@ -114,13 +106,13 @@ namespace axionpro.api.Controllers.Insurance
         }
         // 🔹 DELETE POLICY INSURANCE MAPPING
         /// <summary>
-        /// Delete.
+        /// Supports the Angular UI flow for delete.
         /// </summary>
         /// <remarks>
-        /// Handles the request to delete.
+        /// <para>Angular purpose: updates total records.</para>
+        /// <para>Angular page(s): /app/policies/insurance-policy-type-mapping.</para>
+        /// <para>Angular API service call(s): PolicyTypeInsuranceMapApi.setTotalRecords (app/core/services/policy-type-insurance-map-api.ts:104).</para>
         /// </remarks>
-        /// <param name="requestDto">The query parameters used to delete.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]        
         public async Task<IActionResult> Delete(
             [FromQuery] DeletePolicyTypeInsuranceMappingRequestDTO requestDto)        {
@@ -132,13 +124,13 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 UPDATE POLICY INSURANCE MAPPING
         /// <summary>
-        /// Update.
+        /// Supports the Angular UI flow for update.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update.
+        /// <para>Angular purpose: updates total records.</para>
+        /// <para>Angular page(s): /app/policies/insurance-policy-type-mapping.</para>
+        /// <para>Angular API service call(s): PolicyTypeInsuranceMapApi.setTotalRecords (app/core/services/policy-type-insurance-map-api.ts:93).</para>
         /// </remarks>
-        /// <param name="requestDto">The request body used to update.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPut("update")]    
         public async Task<IActionResult> Update(
             [FromBody] UpdatePolicyTypeInsuranceMappingRequestDTO requestDto)

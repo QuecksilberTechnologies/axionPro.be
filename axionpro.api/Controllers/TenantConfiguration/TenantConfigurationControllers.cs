@@ -31,11 +31,11 @@ public sealed class TenantLocationController(IMediator mediator, ILoggerService 
 {
     #region Tenant Location CRUD
     [HttpPost("create")] public async Task<IActionResult> Create([FromBody] CreateTenantLocationRequestDTO dto, CancellationToken ct) { Logger.LogInfo("Received TenantLocation create request."); return Ok(await Mediator.Send(new CreateTenantLocationCommand(dto), ct)); }
-    [HttpGet("get-by-id/{id:long}")] public async Task<IActionResult> GetById(long id, CancellationToken ct) { Logger.LogInfo("Received TenantLocation get-by-id request."); return Ok(await Mediator.Send(new GetTenantLocationByIdQuery(id), ct)); }
+    [HttpGet("get-by-id/{id:long}")] public async Task<IActionResult> GetById(long id, [FromQuery] TenantLocationAccessRequestDTO accessRequest, CancellationToken ct) { Logger.LogInfo("Received TenantLocation get-by-id request."); return Ok(await Mediator.Send(new GetTenantLocationByIdQuery(id, accessRequest), ct)); }
     [HttpGet("get-all")] public async Task<IActionResult> GetAll([FromQuery] TenantLocationFilterRequestDTO filter, CancellationToken ct) { Logger.LogInfo("Received TenantLocation list request."); return Ok(await Mediator.Send(new GetTenantLocationsQuery(filter), ct)); }
     [HttpPost("update")] public async Task<IActionResult> Update([FromBody] UpdateTenantLocationRequestDTO dto, CancellationToken ct) { Logger.LogInfo("Received TenantLocation update request."); return Ok(await Mediator.Send(new UpdateTenantLocationCommand(dto), ct)); }
     [HttpPost("update-status")] public async Task<IActionResult> UpdateStatus([FromBody] UpdateTenantLocationStatusRequestDTO dto, CancellationToken ct) { Logger.LogInfo("Received TenantLocation status request."); return Ok(await Mediator.Send(new UpdateTenantLocationStatusCommand(dto), ct)); }
-    [HttpDelete("delete/{id:long}")] public async Task<IActionResult> Delete(long id, CancellationToken ct) { Logger.LogInfo("Received TenantLocation delete request."); return Ok(await Mediator.Send(new DeleteTenantLocationCommand(id), ct)); }
+    [HttpDelete("delete/{id:long}")] public async Task<IActionResult> Delete(long id, [FromQuery] TenantLocationAccessRequestDTO accessRequest, CancellationToken ct) { Logger.LogInfo("Received TenantLocation delete request."); return Ok(await Mediator.Send(new DeleteTenantLocationCommand(id, accessRequest), ct)); }
     #endregion
 }
 

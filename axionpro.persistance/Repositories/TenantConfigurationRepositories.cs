@@ -65,6 +65,23 @@ public sealed class TenantLocationRepository : TenantConfigurationRepositoryBase
     }
 
     /// <inheritdoc />
+    public async Task<PagedResponseDTO<TenantLocation>> GetHostPagedAsync(TenantLocationFilterRequestDTO filter, CancellationToken cancellationToken)
+    {
+        var (pageNumber, pageSize) = NormalizePage(filter.PageNumber, filter.PageSize);
+        var query = Context.TenantLocations.AsNoTracking().Include(x => x.Country).Include(x => x.City)
+            .Where(x => !x.IsSoftDeleted);
+        if (!string.IsNullOrWhiteSpace(filter.Search)) { var term = $"%{filter.Search.Trim()}%"; query = query.Where(x => EF.Functions.ILike(x.LocationCode, term) || EF.Functions.ILike(x.LocationName, term) || (x.Address != null && EF.Functions.ILike(x.Address, term))); }
+        if (filter.CountryId.HasValue) query = query.Where(x => x.CountryId == filter.CountryId.Value);
+        if (filter.StateId.HasValue) query = query.Where(x => x.StateId == filter.StateId.Value);
+        if (filter.CityId.HasValue) query = query.Where(x => x.CityId == filter.CityId.Value);
+        if (filter.LocationType.HasValue) query = query.Where(x => x.LocationType == (short)filter.LocationType.Value);
+        if (filter.IsActive.HasValue) query = query.Where(x => x.IsActive == filter.IsActive.Value);
+        var count = await query.CountAsync(cancellationToken);
+        var data = await query.OrderBy(x => x.LocationName).ThenBy(x => x.Id).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken);
+        return CreatePage(data, count, pageNumber, pageSize);
+    }
+
+    /// <inheritdoc />
     public Task<bool> LocationCodeExistsAsync(long tenantId, string locationCode, long? excludeId, CancellationToken cancellationToken) =>
         Context.TenantLocations.AnyAsync(x => x.TenantId == tenantId && !x.IsSoftDeleted && x.LocationCode.ToLower() == locationCode.ToLower() && (!excludeId.HasValue || x.Id != excludeId.Value), cancellationToken);
 

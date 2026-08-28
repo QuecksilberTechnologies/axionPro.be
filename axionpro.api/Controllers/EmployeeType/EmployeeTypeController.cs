@@ -48,13 +48,13 @@ namespace axionpro.api.Controllers.EmployeeType
         #region Queries
 
         /// <summary>
-        /// Get All Employee Type.
+        /// Supports the Angular UI flow for get all employee type.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get all employee type.
+        /// <para>Angular purpose: retrieves employee types.</para>
+        /// <para>Angular page(s): No Angular component caller was statically resolved; the Angular API-service wrapper is documented below..</para>
+        /// <para>Angular API service call(s): EmployeeTypesAPI.getEmployeeTypes (app/core/services/employee-types-api.ts:49).</para>
         /// </remarks>
-        /// <param name="requestDto">The query parameters used to get all employee type.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]
         public IActionResult GetAllEmployeeType(
             [FromQuery] application.DTOS.Employee.Type.GetEmployeeTypeRequestDTO requestDto)
@@ -99,13 +99,13 @@ namespace axionpro.api.Controllers.EmployeeType
         }
 
         /// <summary>
-        /// Get All Employee Type.
+        /// Supports the Angular UI flow for get all employee type.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get all employee type.
+        /// <para>Angular purpose: retrieves employee type options.</para>
+        /// <para>Angular page(s): /app/designations; /app/employees; /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants; /app/tenant-locations/new; /app/tenant-locations/:tenantLocationId/edit; /app/tenant-locations; and 12 more.</para>
+        /// <para>Angular API service call(s): EmployeeTypesAPI.getEmployeeTypeOptions (app/core/services/employee-types-api.ts:56).</para>
         /// </remarks>
-        /// <param name="requestDTO">The query parameters used to get all employee type.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("option")]
         public async Task<IActionResult> GetAllEmployeeType([FromQuery] GetOptionRequestDTO requestDTO)
         {

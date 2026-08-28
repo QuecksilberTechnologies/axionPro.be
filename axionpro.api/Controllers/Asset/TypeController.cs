@@ -37,13 +37,13 @@ namespace axionpro.api.Controllers.Asset
         #region Tenant Admin - Asset Type CRUD
 
         /// <summary>
-        /// Get All Asset Type.
+        /// Supports the Angular UI flow for get all asset type.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get all asset type.
+        /// <para>Angular purpose: retrieves assets types.</para>
+        /// <para>Angular page(s): /app/assets/asset-types; /app/assets/list; /app/roles.</para>
+        /// <para>Angular API service call(s): AssetTypesApi.fetchAssetsTypes (app/core/services/asset-types-api.ts:38).</para>
         /// </remarks>
-        /// <param name="request">The query parameters used to get all asset type.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]
         public async Task<IActionResult> GetAllAssetType([FromQuery] GetTypeRequestDTO request)
         {
@@ -57,13 +57,13 @@ namespace axionpro.api.Controllers.Asset
 
     
         /// <summary>
-        /// Add Asset Type.
+        /// Supports the Angular UI flow for add asset type.
         /// </summary>
         /// <remarks>
-        /// Handles the request to add asset type.
+        /// <para>Angular purpose: creates asset type.</para>
+        /// <para>Angular page(s): /app/assets/asset-types.</para>
+        /// <para>Angular API service call(s): AssetTypesApi.createAssetType (app/core/services/asset-types-api.ts:31).</para>
         /// </remarks>
-        /// <param name="request">The request body used to add asset type.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("add")]        
         public async Task<IActionResult> AddAssetType([FromBody] AddTypeRequestDTO request)
         {
@@ -80,13 +80,13 @@ namespace axionpro.api.Controllers.Asset
         /// </summary>
         // [HttpPost("update")]
         /// <summary>
-        /// Update Asset Type.
+        /// Supports the Angular UI flow for update asset type.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update asset type.
+        /// <para>Angular purpose: updates asset type.</para>
+        /// <para>Angular page(s): /app/assets/asset-types.</para>
+        /// <para>Angular API service call(s): AssetTypesApi.updateAssetType (app/core/services/asset-types-api.ts:44).</para>
         /// </remarks>
-        /// <param name="request">The request body used to update asset type.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPut("update")] 
         public async Task<IActionResult> UpdateAssetType([FromBody] UpdateTypeRequestDTO request)
         {
@@ -99,13 +99,13 @@ namespace axionpro.api.Controllers.Asset
         }
 
         /// <summary>
-        /// Delete Asset Type.
+        /// Supports the Angular UI flow for delete asset type.
         /// </summary>
         /// <remarks>
-        /// Handles the request to delete asset type.
+        /// <para>Angular purpose: deletes asset type.</para>
+        /// <para>Angular page(s): /app/assets/asset-types.</para>
+        /// <para>Angular API service call(s): AssetTypesApi.deleteAssetType (app/core/services/asset-types-api.ts:51).</para>
         /// </remarks>
-        /// <param name="request">The query parameters used to delete asset type.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")] 
         public async Task<IActionResult> DeleteAssetType([FromQuery] DeleteTypeRequestDTO request)
         {

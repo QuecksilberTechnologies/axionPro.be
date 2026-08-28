@@ -20,14 +20,6 @@ namespace axionpro.api.Controllers.MenuStructureView
     [ApiController]
     public class MenuStructureController : ControllerBase
     {
-        /// <summary>
-        /// Get All Menu Structure.
-        /// </summary>
-        /// <remarks>
-        /// Handles the request to get all menu structure.
-        /// </remarks>
-        /// <param name="requestDto">The request body used to get all menu structure.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("get-menus-structure")]
         public IActionResult GetAllMenuStructure([FromBody] GetEmployeeTypeRequestDTO requestDto)
         {

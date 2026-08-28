@@ -27,14 +27,6 @@ namespace axionpro.api.Controllers.Compliance
             _mediator = mediator;
             _logger = logger;
         }
-        /// <summary>
-        /// Update Compliance Ruley.
-        /// </summary>
-        /// <remarks>
-        /// Handles the request to update compliance ruley.
-        /// </remarks>
-        /// <param name="requestDTO">The request body used to update compliance ruley.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
 
 
         [HttpPost("update")]

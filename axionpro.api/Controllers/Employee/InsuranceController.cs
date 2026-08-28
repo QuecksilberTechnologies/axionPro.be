@@ -39,13 +39,13 @@ public class InsuranceController : ControllerBase
  
 
     /// <summary>
-    /// Enrolled Employee.
+    /// Supports the Angular UI flow for enrolled employee.
     /// </summary>
     /// <remarks>
-    /// Handles the request to enrolled employee.
+    /// <para>Angular purpose: creates insurance.</para>
+    /// <para>Angular page(s): /app/profile/insurance-info.</para>
+    /// <para>Angular API service call(s): EmployeeInsuranceApi.createInsurance (app/core/services/employee-insurance-api.ts:66).</para>
     /// </remarks>
-    /// <param name="employeeCreateDto">The request body used to enrolled employee.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     
     [HttpPost("employee-insurance-enroll")]
     //  [Authorize]   
@@ -58,13 +58,13 @@ public class InsuranceController : ControllerBase
         return Ok(result);
     }
     /// <summary>
-    /// Delete Enrolled Employee.
+    /// Supports the Angular UI flow for delete enrolled employee.
     /// </summary>
     /// <remarks>
-    /// Handles the request to delete enrolled employee.
+    /// <para>Angular purpose: deletes insurance.</para>
+    /// <para>Angular page(s): /app/profile/insurance-info.</para>
+    /// <para>Angular API service call(s): EmployeeInsuranceApi.deleteInsurance (app/core/services/employee-insurance-api.ts:79).</para>
     /// </remarks>
-    /// <param name="Dto">The request body used to delete enrolled employee.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpDelete("delete")]
     //  [Authorize]   
     public async Task<IActionResult> DeleteEnrolledEmployee([FromBody] DeleteEnrolledEmployeePolicyRequestDTO Dto)
@@ -77,13 +77,13 @@ public class InsuranceController : ControllerBase
     }
 
     /// <summary>
-    /// Get.
+    /// Supports the Angular UI flow for get.
     /// </summary>
     /// <remarks>
-    /// Handles the request to get.
+    /// <para>Angular purpose: retrieves enrolled insurances.</para>
+    /// <para>Angular page(s): /app/profile/insurance-info.</para>
+    /// <para>Angular API service call(s): EmployeeInsuranceApi.getEnrolledInsurances (app/core/services/employee-insurance-api.ts:73).</para>
     /// </remarks>
-    /// <param name="requestDto">The query parameters used to get.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("get-all-enroll")]  
     public async Task<IActionResult> Get([FromQuery] GetEnrolledEmployeeRequestDTO requestDto)
     {

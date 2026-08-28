@@ -26,13 +26,13 @@ public class UserModuleRolePermissionController : ControllerBase
         _logger = logger;
     }
     /// <summary>
-    /// Create Permission.
+    /// Supports the Angular UI flow for create permission.
     /// </summary>
     /// <remarks>
-    /// Handles the request to create permission.
+    /// <para>Angular purpose: performs save role permissions.</para>
+    /// <para>Angular page(s): /app/host-roles/permissions/:hostRoleId; /app/roles/permissions/:roleId.</para>
+    /// <para>Angular API service call(s): RolesApi.saveRolePermissions (app/core/services/roles-api.ts:151).</para>
     /// </remarks>
-    /// <param name="insertRoleModulePermissionsRequestDTO">The request body used to create permission.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
 
     [HttpPost("assign-role-permissions")]    
     
@@ -46,13 +46,13 @@ public class UserModuleRolePermissionController : ControllerBase
         return Ok(result);
     }
     /// <summary>
-    /// Get Tenant Enabled Operations.
+    /// Supports the Angular UI flow for get tenant enabled operations.
     /// </summary>
     /// <remarks>
-    /// Handles the request to get tenant enabled operations.
+    /// <para>Angular purpose: retrieves role based permissions.</para>
+    /// <para>Angular page(s): /app/policies/attendance-policies; /auth/login; /app/admin-dashboard; /app/departments; /app/designations; /app/device-masters; /app/modules/module-operations; /app/modules/operations; and 24 more.</para>
+    /// <para>Angular API service call(s): RolesApi.getRoleBasedPermissions (app/core/services/roles-api.ts:142).</para>
     /// </remarks>
-    /// <param name="code">The query parameters used to get tenant enabled operations.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("get-role-based-permissions")]
     public async Task<IActionResult> GetTenantEnabledOperations([FromQuery] GetAllActiveRoleModuleOperationsRequestByRoleIdDTO code)
     {

@@ -38,13 +38,13 @@ namespace axionpro.api.Controllers.Asset
 
  
         /// <summary>
-        /// Get By ID Asset Status.
+        /// Supports the Angular UI flow for get by id asset status.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get by id asset status.
+        /// <para>Angular purpose: retrieves assets status.</para>
+        /// <para>Angular page(s): /app/assets/asset-status; /app/assets/list; /app/roles; /app/assets/asset-types.</para>
+        /// <para>Angular API service call(s): AssetStatusApi.fetchAssetsStatus (app/core/services/asset-status-api.ts:34).</para>
         /// </remarks>
-        /// <param name="request">The query parameters used to get by id asset status.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]
         public async Task<IActionResult> GetByIdAssetStatus([FromQuery] GetStatusRequestDTO request)
         {
@@ -55,13 +55,13 @@ namespace axionpro.api.Controllers.Asset
         }
 
         /// <summary>
-        /// Add Asset Status.
+        /// Supports the Angular UI flow for add asset status.
         /// </summary>
         /// <remarks>
-        /// Handles the request to add asset status.
+        /// <para>Angular purpose: creates asset status.</para>
+        /// <para>Angular page(s): /app/assets/asset-status.</para>
+        /// <para>Angular API service call(s): AssetStatusApi.createAssetStatus (app/core/services/asset-status-api.ts:27).</para>
         /// </remarks>
-        /// <param name="request">The request body used to add asset status.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("add")]
         public async Task<IActionResult> AddAssetStatus([FromBody] CreateStatusRequestDTO request)
         {
@@ -73,13 +73,13 @@ namespace axionpro.api.Controllers.Asset
         }
 
         /// <summary>
-        /// Update Asset Status.
+        /// Supports the Angular UI flow for update asset status.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update asset status.
+        /// <para>Angular purpose: updates asset status.</para>
+        /// <para>Angular page(s): /app/assets/asset-status.</para>
+        /// <para>Angular API service call(s): AssetStatusApi.updateAssetStatus (app/core/services/asset-status-api.ts:40).</para>
         /// </remarks>
-        /// <param name="request">The request body used to update asset status.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPut("update")]
         public async Task<IActionResult> UpdateAssetStatus( [FromBody] UpdateStatusRequestDTO request)
         {
@@ -92,13 +92,13 @@ namespace axionpro.api.Controllers.Asset
         }
 
         /// <summary>
-        /// Delete Asset Status.
+        /// Supports the Angular UI flow for delete asset status.
         /// </summary>
         /// <remarks>
-        /// Handles the request to delete asset status.
+        /// <para>Angular purpose: deletes asset status.</para>
+        /// <para>Angular page(s): /app/assets/asset-status.</para>
+        /// <para>Angular API service call(s): AssetStatusApi.deleteAssetStatus (app/core/services/asset-status-api.ts:47).</para>
         /// </remarks>
-        /// <param name="request">The query parameters used to delete asset status.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]    
         
         public async Task<IActionResult> DeleteAssetStatus([FromQuery] DeleteStatusReqestDTO request)

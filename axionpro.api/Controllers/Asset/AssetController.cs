@@ -42,13 +42,13 @@ namespace axionpro.api.Controllers.Asset
 
 
         /// <summary>
-        /// Get All Assets.
+        /// Supports the Angular UI flow for get all assets.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get all assets.
+        /// <para>Angular purpose: retrieves assets.</para>
+        /// <para>Angular page(s): /app/assets/list.</para>
+        /// <para>Angular API service call(s): AssetsApi.getAssets (app/core/services/assets-api.ts:35).</para>
         /// </remarks>
-        /// <param name="assetRequestDTO">The query parameters used to get all assets.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")] 
         public async Task<IActionResult> GetAllAssets([FromQuery] GetAssetRequestDTO assetRequestDTO)
         {
@@ -58,13 +58,13 @@ namespace axionpro.api.Controllers.Asset
         }
 
         /// <summary>
-        /// Add Asset.
+        /// Supports the Angular UI flow for add asset.
         /// </summary>
         /// <remarks>
-        /// Handles the request to add asset.
+        /// <para>Angular purpose: creates asset.</para>
+        /// <para>Angular page(s): /app/assets/list.</para>
+        /// <para>Angular API service call(s): AssetsApi.createAsset (app/core/services/assets-api.ts:28).</para>
         /// </remarks>
-        /// <param name="addAssetDTO">The form data used to add asset.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("add")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> AddAsset([FromForm] AddAssetRequestDTO  addAssetDTO)
@@ -76,13 +76,13 @@ namespace axionpro.api.Controllers.Asset
         }
 
         /// <summary>
-        /// Update Asset.
+        /// Supports the Angular UI flow for update asset.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update asset.
+        /// <para>Angular purpose: updates asset.</para>
+        /// <para>Angular page(s): /app/assets/list.</para>
+        /// <para>Angular API service call(s): AssetsApi.updateAsset (app/core/services/assets-api.ts:41).</para>
         /// </remarks>
-        /// <param name="updateAssetDTO">The form data used to update asset.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPut("update")]    
         
         public async Task<IActionResult> UpdateAsset([FromForm] UpdateAssetRequestDTO updateAssetDTO)
@@ -94,13 +94,13 @@ namespace axionpro.api.Controllers.Asset
         }
 
         /// <summary>
-        /// Delete Asset.
+        /// Supports the Angular UI flow for delete asset.
         /// </summary>
         /// <remarks>
-        /// Handles the request to delete asset.
+        /// <para>Angular purpose: deletes asset.</para>
+        /// <para>Angular page(s): /app/assets/list.</para>
+        /// <para>Angular API service call(s): AssetsApi.deleteAsset (app/core/services/assets-api.ts:48).</para>
         /// </remarks>
-        /// <param name="deleteAssetDTO">The query parameters used to delete asset.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]        
         public async Task<IActionResult> DeleteAsset([FromQuery] DeleteAssetReqestDTO deleteAssetDTO)
         {

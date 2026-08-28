@@ -40,15 +40,6 @@ public sealed class PlanModuleMappingController : ControllerBase
 
     #region Plan Module Mapping Endpoints
 
-    /// <summary>
-    /// Get Options.
-    /// </summary>
-    /// <remarks>
-    /// Handles the request to get options.
-    /// </remarks>
-    /// <param name="subscriptionPlanId">The identifier supplied in the route.</param>
-    /// <param name="cancellationToken">The token used to cancel the request.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("options/{subscriptionPlanId:int}")]
     public async Task<IActionResult> GetOptions(
         int subscriptionPlanId,
@@ -62,14 +53,13 @@ public sealed class PlanModuleMappingController : ControllerBase
     }
 
     /// <summary>
-    /// Save.
+    /// Supports the Angular UI flow for save.
     /// </summary>
     /// <remarks>
-    /// Handles the request to save.
+    /// <para>Angular purpose: performs save plan module mapping.</para>
+    /// <para>Angular page(s): /app/subscriptions.</para>
+    /// <para>Angular API service call(s): PlanModuleMappingApi.savePlanModuleMapping (app/core/services/plan-module-mapping-api.ts:32).</para>
     /// </remarks>
-    /// <param name="requestDTO">The request body used to save.</param>
-    /// <param name="cancellationToken">The token used to cancel the request.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpPost("save")]
     public async Task<IActionResult> Save(
         [FromBody] SavePlanModuleMappingRequestDTO requestDTO,

@@ -42,13 +42,13 @@ namespace axionpro.api.Controllers.Ticket
         // ----------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Create Ticket Type.
+        /// Supports the Angular UI flow for create ticket type.
         /// </summary>
         /// <remarks>
-        /// Handles the request to create ticket type.
+        /// <para>Angular purpose: retrieves types.</para>
+        /// <para>Angular page(s): /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers; /app/tickets/types.</para>
+        /// <para>Angular API service call(s): TicketApi.getTypes (app/features/tickets/ticket-api.ts:113).</para>
         /// </remarks>
-        /// <param name="dto">The request body used to create ticket type.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("create")]
         public async Task<IActionResult> CreateTicketType([FromBody] AddTicketTypeRequestDTO dto)
         {
@@ -66,13 +66,13 @@ namespace axionpro.api.Controllers.Ticket
 
         // <summary>
         /// <summary>
-        /// Get All Ticket Types.
+        /// Supports the Angular UI flow for get all ticket types.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get all ticket types.
+        /// <para>Angular purpose: retrieves types.</para>
+        /// <para>Angular page(s): /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers; /app/tickets/types.</para>
+        /// <para>Angular API service call(s): TicketApi.getTypes (app/features/tickets/ticket-api.ts:107).</para>
         /// </remarks>
-        /// <param name="dto">The query parameters used to get all ticket types.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
 
 
         [HttpGet("get-all")]
@@ -84,13 +84,13 @@ namespace axionpro.api.Controllers.Ticket
             return Ok(result);
         }
         /// <summary>
-        /// Get DDL Ticket Types.
+        /// Supports the Angular UI flow for get ddlticket types.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get ddl ticket types.
+        /// <para>Angular purpose: deletes type.</para>
+        /// <para>Angular page(s): /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers; /app/tickets/types.</para>
+        /// <para>Angular API service call(s): TicketApi.deleteType (app/features/tickets/ticket-api.ts:131).</para>
         /// </remarks>
-        /// <param name="dto">The query parameters used to get ddl ticket types.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
 
         [HttpGet("ddl-list")]
         public async Task<IActionResult> GetDDLTicketTypes([FromQuery] GetDDLTicketTypeRequestDTO dto)
@@ -105,14 +105,6 @@ namespace axionpro.api.Controllers.Ticket
         // 3️⃣ READ (BY ID) - Get specific Ticket Type
         // ----------------------------------------------------------------------------------------------------
 
-        /// <summary>
-        /// Get Ticket Type By ID.
-        /// </summary>
-        /// <remarks>
-        /// Handles the request to get ticket type by id.
-        /// </remarks>
-        /// <param name="dto">The query parameters used to get ticket type by id.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-by-id")]
         public async Task<IActionResult> GetTicketTypeById([FromQuery] GetTicketTypeByIdRequestDTO dto)
         {
@@ -128,13 +120,13 @@ namespace axionpro.api.Controllers.Ticket
         // ----------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Update Ticket Type.
+        /// Supports the Angular UI flow for update ticket type.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update ticket type.
+        /// <para>Angular purpose: creates type.</para>
+        /// <para>Angular page(s): /app/tickets/types.</para>
+        /// <para>Angular API service call(s): TicketApi.addType (app/features/tickets/ticket-api.ts:119).</para>
         /// </remarks>
-        /// <param name="dto">The request body used to update ticket type.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPut("update")]      
         public async Task<IActionResult> UpdateTicketType([FromBody] UpdateTicketTypeRequestDTO dto)
         {
@@ -150,13 +142,13 @@ namespace axionpro.api.Controllers.Ticket
         // ----------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Delete Ticket Type.
+        /// Supports the Angular UI flow for delete ticket type.
         /// </summary>
         /// <remarks>
-        /// Handles the request to delete ticket type.
+        /// <para>Angular purpose: updates type.</para>
+        /// <para>Angular page(s): /app/tickets/types.</para>
+        /// <para>Angular API service call(s): TicketApi.updateType (app/features/tickets/ticket-api.ts:125).</para>
         /// </remarks>
-        /// <param name="dto">The request body used to delete ticket type.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]        
         public async Task<IActionResult> DeleteTicketType([FromBody]DeleteTicketTypeRequestDTO dto)
         {
@@ -176,13 +168,13 @@ namespace axionpro.api.Controllers.Ticket
         /// </summary>
 
         /// <summary>
-        /// Get Ticket Types By Header ID.
+        /// Supports the Angular UI flow for get ticket types by header id.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get ticket types by header id.
+        /// <para>Angular purpose: retrieves types.</para>
+        /// <para>Angular page(s): /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers; /app/tickets/types.</para>
+        /// <para>Angular API service call(s): TicketApi.getTypes (app/features/tickets/ticket-api.ts:107).</para>
         /// </remarks>
-        /// <param name="dto">The query parameters used to get ticket types by header id.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-by-header-id")]
         public async Task<IActionResult> GetTicketTypesByHeaderId( [FromQuery] GetTicketTypeByHeaderIdRequestDTO dto)
         {

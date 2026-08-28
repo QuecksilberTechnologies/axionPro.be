@@ -34,13 +34,13 @@ namespace axionpro.api.Controllers.Department
         // -------------------------------------------------------
 
         /// <summary>
-        /// Get All Departments.
+        /// Supports the Angular UI flow for get all departments async.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get all departments.
+        /// <para>Angular purpose: retrieves departments.</para>
+        /// <para>Angular page(s): /app/departments.</para>
+        /// <para>Angular API service call(s): DepartmentsApi.getDepartments (app/core/services/departments-api.ts:33).</para>
         /// </remarks>
-        /// <param name="departmentRequestDTO">The query parameters used to get all departments.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]
         
         
@@ -60,13 +60,13 @@ namespace axionpro.api.Controllers.Department
         // -------------------------------------------------------
 
         /// <summary>
-        /// Create Department.
+        /// Supports the Angular UI flow for create department async.
         /// </summary>
         /// <remarks>
-        /// Handles the request to create department.
+        /// <para>Angular purpose: creates department.</para>
+        /// <para>Angular page(s): /app/departments.</para>
+        /// <para>Angular API service call(s): DepartmentsApi.addDepartment (app/core/services/departments-api.ts:26).</para>
         /// </remarks>
-        /// <param name="createDto">The request body used to create department.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("add")]
         public async Task<IActionResult> CreateDepartmentAsync([FromBody] CreateDepartmentRequestDTO createDto)
         {
@@ -89,13 +89,13 @@ namespace axionpro.api.Controllers.Department
         // -------------------------------------------------------
 
         /// <summary>
-        /// Update Department.
+        /// Supports the Angular UI flow for update department async.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update department.
+        /// <para>Angular purpose: updates department.</para>
+        /// <para>Angular page(s): /app/departments.</para>
+        /// <para>Angular API service call(s): DepartmentsApi.updateDepartment (app/core/services/departments-api.ts:46).</para>
         /// </remarks>
-        /// <param name="updateDto">The request body used to update department.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPut("update")]        
         public async Task<IActionResult> UpdateDepartmentAsync([FromBody] UpdateDepartmentRequestDTO updateDto)
         {
@@ -113,13 +113,13 @@ namespace axionpro.api.Controllers.Department
             return Ok(result);
         }
         /// <summary>
-        /// get Department.
+        /// Supports the Angular UI flow for get department.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get department.
+        /// <para>Angular purpose: retrieves departments options.</para>
+        /// <para>Angular page(s): /app/designations; /app/employees; /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants; /app/tenant-locations/new; /app/tenant-locations/:tenantLocationId/edit; /app/tenant-locations; and 12 more.</para>
+        /// <para>Angular API service call(s): DepartmentsApi.getDepartmentsOptions (app/core/services/departments-api.ts:40).</para>
         /// </remarks>
-        /// <param name="requestDTO">The query parameters used to get department.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("option")]        
         public async Task<IActionResult> getDepartment([FromQuery] GetOptionRequestDTO requestDTO)
         {
@@ -135,13 +135,13 @@ namespace axionpro.api.Controllers.Department
         // -------------------------------------------------------
 
         /// <summary>
-        /// Delete Department.
+        /// Supports the Angular UI flow for delete department async.
         /// </summary>
         /// <remarks>
-        /// Handles the request to delete department.
+        /// <para>Angular purpose: deletes department.</para>
+        /// <para>Angular page(s): /app/departments.</para>
+        /// <para>Angular API service call(s): DepartmentsApi.deleteDepartment (app/core/services/departments-api.ts:53).</para>
         /// </remarks>
-        /// <param name="deleteDto">The query parameters used to delete department.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]        
         public async Task<IActionResult> DeleteDepartmentAsync([FromQuery] DeleteDepartmentRequestDTO deleteDto)
         {

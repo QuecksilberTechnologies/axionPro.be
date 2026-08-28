@@ -20,6 +20,8 @@ public interface ITenantLocationRepository
     Task<TenantLocation?> GetForUpdateAsync(long tenantId, long id, CancellationToken cancellationToken);
     /// <summary>Gets a database-paged Tenant-location result.</summary>
     Task<PagedResponseDTO<TenantLocation>> GetPagedAsync(long tenantId, TenantLocationFilterRequestDTO filter, CancellationToken cancellationToken);
+    /// <summary>Gets a database-paged Host-visible Tenant-location result.</summary>
+    Task<PagedResponseDTO<TenantLocation>> GetHostPagedAsync(TenantLocationFilterRequestDTO filter, CancellationToken cancellationToken);
     /// <summary>Determines whether the LocationCode is already live for the Tenant.</summary>
     Task<bool> LocationCodeExistsAsync(long tenantId, string locationCode, long? excludeId, CancellationToken cancellationToken);
     /// <summary>Validates the active country, state, and city geographic hierarchy.</summary>

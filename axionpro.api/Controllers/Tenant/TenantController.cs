@@ -59,13 +59,13 @@ public class TenantController : ControllerBase
     #region Existing Tenant Creation Command
 
     /// <summary>
-    /// Tenant Creation.
+    /// Supports the Angular UI flow for tenant creation.
     /// </summary>
     /// <remarks>
-    /// Handles the request to tenant creation.
+    /// <para>Angular purpose: performs register tenant.</para>
+    /// <para>Angular page(s): /auth/register-tenant; /app/tenants/new; /app/tenants/:tenantId/edit.</para>
+    /// <para>Angular API service call(s): TenantsApi.registerTenant (app/core/services/tenants-api.ts:98).</para>
     /// </remarks>
-    /// <param name="tenantCreateRequestDTO">The request body used to tenant creation-by online registration it self.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [Authorize]
     [HttpPost("create-tenant")]
     public async Task<IActionResult> TenantCreation([FromBody] application.DTOs.Registration.TenantCreateRequestDTO tenantCreateRequestDTO)
@@ -81,17 +81,6 @@ public class TenantController : ControllerBase
 
     #region Tenant Management Queries
 
-    /// <summary>
-    /// Atomically updates a Host-managed Tenant and its selected nested configuration using an encrypted identifier.
-    /// </summary>
-    /// <remarks>
-    /// The selectedLocation.tenantLocationId must be one of the encrypted route Tenant's locations. The response never exposes SMTP credentials or secret-key material.
-    /// </remarks>
-    /// <param name="encryptedTenantId">The encrypted Tenant identifier.</param>
-    /// <param name="requestDTO">The editable Tenant, profile, selected location, employee-code-pattern, and email-configuration values.</param>
-    /// <param name="permissionRequest">The Host module-operation permission metadata for non-Super-Admin Hosts.</param>
-    /// <param name="cancellationToken">The token used to observe request cancellation.</param>
-    /// <returns>The safe updated Tenant response.</returns>
     [Authorize]
     [HttpPut("new-tenant-update-by-host/{encryptedTenantId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -107,16 +96,6 @@ public class TenantController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// Reports the transactional dependency groups a future Tenant deletion cascade must process.
-    /// </summary>
-    /// <remarks>
-    /// This endpoint decrypts and validates the submitted Tenant identifier but never deletes or deactivates data.
-    /// </remarks>
-    /// <param name="id">The encrypted Tenant identifier.</param>
-    /// <param name="permissionRequest">The Host module-operation permission metadata.</param>
-    /// <param name="cancellationToken">The token used to observe request cancellation.</param>
-    /// <returns>Read-only Tenant deletion dependency information.</returns>
     [Authorize]
     [HttpGet("{id}/delete-dependencies")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -131,15 +110,6 @@ public class TenantController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// Creates a new Tenant with its initial subscription, profile, location, administrator, and seeded configuration.
-    /// </summary>
-    /// <remarks>
-    /// Uses the established Host authorization and transactional Tenant onboarding flow. Encryption material is generated internally and is never returned by this endpoint.
-    /// </remarks>
-    /// <param name="requestDTO">The Tenant company, administrator, profile, location, subscription-plan, and employee-code-pattern values.</param>
-    /// <param name="cancellationToken">The token used to observe request cancellation.</param>
-    /// <returns>The Tenant onboarding result.</returns>
     [Authorize]
     [HttpPost("new-tentant-creation-by-host")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -152,14 +122,13 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves a page of Host-managed Tenants.
+    /// Supports the Angular UI flow for get all tenants async.
     /// </summary>
     /// <remarks>
-    /// Requires an authenticated Host request. The current Super Admin may omit ModuleId and
-    /// OperationId; every other Host role must provide an assigned module-operation permission pair.
+    /// <para>Angular purpose: retrieves tenants.</para>
+    /// <para>Angular page(s): /app/tenant-devices/new; /app/tenant-devices/:tenantDeviceId/edit; /app/host-dashboard; /app/subscriptions; /app/tenant-devices; /app/tenants.</para>
+    /// <para>Angular API service call(s): TenantsApi.getTenants (app/core/services/tenants-api.ts:111).</para>
     /// </remarks>
-    /// <param name="requestDTO">The query parameters used to get all tenants.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [Authorize]
     [HttpGet("get-all-tenants")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -170,13 +139,13 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Gets the complete safe Host-visible detail for one Tenant by its encrypted identifier.
+    /// Supports the Angular UI flow for get tenant by id async.
     /// </summary>
     /// <remarks>
-    /// Returns active related records and excludes soft-deleted rows. SMTP passwords, secret keys, password hashes, refresh tokens, and Tenant encryption keys are never returned.
+    /// <para>Angular purpose: retrieves tenant by id.</para>
+    /// <para>Angular page(s): /app/tenants/new; /app/tenants/:tenantId/edit.</para>
+    /// <para>Angular API service call(s): TenantsApi.getTenantById (app/core/services/tenants-api.ts:119).</para>
     /// </remarks>
-    /// <param name="requestDTO">The query parameters used to get tenant by id.</param>
-    /// <returns>An HTTP response containing the safe Tenant detail projection.</returns>
     [Authorize]
     [HttpGet("get-tenant-by-id")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -190,18 +159,6 @@ public class TenantController : ControllerBase
 
     #region Tenant Management Commands
 
-    /// <summary>
-    /// Update Host Managed Tenant.
-    /// </summary>
-    /// <remarks>
-    /// Handles the request to update host managed tenant.
-    /// Requires an authenticated user.
-    /// </remarks>
-    /// <param name="id">The identifier supplied in the route.</param>
-    /// <param name="requestDTO">The request body used to update host managed tenant.</param>
-    /// <param name="permissionRequest">The query parameters used to update host managed tenant.</param>
-    /// <param name="cancellationToken">The token used to cancel the request.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [Authorize]
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -218,17 +175,6 @@ public class TenantController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// Delete Host Managed Tenant.
-    /// </summary>
-    /// <remarks>
-    /// Handles the request to delete host managed tenant.
-    /// Requires an authenticated user.
-    /// </remarks>
-    /// <param name="id">The identifier supplied in the route.</param>
-    /// <param name="permissionRequest">The query parameters used to delete host managed tenant.</param>
-    /// <param name="cancellationToken">The token used to cancel the request.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [Authorize]
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -244,17 +190,6 @@ public class TenantController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// Resend Tenant Verification.
-    /// </summary>
-    /// <remarks>
-    /// Handles the request to resend tenant verification.
-    /// Requires an authenticated user.
-    /// </remarks>
-    /// <param name="id">The identifier supplied in the route.</param>
-    /// <param name="permissionRequest">The query parameters used to resend tenant verification.</param>
-    /// <param name="cancellationToken">The token used to cancel the request.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [Authorize]
     [HttpPost("{id}/resend-verification-by-host")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -272,14 +207,13 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Update Tenant.
+    /// Supports the Angular UI flow for update tenant async.
     /// </summary>
     /// <remarks>
-    /// Handles the request to update tenant.
-    /// Requires an authenticated user.
+    /// <para>Angular purpose: updates modules and operations.</para>
+    /// <para>Angular page(s): /app/tenants/:tenantId/modules.</para>
+    /// <para>Angular API service call(s): TenantsApi.updateModulesAndOperations (app/core/services/tenants-api.ts:140).</para>
     /// </remarks>
-    /// <param name="requestDTO">The request body used to update tenant.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [Authorize]
     [HttpPost("update-tenant")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -291,14 +225,13 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Activate Tenant.
+    /// Supports the Angular UI flow for activate tenant async.
     /// </summary>
     /// <remarks>
-    /// Handles the request to activate tenant.
-    /// Requires an authenticated user.
+    /// <para>Angular purpose: deactivates tenant.</para>
+    /// <para>Angular page(s): /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants.</para>
+    /// <para>Angular API service call(s): TenantsApi.deactivateTenant (app/core/services/tenants-api.ts:152).</para>
     /// </remarks>
-    /// <param name="requestDTO">The request body used to activate tenant.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [Authorize]
     [HttpPost("activate-tenant")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -309,14 +242,13 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Deactivate Tenant.
+    /// Supports the Angular UI flow for deactivate tenant async.
     /// </summary>
     /// <remarks>
-    /// Handles the request to deactivate tenant.
-    /// Requires an authenticated user.
+    /// <para>Angular purpose: deletes tenant.</para>
+    /// <para>Angular page(s): /app/tenants.</para>
+    /// <para>Angular API service call(s): TenantsApi.deleteTenant (app/core/services/tenants-api.ts:158).</para>
     /// </remarks>
-    /// <param name="requestDTO">The request body used to deactivate tenant.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [Authorize]
     [HttpPost("deactivate-tenant")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -327,14 +259,13 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Delete Tenant.
+    /// Supports the Angular UI flow for delete tenant async.
     /// </summary>
     /// <remarks>
-    /// Handles the request to delete tenant.
-    /// Requires an authenticated user.
+    /// <para>Angular purpose: resends verification email.</para>
+    /// <para>Angular page(s): /app/tenants.</para>
+    /// <para>Angular API service call(s): TenantsApi.resendVerificationEmail (app/core/services/tenants-api.ts:164).</para>
     /// </remarks>
-    /// <param name="requestDTO">The request body used to delete tenant.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [Authorize]
     [HttpPost("delete-tenant")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -349,15 +280,6 @@ public class TenantController : ControllerBase
 
     #region Existing Host User Command
 
-    /// <summary>
-    /// Create Host User.
-    /// </summary>
-    /// <remarks>
-    /// Handles the request to create host user.
-    /// Requires an authenticated user.
-    /// </remarks>
-    /// <param name="tenantCreateRequestDTO">The request body used to create host user.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [Authorize]
     [HttpPost("create-host-user")]
     public async Task<IActionResult> CreateHostUser([FromBody] CreateHostUserRequestDTO tenantCreateRequestDTO)
@@ -373,14 +295,6 @@ public class TenantController : ControllerBase
 
     #region Existing Tenant Configuration Queries
 
-    /// <summary>
-    /// Get All Tenant By Subscription ID.
-    /// </summary>
-    /// <remarks>
-    /// Handles the request to get all tenant by subscription id.
-    /// </remarks>
-    /// <param name="code">The query parameters used to get all tenant by subscription id.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("get-all-tenant-by-subscription-plan-Id")]
     public async Task<IActionResult> GetAllTenantBySubscriptionIdAsync([FromQuery] application.DTOs.Tenant.TenantRequestDTO code)
     {
@@ -393,13 +307,13 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Get Employee Code Pattern.
+    /// Supports the Angular UI flow for get employee code pattern async.
     /// </summary>
     /// <remarks>
-    /// Handles the request to get employee code pattern.
+    /// <para>Angular purpose: retrieves employee code pattern.</para>
+    /// <para>Angular page(s): /app/tenants/new; /app/tenants/:tenantId/edit.</para>
+    /// <para>Angular API service call(s): TenantsApi.getEmployeeCodePattern (app/core/services/tenants-api.ts:134).</para>
     /// </remarks>
-    /// <param name="code">The query parameters used to get employee code pattern.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("get-employee-code-pattern")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetEmployeeCodePatternAsync([FromQuery] EmployeeCodePatternRequestDTO code)
@@ -412,14 +326,6 @@ public class TenantController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// Get All Tenant Enabled Module Operations By Tenant ID.
-    /// </summary>
-    /// <remarks>
-    /// Handles the request to get all tenant enabled module operations by tenant id.
-    /// </remarks>
-    /// <param name="code">The request body used to get all tenant enabled module operations by tenant id.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpPost("get")]
     public async Task<IActionResult> GetAllTenantEnabledModuleOperationsByTenantIdAsync([FromBody] TenantEnabledModuleRequestDTO code)
     {
@@ -431,13 +337,13 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Get All Node Leafe With Operations.
+    /// Supports the Angular UI flow for get all node leafe with operations async.
     /// </summary>
     /// <remarks>
-    /// Handles the request to get all node leafe with operations.
+    /// <para>Angular purpose: retrieves tenant operations.</para>
+    /// <para>Angular page(s): /app/policies/attendance-policies; /auth/login; /app/admin-dashboard; /app/departments; /app/designations; /app/device-masters; /app/modules/module-operations; /app/modules/operations; and 25 more.</para>
+    /// <para>Angular API service call(s): TenantsApi.getTenantOperations (app/core/services/tenants-api.ts:126).</para>
     /// </remarks>
-    /// <param name="code">The query parameters used to get all node leafe with operations.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("get-all-tenant-operations")]
     public async Task<IActionResult> GetAllNodeLeafeWithOperationsAsync([FromQuery] TenantEnabledOperationsRequestDTO code)
     {
@@ -454,13 +360,13 @@ public class TenantController : ControllerBase
     #region Existing Tenant Configuration Command
 
     /// <summary>
-    /// Tenant Module Operations Update.
+    /// Supports the Angular UI flow for tenant module operations update.
     /// </summary>
     /// <remarks>
-    /// Handles the request to tenant module operations update.
+    /// <para>Angular purpose: activates tenant.</para>
+    /// <para>Angular page(s): /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants.</para>
+    /// <para>Angular API service call(s): TenantsApi.activateTenant (app/core/services/tenants-api.ts:146).</para>
     /// </remarks>
-    /// <param name="code">The request body used to tenant module operations update.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpPost("update-modules-and-operations")]
     public async Task<IActionResult> TenantModuleOperationsUpdate([FromBody] TenantModuleOperationsUpdateRequestDTO code)
     {
@@ -476,13 +382,13 @@ public class TenantController : ControllerBase
     #region Existing Tenant Verification Command
 
     /// <summary>
-    /// Verify Email.
+    /// Supports the Angular UI flow for verify email.
     /// </summary>
     /// <remarks>
-    /// Handles the request to verify email.
+    /// <para>Angular purpose: validates email.</para>
+    /// <para>Angular page(s): /auth/registration-verify.</para>
+    /// <para>Angular API service call(s): TenantsApi.verifyEmail (app/core/services/tenants-api.ts:104).</para>
     /// </remarks>
-    /// <param name="request">The request body used to verify email.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpPost("verify")]
     public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequestDTO request)
     {

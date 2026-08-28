@@ -43,15 +43,13 @@ public class HostRolePermissionController : ControllerBase
     #region HostRole Module Permissions
 
     /// <summary>
-    /// Get Role Module Permissions.
+    /// Supports the Angular UI flow for get role module permissions.
     /// </summary>
     /// <remarks>
-    /// Handles the request to get role module permissions.
-    /// Requires an authenticated user.
+    /// <para>Angular purpose: deletes host role.</para>
+    /// <para>Angular page(s): /app/host-roles.</para>
+    /// <para>Angular API service call(s): HostApi.deleteHostRole (app/core/services/host-api.ts:124).</para>
     /// </remarks>
-    /// <param name="hostRoleId">The identifier supplied in the route.</param>
-    /// <param name="cancellationToken">The token used to cancel the request.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("get-role-module-permissions/{hostRoleId:long}")]
     public async Task<IActionResult> GetRoleModulePermissions(
         long hostRoleId,
@@ -65,15 +63,13 @@ public class HostRolePermissionController : ControllerBase
     }
 
     /// <summary>
-    /// Save Role Module Permissions.
+    /// Supports the Angular UI flow for save role module permissions.
     /// </summary>
     /// <remarks>
-    /// Handles the request to save role module permissions.
-    /// Requires an authenticated user.
+    /// <para>Angular purpose: deletes host role.</para>
+    /// <para>Angular page(s): /app/host-roles.</para>
+    /// <para>Angular API service call(s): HostApi.deleteHostRole (app/core/services/host-api.ts:139).</para>
     /// </remarks>
-    /// <param name="dto">The request body used to save role module permissions.</param>
-    /// <param name="cancellationToken">The token used to cancel the request.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpPost("save-role-module-permissions")]
     public async Task<IActionResult> SaveRoleModulePermissions(
         [FromBody] SaveHostRoleModulePermissionsRequestDTO? dto,

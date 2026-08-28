@@ -32,13 +32,13 @@ namespace axionpro.api.Controllers.Leave
         
         // ✅ Create LeavePolicy
              /// <summary>
-             /// Create Leave Policy.
+             /// Supports the Angular UI flow for create leave policy async.
              /// </summary>
              /// <remarks>
-             /// Handles the request to create leave policy.
+             /// <para>Angular purpose: updates policy mapping leave types.</para>
+             /// <para>Angular page(s): /app/policies/leave-policy-type-mapping.</para>
+             /// <para>Angular API service call(s): PolicyMappingLeaveTypeApi.setPolicyMappingLeaveTypes (app/core/services/policy-mapping-leave-type-api.ts:79).</para>
              /// </remarks>
-             /// <param name="requestDTO">The request body used to create leave policy.</param>
-             /// <returns>An HTTP response containing the result of the operation.</returns>
              [HttpPost("map")]         
         public async Task<IActionResult> CreateLeavePolicyAsync([FromBody] GetPolicyLeaveTypeMappingRequestDTO requestDTO)
         {
@@ -50,13 +50,13 @@ namespace axionpro.api.Controllers.Leave
 
        //  ✅ Get All LeavePolicies
         /// <summary>
-        /// Get All Leave Policies.
+        /// Supports the Angular UI flow for get all leave policies async.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get all leave policies.
+        /// <para>Angular purpose: updates policy mapping leave types.</para>
+        /// <para>Angular page(s): /app/policies/leave-policy-type-mapping.</para>
+        /// <para>Angular API service call(s): PolicyMappingLeaveTypeApi.setPolicyMappingLeaveTypes (app/core/services/policy-mapping-leave-type-api.ts:46).</para>
         /// </remarks>
-        /// <param name="getLeavePolicyRequestDTO">The query parameters used to get all leave policies.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")] 
         public async Task<IActionResult> GetAllLeavePoliciesAsync([FromQuery]  GetLeaveTypeWithPolicyMappingRequestDTO getLeavePolicyRequestDTO)
         {
@@ -67,14 +67,6 @@ namespace axionpro.api.Controllers.Leave
         }
 
         //  ✅ Get All LeavePolicies
-        /// <summary>
-        /// Get All Leave Policies By Employee ID.
-        /// </summary>
-        /// <remarks>
-        /// Handles the request to get all leave policies by employee id.
-        /// </remarks>
-        /// <param name="dTO">The query parameters used to get all leave policies by employee id.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("LeavePolicy/EmployeeType/get")] 
         public async Task<IActionResult> GetAllLeavePoliciesByEmployeeIdAsync([FromQuery] GetPolicyLeaveTypeByEmpTypeIdRequestDTO dTO)
         {
@@ -85,13 +77,13 @@ namespace axionpro.api.Controllers.Leave
         }
 
         /// <summary>
-        /// Update Leave Policy.
+        /// Supports the Angular UI flow for update leave policy async.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update leave policy.
+        /// <para>Angular purpose: updates policy mapping leave types.</para>
+        /// <para>Angular page(s): /app/policies/leave-policy-type-mapping.</para>
+        /// <para>Angular API service call(s): PolicyMappingLeaveTypeApi.setPolicyMappingLeaveTypes (app/core/services/policy-mapping-leave-type-api.ts:91).</para>
         /// </remarks>
-        /// <param name="requestDTO">The request body used to update leave policy.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("update")]       
         public async Task<IActionResult> UpdateLeavePolicyAsync([FromBody] UpdateEmployeeLeavePolicyMappingRequestDTO requestDTO)
         {
@@ -101,13 +93,13 @@ namespace axionpro.api.Controllers.Leave
             return Ok(result);
         }
         /// <summary>
-        /// Delete Leave Policy.
+        /// Supports the Angular UI flow for delete leave policy.
         /// </summary>
         /// <remarks>
-        /// Handles the request to delete leave policy.
+        /// <para>Angular purpose: updates policy mapping leave types.</para>
+        /// <para>Angular page(s): /app/policies/leave-policy-type-mapping.</para>
+        /// <para>Angular API service call(s): PolicyMappingLeaveTypeApi.setPolicyMappingLeaveTypes (app/core/services/policy-mapping-leave-type-api.ts:103).</para>
         /// </remarks>
-        /// <param name="request">The query parameters used to delete leave policy.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("delete")]        
         // [Authorize]
         public async Task<IActionResult> DeleteLeavePolicy([FromQuery] DeletePolicyLeaveTypeMappingRequestDTO request)

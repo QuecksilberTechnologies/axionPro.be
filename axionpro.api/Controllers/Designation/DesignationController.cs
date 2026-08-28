@@ -36,13 +36,13 @@ namespace axionpro.api.Controllers.Designation
         }
 
         /// <summary>
-        /// Get All Designation Asyc.
+        /// Supports the Angular UI flow for get all designation asyc.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get all designation asyc.
+        /// <para>Angular purpose: retrieves designations.</para>
+        /// <para>Angular page(s): /app/designations; /app/departments; /app/payroll/overview; /app/employees; /app/payroll/payslips; /app/payroll; /app/performance/history; /app/profile/basic-info; and 1 more.</para>
+        /// <para>Angular API service call(s): DesignationsApi.getDesignations (app/core/services/designations-api.ts:62).</para>
         /// </remarks>
-        /// <param name="designationRequestDTO">The query parameters used to get all designation asyc.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]
         public async Task<IActionResult> GetAllDesignationAsyc([FromQuery] GetDesignationRequestDTO designationRequestDTO)
         {
@@ -53,14 +53,6 @@ namespace axionpro.api.Controllers.Designation
 
             return Ok(result);
         }
-        /// <summary>
-        /// Get All Department Asyc.
-        /// </summary>
-        /// <remarks>
-        /// Handles the request to get all department asyc.
-        /// </remarks>
-        /// <param name="designationRequestDTO">The request body used to get all department asyc.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("Department/Group/get")]
         
         
@@ -76,13 +68,13 @@ namespace axionpro.api.Controllers.Designation
         }
 
         /// <summary>
-        /// get Designation.
+        /// Supports the Angular UI flow for get designation.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get designation.
+        /// <para>Angular purpose: retrieves designation options.</para>
+        /// <para>Angular page(s): /app/employees; /app/departments; /app/designations; /app/payroll/overview; /app/payroll/payslips; /app/payroll; /app/performance/history; /app/profile/basic-info; and 1 more.</para>
+        /// <para>Angular API service call(s): DesignationsApi.getDesignationOptions (app/core/services/designations-api.ts:69).</para>
         /// </remarks>
-        /// <param name="requestDTO">The query parameters used to get designation.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("option")]      
         
         public async Task<IActionResult> getDesignation([FromQuery] GetDesignationOptionRequestDTO requestDTO)
@@ -96,13 +88,13 @@ namespace axionpro.api.Controllers.Designation
         }
 
         /// <summary>
-        /// Create Designation.
+        /// Supports the Angular UI flow for create designation.
         /// </summary>
         /// <remarks>
-        /// Handles the request to create designation.
+        /// <para>Angular purpose: creates designation.</para>
+        /// <para>Angular page(s): /app/designations.</para>
+        /// <para>Angular API service call(s): DesignationsApi.addDesignation (app/core/services/designations-api.ts:55).</para>
         /// </remarks>
-        /// <param name="dTO">The request body used to create designation.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("add")]       
         
         public async Task<IActionResult> CreateDesignation([FromBody] CreateDesignationRequestDTO dTO)
@@ -122,13 +114,13 @@ namespace axionpro.api.Controllers.Designation
         }
 
         /// <summary>
-        /// Delete.
+        /// Supports the Angular UI flow for delete.
         /// </summary>
         /// <remarks>
-        /// Handles the request to delete.
+        /// <para>Angular purpose: deletes designation.</para>
+        /// <para>Angular page(s): /app/designations.</para>
+        /// <para>Angular API service call(s): DesignationsApi.deleteDesignation (app/core/services/designations-api.ts:82).</para>
         /// </remarks>
-        /// <param name="dTO">The query parameters used to delete.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]       
         public async Task<IActionResult> Delete([FromQuery] DeleteDesignationRequestDTO dTO)
         {
@@ -147,13 +139,13 @@ namespace axionpro.api.Controllers.Designation
         }
 
         /// <summary>
-        /// Update Designation.
+        /// Supports the Angular UI flow for update designation.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update designation.
+        /// <para>Angular purpose: updates designation.</para>
+        /// <para>Angular page(s): /app/designations.</para>
+        /// <para>Angular API service call(s): DesignationsApi.updateDesignation (app/core/services/designations-api.ts:75).</para>
         /// </remarks>
-        /// <param name="updateDesignationDTO">The request body used to update designation.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPut("update")]       
         public async Task<IActionResult> UpdateDesignation([FromBody] UpdateDesignationRequestDTO updateDesignationDTO)
         {

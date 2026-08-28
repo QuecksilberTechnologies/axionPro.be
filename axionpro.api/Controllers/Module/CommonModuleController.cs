@@ -35,14 +35,6 @@ namespace axionpro.api.Controllers.Module
 
         #region Create Module
 
-        /// <summary>
-        /// Add Module.
-        /// </summary>
-        /// <remarks>
-        /// Handles the request to add module.
-        /// </remarks>
-        /// <param name="requestDto">The request body used to add module.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("add")]       
         public async Task<IActionResult> AddModule([FromBody] CreateCommonModuleRequestDTO? requestDto)
         {

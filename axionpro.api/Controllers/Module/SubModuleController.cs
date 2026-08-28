@@ -41,14 +41,13 @@ namespace axionpro.api.Controllers.Module
         #region SubModule CRUD
 
         /// <summary>
-        /// Add Module.
+        /// Supports the Angular UI flow for add module.
         /// </summary>
         /// <remarks>
-        /// Handles the request to add module.
+        /// <para>Angular purpose: creates sub module.</para>
+        /// <para>Angular page(s): /app/modules; /app/modules/sub-modules.</para>
+        /// <para>Angular API service call(s): SubModuleApi.addSubModule (app/core/services/sub-module-api.ts:40).</para>
         /// </remarks>
-        /// <param name="createSubModuleRequestDTO">The request body used to add module.</param>
-        /// <param name="cancellationToken">The token used to cancel the request.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("add")]
         public async Task<IActionResult> AddModule(
             [FromBody] CreateSubModuleRequestDTO? createSubModuleRequestDTO,
@@ -62,15 +61,13 @@ namespace axionpro.api.Controllers.Module
         }
 
         /// <summary>
-        /// Update Module.
+        /// Supports the Angular UI flow for update module.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update module.
+        /// <para>Angular purpose: updates sub module.</para>
+        /// <para>Angular page(s): /app/modules; /app/modules/sub-modules.</para>
+        /// <para>Angular API service call(s): SubModuleApi.updateSubModule (app/core/services/sub-module-api.ts:46).</para>
         /// </remarks>
-        /// <param name="id">The identifier supplied in the route.</param>
-        /// <param name="updateSubModuleRequestDTO">The request body used to update module.</param>
-        /// <param name="cancellationToken">The token used to cancel the request.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateModule(
             int id,
@@ -85,15 +82,13 @@ namespace axionpro.api.Controllers.Module
         }
 
         /// <summary>
-        /// Get Module By ID.
+        /// Supports the Angular UI flow for get module by id.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get module by id.
+        /// <para>Angular purpose: retrieves sub module.</para>
+        /// <para>Angular page(s): /app/modules; /app/modules/sub-modules.</para>
+        /// <para>Angular API service call(s): SubModuleApi.getSubModule (app/core/services/sub-module-api.ts:34).</para>
         /// </remarks>
-        /// <param name="id">The identifier supplied in the route.</param>
-        /// <param name="moduleScope">The query parameters used to get module by id.</param>
-        /// <param name="cancellationToken">The token used to cancel the request.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetModuleById(
             int id,
@@ -108,16 +103,13 @@ namespace axionpro.api.Controllers.Module
         }
 
         /// <summary>
-        /// Get Modules.
+        /// Supports the Angular UI flow for get modules.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get modules.
+        /// <para>Angular purpose: retrieves sub modules.</para>
+        /// <para>Angular page(s): /app/modules/module-operations; /app/modules; /app/modules/sub-modules.</para>
+        /// <para>Angular API service call(s): SubModuleApi.getSubModules (app/core/services/sub-module-api.ts:27).</para>
         /// </remarks>
-        /// <param name="moduleScope">The query parameters used to get modules.</param>
-        /// <param name="parentModuleId">The query parameters used to get modules.</param>
-        /// <param name="isActive">The query parameters used to get modules.</param>
-        /// <param name="cancellationToken">The token used to cancel the request.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("list")]
         public async Task<IActionResult> GetModules(
             [FromQuery] short moduleScope,
@@ -132,17 +124,6 @@ namespace axionpro.api.Controllers.Module
             return Ok(result);
         }
 
-        /// <summary>
-        /// Get Modules By Parent.
-        /// </summary>
-        /// <remarks>
-        /// Handles the request to get modules by parent.
-        /// </remarks>
-        /// <param name="parentModuleId">The identifier supplied in the route.</param>
-        /// <param name="moduleScope">The query parameters used to get modules by parent.</param>
-        /// <param name="isActive">The query parameters used to get modules by parent.</param>
-        /// <param name="cancellationToken">The token used to cancel the request.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("parent/{parentModuleId:int}")]
         public async Task<IActionResult> GetModulesByParent(
             int parentModuleId,
@@ -158,15 +139,13 @@ namespace axionpro.api.Controllers.Module
         }
 
         /// <summary>
-        /// Update Module Status.
+        /// Supports the Angular UI flow for update module status.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update module status.
+        /// <para>Angular purpose: updates sub module status.</para>
+        /// <para>Angular page(s): /app/modules/sub-modules.</para>
+        /// <para>Angular API service call(s): SubModuleApi.setSubModuleStatus (app/core/services/sub-module-api.ts:52).</para>
         /// </remarks>
-        /// <param name="id">The identifier supplied in the route.</param>
-        /// <param name="statusRequestDTO">The request body used to update module status.</param>
-        /// <param name="cancellationToken">The token used to cancel the request.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPatch("{id:int}/status")]
         public async Task<IActionResult> UpdateModuleStatus(
             int id,

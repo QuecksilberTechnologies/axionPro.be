@@ -46,13 +46,13 @@ namespace axionpro.api.Controllers.Location
         
        
         /// <summary>
-        /// get Country.
+        /// Supports the Angular UI flow for get country.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get country.
+        /// <para>Angular purpose: retrieves countries.</para>
+        /// <para>Angular page(s): /auth/register-tenant; /app/designations; /app/employees; /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants; /app/tenant-locations/new; /app/tenant-locations/:tenantLocationId/edit; and 13 more.</para>
+        /// <para>Angular API service call(s): LocationsApi.getCountries (app/core/services/locations-api.ts:60).</para>
         /// </remarks>
-        /// <param name="requestDTO">The query parameters used to get country.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("country/option")] 
         public async Task<IActionResult> getCountry([FromQuery] GetCountryOptionRequestDTO requestDTO)
         {
@@ -63,13 +63,13 @@ namespace axionpro.api.Controllers.Location
             return Ok(result);        }
 
         /// <summary>
-        /// get State.
+        /// Supports the Angular UI flow for get state.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get state.
+        /// <para>Angular purpose: retrieves states.</para>
+        /// <para>Angular page(s): /app/designations; /app/employees; /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants; /app/tenant-locations/new; /app/tenant-locations/:tenantLocationId/edit; /app/tenant-locations; and 12 more.</para>
+        /// <para>Angular API service call(s): LocationsApi.getStates (app/core/services/locations-api.ts:67).</para>
         /// </remarks>
-        /// <param name="requestDTO">The query parameters used to get state.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("State/option")]   
         public async Task<IActionResult> getState([FromQuery] GetStateOptionRequestDTO requestDTO)
         {
@@ -79,13 +79,13 @@ namespace axionpro.api.Controllers.Location
             return Ok(result);
         }
         /// <summary>
-        /// get District.
+        /// Supports the Angular UI flow for get district.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get district.
+        /// <para>Angular purpose: retrieves districts.</para>
+        /// <para>Angular page(s): /app/designations; /app/employees; /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants; /app/tenant-locations/new; /app/tenant-locations/:tenantLocationId/edit; /app/tenant-locations; and 12 more.</para>
+        /// <para>Angular API service call(s): LocationsApi.getDistricts (app/core/services/locations-api.ts:74).</para>
         /// </remarks>
-        /// <param name="requestDTO">The query parameters used to get district.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("District/option")]         
         public async Task<IActionResult> getDistrict([FromQuery] GetDistrictOptionRequestDTO requestDTO)
         {

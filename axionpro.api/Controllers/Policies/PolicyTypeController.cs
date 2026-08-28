@@ -34,13 +34,13 @@ namespace axionpro.api.Controllers.Policies
             _logger = logger;
         }
         /// <summary>
-        /// Get All Policy Types.
+        /// Supports the Angular UI flow for get all policy types async.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get all policy types.
+        /// <para>Angular purpose: retrieves policy types.</para>
+        /// <para>Angular page(s): /app/policies.</para>
+        /// <para>Angular API service call(s): PolicyTypeApi.getPolicyTypes (app/core/services/policy-type-api.ts:78).</para>
         /// </remarks>
-        /// <param name="requestDTO">The query parameters used to get all policy types.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-all")]    
         public async Task<IActionResult> GetAllPolicyTypesAsync([FromQuery] GetPolicyTypeRequestDTO requestDTO)
         {
@@ -54,13 +54,13 @@ namespace axionpro.api.Controllers.Policies
             
         }
         /// <summary>
-        /// Get DDL Policy Types.
+        /// Supports the Angular UI flow for get ddlpolicy types async.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get ddl policy types.
+        /// <para>Angular purpose: retrieves policy type names.</para>
+        /// <para>Angular page(s): /app/policies/attendance-policies; /app/policies/attendance-policies/new; /app/policies/attendance-policies/:attendancePolicyId/edit; /app/profile/insurance-info; /app/policies/insurance-policies; /app/policies/insurance-policy-type-mapping.</para>
+        /// <para>Angular API service call(s): PolicyTypeApi.getPolicyTypeNames (app/core/services/policy-type-api.ts:85).</para>
         /// </remarks>
-        /// <param name="requestDTO">The query parameters used to get ddl policy types.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-ddl")]     
         public async Task<IActionResult> GetDDLPolicyTypesAsync(
              [FromQuery] GetAllPolicyTypeRequestDTO requestDTO)
@@ -84,13 +84,13 @@ namespace axionpro.api.Controllers.Policies
            
         }
         /// <summary>
-        /// Get Unstructured Policy Types.
+        /// Supports the Angular UI flow for get unstructured policy types async.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get unstructured policy types.
+        /// <para>Angular purpose: updates policy type.</para>
+        /// <para>Angular page(s): /app/policies.</para>
+        /// <para>Angular API service call(s): PolicyTypeApi.updatePolicyType (app/core/services/policy-type-api.ts:106).</para>
         /// </remarks>
-        /// <param name="requestDTO">The query parameters used to get unstructured policy types.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-all-unstruct")]     
         public async Task<IActionResult> GetUnstructuredPolicyTypesAsync(
              [FromQuery] GetAllUnStructuredPolicyTypeRequestDTO requestDTO)
@@ -116,13 +116,13 @@ namespace axionpro.api.Controllers.Policies
  
 
         /// <summary>
-        /// Create Policy Type.
+        /// Supports the Angular UI flow for create policy type async.
         /// </summary>
         /// <remarks>
-        /// Handles the request to create policy type.
+        /// <para>Angular purpose: creates policy type.</para>
+        /// <para>Angular page(s): /app/policies.</para>
+        /// <para>Angular API service call(s): PolicyTypeApi.createPolicyType (app/core/services/policy-type-api.ts:91).</para>
         /// </remarks>
-        /// <param name="requestDTO">The form data used to create policy type.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("create")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> CreatePolicyTypeAsync([FromForm] CreatePolicyTypeRequestDTO requestDTO)
@@ -134,13 +134,13 @@ namespace axionpro.api.Controllers.Policies
         }
 
         /// <summary>
-        /// Update Policy Type.
+        /// Supports the Angular UI flow for update policy type async.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update policy type.
+        /// <para>Angular purpose: updates policy type.</para>
+        /// <para>Angular page(s): /app/policies.</para>
+        /// <para>Angular API service call(s): PolicyTypeApi.updatePolicyType (app/core/services/policy-type-api.ts:97).</para>
         /// </remarks>
-        /// <param name="requestDTO">The form data used to update policy type.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("update")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> UpdatePolicyTypeAsync([FromForm] UpdatePolicyTypeRequestDTO requestDTO)
@@ -153,13 +153,13 @@ namespace axionpro.api.Controllers.Policies
         }
 
         /// <summary>
-        /// Delete Policy Type.
+        /// Supports the Angular UI flow for delete policy type async.
         /// </summary>
         /// <remarks>
-        /// Handles the request to delete policy type.
+        /// <para>Angular purpose: deletes policy type.</para>
+        /// <para>Angular page(s): /app/policies.</para>
+        /// <para>Angular API service call(s): PolicyTypeApi.deletePolicyType (app/core/services/policy-type-api.ts:113).</para>
         /// </remarks>
-        /// <param name="requestDTO">The query parameters used to delete policy type.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]        
         public async Task<IActionResult> DeletePolicyTypeAsync([FromQuery] DeletePolicyTypeDTO requestDTO)
         {
@@ -168,14 +168,6 @@ namespace axionpro.api.Controllers.Policies
             var result = await _mediator.Send(command);
             return Ok(result);
         }
-        /// <summary>
-        /// Delete Policy Type Doc Only.
-        /// </summary>
-        /// <remarks>
-        /// Handles the request to delete policy type doc only.
-        /// </remarks>
-        /// <param name="requestDTO">The query parameters used to delete policy type doc only.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete-doc")]
         public async Task<IActionResult> DeletePolicyTypeDocOnlyAsync([FromQuery] DeleteRequestDTO requestDTO)
         {

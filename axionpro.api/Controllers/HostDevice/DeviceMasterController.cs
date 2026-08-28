@@ -22,85 +22,73 @@ public sealed class DeviceMasterController(IMediator mediator, ILogger<DeviceMas
     #region Device Master Endpoints
 
     /// <summary>
-    /// Create.
+    /// Supports the Angular UI flow for create.
     /// </summary>
     /// <remarks>
-    /// Handles the request to create.
-    /// Requires an authenticated user.
+    /// <para>Angular purpose: creates device master.</para>
+    /// <para>Angular page(s): /app/device-masters/new; /app/device-masters/:deviceMasterId/edit.</para>
+    /// <para>Angular API service call(s): DeviceMasterApi.addDeviceMaster (app/core/services/device-master-api.ts:39).</para>
     /// </remarks>
-    /// <param name="dto">The request body used to create.</param>
-    /// <param name="cancellationToken">The token used to cancel the request.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpPost("create")]
     public async Task<IActionResult> Create([FromBody] CreateDeviceMasterRequestDTO dto, CancellationToken cancellationToken)
     { logger.LogInformation("Received DeviceMaster create request."); return Ok(await mediator.Send(new CreateDeviceMasterCommand(dto), cancellationToken)); }
 
     /// <summary>
-    /// Get By ID.
+    /// Supports the Angular UI flow for get by id.
     /// </summary>
     /// <remarks>
-    /// Handles the request to get by id.
-    /// Requires an authenticated user.
+    /// <para>Angular purpose: retrieves device master.</para>
+    /// <para>Angular page(s): /app/device-masters/new; /app/device-masters/:deviceMasterId/edit.</para>
+    /// <para>Angular API service call(s): DeviceMasterApi.getDeviceMaster (app/core/services/device-master-api.ts:33).</para>
     /// </remarks>
-    /// <param name="id">The identifier supplied in the route.</param>
-    /// <param name="cancellationToken">The token used to cancel the request.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("get-by-id/{id:long}")]
     public async Task<IActionResult> GetById(long id, CancellationToken cancellationToken)
     { logger.LogInformation("Received DeviceMaster get-by-id request for {DeviceMasterId}.", id); return Ok(await mediator.Send(new GetDeviceMasterByIdQuery(id), cancellationToken)); }
 
     /// <summary>
-    /// Get All.
+    /// Supports the Angular UI flow for get all.
     /// </summary>
     /// <remarks>
-    /// Handles the request to get all.
-    /// Requires an authenticated user.
+    /// <para>Angular purpose: retrieves device masters.</para>
+    /// <para>Angular page(s): /app/tenant-devices/new; /app/tenant-devices/:tenantDeviceId/edit; /app/device-masters; /app/tenant-devices.</para>
+    /// <para>Angular API service call(s): DeviceMasterApi.getDeviceMasters (app/core/services/device-master-api.ts:27).</para>
     /// </remarks>
-    /// <param name="filter">The query parameters used to get all.</param>
-    /// <param name="cancellationToken">The token used to cancel the request.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("get-all")]
     public async Task<IActionResult> GetAll([FromQuery] GetDeviceMasterListRequestDTO filter, CancellationToken cancellationToken)
     { logger.LogInformation("Received DeviceMaster list request."); return Ok(await mediator.Send(new GetAllDeviceMastersQuery(filter), cancellationToken)); }
 
     /// <summary>
-    /// Update.
+    /// Supports the Angular UI flow for update.
     /// </summary>
     /// <remarks>
-    /// Handles the request to update.
-    /// Requires an authenticated user.
+    /// <para>Angular purpose: updates device master.</para>
+    /// <para>Angular page(s): /app/device-masters/new; /app/device-masters/:deviceMasterId/edit.</para>
+    /// <para>Angular API service call(s): DeviceMasterApi.updateDeviceMaster (app/core/services/device-master-api.ts:46).</para>
     /// </remarks>
-    /// <param name="dto">The request body used to update.</param>
-    /// <param name="cancellationToken">The token used to cancel the request.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpPost("update")]
     public async Task<IActionResult> Update([FromBody] UpdateDeviceMasterRequestDTO dto, CancellationToken cancellationToken)
     { logger.LogInformation("Received DeviceMaster update request for {DeviceMasterId}.", dto.Id); return Ok(await mediator.Send(new UpdateDeviceMasterCommand(dto), cancellationToken)); }
 
     /// <summary>
-    /// Update Status.
+    /// Supports the Angular UI flow for update status.
     /// </summary>
     /// <remarks>
-    /// Handles the request to update status.
-    /// Requires an authenticated user.
+    /// <para>Angular purpose: updates device master status.</para>
+    /// <para>Angular page(s): /app/device-masters.</para>
+    /// <para>Angular API service call(s): DeviceMasterApi.setDeviceMasterStatus (app/core/services/device-master-api.ts:52).</para>
     /// </remarks>
-    /// <param name="dto">The request body used to update status.</param>
-    /// <param name="cancellationToken">The token used to cancel the request.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpPost("update-status")]
     public async Task<IActionResult> UpdateStatus([FromBody] UpdateDeviceMasterStatusRequestDTO dto, CancellationToken cancellationToken)
     { logger.LogInformation("Received DeviceMaster status request for {DeviceMasterId}.", dto.Id); return Ok(await mediator.Send(new UpdateDeviceMasterStatusCommand(dto), cancellationToken)); }
 
     /// <summary>
-    /// Delete.
+    /// Supports the Angular UI flow for delete.
     /// </summary>
     /// <remarks>
-    /// Handles the request to delete.
-    /// Requires an authenticated user.
+    /// <para>Angular purpose: deletes device master.</para>
+    /// <para>Angular page(s): /app/device-masters.</para>
+    /// <para>Angular API service call(s): DeviceMasterApi.deleteDeviceMaster (app/core/services/device-master-api.ts:58).</para>
     /// </remarks>
-    /// <param name="id">The identifier supplied in the route.</param>
-    /// <param name="cancellationToken">The token used to cancel the request.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpDelete("delete/{id:long}")]
     public async Task<IActionResult> Delete(long id, CancellationToken cancellationToken)
     { logger.LogInformation("Received DeviceMaster delete request for {DeviceMasterId}.", id); return Ok(await mediator.Send(new DeleteDeviceMasterCommand(id), cancellationToken)); }

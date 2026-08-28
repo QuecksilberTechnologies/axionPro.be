@@ -43,17 +43,6 @@ public sealed class TenantParentModuleController : ControllerBase
 
     #region Tenant Parent Module Queries
 
-    /// <summary>
-    /// Get Tenant Module Headers.
-    /// </summary>
-    /// <remarks>
-    /// Retrieves Main Parent Headers and qualifying direct Sub-Parent Headers only when each Module has an explicit TenantEnabledModule entitlement row.
-    /// Requires an authenticated Host Super Admin. The supplied and returned Tenant identifiers are encrypted strings; <c>ModuleScope</c> is required and <c>IsEnabled</c> is optional.
-    /// A Parent remains in the response with an empty <c>Children</c> collection when it has no qualifying child headers. Leaf Modules are not returned.
-    /// </remarks>
-    /// <param name="requestDTO">The encrypted Tenant identifier, Module scope, and optional Tenant entitlement enabled-state filter.</param>
-    /// <param name="cancellationToken">A token used to cancel the request.</param>
-    /// <returns>The Tenant-entitled Header tree.</returns>
     [HttpGet("get-module-headers")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetModuleHeaders(
@@ -67,17 +56,6 @@ public sealed class TenantParentModuleController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// List Tenant Main Parent Headers.
-    /// </summary>
-    /// <remarks>
-    /// Retrieves a server-paged, all-Tenant list of explicitly provisioned Main Parent Headers only.
-    /// Requires an authenticated Host Super Admin. The optional <c>IsActive</c> filter maps to Tenant entitlement <c>IsEnabled</c>.
-    /// Each returned Tenant identifier is encrypted; Sub-Parent Headers and Leaf Modules are not included.
-    /// </remarks>
-    /// <param name="requestDTO">The optional active-state filter and paging values.</param>
-    /// <param name="cancellationToken">A token used to cancel the request.</param>
-    /// <returns>The requested page of Main Parent Header entitlements.</returns>
     [HttpGet("list")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetModules(
@@ -91,17 +69,6 @@ public sealed class TenantParentModuleController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// Get Tenant Parent Module by global Module identifier.
-    /// </summary>
-    /// <remarks>
-    /// Retrieves one explicitly provisioned Tenant Header Module by its global <c>ModuleId</c>; the internal TenantEnabledModule row identifier is never exposed.
-    /// Requires an authenticated Host Super Admin. The supplied and returned Tenant identifiers are encrypted strings.
-    /// </remarks>
-    /// <param name="id">The global Header Module identifier.</param>
-    /// <param name="requestDTO">The encrypted Tenant identifier and required Module scope.</param>
-    /// <param name="cancellationToken">A token used to cancel the request.</param>
-    /// <returns>The Tenant-entitled Header Module.</returns>
     [HttpGet("{id:int}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetModuleById(
@@ -120,19 +87,6 @@ public sealed class TenantParentModuleController : ControllerBase
 
     #region Tenant Parent Module Status
 
-    /// <summary>
-    /// Update Tenant Parent Module status.
-    /// </summary>
-    /// <remarks>
-    /// Updates one explicitly provisioned Main Parent or Sub-Parent Header Module and every entitled descendant for the supplied Tenant.
-    /// Requires an authenticated Host Super Admin. The supplied Tenant identifier is encrypted; Leaf Modules cannot be targeted directly.
-    /// Ancestors and sibling branches are not changed.
-    /// When enabling, only descendant operation entitlements marked as used are enabled. When disabling, operation usage selections are preserved.
-    /// </remarks>
-    /// <param name="id">The target global Header Module identifier.</param>
-    /// <param name="requestDTO">The encrypted Tenant identifier and requested enabled state.</param>
-    /// <param name="cancellationToken">A token used to cancel the request.</param>
-    /// <returns>The updated target Header Module.</returns>
     [HttpPatch("{id:int}/status")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> UpdateModuleStatus(

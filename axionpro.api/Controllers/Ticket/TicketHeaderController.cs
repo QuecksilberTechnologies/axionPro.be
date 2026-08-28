@@ -37,13 +37,13 @@ namespace axionpro.api.Controllers.Ticket
         // 1️⃣ CREATE - Add new Ticket Header
         // ----------------------------------------------------------------------------------------------------
            /// <summary>
-           /// Create Header.
+           /// Supports the Angular UI flow for create header.
            /// </summary>
            /// <remarks>
-           /// Handles the request to create header.
+           /// <para>Angular purpose: creates header.</para>
+           /// <para>Angular page(s): /app/tickets/headers.</para>
+           /// <para>Angular API service call(s): TicketApi.addHeader (app/features/tickets/ticket-api.ts:85).</para>
            /// </remarks>
-           /// <param name="dto">The request body used to create header.</param>
-           /// <returns>An HTTP response containing the result of the operation.</returns>
            [HttpPost("create")] 
          public async Task<IActionResult> CreateHeader([FromBody] AddHeaderRequestDTO dto)
          {
@@ -58,13 +58,13 @@ namespace axionpro.api.Controllers.Ticket
         // 2️⃣ READ - Get all Ticket Headers with filters
         // ----------------------------------------------------------------------------------------------------
         /// <summary>
-        /// Get All Header Filter.
+        /// Supports the Angular UI flow for get all header filter async.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get all header filter.
+        /// <para>Angular purpose: retrieves headers.</para>
+        /// <para>Angular page(s): /app/tickets/types; /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers.</para>
+        /// <para>Angular API service call(s): TicketApi.getHeaders (app/features/tickets/ticket-api.ts:79).</para>
         /// </remarks>
-        /// <param name="dto">The query parameters used to get all header filter.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-by-classification-id")]    
         public async Task<IActionResult> GetAllHeaderFilterAsync([FromQuery] GetTicketHeaderByClassifyIdRequestDTO dto)
         {
@@ -96,13 +96,13 @@ namespace axionpro.api.Controllers.Ticket
         // 3️⃣ UPDATE - Modify existing Ticket Header
         // ----------------------------------------------------------------------------------------------------
           /// <summary>
-          /// Update Header.
+          /// Supports the Angular UI flow for update header.
           /// </summary>
           /// <remarks>
-          /// Handles the request to update header.
+          /// <para>Angular purpose: updates header.</para>
+          /// <para>Angular page(s): /app/tickets/headers.</para>
+          /// <para>Angular API service call(s): TicketApi.updateHeader (app/features/tickets/ticket-api.ts:91).</para>
           /// </remarks>
-          /// <param name="dto">The request body used to update header.</param>
-          /// <returns>An HTTP response containing the result of the operation.</returns>
           [HttpPut("update")]
 
 
@@ -135,13 +135,13 @@ namespace axionpro.api.Controllers.Ticket
         // 4️⃣ DELETE - Soft delete Ticket Header
         // ----------------------------------------------------------------------------------------------------
         /// <summary>
-        /// Delete Ticket Header.
+        /// Supports the Angular UI flow for delete ticket header.
         /// </summary>
         /// <remarks>
-        /// Handles the request to delete ticket header.
+        /// <para>Angular purpose: deletes header.</para>
+        /// <para>Angular page(s): /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers; /app/tickets/types.</para>
+        /// <para>Angular API service call(s): TicketApi.deleteHeader (app/features/tickets/ticket-api.ts:97).</para>
         /// </remarks>
-        /// <param name="dto">The request body used to delete ticket header.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]
  
         public async Task<IActionResult> DeleteTicketHeader([FromBody]  DeleteHeaderRequestDTO dto)

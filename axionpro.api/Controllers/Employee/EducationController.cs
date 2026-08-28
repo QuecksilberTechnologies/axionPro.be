@@ -31,13 +31,13 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Create Employee.
+        /// Supports the Angular UI flow for create employee.
         /// </summary>
         /// <remarks>
-        /// Handles the request to create employee.
+        /// <para>Angular purpose: creates employee education.</para>
+        /// <para>Angular page(s): /app/profile/education-info.</para>
+        /// <para>Angular API service call(s): EmployeeEducationAPI.createEmployeeEducation (app/core/services/employee-education-api.ts:77).</para>
         /// </remarks>
-        /// <param name="dto">The form data used to create employee.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("create")]        
         public async Task<IActionResult> CreateEmployee([FromForm] CreateEducationRequestDTO dto)
 
@@ -51,13 +51,13 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Get All Employee Info.
+        /// Supports the Angular UI flow for get all employee info.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get all employee info.
+        /// <para>Angular purpose: retrieves employee educations.</para>
+        /// <para>Angular page(s): /app/profile/education-info.</para>
+        /// <para>Angular API service call(s): EmployeeEducationAPI.getEmployeeEducations (app/core/services/employee-education-api.ts:84).</para>
         /// </remarks>
-        /// <param name="commandDto">The query parameters used to get all employee info.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")] 
         public async Task<IActionResult> GetAllEmployeeInfo([FromQuery] GetEducationRequestDTO commandDto)
         {
@@ -71,13 +71,13 @@ namespace axionpro.api.Controllers.Employee
 
         
        /// <summary>
-       /// Delete.
+       /// Supports the Angular UI flow for delete.
        /// </summary>
        /// <remarks>
-       /// Handles the request to delete.
+       /// <para>Angular purpose: deletes employee education.</para>
+       /// <para>Angular page(s): /app/profile/education-info.</para>
+       /// <para>Angular API service call(s): EmployeeEducationAPI.deleteEmployeeEducation (app/core/services/employee-education-api.ts:97).</para>
        /// </remarks>
-       /// <param name="dto">The query parameters used to delete.</param>
-       /// <returns>An HTTP response containing the result of the operation.</returns>
        [HttpDelete("delete")]
         public async Task<IActionResult> Delete([FromQuery] DeleteEducationRequestDTO dto)
         {
@@ -93,13 +93,13 @@ namespace axionpro.api.Controllers.Employee
           
         }
         /// <summary>
-        /// Update Education.
+        /// Supports the Angular UI flow for update education.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update education.
+        /// <para>Angular purpose: updates employee education.</para>
+        /// <para>Angular page(s): /app/profile/education-info.</para>
+        /// <para>Angular API service call(s): EmployeeEducationAPI.updateEmployeeEducation (app/core/services/employee-education-api.ts:90).</para>
         /// </remarks>
-        /// <param name="dto">The dto used to update education.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("update-education")]     
         public async Task<IActionResult> UpdateEducation(UpdateEducationRequestDTO dto)
 

@@ -35,14 +35,6 @@ namespace axionpro.api.Controllers.Login
             _mediator = mediator;
             _logger = logger;
         }
-        /// <summary>
-        /// Login.
-        /// </summary>
-        /// <remarks>
-        /// Handles the request to login.
-        /// </remarks>
-        /// <param name="logindto">The request body used to login.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
        
 
         [HttpPost("login")]       
@@ -58,13 +50,13 @@ namespace axionpro.api.Controllers.Login
            return Ok(result);
         }
         /// <summary>
-        /// Refresh Token.
+        /// Supports the Angular UI flow for refresh token.
         /// </summary>
         /// <remarks>
-        /// Handles the request to refresh token.
+        /// <para>Angular purpose: performs refresh token.</para>
+        /// <para>Angular page(s): No directly routed page was statically resolved. Angular caller component(s): TokenRefreshService (app/core/services/token-refresh-service.ts).</para>
+        /// <para>Angular API service call(s): AuthApi.refreshToken (app/core/services/auth-api.ts:169).</para>
         /// </remarks>
-        /// <param name="request">The request body used to refresh token.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("refresh-token")]    
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDTO request)
         {
@@ -155,13 +147,13 @@ namespace axionpro.api.Controllers.Login
 
         // ...
         /// <summary>
-        /// Set Login Password.
+        /// Supports the Angular UI flow for set login password.
         /// </summary>
         /// <remarks>
-        /// Handles the request to set login password.
+        /// <para>Angular purpose: updates login password.</para>
+        /// <para>Angular page(s): /auth/registration-password; /app/update-password.</para>
+        /// <para>Angular API service call(s): AuthApi.updateLoginPassword (app/core/services/auth-api.ts:193).</para>
         /// </remarks>
-        /// <param name="request">The request body used to set login password.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
 
         [HttpPost("update-login-password")]
                 
@@ -176,13 +168,13 @@ namespace axionpro.api.Controllers.Login
 
         }
         /// <summary>
-        /// Create New Login Password URL.
+        /// Supports the Angular UI flow for create new login password url.
         /// </summary>
         /// <remarks>
-        /// Handles the request to create new login password url.
+        /// <para>Angular purpose: resends credential.</para>
+        /// <para>Angular page(s): /app/employees.</para>
+        /// <para>Angular API service call(s): AuthApi.resendCredential (app/core/services/auth-api.ts:205).</para>
         /// </remarks>
-        /// <param name="request">The request body used to create new login password url.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("resend-credential")]        
         public async Task<IActionResult> CreateNewLoginPasswordURL([FromBody] SetNewPasswordLinkRequestDTO request)
         {
@@ -197,13 +189,13 @@ namespace axionpro.api.Controllers.Login
             
         }
         /// <summary>
-        /// Create Login Password.
+        /// Supports the Angular UI flow for create login password.
         /// </summary>
         /// <remarks>
-        /// Handles the request to create login password.
+        /// <para>Angular purpose: creates new login password.</para>
+        /// <para>Angular page(s): /auth/reset-password; /auth/set-password.</para>
+        /// <para>Angular API service call(s): AuthApi.createNewLoginPassword (app/core/services/auth-api.ts:199).</para>
         /// </remarks>
-        /// <param name="request">The request body used to create login password.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("create-new-password")]                
         public async Task<IActionResult> CreateLoginPassword([FromBody] NewLoginPasswordRequestDTO request)
         {
@@ -236,13 +228,13 @@ namespace axionpro.api.Controllers.Login
         //    }
         //}
         /// <summary>
-        /// Enter Login ID.
+        /// Supports the Angular UI flow for enter login id.
         /// </summary>
         /// <remarks>
-        /// Handles the request to enter login id.
+        /// <para>Angular purpose: performs forgot password.</para>
+        /// <para>Angular page(s): /auth/forgot-password; /auth/verify-otp.</para>
+        /// <para>Angular API service call(s): AuthApi.forgotPassword (app/core/services/auth-api.ts:175).</para>
         /// </remarks>
-        /// <param name="request">The request body used to enter login id.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
 
 
         [HttpPost("forgot-password")]       
@@ -289,13 +281,13 @@ namespace axionpro.api.Controllers.Login
 
         //}
         /// <summary>
-        /// Validate Forgot Password Otp.
+        /// Supports the Angular UI flow for validate forgot password otp.
         /// </summary>
         /// <remarks>
-        /// Handles the request to validate forgot password otp.
+        /// <para>Angular purpose: validates forgot pass otp.</para>
+        /// <para>Angular page(s): /auth/verify-otp.</para>
+        /// <para>Angular API service call(s): AuthApi.validateForgotPassOtp (app/core/services/auth-api.ts:181).</para>
         /// </remarks>
-        /// <param name="request">The request body used to validate forgot password otp.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
 
 
         [HttpPost("validate-forgot-password-otp")]    

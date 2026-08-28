@@ -29,14 +29,6 @@ namespace axionpro.api.Controllers.Registration
         _mediator = mediator;
         _logger = logger;
     }
-        /// <summary>
-        /// Login.
-        /// </summary>
-        /// <remarks>
-        /// Handles the request to login.
-        /// </remarks>
-        /// <param name="candidateRegistrationDTO">The request body used to login.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
 
         [HttpPost("candidate")]       
         
@@ -48,14 +40,6 @@ namespace axionpro.api.Controllers.Registration
             var result = await _mediator.Send(command);           
             return Ok(result);
         }
-        /// <summary>
-        /// User Access Details.
-        /// </summary>
-        /// <remarks>
-        /// Handles the request to user access details.
-        /// </remarks>
-        /// <param name="accessDetailsDTO">The request body used to user access details.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
 
        
         [HttpPost("AccessDetails")]   

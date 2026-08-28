@@ -37,13 +37,13 @@ namespace axionpro.api.Controllers.Asset
         #region Tenant Admin - Asset Category CRUD
 
         /// <summary>
-        /// Get All Asset Category.
+        /// Supports the Angular UI flow for get all asset category.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get all asset category.
+        /// <para>Angular purpose: retrieves all asset category.</para>
+        /// <para>Angular page(s): /app/assets/asset-categories; /app/assets/asset-types; /app/assets/list.</para>
+        /// <para>Angular API service call(s): AssetCategoriesApi.getAllAssetCategory (app/core/services/asset-categories-api.ts:36).</para>
         /// </remarks>
-        /// <param name="request">The query parameters used to get all asset category.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get")]        
         public async Task<IActionResult> GetAllAssetCategory([FromQuery] GetCategoryReqestDTO request)
         {
@@ -57,13 +57,13 @@ namespace axionpro.api.Controllers.Asset
 
         
         /// <summary>
-        /// Add Asset Category.
+        /// Supports the Angular UI flow for add asset category.
         /// </summary>
         /// <remarks>
-        /// Handles the request to add asset category.
+        /// <para>Angular purpose: creates asset category.</para>
+        /// <para>Angular page(s): /app/assets/asset-categories.</para>
+        /// <para>Angular API service call(s): AssetCategoriesApi.createAssetCategory (app/core/services/asset-categories-api.ts:29).</para>
         /// </remarks>
-        /// <param name="request">The request body used to add asset category.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("add")]
         public async Task<IActionResult> AddAssetCategory([FromBody] AddCategoryReqestDTO request)
         {
@@ -75,13 +75,13 @@ namespace axionpro.api.Controllers.Asset
         }
 
         /// <summary>
-        /// Update Asset Category.
+        /// Supports the Angular UI flow for update asset category.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update asset category.
+        /// <para>Angular purpose: updates asset category.</para>
+        /// <para>Angular page(s): /app/assets/asset-categories.</para>
+        /// <para>Angular API service call(s): AssetCategoriesApi.updateAssetCategory (app/core/services/asset-categories-api.ts:43).</para>
         /// </remarks>
-        /// <param name="request">The request body used to update asset category.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPut("update")] 
         public async Task<IActionResult> UpdateAssetCategory([FromBody] UpdateCategoryReqestDTO request)
         {
@@ -94,13 +94,13 @@ namespace axionpro.api.Controllers.Asset
         }
 
         /// <summary>
-        /// Delete Asset Category.
+        /// Supports the Angular UI flow for delete asset category.
         /// </summary>
         /// <remarks>
-        /// Handles the request to delete asset category.
+        /// <para>Angular purpose: deletes asset category.</para>
+        /// <para>Angular page(s): /app/assets/asset-categories.</para>
+        /// <para>Angular API service call(s): AssetCategoriesApi.deleteAssetCategory (app/core/services/asset-categories-api.ts:50).</para>
         /// </remarks>
-        /// <param name="request">The query parameters used to delete asset category.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]     
         public async Task<IActionResult> DeleteAssetCategory([FromQuery] DeleteCategoryReqestDTO request)
         {

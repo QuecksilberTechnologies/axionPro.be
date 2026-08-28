@@ -43,15 +43,13 @@ namespace axionpro.api.Controllers.Module
         #region Parent Module Commands
 
         /// <summary>
-        /// Create Parent/Header Module.
+        /// Supports the Angular UI flow for add module.
         /// </summary>
         /// <remarks>
-        /// Creates a new root Parent/Header Module from the supplied editable values and supported module scope.
-        /// Requires an authenticated Host user whose current Host role is the verified Super Admin role.
+        /// <para>Angular purpose: creates parent module.</para>
+        /// <para>Angular page(s): /app/modules; /app/modules/sub-modules.</para>
+        /// <para>Angular API service call(s): ParentModuleApi.addParentModule (app/core/services/parent-module-api.ts:41).</para>
         /// </remarks>
-        /// <param name="createModuleRequestDTO">The editable Parent/Header Module values, including its requested module scope.</param>
-        /// <param name="cancellationToken">A token used to cancel the request.</param>
-        /// <returns>The created Parent/Header Module response.</returns>
         [HttpPost("add")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -67,16 +65,13 @@ namespace axionpro.api.Controllers.Module
         }
 
         /// <summary>
-        /// Update Parent/Header Module.
+        /// Supports the Angular UI flow for update module.
         /// </summary>
         /// <remarks>
-        /// Updates the editable values of an existing Parent/Header Module without changing its ownership or hierarchy.
-        /// Requires an authenticated Host user whose current Host role is the verified Super Admin role.
+        /// <para>Angular purpose: updates parent module.</para>
+        /// <para>Angular page(s): /app/modules; /app/modules/sub-modules.</para>
+        /// <para>Angular API service call(s): ParentModuleApi.updateParentModule (app/core/services/parent-module-api.ts:47).</para>
         /// </remarks>
-        /// <param name="id">The Parent/Header Module identifier.</param>
-        /// <param name="updateModuleRequestDTO">The editable Parent/Header Module values and module scope used to locate the existing header.</param>
-        /// <param name="cancellationToken">A token used to cancel the request.</param>
-        /// <returns>The updated Parent/Header Module response.</returns>
         [HttpPut("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -93,17 +88,13 @@ namespace axionpro.api.Controllers.Module
         }
 
         /// <summary>
-        /// Update Parent/Header Module status.
+        /// Supports the Angular UI flow for update module status.
         /// </summary>
         /// <remarks>
-        /// Updates the active and visible state of the selected Parent/Header Module and cascades the same state downward to all descendants and directly linked module-operation mappings.
-        /// Ancestor modules and sibling branches are not affected.
-        /// Requires an authenticated Host user whose current Host role is the verified Super Admin role.
+        /// <para>Angular purpose: updates parent module status.</para>
+        /// <para>Angular page(s): /app/modules.</para>
+        /// <para>Angular API service call(s): ParentModuleApi.setParentModuleStatus (app/core/services/parent-module-api.ts:53).</para>
         /// </remarks>
-        /// <param name="id">The Parent/Header Module identifier.</param>
-        /// <param name="statusRequestDTO">The target active state and module scope used to locate the Parent/Header Module.</param>
-        /// <param name="cancellationToken">A token used to cancel the request.</param>
-        /// <returns>The Parent/Header Module after the status cascade completes.</returns>
         [HttpPatch("{id:int}/status")]
         [ProducesResponseType(StatusCodes.Status200OK)]
                     public async Task<IActionResult> UpdateModuleStatus(
@@ -123,16 +114,13 @@ namespace axionpro.api.Controllers.Module
         #region Parent Module Queries
 
         /// <summary>
-        /// Get Parent/Header Module by ID.
+        /// Supports the Angular UI flow for get module by id.
         /// </summary>
         /// <remarks>
-        /// Retrieves one Parent/Header Module in the requested module scope.
-        /// Requires an authenticated Host user whose current Host role is the verified Super Admin role.
+        /// <para>Angular purpose: retrieves parent module.</para>
+        /// <para>Angular page(s): /app/modules; /app/modules/sub-modules; /app/modules/module-operations.</para>
+        /// <para>Angular API service call(s): ParentModuleApi.getParentModule (app/core/services/parent-module-api.ts:35).</para>
         /// </remarks>
-        /// <param name="id">The Parent/Header Module identifier.</param>
-        /// <param name="moduleScope">The module scope required to locate the Parent/Header Module.</param>
-        /// <param name="cancellationToken">A token used to cancel the request.</param>
-        /// <returns>The matching Parent/Header Module response.</returns>
         [HttpGet("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
                     public async Task<IActionResult> GetModuleById(
@@ -148,17 +136,13 @@ namespace axionpro.api.Controllers.Module
         }
 
         /// <summary>
-        /// Get Module Headers.
+        /// Supports the Angular UI flow for get module headers.
         /// </summary>
         /// <remarks>
-        /// Retrieves visible top-level Parent/Header Modules for the requested module scope and only their qualifying direct non-leaf Sub-Parent Headers.
-        /// A Parent/Header Module remains in the response with an empty <c>Children</c> collection when it has no qualifying child headers. Leaf modules are not returned.
-        /// The optional <c>IsActive</c> filter returns active headers when <c>true</c>, inactive headers when <c>false</c>, and does not filter by active status when omitted.
-        /// Requires an authenticated Host user whose current Host role is the verified Super Admin role.
+        /// <para>Angular purpose: retrieves module headers.</para>
+        /// <para>Angular page(s): /app/modules; /app/modules/sub-modules; /app/modules/module-operations.</para>
+        /// <para>Angular API service call(s): ParentModuleApi.getModuleHeaders (app/core/services/parent-module-api.ts:28).</para>
         /// </remarks>
-        /// <param name="requestDTO">Query filters: <c>ModuleScope</c> selects the requested scope; optional <c>IsActive</c> filters active or inactive headers.</param>
-        /// <param name="cancellationToken">A token used to cancel the request.</param>
-        /// <returns>The module-header tree response.</returns>
         [HttpGet("get-module-headers")]
         [ProducesResponseType(StatusCodes.Status200OK)]
                 public async Task<IActionResult> GetModuleHeaders(

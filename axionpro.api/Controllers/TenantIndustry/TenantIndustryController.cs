@@ -36,13 +36,13 @@ namespace axionpro.api.Controllers.TenantIndustry
 
 
         /// <summary>
-        /// Get All Tenant By Subscription ID.
+        /// Supports the Angular UI flow for get all tenant by subscription id async.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get all tenant by subscription id.
+        /// <para>Angular purpose: retrieves industries.</para>
+        /// <para>Angular page(s): /auth/register-tenant; /app/tenants/new; /app/tenants/:tenantId/edit.</para>
+        /// <para>Angular API service call(s): IndustriesApi.getIndustries (app/core/services/industries-api.ts:42).</para>
         /// </remarks>
-        /// <param name="planId">The query parameters used to get all tenant by subscription id.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-industries")]
         public async Task<IActionResult> GetAllTenantBySubscriptionIdAsync([FromQuery] int planId)
         {
@@ -53,13 +53,13 @@ namespace axionpro.api.Controllers.TenantIndustry
         }
 
         /// <summary>
-        /// Get Tenant Subscription Plan Info.
+        /// Supports the Angular UI flow for get tenant subscription plan info async.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get tenant subscription plan info.
+        /// <para>Angular purpose: retrieves industries.</para>
+        /// <para>Angular page(s): /auth/register-tenant; /app/tenants/new; /app/tenants/:tenantId/edit.</para>
+        /// <para>Angular API service call(s): IndustriesApi.getIndustries (app/core/services/industries-api.ts:52).</para>
         /// </remarks>
-        /// <param name="code">The query parameters used to get tenant subscription plan info.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-tenant-subscription-plan")]       
         public async Task<IActionResult> GetTenantSubscriptionPlanInfoAsync([FromQuery] TenantSubscriptionPlanRequestDTO code)
         {

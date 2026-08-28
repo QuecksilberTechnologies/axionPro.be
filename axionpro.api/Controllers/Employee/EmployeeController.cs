@@ -42,14 +42,13 @@ namespace axionpro.api.Controllers.Employee
 
 
         /// <summary>
-        /// Create Employee.
+        /// Supports the Angular UI flow for create employee.
         /// </summary>
         /// <remarks>
-        /// Handles the request to create employee.
-        /// Requires an authenticated user.
+        /// <para>Angular purpose: creates employee.</para>
+        /// <para>Angular page(s): /app/employees; /app/profile/basic-info.</para>
+        /// <para>Angular API service call(s): EmployeesApi.createEmployee (app/core/services/employee-api.ts:91).</para>
         /// </remarks>
-        /// <param name="employeeCreateDto">The request body used to create employee.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [Authorize]
         [HttpPost("create")]
         public async Task<IActionResult> CreateEmployee([FromBody] CreateBaseEmployeeRequestDTO employeeCreateDto)
@@ -73,14 +72,13 @@ namespace axionpro.api.Controllers.Employee
            
         }
         /// <summary>
-        /// Update Profie Image.
+        /// Supports the Angular UI flow for update profie image.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update profie image.
-        /// Requires an authenticated user.
+        /// <para>Angular purpose: updates profile images.</para>
+        /// <para>Angular page(s): /app/profile/basic-info; /app/profile; /app/profile/identity-info.</para>
+        /// <para>Angular API service call(s): EmployeeBasicAPI.updateProfileImages (app/core/services/employee-basic-api.ts:175).</para>
         /// </remarks>
-        /// <param name="requestDto">The form data used to update profie image.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
 
 
         [Authorize]
@@ -98,14 +96,13 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Get All Employee Image.
+        /// Supports the Angular UI flow for get all employee image.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get all employee image.
-        /// Requires an authenticated user.
+        /// <para>Angular purpose: retrieves profile images.</para>
+        /// <para>Angular page(s): /app/profile/basic-info; /app/profile; /app/profile/identity-info.</para>
+        /// <para>Angular API service call(s): EmployeeBasicAPI.getProfileImages (app/core/services/employee-basic-api.ts:169).</para>
         /// </remarks>
-        /// <param name="requestDto">The query parameters used to get all employee image.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [Authorize]
         [HttpGet("Image/get")]     
         public async Task<IActionResult> GetAllEmployeeImage([FromQuery] GetEmployeeImageRequestDTO requestDto)
@@ -121,14 +118,13 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Update Section Status Bulk.
+        /// Supports the Angular UI flow for update section status bulk.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update section status bulk.
-        /// Requires an authenticated user.
+        /// <para>Angular purpose: updates edit status.</para>
+        /// <para>Angular page(s): /app/profile/bank-info; /app/profile/basic-info; /app/profile/contact-info; /app/profile/dependent-info; /app/profile/education-info; /app/profile/experience-info; /app/profile/identity-info; /app/profile/insurance-info.</para>
+        /// <para>Angular API service call(s): ProfileAccessApi.updateEditStatus (app/core/services/profile-access-api.ts:47).</para>
         /// </remarks>
-        /// <param name="dto">The request body used to update section status bulk.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [Authorize]
         [HttpPost("update-edit-status")]
         public async Task<IActionResult> UpdateSectionStatusBulk([FromBody] UpdateEditStatusRequestDTO_ dto)
@@ -144,13 +140,13 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Update Verification Status.
+        /// Supports the Angular UI flow for update verification status.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update verification status.
+        /// <para>Angular purpose: updates verification status.</para>
+        /// <para>Angular page(s): /app/profile/bank-info; /app/profile/basic-info; /app/profile/contact-info; /app/profile/dependent-info; /app/profile/education-info; /app/profile/experience-info; /app/profile/identity-info; /app/profile/insurance-info.</para>
+        /// <para>Angular API service call(s): ProfileAccessApi.updateVerificationStatus (app/core/services/profile-access-api.ts:41).</para>
         /// </remarks>
-        /// <param name="dto">The request body used to update verification status.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("update-verification-status")]
         public async Task<IActionResult> UpdateVerificationStatus([FromBody] UpdateVerificationStatusRequestDTO_ dto)
         {
@@ -163,14 +159,13 @@ namespace axionpro.api.Controllers.Employee
 
 
         /// <summary>
-        /// Update Section Status Bulk.
+        /// Supports the Angular UI flow for update section status bulk.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update section status bulk.
-        /// Requires an authenticated user.
+        /// <para>Angular purpose: updates bulk.</para>
+        /// <para>Angular page(s): /app/employees.</para>
+        /// <para>Angular API service call(s): EmployeesApi.updateBulk (app/core/services/employee-api.ts:124).</para>
         /// </remarks>
-        /// <param name="dto">The request body used to update section status bulk.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [Authorize]
         [HttpPost("update-bulk")]
         public async Task<IActionResult> UpdateSectionStatusBulk([FromBody] UpdateEmployeeSectionStatusRequestDTO dto)
@@ -182,14 +177,13 @@ namespace axionpro.api.Controllers.Employee
             return Ok(result);
         }
         /// <summary>
-        /// Get All Employee Percentage.
+        /// Supports the Angular UI flow for get all employee percentage async.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get all employee percentage.
-        /// Requires an authenticated user.
+        /// <para>Angular purpose: retrieves all percentage.</para>
+        /// <para>Angular page(s): /app/employees.</para>
+        /// <para>Angular API service call(s): EmployeesApi.getAllPercentage (app/core/services/employee-api.ts:118).</para>
         /// </remarks>
-        /// <param name="employeeId">The query parameters used to get all employee percentage.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [Authorize]
         [HttpGet("get-all-percentage")]
         public async Task<IActionResult> GetAllEmployeePercentageAsync([FromQuery] string employeeId)
@@ -216,14 +210,13 @@ namespace axionpro.api.Controllers.Employee
 
 
         /// <summary>
-        /// Get Employee.
+        /// Supports the Angular UI flow for get employee.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get employee.
-        /// Requires an authenticated user.
+        /// <para>Angular purpose: retrieves employee basics.</para>
+        /// <para>Angular page(s): /app/profile/basic-info; /app/profile/identity-info; /app/employees/permissions/:employeeId.</para>
+        /// <para>Angular API service call(s): EmployeeBasicAPI.getEmployeeBasics (app/core/services/employee-basic-api.ts:132).</para>
         /// </remarks>
-        /// <param name="requestDto">The query parameters used to get employee.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [Authorize]
         [HttpGet("get")]
         public async Task<IActionResult> GetEmployee([FromQuery] GetBaseEmployeeRequestDTO requestDto)
@@ -240,14 +233,13 @@ namespace axionpro.api.Controllers.Employee
            
         }
         /// <summary>
-        /// Get Employee Summary.
+        /// Supports the Angular UI flow for get employee summary.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get employee summary.
-        /// Requires an authenticated user.
+        /// <para>Angular purpose: retrieves employee summary.</para>
+        /// <para>Angular page(s): /app/employees.</para>
+        /// <para>Angular API service call(s): EmployeesApi.getEmployeeSummary (app/core/services/employee-api.ts:138).</para>
         /// </remarks>
-        /// <param name="requestDto">The query parameters used to get employee summary.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [Authorize]
         [HttpGet("get-summary")]
         public async Task<IActionResult> GetEmployeeSummary([FromQuery] GetEmployeeSummaryRequestDTO requestDto)
@@ -269,14 +261,13 @@ namespace axionpro.api.Controllers.Employee
 
         }
         /// <summary>
-        /// Get Employee Profile Summary.
+        /// Supports the Angular UI flow for get employee profile summary.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get employee profile summary.
-        /// Requires an authenticated user.
+        /// <para>Angular purpose: retrieves profile summary.</para>
+        /// <para>Angular page(s): /app/profile/basic-info; /app/profile; /app/profile/identity-info.</para>
+        /// <para>Angular API service call(s): EmployeeBasicAPI.fetchProfileSummary (app/core/services/employee-basic-api.ts:154); EmployeeBasicAPI.getProfileSummary (app/core/services/employee-basic-api.ts:182).</para>
         /// </remarks>
-        /// <param name="requestDto">The query parameters used to get employee profile summary.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [Authorize]
         [HttpGet("get-profile-summary")]
         public async Task<IActionResult> GetEmployeeProfileSummary([FromQuery] GetEmployeeSummaryRequestDTO requestDto)
@@ -293,14 +284,13 @@ namespace axionpro.api.Controllers.Employee
            
         }
         /// <summary>
-        /// Get All Employee.
+        /// Supports the Angular UI flow for get all employee.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get all employee.
-        /// Requires an authenticated user.
+        /// <para>Angular purpose: retrieves all employees.</para>
+        /// <para>Angular page(s): /app/assets/list; /app/employees; /app/leave/balances.</para>
+        /// <para>Angular API service call(s): EmployeesApi.getAllEmployees (app/core/services/employee-api.ts:98).</para>
         /// </remarks>
-        /// <param name="requestDto">The query parameters used to get all employee.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [Authorize]
         [HttpGet("get-all")]
         public async Task<IActionResult> GetAllEmployee([FromQuery] GetAllEmployeeInfoRequestDTO requestDto)
@@ -316,14 +306,13 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Delete.
+        /// Supports the Angular UI flow for delete.
         /// </summary>
         /// <remarks>
-        /// Handles the request to delete.
-        /// Requires an authenticated user.
+        /// <para>Angular purpose: deletes employee.</para>
+        /// <para>Angular page(s): /app/employees.</para>
+        /// <para>Angular API service call(s): EmployeesApi.deleteEmployee (app/core/services/employee-api.ts:111).</para>
         /// </remarks>
-        /// <param name="dto">The query parameters used to delete.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [Authorize]
         [HttpDelete("delete-all")]
         public async Task<IActionResult> Delete([FromQuery] DeleteBaseEmployeeRequestDTO dto)
@@ -338,14 +327,13 @@ namespace axionpro.api.Controllers.Employee
             
         }
         /// <summary>
-        /// Update Employee Status.
+        /// Supports the Angular UI flow for update employee status.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update employee status.
-        /// Requires an authenticated user.
+        /// <para>Angular purpose: updates employee update status.</para>
+        /// <para>Angular page(s): /app/employees.</para>
+        /// <para>Angular API service call(s): EmployeesApi.updateEmployeeUpdateStatus (app/core/services/employee-api.ts:131).</para>
         /// </remarks>
-        /// <param name="dto">The query parameters used to update employee status.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [Authorize]
         [HttpPut("update-status")]
         public async Task<IActionResult> UpdateEmployeeStatus(
@@ -369,14 +357,13 @@ namespace axionpro.api.Controllers.Employee
         // Updates employee details.
         // </summary>
         /// <summary>
-        /// Update.
+        /// Supports the Angular UI flow for update.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update.
-        /// Requires an authenticated user.
+        /// <para>Angular purpose: updates employee; updates employee basics.</para>
+        /// <para>Angular page(s): /app/employees; /app/profile/basic-info.</para>
+        /// <para>Angular API service call(s): EmployeesApi.updateEmployee (app/core/services/employee-api.ts:104); EmployeeBasicAPI.updateEmployeeBasics (app/core/services/employee-basic-api.ts:138).</para>
         /// </remarks>
-        /// <param name="dto">The request body used to update.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [Authorize]
         [HttpPost("update")]
         public async Task<IActionResult> Update([FromBody] UpdateEmployeeRequestDTO dto)
@@ -396,14 +383,13 @@ namespace axionpro.api.Controllers.Employee
         // Updates employee details.
         // </summary>
         /// <summary>
-        /// Official Update.
+        /// Supports the Angular UI flow for official update.
         /// </summary>
         /// <remarks>
-        /// Handles the request to official update.
-        /// Requires an authenticated user.
+        /// <para>Angular purpose: updates employee basics.</para>
+        /// <para>Angular page(s): /app/employees; /app/profile/basic-info.</para>
+        /// <para>Angular API service call(s): EmployeeBasicAPI.updateEmployeeBasics (app/core/services/employee-basic-api.ts:146).</para>
         /// </remarks>
-        /// <param name="dto">The request body used to official update.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [Authorize]
         [HttpPost("official/update")]
         

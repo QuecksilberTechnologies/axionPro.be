@@ -41,14 +41,13 @@ public class OperationsMasterController : ControllerBase
     #region Create
 
     /// <summary>
-    /// Create Operation.
+    /// Supports the Angular UI flow for create operation.
     /// </summary>
     /// <remarks>
-    /// Handles the request to create operation.
+    /// <para>Angular purpose: creates operation.</para>
+    /// <para>Angular page(s): /app/modules/module-operations; /app/modules/operations.</para>
+    /// <para>Angular API service call(s): OperationsMasterApi.addOperation (app/core/services/operations-master-api.ts:37).</para>
     /// </remarks>
-    /// <param name="requestDTO">The request body used to create operation.</param>
-    /// <param name="cancellationToken">The token used to cancel the request.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpPost("create-operation")]
     public async Task<IActionResult> CreateOperation(
         [FromBody] CreateOperationRequestDTO requestDTO,
@@ -66,14 +65,13 @@ public class OperationsMasterController : ControllerBase
     #region Update
 
     /// <summary>
-    /// Update Operation.
+    /// Supports the Angular UI flow for update operation.
     /// </summary>
     /// <remarks>
-    /// Handles the request to update operation.
+    /// <para>Angular purpose: updates operation.</para>
+    /// <para>Angular page(s): /app/modules/module-operations; /app/modules/operations.</para>
+    /// <para>Angular API service call(s): OperationsMasterApi.updateOperation (app/core/services/operations-master-api.ts:44).</para>
     /// </remarks>
-    /// <param name="requestDTO">The request body used to update operation.</param>
-    /// <param name="cancellationToken">The token used to cancel the request.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpPost("update-operation")]
     public async Task<IActionResult> UpdateOperation(
         [FromBody] UpdateOperationRequestDTO requestDTO,
@@ -91,14 +89,13 @@ public class OperationsMasterController : ControllerBase
     #region Delete
 
     /// <summary>
-    /// Delete Operation.
+    /// Supports the Angular UI flow for delete operation.
     /// </summary>
     /// <remarks>
-    /// Handles the request to delete operation.
+    /// <para>Angular purpose: deletes operation.</para>
+    /// <para>Angular page(s): /app/modules/module-operations; /app/modules/operations.</para>
+    /// <para>Angular API service call(s): OperationsMasterApi.deleteOperation (app/core/services/operations-master-api.ts:50).</para>
     /// </remarks>
-    /// <param name="operationId">The identifier supplied in the route.</param>
-    /// <param name="cancellationToken">The token used to cancel the request.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpDelete("delete-operation/{operationId:int}")]
     public async Task<IActionResult> DeleteOperation(
         int operationId,
@@ -116,14 +113,13 @@ public class OperationsMasterController : ControllerBase
     #region GetById
 
     /// <summary>
-    /// Get Operation By ID.
+    /// Supports the Angular UI flow for get operation by id.
     /// </summary>
     /// <remarks>
-    /// Handles the request to get operation by id.
+    /// <para>Angular purpose: retrieves operation.</para>
+    /// <para>Angular page(s): /app/modules/module-operations; /app/modules/operations.</para>
+    /// <para>Angular API service call(s): OperationsMasterApi.getOperation (app/core/services/operations-master-api.ts:31).</para>
     /// </remarks>
-    /// <param name="operationId">The identifier supplied in the route.</param>
-    /// <param name="cancellationToken">The token used to cancel the request.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("get-operation/{operationId:int}")]
     public async Task<IActionResult> GetOperationById(
         int operationId,
@@ -141,13 +137,13 @@ public class OperationsMasterController : ControllerBase
     #region GetAll
 
     /// <summary>
-    /// Get All Operations.
+    /// Supports the Angular UI flow for get all operations.
     /// </summary>
     /// <remarks>
-    /// Handles the request to get all operations.
+    /// <para>Angular purpose: retrieves operations.</para>
+    /// <para>Angular page(s): /app/modules/module-operations; /app/modules/operations.</para>
+    /// <para>Angular API service call(s): OperationsMasterApi.getOperations (app/core/services/operations-master-api.ts:25).</para>
     /// </remarks>
-    /// <param name="cancellationToken">The token used to cancel the request.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("get-all-operations")]
     public async Task<IActionResult> GetAllOperations(CancellationToken cancellationToken)
     {

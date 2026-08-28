@@ -31,13 +31,13 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 CREATE INSURANCE POLICY
         /// <summary>
-        /// Create.
+        /// Supports the Angular UI flow for create.
         /// </summary>
         /// <remarks>
-        /// Handles the request to create.
+        /// <para>Angular purpose: creates insurance policies.</para>
+        /// <para>Angular page(s): /app/policies/insurance-policies.</para>
+        /// <para>Angular API service call(s): PoliciesInsuranceApi.createInsurancePolicies (app/core/services/policies-insurance-api.ts:65).</para>
         /// </remarks>
-        /// <param name="dto">The request body used to create.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPost("create")]  
         public async Task<IActionResult> Create(
             [FromBody] CreateInsurancePolicyRequestDTO dto)
@@ -54,13 +54,13 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 GET INSURANCE LIST (GRID)
         /// <summary>
-        /// Get List.
+        /// Supports the Angular UI flow for get list.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get list.
+        /// <para>Angular purpose: retrieves insurance policy names.</para>
+        /// <para>Angular page(s): /app/policies/insurance-policy-type-mapping.</para>
+        /// <para>Angular API service call(s): PoliciesInsuranceApi.getInsurancePolicyNames (app/core/services/policies-insurance-api.ts:79).</para>
         /// </remarks>
-        /// <param name="requestDto">The query parameters used to get list.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-ddl")]     
         
         public async Task<IActionResult> GetList(
@@ -77,13 +77,13 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 GET INSURANCE LIST (GRID)
         /// <summary>
-        /// Get Detail List.
+        /// Supports the Angular UI flow for get detail list.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get detail list.
+        /// <para>Angular purpose: retrieves insurance details.</para>
+        /// <para>Angular page(s): /app/profile/insurance-info.</para>
+        /// <para>Angular API service call(s): PoliciesInsuranceApi.getInsuranceDetails (app/core/services/policies-insurance-api.ts:99).</para>
         /// </remarks>
-        /// <param name="requestDto">The query parameters used to get detail list.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-detail-ddl")]     
         
         public async Task<IActionResult> GetDetailList(
@@ -100,13 +100,13 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 GET INSURANCE LIST (GRID)
         /// <summary>
-        /// Get List.
+        /// Supports the Angular UI flow for get list.
         /// </summary>
         /// <remarks>
-        /// Handles the request to get list.
+        /// <para>Angular purpose: retrieves insurance policies.</para>
+        /// <para>Angular page(s): /app/policies/insurance-policies.</para>
+        /// <para>Angular API service call(s): PoliciesInsuranceApi.getInsurancePolicies (app/core/services/policies-insurance-api.ts:72).</para>
         /// </remarks>
-        /// <param name="requestDto">The query parameters used to get list.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpGet("get-all")]        
         public async Task<IActionResult> GetList(
             [FromQuery] GetInsurancePolicyRequestDTO requestDto)
@@ -120,13 +120,13 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 DELETE INSURANCE POLICY
         /// <summary>
-        /// Delete.
+        /// Supports the Angular UI flow for delete.
         /// </summary>
         /// <remarks>
-        /// Handles the request to delete.
+        /// <para>Angular purpose: deletes insurance policy.</para>
+        /// <para>Angular page(s): /app/policies/insurance-policies.</para>
+        /// <para>Angular API service call(s): PoliciesInsuranceApi.deleteInsurancePolicy (app/core/services/policies-insurance-api.ts:92).</para>
         /// </remarks>
-        /// <param name="requestDto">The query parameters used to delete.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpDelete("delete")]        
         public async Task<IActionResult> Delete(
             [FromQuery] DeleteInsurancePolicyRequestDTO requestDto)
@@ -141,13 +141,13 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 UPDATE INSURANCE POLICY
         /// <summary>
-        /// Update.
+        /// Supports the Angular UI flow for update.
         /// </summary>
         /// <remarks>
-        /// Handles the request to update.
+        /// <para>Angular purpose: updates insurance policies.</para>
+        /// <para>Angular page(s): /app/policies/insurance-policies.</para>
+        /// <para>Angular API service call(s): PoliciesInsuranceApi.updateInsurancePolicies (app/core/services/policies-insurance-api.ts:85).</para>
         /// </remarks>
-        /// <param name="requestDto">The request body used to update.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
         [HttpPut("update")]        
         public async Task<IActionResult> Update(
             [FromBody] UpdateInsurancePolicyRequestDTO requestDto)

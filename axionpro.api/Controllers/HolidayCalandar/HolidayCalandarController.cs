@@ -30,14 +30,6 @@ namespace axionpro.api.Controllers.HolidayCalandar
             _mediator = mediator;
             _logger = logger;  // Logger service ko inject karna
         }
-        /// <summary>
-        /// Get All Employee Info.
-        /// </summary>
-        /// <remarks>
-        /// Handles the request to get all employee info.
-        /// </remarks>
-        /// <param name="basicRequestDTO">The query parameters used to get all employee info.</param>
-        /// <returns>An HTTP response containing the result of the operation.</returns>
 
         [HttpGet("get")]      
         public async Task<IActionResult> GetAllEmployeeInfo([FromQuery] BasicRequestDTO basicRequestDTO)

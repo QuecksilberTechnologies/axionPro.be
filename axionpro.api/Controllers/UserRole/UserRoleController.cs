@@ -28,13 +28,13 @@ public class UserRoleController : ControllerBase
         _logger = logger;
     }
     /// <summary>
-    /// Create Permission.
+    /// Supports the Angular UI flow for create permission.
     /// </summary>
     /// <remarks>
-    /// Handles the request to create permission.
+    /// <para>Angular purpose: assigns roles to user.</para>
+    /// <para>Angular page(s): /app/employees.</para>
+    /// <para>Angular API service call(s): RolesApi.assignRolesToUser (app/core/services/roles-api.ts:167).</para>
     /// </remarks>
-    /// <param name="insertRoleModulePermissionsRequestDTO">The request body used to create permission.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
 
     [HttpPost("assign-roles-to-user")]    
     
@@ -48,13 +48,13 @@ public class UserRoleController : ControllerBase
         return Ok(result);
     }
     /// <summary>
-    /// Get Tenant Enabled Operations.
+    /// Supports the Angular UI flow for get tenant enabled operations.
     /// </summary>
     /// <remarks>
-    /// Handles the request to get tenant enabled operations.
+    /// <para>Angular purpose: retrieves all user roles.</para>
+    /// <para>Angular page(s): /app/employees.</para>
+    /// <para>Angular API service call(s): RolesApi.getAllUserRoles (app/core/services/roles-api.ts:161).</para>
     /// </remarks>
-    /// <param name="dTO">The query parameters used to get tenant enabled operations.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("get-all-user-roles")]
     public async Task<IActionResult> GetTenantEnabledOperations([FromQuery] GetUserRoleRequestDTO dTO)
     {

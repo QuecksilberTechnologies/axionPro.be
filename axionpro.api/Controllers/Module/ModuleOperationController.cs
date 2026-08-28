@@ -42,14 +42,13 @@ public class ModuleOperationController : ControllerBase
     #region ModuleOperation CRUD
 
     /// <summary>
-    /// Create Module Operation.
+    /// Supports the Angular UI flow for create module operation.
     /// </summary>
     /// <remarks>
-    /// Handles the request to create module operation.
+    /// <para>Angular purpose: creates module operation.</para>
+    /// <para>Angular page(s): /app/modules/module-operations.</para>
+    /// <para>Angular API service call(s): ModuleOperationApi.addModuleOperation (app/core/services/module-operation-api.ts:37).</para>
     /// </remarks>
-    /// <param name="dto">The request body used to create module operation.</param>
-    /// <param name="cancellationToken">The token used to cancel the request.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpPost("create")]
     public async Task<IActionResult> CreateModuleOperation(
         [FromBody] CreateModuleOperationRequestDTO? dto,
@@ -63,14 +62,13 @@ public class ModuleOperationController : ControllerBase
     }
 
     /// <summary>
-    /// Update Module Operation.
+    /// Supports the Angular UI flow for update module operation.
     /// </summary>
     /// <remarks>
-    /// Handles the request to update module operation.
+    /// <para>Angular purpose: updates module operation.</para>
+    /// <para>Angular page(s): /app/modules/module-operations.</para>
+    /// <para>Angular API service call(s): ModuleOperationApi.updateModuleOperation (app/core/services/module-operation-api.ts:44).</para>
     /// </remarks>
-    /// <param name="dto">The request body used to update module operation.</param>
-    /// <param name="cancellationToken">The token used to cancel the request.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpPost("update")]
     public async Task<IActionResult> UpdateModuleOperation(
         [FromBody] UpdateModuleOperationMappingByProductOwnerRequestDTO? dto,
@@ -84,14 +82,13 @@ public class ModuleOperationController : ControllerBase
     }
 
     /// <summary>
-    /// Delete Module Operation.
+    /// Supports the Angular UI flow for delete module operation.
     /// </summary>
     /// <remarks>
-    /// Handles the request to delete module operation.
+    /// <para>Angular purpose: deletes module operation.</para>
+    /// <para>Angular page(s): /app/modules/module-operations.</para>
+    /// <para>Angular API service call(s): ModuleOperationApi.deleteModuleOperation (app/core/services/module-operation-api.ts:50).</para>
     /// </remarks>
-    /// <param name="id">The identifier supplied in the route.</param>
-    /// <param name="cancellationToken">The token used to cancel the request.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpDelete("delete/{id:int}")]
     public async Task<IActionResult> DeleteModuleOperation(
         int id,
@@ -105,14 +102,13 @@ public class ModuleOperationController : ControllerBase
     }
 
     /// <summary>
-    /// Get Module Operation By ID.
+    /// Supports the Angular UI flow for get module operation by id.
     /// </summary>
     /// <remarks>
-    /// Handles the request to get module operation by id.
+    /// <para>Angular purpose: retrieves module operation.</para>
+    /// <para>Angular page(s): /app/modules/module-operations.</para>
+    /// <para>Angular API service call(s): ModuleOperationApi.getModuleOperation (app/core/services/module-operation-api.ts:31).</para>
     /// </remarks>
-    /// <param name="id">The identifier supplied in the route.</param>
-    /// <param name="cancellationToken">The token used to cancel the request.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("get-by-id/{id:int}")]
     public async Task<IActionResult> GetModuleOperationById(
         int id,
@@ -126,13 +122,13 @@ public class ModuleOperationController : ControllerBase
     }
 
     /// <summary>
-    /// Get All Module Operations.
+    /// Supports the Angular UI flow for get all module operations.
     /// </summary>
     /// <remarks>
-    /// Handles the request to get all module operations.
+    /// <para>Angular purpose: retrieves module operations.</para>
+    /// <para>Angular page(s): /app/modules/module-operations.</para>
+    /// <para>Angular API service call(s): ModuleOperationApi.getModuleOperations (app/core/services/module-operation-api.ts:25).</para>
     /// </remarks>
-    /// <param name="cancellationToken">The token used to cancel the request.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
     [HttpGet("get-all")]
     public async Task<IActionResult> GetAllModuleOperations(CancellationToken cancellationToken)
     {
