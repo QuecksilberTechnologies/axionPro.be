@@ -64,7 +64,7 @@ public class TenantController : ControllerBase
     /// <remarks>
     /// Handles the request to tenant creation.
     /// </remarks>
-    /// <param name="tenantCreateRequestDTO">The request body used to tenant creation.</param>
+    /// <param name="tenantCreateRequestDTO">The request body used to tenant creation-by online registration it self.</param>
     /// <returns>An HTTP response containing the result of the operation.</returns>
     [Authorize]
     [HttpPost("create-tenant")]
@@ -93,7 +93,7 @@ public class TenantController : ControllerBase
     /// <param name="cancellationToken">The token used to observe request cancellation.</param>
     /// <returns>The safe updated Tenant response.</returns>
     [Authorize]
-    [HttpPut("new-tenant-update/{encryptedTenantId}")]
+    [HttpPut("new-tenant-update-by-host/{encryptedTenantId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> UpdateNewTenantAsync(
         string encryptedTenantId,
@@ -141,7 +141,7 @@ public class TenantController : ControllerBase
     /// <param name="cancellationToken">The token used to observe request cancellation.</param>
     /// <returns>The Tenant onboarding result.</returns>
     [Authorize]
-    [HttpPost("new-tentant-creaion")]
+    [HttpPost("new-tentant-creation-by-host")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> CreateNewTenantAsync(
         [FromBody] NewTenantCreationRequestDTO requestDTO,
@@ -257,7 +257,7 @@ public class TenantController : ControllerBase
     /// <param name="cancellationToken">The token used to cancel the request.</param>
     /// <returns>An HTTP response containing the result of the operation.</returns>
     [Authorize]
-    [HttpPost("{id}/resend-verification")]
+    [HttpPost("{id}/resend-verification-by-host")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> ResendTenantVerificationAsync(
