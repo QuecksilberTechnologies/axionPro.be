@@ -16,6 +16,8 @@ public interface IDeviceMasterRepository
 {
     /// <summary>Gets a non-soft-deleted device model by identifier.</summary>
     Task<DeviceMaster?> GetByIdAsync(long id, CancellationToken cancellationToken);
+    /// <summary>Gets a non-soft-deleted device model by its manufacturer serial number.</summary>
+    Task<DeviceMaster?> GetBySNoAsync(string sNo, CancellationToken cancellationToken);
     /// <summary>Gets a tracked non-soft-deleted device model for an administrative update.</summary>
     Task<DeviceMaster?> GetForUpdateAsync(long id, CancellationToken cancellationToken);
     /// <summary>Gets a database-paged device model list.</summary>
@@ -26,6 +28,8 @@ public interface IDeviceMasterRepository
     Task<bool> HasActiveTenantDevicesAsync(long deviceMasterId, CancellationToken cancellationToken);
     /// <summary>Determines whether any non-soft-deleted physical device blocks catalog deletion.</summary>
     Task<bool> HasTenantDevicesAsync(long deviceMasterId, CancellationToken cancellationToken);
+    /// <summary>Determines whether any connection configuration references a Tenant device using this catalog device.</summary>
+    Task<bool> HasTenantDeviceConfigurationsAsync(long deviceMasterId, CancellationToken cancellationToken);
     /// <summary>Adds a prepared Host-owned device model.</summary>
     Task AddAsync(DeviceMaster entity, CancellationToken cancellationToken);
 }
@@ -39,28 +43,41 @@ public interface ITenantDeviceRepository
     Task<TenantDevice?> GetForUpdateAsync(long tenantId, long id, CancellationToken cancellationToken);
     /// <summary>Gets a database-paged physical-device list scoped to its Tenant.</summary>
     Task<PagedResponseDTO<TenantDevice>> GetPagedAsync(long tenantId, GetTenantDeviceListRequestDTO filter, CancellationToken cancellationToken);
-    /// <summary>Resolves an active or inactive non-soft-deleted physical device by manufacturer serial number.</summary>
-    Task<TenantDevice?> GetBySerialNumberAsync(string serialNumber, CancellationToken cancellationToken);
     /// <summary>Determines whether a Tenant is active and non-soft-deleted.</summary>
     Task<bool> IsEligibleTenantAsync(long tenantId, CancellationToken cancellationToken);
-    /// <summary>Determines whether the active location belongs to the selected Tenant.</summary>
-    Task<bool> IsEligibleTenantLocationAsync(long tenantId, long tenantLocationId, CancellationToken cancellationToken);
     /// <summary>Determines whether a location is active and non-soft-deleted regardless of Tenant ownership.</summary>
     Task<bool> IsActiveTenantLocationAsync(long tenantLocationId, CancellationToken cancellationToken);
     /// <summary>Determines whether a location belongs to the selected Tenant.</summary>
     Task<bool> TenantLocationBelongsToTenantAsync(long tenantId, long tenantLocationId, CancellationToken cancellationToken);
     /// <summary>Determines whether a device master is active and non-soft-deleted.</summary>
     Task<bool> IsEligibleDeviceMasterAsync(long deviceMasterId, CancellationToken cancellationToken);
-    /// <summary>Determines whether the global serial number is used by another live physical device.</summary>
-    Task<bool> SerialNumberExistsAsync(string serialNumber, long? excludeId, CancellationToken cancellationToken);
     /// <summary>Determines whether the device code is used by another live device of the selected Tenant.</summary>
     Task<bool> DeviceCodeExistsAsync(long tenantId, string deviceCode, long? excludeId, CancellationToken cancellationToken);
-    /// <summary>Determines whether the supplied asset tag is used by another live device of the selected Tenant.</summary>
-    Task<bool> AssetTagExistsAsync(long tenantId, string? assetTag, long? excludeId, CancellationToken cancellationToken);
+    /// <summary>Determines whether a connection configuration is registered for the Tenant device.</summary>
+    Task<bool> HasConfigurationAsync(long tenantId, long tenantDeviceId, CancellationToken cancellationToken);
     /// <summary>Determines whether active employee enrollment blocks deactivation.</summary>
     Task<bool> HasActiveEnrollmentsAsync(long tenantDeviceId, CancellationToken cancellationToken);
     /// <summary>Determines whether any live employee enrollment blocks soft deletion.</summary>
     Task<bool> HasEnrollmentsAsync(long tenantDeviceId, CancellationToken cancellationToken);
     /// <summary>Adds a prepared Host-owned physical device.</summary>
     Task AddAsync(TenantDevice entity, CancellationToken cancellationToken);
+}
+
+/// <summary>Defines persistence and validation queries for one Tenant device connection configuration.</summary>
+public interface ITenantDeviceConfigurationRepository
+{
+    /// <summary>Gets a configuration with its Tenant device context scoped to the authenticated Tenant.</summary>
+    Task<TenantDeviceConfiguration?> GetByIdAsync(long tenantId, long id, CancellationToken cancellationToken);
+    /// <summary>Gets a tracked configuration scoped to the authenticated Tenant.</summary>
+    Task<TenantDeviceConfiguration?> GetForUpdateAsync(long tenantId, long id, CancellationToken cancellationToken);
+    /// <summary>Gets a database-paged configuration list scoped to the authenticated Tenant.</summary>
+    Task<PagedResponseDTO<TenantDeviceConfiguration>> GetPagedAsync(long tenantId, GetTenantDeviceConfigurationListRequestDTO filter, CancellationToken cancellationToken);
+    /// <summary>Determines whether an active Tenant device can be configured.</summary>
+    Task<bool> IsEligibleTenantDeviceAsync(long tenantId, long tenantDeviceId, CancellationToken cancellationToken);
+    /// <summary>Determines whether the Tenant device already has a configuration.</summary>
+    Task<bool> ExistsForTenantDeviceAsync(long tenantId, long tenantDeviceId, long? excludeId, CancellationToken cancellationToken);
+    /// <summary>Adds a prepared Tenant device configuration.</summary>
+    Task AddAsync(TenantDeviceConfiguration entity, CancellationToken cancellationToken);
+    /// <summary>Hard deletes a tracked Tenant device configuration.</summary>
+    void Remove(TenantDeviceConfiguration entity);
 }

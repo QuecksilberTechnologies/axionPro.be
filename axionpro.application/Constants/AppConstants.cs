@@ -103,7 +103,11 @@ namespace axionpro.application.Constants
             public const string DeviceMasterNotFound = "The requested device master was not found.";
             public const string DuplicateDeviceMaster = "A live device master already uses this device code or company and model combination.";
             public const string DeviceMasterInUse = "Device master is currently assigned to one or more Tenant devices. Remove those device assignments before changing the device master lifecycle.";
+            public const string DeviceMasterAlreadyRegisteredWithTenant = "This device is already registered with a tenant and cannot be updated, have its status changed, or be deleted.";
             public const string TenantDeviceNotFound = "The requested tenant device was not found.";
+            public const string TenantDeviceConfigurationNotFound = "The requested tenant device configuration was not found.";
+            public const string TenantDeviceConfigurationAlreadyExists = "This tenant device already has a configuration.";
+            public const string TenantDeviceConfigurationInUse = "Delete the tenant device configuration before deleting the tenant device.";
             public const string DuplicateTenantDeviceSerialNumber = "A live tenant device already uses this serial number.";
             public const string DuplicateTenantDeviceCode = "A live tenant device already uses this device code for the selected tenant.";
             public const string DuplicateTenantDeviceAssetTag = "A live tenant device already uses this asset tag for the selected tenant.";
@@ -266,6 +270,10 @@ namespace axionpro.application.Constants
             public const string TenantDeviceStatusUpdated = "Tenant device status updated successfully.";
             public const string TenantDeviceDeleted = "Tenant device deleted successfully.";
             public const string TenantDeviceRetrieved = "Tenant devices retrieved successfully.";
+            public const string TenantDeviceConfigurationCreated = "Tenant device configuration created successfully.";
+            public const string TenantDeviceConfigurationUpdated = "Tenant device configuration updated successfully.";
+            public const string TenantDeviceConfigurationDeleted = "Tenant device configuration deleted successfully.";
+            public const string TenantDeviceConfigurationRetrieved = "Tenant device configurations retrieved successfully.";
         }
 
         #endregion

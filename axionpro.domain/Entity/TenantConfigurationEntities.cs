@@ -215,7 +215,7 @@ public partial class EmployeeWorkModeOverrideRequest
     public virtual TenantLocation? TenantLocation { get; set; }
 }
 
-/// <summary>Represents a Host-managed physical device installed for a Tenant and available to enrollment configuration.</summary>
+/// <summary>Represents a Host-managed physical device installed for a Tenant.</summary>
 public partial class TenantDevice
 {
     public long Id { get; set; }
@@ -224,49 +224,11 @@ public partial class TenantDevice
     public long DeviceMasterId { get; set; }
     public string DeviceCode { get; set; } = null!;
     public string? DeviceName { get; set; }
-    public string SerialNumber { get; set; } = null!;
-    public string? AssetTag { get; set; }
-    public string? FirmwareVersion { get; set; }
-    public string? SoftwareVersion { get; set; }
-    public string? IpAddress { get; set; }
-    public string? MacAddress { get; set; }
-    public int? DevicePort { get; set; }
-    public short? CommunicationType { get; set; }
-    public string? ServerHost { get; set; }
-    public int? ServerPort { get; set; }
-    public string? ServerPath { get; set; }
-    public string? ServerUrl { get; set; }
-    public string? PushMode { get; set; }
-    public int? HeartbeatIntervalSeconds { get; set; }
-    public string? TimeZoneId { get; set; }
-    public string? Configuration { get; set; }
-    public DateOnly? PurchaseDate { get; set; }
-    public decimal? PurchasePrice { get; set; }
-    public string? CurrencyKey { get; set; }
-    public string? VendorName { get; set; }
-    public string? VendorContactNumber { get; set; }
-    public string? VendorEmail { get; set; }
-    public string? PurchaseOrderNumber { get; set; }
-    public string? InvoiceNumber { get; set; }
-    public string? InvoiceUrl { get; set; }
-    public DateOnly? WarrantyStartDate { get; set; }
-    public DateOnly? WarrantyEndDate { get; set; }
-    public string? WarrantyRemark { get; set; }
     public DateTime? InstalledDateTime { get; set; }
-    public string? InstalledBy { get; set; }
+    public long? InstalledBy { get; set; }
     public string? InstallationRemark { get; set; }
-    public DateTime? LastHeartbeatDateTime { get; set; }
-    public DateTime? LastSyncDateTime { get; set; }
-    public DateTime? LastAttendanceReceivedDateTime { get; set; }
-    public DateTime? LastSuccessfulConnectionDateTime { get; set; }
-    public DateTime? LastFailedConnectionDateTime { get; set; }
-    public string? LastConnectionError { get; set; }
     public bool IsAttendanceDevice { get; set; }
-    public bool IsEnrollmentEnabled { get; set; }
-    public bool IsAttendancePushEnabled { get; set; }
-    public bool IsAutoSyncEnabled { get; set; }
     public string? Description { get; set; }
-    public string? AdditionalInfo { get; set; }
     public string? Remark { get; set; }
     public bool IsActive { get; set; }
     public bool IsSoftDeleted { get; set; }
@@ -279,4 +241,38 @@ public partial class TenantDevice
     public virtual Tenant Tenant { get; set; } = null!;
     public virtual TenantLocation TenantLocation { get; set; } = null!;
     public virtual DeviceMaster DeviceMaster { get; set; } = null!;
+    public virtual TenantDeviceConfiguration? TenantDeviceConfiguration { get; set; }
+}
+
+/// <summary>Represents one connection and runtime configuration for a Tenant device.</summary>
+public partial class TenantDeviceConfiguration
+{
+    public long Id { get; set; }
+    public long TenantDeviceId { get; set; }
+    public string? IpAddress { get; set; }
+    public string? MacAddress { get; set; }
+    public int? DevicePort { get; set; }
+    public short? CommunicationType { get; set; }
+    public string? ServerHost { get; set; }
+    public int? ServerPort { get; set; }
+    public string? ServerPath { get; set; }
+    public string? ServerUrl { get; set; }
+    public string? PushMode { get; set; }
+    public int? HeartbeatIntervalSeconds { get; set; }
+    public string? TimeZoneId { get; set; }
+    public string? Configuration { get; set; }
+    public bool IsEnrollmentEnabled { get; set; }
+    public bool IsAttendancePushEnabled { get; set; }
+    public bool IsAutoSyncEnabled { get; set; }
+    public DateTime? LastHeartbeatDateTime { get; set; }
+    public DateTime? LastSyncDateTime { get; set; }
+    public DateTime? LastAttendanceReceivedDateTime { get; set; }
+    public DateTime? LastSuccessfulConnectionDateTime { get; set; }
+    public DateTime? LastFailedConnectionDateTime { get; set; }
+    public string? LastConnectionError { get; set; }
+    public long AddedById { get; set; }
+    public DateTime AddedDateTime { get; set; }
+    public long? UpdatedById { get; set; }
+    public DateTime? UpdatedDateTime { get; set; }
+    public virtual TenantDevice TenantDevice { get; set; } = null!;
 }

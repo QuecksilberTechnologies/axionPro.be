@@ -116,6 +116,8 @@ namespace axionpro.application.Interfaces
         IDeviceMasterRepository DeviceMasterRepository { get; }
         /// <summary>Gets Host-managed physical TenantDevice persistence operations.</summary>
         ITenantDeviceRepository TenantDeviceRepository { get; }
+        /// <summary>Gets Tenant device connection-configuration persistence operations.</summary>
+        ITenantDeviceConfigurationRepository TenantDeviceConfigurationRepository { get; }
 
         #endregion
  

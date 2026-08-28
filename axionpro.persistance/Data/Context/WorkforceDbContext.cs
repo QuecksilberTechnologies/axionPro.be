@@ -269,6 +269,8 @@ namespace axionpro.persistance.Data.Context
 
         public virtual DbSet<TenantDevice> TenantDevices { get; set; }
 
+        public virtual DbSet<TenantDeviceConfiguration> TenantDeviceConfigurations { get; set; }
+
         public virtual DbSet<TenantLocation> TenantLocations { get; set; }
 
         public virtual DbSet<TenantEmailConfig> TenantEmailConfigs { get; set; }
@@ -1071,6 +1073,7 @@ namespace axionpro.persistance.Data.Context
             entity.HasIndex(e => e.IsAttendanceDevice, "IX_DeviceMaster_IsAttendanceDevice");
             entity.HasIndex(e => e.IsIntegrationSupported, "IX_DeviceMaster_IsIntegrationSupported");
             entity.HasIndex(e => e.ModelNo, "IX_DeviceMaster_ModelNo");
+            entity.Property(e => e.SNo).HasColumnName("SNo").HasMaxLength(100).IsRequired();
             entity.Property(e => e.DeviceCode).HasMaxLength(50);
             entity.Property(e => e.DeviceName).HasMaxLength(200);
             entity.Property(e => e.ModelNo).HasMaxLength(100);
@@ -1112,6 +1115,7 @@ namespace axionpro.persistance.Data.Context
             entity.Property(e => e.Remark).HasMaxLength(1000);
             entity.Property(e => e.IsAttendanceDevice).HasDefaultValue(true);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.IsOccupied).HasDefaultValue(false);
             entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
         });
 
@@ -3595,43 +3599,15 @@ namespace axionpro.persistance.Data.Context
                 entity.HasIndex(e => e.TenantLocationId, "IX_TenantDevice_TenantLocationId");
                 entity.HasIndex(e => e.DeviceMasterId, "IX_TenantDevice_DeviceMasterId");
                 entity.HasIndex(e => new { e.DeviceMasterId, e.IsActive }, "IX_TenantDevice_DeviceMasterId_IsActive");
-                entity.HasIndex(e => e.LastHeartbeatDateTime, "IX_TenantDevice_LastHeartbeatDateTime");
-                entity.HasIndex(e => e.SerialNumber, "IX_TenantDevice_SerialNumber");
                 entity.HasIndex(e => new { e.TenantId, e.IsActive, e.IsSoftDeleted }, "IX_TenantDevice_TenantId_IsActive_IsSoftDeleted");
                 entity.HasIndex(e => new { e.TenantId, e.TenantLocationId }, "IX_TenantDevice_TenantId_TenantLocationId");
                 entity.HasIndex(e => new { e.TenantLocationId, e.IsActive }, "IX_TenantDevice_TenantLocationId_IsActive");
                 entity.Property(e => e.DeviceCode).HasMaxLength(50);
                 entity.Property(e => e.DeviceName).HasMaxLength(150);
-                entity.Property(e => e.SerialNumber).HasMaxLength(100);
-                entity.Property(e => e.AssetTag).HasMaxLength(100);
-                entity.Property(e => e.FirmwareVersion).HasMaxLength(100);
-                entity.Property(e => e.SoftwareVersion).HasMaxLength(100);
-                entity.Property(e => e.IpAddress).HasMaxLength(45);
-                entity.Property(e => e.MacAddress).HasMaxLength(50);
-                entity.Property(e => e.ServerHost).HasMaxLength(300);
-                entity.Property(e => e.ServerPath).HasMaxLength(300);
-                entity.Property(e => e.ServerUrl).HasMaxLength(500);
-                entity.Property(e => e.PushMode).HasMaxLength(100);
-                entity.Property(e => e.TimeZoneId).HasMaxLength(100);
-                entity.Property(e => e.Configuration).HasColumnType("jsonb");
-                entity.Property(e => e.PurchasePrice).HasPrecision(18, 2);
-                entity.Property(e => e.CurrencyKey).HasMaxLength(10);
-                entity.Property(e => e.VendorName).HasMaxLength(150);
-                entity.Property(e => e.VendorContactNumber).HasMaxLength(30);
-                entity.Property(e => e.VendorEmail).HasMaxLength(200);
-                entity.Property(e => e.PurchaseOrderNumber).HasMaxLength(100);
-                entity.Property(e => e.InvoiceNumber).HasMaxLength(100);
-                entity.Property(e => e.InvoiceUrl).HasMaxLength(500);
-                entity.Property(e => e.WarrantyRemark).HasMaxLength(500);
-                entity.Property(e => e.InstalledBy).HasMaxLength(150);
                 entity.Property(e => e.InstallationRemark).HasMaxLength(500);
-                entity.Property(e => e.LastConnectionError).HasMaxLength(1000);
                 entity.Property(e => e.Description).HasMaxLength(1000);
                 entity.Property(e => e.Remark).HasMaxLength(1000);
                 entity.Property(e => e.IsAttendanceDevice).HasDefaultValue(true);
-                entity.Property(e => e.IsEnrollmentEnabled).HasDefaultValue(true);
-                entity.Property(e => e.IsAttendancePushEnabled).HasDefaultValue(true);
-                entity.Property(e => e.IsAutoSyncEnabled).HasDefaultValue(true);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
                 entity.HasOne(e => e.Tenant).WithMany(e => e.TenantDevices)
@@ -3642,6 +3618,29 @@ namespace axionpro.persistance.Data.Context
                     .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_TenantDevice_TenantLocation");
                 entity.HasOne(e => e.DeviceMaster).WithMany(e => e.TenantDevice)
                     .HasForeignKey(e => e.DeviceMasterId).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_TenantDevice_DeviceMaster");
+            });
+
+            modelBuilder.Entity<TenantDeviceConfiguration>(entity =>
+            {
+                entity.ToTable("TenantDeviceConfiguration", "axionpro");
+                entity.HasIndex(e => e.TenantDeviceId, "UX_TenantDeviceConfiguration_TenantDeviceId").IsUnique();
+                entity.HasIndex(e => e.LastHeartbeatDateTime, "IX_TenantDeviceConfiguration_LastHeartbeatDateTime");
+                entity.Property(e => e.IpAddress).HasMaxLength(45);
+                entity.Property(e => e.MacAddress).HasMaxLength(50);
+                entity.Property(e => e.ServerHost).HasMaxLength(300);
+                entity.Property(e => e.ServerPath).HasMaxLength(300);
+                entity.Property(e => e.ServerUrl).HasMaxLength(500);
+                entity.Property(e => e.PushMode).HasMaxLength(100);
+                entity.Property(e => e.TimeZoneId).HasMaxLength(100);
+                entity.Property(e => e.Configuration).HasColumnType("jsonb");
+                entity.Property(e => e.LastConnectionError).HasMaxLength(1000);
+                entity.Property(e => e.IsEnrollmentEnabled).HasDefaultValue(true);
+                entity.Property(e => e.IsAttendancePushEnabled).HasDefaultValue(true);
+                entity.Property(e => e.IsAutoSyncEnabled).HasDefaultValue(true);
+                entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.HasOne(e => e.TenantDevice).WithOne(e => e.TenantDeviceConfiguration)
+                    .HasForeignKey<TenantDeviceConfiguration>(e => e.TenantDeviceId)
+                    .OnDelete(DeleteBehavior.Cascade).HasConstraintName("FK_TenantDeviceConfiguration_TenantDevice");
             });
 
             modelBuilder.Entity<EmployeeLocationAssignment>(entity =>

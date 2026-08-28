@@ -14,6 +14,8 @@ namespace axionpro.application.DTOS.Host;
 public class DeviceMasterRequestDTO
 {
     #region Properties
+    /// <summary>Gets or sets the manufacturer serial number for the device model.</summary>
+    public string SNo { get; set; } = string.Empty;
     public string DeviceCode { get; set; } = string.Empty;
     public string DeviceName { get; set; } = string.Empty;
     public string ModelNo { get; set; } = string.Empty;
@@ -93,6 +95,8 @@ public sealed class UpdateDeviceMasterRequestDTO : DeviceMasterRequestDTO
 {
     /// <summary>Gets or sets the DeviceMaster identifier.</summary>
     public long Id { get; set; }
+    /// <summary>Gets or sets the occupied state before the device is registered with a Tenant.</summary>
+    public bool IsOccupied { get; set; }
 }
 
 /// <summary>Changes the active state of a Host-managed device model.</summary>
@@ -113,6 +117,8 @@ public sealed class GetDeviceMasterListRequestDTO
     public DeviceType? DeviceType { get; set; }
     /// <summary>Gets or sets an optional active-state filter.</summary>
     public bool? IsActive { get; set; }
+    /// <summary>Gets or sets an optional occupied-state filter.</summary>
+    public bool? IsOccupied { get; set; }
     /// <summary>Gets or sets the requested page number.</summary>
     public int PageNumber { get; set; } = 1;
     /// <summary>Gets or sets the requested page size.</summary>
@@ -124,6 +130,8 @@ public sealed class DeviceMasterResponseDTO : DeviceMasterRequestDTO
 {
     /// <summary>Gets or sets the DeviceMaster identifier.</summary>
     public long Id { get; set; }
+    /// <summary>Gets or sets whether this device is already registered with a Tenant.</summary>
+    public bool IsOccupied { get; set; }
     /// <summary>Gets or sets the display name of the functional device type.</summary>
     public string DeviceTypeName { get; set; } = string.Empty;
     /// <summary>Gets or sets the creation timestamp.</summary>
@@ -145,7 +153,7 @@ public class TenantDeviceAccessRequestDTO : PermissionRequestDTO
     public string? TenantId { get; set; }
 }
 
-/// <summary>Supplies editable installation and configuration values for a physical Tenant device.</summary>
+/// <summary>Supplies editable installation values for a physical Tenant device.</summary>
 public class TenantDeviceRequestDTO : TenantDeviceAccessRequestDTO
 {
     #region Properties
@@ -153,43 +161,11 @@ public class TenantDeviceRequestDTO : TenantDeviceAccessRequestDTO
     public long DeviceMasterId { get; set; }
     public string DeviceCode { get; set; } = string.Empty;
     public string? DeviceName { get; set; }
-    public string SerialNumber { get; set; } = string.Empty;
-    public string? AssetTag { get; set; }
-    public string? FirmwareVersion { get; set; }
-    public string? SoftwareVersion { get; set; }
-    public string? IpAddress { get; set; }
-    public string? MacAddress { get; set; }
-    public int? DevicePort { get; set; }
-    public DeviceCommunicationType? CommunicationType { get; set; }
-    public string? ServerHost { get; set; }
-    public int? ServerPort { get; set; }
-    public string? ServerPath { get; set; }
-    public string? ServerUrl { get; set; }
-    public string? PushMode { get; set; }
-    public int? HeartbeatIntervalSeconds { get; set; }
-    public string? TimeZoneId { get; set; }
-    public string? Configuration { get; set; }
-    public DateOnly? PurchaseDate { get; set; }
-    public decimal? PurchasePrice { get; set; }
-    public string? CurrencyKey { get; set; }
-    public string? VendorName { get; set; }
-    public string? VendorContactNumber { get; set; }
-    public string? VendorEmail { get; set; }
-    public string? PurchaseOrderNumber { get; set; }
-    public string? InvoiceNumber { get; set; }
-    public string? InvoiceUrl { get; set; }
-    public DateOnly? WarrantyStartDate { get; set; }
-    public DateOnly? WarrantyEndDate { get; set; }
-    public string? WarrantyRemark { get; set; }
     public DateTime? InstalledDateTime { get; set; }
-    public string? InstalledBy { get; set; }
+    public long? InstalledBy { get; set; }
     public string? InstallationRemark { get; set; }
     public bool IsAttendanceDevice { get; set; } = true;
-    public bool IsEnrollmentEnabled { get; set; } = true;
-    public bool IsAttendancePushEnabled { get; set; } = true;
-    public bool IsAutoSyncEnabled { get; set; } = true;
     public string? Description { get; set; }
-    public string? AdditionalInfo { get; set; }
     public string? Remark { get; set; }
     public bool IsActive { get; set; } = true;
     #endregion
@@ -220,7 +196,7 @@ public sealed class GetTenantDeviceListRequestDTO : TenantDeviceAccessRequestDTO
     public string? Search { get; set; }
     public long? TenantLocationId { get; set; }
     public long? DeviceMasterId { get; set; }
-    public DeviceCommunicationType? CommunicationType { get; set; }
+    public bool? IsAttendanceDevice { get; set; }
     public bool? IsActive { get; set; }
     public int PageNumber { get; set; } = 1;
     public int PageSize { get; set; } = 10;
@@ -235,10 +211,28 @@ public sealed class TenantDeviceResponseDTO
     public long DeviceMasterId { get; set; }
     public string DeviceCode { get; set; } = string.Empty;
     public string? DeviceName { get; set; }
-    public string SerialNumber { get; set; } = string.Empty;
-    public string? AssetTag { get; set; }
-    public string? FirmwareVersion { get; set; }
-    public string? SoftwareVersion { get; set; }
+    public DateTime? InstalledDateTime { get; set; }
+    public long? InstalledBy { get; set; }
+    public string? InstallationRemark { get; set; }
+    public bool IsAttendanceDevice { get; set; }
+    public string? Description { get; set; }
+    public string? Remark { get; set; }
+    public bool IsActive { get; set; }
+    public long Id { get; set; }
+    public string? TenantName { get; set; }
+    public string? TenantLocationName { get; set; }
+    public string? LocationCode { get; set; }
+    public string? DeviceMasterName { get; set; }
+    public string? DeviceMasterModelNo { get; set; }
+    public bool HasConfiguration { get; set; }
+    public DateTime AddedDateTime { get; set; }
+    public DateTime? UpdatedDateTime { get; set; }
+}
+
+/// <summary>Supplies editable connection settings for a Tenant device.</summary>
+public class TenantDeviceConfigurationRequestDTO : TenantDeviceAccessRequestDTO
+{
+    public long TenantDeviceId { get; set; }
     public string? IpAddress { get; set; }
     public string? MacAddress { get; set; }
     public int? DevicePort { get; set; }
@@ -251,42 +245,62 @@ public sealed class TenantDeviceResponseDTO
     public int? HeartbeatIntervalSeconds { get; set; }
     public string? TimeZoneId { get; set; }
     public string? Configuration { get; set; }
-    public DateOnly? PurchaseDate { get; set; }
-    public decimal? PurchasePrice { get; set; }
-    public string? CurrencyKey { get; set; }
-    public string? VendorName { get; set; }
-    public string? VendorContactNumber { get; set; }
-    public string? VendorEmail { get; set; }
-    public string? PurchaseOrderNumber { get; set; }
-    public string? InvoiceNumber { get; set; }
-    public string? InvoiceUrl { get; set; }
-    public DateOnly? WarrantyStartDate { get; set; }
-    public DateOnly? WarrantyEndDate { get; set; }
-    public string? WarrantyRemark { get; set; }
-    public DateTime? InstalledDateTime { get; set; }
-    public string? InstalledBy { get; set; }
-    public string? InstallationRemark { get; set; }
-    public bool IsAttendanceDevice { get; set; }
+    public bool IsEnrollmentEnabled { get; set; } = true;
+    public bool IsAttendancePushEnabled { get; set; } = true;
+    public bool IsAutoSyncEnabled { get; set; } = true;
+}
+
+/// <summary>Creates one connection configuration for a Tenant device.</summary>
+public sealed class CreateTenantDeviceConfigurationRequestDTO : TenantDeviceConfigurationRequestDTO { }
+
+/// <summary>Updates one connection configuration for a Tenant device.</summary>
+public sealed class UpdateTenantDeviceConfigurationRequestDTO : TenantDeviceConfigurationRequestDTO
+{
+    public long Id { get; set; }
+}
+
+/// <summary>Supplies paging and optional filters for Tenant device configurations.</summary>
+public sealed class GetTenantDeviceConfigurationListRequestDTO : TenantDeviceAccessRequestDTO
+{
+    public string? Search { get; set; }
+    public long? TenantDeviceId { get; set; }
+    public DeviceCommunicationType? CommunicationType { get; set; }
+    public bool? IsEnrollmentEnabled { get; set; }
+    public int PageNumber { get; set; } = 1;
+    public int PageSize { get; set; } = 10;
+}
+
+/// <summary>Represents a Tenant device connection configuration without exposing a raw Tenant identifier.</summary>
+public sealed class TenantDeviceConfigurationResponseDTO
+{
+    public string TenantId { get; set; } = string.Empty;
+    public long Id { get; set; }
+    public long TenantDeviceId { get; set; }
+    public string? IpAddress { get; set; }
+    public string? MacAddress { get; set; }
+    public int? DevicePort { get; set; }
+    public DeviceCommunicationType? CommunicationType { get; set; }
+    public string? ServerHost { get; set; }
+    public int? ServerPort { get; set; }
+    public string? ServerPath { get; set; }
+    public string? ServerUrl { get; set; }
+    public string? PushMode { get; set; }
+    public int? HeartbeatIntervalSeconds { get; set; }
+    public string? TimeZoneId { get; set; }
+    public string? Configuration { get; set; }
     public bool IsEnrollmentEnabled { get; set; }
     public bool IsAttendancePushEnabled { get; set; }
     public bool IsAutoSyncEnabled { get; set; }
-    public string? Description { get; set; }
-    public string? AdditionalInfo { get; set; }
-    public string? Remark { get; set; }
-    public bool IsActive { get; set; }
-    public long Id { get; set; }
-    public string? TenantName { get; set; }
-    public string? TenantLocationName { get; set; }
-    public string? LocationCode { get; set; }
-    public string? DeviceMasterName { get; set; }
-    public string? DeviceMasterModelNo { get; set; }
-    public string? CommunicationTypeName { get; set; }
     public DateTime? LastHeartbeatDateTime { get; set; }
     public DateTime? LastSyncDateTime { get; set; }
     public DateTime? LastAttendanceReceivedDateTime { get; set; }
     public DateTime? LastSuccessfulConnectionDateTime { get; set; }
     public DateTime? LastFailedConnectionDateTime { get; set; }
     public string? LastConnectionError { get; set; }
+    public string? DeviceCode { get; set; }
+    public string? DeviceName { get; set; }
+    public string? DeviceMasterName { get; set; }
+    public string? DeviceMasterSNo { get; set; }
     public DateTime AddedDateTime { get; set; }
     public DateTime? UpdatedDateTime { get; set; }
 }

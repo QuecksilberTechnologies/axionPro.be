@@ -245,7 +245,7 @@ public sealed class EmployeeDeviceEnrollmentRepository : TenantConfigurationRepo
     {
         var (pageNumber, pageSize) = NormalizePage(filter.PageNumber, filter.PageSize);
         var query = Context.EmployeeDeviceEnrollments.AsNoTracking().Include(x => x.Employee).Where(x => x.TenantId == tenantId && !x.IsSoftDeleted);
-        if (!string.IsNullOrWhiteSpace(filter.Search)) { var term = $"%{filter.Search.Trim()}%"; query = query.Where(x => EF.Functions.ILike(x.EnrollId, term) || (x.CardNumber != null && EF.Functions.ILike(x.CardNumber, term)) || Context.TenantDevices.Any(d => d.Id == x.TenantDeviceId && (EF.Functions.ILike(d.SerialNumber, term) || EF.Functions.ILike(d.DeviceCode, term)))); }
+        if (!string.IsNullOrWhiteSpace(filter.Search)) { var term = $"%{filter.Search.Trim()}%"; query = query.Where(x => EF.Functions.ILike(x.EnrollId, term) || (x.CardNumber != null && EF.Functions.ILike(x.CardNumber, term)) || Context.TenantDevices.Any(d => d.Id == x.TenantDeviceId && (EF.Functions.ILike(d.DeviceMaster.SNo, term) || EF.Functions.ILike(d.DeviceCode, term)))); }
         if (filter.EmployeeId.HasValue) query = query.Where(x => x.EmployeeId == filter.EmployeeId.Value);
         if (filter.TenantDeviceId.HasValue) query = query.Where(x => x.TenantDeviceId == filter.TenantDeviceId.Value);
         if (filter.TenantLocationId.HasValue) query = query.Where(x => Context.TenantDevices.Any(d => d.Id == x.TenantDeviceId && d.TenantLocationId == filter.TenantLocationId.Value));
@@ -258,7 +258,7 @@ public sealed class EmployeeDeviceEnrollmentRepository : TenantConfigurationRepo
     /// <inheritdoc />
     public Task<bool> IsEligibleEmployeeAsync(long tenantId, long employeeId, CancellationToken cancellationToken) => Context.Employees.AnyAsync(x => x.Id == employeeId && x.TenantId == tenantId && x.IsActive && !x.IsSoftDeleted, cancellationToken);
     /// <inheritdoc />
-    public Task<bool> IsEligibleTenantDeviceAsync(long tenantId, long tenantDeviceId, CancellationToken cancellationToken) => Context.TenantDevices.AnyAsync(x => x.Id == tenantDeviceId && x.TenantId == tenantId && x.IsActive && !x.IsSoftDeleted && x.IsEnrollmentEnabled, cancellationToken);
+    public Task<bool> IsEligibleTenantDeviceAsync(long tenantId, long tenantDeviceId, CancellationToken cancellationToken) => Context.TenantDevices.AnyAsync(x => x.Id == tenantDeviceId && x.TenantId == tenantId && x.IsActive && !x.IsSoftDeleted && x.TenantDeviceConfiguration != null && x.TenantDeviceConfiguration.IsEnrollmentEnabled, cancellationToken);
     /// <inheritdoc />
     public Task<bool> EnrollIdExistsAsync(long tenantId, long tenantDeviceId, string enrollId, long? excludeId, CancellationToken cancellationToken) => Context.EmployeeDeviceEnrollments.AnyAsync(x => x.TenantId == tenantId && x.TenantDeviceId == tenantDeviceId && !x.IsSoftDeleted && x.EnrollId.ToLower() == enrollId.ToLower() && (!excludeId.HasValue || x.Id != excludeId.Value), cancellationToken);
 

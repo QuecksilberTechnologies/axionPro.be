@@ -13,6 +13,7 @@ public partial class DeviceMaster
     #region Properties
 
     public long Id { get; set; }
+    public string SNo { get; set; } = null!;
     public string DeviceCode { get; set; } = null!;
     public string DeviceName { get; set; } = null!;
     public string ModelNo { get; set; } = null!;
@@ -81,6 +82,7 @@ public partial class DeviceMaster
     public string? Remark { get; set; }
     public bool IsRecommended { get; set; }
     public bool IsActive { get; set; }
+    public bool IsOccupied { get; set; }
     public bool IsSoftDeleted { get; set; }
     public long AddedById { get; set; }
     public DateTime AddedDateTime { get; set; }

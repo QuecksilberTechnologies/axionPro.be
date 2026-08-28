@@ -125,6 +125,7 @@ public class UnitOfWork : IUnitOfWork
     private IEmployeeWorkModeOverrideRequestRepository? _employeeWorkModeOverrideRequestRepository;
     private IDeviceMasterRepository? _deviceMasterRepository;
     private ITenantDeviceRepository? _tenantDeviceRepository;
+    private ITenantDeviceConfigurationRepository? _tenantDeviceConfigurationRepository;
 
     public UnitOfWork(
         WorkforceDbContext context,
@@ -478,6 +479,10 @@ public class UnitOfWork : IUnitOfWork
     /// <summary>Gets the Host-managed physical TenantDevice repository.</summary>
     public ITenantDeviceRepository TenantDeviceRepository =>
         _tenantDeviceRepository ??= new TenantDeviceRepository(_context);
+
+    /// <summary>Gets the Tenant device connection-configuration repository.</summary>
+    public ITenantDeviceConfigurationRepository TenantDeviceConfigurationRepository =>
+        _tenantDeviceConfigurationRepository ??= new TenantDeviceConfigurationRepository(_context);
 
     #endregion
 

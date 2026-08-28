@@ -46,6 +46,16 @@ public sealed class DeviceMasterController(IMediator mediator, ILogger<DeviceMas
     { logger.LogInformation("Received DeviceMaster get-by-id request for {DeviceMasterId}.", id); return Ok(await mediator.Send(new GetDeviceMasterByIdQuery(id), cancellationToken)); }
 
     /// <summary>
+    /// Retrieves DeviceMaster information by its manufacturer serial number.
+    /// </summary>
+    /// <remarks>
+    /// <para>Returns the active or inactive, non-soft-deleted DeviceMaster matching the supplied SNo.</para>
+    /// </remarks>
+    [HttpGet("get-info-by-sno/{sNo}")]
+    public async Task<IActionResult> GetInfoBySNo(string sNo, CancellationToken cancellationToken)
+    { logger.LogInformation("Received DeviceMaster get-info-by-sno request."); return Ok(await mediator.Send(new GetDeviceMasterInfoBySNoQuery(sNo), cancellationToken)); }
+
+    /// <summary>
     /// Supports the Angular UI flow for get all.
     /// </summary>
     /// <remarks>
