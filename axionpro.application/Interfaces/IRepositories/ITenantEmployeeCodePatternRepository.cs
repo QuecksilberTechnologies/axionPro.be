@@ -16,6 +16,11 @@ namespace axionpro.application.Interfaces.IRepositories
         Task<GetEmployeeCodePatternResponseDTO?> GetTenantEmployeeCodePatternAsync(long tenantId ,bool IsActive);
 
         /// <summary>
+        /// Gets the active employee code pattern as a tracked entity for a Host-managed Tenant update.
+        /// </summary>
+        Task<EmployeeCodePattern?> GetActivePatternForUpdateAsync(long tenantId, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Creates a new employee code pattern for a tenant.
         /// </summary>
         Task<bool> CreatePatternAsync(EmployeeCodePattern entity);

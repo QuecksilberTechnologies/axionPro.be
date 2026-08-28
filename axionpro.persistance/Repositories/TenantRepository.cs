@@ -319,6 +319,18 @@ namespace axionpro.persistance.Repositories
         }
 
         /// <summary>
+        /// Retrieves the first persisted profile for a Tenant as a tracked entity for the Host-managed nested update flow.
+        /// Tenant onboarding creates one profile record per Tenant.
+        /// </summary>
+        public Task<TenantProfile?> GetTenantProfileForUpdateAsync(long tenantId, CancellationToken cancellationToken = default)
+        {
+            return _context.TenantProfiles
+                .Where(profile => profile.TenantId == tenantId)
+                .OrderBy(profile => profile.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        /// <summary>
         /// Determines whether another non-soft-deleted Tenant uses the supplied email address.
         /// </summary>
         /// <param name="tenantEmail">The email address to check.</param>

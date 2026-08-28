@@ -59,6 +59,17 @@ namespace axionpro.persistance.Repositories
             }
         }
 
+        /// <summary>
+        /// Retrieves the active pattern as a tracked entity so its issued sequence can be preserved during configuration updates.
+        /// </summary>
+        public Task<EmployeeCodePattern?> GetActivePatternForUpdateAsync(long tenantId, CancellationToken cancellationToken = default)
+        {
+            return _context.EmployeeCodePatterns
+                .Where(pattern => pattern.TenantId == tenantId && pattern.IsActive)
+                .OrderBy(pattern => pattern.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
         // ============================================================
         // 2️⃣ CREATE PATTERN
         // ============================================================

@@ -51,6 +51,14 @@ namespace axionpro.application.Interfaces.IRepositories
         Task<Tenant?> GetHostManagedTenantByIdAsync(long tenantId, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Retrieves the Tenant's tracked profile for the Host-managed nested update flow.
+        /// </summary>
+        /// <param name="tenantId">The authoritative Tenant identifier.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The tracked Tenant profile, or <see langword="null"/> when unavailable.</returns>
+        Task<TenantProfile?> GetTenantProfileForUpdateAsync(long tenantId, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Determines whether another non-soft-deleted Tenant uses the supplied email address.
         /// </summary>
         /// <param name="tenantEmail">The email address to check.</param>

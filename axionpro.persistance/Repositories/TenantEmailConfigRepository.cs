@@ -59,7 +59,10 @@ namespace axionpro.persistance.Repositories
             existing.FromEmail = config.FromEmail;
             existing.FromName = config.FromName;
             existing.IsActive = config.IsActive;
-            existing.SecrateKey = config.SecrateKey;
+            if (!string.IsNullOrWhiteSpace(config.SecrateKey))
+            {
+                existing.SecrateKey = config.SecrateKey;
+            }
 
             _logger.LogInformation("Tenant email config updated in DbContext for Id: {Id}", config.Id);
 

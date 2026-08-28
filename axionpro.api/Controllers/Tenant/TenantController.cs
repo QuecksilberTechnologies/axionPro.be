@@ -82,6 +82,56 @@ public class TenantController : ControllerBase
     #region Tenant Management Queries
 
     /// <summary>
+    /// Atomically updates a Host-managed Tenant and its selected nested configuration using an encrypted identifier.
+    /// </summary>
+    /// <remarks>
+    /// The selectedLocation.tenantLocationId must be one of the encrypted route Tenant's locations. The response never exposes SMTP credentials or secret-key material.
+    /// </remarks>
+    /// <param name="encryptedTenantId">The encrypted Tenant identifier.</param>
+    /// <param name="requestDTO">The editable Tenant, profile, selected location, employee-code-pattern, and email-configuration values.</param>
+    /// <param name="permissionRequest">The Host module-operation permission metadata for non-Super-Admin Hosts.</param>
+    /// <param name="cancellationToken">The token used to observe request cancellation.</param>
+    /// <returns>The safe updated Tenant response.</returns>
+    [Authorize]
+    [HttpPut("new-tenant-update/{encryptedTenantId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> UpdateNewTenantAsync(
+        string encryptedTenantId,
+        [FromBody] NewTenantUpdateRequestDTO? requestDTO,
+        [FromQuery] PermissionRequestDTO? permissionRequest,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new UpdateNewTenantCommand(encryptedTenantId, requestDTO, permissionRequest),
+            cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Reports the transactional dependency groups a future Tenant deletion cascade must process.
+    /// </summary>
+    /// <remarks>
+    /// This endpoint decrypts and validates the submitted Tenant identifier but never deletes or deactivates data.
+    /// </remarks>
+    /// <param name="id">The encrypted Tenant identifier.</param>
+    /// <param name="permissionRequest">The Host module-operation permission metadata.</param>
+    /// <param name="cancellationToken">The token used to observe request cancellation.</param>
+    /// <returns>Read-only Tenant deletion dependency information.</returns>
+    [Authorize]
+    [HttpGet("{id}/delete-dependencies")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetTenantDeleteDependencyInfoAsync(
+        string id,
+        [FromQuery] PermissionRequestDTO permissionRequest,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new GetTenantDeleteDependencyInfoQuery(id, permissionRequest),
+            cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Creates a new Tenant with its initial subscription, profile, location, administrator, and seeded configuration.
     /// </summary>
     /// <remarks>
