@@ -51,6 +51,14 @@ namespace axionpro.application.Interfaces.IRepositories
         Task<Tenant?> GetHostManagedTenantByIdAsync(long tenantId, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Retrieves the safe Host-visible detail projection for one active, non-soft-deleted Tenant and its active related records.
+        /// </summary>
+        /// <param name="tenantId">The authoritative Tenant identifier.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The safe detail projection, or <see langword="null"/> when the Tenant is unavailable.</returns>
+        Task<HostTenantDetailResponseDTO?> GetHostManagedTenantDetailAsync(long tenantId, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Retrieves the Tenant's tracked profile for the Host-managed nested update flow.
         /// </summary>
         /// <param name="tenantId">The authoritative Tenant identifier.</param>

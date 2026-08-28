@@ -23,7 +23,7 @@ namespace axionpro.application.Features.TenantManagementCmd.Queries;
 /// <summary>
 /// Represents the Host-side request to retrieve one Tenant for details or editing.
 /// </summary>
-public sealed class GetTenantByIdQuery : IRequest<ApiResponse<HostTenantResponseDTO>>
+public sealed class GetTenantByIdQuery : IRequest<ApiResponse<HostTenantDetailResponseDTO>>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="GetTenantByIdQuery"/> class.
@@ -48,7 +48,7 @@ public sealed class GetTenantByIdQuery : IRequest<ApiResponse<HostTenantResponse
 /// Retrieves one Host-managed Tenant after validating current Host database permission.
 /// </summary>
 public sealed class GetTenantByIdQueryHandler
-    : IRequestHandler<GetTenantByIdQuery, ApiResponse<HostTenantResponseDTO>>
+    : IRequestHandler<GetTenantByIdQuery, ApiResponse<HostTenantDetailResponseDTO>>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICommonRequestService _commonRequestService;
@@ -75,9 +75,9 @@ public sealed class GetTenantByIdQueryHandler
     /// </summary>
     /// <param name="request">The encrypted Tenant identifier request.</param>
     /// <param name="cancellationToken">The token used to observe cancellation.</param>
-    /// <returns>The Host Tenant response with an encrypted identifier.</returns>
+    /// <returns>The complete safe Host Tenant detail response with an encrypted identifier.</returns>
     /// <exception cref="NotFoundException">Thrown when the decrypted Tenant is unavailable or soft deleted.</exception>
-    public async Task<ApiResponse<HostTenantResponseDTO>> Handle(
+    public async Task<ApiResponse<HostTenantDetailResponseDTO>> Handle(
         GetTenantByIdQuery request,
         CancellationToken cancellationToken)
     {
@@ -94,32 +94,22 @@ public sealed class GetTenantByIdQueryHandler
             hostContext.TenantEncryptionKey,
             _idEncoderService);
         var tenant = await _unitOfWork.TenantRepository
-            .GetHostManagedTenantByIdAsync(tenantId, cancellationToken);
+            .GetHostManagedTenantDetailAsync(tenantId, cancellationToken);
 
         if (tenant is null)
         {
             throw new NotFoundException(AppConstants.ErrorMessages.ResourceNotFound);
         }
 
-        return ApiResponse<HostTenantResponseDTO>.Success(
-            MapTenant(tenant, hostContext.TenantEncryptionKey),
+        tenant.Id = HostTenantIdentifierProtector.Encrypt(
+            tenantId,
+            hostContext.TenantEncryptionKey,
+            _idEncoderService);
+
+        return ApiResponse<HostTenantDetailResponseDTO>.Success(
+            tenant,
             "Tenant retrieved successfully.");
     }
-
-    private HostTenantResponseDTO MapTenant(Tenant tenant, string tenantEncryptionKey) =>
-        new()
-        {
-            Id = HostTenantIdentifierProtector.Encrypt(tenant.Id, tenantEncryptionKey, _idEncoderService),
-            CompanyName = tenant.CompanyName,
-            TenantCode = tenant.TenantCode,
-            CompanyEmailDomain = tenant.CompanyEmailDomain,
-            TenantEmail = tenant.TenantEmail,
-            ContactPersonName = tenant.ContactPersonName,
-            ContactNumber = tenant.ContactNumber,
-            CountryId = tenant.CountryId,
-            IsVerified = tenant.IsVerified,
-            IsActive = tenant.IsActive
-        };
 }
 
 #endregion

@@ -170,14 +170,13 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Get Tenant By ID.
+    /// Gets the complete safe Host-visible detail for one Tenant by its encrypted identifier.
     /// </summary>
     /// <remarks>
-    /// Handles the request to get tenant by id.
-    /// Requires an authenticated user.
+    /// Returns active related records and excludes soft-deleted rows. SMTP passwords, secret keys, password hashes, refresh tokens, and Tenant encryption keys are never returned.
     /// </remarks>
     /// <param name="requestDTO">The query parameters used to get tenant by id.</param>
-    /// <returns>An HTTP response containing the result of the operation.</returns>
+    /// <returns>An HTTP response containing the safe Tenant detail projection.</returns>
     [Authorize]
     [HttpGet("get-tenant-by-id")]
     [ProducesResponseType(StatusCodes.Status200OK)]

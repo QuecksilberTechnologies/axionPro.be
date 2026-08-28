@@ -319,6 +319,366 @@ namespace axionpro.persistance.Repositories
         }
 
         /// <summary>
+        /// Retrieves a safe, Host-visible Tenant detail projection. Each collection is independently limited to live records
+        /// according to its available active and soft-delete columns; no credential secret, password, token, or encryption key is projected.
+        /// </summary>
+        public async Task<HostTenantDetailResponseDTO?> GetHostManagedTenantDetailAsync(
+            long tenantId,
+            CancellationToken cancellationToken = default)
+        {
+            var detail = await _context.Tenants
+                .AsNoTracking()
+                .Where(tenant => tenant.Id == tenantId && tenant.IsActive && tenant.IsSoftDeleted != true)
+                .Select(tenant => new HostTenantDetailResponseDTO
+                {
+                    TenantIndustryId = tenant.TenantIndustryId,
+                    TenantIndustryName = tenant.TenantIndustry.IsActive && tenant.TenantIndustry.IsSoftDeted != true
+                        ? tenant.TenantIndustry.IndustryName
+                        : null,
+                    CompanyName = tenant.CompanyName,
+                    TenantCode = tenant.TenantCode,
+                    CompanyEmailDomain = tenant.CompanyEmailDomain,
+                    TenantEmail = tenant.TenantEmail,
+                    ContactPersonName = tenant.ContactPersonName,
+                    GenderId = tenant.GenderId,
+                    ContactNumber = tenant.ContactNumber,
+                    CountryId = tenant.CountryId,
+                    DefaultCurrency = tenant.DefaultCurrency,
+                    IsVerified = tenant.IsVerified,
+                    IsActive = tenant.IsActive
+                })
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (detail is null)
+            {
+                return null;
+            }
+
+            detail.Profiles = await _context.TenantProfiles
+                .AsNoTracking()
+                .Where(profile => profile.TenantId == tenantId)
+                .OrderBy(profile => profile.Id)
+                .Select(profile => new HostTenantProfileDetailDTO
+                {
+                    Id = profile.Id,
+                    Address = profile.Address,
+                    LogoUrl = profile.LogoUrl,
+                    ThemeColor = profile.ThemeColor,
+                    BusinessType = profile.BusinessType,
+                    Industry = profile.Industry,
+                    TotalEmployees = profile.TotalEmployees,
+                    TotalBranches = profile.TotalBranches,
+                    FoundedYear = profile.FoundedYear,
+                    WebsiteUrl = profile.WebsiteUrl
+                })
+                .ToListAsync(cancellationToken);
+
+            detail.Locations = await _context.TenantLocations
+                .AsNoTracking()
+                .Where(location =>
+                    location.TenantId == tenantId &&
+                    location.IsActive &&
+                    !location.IsSoftDeleted)
+                .OrderBy(location => location.LocationName)
+                .ThenBy(location => location.Id)
+                .Select(location => new HostTenantLocationDetailDTO
+                {
+                    Id = location.Id,
+                    LocationCode = location.LocationCode,
+                    LocationName = location.LocationName,
+                    LocationType = location.LocationType,
+                    CountryId = location.CountryId,
+                    StateId = location.StateId,
+                    CityId = location.CityId,
+                    Address = location.Address,
+                    Landmark = location.Landmark,
+                    PostalCode = location.PostalCode,
+                    Latitude = location.Latitude,
+                    Longitude = location.Longitude,
+                    GeoFenceRadiusMeters = location.GeoFenceRadiusMeters,
+                    TimeZoneId = location.TimeZoneId,
+                    IsHeadOffice = location.IsHeadOffice,
+                    IsGeoFenceEnabled = location.IsGeoFenceEnabled,
+                    IsAttendanceAllowed = location.IsAttendanceAllowed,
+                    IsBiometricEnabled = location.IsBiometricEnabled
+                })
+                .ToListAsync(cancellationToken);
+
+            detail.Subscriptions = await _context.TenantSubscriptions
+                .AsNoTracking()
+                .Where(subscription =>
+                    subscription.TenantId == tenantId &&
+                    subscription.IsActive &&
+                    subscription.SubscriptionPlan.IsActive &&
+                    !subscription.SubscriptionPlan.IsSoftDeleted)
+                .OrderByDescending(subscription => subscription.SubscriptionStartDate)
+                .ThenByDescending(subscription => subscription.Id)
+                .Select(subscription => new HostTenantSubscriptionDetailDTO
+                {
+                    Id = subscription.Id,
+                    SubscriptionPlanId = subscription.SubscriptionPlanId,
+                    SubscriptionPlanName = subscription.SubscriptionPlan.PlanName,
+                    SubscriptionStartDate = subscription.SubscriptionStartDate,
+                    SubscriptionEndDate = subscription.SubscriptionEndDate,
+                    IsTrial = subscription.IsTrial,
+                    PaymentTxnId = subscription.PaymentTxnId,
+                    PaymentMode = subscription.PaymentMode
+                })
+                .ToListAsync(cancellationToken);
+
+            detail.EnabledModules = await _context.TenantEnabledModules
+                .AsNoTracking()
+                .Where(module =>
+                    module.TenantId == tenantId &&
+                    module.IsEnabled &&
+                    module.Module.IsActive)
+                .OrderBy(module => module.Module.ItemPriority)
+                .ThenBy(module => module.Module.ModuleName)
+                .ThenBy(module => module.Id)
+                .Select(module => new HostTenantEnabledModuleDetailDTO
+                {
+                    Id = module.Id,
+                    ModuleId = module.ModuleId,
+                    ParentModuleId = module.ParentModuleId,
+                    IsLeafNode = module.IsLeafNode,
+                    ModuleCode = module.Module.ModuleCode,
+                    ModuleName = module.Module.ModuleName,
+                    DisplayName = module.Module.DisplayName
+                })
+                .ToListAsync(cancellationToken);
+
+            detail.EnabledOperations = await _context.TenantEnabledOperations
+                .AsNoTracking()
+                .Where(operation =>
+                    operation.TenantId == tenantId &&
+                    operation.IsEnabled &&
+                    operation.Module.IsActive &&
+                    operation.Operation.IsActive)
+                .OrderBy(operation => operation.Module.ModuleName)
+                .ThenBy(operation => operation.Operation.OperationName)
+                .ThenBy(operation => operation.Id)
+                .Select(operation => new HostTenantEnabledOperationDetailDTO
+                {
+                    Id = operation.Id,
+                    ModuleId = operation.ModuleId,
+                    ModuleName = operation.Module.ModuleName,
+                    OperationId = operation.OperationId,
+                    OperationName = operation.Operation.OperationName,
+                    IsOperationUsed = operation.IsOperationUsed
+                })
+                .ToListAsync(cancellationToken);
+
+            detail.Departments = await _context.Departments
+                .AsNoTracking()
+                .Where(department =>
+                    department.TenantId == tenantId &&
+                    department.IsActive &&
+                    !department.IsSoftDeleted)
+                .OrderBy(department => department.DepartmentName)
+                .ThenBy(department => department.Id)
+                .Select(department => new HostTenantDepartmentDetailDTO
+                {
+                    Id = department.Id,
+                    DepartmentName = department.DepartmentName,
+                    Description = department.Description,
+                    Remark = department.Remark,
+                    IsExecutiveOffice = department.IsExecutiveOffice
+                })
+                .ToListAsync(cancellationToken);
+
+            detail.Designations = await _context.Designations
+                .AsNoTracking()
+                .Where(designation =>
+                    designation.TenantId == tenantId &&
+                    designation.IsActive &&
+                    !designation.IsSoftDeleted &&
+                    designation.Department != null &&
+                    designation.Department.IsActive &&
+                    !designation.Department.IsSoftDeleted)
+                .OrderBy(designation => designation.DesignationName)
+                .ThenBy(designation => designation.Id)
+                .Select(designation => new HostTenantDesignationDetailDTO
+                {
+                    Id = designation.Id,
+                    DepartmentId = designation.DepartmentId,
+                    DepartmentName = designation.Department!.DepartmentName,
+                    DesignationName = designation.DesignationName,
+                    Description = designation.Description
+                })
+                .ToListAsync(cancellationToken);
+
+            detail.EmployeeCodePatterns = await _context.EmployeeCodePatterns
+                .AsNoTracking()
+                .Where(pattern => pattern.TenantId == tenantId && pattern.IsActive)
+                .OrderBy(pattern => pattern.Id)
+                .Select(pattern => new HostTenantEmployeeCodePatternDetailDTO
+                {
+                    Id = pattern.Id,
+                    Prefix = pattern.Prefix,
+                    IncludeYear = pattern.IncludeYear,
+                    IncludeMonth = pattern.IncludeMonth,
+                    IncludeDepartment = pattern.IncludeDepartment,
+                    Separator = pattern.Separator,
+                    RunningNumberLength = pattern.RunningNumberLength,
+                    LastUsedNumber = pattern.LastUsedNumber
+                })
+                .ToListAsync(cancellationToken);
+
+            detail.Roles = await _context.Roles
+                .AsNoTracking()
+                .Where(role =>
+                    role.TenantId == tenantId &&
+                    role.IsActive &&
+                    role.IsSoftDeleted != true)
+                .OrderBy(role => role.RoleName)
+                .ThenBy(role => role.Id)
+                .Select(role => new HostTenantRoleDetailDTO
+                {
+                    Id = role.Id,
+                    RoleName = role.RoleName,
+                    RoleType = role.RoleType,
+                    Remark = role.Remark,
+                    IsSystemDefault = role.IsSystemDefault
+                })
+                .ToListAsync(cancellationToken);
+
+            var roleIds = detail.Roles.Select(role => role.Id).ToList();
+            detail.RolePermissions = await _context.RoleModuleAndPermissions
+                .AsNoTracking()
+                .Where(permission =>
+                    roleIds.Contains(permission.RoleId ?? 0) &&
+                    permission.IsActive == true &&
+                    !permission.IsSoftDeleted &&
+                    (permission.Module == null || permission.Module.IsActive) &&
+                    (permission.Operation == null || permission.Operation.IsActive))
+                .OrderBy(permission => permission.RoleId)
+                .ThenBy(permission => permission.ModuleId)
+                .ThenBy(permission => permission.OperationId)
+                .ThenBy(permission => permission.Id)
+                .Select(permission => new HostTenantRolePermissionDetailDTO
+                {
+                    Id = permission.Id,
+                    RoleId = permission.RoleId,
+                    RoleName = permission.Role != null ? permission.Role.RoleName : null,
+                    ModuleId = permission.ModuleId,
+                    ModuleName = permission.Module != null ? permission.Module.ModuleName : null,
+                    OperationId = permission.OperationId,
+                    OperationName = permission.Operation != null ? permission.Operation.OperationName : null,
+                    HasAccess = permission.HasAccess,
+                    IsOperational = permission.IsOperational,
+                    Remark = permission.Remark
+                })
+                .ToListAsync(cancellationToken);
+
+            detail.Employees = await _context.Employees
+                .AsNoTracking()
+                .Where(employee =>
+                    employee.TenantId == tenantId &&
+                    employee.IsActive &&
+                    !employee.IsSoftDeleted)
+                .OrderBy(employee => employee.FirstName)
+                .ThenBy(employee => employee.Id)
+                .Select(employee => new HostTenantEmployeeDetailDTO
+                {
+                    Id = employee.Id,
+                    EmployementCode = employee.EmployementCode,
+                    FirstName = employee.FirstName,
+                    MiddleName = employee.MiddleName,
+                    LastName = employee.LastName,
+                    GenderId = employee.GenderId,                  
+                    EmployeeTypeId = employee.EmployeeTypeId,
+                    OfficialEmail = employee.OfficialEmail,
+                    DateOfOnBoarding = employee.DateOfOnBoarding,
+                    CountryId = employee.CountryId
+                })
+                .ToListAsync(cancellationToken);
+
+            var employeeIds = detail.Employees.Select(employee => employee.Id).ToList();
+            detail.UserRoles = await _context.UserRoles
+                .AsNoTracking()
+                .Where(userRole =>
+                    employeeIds.Contains(userRole.EmployeeId ?? 0) &&
+                    userRole.IsActive &&
+                    userRole.IsSoftDeleted != true &&
+                    (userRole.Role == null || (userRole.Role.IsActive && userRole.Role.IsSoftDeleted != true)))
+                .OrderBy(userRole => userRole.EmployeeId)
+                .ThenBy(userRole => userRole.RoleId)
+                .ThenBy(userRole => userRole.Id)
+                .Select(userRole => new HostTenantUserRoleDetailDTO
+                {
+                    Id = userRole.Id,
+                    EmployeeId = userRole.EmployeeId,
+                    EmployeeName = userRole.Employee != null ? userRole.Employee.FirstName : null,
+                    RoleId = userRole.RoleId,
+                    RoleName = userRole.Role != null ? userRole.Role.RoleName : null,
+                    IsPrimaryRole = userRole.IsPrimaryRole,
+                    Remark = userRole.Remark,
+                    AssignedDateTime = userRole.AssignedDateTime,
+                    RoleStartDate = userRole.RoleStartDate,
+                    ApprovalRequired = userRole.ApprovalRequired,
+                    ApprovalStatus = userRole.ApprovalStatus
+                })
+                .ToListAsync(cancellationToken);
+
+            detail.LoginCredentials = await _context.LoginCredentials
+                .AsNoTracking()
+                .Where(credential =>
+                    credential.TenantId == tenantId &&
+                    employeeIds.Contains(credential.EmployeeId) &&
+                    credential.IsActive &&
+                    credential.IsSoftDeleted != true)
+                .OrderBy(credential => credential.LoginId)
+                .ThenBy(credential => credential.Id)
+                .Select(credential => new HostTenantLoginCredentialDetailDTO
+                {
+                    Id = credential.Id,
+                    EmployeeId = credential.EmployeeId,
+                    LoginId = credential.LoginId,
+                    HasFirstLogin = credential.HasFirstLogin,
+                    IsPasswordChangeRequired = credential.IsPasswordChangeRequired,
+                    IsOnboard = credential.IsOnboard,
+                    Remark = credential.Remark
+                })
+                .ToListAsync(cancellationToken);
+
+            detail.PolicyTypes = await _context.PolicyTypes
+                .AsNoTracking()
+                .Where(policyType =>
+                    policyType.TenantId == tenantId &&
+                    policyType.IsActive == true &&
+                    policyType.IsSoftDelete != true)
+                .OrderBy(policyType => policyType.PolicyName)
+                .ThenBy(policyType => policyType.Id)
+                .Select(policyType => new HostTenantPolicyTypeDetailDTO
+                {
+                    Id = policyType.Id,
+                    PolicyName = policyType.PolicyName,
+                    Description = policyType.Description,
+                    IsStructured = policyType.IsStructured,
+                    PolicyTypeEnumVal = policyType.PolicyTypeEnumVal,
+                    HasPolicyDocUploaded = policyType.HasPolicyDocUploaded
+                })
+                .ToListAsync(cancellationToken);
+
+            detail.EmailConfigurations = await _context.TenantEmailConfigs
+                .AsNoTracking()
+                .Where(configuration => configuration.TenantId == tenantId && configuration.IsActive)
+                .OrderBy(configuration => configuration.Id)
+                .Select(configuration => new HostTenantEmailConfigurationDetailDTO
+                {
+                    Id = configuration.Id,
+                    SmtpHost = configuration.SmtpHost,
+                    SmtpPort = configuration.SmtpPort,
+                    SmtpUsername = configuration.SmtpUsername,
+                    FromEmail = configuration.FromEmail,
+                    FromName = configuration.FromName
+                })
+                .ToListAsync(cancellationToken);
+
+            return detail;
+        }
+
+        /// <summary>
         /// Retrieves the first persisted profile for a Tenant as a tracked entity for the Host-managed nested update flow.
         /// Tenant onboarding creates one profile record per Tenant.
         /// </summary>
