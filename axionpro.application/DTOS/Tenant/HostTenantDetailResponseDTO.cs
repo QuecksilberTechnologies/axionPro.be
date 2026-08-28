@@ -37,17 +37,10 @@ public sealed class HostTenantDetailResponseDTO
     public List<HostTenantProfileDetailDTO> Profiles { get; set; } = new();
     public List<HostTenantLocationDetailDTO> Locations { get; set; } = new();
     public List<HostTenantSubscriptionDetailDTO> Subscriptions { get; set; } = new();
-    public List<HostTenantEnabledModuleDetailDTO> EnabledModules { get; set; } = new();
-    public List<HostTenantEnabledOperationDetailDTO> EnabledOperations { get; set; } = new();
     public List<HostTenantDepartmentDetailDTO> Departments { get; set; } = new();
-    public List<HostTenantDesignationDetailDTO> Designations { get; set; } = new();
     public List<HostTenantEmployeeCodePatternDetailDTO> EmployeeCodePatterns { get; set; } = new();
-    public List<HostTenantRoleDetailDTO> Roles { get; set; } = new();
-    public List<HostTenantRolePermissionDetailDTO> RolePermissions { get; set; } = new();
     public List<HostTenantEmployeeDetailDTO> Employees { get; set; } = new();
-    public List<HostTenantUserRoleDetailDTO> UserRoles { get; set; } = new();
     public List<HostTenantLoginCredentialDetailDTO> LoginCredentials { get; set; } = new();
-    public List<HostTenantPolicyTypeDetailDTO> PolicyTypes { get; set; } = new();
     public List<HostTenantEmailConfigurationDetailDTO> EmailConfigurations { get; set; } = new();
 
     #endregion
@@ -104,29 +97,6 @@ public sealed class HostTenantSubscriptionDetailDTO
     public string? PaymentMode { get; set; }
 }
 
-/// <summary>Represents an enabled Tenant module.</summary>
-public sealed class HostTenantEnabledModuleDetailDTO
-{
-    public long Id { get; set; }
-    public int ModuleId { get; set; }
-    public int? ParentModuleId { get; set; }
-    public bool? IsLeafNode { get; set; }
-    public string? ModuleCode { get; set; }
-    public string? ModuleName { get; set; }
-    public string? DisplayName { get; set; }
-}
-
-/// <summary>Represents an enabled Tenant operation.</summary>
-public sealed class HostTenantEnabledOperationDetailDTO
-{
-    public long Id { get; set; }
-    public int ModuleId { get; set; }
-    public string? ModuleName { get; set; }
-    public int OperationId { get; set; }
-    public string? OperationName { get; set; }
-    public bool? IsOperationUsed { get; set; }
-}
-
 /// <summary>Represents an active, non-soft-deleted Tenant department.</summary>
 public sealed class HostTenantDepartmentDetailDTO
 {
@@ -135,16 +105,6 @@ public sealed class HostTenantDepartmentDetailDTO
     public string? Description { get; set; }
     public string? Remark { get; set; }
     public bool IsExecutiveOffice { get; set; }
-}
-
-/// <summary>Represents an active, non-soft-deleted Tenant designation.</summary>
-public sealed class HostTenantDesignationDetailDTO
-{
-    public int Id { get; set; }
-    public int DepartmentId { get; set; }
-    public string? DepartmentName { get; set; }
-    public string DesignationName { get; set; } = string.Empty;
-    public string? Description { get; set; }
 }
 
 /// <summary>Represents an active Tenant employee-code pattern.</summary>
@@ -160,31 +120,6 @@ public sealed class HostTenantEmployeeCodePatternDetailDTO
     public int LastUsedNumber { get; set; }
 }
 
-/// <summary>Represents an active, non-soft-deleted Tenant role.</summary>
-public sealed class HostTenantRoleDetailDTO
-{
-    public int Id { get; set; }
-    public string? RoleName { get; set; }
-    public int RoleType { get; set; }
-    public string? Remark { get; set; }
-    public bool? IsSystemDefault { get; set; }
-}
-
-/// <summary>Represents an active, non-soft-deleted permission assigned to a Tenant role.</summary>
-public sealed class HostTenantRolePermissionDetailDTO
-{
-    public int Id { get; set; }
-    public int? RoleId { get; set; }
-    public string? RoleName { get; set; }
-    public int? ModuleId { get; set; }
-    public string? ModuleName { get; set; }
-    public int? OperationId { get; set; }
-    public string? OperationName { get; set; }
-    public bool? HasAccess { get; set; }
-    public bool? IsOperational { get; set; }
-    public string? Remark { get; set; }
-}
-
 /// <summary>Represents an active, non-soft-deleted Tenant employee without credentials or security data.</summary>
 public sealed class HostTenantEmployeeDetailDTO
 {
@@ -196,28 +131,10 @@ public sealed class HostTenantEmployeeDetailDTO
     public int? GenderId { get; set; }
     public int? DepartmentId { get; set; }
     public string? DepartmentName { get; set; }
-    public int? DesignationId { get; set; }
-    public string? DesignationName { get; set; }
     public int? EmployeeTypeId { get; set; }
     public string? OfficialEmail { get; set; }
     public DateTime? DateOfOnBoarding { get; set; }
     public int CountryId { get; set; }
-}
-
-/// <summary>Represents an active, non-soft-deleted Tenant employee-role assignment.</summary>
-public sealed class HostTenantUserRoleDetailDTO
-{
-    public long Id { get; set; }
-    public long? EmployeeId { get; set; }
-    public string? EmployeeName { get; set; }
-    public int? RoleId { get; set; }
-    public string? RoleName { get; set; }
-    public bool? IsPrimaryRole { get; set; }
-    public string? Remark { get; set; }
-    public DateTime? AssignedDateTime { get; set; }
-    public DateTime? RoleStartDate { get; set; }
-    public bool? ApprovalRequired { get; set; }
-    public string? ApprovalStatus { get; set; }
 }
 
 /// <summary>Represents a safe active login record without its password, tokens, device data, or network data.</summary>
@@ -230,17 +147,6 @@ public sealed class HostTenantLoginCredentialDetailDTO
     public bool? IsPasswordChangeRequired { get; set; }
     public bool IsOnboard { get; set; }
     public string? Remark { get; set; }
-}
-
-/// <summary>Represents an active, non-soft-deleted Tenant policy type.</summary>
-public sealed class HostTenantPolicyTypeDetailDTO
-{
-    public int Id { get; set; }
-    public string PolicyName { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public bool IsStructured { get; set; }
-    public int PolicyTypeEnumVal { get; set; }
-    public bool HasPolicyDocUploaded { get; set; }
 }
 
 /// <summary>Represents an active Tenant SMTP configuration without password or secret-key material.</summary>

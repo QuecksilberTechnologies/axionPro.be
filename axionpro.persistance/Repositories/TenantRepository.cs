@@ -426,48 +426,6 @@ namespace axionpro.persistance.Repositories
                 })
                 .ToListAsync(cancellationToken);
 
-            detail.EnabledModules = await _context.TenantEnabledModules
-                .AsNoTracking()
-                .Where(module =>
-                    module.TenantId == tenantId &&
-                    module.IsEnabled &&
-                    module.Module.IsActive)
-                .OrderBy(module => module.Module.ItemPriority)
-                .ThenBy(module => module.Module.ModuleName)
-                .ThenBy(module => module.Id)
-                .Select(module => new HostTenantEnabledModuleDetailDTO
-                {
-                    Id = module.Id,
-                    ModuleId = module.ModuleId,
-                    ParentModuleId = module.ParentModuleId,
-                    IsLeafNode = module.IsLeafNode,
-                    ModuleCode = module.Module.ModuleCode,
-                    ModuleName = module.Module.ModuleName,
-                    DisplayName = module.Module.DisplayName
-                })
-                .ToListAsync(cancellationToken);
-
-            detail.EnabledOperations = await _context.TenantEnabledOperations
-                .AsNoTracking()
-                .Where(operation =>
-                    operation.TenantId == tenantId &&
-                    operation.IsEnabled &&
-                    operation.Module.IsActive &&
-                    operation.Operation.IsActive)
-                .OrderBy(operation => operation.Module.ModuleName)
-                .ThenBy(operation => operation.Operation.OperationName)
-                .ThenBy(operation => operation.Id)
-                .Select(operation => new HostTenantEnabledOperationDetailDTO
-                {
-                    Id = operation.Id,
-                    ModuleId = operation.ModuleId,
-                    ModuleName = operation.Module.ModuleName,
-                    OperationId = operation.OperationId,
-                    OperationName = operation.Operation.OperationName,
-                    IsOperationUsed = operation.IsOperationUsed
-                })
-                .ToListAsync(cancellationToken);
-
             detail.Departments = await _context.Departments
                 .AsNoTracking()
                 .Where(department =>
@@ -486,27 +444,6 @@ namespace axionpro.persistance.Repositories
                 })
                 .ToListAsync(cancellationToken);
 
-            detail.Designations = await _context.Designations
-                .AsNoTracking()
-                .Where(designation =>
-                    designation.TenantId == tenantId &&
-                    designation.IsActive &&
-                    !designation.IsSoftDeleted &&
-                    designation.Department != null &&
-                    designation.Department.IsActive &&
-                    !designation.Department.IsSoftDeleted)
-                .OrderBy(designation => designation.DesignationName)
-                .ThenBy(designation => designation.Id)
-                .Select(designation => new HostTenantDesignationDetailDTO
-                {
-                    Id = designation.Id,
-                    DepartmentId = designation.DepartmentId,
-                    DepartmentName = designation.Department!.DepartmentName,
-                    DesignationName = designation.DesignationName,
-                    Description = designation.Description
-                })
-                .ToListAsync(cancellationToken);
-
             detail.EmployeeCodePatterns = await _context.EmployeeCodePatterns
                 .AsNoTracking()
                 .Where(pattern => pattern.TenantId == tenantId && pattern.IsActive)
@@ -521,52 +458,6 @@ namespace axionpro.persistance.Repositories
                     Separator = pattern.Separator,
                     RunningNumberLength = pattern.RunningNumberLength,
                     LastUsedNumber = pattern.LastUsedNumber
-                })
-                .ToListAsync(cancellationToken);
-
-            detail.Roles = await _context.Roles
-                .AsNoTracking()
-                .Where(role =>
-                    role.TenantId == tenantId &&
-                    role.IsActive &&
-                    role.IsSoftDeleted != true)
-                .OrderBy(role => role.RoleName)
-                .ThenBy(role => role.Id)
-                .Select(role => new HostTenantRoleDetailDTO
-                {
-                    Id = role.Id,
-                    RoleName = role.RoleName,
-                    RoleType = role.RoleType,
-                    Remark = role.Remark,
-                    IsSystemDefault = role.IsSystemDefault
-                })
-                .ToListAsync(cancellationToken);
-
-            var roleIds = detail.Roles.Select(role => role.Id).ToList();
-            detail.RolePermissions = await _context.RoleModuleAndPermissions
-                .AsNoTracking()
-                .Where(permission =>
-                    roleIds.Contains(permission.RoleId ?? 0) &&
-                    permission.IsActive == true &&
-                    !permission.IsSoftDeleted &&
-                    (permission.Module == null || permission.Module.IsActive) &&
-                    (permission.Operation == null || permission.Operation.IsActive))
-                .OrderBy(permission => permission.RoleId)
-                .ThenBy(permission => permission.ModuleId)
-                .ThenBy(permission => permission.OperationId)
-                .ThenBy(permission => permission.Id)
-                .Select(permission => new HostTenantRolePermissionDetailDTO
-                {
-                    Id = permission.Id,
-                    RoleId = permission.RoleId,
-                    RoleName = permission.Role != null ? permission.Role.RoleName : null,
-                    ModuleId = permission.ModuleId,
-                    ModuleName = permission.Module != null ? permission.Module.ModuleName : null,
-                    OperationId = permission.OperationId,
-                    OperationName = permission.Operation != null ? permission.Operation.OperationName : null,
-                    HasAccess = permission.HasAccess,
-                    IsOperational = permission.IsOperational,
-                    Remark = permission.Remark
                 })
                 .ToListAsync(cancellationToken);
 
@@ -594,32 +485,6 @@ namespace axionpro.persistance.Repositories
                 .ToListAsync(cancellationToken);
 
             var employeeIds = detail.Employees.Select(employee => employee.Id).ToList();
-            detail.UserRoles = await _context.UserRoles
-                .AsNoTracking()
-                .Where(userRole =>
-                    employeeIds.Contains(userRole.EmployeeId ?? 0) &&
-                    userRole.IsActive &&
-                    userRole.IsSoftDeleted != true &&
-                    (userRole.Role == null || (userRole.Role.IsActive && userRole.Role.IsSoftDeleted != true)))
-                .OrderBy(userRole => userRole.EmployeeId)
-                .ThenBy(userRole => userRole.RoleId)
-                .ThenBy(userRole => userRole.Id)
-                .Select(userRole => new HostTenantUserRoleDetailDTO
-                {
-                    Id = userRole.Id,
-                    EmployeeId = userRole.EmployeeId,
-                    EmployeeName = userRole.Employee != null ? userRole.Employee.FirstName : null,
-                    RoleId = userRole.RoleId,
-                    RoleName = userRole.Role != null ? userRole.Role.RoleName : null,
-                    IsPrimaryRole = userRole.IsPrimaryRole,
-                    Remark = userRole.Remark,
-                    AssignedDateTime = userRole.AssignedDateTime,
-                    RoleStartDate = userRole.RoleStartDate,
-                    ApprovalRequired = userRole.ApprovalRequired,
-                    ApprovalStatus = userRole.ApprovalStatus
-                })
-                .ToListAsync(cancellationToken);
-
             detail.LoginCredentials = await _context.LoginCredentials
                 .AsNoTracking()
                 .Where(credential =>
@@ -638,25 +503,6 @@ namespace axionpro.persistance.Repositories
                     IsPasswordChangeRequired = credential.IsPasswordChangeRequired,
                     IsOnboard = credential.IsOnboard,
                     Remark = credential.Remark
-                })
-                .ToListAsync(cancellationToken);
-
-            detail.PolicyTypes = await _context.PolicyTypes
-                .AsNoTracking()
-                .Where(policyType =>
-                    policyType.TenantId == tenantId &&
-                    policyType.IsActive == true &&
-                    policyType.IsSoftDelete != true)
-                .OrderBy(policyType => policyType.PolicyName)
-                .ThenBy(policyType => policyType.Id)
-                .Select(policyType => new HostTenantPolicyTypeDetailDTO
-                {
-                    Id = policyType.Id,
-                    PolicyName = policyType.PolicyName,
-                    Description = policyType.Description,
-                    IsStructured = policyType.IsStructured,
-                    PolicyTypeEnumVal = policyType.PolicyTypeEnumVal,
-                    HasPolicyDocUploaded = policyType.HasPolicyDocUploaded
                 })
                 .ToListAsync(cancellationToken);
 
