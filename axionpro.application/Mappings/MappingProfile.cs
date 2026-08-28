@@ -134,6 +134,7 @@ namespace axionpro.application.Mappings
                             ? (short?)s.CommunicationType.Value
                             : null))
                 .ForMember(d => d.Id, o => o.Ignore())
+                .ForMember(d => d.TenantId, o => o.Ignore())
                 .ForMember(d => d.AddedById, o => o.Ignore())
                 .ForMember(d => d.AddedDateTime, o => o.Ignore())
                 .ForMember(d => d.UpdatedById, o => o.Ignore())
@@ -159,6 +160,7 @@ namespace axionpro.application.Mappings
                             ? (short?)s.CommunicationType.Value
                             : null))
                 .ForMember(d => d.Id, o => o.Ignore())
+                .ForMember(d => d.TenantId, o => o.Ignore())
                 .ForMember(d => d.AddedById, o => o.Ignore())
                 .ForMember(d => d.AddedDateTime, o => o.Ignore())
                 .ForMember(d => d.UpdatedById, o => o.Ignore())
@@ -177,6 +179,7 @@ namespace axionpro.application.Mappings
                 .ForMember(d => d.DeviceMaster, o => o.Ignore());
 
             CreateMap<TenantDevice, TenantDeviceResponseDTO>()
+                .ForMember(d => d.TenantId, o => o.Ignore())
                 .ForMember(
                     d => d.CommunicationType,
                     o => o.MapFrom(s =>

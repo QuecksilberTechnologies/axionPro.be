@@ -5,6 +5,7 @@
 // Purpose : Defines Host-managed DeviceMaster and TenantDevice API contracts.
 // ================================================================
 
+using axionpro.application.DTOs.BaseDTO;
 using axionpro.domain.Entity;
 
 namespace axionpro.application.DTOS.Host;
@@ -131,11 +132,23 @@ public sealed class DeviceMasterResponseDTO : DeviceMasterRequestDTO
     public DateTime? UpdatedDateTime { get; set; }
 }
 
+/// <summary>
+/// Carries the encrypted Host-selected Tenant identifier and permission metadata
+/// required by TenantDevice endpoints.
+/// </summary>
+public class TenantDeviceAccessRequestDTO : PermissionRequestDTO
+{
+    /// <summary>
+    /// Gets or sets the encrypted Tenant identifier selected by a Host user.
+    /// Tenant Employee requests derive their Tenant scope from the trusted token.
+    /// </summary>
+    public string? TenantId { get; set; }
+}
+
 /// <summary>Supplies editable installation and configuration values for a physical Tenant device.</summary>
-public class TenantDeviceRequestDTO
+public class TenantDeviceRequestDTO : TenantDeviceAccessRequestDTO
 {
     #region Properties
-    public long TenantId { get; set; }
     public long TenantLocationId { get; set; }
     public long DeviceMasterId { get; set; }
     public string DeviceCode { get; set; } = string.Empty;
@@ -192,8 +205,8 @@ public sealed class UpdateTenantDeviceRequestDTO : TenantDeviceRequestDTO
     public long Id { get; set; }
 }
 
-/// <summary>Changes the active state of a Host-managed physical Tenant device.</summary>
-public sealed class UpdateTenantDeviceStatusRequestDTO
+/// <summary>Changes the active state of a physical Tenant device.</summary>
+public sealed class UpdateTenantDeviceStatusRequestDTO : TenantDeviceAccessRequestDTO
 {
     /// <summary>Gets or sets the TenantDevice identifier.</summary>
     public long Id { get; set; }
@@ -201,11 +214,10 @@ public sealed class UpdateTenantDeviceStatusRequestDTO
     public bool IsActive { get; set; }
 }
 
-/// <summary>Supplies database paging and filtering for Host physical-device management.</summary>
-public sealed class GetTenantDeviceListRequestDTO
+/// <summary>Supplies database paging and filtering for physical Tenant-device management.</summary>
+public sealed class GetTenantDeviceListRequestDTO : TenantDeviceAccessRequestDTO
 {
     public string? Search { get; set; }
-    public long? TenantId { get; set; }
     public long? TenantLocationId { get; set; }
     public long? DeviceMasterId { get; set; }
     public DeviceCommunicationType? CommunicationType { get; set; }
@@ -214,9 +226,54 @@ public sealed class GetTenantDeviceListRequestDTO
     public int PageSize { get; set; } = 10;
 }
 
-/// <summary>Represents a Host-managed physical Tenant device returned by the API.</summary>
-public sealed class TenantDeviceResponseDTO : TenantDeviceRequestDTO
+/// <summary>Represents a physical Tenant device returned by the API without exposing a raw Tenant identifier.</summary>
+public sealed class TenantDeviceResponseDTO
 {
+    /// <summary>Gets or sets the encrypted Tenant identifier.</summary>
+    public string TenantId { get; set; } = string.Empty;
+    public long TenantLocationId { get; set; }
+    public long DeviceMasterId { get; set; }
+    public string DeviceCode { get; set; } = string.Empty;
+    public string? DeviceName { get; set; }
+    public string SerialNumber { get; set; } = string.Empty;
+    public string? AssetTag { get; set; }
+    public string? FirmwareVersion { get; set; }
+    public string? SoftwareVersion { get; set; }
+    public string? IpAddress { get; set; }
+    public string? MacAddress { get; set; }
+    public int? DevicePort { get; set; }
+    public DeviceCommunicationType? CommunicationType { get; set; }
+    public string? ServerHost { get; set; }
+    public int? ServerPort { get; set; }
+    public string? ServerPath { get; set; }
+    public string? ServerUrl { get; set; }
+    public string? PushMode { get; set; }
+    public int? HeartbeatIntervalSeconds { get; set; }
+    public string? TimeZoneId { get; set; }
+    public string? Configuration { get; set; }
+    public DateOnly? PurchaseDate { get; set; }
+    public decimal? PurchasePrice { get; set; }
+    public string? CurrencyKey { get; set; }
+    public string? VendorName { get; set; }
+    public string? VendorContactNumber { get; set; }
+    public string? VendorEmail { get; set; }
+    public string? PurchaseOrderNumber { get; set; }
+    public string? InvoiceNumber { get; set; }
+    public string? InvoiceUrl { get; set; }
+    public DateOnly? WarrantyStartDate { get; set; }
+    public DateOnly? WarrantyEndDate { get; set; }
+    public string? WarrantyRemark { get; set; }
+    public DateTime? InstalledDateTime { get; set; }
+    public string? InstalledBy { get; set; }
+    public string? InstallationRemark { get; set; }
+    public bool IsAttendanceDevice { get; set; }
+    public bool IsEnrollmentEnabled { get; set; }
+    public bool IsAttendancePushEnabled { get; set; }
+    public bool IsAutoSyncEnabled { get; set; }
+    public string? Description { get; set; }
+    public string? AdditionalInfo { get; set; }
+    public string? Remark { get; set; }
+    public bool IsActive { get; set; }
     public long Id { get; set; }
     public string? TenantName { get; set; }
     public string? TenantLocationName { get; set; }

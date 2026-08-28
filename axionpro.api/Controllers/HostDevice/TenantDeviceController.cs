@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace axionpro.api.Controllers.HostDevice;
 
-/// <summary>Provides authenticated Host endpoints for physical Tenant device administration.</summary>
+/// <summary>Provides authenticated Host and Tenant endpoints for physical Tenant device administration.</summary>
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
@@ -42,8 +42,8 @@ public sealed class TenantDeviceController(IMediator mediator, ILogger<TenantDev
     /// <para>Angular API service call(s): TenantDeviceApi.getTenantDevice (app/core/services/tenant-device-api.ts:33).</para>
     /// </remarks>
     [HttpGet("get-by-id/{id:long}")]
-    public async Task<IActionResult> GetById(long id, CancellationToken cancellationToken)
-    { logger.LogInformation("Received TenantDevice get-by-id request for {TenantDeviceId}.", id); return Ok(await mediator.Send(new GetTenantDeviceByIdQuery(id), cancellationToken)); }
+    public async Task<IActionResult> GetById(long id, [FromQuery] TenantDeviceAccessRequestDTO accessRequest, CancellationToken cancellationToken)
+    { logger.LogInformation("Received TenantDevice get-by-id request for {TenantDeviceId}.", id); return Ok(await mediator.Send(new GetTenantDeviceByIdQuery(id, accessRequest), cancellationToken)); }
 
     /// <summary>
     /// Supports the Angular UI flow for get all.
@@ -90,8 +90,8 @@ public sealed class TenantDeviceController(IMediator mediator, ILogger<TenantDev
     /// <para>Angular API service call(s): TenantDeviceApi.deleteTenantDevice (app/core/services/tenant-device-api.ts:58).</para>
     /// </remarks>
     [HttpDelete("delete/{id:long}")]
-    public async Task<IActionResult> Delete(long id, CancellationToken cancellationToken)
-    { logger.LogInformation("Received TenantDevice delete request for {TenantDeviceId}.", id); return Ok(await mediator.Send(new DeleteTenantDeviceCommand(id), cancellationToken)); }
+    public async Task<IActionResult> Delete(long id, [FromQuery] TenantDeviceAccessRequestDTO accessRequest, CancellationToken cancellationToken)
+    { logger.LogInformation("Received TenantDevice delete request for {TenantDeviceId}.", id); return Ok(await mediator.Send(new DeleteTenantDeviceCommand(id, accessRequest), cancellationToken)); }
 
     #endregion
 }

@@ -84,24 +84,23 @@ public sealed class TenantDeviceRepository(WorkforceDbContext context) : DeviceM
     #region Tenant Device Queries
 
     /// <inheritdoc />
-    public Task<TenantDevice?> GetByIdAsync(long id, CancellationToken cancellationToken) =>
-        DeviceQuery().FirstOrDefaultAsync(x => x.Id == id && !x.IsSoftDeleted, cancellationToken);
+    public Task<TenantDevice?> GetByIdAsync(long tenantId, long id, CancellationToken cancellationToken) =>
+        DeviceQuery().FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId && !x.IsSoftDeleted, cancellationToken);
 
     /// <inheritdoc />
-    public Task<TenantDevice?> GetForUpdateAsync(long id, CancellationToken cancellationToken) =>
-        Context.TenantDevices.FirstOrDefaultAsync(x => x.Id == id && !x.IsSoftDeleted, cancellationToken);
+    public Task<TenantDevice?> GetForUpdateAsync(long tenantId, long id, CancellationToken cancellationToken) =>
+        Context.TenantDevices.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId && !x.IsSoftDeleted, cancellationToken);
 
     /// <inheritdoc />
-    public async Task<PagedResponseDTO<TenantDevice>> GetPagedAsync(GetTenantDeviceListRequestDTO filter, CancellationToken cancellationToken)
+    public async Task<PagedResponseDTO<TenantDevice>> GetPagedAsync(long tenantId, GetTenantDeviceListRequestDTO filter, CancellationToken cancellationToken)
     {
         var (pageNumber, pageSize) = NormalizePage(filter.PageNumber, filter.PageSize);
-        var query = DeviceQuery().Where(x => !x.IsSoftDeleted);
+        var query = DeviceQuery().Where(x => x.TenantId == tenantId && !x.IsSoftDeleted);
         if (!string.IsNullOrWhiteSpace(filter.Search))
         {
             var term = $"%{filter.Search.Trim()}%";
             query = query.Where(x => EF.Functions.ILike(x.SerialNumber, term) || EF.Functions.ILike(x.DeviceCode, term) || (x.DeviceName != null && EF.Functions.ILike(x.DeviceName, term)) || (x.AssetTag != null && EF.Functions.ILike(x.AssetTag, term)) || EF.Functions.ILike(x.Tenant.CompanyName, term) || EF.Functions.ILike(x.TenantLocation.LocationName, term));
         }
-        if (filter.TenantId.HasValue) query = query.Where(x => x.TenantId == filter.TenantId.Value);
         if (filter.TenantLocationId.HasValue) query = query.Where(x => x.TenantLocationId == filter.TenantLocationId.Value);
         if (filter.DeviceMasterId.HasValue) query = query.Where(x => x.DeviceMasterId == filter.DeviceMasterId.Value);
         if (filter.CommunicationType.HasValue) query = query.Where(x => x.CommunicationType == (short)filter.CommunicationType.Value);

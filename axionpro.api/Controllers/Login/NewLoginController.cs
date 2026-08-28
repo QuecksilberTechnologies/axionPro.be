@@ -47,6 +47,9 @@ public sealed class NewLoginController : ControllerBase
     /// <para>Angular purpose: performs login.</para>
     /// <para>Angular page(s): /auth/login.</para>
     /// <para>Angular API service call(s): AuthApi.login (app/core/services/auth-api.ts:153).</para>
+    /// <para>Mobile purpose: submits the AxionPro mobile credential form and receives the first authenticated session.</para>
+    /// <para>Mobile page: AxionPro.Mobile/Features/Authentication/Pages/LoginPage.xaml.</para>
+    /// <para>Mobile call chain: LoginPage → LoginViewModel → AuthenticationService → AxionProApiClient.</para>
     /// </remarks>
     [HttpPost("login")]
     public async Task<IActionResult> Login(

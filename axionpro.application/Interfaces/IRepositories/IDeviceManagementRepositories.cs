@@ -33,12 +33,12 @@ public interface IDeviceMasterRepository
 /// <summary>Defines Host-managed physical TenantDevice persistence and validation queries.</summary>
 public interface ITenantDeviceRepository
 {
-    /// <summary>Gets a non-soft-deleted physical device with display context.</summary>
-    Task<TenantDevice?> GetByIdAsync(long id, CancellationToken cancellationToken);
-    /// <summary>Gets a tracked non-soft-deleted physical device for an administrative update.</summary>
-    Task<TenantDevice?> GetForUpdateAsync(long id, CancellationToken cancellationToken);
-    /// <summary>Gets a database-paged physical-device list.</summary>
-    Task<PagedResponseDTO<TenantDevice>> GetPagedAsync(GetTenantDeviceListRequestDTO filter, CancellationToken cancellationToken);
+    /// <summary>Gets a non-soft-deleted physical device with display context scoped to its Tenant.</summary>
+    Task<TenantDevice?> GetByIdAsync(long tenantId, long id, CancellationToken cancellationToken);
+    /// <summary>Gets a tracked non-soft-deleted physical device for a Tenant-scoped update.</summary>
+    Task<TenantDevice?> GetForUpdateAsync(long tenantId, long id, CancellationToken cancellationToken);
+    /// <summary>Gets a database-paged physical-device list scoped to its Tenant.</summary>
+    Task<PagedResponseDTO<TenantDevice>> GetPagedAsync(long tenantId, GetTenantDeviceListRequestDTO filter, CancellationToken cancellationToken);
     /// <summary>Resolves an active or inactive non-soft-deleted physical device by manufacturer serial number.</summary>
     Task<TenantDevice?> GetBySerialNumberAsync(string serialNumber, CancellationToken cancellationToken);
     /// <summary>Determines whether a Tenant is active and non-soft-deleted.</summary>
