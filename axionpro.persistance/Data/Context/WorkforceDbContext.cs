@@ -1116,6 +1116,8 @@ namespace axionpro.persistance.Data.Context
             entity.Property(e => e.IsAttendanceDevice).HasDefaultValue(true);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.IsOccupied).HasDefaultValue(false);
+            entity.Property(e => e.SupportsMqtt).HasDefaultValue(false);
+            entity.Property(e => e.SupportsMqtts).HasDefaultValue(false);
             entity.Property(e => e.AddedDateTime).HasDefaultValueSql("CURRENT_TIMESTAMP");
         });
 

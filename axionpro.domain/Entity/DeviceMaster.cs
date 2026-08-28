@@ -39,6 +39,8 @@ public partial class DeviceMaster
     public bool SupportsTcpIp { get; set; }
     public bool SupportsCloudApi { get; set; }
     public bool SupportsPushSdk { get; set; }
+    public bool SupportsMqtt { get; set; }
+    public bool SupportsMqtts { get; set; }
     public bool SupportsWifi { get; set; }
     public bool SupportsEthernet { get; set; }
     public bool SupportsUsb { get; set; }
