@@ -114,6 +114,9 @@ public sealed class GetAllTenantDeviceConfigurationsQuery(GetTenantDeviceConfigu
 /// <summary>Represents the trusted Tenant scope and identifier-protection key for a device request.</summary>
 public sealed record TenantDeviceAccessScope(long TenantId, long ActorId, string TenantEncryptionKey);
 
+/// <summary>Represents the trusted list scope and identifier-protection key for a device query.</summary>
+public sealed record TenantDeviceListAccessScope(long? TenantId, string TenantEncryptionKey);
+
 /// <summary>Resolves authoritative Host or Tenant access for TenantDevice resources through the established permission flows.</summary>
 public abstract class TenantDeviceAccessHandlerBase : TenantConfigurationHandlerBase
 {
@@ -145,18 +148,68 @@ public abstract class TenantDeviceAccessHandlerBase : TenantConfigurationHandler
 
     /// <summary>Maps a Tenant device response and protects the Tenant identifier.</summary>
     protected TenantDeviceResponseDTO MapDeviceResponse(IMapper mapper, TenantDevice entity, TenantDeviceAccessScope scope)
+        => MapDeviceResponse(mapper, entity, scope.TenantEncryptionKey);
+
+    /// <summary>Maps a Tenant device response while protecting its Tenant identifier with the trusted request key.</summary>
+    protected TenantDeviceResponseDTO MapDeviceResponse(IMapper mapper, TenantDevice entity, string tenantEncryptionKey)
     {
         var response = mapper.Map<TenantDeviceResponseDTO>(entity);
-        response.TenantId = EncryptTenantId(entity.TenantId, scope.TenantEncryptionKey);
+        response.TenantId = EncryptTenantId(entity.TenantId, tenantEncryptionKey);
         return response;
     }
 
     /// <summary>Maps a configuration response and protects the parent device Tenant identifier.</summary>
     protected TenantDeviceConfigurationResponseDTO MapConfigurationResponse(IMapper mapper, TenantDeviceConfiguration entity, TenantDeviceAccessScope scope)
+        => MapConfigurationResponse(mapper, entity, scope.TenantEncryptionKey);
+
+    /// <summary>Maps a device configuration response while protecting its parent Tenant identifier with the trusted request key.</summary>
+    protected TenantDeviceConfigurationResponseDTO MapConfigurationResponse(IMapper mapper, TenantDeviceConfiguration entity, string tenantEncryptionKey)
     {
         var response = mapper.Map<TenantDeviceConfigurationResponseDTO>(entity);
-        response.TenantId = EncryptTenantId(entity.TenantDevice.TenantId, scope.TenantEncryptionKey);
+        response.TenantId = EncryptTenantId(entity.TenantDevice.TenantId, tenantEncryptionKey);
         return response;
+    }
+
+    /// <summary>
+    /// Resolves a list scope. Host Admin can omit TenantId to list every live Tenant record;
+    /// all other callers remain restricted to an authorized Tenant.
+    /// </summary>
+    protected async Task<TenantDeviceListAccessScope> ResolveTenantListScopeAsync(
+        TenantDeviceAccessRequestDTO accessRequest,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(accessRequest);
+
+        var principal = await CommonRequestService.ValidateAuthenticatedRequestAsync();
+        if (principal.UserType == LoginUserType.Host)
+        {
+            var hostContext = await HostRuntimePermissionValidator.ValidateAsync(
+                CommonRequestService,
+                UnitOfWork.StoreProcedureRepository,
+                accessRequest.ModuleId,
+                accessRequest.OperationId,
+                cancellationToken);
+
+            if (hostContext.CurrentHostRoleId == AppConstants.SuperAdminHostRoleId &&
+                string.IsNullOrWhiteSpace(accessRequest.TenantId))
+            {
+                return new TenantDeviceListAccessScope(null, hostContext.TenantEncryptionKey);
+            }
+
+            var tenantId = HostTenantIdentifierProtector.Decrypt(
+                accessRequest.TenantId,
+                hostContext.TenantEncryptionKey,
+                _idEncoderService);
+            return new TenantDeviceListAccessScope(tenantId, hostContext.TenantEncryptionKey);
+        }
+
+        if (principal.UserType == LoginUserType.TenantEmployee)
+        {
+            var tenantScope = await ResolveTenantEmployeeScopeAsync(accessRequest, cancellationToken);
+            return new TenantDeviceListAccessScope(tenantScope.TenantId, tenantScope.TenantEncryptionKey);
+        }
+
+        throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
     }
 
     private string EncryptTenantId(long tenantId, string tenantEncryptionKey) =>
@@ -445,9 +498,11 @@ public sealed class GetAllTenantDevicesQueryHandler : TenantDeviceAccessHandlerB
     public async Task<ApiResponse<List<TenantDeviceResponseDTO>>> Handle(GetAllTenantDevicesQuery request, CancellationToken cancellationToken)
     {
         var filter = request.Filter ?? new GetTenantDeviceListRequestDTO();
-        var scope = await ResolveTenantScopeAsync(filter, cancellationToken);
-        var page = await UnitOfWork.TenantDeviceRepository.GetPagedAsync(scope.TenantId, filter, cancellationToken);
-        return ApiResponse<List<TenantDeviceResponseDTO>>.SuccessPaginated(page.Data.Select(entity => MapDeviceResponse(_mapper, entity, scope)).ToList(), page.PageNumber, page.PageSize, page.TotalCount, page.TotalPages, AppConstants.SuccessMessages.TenantDeviceRetrieved);
+        var scope = await ResolveTenantListScopeAsync(filter, cancellationToken);
+        var page = scope.TenantId.HasValue
+            ? await UnitOfWork.TenantDeviceRepository.GetPagedAsync(scope.TenantId.Value, filter, cancellationToken)
+            : await UnitOfWork.TenantDeviceRepository.GetHostPagedAsync(filter, cancellationToken);
+        return ApiResponse<List<TenantDeviceResponseDTO>>.SuccessPaginated(page.Data.Select(entity => MapDeviceResponse(_mapper, entity, scope.TenantEncryptionKey)).ToList(), page.PageNumber, page.PageSize, page.TotalCount, page.TotalPages, AppConstants.SuccessMessages.TenantDeviceRetrieved);
     }
 }
 
@@ -564,9 +619,11 @@ public sealed class GetAllTenantDeviceConfigurationsQueryHandler : TenantDeviceA
     public async Task<ApiResponse<List<TenantDeviceConfigurationResponseDTO>>> Handle(GetAllTenantDeviceConfigurationsQuery request, CancellationToken cancellationToken)
     {
         var filter = request.Filter ?? new GetTenantDeviceConfigurationListRequestDTO();
-        var scope = await ResolveTenantScopeAsync(filter, cancellationToken);
-        var page = await UnitOfWork.TenantDeviceConfigurationRepository.GetPagedAsync(scope.TenantId, filter, cancellationToken);
-        return ApiResponse<List<TenantDeviceConfigurationResponseDTO>>.SuccessPaginated(page.Data.Select(entity => MapConfigurationResponse(_mapper, entity, scope)).ToList(), page.PageNumber, page.PageSize, page.TotalCount, page.TotalPages, AppConstants.SuccessMessages.TenantDeviceConfigurationRetrieved);
+        var scope = await ResolveTenantListScopeAsync(filter, cancellationToken);
+        var page = scope.TenantId.HasValue
+            ? await UnitOfWork.TenantDeviceConfigurationRepository.GetPagedAsync(scope.TenantId.Value, filter, cancellationToken)
+            : await UnitOfWork.TenantDeviceConfigurationRepository.GetHostPagedAsync(filter, cancellationToken);
+        return ApiResponse<List<TenantDeviceConfigurationResponseDTO>>.SuccessPaginated(page.Data.Select(entity => MapConfigurationResponse(_mapper, entity, scope.TenantEncryptionKey)).ToList(), page.PageNumber, page.PageSize, page.TotalCount, page.TotalPages, AppConstants.SuccessMessages.TenantDeviceConfigurationRetrieved);
     }
 }
 

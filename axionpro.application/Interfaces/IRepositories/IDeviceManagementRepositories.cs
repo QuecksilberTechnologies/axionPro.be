@@ -43,6 +43,8 @@ public interface ITenantDeviceRepository
     Task<TenantDevice?> GetForUpdateAsync(long tenantId, long id, CancellationToken cancellationToken);
     /// <summary>Gets a database-paged physical-device list scoped to its Tenant.</summary>
     Task<PagedResponseDTO<TenantDevice>> GetPagedAsync(long tenantId, GetTenantDeviceListRequestDTO filter, CancellationToken cancellationToken);
+    /// <summary>Gets a database-paged physical-device list across all live Tenant devices for Host Admin use.</summary>
+    Task<PagedResponseDTO<TenantDevice>> GetHostPagedAsync(GetTenantDeviceListRequestDTO filter, CancellationToken cancellationToken);
     /// <summary>Determines whether a Tenant is active and non-soft-deleted.</summary>
     Task<bool> IsEligibleTenantAsync(long tenantId, CancellationToken cancellationToken);
     /// <summary>Determines whether a location is active and non-soft-deleted regardless of Tenant ownership.</summary>
@@ -72,6 +74,8 @@ public interface ITenantDeviceConfigurationRepository
     Task<TenantDeviceConfiguration?> GetForUpdateAsync(long tenantId, long id, CancellationToken cancellationToken);
     /// <summary>Gets a database-paged configuration list scoped to the authenticated Tenant.</summary>
     Task<PagedResponseDTO<TenantDeviceConfiguration>> GetPagedAsync(long tenantId, GetTenantDeviceConfigurationListRequestDTO filter, CancellationToken cancellationToken);
+    /// <summary>Gets a database-paged configuration list across all live Tenant devices for Host Admin use.</summary>
+    Task<PagedResponseDTO<TenantDeviceConfiguration>> GetHostPagedAsync(GetTenantDeviceConfigurationListRequestDTO filter, CancellationToken cancellationToken);
     /// <summary>Determines whether an active Tenant device can be configured.</summary>
     Task<bool> IsEligibleTenantDeviceAsync(long tenantId, long tenantDeviceId, CancellationToken cancellationToken);
     /// <summary>Determines whether the Tenant device already has a configuration.</summary>

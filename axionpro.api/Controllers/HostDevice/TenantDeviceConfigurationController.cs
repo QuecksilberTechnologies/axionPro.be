@@ -35,7 +35,7 @@ public sealed class TenantDeviceConfigurationController(IMediator mediator, ILog
         return Ok(await mediator.Send(new GetTenantDeviceConfigurationByIdQuery(id, accessRequest), cancellationToken));
     }
 
-    /// <summary>Retrieves a database-paged list of configurations scoped to the encrypted Tenant identifier.</summary>
+    /// <summary>Retrieves a database-paged configuration list; Host Admin may omit TenantId to retrieve all Tenants.</summary>
     [HttpGet("get-all")]
     public async Task<IActionResult> GetAll([FromQuery] GetTenantDeviceConfigurationListRequestDTO filter, CancellationToken cancellationToken)
     {

@@ -50,6 +50,7 @@ public sealed class TenantDeviceController(IMediator mediator, ILogger<TenantDev
     /// </summary>
     /// <remarks>
     /// <para>Angular purpose: retrieves tenant devices.</para>
+    /// <para>Host Admin may omit TenantId to retrieve devices across all Tenants.</para>
     /// <para>Angular page(s): /app/tenant-devices; /app/profile/device-enrollment-info.</para>
     /// <para>Angular API service call(s): TenantDeviceApi.getTenantDevices (app/core/services/tenant-device-api.ts:27).</para>
     /// </remarks>

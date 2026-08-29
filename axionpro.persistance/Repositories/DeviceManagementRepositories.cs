@@ -120,6 +120,25 @@ public sealed class TenantDeviceRepository(WorkforceDbContext context) : DeviceM
     }
 
     /// <inheritdoc />
+    public async Task<PagedResponseDTO<TenantDevice>> GetHostPagedAsync(GetTenantDeviceListRequestDTO filter, CancellationToken cancellationToken)
+    {
+        var (pageNumber, pageSize) = NormalizePage(filter.PageNumber, filter.PageSize);
+        var query = DeviceQuery().Where(x => !x.IsSoftDeleted);
+        if (!string.IsNullOrWhiteSpace(filter.Search))
+        {
+            var term = $"%{filter.Search.Trim()}%";
+            query = query.Where(x => EF.Functions.ILike(x.DeviceCode, term) || (x.DeviceName != null && EF.Functions.ILike(x.DeviceName, term)) || EF.Functions.ILike(x.Tenant.CompanyName, term) || EF.Functions.ILike(x.TenantLocation.LocationName, term) || EF.Functions.ILike(x.DeviceMaster.SNo, term));
+        }
+        if (filter.TenantLocationId.HasValue) query = query.Where(x => x.TenantLocationId == filter.TenantLocationId.Value);
+        if (filter.DeviceMasterId.HasValue) query = query.Where(x => x.DeviceMasterId == filter.DeviceMasterId.Value);
+        if (filter.IsAttendanceDevice.HasValue) query = query.Where(x => x.IsAttendanceDevice == filter.IsAttendanceDevice.Value);
+        if (filter.IsActive.HasValue) query = query.Where(x => x.IsActive == filter.IsActive.Value);
+        var totalCount = await query.CountAsync(cancellationToken);
+        var data = await query.OrderByDescending(x => x.Id).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken);
+        return CreatePage(data, totalCount, pageNumber, pageSize);
+    }
+
+    /// <inheritdoc />
     public Task<bool> IsEligibleTenantAsync(long tenantId, CancellationToken cancellationToken) =>
         Context.Tenants.AnyAsync(x => x.Id == tenantId && x.IsActive && x.IsSoftDeleted != true, cancellationToken);
 
@@ -179,6 +198,24 @@ public sealed class TenantDeviceConfigurationRepository(WorkforceDbContext conte
     {
         var (pageNumber, pageSize) = NormalizePage(filter.PageNumber, filter.PageSize);
         var query = ConfigurationQuery().Where(x => x.TenantDevice.TenantId == tenantId && !x.TenantDevice.IsSoftDeleted);
+        if (!string.IsNullOrWhiteSpace(filter.Search))
+        {
+            var term = $"%{filter.Search.Trim()}%";
+            query = query.Where(x => (x.IpAddress != null && EF.Functions.ILike(x.IpAddress, term)) || (x.MacAddress != null && EF.Functions.ILike(x.MacAddress, term)) || (x.ServerHost != null && EF.Functions.ILike(x.ServerHost, term)) || (x.ServerUrl != null && EF.Functions.ILike(x.ServerUrl, term)) || EF.Functions.ILike(x.TenantDevice.DeviceCode, term) || (x.TenantDevice.DeviceName != null && EF.Functions.ILike(x.TenantDevice.DeviceName, term)));
+        }
+        if (filter.TenantDeviceId.HasValue) query = query.Where(x => x.TenantDeviceId == filter.TenantDeviceId.Value);
+        if (filter.CommunicationType.HasValue) query = query.Where(x => x.CommunicationType == (short)filter.CommunicationType.Value);
+        if (filter.IsEnrollmentEnabled.HasValue) query = query.Where(x => x.IsEnrollmentEnabled == filter.IsEnrollmentEnabled.Value);
+        var totalCount = await query.CountAsync(cancellationToken);
+        var data = await query.OrderByDescending(x => x.Id).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken);
+        return CreatePage(data, totalCount, pageNumber, pageSize);
+    }
+
+    /// <inheritdoc />
+    public async Task<PagedResponseDTO<TenantDeviceConfiguration>> GetHostPagedAsync(GetTenantDeviceConfigurationListRequestDTO filter, CancellationToken cancellationToken)
+    {
+        var (pageNumber, pageSize) = NormalizePage(filter.PageNumber, filter.PageSize);
+        var query = ConfigurationQuery().Where(x => !x.TenantDevice.IsSoftDeleted);
         if (!string.IsNullOrWhiteSpace(filter.Search))
         {
             var term = $"%{filter.Search.Trim()}%";
