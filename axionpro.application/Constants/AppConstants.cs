@@ -138,6 +138,11 @@ namespace axionpro.application.Constants
             public const string CommonMenuRetrieved = "Common menu retrieved successfully.";
 
             /// <summary>
+            /// Confirms that the active master feature pages were retrieved successfully.
+            /// </summary>
+            public const string FeaturePagesRetrievedSuccessfully = "Feature pages retrieved successfully.";
+
+            /// <summary>
             /// Confirms that the current Tenant employee authorization bootstrap was retrieved successfully.
             /// </summary>
             public const string TenantUserAccessRetrieved = "Tenant user access retrieved successfully.";

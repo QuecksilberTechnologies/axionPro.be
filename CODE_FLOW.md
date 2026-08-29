@@ -476,6 +476,32 @@ encrypted tenantId
 
 The action is explicit and additive. It never removes or changes existing Tenant entitlement records, so a global `PlanModuleMapping` edit never affects an existing Tenant until an authorized Host user invokes this endpoint. The safe response includes the matching Module/Operation master fields and whether each row already existed. The success text comes from `AppConstants.SuccessMessages.TenantPlanEntitlementsSynchronizedSuccessfully`.
 
+### Project-detail feature-pages endpoint
+
+Controller: `axionpro.api/Controllers/ProjectDetail/ProjectDetailController.cs`
+
+| Method | Route | Query/handler |
+|---|---|---|
+| `GET` | `/api/ProjectDetail/get-all?scope={1\|2\|3}` | `GetFeaturePagesQueryHandler` |
+
+This is a public read-only endpoint by design: it deliberately does not run token or permission validation. Query parameter `scope` is optional: `1` returns Tenant records, `2` returns Host records, `3` returns Common-menu records, and an omitted value returns all three. It returns only active master records (`Module.TenantId == null`) without recursive `children` nesting. A top-level feature header contains flat `childHeaders`; a leaf such as Common-menu `Message` is attached to its nearest header in `operationalPages`, even when its `operations` array is empty. Only `isLeafNode: true` operational pages expose `operations`, sourced from active `ModuleOperationMapping` records with active Operation master details and configured icon/page metadata. The response provides semantic `moduleScope` values (Tenant `1`, Host `2`, Common `3`) together with `moduleScopeName`. Tenant Module rows, inactive Modules, inactive mappings, and inactive Operations are not returned.
+
+Response DTOs:
+
+```text
+FeaturePageResponseDTO
+  -> id, moduleCode, moduleName, displayName, urlPath, iconKey
+  -> parentModuleId, isLeafNode, isModuleDisplayInUI, moduleScope, moduleScopeName
+  -> childHeaders[] (top-level feature header only)
+  -> operationalPages[] (nearest child/header only)
+  -> operations[] (operational leaf page only)
+
+FeaturePageOperationResponseDTO
+  -> id, moduleOperationMappingId, operationName, operationType, remark
+  -> iconKey, pageUrl, dataViewStructureId, pageTypeId
+  -> isCommonItem, isOperational, priority
+```
+
 ### Endpoint documentation checklist
 
 When a new endpoint is added:

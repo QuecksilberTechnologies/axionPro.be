@@ -21,6 +21,7 @@ using Microsoft.Extensions.Logging;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.Host;
 using axionpro.application.DTOS.Pagination;
+using axionpro.application.DTOS.FeaturePages;
 using System.Linq.Expressions;
 
 
@@ -315,6 +316,245 @@ namespace axionpro.persistance.Repositories
                     Children = MapCommonMenuItems(item.Children)
                 })
                 .ToArray();
+        }
+
+        #endregion
+
+        #region Feature Pages Queries
+
+        /// <summary>
+        /// Retrieves active master feature headers with child headers, operational leaf pages, and active Operation configuration.
+        /// </summary>
+        /// <param name="scope">1 for Tenant, 2 for Host, 3 for Common, or <see langword="null"/> for every scope.</param>
+        /// <param name="cancellationToken">A token to observe while executing the database queries.</param>
+        /// <returns>The ordered active master feature headers with their active operational pages.</returns>
+        public async Task<IReadOnlyCollection<FeaturePageResponseDTO>> GetActiveFeaturePagesAsync(
+            short? scope,
+            CancellationToken cancellationToken)
+        {
+            var context = _context ?? throw new InvalidOperationException("Module context is unavailable.");
+
+            var allModules = await context.Modules
+                .AsNoTracking()
+                .Where(module => module.TenantId == null && module.IsActive)
+                .OrderBy(module => module.ItemPriority ?? int.MaxValue)
+                .ThenBy(module => module.ModuleName)
+                .ThenBy(module => module.Id)
+                .Select(module => new FeaturePageResponseDTO
+                {
+                    Id = module.Id,
+                    ModuleCode = module.ModuleCode,
+                    ModuleName = module.ModuleName,
+                    DisplayName = module.DisplayName,
+                    UrlPath = module.Urlpath,
+                    IconKey = module.ImageIconWeb,
+                    ParentModuleId = module.ParentModuleId,
+                    IsLeafNode = module.IsLeafNode ?? false,
+                    IsModuleDisplayInUI = module.IsModuleDisplayInUI,
+                    ModuleScope = module.ModuleScope,
+                    IsCommonMenu = module.IsCommonMenu
+                })
+                .ToListAsync(cancellationToken);
+
+            if (allModules.Count == 0)
+            {
+                return Array.Empty<FeaturePageResponseDTO>();
+            }
+
+            var allModulesById = allModules.ToDictionary(module => module.Id);
+            var modules = scope switch
+            {
+                1 => allModules
+                    .Where(module =>
+                        !IsInCommonHierarchy(module, allModulesById) &&
+                        module.ModuleScope == AppConstants.TenantModuleScope)
+                    .ToList(),
+                2 => allModules
+                    .Where(module =>
+                        !IsInCommonHierarchy(module, allModulesById) &&
+                        module.ModuleScope == AppConstants.HostModuleScope)
+                    .ToList(),
+                3 => allModules
+                    .Where(module => IsInCommonHierarchy(module, allModulesById))
+                    .ToList(),
+                null => allModules,
+                _ => new List<FeaturePageResponseDTO>()
+            };
+
+            if (modules.Count == 0)
+            {
+                return Array.Empty<FeaturePageResponseDTO>();
+            }
+
+            foreach (var module in modules)
+            {
+                var isCommon = IsInCommonHierarchy(module, allModulesById);
+                module.ModuleScope = isCommon
+                    ? (short)3
+                    : module.ModuleScope;
+                module.ModuleScopeName = isCommon
+                    ? "Common"
+                    : module.ModuleScope == AppConstants.TenantModuleScope
+                        ? "Tenant"
+                        : module.ModuleScope == AppConstants.HostModuleScope
+                            ? "Host"
+                            : "Unknown";
+            }
+
+            var modulesById = modules.ToDictionary(module => module.Id);
+            var moduleIds = modulesById.Keys.ToHashSet();
+
+            foreach (var leafModule in modules.Where(module => module.IsLeafNode))
+            {
+                leafModule.Operations = new List<FeaturePageOperationResponseDTO>();
+            }
+
+            var operations = await context.ModuleOperationMappings
+                .AsNoTracking()
+                .Where(mapping =>
+                    mapping.IsActive == true &&
+                    mapping.Module.TenantId == null &&
+                    mapping.Module.IsActive &&
+                    mapping.Module.IsLeafNode == true &&
+                    mapping.Operation.IsActive)
+                .OrderBy(mapping => mapping.ModuleId)
+                .ThenBy(mapping => mapping.Priority ?? int.MaxValue)
+                .ThenBy(mapping => mapping.Operation.OperationName)
+                .ThenBy(mapping => mapping.OperationId)
+                .ThenBy(mapping => mapping.Id)
+                .Select(mapping => new
+                {
+                    mapping.ModuleId,
+                    Operation = new FeaturePageOperationResponseDTO
+                    {
+                        Id = mapping.OperationId,
+                        ModuleOperationMappingId = mapping.Id,
+                        OperationName = mapping.Operation.OperationName,
+                        OperationType = mapping.Operation.OperationType,
+                        Remark = mapping.Operation.Remark,
+                        IconKey = mapping.IconUrl ?? mapping.Operation.IconImage,
+                        PageUrl = mapping.PageUrl,
+                        DataViewStructureId = mapping.DataViewStructureId,
+                        PageTypeId = mapping.PageTypeId,
+                        IsCommonItem = mapping.IsCommonItem,
+                        IsOperational = mapping.IsOperational,
+                        Priority = mapping.Priority
+                    }
+                })
+                .ToListAsync(cancellationToken);
+
+            foreach (var operationGroup in operations
+                         .Where(item =>
+                             moduleIds.Contains(item.ModuleId) &&
+                             modulesById.TryGetValue(item.ModuleId, out var module) &&
+                             module.IsLeafNode)
+                         .GroupBy(item => item.ModuleId))
+            {
+                var module = modulesById[operationGroup.Key];
+                module.Operations = operationGroup.Select(item => item.Operation).ToList();
+            }
+
+            var rootModules = modules
+                .Where(module =>
+                    !module.ParentModuleId.HasValue ||
+                    !modulesById.ContainsKey(module.ParentModuleId.Value))
+                .ToList();
+
+            foreach (var childHeader in modules.Where(module => !module.IsLeafNode))
+            {
+                var rootModule = GetRootModule(childHeader, modulesById);
+
+                if (rootModule.Id == childHeader.Id || rootModule.IsLeafNode)
+                {
+                    continue;
+                }
+
+                rootModule.ChildHeaders ??= new List<FeaturePageResponseDTO>();
+                rootModule.ChildHeaders.Add(childHeader);
+            }
+
+            foreach (var leafModule in modules.Where(module => module.IsLeafNode))
+            {
+                var nearestHeader = GetNearestHeader(leafModule, modulesById);
+
+                if (nearestHeader is not null)
+                {
+                    nearestHeader.OperationalPages ??= new List<FeaturePageResponseDTO>();
+                    nearestHeader.OperationalPages.Add(leafModule);
+                }
+            }
+
+            return rootModules;
+        }
+
+        private static FeaturePageResponseDTO GetRootModule(
+            FeaturePageResponseDTO module,
+            IReadOnlyDictionary<int, FeaturePageResponseDTO> modulesById)
+        {
+            var visitedModuleIds = new HashSet<int>();
+            var currentModule = module;
+
+            while (visitedModuleIds.Add(currentModule.Id))
+            {
+                if (!currentModule.ParentModuleId.HasValue ||
+                    !modulesById.TryGetValue(currentModule.ParentModuleId.Value, out var parentModule))
+                {
+                    return currentModule;
+                }
+
+                currentModule = parentModule;
+            }
+
+            return module;
+        }
+
+        private static FeaturePageResponseDTO? GetNearestHeader(
+            FeaturePageResponseDTO leafModule,
+            IReadOnlyDictionary<int, FeaturePageResponseDTO> modulesById)
+        {
+            var visitedModuleIds = new HashSet<int>();
+            var currentModule = leafModule;
+
+            while (currentModule.ParentModuleId.HasValue && visitedModuleIds.Add(currentModule.Id))
+            {
+                if (!modulesById.TryGetValue(currentModule.ParentModuleId.Value, out var parentModule))
+                {
+                    return null;
+                }
+
+                if (!parentModule.IsLeafNode)
+                {
+                    return parentModule;
+                }
+
+                currentModule = parentModule;
+            }
+
+            return null;
+        }
+
+        private static bool IsInCommonHierarchy(
+            FeaturePageResponseDTO module,
+            IReadOnlyDictionary<int, FeaturePageResponseDTO> modulesById)
+        {
+            var visitedModuleIds = new HashSet<int>();
+            var currentModule = module;
+
+            while (visitedModuleIds.Add(currentModule.Id))
+            {
+                if (currentModule.IsCommonMenu)
+                {
+                    return true;
+                }
+
+                if (!currentModule.ParentModuleId.HasValue ||
+                    !modulesById.TryGetValue(currentModule.ParentModuleId.Value, out currentModule))
+                {
+                    return false;
+                }
+            }
+
+            return false;
         }
 
         #endregion

@@ -28,6 +28,7 @@ using MediatR;
 using axionpro.application.DTOs.UserLogin;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.DTOS.Host;
+using axionpro.application.DTOS.FeaturePages;
 
 namespace axionpro.application.Interfaces.IRepositories
 {
@@ -89,6 +90,20 @@ namespace axionpro.application.Interfaces.IRepositories
         /// <returns>The configured Common navigation items, or <see langword="null"/> when no Common root exists.</returns>
         Task<IReadOnlyCollection<CommonMenuItemResponseDTO>?> GetCommonMenuHierarchyAsync(
             CancellationToken cancellationToken = default);
+
+        #endregion
+
+        #region Feature Pages Queries
+
+        /// <summary>
+        /// Retrieves active master feature headers with child headers, operational leaf pages, and active Operation configuration.
+        /// </summary>
+        /// <param name="scope">1 for Tenant, 2 for Host, 3 for Common, or <see langword="null"/> for every scope.</param>
+        /// <param name="cancellationToken">A token to observe while executing the database queries.</param>
+        /// <returns>The ordered active master feature headers with their active operational pages.</returns>
+        Task<IReadOnlyCollection<FeaturePageResponseDTO>> GetActiveFeaturePagesAsync(
+            short? scope,
+            CancellationToken cancellationToken);
 
         #endregion
 
