@@ -149,6 +149,49 @@ public abstract class TenantLocationAccessHandlerBase : TenantConfigurationHandl
 
         return (tenantId, hostContext.HostUserId);
     }
+
+    /// <summary>
+    /// Resolves the list scope. The current Host Admin role is permitted to retrieve
+    /// all live Tenant locations, while normal Host and Tenant users remain Tenant-scoped.
+    /// </summary>
+    /// <param name="accessRequest">The request containing Host or Tenant permission context.</param>
+    /// <param name="cancellationToken">The token used to cancel authorization work.</param>
+    /// <returns>The selected Tenant identifier, or <see langword="null"/> for a Host Admin global list.</returns>
+    protected async Task<long?> ResolveLocationListTenantScopeAsync(
+        TenantLocationAccessRequestDTO accessRequest,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(accessRequest);
+
+        var principal = await CommonRequestService.ValidateAuthenticatedRequestAsync();
+        if (principal.UserType == LoginUserType.Host)
+        {
+            var hostContext = await HostRuntimePermissionValidator.ValidateAsync(
+                CommonRequestService,
+                UnitOfWork.StoreProcedureRepository,
+                accessRequest.ModuleId,
+                accessRequest.OperationId,
+                cancellationToken);
+
+            if (hostContext.CurrentHostRoleId == AppConstants.SuperAdminHostRoleId)
+            {
+                return null;
+            }
+
+            return HostTenantIdentifierProtector.Decrypt(
+                accessRequest.TenantId,
+                hostContext.TenantEncryptionKey,
+                _idEncoderService);
+        }
+
+        if (principal.UserType == LoginUserType.TenantEmployee)
+        {
+            var (tenantId, _) = await ValidateTenantPermissionAsync(accessRequest, cancellationToken);
+            return tenantId;
+        }
+
+        throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+    }
 }
 
 /// <summary>Handles creation of Tenant-owned work locations.</summary>
@@ -301,8 +344,10 @@ public sealed class GetTenantLocationsQueryHandler : TenantLocationAccessHandler
     public async Task<ApiResponse<List<TenantLocationResponseDTO>>> Handle(GetTenantLocationsQuery request, CancellationToken cancellationToken)
     {
         var filter = request.Filter ?? new TenantLocationFilterRequestDTO();
-        var (tenantId, _) = await ResolveTenantScopeAsync(filter, cancellationToken);
-        var page = await UnitOfWork.TenantLocationRepository.GetPagedAsync(tenantId, filter, cancellationToken);
+        var tenantId = await ResolveLocationListTenantScopeAsync(filter, cancellationToken);
+        var page = tenantId.HasValue
+            ? await UnitOfWork.TenantLocationRepository.GetPagedAsync(tenantId.Value, filter, cancellationToken)
+            : await UnitOfWork.TenantLocationRepository.GetHostPagedAsync(filter, cancellationToken);
 
         return Paged(page.Data.Select(entity => _mapper.Map<TenantLocationResponseDTO>(entity)).ToList(), page.PageNumber, page.PageSize, page.TotalCount, AppConstants.SuccessMessages.TenantLocationRetrieved);
     }
