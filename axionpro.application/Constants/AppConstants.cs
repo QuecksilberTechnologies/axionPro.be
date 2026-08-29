@@ -211,6 +211,11 @@ namespace axionpro.application.Constants
             public const string TenantUpdatedSuccessfully = "Tenant updated successfully.";
 
             /// <summary>
+            /// Confirms that missing active-plan entitlement snapshot rows were synchronized for a Tenant.
+            /// </summary>
+            public const string TenantPlanEntitlementsSynchronizedSuccessfully = "Tenant plan entitlements synchronized successfully.";
+
+            /// <summary>
             /// Confirms that a Tenant was soft deleted successfully.
             /// </summary>
             public const string TenantDeletedSuccessfully = "Tenant deleted successfully.";

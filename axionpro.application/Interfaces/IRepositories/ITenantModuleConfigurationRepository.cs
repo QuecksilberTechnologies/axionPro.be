@@ -23,6 +23,19 @@ namespace axionpro.application.Interfaces.IRepositories
    public interface  ITenantModuleConfigurationRepository
     {
         Task  CreateByDefaultEnabledModulesAsync(long TenantId, List<TenantEnabledModule> moduleEntities, List<TenantEnabledOperation> operationEntities);
+
+        /// <summary>
+        /// Stages only missing entitlement rows from the Tenant's active subscription plan.
+        /// Existing Tenant rows are never changed or duplicated.
+        /// </summary>
+        /// <param name="tenantId">The authoritative Tenant identifier.</param>
+        /// <param name="addedById">The authenticated Host user performing the explicit sync.</param>
+        /// <param name="cancellationToken">The token used to observe cancellation.</param>
+        /// <returns>The staged synchronization counts, or <see langword="null"/> when no active plan exists.</returns>
+        Task<TenantPlanEntitlementSyncResult?> SynchronizeMissingActivePlanEntitlementsAsync(
+            long tenantId,
+            long addedById,
+            CancellationToken cancellationToken = default);
         
         //yeh function sirf enabled module or operation laata hai , login mei bhi used
 

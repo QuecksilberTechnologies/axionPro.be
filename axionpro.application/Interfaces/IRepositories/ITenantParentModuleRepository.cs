@@ -19,13 +19,11 @@ public interface ITenantParentModuleRepository
     /// Retrieves a Tenant-entitled Main Parent Header tree with direct entitled Sub-Parent Header children.
     /// </summary>
     /// <param name="tenantId">The decrypted numeric Tenant identifier.</param>
-    /// <param name="moduleScope">The requested global Module scope.</param>
     /// <param name="isEnabled">The optional Tenant entitlement enabled-state filter.</param>
     /// <param name="cancellationToken">A token used to cancel the query.</param>
     /// <returns>The entitled Header tree with raw numeric Tenant identifiers.</returns>
     Task<List<TenantParentModuleReadModel>> GetHeaderTreeAsync(
         long tenantId,
-        short moduleScope,
         bool? isEnabled,
         CancellationToken cancellationToken);
 

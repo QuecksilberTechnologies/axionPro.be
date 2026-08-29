@@ -116,7 +116,6 @@ public sealed class GetTenantParentModuleHeadersQueryHandler
         var context = await ResolveTenantRequestAsync(dto.TenantId, cancellationToken);
         var headers = await UnitOfWork.TenantParentModuleRepository.GetHeaderTreeAsync(
             context.TenantId,
-            dto.ModuleScope,
             dto.IsEnabled,
             cancellationToken);
 

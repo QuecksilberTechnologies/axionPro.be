@@ -18,11 +18,6 @@ public sealed class TenantParentModuleHeaderRequestDTO
     public required string TenantId { get; set; }
 
     /// <summary>
-    /// Gets or sets the required global Module scope.
-    /// </summary>
-    public short ModuleScope { get; set; }
-
-    /// <summary>
     /// Gets or sets the optional Tenant entitlement enabled-state filter.
     /// </summary>
     public bool? IsEnabled { get; set; }

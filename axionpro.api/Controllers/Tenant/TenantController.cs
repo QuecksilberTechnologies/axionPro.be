@@ -96,6 +96,28 @@ public class TenantController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Adds missing entitlement snapshot rows for the selected Tenant from its currently active subscription plan.
+    /// </summary>
+    /// <remarks>
+    /// <para>Angular purpose: explicitly synchronizes a selected Tenant's active-plan modules and operations into its entitlement snapshot.</para>
+    /// <para>Provide an encrypted <c>tenantId</c> in the body. Super Admin may use zero <c>moduleId</c>/<c>operationId</c>; other Host roles require valid permission identifiers.</para>
+    /// <para>The operation is additive and idempotent: existing TenantEnabledModule and TenantEnabledOperation rows remain unchanged and are never duplicated or removed.</para>
+    /// </remarks>
+    [Authorize]
+    [HttpPost("sync-active-plan-entitlements")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SynchronizeTenantPlanEntitlementsAsync(
+        [FromBody] SynchronizeTenantPlanEntitlementsRequestDTO? requestDTO,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new SynchronizeTenantPlanEntitlementsCommand(requestDTO),
+            cancellationToken);
+        return Ok(result);
+    }
+
     [Authorize]
     [HttpGet("{id}/delete-dependencies")]
     [ProducesResponseType(StatusCodes.Status200OK)]

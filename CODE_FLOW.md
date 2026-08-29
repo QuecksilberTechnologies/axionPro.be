@@ -441,6 +441,41 @@ Controller: `axionpro.api/Controllers/HostDevice/TenantDeviceConfigurationContro
 | `POST` | `/api/TenantDeviceConfiguration/update` | `UpdateTenantDeviceConfigurationCommandHandler` |
 | `DELETE` | `/api/TenantDeviceConfiguration/delete/{id}` | `DeleteTenantDeviceConfigurationCommandHandler` |
 
+### Tenant plan-entitlement synchronization endpoint
+
+Controller: `axionpro.api/Controllers/Tenant/TenantController.cs`
+
+| Method | Route | Command/handler |
+|---|---|---|
+| `POST` | `/api/Tenant/sync-active-plan-entitlements` | `SynchronizeTenantPlanEntitlementsCommandHandler` |
+
+Request DTO: `SynchronizeTenantPlanEntitlementsRequestDTO`
+
+```json
+{
+  "tenantId": "encrypted-tenant-id",
+  "moduleId": 0,
+  "operationId": 0
+}
+```
+
+Flow:
+
+```text
+encrypted tenantId
+  -> HostRuntimePermissionValidator
+     -> Super Admin bypass OR current Host module/operation permission
+  -> HostTenantIdentifierProtector decrypts tenantId
+  -> current active TenantSubscription and active SubscriptionPlan
+  -> directly mapped active Module where scope is Tenant (all common and leaf states retained)
+  -> active non-common ModuleOperationMapping for separately selected non-common Tenant leaf modules
+  -> only missing TenantEnabledModule / TenantEnabledOperation rows are staged
+  -> one UnitOfWork transaction commits the snapshot additions
+  -> response contains encrypted tenantId and count-only sync result
+```
+
+The action is explicit and additive. It never removes or changes existing Tenant entitlement records, so a global `PlanModuleMapping` edit never affects an existing Tenant until an authorized Host user invokes this endpoint. The safe response includes the matching Module/Operation master fields and whether each row already existed. The success text comes from `AppConstants.SuccessMessages.TenantPlanEntitlementsSynchronizedSuccessfully`.
+
 ### Endpoint documentation checklist
 
 When a new endpoint is added:

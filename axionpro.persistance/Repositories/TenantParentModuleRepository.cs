@@ -44,7 +44,6 @@ public sealed class TenantParentModuleRepository : ITenantParentModuleRepository
     /// <inheritdoc />
     public async Task<List<TenantParentModuleReadModel>> GetHeaderTreeAsync(
         long tenantId,
-        short moduleScope,
         bool? isEnabled,
         CancellationToken cancellationToken)
     {
@@ -53,8 +52,7 @@ public sealed class TenantParentModuleRepository : ITenantParentModuleRepository
             .Where(entitlement =>
                 entitlement.TenantId == tenantId &&
                 entitlement.ParentModuleId == null &&
-                entitlement.IsLeafNode == false &&
-                entitlement.Module.ModuleScope == moduleScope &&
+                entitlement.IsLeafNode != true &&
                 entitlement.Module.IsModuleDisplayInUI);
 
         if (isEnabled.HasValue)
@@ -80,8 +78,7 @@ public sealed class TenantParentModuleRepository : ITenantParentModuleRepository
                 entitlement.TenantId == tenantId &&
                 entitlement.ParentModuleId.HasValue &&
                 parentModuleIds.Contains(entitlement.ParentModuleId.Value) &&
-                entitlement.IsLeafNode == false &&
-                entitlement.Module.ModuleScope == moduleScope);
+                entitlement.IsLeafNode != true);
 
         if (isEnabled.HasValue)
         {
