@@ -5,7 +5,10 @@
 // Purpose : Exposes authenticated TenantConfiguration endpoint groups.
 // ================================================================
 
+using axionpro.application.DTOs.BaseDTO;
 using axionpro.application.DTOS.TenantConfiguration;
+using axionpro.application.Features.EmployeeCmd.EmployeeDeviceEnrollment.Handlers;
+using axionpro.application.Features.EmployeeCmd.EmployeeWorkInfo.Handlers;
 using axionpro.application.Features.TenantConfigurationCmd.Handlers;
 using axionpro.application.Interfaces.ILogger;
 using MediatR;
@@ -59,11 +62,11 @@ public sealed class EmployeeLocationAssignmentController(IMediator mediator, ILo
 {
     #region Employee Location Assignment CRUD
     [HttpPost("create")] public async Task<IActionResult> Create([FromBody] CreateEmployeeLocationAssignmentRequestDTO dto, CancellationToken ct) { Logger.LogInfo("Received EmployeeLocationAssignment create request."); return Ok(await Mediator.Send(new CreateEmployeeLocationAssignmentCommand(dto), ct)); }
-    [HttpGet("get-by-id/{id:long}")] public async Task<IActionResult> GetById(long id, CancellationToken ct) { Logger.LogInfo("Received EmployeeLocationAssignment get-by-id request."); return Ok(await Mediator.Send(new GetEmployeeLocationAssignmentByIdQuery(id), ct)); }
+    [HttpGet("get-by-id/{id:long}")] public async Task<IActionResult> GetById(long id, [FromQuery] PermissionRequestDTO permissionRequest, CancellationToken ct) { Logger.LogInfo("Received EmployeeLocationAssignment get-by-id request."); return Ok(await Mediator.Send(new GetEmployeeLocationAssignmentByIdQuery(id, permissionRequest), ct)); }
     [HttpGet("get-all")] public async Task<IActionResult> GetAll([FromQuery] EmployeeLocationAssignmentFilterRequestDTO filter, CancellationToken ct) { Logger.LogInfo("Received EmployeeLocationAssignment list request."); return Ok(await Mediator.Send(new GetEmployeeLocationAssignmentsQuery(filter), ct)); }
     [HttpPost("update")] public async Task<IActionResult> Update([FromBody] UpdateEmployeeLocationAssignmentRequestDTO dto, CancellationToken ct) { Logger.LogInfo("Received EmployeeLocationAssignment update request."); return Ok(await Mediator.Send(new UpdateEmployeeLocationAssignmentCommand(dto), ct)); }
     [HttpPost("update-status")] public async Task<IActionResult> UpdateStatus([FromBody] UpdateEmployeeLocationAssignmentStatusRequestDTO dto, CancellationToken ct) { Logger.LogInfo("Received EmployeeLocationAssignment status request."); return Ok(await Mediator.Send(new UpdateEmployeeLocationAssignmentStatusCommand(dto), ct)); }
-    [HttpDelete("delete/{id:long}")] public async Task<IActionResult> Delete(long id, CancellationToken ct) { Logger.LogInfo("Received EmployeeLocationAssignment delete request."); return Ok(await Mediator.Send(new DeleteEmployeeLocationAssignmentCommand(id), ct)); }
+    [HttpDelete("delete/{id:long}")] public async Task<IActionResult> Delete(long id, [FromQuery] PermissionRequestDTO permissionRequest, CancellationToken ct) { Logger.LogInfo("Received EmployeeLocationAssignment delete request."); return Ok(await Mediator.Send(new DeleteEmployeeLocationAssignmentCommand(id, permissionRequest), ct)); }
     #endregion
 }
 
@@ -73,11 +76,11 @@ public sealed class EmployeeDeviceEnrollmentController(IMediator mediator, ILogg
 {
     #region Employee Device Enrollment CRUD
     [HttpPost("create")] public async Task<IActionResult> Create([FromBody] CreateEmployeeDeviceEnrollmentRequestDTO dto, CancellationToken ct) { Logger.LogInfo("Received EmployeeDeviceEnrollment create request."); return Ok(await Mediator.Send(new CreateEmployeeDeviceEnrollmentCommand(dto), ct)); }
-    [HttpGet("get-by-id/{id:long}")] public async Task<IActionResult> GetById(long id, CancellationToken ct) { Logger.LogInfo("Received EmployeeDeviceEnrollment get-by-id request."); return Ok(await Mediator.Send(new GetEmployeeDeviceEnrollmentByIdQuery(id), ct)); }
+    [HttpGet("get-by-id/{id:long}")] public async Task<IActionResult> GetById(long id, [FromQuery] PermissionRequestDTO permissionRequest, CancellationToken ct) { Logger.LogInfo("Received EmployeeDeviceEnrollment get-by-id request."); return Ok(await Mediator.Send(new GetEmployeeDeviceEnrollmentByIdQuery(id, permissionRequest), ct)); }
     [HttpGet("get-all")] public async Task<IActionResult> GetAll([FromQuery] EmployeeDeviceEnrollmentFilterRequestDTO filter, CancellationToken ct) { Logger.LogInfo("Received EmployeeDeviceEnrollment list request."); return Ok(await Mediator.Send(new GetEmployeeDeviceEnrollmentsQuery(filter), ct)); }
     [HttpPost("update")] public async Task<IActionResult> Update([FromBody] UpdateEmployeeDeviceEnrollmentRequestDTO dto, CancellationToken ct) { Logger.LogInfo("Received EmployeeDeviceEnrollment update request."); return Ok(await Mediator.Send(new UpdateEmployeeDeviceEnrollmentCommand(dto), ct)); }
     [HttpPost("update-status")] public async Task<IActionResult> UpdateStatus([FromBody] UpdateEmployeeDeviceEnrollmentStatusRequestDTO dto, CancellationToken ct) { Logger.LogInfo("Received EmployeeDeviceEnrollment status request."); return Ok(await Mediator.Send(new UpdateEmployeeDeviceEnrollmentStatusCommand(dto), ct)); }
-    [HttpDelete("delete/{id:long}")] public async Task<IActionResult> Delete(long id, CancellationToken ct) { Logger.LogInfo("Received EmployeeDeviceEnrollment delete request."); return Ok(await Mediator.Send(new DeleteEmployeeDeviceEnrollmentCommand(id), ct)); }
+    [HttpDelete("delete/{id:long}")] public async Task<IActionResult> Delete(long id, [FromQuery] PermissionRequestDTO permissionRequest, CancellationToken ct) { Logger.LogInfo("Received EmployeeDeviceEnrollment delete request."); return Ok(await Mediator.Send(new DeleteEmployeeDeviceEnrollmentCommand(id, permissionRequest), ct)); }
     #endregion
 }
 
@@ -87,11 +90,11 @@ public sealed class EmployeeWorkArrangementController(IMediator mediator, ILogge
 {
     #region Employee Work Arrangement CRUD
     [HttpPost("create")] public async Task<IActionResult> Create([FromBody] CreateEmployeeWorkArrangementRequestDTO dto, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkArrangement create request."); return Ok(await Mediator.Send(new CreateEmployeeWorkArrangementCommand(dto), ct)); }
-    [HttpGet("get-by-id/{id:long}")] public async Task<IActionResult> GetById(long id, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkArrangement get-by-id request."); return Ok(await Mediator.Send(new GetEmployeeWorkArrangementByIdQuery(id), ct)); }
+    [HttpGet("get-by-id/{id:long}")] public async Task<IActionResult> GetById(long id, [FromQuery] PermissionRequestDTO permissionRequest, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkArrangement get-by-id request."); return Ok(await Mediator.Send(new GetEmployeeWorkArrangementByIdQuery(id, permissionRequest), ct)); }
     [HttpGet("get-all")] public async Task<IActionResult> GetAll([FromQuery] EmployeeWorkArrangementFilterRequestDTO filter, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkArrangement list request."); return Ok(await Mediator.Send(new GetEmployeeWorkArrangementsQuery(filter), ct)); }
     [HttpPost("update")] public async Task<IActionResult> Update([FromBody] UpdateEmployeeWorkArrangementRequestDTO dto, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkArrangement update request."); return Ok(await Mediator.Send(new UpdateEmployeeWorkArrangementCommand(dto), ct)); }
     [HttpPost("update-status")] public async Task<IActionResult> UpdateStatus([FromBody] UpdateEmployeeWorkArrangementStatusRequestDTO dto, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkArrangement status request."); return Ok(await Mediator.Send(new UpdateEmployeeWorkArrangementStatusCommand(dto), ct)); }
-    [HttpDelete("delete/{id:long}")] public async Task<IActionResult> Delete(long id, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkArrangement delete request."); return Ok(await Mediator.Send(new DeleteEmployeeWorkArrangementCommand(id), ct)); }
+    [HttpDelete("delete/{id:long}")] public async Task<IActionResult> Delete(long id, [FromQuery] PermissionRequestDTO permissionRequest, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkArrangement delete request."); return Ok(await Mediator.Send(new DeleteEmployeeWorkArrangementCommand(id, permissionRequest), ct)); }
     #endregion
 }
 
@@ -101,11 +104,11 @@ public sealed class EmployeeWorkPatternController(IMediator mediator, ILoggerSer
 {
     #region Employee Work Pattern CRUD
     [HttpPost("create")] public async Task<IActionResult> Create([FromBody] CreateEmployeeWorkPatternRequestDTO dto, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkPattern create request."); return Ok(await Mediator.Send(new CreateEmployeeWorkPatternCommand(dto), ct)); }
-    [HttpGet("get-by-id/{id:long}")] public async Task<IActionResult> GetById(long id, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkPattern get-by-id request."); return Ok(await Mediator.Send(new GetEmployeeWorkPatternByIdQuery(id), ct)); }
+    [HttpGet("get-by-id/{id:long}")] public async Task<IActionResult> GetById(long id, [FromQuery] PermissionRequestDTO permissionRequest, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkPattern get-by-id request."); return Ok(await Mediator.Send(new GetEmployeeWorkPatternByIdQuery(id, permissionRequest), ct)); }
     [HttpGet("get-all")] public async Task<IActionResult> GetAll([FromQuery] EmployeeWorkPatternFilterRequestDTO filter, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkPattern list request."); return Ok(await Mediator.Send(new GetEmployeeWorkPatternsQuery(filter), ct)); }
     [HttpPost("update")] public async Task<IActionResult> Update([FromBody] UpdateEmployeeWorkPatternRequestDTO dto, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkPattern update request."); return Ok(await Mediator.Send(new UpdateEmployeeWorkPatternCommand(dto), ct)); }
     [HttpPost("update-status")] public async Task<IActionResult> UpdateStatus([FromBody] UpdateEmployeeWorkPatternStatusRequestDTO dto, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkPattern status request."); return Ok(await Mediator.Send(new UpdateEmployeeWorkPatternStatusCommand(dto), ct)); }
-    [HttpDelete("delete/{id:long}")] public async Task<IActionResult> Delete(long id, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkPattern delete request."); return Ok(await Mediator.Send(new DeleteEmployeeWorkPatternCommand(id), ct)); }
+    [HttpDelete("delete/{id:long}")] public async Task<IActionResult> Delete(long id, [FromQuery] PermissionRequestDTO permissionRequest, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkPattern delete request."); return Ok(await Mediator.Send(new DeleteEmployeeWorkPatternCommand(id, permissionRequest), ct)); }
     #endregion
 }
 
@@ -115,10 +118,10 @@ public sealed class EmployeeWorkModeOverrideController(IMediator mediator, ILogg
 {
     #region Employee Work Mode Override CRUD
     [HttpPost("create")] public async Task<IActionResult> Create([FromBody] CreateEmployeeWorkModeOverrideRequestDTO dto, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkModeOverride create request."); return Ok(await Mediator.Send(new CreateEmployeeWorkModeOverrideCommand(dto), ct)); }
-    [HttpGet("get-by-id/{id:long}")] public async Task<IActionResult> GetById(long id, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkModeOverride get-by-id request."); return Ok(await Mediator.Send(new GetEmployeeWorkModeOverrideByIdQuery(id), ct)); }
+    [HttpGet("get-by-id/{id:long}")] public async Task<IActionResult> GetById(long id, [FromQuery] PermissionRequestDTO permissionRequest, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkModeOverride get-by-id request."); return Ok(await Mediator.Send(new GetEmployeeWorkModeOverrideByIdQuery(id, permissionRequest), ct)); }
     [HttpGet("get-all")] public async Task<IActionResult> GetAll([FromQuery] EmployeeWorkModeOverrideFilterRequestDTO filter, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkModeOverride list request."); return Ok(await Mediator.Send(new GetEmployeeWorkModeOverridesQuery(filter), ct)); }
     [HttpPost("update")] public async Task<IActionResult> Update([FromBody] UpdateEmployeeWorkModeOverrideRequestDTO dto, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkModeOverride update request."); return Ok(await Mediator.Send(new UpdateEmployeeWorkModeOverrideCommand(dto), ct)); }
     [HttpPost("update-status")] public async Task<IActionResult> UpdateStatus([FromBody] UpdateEmployeeWorkModeOverrideStatusRequestDTO dto, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkModeOverride status request."); return Ok(await Mediator.Send(new UpdateEmployeeWorkModeOverrideStatusCommand(dto), ct)); }
-    [HttpDelete("delete/{id:long}")] public async Task<IActionResult> Delete(long id, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkModeOverride delete request."); return Ok(await Mediator.Send(new DeleteEmployeeWorkModeOverrideCommand(id), ct)); }
+    [HttpDelete("delete/{id:long}")] public async Task<IActionResult> Delete(long id, [FromQuery] PermissionRequestDTO permissionRequest, CancellationToken ct) { Logger.LogInfo("Received EmployeeWorkModeOverride delete request."); return Ok(await Mediator.Send(new DeleteEmployeeWorkModeOverrideCommand(id, permissionRequest), ct)); }
     #endregion
 }

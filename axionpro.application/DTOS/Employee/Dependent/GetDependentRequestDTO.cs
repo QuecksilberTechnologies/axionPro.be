@@ -18,7 +18,7 @@ namespace axionpro.application.DTOS.Employee.Dependent
     /// <summary>
     /// Represents the GetDependentRequestDTO data transfer model.
     /// </summary>
-    public class GetDependentRequestDTO : BaseRequest
+    public class GetDependentRequestDTO : PermissionPagedRequestDTO
     {
 
  

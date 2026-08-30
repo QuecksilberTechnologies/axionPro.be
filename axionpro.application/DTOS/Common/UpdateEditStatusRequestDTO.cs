@@ -33,7 +33,7 @@ namespace axionpro.application.DTOS.Common
     /// <summary>
     /// Represents the UpdateEditStatusRequestDTO_ application component.
     /// </summary>
-    public class UpdateEditStatusRequestDTO_
+    public class UpdateEditStatusRequestDTO_ : axionpro.application.DTOs.BaseDTO.PermissionRequestDTO
     {
         [Required]
         public string UserEmployeeId { get; set; } = default!;

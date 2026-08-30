@@ -20,7 +20,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
     /// <summary>
     /// Represents the GetEmployeeImageRequestDTO data transfer model.
     /// </summary>
-    public class GetEmployeeImageRequestDTO 
+    public class GetEmployeeImageRequestDTO : axionpro.application.DTOs.BaseDTO.PermissionRequestDTO
     {
 
         public string? EmployeeId { get; set; } 

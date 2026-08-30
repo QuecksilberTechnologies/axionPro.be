@@ -18,7 +18,7 @@ namespace axionpro.application.DTOS.Employee.Sensitive
     /// <summary>
     /// Represents the UpdateIdentityReqestDTO data transfer model.
     /// </summary>
-    public class UpdateIdentityReqestDTO
+    public class UpdateIdentityReqestDTO : axionpro.application.DTOs.BaseDTO.PermissionRequestDTO
     {
 
             public required long Id { get; set; }

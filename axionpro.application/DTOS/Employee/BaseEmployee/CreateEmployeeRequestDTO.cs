@@ -17,7 +17,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
     /// <summary>
     /// Employee create request
     /// </summary>
-    public class CreateBaseEmployeeRequestDTO
+    public class CreateBaseEmployeeRequestDTO : axionpro.application.DTOs.BaseDTO.PermissionRequestDTO
 
     {
 

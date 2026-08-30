@@ -16,7 +16,7 @@ namespace axionpro.application.DTOS.Employee.EnrolledPolicy
     /// <summary>
     /// Represents the CreateEmployeeEnrolledRequestDTO data transfer model.
     /// </summary>
-    public  class CreateEmployeeEnrolledRequestDTO
+    public class CreateEmployeeEnrolledRequestDTO : axionpro.application.DTOs.BaseDTO.PermissionRequestDTO
     {
 
 

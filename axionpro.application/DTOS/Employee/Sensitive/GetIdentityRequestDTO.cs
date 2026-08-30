@@ -19,7 +19,7 @@ namespace axionpro.application.DTOS.Employee.Sensitive
     /// <summary>
     /// Represents the GetIdentityRequestDTO data transfer model.
     /// </summary>
-    public class GetIdentityRequestDTO 
+    public class GetIdentityRequestDTO : axionpro.application.DTOs.BaseDTO.PermissionRequestDTO
     {
              
       

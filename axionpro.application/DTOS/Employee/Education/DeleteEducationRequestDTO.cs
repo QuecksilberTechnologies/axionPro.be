@@ -6,7 +6,7 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOS.Employee.Education
 {
-    public class DeleteEducationRequestDTO
+    public class DeleteEducationRequestDTO : axionpro.application.DTOs.BaseDTO.PermissionRequestDTO
     {
         
         

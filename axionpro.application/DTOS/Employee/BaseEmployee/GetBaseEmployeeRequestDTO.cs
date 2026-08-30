@@ -20,7 +20,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
     /// <summary>
     /// post-request to fetch employee-info  
     /// </summary>
-    public class GetBaseEmployeeRequestDTO:BaseRequest
+    public class GetBaseEmployeeRequestDTO: PermissionPagedRequestDTO
     {
         /// <summary> TenantId Required</summary>       
         

@@ -49,9 +49,16 @@ namespace axionpro.api.Realtime.Identity
                 return false;
 
             var userType = principal.FindFirst(AppConstants.UserTypeClaim)?.Value;
-            return string.Equals(userType, AppConstants.HostUserType, StringComparison.Ordinal)
-                ? TryResolveHostUser(principal, out identity)
-                : TryResolveTenantUser(principal, out identity);
+            if (string.Equals(userType, AppConstants.HostUserType, StringComparison.Ordinal))
+            {
+                return TryResolveHostUser(principal, out identity);
+            }
+
+            // Empty is allowed only for a valid legacy Tenant token issued before UserType was added.
+            return string.IsNullOrWhiteSpace(userType) ||
+                   string.Equals(userType, AppConstants.TenantUserType, StringComparison.Ordinal)
+                ? TryResolveTenantUser(principal, out identity)
+                : false;
         }
 
         #region Tenant identity

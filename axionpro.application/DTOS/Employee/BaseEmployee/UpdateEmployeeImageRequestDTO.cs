@@ -18,7 +18,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
     /// <summary>
     /// Represents the UpdateEmployeeImageRequestDTO data transfer model.
     /// </summary>
-    public class UpdateEmployeeImageRequestDTO
+    public class UpdateEmployeeImageRequestDTO : axionpro.application.DTOs.BaseDTO.PermissionRequestDTO
     {
         
         public long Id { get; set; }

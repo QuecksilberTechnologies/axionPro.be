@@ -17,7 +17,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
     /// <summary>
     /// Represents the ActivateAllEmployeeRequestDTO data transfer model.
     /// </summary>
-    public class ActivateAllEmployeeRequestDTO
+    public class ActivateAllEmployeeRequestDTO : axionpro.application.DTOs.BaseDTO.PermissionRequestDTO
     {
         public string? UserEmployeeId { get; set; }
         public string? EmployeeId { get; set; }

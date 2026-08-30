@@ -7,7 +7,7 @@ namespace axionpro.application.DTOs.Employee
     /// post-request to update any employe info :edu/basic,personal,bank,exp 
     /// </summary>
 
-    public class GenericMultiFieldUpdateRequestDTO
+    public class GenericMultiFieldUpdateRequestDTO : axionpro.application.DTOs.BaseDTO.PermissionRequestDTO
     {
         [Required]
          

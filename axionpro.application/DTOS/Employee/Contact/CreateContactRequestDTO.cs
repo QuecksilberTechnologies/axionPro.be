@@ -19,7 +19,7 @@ namespace axionpro.application.DTOS.Employee.Contact
     /// <summary>
     /// Represents the CreateContactRequestDTO data transfer model.
     /// </summary>
-    public class CreateContactRequestDTO
+    public class CreateContactRequestDTO : axionpro.application.DTOs.BaseDTO.PermissionRequestDTO
     {
 
         public string EmployeeId { get; set; } = string.Empty;

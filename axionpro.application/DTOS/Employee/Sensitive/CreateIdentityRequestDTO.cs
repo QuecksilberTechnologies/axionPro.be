@@ -23,7 +23,7 @@ namespace axionpro.application.DTOS.Employee.Sensitive
     /// <summary>
     /// Represents the CreateEmployeeIdentityRequestDTO data transfer model.
     /// </summary>
-    public class CreateEmployeeIdentityRequestDTO
+    public class CreateEmployeeIdentityRequestDTO : axionpro.application.DTOs.BaseDTO.PermissionRequestDTO
     {
         public List<CreateIdentityRequest> Identities { get; set; }
             = new List<CreateIdentityRequest>();

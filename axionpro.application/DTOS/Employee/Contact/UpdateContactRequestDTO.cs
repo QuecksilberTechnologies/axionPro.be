@@ -18,7 +18,7 @@ namespace axionpro.application.DTOS.Employee.Contact
     /// <summary>
     /// Represents the UpdateContactRequestDTO data transfer model.
     /// </summary>
-    public class UpdateContactRequestDTO
+    public class UpdateContactRequestDTO : axionpro.application.DTOs.BaseDTO.PermissionRequestDTO
     {
 
         [Required]

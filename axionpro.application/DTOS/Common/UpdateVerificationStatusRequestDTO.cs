@@ -32,7 +32,7 @@ namespace axionpro.application.DTOS.Common
     /// <summary>
     /// Represents the UpdateVerificationStatusRequestDTO_ application component.
     /// </summary>
-    public class UpdateVerificationStatusRequestDTO_
+    public class UpdateVerificationStatusRequestDTO_ : axionpro.application.DTOs.BaseDTO.PermissionRequestDTO
     {
         [Required]
         public string UserEmployeeId { get; set; } = default!;

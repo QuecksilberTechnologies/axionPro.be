@@ -414,6 +414,14 @@ namespace axionpro.persistance.Data.Context
                 entity.ToView(null);
             });
 
+            // Keyless stored-function result used by the central Tenant
+            // runtime module-operation permission validation flow.
+            modelBuilder.Entity<TenantsUserPermissionCheckResponseDTO>(entity =>
+            {
+                entity.HasNoKey();
+                entity.ToView(null);
+            });
+
 
             modelBuilder.Entity<Asset>(entity =>
         {

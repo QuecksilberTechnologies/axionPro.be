@@ -20,7 +20,7 @@ namespace axionpro.application.DTOS.Employee.Experience
     /// <summary>
     /// Represents the CreateExperienceRequestDTO data transfer model.
     /// </summary>
-    public class CreateExperienceRequestDTO
+    public class CreateExperienceRequestDTO : axionpro.application.DTOs.BaseDTO.PermissionRequestDTO
     {
         public required string EmployeeId { get; set; }
         public decimal? Ctc { get; set; }

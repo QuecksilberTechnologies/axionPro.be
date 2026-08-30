@@ -186,7 +186,9 @@ namespace axionpro.api.Controllers.Employee
         /// </remarks>
         [Authorize]
         [HttpGet("get-all-percentage")]
-        public async Task<IActionResult> GetAllEmployeePercentageAsync([FromQuery] string employeeId)
+        public async Task<IActionResult> GetAllEmployeePercentageAsync(
+            [FromQuery] string employeeId,
+            [FromQuery] axionpro.application.DTOs.BaseDTO.PermissionRequestDTO permissionRequest)
         {
            
                 if (string.IsNullOrWhiteSpace(employeeId))
@@ -198,7 +200,7 @@ namespace axionpro.api.Controllers.Employee
 
                 _logger.LogInfo("Fetching employee completion percentage...");
 
-                var query = new GetEmployeeProfileStatusQuery(employeeId);
+                var query = new GetEmployeeProfileStatusQuery(employeeId, permissionRequest);
                 var result = await _mediator.Send(query);
 
                 _logger.LogInfo("Employee percentage fetched successfully.");
@@ -339,8 +341,8 @@ namespace axionpro.api.Controllers.Employee
         public async Task<IActionResult> UpdateEmployeeStatus(
             [FromQuery] ActivateAllEmployeeRequestDTO dto)
        
-            {
-                _logger.LogInfo(
+            {             
+            _logger.LogInfo(
                     $"Updating employee active status. EmployeeId: {dto.EmployeeId}, IsActive: {dto.IsActive}");
 
                 var command = new ActivateAllEmployeeQuery(dto);

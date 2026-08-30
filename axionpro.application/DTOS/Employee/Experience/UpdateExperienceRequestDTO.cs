@@ -21,7 +21,7 @@ namespace axionpro.application.DTOS.Employee.Experience
     /// <summary>
     /// Represents the UpdateExperienceRequestDTO data transfer model.
     /// </summary>
-    public class UpdateExperienceRequestDTO
+    public class UpdateExperienceRequestDTO : axionpro.application.DTOs.BaseDTO.PermissionRequestDTO
     {
         //  IMPORTANT
         [Required]

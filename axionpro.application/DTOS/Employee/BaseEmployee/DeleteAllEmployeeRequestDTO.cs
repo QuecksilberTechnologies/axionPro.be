@@ -17,7 +17,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
     /// <summary>
     /// Represents the DeleteBaseEmployeeRequestDTO data transfer model.
     /// </summary>
-    public class DeleteBaseEmployeeRequestDTO
+    public class DeleteBaseEmployeeRequestDTO : axionpro.application.DTOs.BaseDTO.PermissionRequestDTO
     {
       
         

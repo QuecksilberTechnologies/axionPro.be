@@ -223,7 +223,7 @@ public sealed class EmployeeLocationAssignmentResponseDTO
 }
 
 /// <summary>Supplies client-editable values for an employee device enrollment.</summary>
-public class CreateEmployeeDeviceEnrollmentRequestDTO
+public class CreateEmployeeDeviceEnrollmentRequestDTO : PermissionRequestDTO
 {
     public long EmployeeId { get; set; }
     public long TenantDeviceId { get; set; }
@@ -242,14 +242,14 @@ public sealed class UpdateEmployeeDeviceEnrollmentRequestDTO : CreateEmployeeDev
 }
 
 /// <summary>Supplies an employee-device-enrollment active-state change.</summary>
-public sealed class UpdateEmployeeDeviceEnrollmentStatusRequestDTO
+public sealed class UpdateEmployeeDeviceEnrollmentStatusRequestDTO : PermissionRequestDTO
 {
     public long Id { get; set; }
     public bool IsActive { get; set; }
 }
 
 /// <summary>Defines database-side filters for employee device enrollments.</summary>
-public sealed class EmployeeDeviceEnrollmentFilterRequestDTO
+public sealed class EmployeeDeviceEnrollmentFilterRequestDTO : PermissionRequestDTO
 {
     public string? Search { get; set; }
     public long? EmployeeId { get; set; }

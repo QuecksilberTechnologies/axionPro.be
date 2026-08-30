@@ -7,8 +7,10 @@
 
 using AutoMapper;
 using axionpro.application.Constants;
+using axionpro.application.DTOs.BaseDTO;
 using axionpro.application.DTOS.TenantConfiguration;
 using axionpro.application.Exceptions;
+using axionpro.application.Features.TenantConfigurationCmd.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
@@ -16,7 +18,7 @@ using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace axionpro.application.Features.TenantConfigurationCmd.Handlers;
+namespace axionpro.application.Features.EmployeeCmd.EmployeeWorkInfo.Handlers;
 
 #region Command
 /// <summary>Creates an employee-location assignment.</summary>
@@ -32,10 +34,12 @@ public sealed class UpdateEmployeeLocationAssignmentCommand(UpdateEmployeeLocati
     public UpdateEmployeeLocationAssignmentRequestDTO DTO { get; } = dto;
 }
 /// <summary>Soft deletes an employee-location assignment.</summary>
-public sealed class DeleteEmployeeLocationAssignmentCommand(long id) : IRequest<ApiResponse<bool>>
+public sealed class DeleteEmployeeLocationAssignmentCommand(long id, PermissionRequestDTO permissionRequest) : IRequest<ApiResponse<bool>>
 {
     /// <summary>Gets the assignment identifier.</summary>
     public long Id { get; } = id;
+    /// <summary>Gets the module and operation required for tenant-role authorization.</summary>
+    public PermissionRequestDTO PermissionRequest { get; } = permissionRequest;
 }
 /// <summary>Changes an employee-location-assignment active state.</summary>
 public sealed class UpdateEmployeeLocationAssignmentStatusCommand(UpdateEmployeeLocationAssignmentStatusRequestDTO dto) : IRequest<ApiResponse<EmployeeLocationAssignmentResponseDTO>>
@@ -46,10 +50,12 @@ public sealed class UpdateEmployeeLocationAssignmentStatusCommand(UpdateEmployee
 #endregion
 #region Query
 /// <summary>Retrieves one employee-location assignment.</summary>
-public sealed class GetEmployeeLocationAssignmentByIdQuery(long id) : IRequest<ApiResponse<EmployeeLocationAssignmentResponseDTO>>
+public sealed class GetEmployeeLocationAssignmentByIdQuery(long id, PermissionRequestDTO permissionRequest) : IRequest<ApiResponse<EmployeeLocationAssignmentResponseDTO>>
 {
     /// <summary>Gets the identifier.</summary>
     public long Id { get; } = id;
+    /// <summary>Gets the module and operation required for tenant-role authorization.</summary>
+    public PermissionRequestDTO PermissionRequest { get; } = permissionRequest;
 }
 /// <summary>Retrieves filtered employee-location assignments.</summary>
 public sealed class GetEmployeeLocationAssignmentsQuery(EmployeeLocationAssignmentFilterRequestDTO filter) : IRequest<ApiResponse<List<EmployeeLocationAssignmentResponseDTO>>>
@@ -125,7 +131,7 @@ public sealed class DeleteEmployeeLocationAssignmentCommandHandler : TenantConfi
     #endregion
     #region Handle
     /// <inheritdoc />
-    public async Task<ApiResponse<bool>> Handle(DeleteEmployeeLocationAssignmentCommand request, CancellationToken ct) { var (tenantId, actorId) = await ValidateTenantAsync(); var entity = await UnitOfWork.EmployeeLocationAssignmentRepository.GetForUpdateAsync(tenantId, request.Id, ct) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeLocationAssignmentNotFound); entity.IsSoftDeleted = true; entity.IsActive = false; entity.SoftDeletedById = actorId; entity.SoftDeletedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(ct); return ApiResponse<bool>.Success(true, AppConstants.SuccessMessages.EmployeeLocationAssignmentDeleted); }
+    public async Task<ApiResponse<bool>> Handle(DeleteEmployeeLocationAssignmentCommand request, CancellationToken ct) { var (tenantId, actorId) = await ValidateTenantPermissionAsync(request.PermissionRequest, ct); var entity = await UnitOfWork.EmployeeLocationAssignmentRepository.GetForUpdateAsync(tenantId, request.Id, ct) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeLocationAssignmentNotFound); entity.IsSoftDeleted = true; entity.IsActive = false; entity.SoftDeletedById = actorId; entity.SoftDeletedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(ct); return ApiResponse<bool>.Success(true, AppConstants.SuccessMessages.EmployeeLocationAssignmentDeleted); }
     #endregion
 }
 
@@ -156,7 +162,7 @@ public sealed class GetEmployeeLocationAssignmentByIdQueryHandler : TenantConfig
     /// <summary>Initializes the handler.</summary>
     public GetEmployeeLocationAssignmentByIdQueryHandler(IUnitOfWork u, IMapper mapper, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l) : base(u, c, l) => _mapper = mapper;
     /// <inheritdoc />
-    public async Task<ApiResponse<EmployeeLocationAssignmentResponseDTO>> Handle(GetEmployeeLocationAssignmentByIdQuery request, CancellationToken ct) { var (tenantId, _) = await ValidateTenantAsync(); var entity = await UnitOfWork.EmployeeLocationAssignmentRepository.GetByIdAsync(tenantId, request.Id, ct) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeLocationAssignmentNotFound); return ApiResponse<EmployeeLocationAssignmentResponseDTO>.Success(_mapper.Map<EmployeeLocationAssignmentResponseDTO>(entity)); }
+    public async Task<ApiResponse<EmployeeLocationAssignmentResponseDTO>> Handle(GetEmployeeLocationAssignmentByIdQuery request, CancellationToken ct) { var (tenantId, _) = await ValidateTenantPermissionAsync(request.PermissionRequest, ct); var entity = await UnitOfWork.EmployeeLocationAssignmentRepository.GetByIdAsync(tenantId, request.Id, ct) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeLocationAssignmentNotFound); return ApiResponse<EmployeeLocationAssignmentResponseDTO>.Success(_mapper.Map<EmployeeLocationAssignmentResponseDTO>(entity)); }
 }
 
 /// <summary>Handles filtered retrieval of employee-location assignments.</summary>

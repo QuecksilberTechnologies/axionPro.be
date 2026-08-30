@@ -7,8 +7,10 @@
 
 using AutoMapper;
 using axionpro.application.Constants;
+using axionpro.application.DTOs.BaseDTO;
 using axionpro.application.DTOS.TenantConfiguration;
 using axionpro.application.Exceptions;
+using axionpro.application.Features.TenantConfigurationCmd.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
@@ -16,7 +18,7 @@ using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace axionpro.application.Features.TenantConfigurationCmd.Handlers;
+namespace axionpro.application.Features.EmployeeCmd.EmployeeWorkInfo.Handlers;
 
 #region Command
 
@@ -25,7 +27,12 @@ public sealed class CreateEmployeeWorkModeOverrideCommand(CreateEmployeeWorkMode
 /// <summary>Updates a temporary employee work-mode override without changing approval state.</summary>
 public sealed class UpdateEmployeeWorkModeOverrideCommand(UpdateEmployeeWorkModeOverrideRequestDTO dto) : IRequest<ApiResponse<EmployeeWorkModeOverrideResponseDTO>> { public UpdateEmployeeWorkModeOverrideRequestDTO DTO { get; } = dto; }
 /// <summary>Soft deletes temporary override configuration.</summary>
-public sealed class DeleteEmployeeWorkModeOverrideCommand(long id) : IRequest<ApiResponse<bool>> { public long Id { get; } = id; }
+public sealed class DeleteEmployeeWorkModeOverrideCommand(long id, PermissionRequestDTO permissionRequest) : IRequest<ApiResponse<bool>>
+{
+    public long Id { get; } = id;
+    /// <summary>Gets the module and operation required for tenant-role authorization.</summary>
+    public PermissionRequestDTO PermissionRequest { get; } = permissionRequest;
+}
 /// <summary>Changes temporary override configuration state without changing approval state.</summary>
 public sealed class UpdateEmployeeWorkModeOverrideStatusCommand(UpdateEmployeeWorkModeOverrideStatusRequestDTO dto) : IRequest<ApiResponse<EmployeeWorkModeOverrideResponseDTO>> { public UpdateEmployeeWorkModeOverrideStatusRequestDTO DTO { get; } = dto; }
 
@@ -34,7 +41,12 @@ public sealed class UpdateEmployeeWorkModeOverrideStatusCommand(UpdateEmployeeWo
 #region Query
 
 /// <summary>Retrieves one temporary work-mode override.</summary>
-public sealed class GetEmployeeWorkModeOverrideByIdQuery(long id) : IRequest<ApiResponse<EmployeeWorkModeOverrideResponseDTO>> { public long Id { get; } = id; }
+public sealed class GetEmployeeWorkModeOverrideByIdQuery(long id, PermissionRequestDTO permissionRequest) : IRequest<ApiResponse<EmployeeWorkModeOverrideResponseDTO>>
+{
+    public long Id { get; } = id;
+    /// <summary>Gets the module and operation required for tenant-role authorization.</summary>
+    public PermissionRequestDTO PermissionRequest { get; } = permissionRequest;
+}
 /// <summary>Retrieves filtered temporary work-mode overrides.</summary>
 public sealed class GetEmployeeWorkModeOverridesQuery(EmployeeWorkModeOverrideFilterRequestDTO filter) : IRequest<ApiResponse<List<EmployeeWorkModeOverrideResponseDTO>>> { public EmployeeWorkModeOverrideFilterRequestDTO Filter { get; } = filter; }
 
@@ -93,7 +105,7 @@ public sealed class DeleteEmployeeWorkModeOverrideCommandHandler : TenantConfigu
 {
     public DeleteEmployeeWorkModeOverrideCommandHandler(IUnitOfWork unitOfWork, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) { }
     public async Task<ApiResponse<bool>> Handle(DeleteEmployeeWorkModeOverrideCommand request, CancellationToken cancellationToken)
-    { var (tenantId, actorId) = await ValidateTenantAsync(); var entity = await UnitOfWork.EmployeeWorkModeOverrideRequestRepository.GetForUpdateAsync(tenantId, request.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkModeOverrideNotFound); entity.IsSoftDeleted = true; entity.IsActive = false; entity.SoftDeletedById = actorId; entity.SoftDeletedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(cancellationToken); return ApiResponse<bool>.Success(true, AppConstants.SuccessMessages.EmployeeWorkModeOverrideDeleted); }
+    { var (tenantId, actorId) = await ValidateTenantPermissionAsync(request.PermissionRequest, cancellationToken); var entity = await UnitOfWork.EmployeeWorkModeOverrideRequestRepository.GetForUpdateAsync(tenantId, request.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkModeOverrideNotFound); entity.IsSoftDeleted = true; entity.IsActive = false; entity.SoftDeletedById = actorId; entity.SoftDeletedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(cancellationToken); return ApiResponse<bool>.Success(true, AppConstants.SuccessMessages.EmployeeWorkModeOverrideDeleted); }
 }
 
 /// <summary>Handles temporary override active-state changes without approval changes.</summary>
@@ -111,7 +123,7 @@ public sealed class GetEmployeeWorkModeOverrideByIdQueryHandler : TenantConfigur
     private readonly IMapper _mapper;
     public GetEmployeeWorkModeOverrideByIdQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) => _mapper = mapper;
     public async Task<ApiResponse<EmployeeWorkModeOverrideResponseDTO>> Handle(GetEmployeeWorkModeOverrideByIdQuery request, CancellationToken cancellationToken)
-    { var (tenantId, _) = await ValidateTenantAsync(); var entity = await UnitOfWork.EmployeeWorkModeOverrideRequestRepository.GetByIdAsync(tenantId, request.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkModeOverrideNotFound); return ApiResponse<EmployeeWorkModeOverrideResponseDTO>.Success(_mapper.Map<EmployeeWorkModeOverrideResponseDTO>(entity)); }
+    { var (tenantId, _) = await ValidateTenantPermissionAsync(request.PermissionRequest, cancellationToken); var entity = await UnitOfWork.EmployeeWorkModeOverrideRequestRepository.GetByIdAsync(tenantId, request.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkModeOverrideNotFound); return ApiResponse<EmployeeWorkModeOverrideResponseDTO>.Success(_mapper.Map<EmployeeWorkModeOverrideResponseDTO>(entity)); }
 }
 
 /// <summary>Handles paged temporary override retrieval.</summary>

@@ -7,6 +7,7 @@
 
 using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.EncryptionHelper;
+using axionpro.application.DTOs.BaseDTO;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -30,9 +31,13 @@ public class GetEmployeeProfileStatusQuery
 {
     public string? EmployeeId { get; }
 
-    public GetEmployeeProfileStatusQuery(string empid)
+    /// <summary>Gets the module and operation required for tenant-role authorization.</summary>
+    public PermissionRequestDTO PermissionRequest { get; }
+
+    public GetEmployeeProfileStatusQuery(string empid, PermissionRequestDTO permissionRequest)
     {
         EmployeeId = empid;
+        PermissionRequest = permissionRequest;
     }
 }
 

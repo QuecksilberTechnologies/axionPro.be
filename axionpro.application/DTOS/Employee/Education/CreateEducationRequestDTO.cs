@@ -19,7 +19,7 @@ namespace axionpro.application.DTOS.Employee.Education
     /// <summary>
     /// Represents the CreateEducationRequestDTO data transfer model.
     /// </summary>
-    public class CreateEducationRequestDTO
+    public class CreateEducationRequestDTO : axionpro.application.DTOs.BaseDTO.PermissionRequestDTO
     {
        
         public string? EmployeeId { get; set; }

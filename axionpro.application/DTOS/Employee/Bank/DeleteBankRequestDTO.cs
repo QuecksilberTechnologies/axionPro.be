@@ -7,7 +7,7 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOS.Employee.Bank
 {
-    public class DeleteBankRequestDTO
+    public class DeleteBankRequestDTO : axionpro.application.DTOs.BaseDTO.PermissionRequestDTO
     {
  
       

@@ -339,6 +339,11 @@ namespace axionpro.application.Constants
         public const string HostUserType = "Host";
 
         /// <summary>
+        /// Identifies a Tenant employee principal in the application principal-type claim.
+        /// </summary>
+        public const string TenantUserType = "Tenant";
+
+        /// <summary>
         /// Identifies the verified current Host role authorized to administer Parent Modules.
         /// </summary>
         public const long SuperAdminHostRoleId = 1;

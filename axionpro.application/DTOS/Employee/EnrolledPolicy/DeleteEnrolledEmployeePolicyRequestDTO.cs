@@ -15,7 +15,7 @@ namespace axionpro.application.DTOS.Employee.EnrolledPolicy
     /// <summary>
     /// Represents the DeleteEnrolledEmployeePolicyRequestDTO data transfer model.
     /// </summary>
-    public class DeleteEnrolledEmployeePolicyRequestDTO
+    public class DeleteEnrolledEmployeePolicyRequestDTO : axionpro.application.DTOs.BaseDTO.PermissionRequestDTO
     {
         public   string? EmployeeId { get; set; } = string.Empty;
         public   long? EmployeeInsuranceMappingId { get; set; } 

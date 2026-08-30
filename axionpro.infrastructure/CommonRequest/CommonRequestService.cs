@@ -60,6 +60,17 @@ namespace axionpro.infrastructure.CommonRequest
                 if (claims == null)
                     return new CommonDecodedResult { Success = false, ErrorMessage = "Token expired or invalid." };
 
+                // Tenant access tokens now carry an explicit principal type. Continue to accept
+                // an empty value only for sessions issued before that claim was introduced.
+                if (!string.IsNullOrWhiteSpace(claims.UserType) &&
+                    !string.Equals(
+                        claims.UserType,
+                        AppConstants.TenantUserType,
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    return new CommonDecodedResult { Success = false, ErrorMessage = AppConstants.ErrorMessages.Unauthorized };
+                }
+
                 long loggedInId = await _uow.StoreProcedureRepository.ValidateActiveUserLoginOnlyAsync(claims.UserId);
                 if (loggedInId < 1)
                     return new CommonDecodedResult { Success = false, ErrorMessage = "Inactive user." };
@@ -123,8 +134,10 @@ namespace axionpro.infrastructure.CommonRequest
                 };
             }
 
-            // Tenant tokens use the established Tenant claim set and intentionally do not carry the Host UserType claim.
-            if (!string.IsNullOrWhiteSpace(userType))
+            // Tenant tokens carry their explicit principal type. Empty remains supported only for
+            // access tokens issued before the Tenant UserType claim was added.
+            if (!string.IsNullOrWhiteSpace(userType) &&
+                !string.Equals(userType, AppConstants.TenantUserType, StringComparison.OrdinalIgnoreCase))
             {
                 throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
             }

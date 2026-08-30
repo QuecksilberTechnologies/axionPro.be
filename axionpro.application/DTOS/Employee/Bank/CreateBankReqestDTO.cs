@@ -20,7 +20,7 @@ namespace axionpro.application.DTOS.Employee.Bank
     /// 
     /// <summary> TenantId Required</summary>
    
-    public class CreateBankRequestDTO
+    public class CreateBankRequestDTO : axionpro.application.DTOs.BaseDTO.PermissionRequestDTO
     {
         /// <summary> TenantId Required</summary>
 

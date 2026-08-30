@@ -7,8 +7,10 @@
 
 using AutoMapper;
 using axionpro.application.Constants;
+using axionpro.application.DTOs.BaseDTO;
 using axionpro.application.DTOS.TenantConfiguration;
 using axionpro.application.Exceptions;
+using axionpro.application.Features.TenantConfigurationCmd.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
@@ -16,7 +18,7 @@ using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace axionpro.application.Features.TenantConfigurationCmd.Handlers;
+namespace axionpro.application.Features.EmployeeCmd.EmployeeWorkInfo.Handlers;
 
 #region Command
 /// <summary>Creates an employee work arrangement.</summary>
@@ -32,10 +34,12 @@ public sealed class UpdateEmployeeWorkArrangementCommand(UpdateEmployeeWorkArran
     public UpdateEmployeeWorkArrangementRequestDTO DTO { get; } = dto;
 }
 /// <summary>Soft deletes an employee work arrangement.</summary>
-public sealed class DeleteEmployeeWorkArrangementCommand(long id) : IRequest<ApiResponse<bool>>
+public sealed class DeleteEmployeeWorkArrangementCommand(long id, PermissionRequestDTO permissionRequest) : IRequest<ApiResponse<bool>>
 {
     /// <summary>Gets identifier.</summary>
     public long Id { get; } = id;
+    /// <summary>Gets the module and operation required for tenant-role authorization.</summary>
+    public PermissionRequestDTO PermissionRequest { get; } = permissionRequest;
 }
 /// <summary>Changes employee work arrangement active state.</summary>
 public sealed class UpdateEmployeeWorkArrangementStatusCommand(UpdateEmployeeWorkArrangementStatusRequestDTO dto) : IRequest<ApiResponse<EmployeeWorkArrangementResponseDTO>>
@@ -46,10 +50,12 @@ public sealed class UpdateEmployeeWorkArrangementStatusCommand(UpdateEmployeeWor
 #endregion
 #region Query
 /// <summary>Retrieves one employee work arrangement.</summary>
-public sealed class GetEmployeeWorkArrangementByIdQuery(long id) : IRequest<ApiResponse<EmployeeWorkArrangementResponseDTO>>
+public sealed class GetEmployeeWorkArrangementByIdQuery(long id, PermissionRequestDTO permissionRequest) : IRequest<ApiResponse<EmployeeWorkArrangementResponseDTO>>
 {
     /// <summary>Gets identifier.</summary>
     public long Id { get; } = id;
+    /// <summary>Gets the module and operation required for tenant-role authorization.</summary>
+    public PermissionRequestDTO PermissionRequest { get; } = permissionRequest;
 }
 /// <summary>Retrieves filtered employee work arrangements.</summary>
 public sealed class GetEmployeeWorkArrangementsQuery(EmployeeWorkArrangementFilterRequestDTO filter) : IRequest<ApiResponse<List<EmployeeWorkArrangementResponseDTO>>>
@@ -127,7 +133,7 @@ public sealed class DeleteEmployeeWorkArrangementCommandHandler : TenantConfigur
     /// <summary>Initializes handler.</summary>
     public DeleteEmployeeWorkArrangementCommandHandler(IUnitOfWork u, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l) : base(u, c, l) { }
     /// <inheritdoc />
-    public async Task<ApiResponse<bool>> Handle(DeleteEmployeeWorkArrangementCommand request, CancellationToken ct) { var (tenantId, actorId) = await ValidateTenantAsync(); var e = await UnitOfWork.EmployeeWorkArrangementRepository.GetForUpdateAsync(tenantId, request.Id, ct) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkArrangementNotFound); if (await UnitOfWork.EmployeeWorkArrangementRepository.HasAnyDependenciesAsync(tenantId, e.Id, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeWorkArrangementInUse); e.IsSoftDeleted = true; e.IsActive = false; e.SoftDeletedById = actorId; e.SoftDeletedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(ct); return ApiResponse<bool>.Success(true, AppConstants.SuccessMessages.EmployeeWorkArrangementDeleted); }
+    public async Task<ApiResponse<bool>> Handle(DeleteEmployeeWorkArrangementCommand request, CancellationToken ct) { var (tenantId, actorId) = await ValidateTenantPermissionAsync(request.PermissionRequest, ct); var e = await UnitOfWork.EmployeeWorkArrangementRepository.GetForUpdateAsync(tenantId, request.Id, ct) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkArrangementNotFound); if (await UnitOfWork.EmployeeWorkArrangementRepository.HasAnyDependenciesAsync(tenantId, e.Id, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeWorkArrangementInUse); e.IsSoftDeleted = true; e.IsActive = false; e.SoftDeletedById = actorId; e.SoftDeletedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(ct); return ApiResponse<bool>.Success(true, AppConstants.SuccessMessages.EmployeeWorkArrangementDeleted); }
 }
 
 /// <summary>Handles employee work arrangement status changes.</summary>
@@ -147,7 +153,7 @@ public sealed class GetEmployeeWorkArrangementByIdQueryHandler : TenantConfigura
     /// <summary>Initializes handler.</summary>
     public GetEmployeeWorkArrangementByIdQueryHandler(IUnitOfWork u, IMapper mapper, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l) : base(u, c, l) => _mapper = mapper;
     /// <inheritdoc />
-    public async Task<ApiResponse<EmployeeWorkArrangementResponseDTO>> Handle(GetEmployeeWorkArrangementByIdQuery request, CancellationToken ct) { var (tenantId, _) = await ValidateTenantAsync(); var e = await UnitOfWork.EmployeeWorkArrangementRepository.GetByIdAsync(tenantId, request.Id, ct) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkArrangementNotFound); return ApiResponse<EmployeeWorkArrangementResponseDTO>.Success(_mapper.Map<EmployeeWorkArrangementResponseDTO>(e)); }
+    public async Task<ApiResponse<EmployeeWorkArrangementResponseDTO>> Handle(GetEmployeeWorkArrangementByIdQuery request, CancellationToken ct) { var (tenantId, _) = await ValidateTenantPermissionAsync(request.PermissionRequest, ct); var e = await UnitOfWork.EmployeeWorkArrangementRepository.GetByIdAsync(tenantId, request.Id, ct) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkArrangementNotFound); return ApiResponse<EmployeeWorkArrangementResponseDTO>.Success(_mapper.Map<EmployeeWorkArrangementResponseDTO>(e)); }
 }
 
 /// <summary>Handles filtered employee work arrangement retrieval.</summary>

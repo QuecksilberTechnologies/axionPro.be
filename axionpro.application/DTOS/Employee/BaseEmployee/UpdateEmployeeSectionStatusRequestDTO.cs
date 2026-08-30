@@ -19,7 +19,7 @@ namespace axionpro.application.DTOS.Employee.BaseEmployee
     /// <summary>
     /// Represents the UpdateEmployeeSectionStatusRequestDTO data transfer model.
     /// </summary>
-    public class UpdateEmployeeSectionStatusRequestDTO
+    public class UpdateEmployeeSectionStatusRequestDTO : axionpro.application.DTOs.BaseDTO.PermissionRequestDTO
     {
        
         public required string EmployeeId { get; set; }   

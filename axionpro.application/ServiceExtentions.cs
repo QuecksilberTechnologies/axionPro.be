@@ -14,6 +14,9 @@ namespace axionpro.application
             //
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
             services.AddMediatR(conf => conf.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+            services.AddTransient(
+                typeof(MediatR.IPipelineBehavior<,>),
+                typeof(Features.EmployeeCmd.EmployeeTenantPermissionBehavior<,>));
            
 
             services.AddAutoMapper(typeof(MappingProfile).Assembly);

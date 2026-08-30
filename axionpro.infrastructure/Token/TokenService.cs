@@ -81,6 +81,7 @@ namespace axionpro.infrastructure.Token
                     claims.Add(new Claim("GenderName", user.GenderName ?? string.Empty));
                     claims.Add(new Claim("EmployeeTypeName", user.EmployeeTypeName ?? string.Empty));
                     claims.Add(new Claim("RoleTypeName", user.RoleTypeName ?? string.Empty));
+                    claims.Add(new Claim(AppConstants.UserTypeClaim, AppConstants.TenantUserType));
                     claims.Add(new Claim("HasPermanent", user.HasPermanent.ToString()));
                     claims.Add(new Claim("TokenPurpose", user.TokenPurpose.ToString()));
                     claims.Add(new Claim("IssuedAt", user.HasPermanent.ToString()));

@@ -10,7 +10,7 @@ namespace axionpro.application.DTOs.Employee
     /// post-request get self profile info
     /// </summary>
 
-    public class GetProfileRequestDTO
+    public class GetProfileRequestDTO : axionpro.application.DTOs.BaseDTO.PermissionRequestDTO
     {
         /// <summary> self user login id Required</summary>
 

@@ -7,8 +7,10 @@
 
 using AutoMapper;
 using axionpro.application.Constants;
+using axionpro.application.DTOs.BaseDTO;
 using axionpro.application.DTOS.TenantConfiguration;
 using axionpro.application.Exceptions;
+using axionpro.application.Features.TenantConfigurationCmd.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
@@ -16,7 +18,7 @@ using axionpro.domain.Entity;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace axionpro.application.Features.TenantConfigurationCmd.Handlers;
+namespace axionpro.application.Features.EmployeeCmd.EmployeeWorkInfo.Handlers;
 
 #region Command
 
@@ -35,7 +37,12 @@ public sealed class UpdateEmployeeWorkPatternCommand(UpdateEmployeeWorkPatternRe
 }
 
 /// <summary>Soft deletes an employee work-pattern day.</summary>
-public sealed class DeleteEmployeeWorkPatternCommand(long id) : IRequest<ApiResponse<bool>> { public long Id { get; } = id; }
+public sealed class DeleteEmployeeWorkPatternCommand(long id, PermissionRequestDTO permissionRequest) : IRequest<ApiResponse<bool>>
+{
+    public long Id { get; } = id;
+    /// <summary>Gets the module and operation required for tenant-role authorization.</summary>
+    public PermissionRequestDTO PermissionRequest { get; } = permissionRequest;
+}
 
 /// <summary>Changes an employee work-pattern active state.</summary>
 public sealed class UpdateEmployeeWorkPatternStatusCommand(UpdateEmployeeWorkPatternStatusRequestDTO dto) : IRequest<ApiResponse<EmployeeWorkPatternResponseDTO>> { public UpdateEmployeeWorkPatternStatusRequestDTO DTO { get; } = dto; }
@@ -45,7 +52,12 @@ public sealed class UpdateEmployeeWorkPatternStatusCommand(UpdateEmployeeWorkPat
 #region Query
 
 /// <summary>Retrieves one employee work-pattern day.</summary>
-public sealed class GetEmployeeWorkPatternByIdQuery(long id) : IRequest<ApiResponse<EmployeeWorkPatternResponseDTO>> { public long Id { get; } = id; }
+public sealed class GetEmployeeWorkPatternByIdQuery(long id, PermissionRequestDTO permissionRequest) : IRequest<ApiResponse<EmployeeWorkPatternResponseDTO>>
+{
+    public long Id { get; } = id;
+    /// <summary>Gets the module and operation required for tenant-role authorization.</summary>
+    public PermissionRequestDTO PermissionRequest { get; } = permissionRequest;
+}
 
 /// <summary>Retrieves filtered employee work-pattern days.</summary>
 public sealed class GetEmployeeWorkPatternsQuery(EmployeeWorkPatternFilterRequestDTO filter) : IRequest<ApiResponse<List<EmployeeWorkPatternResponseDTO>>> { public EmployeeWorkPatternFilterRequestDTO Filter { get; } = filter; }
@@ -104,7 +116,7 @@ public sealed class DeleteEmployeeWorkPatternCommandHandler : TenantConfiguratio
 {
     public DeleteEmployeeWorkPatternCommandHandler(IUnitOfWork unitOfWork, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) { }
     public async Task<ApiResponse<bool>> Handle(DeleteEmployeeWorkPatternCommand request, CancellationToken cancellationToken)
-    { var (tenantId, actorId) = await ValidateTenantAsync(); var entity = await UnitOfWork.EmployeeWorkPatternRepository.GetForUpdateAsync(tenantId, request.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkPatternNotFound); entity.IsSoftDeleted = true; entity.IsActive = false; entity.SoftDeletedById = actorId; entity.SoftDeletedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(cancellationToken); return ApiResponse<bool>.Success(true, AppConstants.SuccessMessages.EmployeeWorkPatternDeleted); }
+    { var (tenantId, actorId) = await ValidateTenantPermissionAsync(request.PermissionRequest, cancellationToken); var entity = await UnitOfWork.EmployeeWorkPatternRepository.GetForUpdateAsync(tenantId, request.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkPatternNotFound); entity.IsSoftDeleted = true; entity.IsActive = false; entity.SoftDeletedById = actorId; entity.SoftDeletedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(cancellationToken); return ApiResponse<bool>.Success(true, AppConstants.SuccessMessages.EmployeeWorkPatternDeleted); }
 }
 
 /// <summary>Handles employee work-pattern active-state changes.</summary>
@@ -122,7 +134,7 @@ public sealed class GetEmployeeWorkPatternByIdQueryHandler : TenantConfiguration
     private readonly IMapper _mapper;
     public GetEmployeeWorkPatternByIdQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger) : base(unitOfWork, commonRequestService, logger) => _mapper = mapper;
     public async Task<ApiResponse<EmployeeWorkPatternResponseDTO>> Handle(GetEmployeeWorkPatternByIdQuery request, CancellationToken cancellationToken)
-    { var (tenantId, _) = await ValidateTenantAsync(); var entity = await UnitOfWork.EmployeeWorkPatternRepository.GetByIdAsync(tenantId, request.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkPatternNotFound); return ApiResponse<EmployeeWorkPatternResponseDTO>.Success(_mapper.Map<EmployeeWorkPatternResponseDTO>(entity)); }
+    { var (tenantId, _) = await ValidateTenantPermissionAsync(request.PermissionRequest, cancellationToken); var entity = await UnitOfWork.EmployeeWorkPatternRepository.GetByIdAsync(tenantId, request.Id, cancellationToken) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkPatternNotFound); return ApiResponse<EmployeeWorkPatternResponseDTO>.Success(_mapper.Map<EmployeeWorkPatternResponseDTO>(entity)); }
 }
 
 /// <summary>Handles paged employee work-pattern retrieval.</summary>

@@ -19,7 +19,7 @@ namespace axionpro.application.DTOS.Employee.Bank
     /// <summary>
     /// Represents the GetBankReqestDTO data transfer model.
     /// </summary>
-    public class GetBankReqestDTO: BaseRequest
+    public class GetBankReqestDTO: PermissionPagedRequestDTO
     {
 
      

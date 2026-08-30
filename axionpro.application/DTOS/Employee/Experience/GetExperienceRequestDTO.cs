@@ -20,7 +20,7 @@ namespace axionpro.application.DTOS.Employee.Experience
     /// <summary>
     /// Represents the GetExperienceRequestDTO data transfer model.
     /// </summary>
-    public class GetExperienceRequestDTO : BaseRequest
+    public class GetExperienceRequestDTO : PermissionPagedRequestDTO
     {
         //  Required (encoded)
         public required string EmployeeId { get; set; } = string.Empty;
