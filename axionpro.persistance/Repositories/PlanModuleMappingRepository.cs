@@ -106,7 +106,8 @@ public sealed class PlanModuleMappingRepository : IPlanModuleMappingRepository
                 mapping.IsActive == true &&
                 mapping.Module.IsActive &&
                 mapping.Module.IsModuleDisplayInUI &&
-                mapping.Module.ModuleScope == (short)AppConstants.TenantModuleScope)
+                (mapping.Module.ModuleScope == (short)AppConstants.TenantModuleScope ||
+                 mapping.Module.ModuleScope == (short)AppConstants.CommonModuleScope))
             .Include(mapping => mapping.Module)
                 .ThenInclude(module => module.ModuleOperationMapping)
                     .ThenInclude(moduleOperation => moduleOperation.Operation)
@@ -143,11 +144,12 @@ public sealed class PlanModuleMappingRepository : IPlanModuleMappingRepository
     /// <inheritdoc />
     public Task<List<Module>> GetEligibleModulesForPlanMappingAsync(CancellationToken cancellationToken)
     {
-        // Module does not have a soft-delete column; visibility, activity, and tenant scope are canonical eligibility.
+        // Module does not have a soft-delete column; visibility, activity, and Tenant/Common scope are canonical eligibility.
         return _context.Modules
             .AsNoTracking()
             .Where(module =>
-                module.ModuleScope == (short)AppConstants.TenantModuleScope &&
+                (module.ModuleScope == (short)AppConstants.TenantModuleScope ||
+                 module.ModuleScope == (short)AppConstants.CommonModuleScope) &&
                 module.IsModuleDisplayInUI &&
                 module.IsActive)
             .OrderBy(module => module.ItemPriority ?? int.MaxValue)

@@ -11,7 +11,7 @@ using axionpro.domain.Entity;
 namespace axionpro.application.Features.PlanModuleMappingCmd;
 
 /// <summary>
-/// Represents the valid, selectable portion of the eligible tenant Module hierarchy.
+/// Represents the valid, selectable portion of the eligible Tenant and Common Module hierarchy.
 /// </summary>
 internal sealed class PlanModuleHierarchy
 {
@@ -42,7 +42,7 @@ internal sealed class PlanModuleHierarchy
     /// <summary>
     /// Builds a hierarchy from Modules already filtered by the repository's canonical eligibility rule.
     /// </summary>
-    /// <param name="eligibleModules">The visible, active tenant-scope Modules.</param>
+    /// <param name="eligibleModules">The visible, active Tenant- and Common-scope Modules.</param>
     /// <returns>The selectable hierarchy rooted at eligible Module Headers.</returns>
     public static PlanModuleHierarchy Create(IReadOnlyCollection<Module> eligibleModules)
     {

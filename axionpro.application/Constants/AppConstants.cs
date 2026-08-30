@@ -309,6 +309,11 @@ namespace axionpro.application.Constants
         /// </summary>
         public const int HostModuleScope = 2;
 
+        /// <summary>
+        /// Identifies modules that are shared by authenticated Host and Tenant applications.
+        /// </summary>
+        public const int CommonModuleScope = 3;
+
         #endregion
 
         #region Host Token Claims

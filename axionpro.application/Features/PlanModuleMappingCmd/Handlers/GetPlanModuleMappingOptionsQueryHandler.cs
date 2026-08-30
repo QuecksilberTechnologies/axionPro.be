@@ -76,7 +76,7 @@ public sealed class GetPlanModuleMappingOptionsQueryHandler
     #region Handle
 
     /// <summary>
-    /// Retrieves the eligible tenant-scope Module hierarchy with current active mapping selections.
+    /// Retrieves the eligible Tenant- and Common-scope Module hierarchy with current active mapping selections.
     /// </summary>
     /// <param name="request">The query to process.</param>
     /// <param name="cancellationToken">The token used to observe cancellation.</param>
