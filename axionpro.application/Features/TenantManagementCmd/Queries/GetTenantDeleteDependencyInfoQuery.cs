@@ -46,12 +46,7 @@ public sealed class GetTenantDeleteDependencyInfoQueryHandler
     {
         ArgumentNullException.ThrowIfNull(request.PermissionRequest);
 
-        var hostContext = await HostRuntimePermissionValidator.ValidateAsync(
-            _commonRequestService,
-            _unitOfWork.StoreProcedureRepository,
-            request.PermissionRequest.ModuleId,
-            request.PermissionRequest.OperationId,
-            cancellationToken);
+        var hostContext = await _commonRequestService.ValidateHostUserPermissionRequestAsync();
         var tenantId = HostTenantIdentifierProtector.Decrypt(
             request.EncryptedTenantId,
             hostContext.TenantEncryptionKey,

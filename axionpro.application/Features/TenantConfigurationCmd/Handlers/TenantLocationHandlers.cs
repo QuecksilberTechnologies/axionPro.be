@@ -127,7 +127,7 @@ public abstract class TenantLocationAccessHandlerBase : TenantConfigurationHandl
         return principal.UserType switch
         {
             LoginUserType.Host => await ResolveHostTenantScopeAsync(accessRequest, cancellationToken),
-            LoginUserType.TenantEmployee => await ValidateTenantPermissionAsync(accessRequest, cancellationToken),
+            LoginUserType.TenantEmployee => await ValidateTenantAsync(),
             _ => throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized)
         };
     }
@@ -136,12 +136,7 @@ public abstract class TenantLocationAccessHandlerBase : TenantConfigurationHandl
         TenantLocationAccessRequestDTO accessRequest,
         CancellationToken cancellationToken)
     {
-        var hostContext = await HostRuntimePermissionValidator.ValidateAsync(
-            CommonRequestService,
-            UnitOfWork.StoreProcedureRepository,
-            accessRequest.ModuleId,
-            accessRequest.OperationId,
-            cancellationToken);
+        var hostContext = await CommonRequestService.ValidateHostUserPermissionRequestAsync();
         var tenantId = HostTenantIdentifierProtector.Decrypt(
             accessRequest.TenantId,
             hostContext.TenantEncryptionKey,
@@ -166,12 +161,7 @@ public abstract class TenantLocationAccessHandlerBase : TenantConfigurationHandl
         var principal = await CommonRequestService.ValidateAuthenticatedRequestAsync();
         if (principal.UserType == LoginUserType.Host)
         {
-            var hostContext = await HostRuntimePermissionValidator.ValidateAsync(
-                CommonRequestService,
-                UnitOfWork.StoreProcedureRepository,
-                accessRequest.ModuleId,
-                accessRequest.OperationId,
-                cancellationToken);
+            var hostContext = await CommonRequestService.ValidateHostUserPermissionRequestAsync();
 
             if (hostContext.CurrentHostRoleId == AppConstants.SuperAdminHostRoleId)
             {
@@ -186,7 +176,7 @@ public abstract class TenantLocationAccessHandlerBase : TenantConfigurationHandl
 
         if (principal.UserType == LoginUserType.TenantEmployee)
         {
-            var (tenantId, _) = await ValidateTenantPermissionAsync(accessRequest, cancellationToken);
+            var (tenantId, _) = await ValidateTenantAsync();
             return tenantId;
         }
 

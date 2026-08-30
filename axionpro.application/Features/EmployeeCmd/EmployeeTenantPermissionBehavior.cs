@@ -7,6 +7,7 @@
 
 using axionpro.application.Constants;
 using axionpro.application.DTOs.BaseDTO;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using MediatR;
@@ -59,7 +60,7 @@ public sealed class EmployeeTenantPermissionBehavior<TRequest, TResponse>(
             logger.LogWarning(
                 "No expected module-code mapping exists for Employee request {EmployeeRequest}.",
                 typeof(TRequest).FullName);
-            throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
         }
 
         var activeModuleCode = await commonRequestService
@@ -72,7 +73,7 @@ public sealed class EmployeeTenantPermissionBehavior<TRequest, TResponse>(
                 permissionRequest.ModuleId,
                 activeModuleCode,
                 expectedModuleCode);
-            throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+            throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
         }
 
         var validation = await commonRequestService.ValidateTenantUserRequestAsync();
@@ -107,21 +108,21 @@ public sealed class EmployeeTenantPermissionBehavior<TRequest, TResponse>(
                 permissionRequest.OperationId,
                 cancellationToken);
 
-        if (permissionResult.ResultCode != 1)
+        return permissionResult.ResultCode switch
         {
-            logger.LogWarning(
-                "Tenant permission denied for {EmployeeRequest}. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}, ResultCode: {ResultCode}",
-                typeof(TRequest).Name,
-                tenantId,
-                userEmployeeId,
-                permissionRequest.ModuleId,
-                permissionRequest.OperationId,
-                permissionResult.ResultCode);
-            throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
-        }
-
-        return await next();
+            1 => await next(),
+            0 => throw CreatePermissionDeniedException(),
+            -1 or -2 => throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized),
+            _ => throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized)
+        };
     }
+
+    /// <summary>
+    /// Creates the standard forbidden response after logging a database-confirmed
+    /// permission denial. Invalid or stale authentication contexts remain 401.
+    /// </summary>
+    private static ForbiddenAccessException CreatePermissionDeniedException() =>
+        new(AppConstants.ErrorMessages.PermissionDenied);
 
     /// <summary>
     /// Retrieves the DTO carrying ModuleId and OperationId without changing

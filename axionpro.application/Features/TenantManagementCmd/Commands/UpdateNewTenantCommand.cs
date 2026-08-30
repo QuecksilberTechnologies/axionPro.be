@@ -84,14 +84,9 @@ public sealed class UpdateNewTenantCommandHandler
         var dto = request.RequestDTO;
         ValidateNestedRequest(dto);
 
-        // This central validator directly permits Super Admin Hosts and validates module-operation
-        // permission for every other Host user. No endpoint-specific authorization is added here.
-        var hostContext = await HostRuntimePermissionValidator.ValidateAsync(
-            _commonRequestService,
-            _unitOfWork.StoreProcedureRepository,
-            request.ModuleId,
-            request.OperationId,
-            cancellationToken);
+        // Runtime permission is enforced centrally before this handler; resolve
+        // only the trusted Host context required for auditing and ID protection.
+        var hostContext = await _commonRequestService.ValidateHostUserPermissionRequestAsync();
         var tenantId = HostTenantIdentifierProtector.Decrypt(
             request.EncryptedTenantId,
             hostContext.TenantEncryptionKey,

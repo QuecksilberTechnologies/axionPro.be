@@ -97,12 +97,7 @@ public sealed class DeactivateTenantCommandHandler
             throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
         }
 
-        var hostContext = await HostRuntimePermissionValidator.ValidateAsync(
-            _commonRequestService,
-            _unitOfWork.StoreProcedureRepository,
-            request.RequestDTO.ModuleId,
-            request.RequestDTO.OperationId,
-            cancellationToken);
+        var hostContext = await _commonRequestService.ValidateHostUserPermissionRequestAsync();
         var tenantId = HostTenantIdentifierProtector.Decrypt(
             request.RequestDTO.TenantId,
             hostContext.TenantEncryptionKey,

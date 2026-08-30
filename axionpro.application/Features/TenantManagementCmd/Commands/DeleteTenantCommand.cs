@@ -136,12 +136,7 @@ public sealed class DeleteHostManagedTenantCommandHandler
             throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
         }
 
-        var hostContext = await HostRuntimePermissionValidator.ValidateAsync(
-            _commonRequestService,
-            _unitOfWork.StoreProcedureRepository,
-            request.ModuleId,
-            request.OperationId,
-            cancellationToken);
+        var hostContext = await _commonRequestService.ValidateHostUserPermissionRequestAsync();
         var tenantId = HostTenantIdentifierProtector.Decrypt(
             request.EncryptedTenantId,
             hostContext.TenantEncryptionKey,

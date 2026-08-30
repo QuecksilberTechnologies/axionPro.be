@@ -7,6 +7,7 @@
 
 using axionpro.application.Constants;
 using axionpro.application.DTOs.BaseDTO;
+using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
@@ -110,13 +111,15 @@ public abstract class TenantConfigurationHandlerBase
                 throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
 
             case 0:
-            default:
                 Logger.LogWarning(
                     "Tenant permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}",
                     tenantId,
                     actorId,
                     request.ModuleId,
                     request.OperationId);
+                throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+
+            default:
                 throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
         }
     }

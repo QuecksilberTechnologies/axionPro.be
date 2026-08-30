@@ -79,12 +79,7 @@ public sealed class GetAllTenantsQueryHandler
         CancellationToken cancellationToken)
     {
         var filter = request.RequestDTO ?? throw new ArgumentNullException(nameof(request.RequestDTO));
-        var hostContext = await HostRuntimePermissionValidator.ValidateAsync(
-            _commonRequestService,
-            _unitOfWork.StoreProcedureRepository,
-            filter.ModuleId,
-            filter.OperationId,
-            cancellationToken);
+        var hostContext = await _commonRequestService.ValidateHostUserPermissionRequestAsync();
 
         var page = await _unitOfWork.TenantRepository
             .GetHostManagedTenantsAsync(filter, cancellationToken);

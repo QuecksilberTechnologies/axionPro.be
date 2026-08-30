@@ -59,12 +59,7 @@ public sealed class SynchronizeTenantPlanEntitlementsCommandHandler
         var dto = request?.RequestDTO
             ?? throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidRequest);
 
-        var hostContext = await HostRuntimePermissionValidator.ValidateAsync(
-            _commonRequestService,
-            _unitOfWork.StoreProcedureRepository,
-            dto.ModuleId,
-            dto.OperationId,
-            cancellationToken);
+        var hostContext = await _commonRequestService.ValidateHostUserPermissionRequestAsync();
 
         var tenantId = HostTenantIdentifierProtector.Decrypt(
             dto.TenantId,
