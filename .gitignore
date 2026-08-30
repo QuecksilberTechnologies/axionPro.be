@@ -382,3 +382,5 @@ axionpro.api/Secrets/*.json
 /.gitignore
 
 /axionpro.api/appsettings.Development.json
+/axionpro.application/Features/EmployeeCmd/EmployeeTenantPermissionBehavior.cs
+/axionpro.application/Interfaces/IRepositories/IModuleRepository.cs
