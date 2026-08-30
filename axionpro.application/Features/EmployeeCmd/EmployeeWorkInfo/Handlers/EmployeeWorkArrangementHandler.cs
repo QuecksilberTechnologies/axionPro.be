@@ -13,6 +13,7 @@ using axionpro.application.Exceptions;
 using axionpro.application.Features.TenantConfigurationCmd.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
@@ -73,26 +74,27 @@ public sealed class CreateEmployeeWorkArrangementCommandHandler : TenantConfigur
     #endregion
     #region Constructor
     /// <summary>Initializes handler.</summary>
-    public CreateEmployeeWorkArrangementCommandHandler(IUnitOfWork u, IMapper m, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l) : base(u, c, l) => _mapper = m;
+    public CreateEmployeeWorkArrangementCommandHandler(IUnitOfWork u, IMapper m, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l, IIdEncoderService idEncoderService) : base(u, c, l, idEncoderService) => _mapper = m;
     #endregion
     #region Handle
     /// <inheritdoc />
     public async Task<ApiResponse<EmployeeWorkArrangementResponseDTO>> Handle(CreateEmployeeWorkArrangementCommand request, CancellationToken ct)
     {
-        var (tenantId, actorId) = await ValidateTenantAsync(); Validate(request.DTO); await ValidateRefs(tenantId, request.DTO, null, ct);
-        var e = _mapper.Map<EmployeeWorkArrangement>(request.DTO); e.TenantId = tenantId; e.IsSoftDeleted = false; e.AddedById = actorId; e.AddedDateTime = DateTime.UtcNow; await UnitOfWork.EmployeeWorkArrangementRepository.AddAsync(e, ct); await UnitOfWork.SaveChangesAsync(ct);
+        if (request.DTO is null) throw new ValidationErrorException(AppConstants.ErrorMessages.RequiredDataMissing);
+        var (tenantId, actorId, employeeId) = await ValidateTenantAndDecodeEmployeeIdAsync(request.DTO.EmployeeId); Validate(request.DTO); await ValidateRefs(tenantId, employeeId, request.DTO, null, ct);
+        var e = _mapper.Map<EmployeeWorkArrangement>(request.DTO); e.EmployeeId = employeeId; e.TenantId = tenantId; e.IsSoftDeleted = false; e.AddedById = actorId; e.AddedDateTime = DateTime.UtcNow; await UnitOfWork.EmployeeWorkArrangementRepository.AddAsync(e, ct); await UnitOfWork.SaveChangesAsync(ct);
         Logger.LogInformation("Work arrangement {WorkArrangementId} created for Employee {EmployeeId} and Tenant {TenantId}.", e.Id, e.EmployeeId, tenantId);
         return ApiResponse<EmployeeWorkArrangementResponseDTO>.Success(_mapper.Map<EmployeeWorkArrangementResponseDTO>((await UnitOfWork.EmployeeWorkArrangementRepository.GetByIdAsync(tenantId, e.Id, ct))!), AppConstants.SuccessMessages.EmployeeWorkArrangementCreated);
     }
     #endregion
-    private async Task ValidateRefs(long tenantId, CreateEmployeeWorkArrangementRequestDTO dto, long? excludeId, CancellationToken ct)
+    private async Task ValidateRefs(long tenantId, long employeeId, CreateEmployeeWorkArrangementRequestDTO dto, long? excludeId, CancellationToken ct)
     {
-        if (!await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleEmployeeAsync(tenantId, dto.EmployeeId, ct) || !await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleAttendancePolicyAsync(tenantId, dto.AttendancePolicyId, ct) || (dto.PrimaryTenantLocationId.HasValue && !await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleLocationAsync(tenantId, dto.PrimaryTenantLocationId.Value, ct))) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
-        if (dto.IsActive && await UnitOfWork.EmployeeWorkArrangementRepository.CurrentArrangementExistsAsync(tenantId, dto.EmployeeId, excludeId, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasCurrentWorkArrangement);
+        if (!await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleEmployeeAsync(tenantId, employeeId, ct) || !await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleAttendancePolicyAsync(tenantId, dto.AttendancePolicyId, ct) || (dto.PrimaryTenantLocationId.HasValue && !await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleLocationAsync(tenantId, dto.PrimaryTenantLocationId.Value, ct))) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
+        if (dto.IsActive && await UnitOfWork.EmployeeWorkArrangementRepository.CurrentArrangementExistsAsync(tenantId, employeeId, excludeId, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasCurrentWorkArrangement);
     }
     private static void Validate(CreateEmployeeWorkArrangementRequestDTO dto)
     {
-        if (dto is null || dto.EmployeeId <= 0 || dto.AttendancePolicyId <= 0 || dto.EffectiveFrom == default || (dto.EffectiveTo.HasValue && dto.EffectiveTo < dto.EffectiveFrom) || !Enum.IsDefined(dto.WorkMode) || (dto.HybridType.HasValue && !Enum.IsDefined(dto.HybridType.Value)) || (dto.WorkMode == WorkMode.Hybrid && !dto.HybridType.HasValue) || (dto.WorkMode != WorkMode.Hybrid && dto.HybridType.HasValue) || !Within(dto.MinimumOfficeDaysPerWeek, 7) || !Within(dto.MinimumOfficeDaysPerMonth, 31) || !Within(dto.MaximumWFHDaysPerMonth, 31)) throw new ValidationErrorException(dto?.HybridType.HasValue == true || dto?.WorkMode == WorkMode.Hybrid ? AppConstants.ErrorMessages.InvalidHybridConfiguration : AppConstants.ErrorMessages.InvalidEffectiveDateRange);
+        if (dto is null || string.IsNullOrWhiteSpace(dto.EmployeeId) || dto.AttendancePolicyId <= 0 || dto.EffectiveFrom == default || (dto.EffectiveTo.HasValue && dto.EffectiveTo < dto.EffectiveFrom) || !Enum.IsDefined(dto.WorkMode) || (dto.HybridType.HasValue && !Enum.IsDefined(dto.HybridType.Value)) || (dto.WorkMode == WorkMode.Hybrid && !dto.HybridType.HasValue) || (dto.WorkMode != WorkMode.Hybrid && dto.HybridType.HasValue) || !Within(dto.MinimumOfficeDaysPerWeek, 7) || !Within(dto.MinimumOfficeDaysPerMonth, 31) || !Within(dto.MaximumWFHDaysPerMonth, 31)) throw new ValidationErrorException(dto?.HybridType.HasValue == true || dto?.WorkMode == WorkMode.Hybrid ? AppConstants.ErrorMessages.InvalidHybridConfiguration : AppConstants.ErrorMessages.InvalidEffectiveDateRange);
     }
     private static bool Within(short? value, short maximum) => !value.HasValue || (value.Value >= 0 && value.Value <= maximum);
 }
@@ -105,24 +107,29 @@ public sealed class UpdateEmployeeWorkArrangementCommandHandler : TenantConfigur
     #endregion
     #region Constructor
     /// <summary>Initializes handler.</summary>
-    public UpdateEmployeeWorkArrangementCommandHandler(IUnitOfWork u, IMapper m, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l) : base(u, c, l) => _mapper = m;
+    public UpdateEmployeeWorkArrangementCommandHandler(IUnitOfWork u, IMapper m, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l, IIdEncoderService idEncoderService) : base(u, c, l, idEncoderService) => _mapper = m;
     #endregion
     #region Handle
     /// <inheritdoc />
     public async Task<ApiResponse<EmployeeWorkArrangementResponseDTO>> Handle(UpdateEmployeeWorkArrangementCommand request, CancellationToken ct)
     {
-        var (tenantId, actorId) = await ValidateTenantAsync(); if (request.DTO is null || request.DTO.Id <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier); Validate(request.DTO);
+        if (request.DTO is null || request.DTO.Id <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
+        var (tenantId, actorId, employeeId) = await ValidateTenantAndDecodeEmployeeIdAsync(request.DTO.EmployeeId); Validate(request.DTO);
         var e = await UnitOfWork.EmployeeWorkArrangementRepository.GetForUpdateAsync(tenantId, request.DTO.Id, ct) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeWorkArrangementNotFound);
         if (!request.DTO.IsActive && e.IsActive && await UnitOfWork.EmployeeWorkArrangementRepository.HasLiveActiveDependenciesAsync(tenantId, e.Id, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeWorkArrangementInUse);
-        if (!await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleEmployeeAsync(tenantId, request.DTO.EmployeeId, ct) || !await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleAttendancePolicyAsync(tenantId, request.DTO.AttendancePolicyId, ct) || (request.DTO.PrimaryTenantLocationId.HasValue && !await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleLocationAsync(tenantId, request.DTO.PrimaryTenantLocationId.Value, ct))) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
-        if (request.DTO.IsActive && await UnitOfWork.EmployeeWorkArrangementRepository.CurrentArrangementExistsAsync(tenantId, request.DTO.EmployeeId, e.Id, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasCurrentWorkArrangement);
-        _mapper.Map(request.DTO, e); e.UpdatedById = actorId; e.UpdatedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(ct);
+        await ValidateRefs(tenantId, employeeId, request.DTO, e.Id, ct);
+        _mapper.Map(request.DTO, e); e.EmployeeId = employeeId; e.UpdatedById = actorId; e.UpdatedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(ct);
         return ApiResponse<EmployeeWorkArrangementResponseDTO>.Success(_mapper.Map<EmployeeWorkArrangementResponseDTO>((await UnitOfWork.EmployeeWorkArrangementRepository.GetByIdAsync(tenantId, e.Id, ct))!), AppConstants.SuccessMessages.EmployeeWorkArrangementUpdated);
     }
     #endregion
+    private async Task ValidateRefs(long tenantId, long employeeId, CreateEmployeeWorkArrangementRequestDTO dto, long? excludeId, CancellationToken ct)
+    {
+        if (!await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleEmployeeAsync(tenantId, employeeId, ct) || !await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleAttendancePolicyAsync(tenantId, dto.AttendancePolicyId, ct) || (dto.PrimaryTenantLocationId.HasValue && !await UnitOfWork.EmployeeWorkArrangementRepository.IsEligibleLocationAsync(tenantId, dto.PrimaryTenantLocationId.Value, ct))) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
+        if (dto.IsActive && await UnitOfWork.EmployeeWorkArrangementRepository.CurrentArrangementExistsAsync(tenantId, employeeId, excludeId, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasCurrentWorkArrangement);
+    }
     private static void Validate(CreateEmployeeWorkArrangementRequestDTO dto)
     {
-        if (dto.EmployeeId <= 0 || dto.AttendancePolicyId <= 0 || dto.EffectiveFrom == default || (dto.EffectiveTo.HasValue && dto.EffectiveTo < dto.EffectiveFrom) || !Enum.IsDefined(dto.WorkMode) || (dto.HybridType.HasValue && !Enum.IsDefined(dto.HybridType.Value)) || (dto.WorkMode == WorkMode.Hybrid && !dto.HybridType.HasValue) || (dto.WorkMode != WorkMode.Hybrid && dto.HybridType.HasValue) || !Within(dto.MinimumOfficeDaysPerWeek, 7) || !Within(dto.MinimumOfficeDaysPerMonth, 31) || !Within(dto.MaximumWFHDaysPerMonth, 31)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidHybridConfiguration);
+        if (string.IsNullOrWhiteSpace(dto.EmployeeId) || dto.AttendancePolicyId <= 0 || dto.EffectiveFrom == default || (dto.EffectiveTo.HasValue && dto.EffectiveTo < dto.EffectiveFrom) || !Enum.IsDefined(dto.WorkMode) || (dto.HybridType.HasValue && !Enum.IsDefined(dto.HybridType.Value)) || (dto.WorkMode == WorkMode.Hybrid && !dto.HybridType.HasValue) || (dto.WorkMode != WorkMode.Hybrid && dto.HybridType.HasValue) || !Within(dto.MinimumOfficeDaysPerWeek, 7) || !Within(dto.MinimumOfficeDaysPerMonth, 31) || !Within(dto.MaximumWFHDaysPerMonth, 31)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidHybridConfiguration);
     }
     private static bool Within(short? value, short maximum) => !value.HasValue || (value.Value >= 0 && value.Value <= maximum);
 }
@@ -161,8 +168,8 @@ public sealed class GetEmployeeWorkArrangementsQueryHandler : TenantConfiguratio
 {
     private readonly IMapper _mapper;
     /// <summary>Initializes handler.</summary>
-    public GetEmployeeWorkArrangementsQueryHandler(IUnitOfWork u, IMapper mapper, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l) : base(u, c, l) => _mapper = mapper;
+    public GetEmployeeWorkArrangementsQueryHandler(IUnitOfWork u, IMapper mapper, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l, IIdEncoderService idEncoderService) : base(u, c, l, idEncoderService) => _mapper = mapper;
     /// <inheritdoc />
-    public async Task<ApiResponse<List<EmployeeWorkArrangementResponseDTO>>> Handle(GetEmployeeWorkArrangementsQuery request, CancellationToken ct) { var (tenantId, _) = await ValidateTenantAsync(); var p = await UnitOfWork.EmployeeWorkArrangementRepository.GetPagedAsync(tenantId, request.Filter ?? new EmployeeWorkArrangementFilterRequestDTO(), ct); return Paged(p.Data.Select(entity => _mapper.Map<EmployeeWorkArrangementResponseDTO>(entity)).ToList(), p.PageNumber, p.PageSize, p.TotalCount, "Employee work arrangements retrieved successfully."); }
+    public async Task<ApiResponse<List<EmployeeWorkArrangementResponseDTO>>> Handle(GetEmployeeWorkArrangementsQuery request, CancellationToken ct) { var filter = request.Filter ?? new EmployeeWorkArrangementFilterRequestDTO(); var (tenantId, _, employeeId) = await ValidateTenantAndDecodeOptionalEmployeeIdAsync(filter.EmployeeId); filter.ResolvedEmployeeId = employeeId; var p = await UnitOfWork.EmployeeWorkArrangementRepository.GetPagedAsync(tenantId, filter, ct); return Paged(p.Data.Select(entity => _mapper.Map<EmployeeWorkArrangementResponseDTO>(entity)).ToList(), p.PageNumber, p.PageSize, p.TotalCount, "Employee work arrangements retrieved successfully."); }
 }
 #endregion

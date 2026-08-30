@@ -5,11 +5,13 @@
 // Purpose : Provides common authenticated Tenant context and response helpers for TenantConfiguration handlers.
 // ================================================================
 
+using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.BaseDTO;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Wrappers;
 using Microsoft.Extensions.Logging;
 
@@ -18,12 +20,19 @@ namespace axionpro.application.Features.TenantConfigurationCmd.Handlers;
 /// <summary>Provides common Tenant authentication and paging-response behavior for this module.</summary>
 public abstract class TenantConfigurationHandlerBase
 {
+    private readonly IIdEncoderService? _idEncoderService;
+
     /// <summary>Initializes common handler dependencies.</summary>
-    protected TenantConfigurationHandlerBase(IUnitOfWork unitOfWork, ICommonRequestService commonRequestService, ILogger<TenantConfigurationHandlerBase> logger)
+    protected TenantConfigurationHandlerBase(
+        IUnitOfWork unitOfWork,
+        ICommonRequestService commonRequestService,
+        ILogger<TenantConfigurationHandlerBase> logger,
+        IIdEncoderService? idEncoderService = null)
     {
         UnitOfWork = unitOfWork;
         CommonRequestService = commonRequestService;
         Logger = logger;
+        _idEncoderService = idEncoderService;
     }
 
     /// <summary>Gets the unit of work used by TenantConfiguration handlers.</summary>
@@ -46,6 +55,72 @@ public abstract class TenantConfigurationHandlerBase
         }
 
         return (validation.TenantId, validation.LoggedInEmployeeId);
+    }
+
+    /// <summary>
+    /// Validates the tenant principal and decodes a required client-facing employee identifier.
+    /// The encoded identifier is never passed to entities or repositories.
+    /// </summary>
+    protected async Task<(long TenantId, long ActorId, long EmployeeId)> ValidateTenantAndDecodeEmployeeIdAsync(
+        string? encodedEmployeeId)
+    {
+        var context = await ValidateTenantAndDecodeOptionalEmployeeIdAsync(encodedEmployeeId);
+        if (!context.EmployeeId.HasValue)
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
+        }
+
+        return (context.TenantId, context.ActorId, context.EmployeeId.Value);
+    }
+
+    /// <summary>
+    /// Validates the tenant principal and decodes an optional employee filter when the client supplied one.
+    /// </summary>
+    protected async Task<(long TenantId, long ActorId, long? EmployeeId)> ValidateTenantAndDecodeOptionalEmployeeIdAsync(
+        string? encodedEmployeeId)
+    {
+        var validation = await CommonRequestService.ValidateTenantUserRequestAsync();
+        if (!validation.Success ||
+            validation.TenantId <= 0 ||
+            validation.LoggedInEmployeeId <= 0 ||
+            string.IsNullOrWhiteSpace(validation.Claims.TenantEncriptionKey))
+        {
+            throw new UnauthorizedAccessException(
+                validation.ErrorMessage ?? AppConstants.ErrorMessages.Unauthorized);
+        }
+
+        if (string.IsNullOrWhiteSpace(encodedEmployeeId))
+        {
+            return (validation.TenantId, validation.LoggedInEmployeeId, null);
+        }
+
+        if (_idEncoderService is null)
+        {
+            throw new InvalidOperationException("The employee identifier decoder is not configured.");
+        }
+
+        try
+        {
+            var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
+                encodedEmployeeId,
+                validation.Claims.TenantEncriptionKey,
+                _idEncoderService);
+
+            if (employeeId <= 0)
+            {
+                throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
+            }
+
+            return (validation.TenantId, validation.LoggedInEmployeeId, employeeId);
+        }
+        catch (ValidationErrorException)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
+        }
     }
 
     /// <summary>

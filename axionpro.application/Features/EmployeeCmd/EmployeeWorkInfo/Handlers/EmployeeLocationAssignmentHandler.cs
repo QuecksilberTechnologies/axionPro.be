@@ -13,6 +13,7 @@ using axionpro.application.Exceptions;
 using axionpro.application.Features.TenantConfigurationCmd.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
@@ -73,27 +74,28 @@ public sealed class CreateEmployeeLocationAssignmentCommandHandler : TenantConfi
     #endregion
     #region Constructor
     /// <summary>Initializes the handler.</summary>
-    public CreateEmployeeLocationAssignmentCommandHandler(IUnitOfWork u, IMapper mapper, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l) : base(u, c, l) => _mapper = mapper;
+    public CreateEmployeeLocationAssignmentCommandHandler(IUnitOfWork u, IMapper mapper, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l, IIdEncoderService idEncoderService) : base(u, c, l, idEncoderService) => _mapper = mapper;
     #endregion
     #region Handle
     /// <inheritdoc />
     public async Task<ApiResponse<EmployeeLocationAssignmentResponseDTO>> Handle(CreateEmployeeLocationAssignmentCommand request, CancellationToken ct)
     {
-        var (tenantId, actorId) = await ValidateTenantAsync(); Validate(request.DTO);
-        await ValidateReferences(tenantId, request.DTO, null, ct);
-        var entity = _mapper.Map<EmployeeLocationAssignment>(request.DTO); entity.TenantId = tenantId; entity.IsSoftDeleted = false; entity.AddedById = actorId; entity.AddedDateTime = DateTime.UtcNow;
+        if (request.DTO is null) throw new ValidationErrorException(AppConstants.ErrorMessages.RequiredDataMissing);
+        var (tenantId, actorId, employeeId) = await ValidateTenantAndDecodeEmployeeIdAsync(request.DTO.EmployeeId); Validate(request.DTO);
+        await ValidateReferences(tenantId, employeeId, request.DTO, null, ct);
+        var entity = _mapper.Map<EmployeeLocationAssignment>(request.DTO); entity.EmployeeId = employeeId; entity.TenantId = tenantId; entity.IsSoftDeleted = false; entity.AddedById = actorId; entity.AddedDateTime = DateTime.UtcNow;
         await UnitOfWork.EmployeeLocationAssignmentRepository.AddAsync(entity, ct); await UnitOfWork.SaveChangesAsync(ct);
         Logger.LogInformation("Employee location assignment {AssignmentId} created for Tenant {TenantId}.", entity.Id, tenantId);
         return ApiResponse<EmployeeLocationAssignmentResponseDTO>.Success(_mapper.Map<EmployeeLocationAssignmentResponseDTO>((await UnitOfWork.EmployeeLocationAssignmentRepository.GetByIdAsync(tenantId, entity.Id, ct))!), AppConstants.SuccessMessages.EmployeeLocationAssignmentCreated);
     }
     #endregion
-    private async Task ValidateReferences(long tenantId, CreateEmployeeLocationAssignmentRequestDTO dto, long? excludeId, CancellationToken ct)
+    private async Task ValidateReferences(long tenantId, long employeeId, CreateEmployeeLocationAssignmentRequestDTO dto, long? excludeId, CancellationToken ct)
     {
-        if (!await UnitOfWork.EmployeeLocationAssignmentRepository.IsEligibleEmployeeAsync(tenantId, dto.EmployeeId, ct) || !await UnitOfWork.EmployeeLocationAssignmentRepository.IsEligibleLocationAsync(tenantId, dto.TenantLocationId, ct)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
-        if (dto.IsActive && await UnitOfWork.EmployeeLocationAssignmentRepository.AssignmentExistsAsync(tenantId, dto.EmployeeId, dto.TenantLocationId, excludeId, ct)) throw new ConflictException(AppConstants.ErrorMessages.DuplicateEmployeeLocationAssignment);
-        if (dto.IsActive && dto.IsPrimary && await UnitOfWork.EmployeeLocationAssignmentRepository.PrimaryAssignmentExistsAsync(tenantId, dto.EmployeeId, excludeId, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasPrimaryLocation);
+        if (!await UnitOfWork.EmployeeLocationAssignmentRepository.IsEligibleEmployeeAsync(tenantId, employeeId, ct) || !await UnitOfWork.EmployeeLocationAssignmentRepository.IsEligibleLocationAsync(tenantId, dto.TenantLocationId, ct)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
+        if (dto.IsActive && await UnitOfWork.EmployeeLocationAssignmentRepository.AssignmentExistsAsync(tenantId, employeeId, dto.TenantLocationId, excludeId, ct)) throw new ConflictException(AppConstants.ErrorMessages.DuplicateEmployeeLocationAssignment);
+        if (dto.IsActive && dto.IsPrimary && await UnitOfWork.EmployeeLocationAssignmentRepository.PrimaryAssignmentExistsAsync(tenantId, employeeId, excludeId, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasPrimaryLocation);
     }
-    private static void Validate(CreateEmployeeLocationAssignmentRequestDTO dto) { if (dto is null || dto.EmployeeId <= 0 || dto.TenantLocationId <= 0 || dto.EffectiveFrom == default || (dto.EffectiveTo.HasValue && dto.EffectiveTo < dto.EffectiveFrom)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidEffectiveDateRange); }
+    private static void Validate(CreateEmployeeLocationAssignmentRequestDTO dto) { if (dto is null || string.IsNullOrWhiteSpace(dto.EmployeeId) || dto.TenantLocationId <= 0 || dto.EffectiveFrom == default || (dto.EffectiveTo.HasValue && dto.EffectiveTo < dto.EffectiveFrom)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidEffectiveDateRange); }
 }
 
 /// <summary>Handles employee-location-assignment updates.</summary>
@@ -104,22 +106,27 @@ public sealed class UpdateEmployeeLocationAssignmentCommandHandler : TenantConfi
     #endregion
     #region Constructor
     /// <summary>Initializes the handler.</summary>
-    public UpdateEmployeeLocationAssignmentCommandHandler(IUnitOfWork u, IMapper mapper, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l) : base(u, c, l) => _mapper = mapper;
+    public UpdateEmployeeLocationAssignmentCommandHandler(IUnitOfWork u, IMapper mapper, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l, IIdEncoderService idEncoderService) : base(u, c, l, idEncoderService) => _mapper = mapper;
     #endregion
     #region Handle
     /// <inheritdoc />
     public async Task<ApiResponse<EmployeeLocationAssignmentResponseDTO>> Handle(UpdateEmployeeLocationAssignmentCommand request, CancellationToken ct)
     {
-        var (tenantId, actorId) = await ValidateTenantAsync(); if (request.DTO is null || request.DTO.Id <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier); Validate(request.DTO);
+        if (request.DTO is null || request.DTO.Id <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
+        var (tenantId, actorId, employeeId) = await ValidateTenantAndDecodeEmployeeIdAsync(request.DTO.EmployeeId); Validate(request.DTO);
         var entity = await UnitOfWork.EmployeeLocationAssignmentRepository.GetForUpdateAsync(tenantId, request.DTO.Id, ct) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeLocationAssignmentNotFound);
-        if (!await UnitOfWork.EmployeeLocationAssignmentRepository.IsEligibleEmployeeAsync(tenantId, request.DTO.EmployeeId, ct) || !await UnitOfWork.EmployeeLocationAssignmentRepository.IsEligibleLocationAsync(tenantId, request.DTO.TenantLocationId, ct)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
-        if (request.DTO.IsActive && await UnitOfWork.EmployeeLocationAssignmentRepository.AssignmentExistsAsync(tenantId, request.DTO.EmployeeId, request.DTO.TenantLocationId, entity.Id, ct)) throw new ConflictException(AppConstants.ErrorMessages.DuplicateEmployeeLocationAssignment);
-        if (request.DTO.IsActive && request.DTO.IsPrimary && await UnitOfWork.EmployeeLocationAssignmentRepository.PrimaryAssignmentExistsAsync(tenantId, request.DTO.EmployeeId, entity.Id, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasPrimaryLocation);
-        _mapper.Map(request.DTO, entity); entity.UpdatedById = actorId; entity.UpdatedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(ct);
+        await ValidateReferences(tenantId, employeeId, request.DTO, entity.Id, ct);
+        _mapper.Map(request.DTO, entity); entity.EmployeeId = employeeId; entity.UpdatedById = actorId; entity.UpdatedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(ct);
         return ApiResponse<EmployeeLocationAssignmentResponseDTO>.Success(_mapper.Map<EmployeeLocationAssignmentResponseDTO>((await UnitOfWork.EmployeeLocationAssignmentRepository.GetByIdAsync(tenantId, entity.Id, ct))!), AppConstants.SuccessMessages.EmployeeLocationAssignmentUpdated);
     }
     #endregion
-    private static void Validate(CreateEmployeeLocationAssignmentRequestDTO dto) { if (dto.EmployeeId <= 0 || dto.TenantLocationId <= 0 || dto.EffectiveFrom == default || (dto.EffectiveTo.HasValue && dto.EffectiveTo < dto.EffectiveFrom)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidEffectiveDateRange); }
+    private async Task ValidateReferences(long tenantId, long employeeId, CreateEmployeeLocationAssignmentRequestDTO dto, long? excludeId, CancellationToken ct)
+    {
+        if (!await UnitOfWork.EmployeeLocationAssignmentRepository.IsEligibleEmployeeAsync(tenantId, employeeId, ct) || !await UnitOfWork.EmployeeLocationAssignmentRepository.IsEligibleLocationAsync(tenantId, dto.TenantLocationId, ct)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
+        if (dto.IsActive && await UnitOfWork.EmployeeLocationAssignmentRepository.AssignmentExistsAsync(tenantId, employeeId, dto.TenantLocationId, excludeId, ct)) throw new ConflictException(AppConstants.ErrorMessages.DuplicateEmployeeLocationAssignment);
+        if (dto.IsActive && dto.IsPrimary && await UnitOfWork.EmployeeLocationAssignmentRepository.PrimaryAssignmentExistsAsync(tenantId, employeeId, excludeId, ct)) throw new ConflictException(AppConstants.ErrorMessages.EmployeeAlreadyHasPrimaryLocation);
+    }
+    private static void Validate(CreateEmployeeLocationAssignmentRequestDTO dto) { if (string.IsNullOrWhiteSpace(dto.EmployeeId) || dto.TenantLocationId <= 0 || dto.EffectiveFrom == default || (dto.EffectiveTo.HasValue && dto.EffectiveTo < dto.EffectiveFrom)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidEffectiveDateRange); }
 }
 
 /// <summary>Handles employee-location-assignment soft deletion.</summary>
@@ -170,8 +177,8 @@ public sealed class GetEmployeeLocationAssignmentsQueryHandler : TenantConfigura
 {
     private readonly IMapper _mapper;
     /// <summary>Initializes the handler.</summary>
-    public GetEmployeeLocationAssignmentsQueryHandler(IUnitOfWork u, IMapper mapper, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l) : base(u, c, l) => _mapper = mapper;
+    public GetEmployeeLocationAssignmentsQueryHandler(IUnitOfWork u, IMapper mapper, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l, IIdEncoderService idEncoderService) : base(u, c, l, idEncoderService) => _mapper = mapper;
     /// <inheritdoc />
-    public async Task<ApiResponse<List<EmployeeLocationAssignmentResponseDTO>>> Handle(GetEmployeeLocationAssignmentsQuery request, CancellationToken ct) { var (tenantId, _) = await ValidateTenantAsync(); var page = await UnitOfWork.EmployeeLocationAssignmentRepository.GetPagedAsync(tenantId, request.Filter ?? new EmployeeLocationAssignmentFilterRequestDTO(), ct); return Paged(page.Data.Select(entity => _mapper.Map<EmployeeLocationAssignmentResponseDTO>(entity)).ToList(), page.PageNumber, page.PageSize, page.TotalCount, "Employee location assignments retrieved successfully."); }
+    public async Task<ApiResponse<List<EmployeeLocationAssignmentResponseDTO>>> Handle(GetEmployeeLocationAssignmentsQuery request, CancellationToken ct) { var filter = request.Filter ?? new EmployeeLocationAssignmentFilterRequestDTO(); var (tenantId, _, employeeId) = await ValidateTenantAndDecodeOptionalEmployeeIdAsync(filter.EmployeeId); filter.ResolvedEmployeeId = employeeId; var page = await UnitOfWork.EmployeeLocationAssignmentRepository.GetPagedAsync(tenantId, filter, ct); return Paged(page.Data.Select(entity => _mapper.Map<EmployeeLocationAssignmentResponseDTO>(entity)).ToList(), page.PageNumber, page.PageSize, page.TotalCount, "Employee location assignments retrieved successfully."); }
 }
 #endregion

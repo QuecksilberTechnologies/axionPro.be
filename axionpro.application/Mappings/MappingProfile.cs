@@ -260,6 +260,7 @@ namespace axionpro.application.Mappings
                 .ForMember(d => d.Id, o => o.Ignore());
 
             CreateMap<CreateEmployeeLocationAssignmentRequestDTO, EmployeeLocationAssignment>()
+                .ForMember(d => d.EmployeeId, o => o.Ignore())
                 .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.TenantId, o => o.Ignore())
                 .ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
                 .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
@@ -271,6 +272,7 @@ namespace axionpro.application.Mappings
                 .ForMember(d => d.Id, o => o.Ignore());
 
             CreateMap<CreateEmployeeDeviceEnrollmentRequestDTO, EmployeeDeviceEnrollment>()
+                .ForMember(d => d.EmployeeId, o => o.Ignore())
                 .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.TenantId, o => o.Ignore())
                 .ForMember(d => d.LastSyncedDateTime, o => o.Ignore()).ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
                 .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
@@ -284,6 +286,7 @@ namespace axionpro.application.Mappings
             CreateMap<CreateEmployeeWorkArrangementRequestDTO, EmployeeWorkArrangement>()
                 .ForMember(d => d.WorkMode, o => o.MapFrom(s => checked((short)s.WorkMode)))
                 .ForMember(d => d.HybridType, o => o.MapFrom(s => s.HybridType.HasValue ? checked((short)s.HybridType.Value) : (short?)null))
+                .ForMember(d => d.EmployeeId, o => o.Ignore())
                 .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.TenantId, o => o.Ignore())
                 .ForMember(d => d.AddedById, o => o.Ignore()).ForMember(d => d.AddedDateTime, o => o.Ignore())
                 .ForMember(d => d.UpdatedById, o => o.Ignore()).ForMember(d => d.UpdatedDateTime, o => o.Ignore())
@@ -311,6 +314,7 @@ namespace axionpro.application.Mappings
 
             CreateMap<CreateEmployeeWorkModeOverrideRequestDTO, EmployeeWorkModeOverrideRequest>()
                 .ForMember(d => d.RequestedWorkMode, o => o.MapFrom(s => checked((short)s.RequestedWorkMode)))
+                .ForMember(d => d.EmployeeId, o => o.Ignore())
                 .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.TenantId, o => o.Ignore())
                 .ForMember(d => d.ApprovalStatus, o => o.Ignore()).ForMember(d => d.ApprovedById, o => o.Ignore()).ForMember(d => d.ApprovedDateTime, o => o.Ignore())
                 .ForMember(d => d.ApprovalRemark, o => o.Ignore()).ForMember(d => d.RejectedById, o => o.Ignore()).ForMember(d => d.RejectedDateTime, o => o.Ignore()).ForMember(d => d.RejectionRemark, o => o.Ignore())

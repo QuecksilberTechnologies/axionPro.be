@@ -13,6 +13,7 @@ using axionpro.application.Exceptions;
 using axionpro.application.Features.TenantConfigurationCmd.Handlers;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity;
 using MediatR;
@@ -74,25 +75,26 @@ public sealed class CreateEmployeeDeviceEnrollmentCommandHandler : TenantConfigu
     #endregion
     #region Constructor
     /// <summary>Initializes handler.</summary>
-    public CreateEmployeeDeviceEnrollmentCommandHandler(IUnitOfWork u, IMapper m, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l) : base(u, c, l) => _mapper = m;
+    public CreateEmployeeDeviceEnrollmentCommandHandler(IUnitOfWork u, IMapper m, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l, IIdEncoderService idEncoderService) : base(u, c, l, idEncoderService) => _mapper = m;
     #endregion
     #region Handle
     /// <inheritdoc />
     public async Task<ApiResponse<EmployeeDeviceEnrollmentResponseDTO>> Handle(CreateEmployeeDeviceEnrollmentCommand request, CancellationToken ct)
     {
-        var (tenantId, actorId) = await ValidateTenantAsync(); Validate(request.DTO); await ValidateRefs(tenantId, request.DTO, null, ct);
-        var entity = _mapper.Map<EmployeeDeviceEnrollmentEntity>(request.DTO); entity.EnrollId = request.DTO.EnrollId.Trim(); entity.TenantId = tenantId; entity.IsSoftDeleted = false; entity.AddedById = actorId; entity.AddedDateTime = DateTime.UtcNow;
+        if (request.DTO is null) throw new ValidationErrorException(AppConstants.ErrorMessages.RequiredDataMissing);
+        var (tenantId, actorId, employeeId) = await ValidateTenantAndDecodeEmployeeIdAsync(request.DTO.EmployeeId); Validate(request.DTO); await ValidateRefs(tenantId, employeeId, request.DTO, null, ct);
+        var entity = _mapper.Map<EmployeeDeviceEnrollmentEntity>(request.DTO); entity.EmployeeId = employeeId; entity.EnrollId = request.DTO.EnrollId.Trim(); entity.TenantId = tenantId; entity.IsSoftDeleted = false; entity.AddedById = actorId; entity.AddedDateTime = DateTime.UtcNow;
         await UnitOfWork.EmployeeDeviceEnrollmentRepository.AddAsync(entity, ct); await UnitOfWork.SaveChangesAsync(ct);
         Logger.LogInformation("Employee {EmployeeId} enrolled on TenantDevice {TenantDeviceId} for Tenant {TenantId}.", entity.EmployeeId, entity.TenantDeviceId, tenantId);
         return ApiResponse<EmployeeDeviceEnrollmentResponseDTO>.Success(_mapper.Map<EmployeeDeviceEnrollmentResponseDTO>((await UnitOfWork.EmployeeDeviceEnrollmentRepository.GetByIdAsync(tenantId, entity.Id, ct))!), AppConstants.SuccessMessages.EmployeeDeviceEnrollmentCreated);
     }
     #endregion
-    private async Task ValidateRefs(long tenantId, CreateEmployeeDeviceEnrollmentRequestDTO dto, long? excludeId, CancellationToken ct)
+    private async Task ValidateRefs(long tenantId, long employeeId, CreateEmployeeDeviceEnrollmentRequestDTO dto, long? excludeId, CancellationToken ct)
     {
-        if (!await UnitOfWork.EmployeeDeviceEnrollmentRepository.IsEligibleEmployeeAsync(tenantId, dto.EmployeeId, ct) || !await UnitOfWork.EmployeeDeviceEnrollmentRepository.IsEligibleTenantDeviceAsync(tenantId, dto.TenantDeviceId, ct)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
+        if (!await UnitOfWork.EmployeeDeviceEnrollmentRepository.IsEligibleEmployeeAsync(tenantId, employeeId, ct) || !await UnitOfWork.EmployeeDeviceEnrollmentRepository.IsEligibleTenantDeviceAsync(tenantId, dto.TenantDeviceId, ct)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
         if (await UnitOfWork.EmployeeDeviceEnrollmentRepository.EnrollIdExistsAsync(tenantId, dto.TenantDeviceId, dto.EnrollId.Trim(), excludeId, ct)) throw new ConflictException(AppConstants.ErrorMessages.DuplicateDeviceEnrollId);
     }
-    private static void Validate(CreateEmployeeDeviceEnrollmentRequestDTO dto) { if (dto is null || dto.EmployeeId <= 0 || dto.TenantDeviceId <= 0 || string.IsNullOrWhiteSpace(dto.EnrollId)) throw new ValidationErrorException(AppConstants.ErrorMessages.RequiredDataMissing); }
+    private static void Validate(CreateEmployeeDeviceEnrollmentRequestDTO dto) { if (dto is null || string.IsNullOrWhiteSpace(dto.EmployeeId) || dto.TenantDeviceId <= 0 || string.IsNullOrWhiteSpace(dto.EnrollId)) throw new ValidationErrorException(AppConstants.ErrorMessages.RequiredDataMissing); }
 }
 
 /// <summary>Handles employee device enrollment updates.</summary>
@@ -103,21 +105,26 @@ public sealed class UpdateEmployeeDeviceEnrollmentCommandHandler : TenantConfigu
     #endregion
     #region Constructor
     /// <summary>Initializes handler.</summary>
-    public UpdateEmployeeDeviceEnrollmentCommandHandler(IUnitOfWork u, IMapper m, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l) : base(u, c, l) => _mapper = m;
+    public UpdateEmployeeDeviceEnrollmentCommandHandler(IUnitOfWork u, IMapper m, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l, IIdEncoderService idEncoderService) : base(u, c, l, idEncoderService) => _mapper = m;
     #endregion
     #region Handle
     /// <inheritdoc />
     public async Task<ApiResponse<EmployeeDeviceEnrollmentResponseDTO>> Handle(UpdateEmployeeDeviceEnrollmentCommand request, CancellationToken ct)
     {
-        var (tenantId, actorId) = await ValidateTenantAsync(); if (request.DTO is null || request.DTO.Id <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier); Validate(request.DTO);
+        if (request.DTO is null || request.DTO.Id <= 0) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
+        var (tenantId, actorId, employeeId) = await ValidateTenantAndDecodeEmployeeIdAsync(request.DTO.EmployeeId); Validate(request.DTO);
         var entity = await UnitOfWork.EmployeeDeviceEnrollmentRepository.GetForUpdateAsync(tenantId, request.DTO.Id, ct) ?? throw new NotFoundException(AppConstants.ErrorMessages.EmployeeDeviceEnrollmentNotFound);
-        if (!await UnitOfWork.EmployeeDeviceEnrollmentRepository.IsEligibleEmployeeAsync(tenantId, request.DTO.EmployeeId, ct) || !await UnitOfWork.EmployeeDeviceEnrollmentRepository.IsEligibleTenantDeviceAsync(tenantId, request.DTO.TenantDeviceId, ct)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
-        if (await UnitOfWork.EmployeeDeviceEnrollmentRepository.EnrollIdExistsAsync(tenantId, request.DTO.TenantDeviceId, request.DTO.EnrollId.Trim(), entity.Id, ct)) throw new ConflictException(AppConstants.ErrorMessages.DuplicateDeviceEnrollId);
-        _mapper.Map(request.DTO, entity); entity.EnrollId = request.DTO.EnrollId.Trim(); entity.UpdatedById = actorId; entity.UpdatedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(ct);
+        await ValidateRefs(tenantId, employeeId, request.DTO, entity.Id, ct);
+        _mapper.Map(request.DTO, entity); entity.EmployeeId = employeeId; entity.EnrollId = request.DTO.EnrollId.Trim(); entity.UpdatedById = actorId; entity.UpdatedDateTime = DateTime.UtcNow; await UnitOfWork.SaveChangesAsync(ct);
         return ApiResponse<EmployeeDeviceEnrollmentResponseDTO>.Success(_mapper.Map<EmployeeDeviceEnrollmentResponseDTO>((await UnitOfWork.EmployeeDeviceEnrollmentRepository.GetByIdAsync(tenantId, entity.Id, ct))!), AppConstants.SuccessMessages.EmployeeDeviceEnrollmentUpdated);
     }
     #endregion
-    private static void Validate(CreateEmployeeDeviceEnrollmentRequestDTO dto) { if (dto.EmployeeId <= 0 || dto.TenantDeviceId <= 0 || string.IsNullOrWhiteSpace(dto.EnrollId)) throw new ValidationErrorException(AppConstants.ErrorMessages.RequiredDataMissing); }
+    private async Task ValidateRefs(long tenantId, long employeeId, CreateEmployeeDeviceEnrollmentRequestDTO dto, long? excludeId, CancellationToken ct)
+    {
+        if (!await UnitOfWork.EmployeeDeviceEnrollmentRepository.IsEligibleEmployeeAsync(tenantId, employeeId, ct) || !await UnitOfWork.EmployeeDeviceEnrollmentRepository.IsEligibleTenantDeviceAsync(tenantId, dto.TenantDeviceId, ct)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
+        if (await UnitOfWork.EmployeeDeviceEnrollmentRepository.EnrollIdExistsAsync(tenantId, dto.TenantDeviceId, dto.EnrollId.Trim(), excludeId, ct)) throw new ConflictException(AppConstants.ErrorMessages.DuplicateDeviceEnrollId);
+    }
+    private static void Validate(CreateEmployeeDeviceEnrollmentRequestDTO dto) { if (string.IsNullOrWhiteSpace(dto.EmployeeId) || dto.TenantDeviceId <= 0 || string.IsNullOrWhiteSpace(dto.EnrollId)) throw new ValidationErrorException(AppConstants.ErrorMessages.RequiredDataMissing); }
 }
 
 /// <summary>Handles employee device enrollment soft deletion.</summary>
@@ -154,8 +161,8 @@ public sealed class GetEmployeeDeviceEnrollmentsQueryHandler : TenantConfigurati
 {
     private readonly IMapper _mapper;
     /// <summary>Initializes handler.</summary>
-    public GetEmployeeDeviceEnrollmentsQueryHandler(IUnitOfWork u, IMapper mapper, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l) : base(u, c, l) => _mapper = mapper;
+    public GetEmployeeDeviceEnrollmentsQueryHandler(IUnitOfWork u, IMapper mapper, ICommonRequestService c, ILogger<TenantConfigurationHandlerBase> l, IIdEncoderService idEncoderService) : base(u, c, l, idEncoderService) => _mapper = mapper;
     /// <inheritdoc />
-    public async Task<ApiResponse<List<EmployeeDeviceEnrollmentResponseDTO>>> Handle(GetEmployeeDeviceEnrollmentsQuery request, CancellationToken ct) { var filter = request.Filter ?? new EmployeeDeviceEnrollmentFilterRequestDTO(); var (tenantId, _) = await ValidateTenantAsync(); var p = await UnitOfWork.EmployeeDeviceEnrollmentRepository.GetPagedAsync(tenantId, filter, ct); return Paged(p.Data.Select(entity => _mapper.Map<EmployeeDeviceEnrollmentResponseDTO>(entity)).ToList(), p.PageNumber, p.PageSize, p.TotalCount, "Employee device enrollments retrieved successfully."); }
+    public async Task<ApiResponse<List<EmployeeDeviceEnrollmentResponseDTO>>> Handle(GetEmployeeDeviceEnrollmentsQuery request, CancellationToken ct) { var filter = request.Filter ?? new EmployeeDeviceEnrollmentFilterRequestDTO(); var (tenantId, _, employeeId) = await ValidateTenantAndDecodeOptionalEmployeeIdAsync(filter.EmployeeId); filter.ResolvedEmployeeId = employeeId; var p = await UnitOfWork.EmployeeDeviceEnrollmentRepository.GetPagedAsync(tenantId, filter, ct); return Paged(p.Data.Select(entity => _mapper.Map<EmployeeDeviceEnrollmentResponseDTO>(entity)).ToList(), p.PageNumber, p.PageSize, p.TotalCount, "Employee device enrollments retrieved successfully."); }
 }
 #endregion

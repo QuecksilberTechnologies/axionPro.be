@@ -196,7 +196,7 @@ public sealed class EmployeeLocationAssignmentRepository : TenantConfigurationRe
     {
         var (pageNumber, pageSize) = NormalizePage(filter.PageNumber, filter.PageSize);
         var query = Context.EmployeeLocationAssignments.AsNoTracking().Include(x => x.Employee).Include(x => x.TenantLocation).Where(x => x.TenantId == tenantId && !x.IsSoftDeleted);
-        if (filter.EmployeeId.HasValue) query = query.Where(x => x.EmployeeId == filter.EmployeeId.Value);
+        if (filter.ResolvedEmployeeId.HasValue) query = query.Where(x => x.EmployeeId == filter.ResolvedEmployeeId.Value);
         if (filter.TenantLocationId.HasValue) query = query.Where(x => x.TenantLocationId == filter.TenantLocationId.Value);
         if (filter.IsPrimary.HasValue) query = query.Where(x => x.IsPrimary == filter.IsPrimary.Value);
         if (filter.IsActive.HasValue) query = query.Where(x => x.IsActive == filter.IsActive.Value);
@@ -246,7 +246,7 @@ public sealed class EmployeeDeviceEnrollmentRepository : TenantConfigurationRepo
         var (pageNumber, pageSize) = NormalizePage(filter.PageNumber, filter.PageSize);
         var query = Context.EmployeeDeviceEnrollments.AsNoTracking().Include(x => x.Employee).Where(x => x.TenantId == tenantId && !x.IsSoftDeleted);
         if (!string.IsNullOrWhiteSpace(filter.Search)) { var term = $"%{filter.Search.Trim()}%"; query = query.Where(x => EF.Functions.ILike(x.EnrollId, term) || (x.CardNumber != null && EF.Functions.ILike(x.CardNumber, term)) || Context.TenantDevices.Any(d => d.Id == x.TenantDeviceId && (EF.Functions.ILike(d.DeviceMaster.SNo, term) || EF.Functions.ILike(d.DeviceCode, term)))); }
-        if (filter.EmployeeId.HasValue) query = query.Where(x => x.EmployeeId == filter.EmployeeId.Value);
+        if (filter.ResolvedEmployeeId.HasValue) query = query.Where(x => x.EmployeeId == filter.ResolvedEmployeeId.Value);
         if (filter.TenantDeviceId.HasValue) query = query.Where(x => x.TenantDeviceId == filter.TenantDeviceId.Value);
         if (filter.TenantLocationId.HasValue) query = query.Where(x => Context.TenantDevices.Any(d => d.Id == x.TenantDeviceId && d.TenantLocationId == filter.TenantLocationId.Value));
         if (filter.IsActive.HasValue) query = query.Where(x => x.IsActive == filter.IsActive.Value);
@@ -293,7 +293,7 @@ public sealed class EmployeeWorkArrangementRepository : TenantConfigurationRepos
     {
         var (pageNumber, pageSize) = NormalizePage(filter.PageNumber, filter.PageSize);
         var query = Context.EmployeeWorkArrangements.AsNoTracking().Include(x => x.Employee).Include(x => x.AttendancePolicy).Include(x => x.PrimaryTenantLocation).Where(x => x.TenantId == tenantId && !x.IsSoftDeleted);
-        if (filter.EmployeeId.HasValue) query = query.Where(x => x.EmployeeId == filter.EmployeeId.Value);
+        if (filter.ResolvedEmployeeId.HasValue) query = query.Where(x => x.EmployeeId == filter.ResolvedEmployeeId.Value);
         if (filter.AttendancePolicyId.HasValue) query = query.Where(x => x.AttendancePolicyId == filter.AttendancePolicyId.Value);
         if (filter.PrimaryTenantLocationId.HasValue) query = query.Where(x => x.PrimaryTenantLocationId == filter.PrimaryTenantLocationId.Value);
         if (filter.WorkMode.HasValue) query = query.Where(x => x.WorkMode == (short)filter.WorkMode.Value);
@@ -398,7 +398,7 @@ public sealed class EmployeeWorkModeOverrideRequestRepository : TenantConfigurat
         var (pageNumber, pageSize) = NormalizePage(filter.PageNumber, filter.PageSize);
         var query = Context.EmployeeWorkModeOverrideRequests.AsNoTracking().Include(x => x.Employee).Include(x => x.TenantLocation).Where(x => x.TenantId == tenantId && !x.IsSoftDeleted);
         if (!string.IsNullOrWhiteSpace(filter.Search)) { var term = $"%{filter.Search.Trim()}%"; query = query.Where(x => EF.Functions.ILike(x.Reason, term)); }
-        if (filter.EmployeeId.HasValue) query = query.Where(x => x.EmployeeId == filter.EmployeeId.Value);
+        if (filter.ResolvedEmployeeId.HasValue) query = query.Where(x => x.EmployeeId == filter.ResolvedEmployeeId.Value);
         if (filter.RequestedWorkMode.HasValue) query = query.Where(x => x.RequestedWorkMode == (short)filter.RequestedWorkMode.Value);
         if (filter.ApprovalStatus.HasValue) query = query.Where(x => x.ApprovalStatus == (short)filter.ApprovalStatus.Value);
         if (filter.FromDate.HasValue) query = query.Where(x => x.FromDate >= filter.FromDate.Value);

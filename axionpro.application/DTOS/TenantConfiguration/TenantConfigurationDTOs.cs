@@ -7,6 +7,7 @@
 
 using axionpro.application.DTOs.BaseDTO;
 using axionpro.domain.Entity;
+using System.Text.Json.Serialization;
 
 namespace axionpro.application.DTOS.TenantConfiguration;
 
@@ -172,7 +173,7 @@ public sealed class AttendancePolicyResponseDTO
 /// <summary>Supplies client-editable values for an employee-location assignment.</summary>
 public class CreateEmployeeLocationAssignmentRequestDTO : PermissionRequestDTO
 {
-    public long EmployeeId { get; set; }
+    public string EmployeeId { get; set; } = string.Empty;
     public long TenantLocationId { get; set; }
     public bool IsPrimary { get; set; }
     public bool IsAttendanceAllowed { get; set; } = true;
@@ -197,7 +198,8 @@ public sealed class UpdateEmployeeLocationAssignmentStatusRequestDTO : Permissio
 /// <summary>Defines database-side filters for employee-location assignments.</summary>
 public sealed class EmployeeLocationAssignmentFilterRequestDTO : PermissionRequestDTO
 {
-    public long? EmployeeId { get; set; }
+    public string? EmployeeId { get; set; }
+    [JsonIgnore] public long? ResolvedEmployeeId { get; set; }
     public long? TenantLocationId { get; set; }
     public bool? IsPrimary { get; set; }
     public bool? IsActive { get; set; }
@@ -225,7 +227,7 @@ public sealed class EmployeeLocationAssignmentResponseDTO
 /// <summary>Supplies client-editable values for an employee device enrollment.</summary>
 public class CreateEmployeeDeviceEnrollmentRequestDTO : PermissionRequestDTO
 {
-    public long EmployeeId { get; set; }
+    public string EmployeeId { get; set; } = string.Empty;
     public long TenantDeviceId { get; set; }
     public string EnrollId { get; set; } = string.Empty;
     public string? CardNumber { get; set; }
@@ -252,7 +254,8 @@ public sealed class UpdateEmployeeDeviceEnrollmentStatusRequestDTO : PermissionR
 public sealed class EmployeeDeviceEnrollmentFilterRequestDTO : PermissionRequestDTO
 {
     public string? Search { get; set; }
-    public long? EmployeeId { get; set; }
+    public string? EmployeeId { get; set; }
+    [JsonIgnore] public long? ResolvedEmployeeId { get; set; }
     public long? TenantDeviceId { get; set; }
     public long? TenantLocationId { get; set; }
     public bool? IsActive { get; set; }
@@ -285,7 +288,7 @@ public sealed class EmployeeDeviceEnrollmentResponseDTO
 /// <summary>Supplies client-editable values for an employee work arrangement.</summary>
 public class CreateEmployeeWorkArrangementRequestDTO : PermissionRequestDTO
 {
-    public long EmployeeId { get; set; }
+    public string EmployeeId { get; set; } = string.Empty;
     public int AttendancePolicyId { get; set; }
     public long? PrimaryTenantLocationId { get; set; }
     public WorkMode WorkMode { get; set; }
@@ -314,7 +317,8 @@ public sealed class UpdateEmployeeWorkArrangementStatusRequestDTO : PermissionRe
 /// <summary>Defines database-side filters for employee work arrangements.</summary>
 public sealed class EmployeeWorkArrangementFilterRequestDTO : PermissionRequestDTO
 {
-    public long? EmployeeId { get; set; }
+    public string? EmployeeId { get; set; }
+    [JsonIgnore] public long? ResolvedEmployeeId { get; set; }
     public int? AttendancePolicyId { get; set; }
     public long? PrimaryTenantLocationId { get; set; }
     public WorkMode? WorkMode { get; set; }
@@ -397,7 +401,7 @@ public sealed class EmployeeWorkPatternResponseDTO
 /// <summary>Supplies client-editable values for an employee temporary work-mode override.</summary>
 public class CreateEmployeeWorkModeOverrideRequestDTO : PermissionRequestDTO
 {
-    public long EmployeeId { get; set; }
+    public string EmployeeId { get; set; } = string.Empty;
     public long? EmployeeWorkArrangementId { get; set; }
     public WorkMode RequestedWorkMode { get; set; }
     public DateOnly FromDate { get; set; }
@@ -424,7 +428,8 @@ public sealed class UpdateEmployeeWorkModeOverrideStatusRequestDTO : PermissionR
 public sealed class EmployeeWorkModeOverrideFilterRequestDTO : PermissionRequestDTO
 {
     public string? Search { get; set; }
-    public long? EmployeeId { get; set; }
+    public string? EmployeeId { get; set; }
+    [JsonIgnore] public long? ResolvedEmployeeId { get; set; }
     public WorkMode? RequestedWorkMode { get; set; }
     public WorkModeOverrideApprovalStatus? ApprovalStatus { get; set; }
     public DateOnly? FromDate { get; set; }
