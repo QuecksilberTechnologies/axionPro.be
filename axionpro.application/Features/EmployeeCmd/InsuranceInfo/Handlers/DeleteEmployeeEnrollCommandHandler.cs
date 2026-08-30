@@ -69,17 +69,6 @@ namespace axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request.");
 
-                // ===============================
-                // 🔐 PERMISSION CHECK
-                // ===============================
-                //var hasAccess = await _unitOfWork.PermissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.EmployeeInsurance,
-                //    Operations.Delete);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("Access denied.");
-
                 await _unitOfWork.BeginTransactionAsync();
 
                 // ===============================
@@ -231,4 +220,3 @@ namespace axionpro.application.Features.EmployeeCmd.InsuranceInfo.Handlers
 }
 
 
- 

@@ -112,19 +112,6 @@ public class GetBaseEmployeeInfoQueryHandler : IRequestHandler<GetBaseEmployeeIn
 
                 if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
-
-                // ===============================
-                // 3️⃣ PERMISSION (YOUR PATTERN )
-                // ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.Employee,
-                //    Operations.View);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("No permission to view employee info.");
-
-                // ===============================
                 // 4️⃣ FETCH DATA
                 // ===============================
                 var responseDTO =

@@ -112,19 +112,6 @@ public class UpdateBaseEmployeeCommandHandler : IRequestHandler<UpdateEmployeeCo
 
                 if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
-
-                // ===============================
-                // 3️⃣ PERMISSION (SELF UPDATE)
-                // ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.Employee,
-                //    Operations.Update);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("No permission to update employee.");
-
-                // ===============================
                 // 4️⃣ FETCH EXISTING
                 // ===============================
                 var employee =
@@ -296,14 +283,6 @@ public class UpdateBaseEmployeeCommandHandler : IRequestHandler<UpdateEmployeeCo
     //                _logger.LogWarning("User validation failed for LoginId: {LoginId}", tokenClaims.UserId);
     //                await _unitOfWork.RollbackTransactionAsync();
     //                return ApiResponse<bool>.Fail("User is not authorized to perform this action.");
-    //            }
-
-    //            //  Step 2: Permission Check
-    //            var permissions = await _permissionService.GetPermissionsAsync(SafeParser.TryParseInt(tokenClaims.RoleId));
-    //            if (!permissions.Contains("EditEmployeeInfo"))
-    //            {
-    //                await _unitOfWork.RollbackTransactionAsync();
-    //                return ApiResponse<bool>.Fail("You do not have permission to update employee information.");
     //            }
 
     //            var DTO = request.updateBaseEmployeeRequestDTO;

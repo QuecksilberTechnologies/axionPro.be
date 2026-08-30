@@ -100,19 +100,6 @@ public class GetContactInfoQueryHandler
 
                 if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
-
-                // ===============================
-                // 3️⃣ PERMISSION CHECK
-                // ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.Employee,
-                //    Operations.View);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("No permission to view contact info.");
-
-                // ===============================
                 // 4️⃣ FETCH DATA
                 // ===============================
                 var result =

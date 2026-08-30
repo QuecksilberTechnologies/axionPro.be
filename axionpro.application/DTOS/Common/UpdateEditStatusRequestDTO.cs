@@ -18,7 +18,7 @@ namespace axionpro.application.DTOS.Common
     /// <summary>
     /// Represents the UpdateEditStatusRequestDTO data transfer model.
     /// </summary>
-    public class UpdateEditStatusRequestDTO
+    public class UpdateEditStatusRequestDTO : axionpro.application.DTOs.BaseDTO.PermissionRequestDTO
     {
         [Required]
         public string UserEmployeeId { get; set; } = default!;

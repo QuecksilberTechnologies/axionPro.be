@@ -44,23 +44,35 @@ public sealed class EmployeeTenantPermissionBehavior<TRequest, TResponse>(
             return await next();
         }
 
-        // These two groups already derive from TenantConfigurationHandlerBase,
-        // which executes the same central tenant permission flow in each handler.
-        // Skipping them here prevents duplicate stored-procedure authorization.
-        if (requestNamespace.StartsWith(
-                "axionpro.application.Features.EmployeeCmd.EmployeeWorkInfo",
-                StringComparison.Ordinal) ||
-            requestNamespace.StartsWith(
-                "axionpro.application.Features.EmployeeCmd.EmployeeDeviceEnrollment",
-                StringComparison.Ordinal))
-        {
-            return await next();
-        }
-
         var permissionRequest = ResolvePermissionRequest(request);
         if (permissionRequest is null)
         {
-            return await next();
+            logger.LogWarning(
+                "Employee request {EmployeeRequest} did not provide ModuleId and OperationId.",
+                typeof(TRequest).Name);
+            throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+        }
+
+        var expectedModuleCode = ResolveExpectedModuleCode();
+        if (string.IsNullOrWhiteSpace(expectedModuleCode))
+        {
+            logger.LogWarning(
+                "No expected module-code mapping exists for Employee request {EmployeeRequest}.",
+                typeof(TRequest).FullName);
+            throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
+        }
+
+        var activeModuleCode = await commonRequestService
+            .GetActiveModuleCodeAsync(permissionRequest.ModuleId);
+        if (!string.Equals(activeModuleCode, expectedModuleCode, StringComparison.OrdinalIgnoreCase))
+        {
+            logger.LogWarning(
+                "Employee module-code mismatch for {EmployeeRequest}. ModuleId: {ModuleId}, ActiveModuleCode: {ActiveModuleCode}, ExpectedModuleCode: {ExpectedModuleCode}",
+                typeof(TRequest).Name,
+                permissionRequest.ModuleId,
+                activeModuleCode,
+                expectedModuleCode);
+            throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
         }
 
         var validation = await commonRequestService.ValidateTenantUserRequestAsync();
@@ -127,8 +139,85 @@ public sealed class EmployeeTenantPermissionBehavior<TRequest, TResponse>(
             {
                 return permissionRequest;
             }
+
+            var field = typeof(TRequest).GetField(
+                propertyName,
+                BindingFlags.Public | BindingFlags.Instance);
+            if (field?.GetValue(request) is PermissionRequestDTO fieldPermissionRequest)
+            {
+                return fieldPermissionRequest;
+            }
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Resolves the Employee leaf-module code that owns the request. Header modules are never
+    /// used for authorization; every request binds to the UI leaf module from the approved list.
+    /// </summary>
+    private static string? ResolveExpectedModuleCode()
+    {
+        var requestNamespace = typeof(TRequest).Namespace ?? string.Empty;
+
+        if (requestNamespace.StartsWith("axionpro.application.Features.EmployeeCmd.BankInfo", StringComparison.Ordinal))
+            return "EMP_BANK";
+        if (requestNamespace.StartsWith("axionpro.application.Features.EmployeeCmd.Contact", StringComparison.Ordinal))
+            return "EMP_CONTACT";
+        if (requestNamespace.StartsWith("axionpro.application.Features.EmployeeCmd.DependentInfo", StringComparison.Ordinal))
+            return "EMP_DEPENDENTS";
+        if (requestNamespace.StartsWith("axionpro.application.Features.EmployeeCmd.EducationInfo", StringComparison.Ordinal))
+            return "EMP_EDUCATION";
+        if (requestNamespace.StartsWith("axionpro.application.Features.EmployeeCmd.ExperienceInfo", StringComparison.Ordinal))
+            return "EMP_EXPERIENCE";
+        if (requestNamespace.StartsWith("axionpro.application.Features.EmployeeCmd.InsuranceInfo", StringComparison.Ordinal))
+            return "EMP_INSURANCE";
+        if (requestNamespace.StartsWith("axionpro.application.Features.EmployeeCmd.IdentitiesInfo", StringComparison.Ordinal))
+            return "EMP_IDENTITY";
+        if (requestNamespace.StartsWith("axionpro.application.Features.EmployeeCmd.EmployeeDeviceEnrollment", StringComparison.Ordinal))
+            return "EMP_DEVICES";
+        if (requestNamespace.StartsWith("axionpro.application.Features.EmployeeCmd.EmployeeWorkInfo", StringComparison.Ordinal))
+        {
+            var requestName = typeof(TRequest).Name;
+            if (requestName.Contains("EmployeeLocationAssignment", StringComparison.Ordinal))
+                return "EMP_WORK_LOCATIONS";
+            if (requestName.Contains("EmployeeWorkArrangement", StringComparison.Ordinal))
+                return "EMP_WORK_ARRANGEMENT";
+            if (requestName.Contains("EmployeeWorkPattern", StringComparison.Ordinal))
+                return "EMP_WORK_PATTERN";
+            if (requestName.Contains("EmployeeWorkModeOverride", StringComparison.Ordinal))
+                return "EMP_OVERRIDES";
+
+            return null;
+        }
+        if (requestNamespace.StartsWith("axionpro.application.Features.EmployeeCmd.UpdateStatus", StringComparison.Ordinal) ||
+            requestNamespace.StartsWith("axionpro.application.Features.EmployeeCmd.UpdateVerification", StringComparison.Ordinal))
+            return "EMP_LIST";
+
+        if (!requestNamespace.StartsWith("axionpro.application.Features.EmployeeCmd.EmployeeBase", StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        return typeof(TRequest).Name switch
+        {
+            "CreateBaseEmployeeInfoCommand" or
+            "GetAllEmployeeInfoQuery" or
+            "GetEmployeeSummaryQuery" or
+            "DeleteEmployeeQuery" or
+            "ActivateAllEmployeeQuery" or
+            "UpdateSectionBulkCommand" => "EMP_LIST",
+
+            "GetBaseEmployeeInfoQuery" or
+            "UpdateEmployeeCommand" or
+            "UpdateBaseEmployeeByAdminCommand" or
+            "GetEmployeeImageQuery" or
+            "CreateEmployeeImageCommand" or
+            "UpdateProfileImageCommand" or
+            "GetEmployeeProfileSummaryQuery" or
+            "GetEmployeeProfileStatusQuery" => "EMP_OVERVIEW",
+
+            _ => null
+        };
     }
 }

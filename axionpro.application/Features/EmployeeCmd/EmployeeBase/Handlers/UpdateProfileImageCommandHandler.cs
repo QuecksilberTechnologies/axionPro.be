@@ -105,18 +105,6 @@ public class UpdateIdentityInfoCommandHandler
 
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request.");
-                // ===============================
-                // 2️⃣ PERMISSION
-                //// ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.Employee,
-                //    Operations.Update);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("No permission to update profile image.");
-
-                // ===============================
                 // 3️⃣ FETCH EXISTING
                 // ===============================
                 var employeeImageInfo =

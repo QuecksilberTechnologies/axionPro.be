@@ -92,16 +92,6 @@ public class GetDependentInfoQueryHandler
                     validation.Claims.TenantEncriptionKey,
                     _idEncoderService);
 
-                //  STEP 3: Permission check
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.Employee,
-                //    Operations.Add);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("No permission to add dependent.");
-
-
                 //  STEP 4: Repository call
                 var result =
                     await _unitOfWork.EmployeeDependentRepository

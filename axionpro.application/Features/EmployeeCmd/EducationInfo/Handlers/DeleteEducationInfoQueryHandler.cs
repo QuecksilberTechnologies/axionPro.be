@@ -65,19 +65,6 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                     throw new ValidationErrorException("Invalid education record id.");
 
                 long loggedInEmployeeId = validation.UserEmployeeId;
-
-                // ===============================
-                // 3️⃣ PERMISSION (YOUR FIXED PATTERN ✅)
-                // ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.Employee,
-                //    Operations.Delete);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("No permission to delete education.");
-
-                // ===============================
                 // 4️⃣ FETCH RECORD
                 // ===============================
                 var existing =

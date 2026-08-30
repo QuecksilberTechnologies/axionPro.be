@@ -115,6 +115,7 @@ public class UpdateBankCommandHandler : IRequestHandler<UpdateBankCommand, ApiRe
                 // ===============================
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request.");
+
                 var employeeId = RequestCommonHelper.DecodeOnlyEmployeeId(
                         request.DTO.EmployeeId,
                         validation.Claims.TenantEncriptionKey,
@@ -122,19 +123,6 @@ public class UpdateBankCommandHandler : IRequestHandler<UpdateBankCommand, ApiRe
 
                 if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
-
-                // ===============================
-                // 3️⃣ PERMISSION CHECK
-                // ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.Employee,
-                //    Operations.Update);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("No permission to update bank info.");
-
-                // ===============================
                 // 4️⃣ FETCH EXISTING
                 // ===============================
                 var bank = await _unitOfWork.EmployeeBankRepository

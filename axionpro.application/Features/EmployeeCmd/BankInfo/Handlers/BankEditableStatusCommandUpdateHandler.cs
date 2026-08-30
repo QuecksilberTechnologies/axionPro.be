@@ -125,19 +125,6 @@ public class BankEditableStatusCommandUpdateHandler
                     );
 
                 // ===============================
-                // 4️⃣ PERMISSION CHECK (RBAC)
-                // ===============================
-                //var hasPermission = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    "EmployeeBank",   //  Module (adjust if needed)
-                //    "Update"          //  Operation
-                //);
-
-                //if (!hasPermission)
-                //    throw new UnauthorizedAccessException(
-                //        "You do not have permission to update editable status.");
-
-                // ===============================
                 // 5️⃣ FETCH EMPLOYEE
                 // ===============================
                 var employee = await _unitOfWork.Employees.GetByIdAsync(

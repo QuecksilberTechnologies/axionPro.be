@@ -125,18 +125,6 @@ public class GetAllEmployeeInfoQueryHandler : IRequestHandler<GetAllEmployeeInfo
                     if (employeeId <= 0)
                         throw new ValidationErrorException("Invalid EmployeeId.");
                 }
-                // ===============================
-                // Validate the current authenticated user.
-                // ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.Employee,
-                //    Operations.View);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("No permission to view employee info.");
-
-                // ===============================
                 // Retrieve the requested employee records.
                 // ===============================
                 var responseDTO = await _unitOfWork.Employees.GetAllInfo(

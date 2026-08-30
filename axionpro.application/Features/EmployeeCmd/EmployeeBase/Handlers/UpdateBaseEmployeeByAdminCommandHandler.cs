@@ -96,19 +96,6 @@ public class UpdateBaseEmployeeByAdminCommandHandler
 
                 if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
-
-                // ===============================
-                // 3️⃣ PERMISSION (ADMIN UPDATE)
-                // ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.Employee,
-                //    Operations.Update);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("No permission to update employee.");
-
-                // ===============================
                 // 4️⃣ FETCH EXISTING
                 // ===============================
                 var employee =

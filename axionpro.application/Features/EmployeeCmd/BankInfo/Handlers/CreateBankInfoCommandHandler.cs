@@ -124,19 +124,6 @@ public class CreateBankInfoCommandHandler: IRequestHandler<CreateBankInfoCommand
 
                 if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
-
-                // ===============================
-                // 3️⃣ PERMISSION CHECK (CORRECT)
-                // ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.Employee,
-                //    Operations.Add);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("You do not have permission.");
-
-                // ===============================
                 // 4️⃣ BUSINESS VALIDATION
                 // ===============================
                 if (string.IsNullOrWhiteSpace(request.DTO.BankName))

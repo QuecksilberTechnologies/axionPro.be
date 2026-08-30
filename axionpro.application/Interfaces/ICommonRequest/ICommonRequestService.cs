@@ -15,6 +15,13 @@ namespace axionpro.application.Interfaces.ICommonRequest
     public interface ICommonRequestService
     {
         /// <summary>
+        /// Resolves the code of an active Module from its identifier.
+        /// </summary>
+        /// <param name="moduleId">The Module identifier supplied by the request.</param>
+        /// <returns>The active module code, or <see langword="null"/> when the module is invalid or inactive.</returns>
+        Task<string?> GetActiveModuleCodeAsync(int moduleId);
+
+        /// <summary>
         /// Validates the current authenticated tenant request and resolves the trusted tenant, employee, and role context.
         /// </summary>
         /// <returns>The validated tenant request context.</returns>

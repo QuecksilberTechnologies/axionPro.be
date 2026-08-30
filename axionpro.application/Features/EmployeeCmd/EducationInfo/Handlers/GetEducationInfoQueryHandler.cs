@@ -118,19 +118,6 @@ public class GetEducationInfoQueryHandler : IRequestHandler<GetEducationInfoQuer
 
                 if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
-
-                // ===============================
-                // 3️⃣ PERMISSION (YOUR FIXED PATTERN )
-                // ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.Employee,
-                //    Operations.View);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("No permission to view education.");
-
-                // ===============================
                 // 4️⃣ FETCH DATA
                 // ===============================
                 var entity =

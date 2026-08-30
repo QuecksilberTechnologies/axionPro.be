@@ -83,19 +83,6 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
 
                 if (!validation.Success)
                     throw new UnauthorizedAccessException(validation.ErrorMessage);
-
-                // ===============================
-                // 2️⃣ PERMISSION (CRITICAL 🚨)
-                // ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.Employee,
-                //    Operations.Add);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("No permission to add identity.");
-
-                // ===============================
                 // 3️⃣ START TRANSACTION
                 // ===============================
                 await _unitOfWork.BeginTransactionAsync();

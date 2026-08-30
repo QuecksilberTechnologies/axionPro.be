@@ -108,19 +108,6 @@ public class UpdateEducationInfoCommandHandler : IRequestHandler<UpdateEducation
                 // ===============================
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request.");
-
-                // ===============================
-                // 3️⃣ PERMISSION (YOUR FIXED PATTERN )
-                // ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.Employee,
-                //    Operations.Update);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("No permission to update education.");
-
-                // ===============================
                 // 4️⃣ FETCH EXISTING
                 // ===============================
                 var existing =

@@ -6,7 +6,7 @@ using System.Threading.Tasks; using axionpro.domain.Entity; using MediatR;
 
 namespace axionpro.application.DTOS.Common
 {
-   public class DeleteRequestDTO
+   public class DeleteRequestDTO : axionpro.application.DTOs.BaseDTO.PermissionRequestDTO
     {    
         public long Id { get; set; }    
       

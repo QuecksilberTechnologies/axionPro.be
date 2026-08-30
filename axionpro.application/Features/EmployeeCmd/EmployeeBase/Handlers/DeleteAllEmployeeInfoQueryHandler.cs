@@ -99,19 +99,6 @@ public class DeleteBaseEmployeeInfoQueryHandler : IRequestHandler<DeleteEmployee
 
                 if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
-
-                // ===============================
-                // 3️⃣ PERMISSION (YOUR PATTERN )
-                // ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.Employee,
-                //    Operations.Delete);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("No permission to delete employee.");
-
-                // ===============================
                 // 4️⃣ FETCH EMPLOYEE
                 // ===============================
                 var employee =

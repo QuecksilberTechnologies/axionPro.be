@@ -107,18 +107,6 @@ public class CreateBaseEmployeeInfoCommandHandler
                 // ===============================
                 if (request?.DTO == null)
                     throw new ValidationErrorException("Invalid request.");
-                // ===============================
-                // 3️⃣ PERMISSION (YOUR PATTERN )
-                // ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.Employee,
-                //    Operations.Add);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("No permission to create employee.");
-
-                // ===============================
                 // 4️⃣ CHECK DUPLICATE USER
                 // ===============================
                 var existingUser =

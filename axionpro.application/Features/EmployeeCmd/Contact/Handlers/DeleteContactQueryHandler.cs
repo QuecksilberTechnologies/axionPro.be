@@ -66,19 +66,6 @@ namespace axionpro.application.Features.EmployeeCmd.Contact.Handlers
 
                 if (request.DTO.Id <= 0)
                     throw new ValidationErrorException("Invalid contact id.");
-
-                // ===============================
-                // 3️⃣ PERMISSION CHECK
-                // ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.Employee,
-                //    Operations.Delete);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("No permission to delete contact.");
-
-                // ===============================
                 // 4️⃣ FETCH RECORD
                 // ===============================
                 var existing =

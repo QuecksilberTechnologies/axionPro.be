@@ -108,19 +108,6 @@ public class GetEmployeeSummaryQueryHandler
 
                 if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
-
-                // ===============================
-                // 4️⃣ PERMISSION (YOUR PATTERN )
-                // ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.Employee,
-                //    Operations.View);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("No permission to view employee summary.");
-
-                // ===============================
                 // 5️⃣ FETCH SUMMARY
                 // ===============================
                 var summary =

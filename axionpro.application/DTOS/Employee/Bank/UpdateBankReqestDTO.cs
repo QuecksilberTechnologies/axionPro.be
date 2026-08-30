@@ -7,6 +7,7 @@
 
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Pagination;
+using axionpro.application.DTOs.BaseDTO;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -20,7 +21,7 @@ namespace axionpro.application.DTOS.Employee.Bank
     /// 
     /// <summary> TenantId Required</summary>
 
-    public class UpdateBankReqestDTO
+    public class UpdateBankReqestDTO : PermissionRequestDTO
     {
         /// <summary> UserEmployeeId Required</summary>
 

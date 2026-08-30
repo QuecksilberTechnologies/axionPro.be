@@ -17,7 +17,7 @@ namespace axionpro.application.DTOS.Common
     /// <summary>
     /// Represents the UpdateVerificationStatusRequestDTO data transfer model.
     /// </summary>
-    public class UpdateVerificationStatusRequestDTO
+    public class UpdateVerificationStatusRequestDTO : axionpro.application.DTOs.BaseDTO.PermissionRequestDTO
     {
         [Required]
         public string UserEmployeeId { get; set; } = default!;

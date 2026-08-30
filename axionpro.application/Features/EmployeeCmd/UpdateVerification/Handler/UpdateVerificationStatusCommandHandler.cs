@@ -106,19 +106,6 @@ public class UpdateVerificationStatusCommandHandler
                 // ===============================
                 if (!Enum.IsDefined(typeof(TabInfoType), request.DTO.TabInfoType))
                     throw new ValidationErrorException("Invalid section type.");
-
-                // ===============================
-                // 4️⃣ PERMISSION (CRITICAL )
-                // ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.Employee,
-                //    Operations.Update);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("No permission to update verification.");
-
-                // ===============================
                 // 5️⃣ FETCH EMPLOYEE
                 // ===============================
                 var employee =

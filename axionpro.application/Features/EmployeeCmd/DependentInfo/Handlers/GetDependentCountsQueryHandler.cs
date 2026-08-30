@@ -95,17 +95,6 @@ public class GetDependentCountsQueryHandler
 
 
                 // ===============================
-                //  STEP 3: PERMISSION CHECK (OPTIONAL)
-                // ===============================
-                // bool hasAccess = await _permissionService.HasAccessAsync(
-                //     validation.RoleId,
-                //     Modules.Employee,
-                //     Operations.View);
-
-                // if (!hasAccess)
-                //     throw new UnauthorizedAccessException("Access denied.");
-
-                // ===============================
                 //  STEP 4: REPOSITORY CALL
                 // ===============================
                 var result = await _unitOfWork

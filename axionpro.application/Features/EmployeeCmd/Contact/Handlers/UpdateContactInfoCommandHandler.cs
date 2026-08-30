@@ -13,7 +13,6 @@ using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
-using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
 using axionpro.domain.Entity; using MediatR;
 using Microsoft.Extensions.Logging;
@@ -36,18 +35,15 @@ public class UpdateContactInfoCommandHandler
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<UpdateContactInfoCommandHandler> _logger;
-    private readonly IPermissionService _permissionService;
     private readonly ICommonRequestService _commonRequestService;
 
     public UpdateContactInfoCommandHandler(
         IUnitOfWork unitOfWork,
         ILogger<UpdateContactInfoCommandHandler> logger,
-        IPermissionService permissionService,
         ICommonRequestService commonRequestService)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
-        _permissionService = permissionService;
         _commonRequestService = commonRequestService;
     }
 
@@ -80,19 +76,6 @@ public class UpdateContactInfoCommandHandler
                 throw new ValidationErrorException("Invalid contact id.");
 
             long loggedInEmployeeId = validation.UserEmployeeId;
-
-            // ===============================
-            // 3️⃣ PERMISSION CHECK
-            // ===============================
-            //var hasAccess = await _permissionService.HasAccessAsync(
-            //    validation.RoleId,
-            //    Modules.Employee,
-            //    Operations.Update);
-
-            //if (!hasAccess)
-            //    throw new UnauthorizedAccessException("No permission to update contact.");
-
-            // ===============================
             // 4️⃣ FETCH EXISTING
             // ===============================
             var existing =

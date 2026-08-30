@@ -112,19 +112,6 @@ public class UpdateSectionBulkCommandHandler
                 // ===============================
                 if (request.DTO.Sections == null || !request.DTO.Sections.Any())
                     throw new ValidationErrorException("No section selected.");
-
-                // ===============================
-                // 5️⃣ PERMISSION (YOUR PATTERN )
-                // ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.Employee,
-                //    Operations.Update);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("No permission to update sections.");
-
-                // ===============================
                 // 6️⃣ LOOP (OPTIMIZED)
                 // ===============================
                 foreach (var section in request.DTO.Sections)

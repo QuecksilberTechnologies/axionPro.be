@@ -66,19 +66,6 @@ namespace axionpro.application.Features.EmployeeCmd.DependentInfo.Handlers
                     throw new ValidationErrorException("Invalid dependent id.");
 
                 long loggedInEmployeeId = validation.UserEmployeeId;
-
-                // ===============================
-                // 3️⃣ PERMISSION CHECK
-                // ===============================
-                //var hasAccess = await _permissionService.HasAccessAsync(
-                //    validation.RoleId,
-                //    Modules.Employee,
-                //    Operations.Delete);
-
-                //if (!hasAccess)
-                //    throw new UnauthorizedAccessException("No permission to delete dependent.");
-
-                // ===============================
                 // 4️⃣ FETCH RECORD
                 // ===============================
                 var existing =

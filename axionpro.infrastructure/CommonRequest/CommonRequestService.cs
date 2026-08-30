@@ -45,6 +45,23 @@ namespace axionpro.infrastructure.CommonRequest
         #region Tenant Request Validation
 
         /// <summary>
+        /// Resolves only the code for an active Module. Permission decisions remain with the
+        /// calling Employee authorization flow and the existing permission stored procedure.
+        /// </summary>
+        public async Task<string?> GetActiveModuleCodeAsync(int moduleId)
+        {
+            if (moduleId <= 0)
+            {
+                return null;
+            }
+
+            var module = await _uow.ModuleRepository.GetModuleByIdAsync(moduleId);
+            return string.IsNullOrWhiteSpace(module?.ModuleCode)
+                ? null
+                : module.ModuleCode.Trim();
+        }
+
+        /// <summary>
         /// Validates the current authenticated tenant request and resolves the trusted tenant, employee, and role context.
         /// </summary>
         /// <returns>The validated tenant request context.</returns>
