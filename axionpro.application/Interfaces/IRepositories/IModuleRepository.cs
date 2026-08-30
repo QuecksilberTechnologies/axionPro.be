@@ -29,6 +29,7 @@ using axionpro.application.DTOs.UserLogin;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.DTOS.Host;
 using axionpro.application.DTOS.FeaturePages;
+using axionpro.application.DTOS.Navigation;
 
 namespace axionpro.application.Interfaces.IRepositories
 {
@@ -89,6 +90,26 @@ namespace axionpro.application.Interfaces.IRepositories
         /// <param name="cancellationToken">A token used to cancel the database operation.</param>
         /// <returns>The configured Common navigation items, or <see langword="null"/> when no Common root exists.</returns>
         Task<IReadOnlyCollection<CommonMenuItemResponseDTO>?> GetCommonMenuHierarchyAsync(
+            CancellationToken cancellationToken = default);
+
+        #endregion
+
+        #region Authenticated Navigation Queries
+
+        /// <summary>
+        /// Retrieves the Tenant Module hierarchy permitted to the current Employee through active entitlement and consolidated role-operation grants.
+        /// </summary>
+        Task<IReadOnlyCollection<NavigationMenuItemResponseDTO>> GetTenantNavigationMenuAsync(
+            long tenantId,
+            long employeeId,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Retrieves the Host Module hierarchy permitted to the current Host role.
+        /// </summary>
+        Task<IReadOnlyCollection<NavigationMenuItemResponseDTO>> GetHostNavigationMenuAsync(
+            long hostRoleId,
+            bool isSuperAdmin,
             CancellationToken cancellationToken = default);
 
         #endregion

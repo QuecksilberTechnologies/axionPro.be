@@ -138,6 +138,11 @@ namespace axionpro.application.Constants
             public const string CommonMenuRetrieved = "Common menu retrieved successfully.";
 
             /// <summary>
+            /// Confirms that the authenticated user's permitted navigation hierarchy was retrieved successfully.
+            /// </summary>
+            public const string NavigationMenuRetrieved = "Navigation menu retrieved successfully.";
+
+            /// <summary>
             /// Confirms that the active master feature pages were retrieved successfully.
             /// </summary>
             public const string FeaturePagesRetrievedSuccessfully = "Feature pages retrieved successfully.";

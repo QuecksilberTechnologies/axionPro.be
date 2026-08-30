@@ -22,6 +22,7 @@ using axionpro.application.Constants;
 using axionpro.application.DTOS.Host;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.DTOS.FeaturePages;
+using axionpro.application.DTOS.Navigation;
 using System.Linq.Expressions;
 
 
@@ -207,6 +208,302 @@ namespace axionpro.persistance.Repositories
                 return null;
             }
         }
+
+        #region Authenticated Navigation Queries
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<NavigationMenuItemResponseDTO>> GetTenantNavigationMenuAsync(
+            long tenantId,
+            long employeeId,
+            CancellationToken cancellationToken = default)
+        {
+            var context = _context ?? throw new InvalidOperationException("Module context is unavailable.");
+
+            var tenantModules = await (
+                from tenantModule in context.TenantEnabledModules.AsNoTracking()
+                join module in context.Modules.AsNoTracking() on tenantModule.ModuleId equals module.Id
+                where tenantModule.TenantId == tenantId &&
+                      tenantModule.IsEnabled &&
+                      module.ModuleScope == (short)AppConstants.TenantModuleScope &&
+                      module.IsActive &&
+                      module.IsModuleDisplayInUI
+                select new NavigationModuleRecord(
+                    module.Id,
+                    module.ModuleCode,
+                    module.ModuleName,
+                    module.DisplayName,
+                    module.Urlpath,
+                    module.ImageIconWeb,
+                    module.ParentModuleId,
+                    module.IsLeafNode ?? false,
+                    module.ModuleScope,
+                    module.ItemPriority ?? int.MaxValue))
+                .ToListAsync(cancellationToken);
+
+            var allowedOperations = (await (
+                // Intentionally do not filter IsPrimaryRole: a user's effective navigation is the
+                // union of its active primary and secondary role grants.
+                from userRole in context.UserRoles.AsNoTracking()
+                join role in context.Roles.AsNoTracking() on userRole.RoleId equals role.Id
+                join permission in context.RoleModuleAndPermissions.AsNoTracking()
+                    on userRole.RoleId equals permission.RoleId
+                join tenantModule in context.TenantEnabledModules.AsNoTracking()
+                    on new { TenantId = tenantId, ModuleId = permission.ModuleId!.Value }
+                    equals new { tenantModule.TenantId, tenantModule.ModuleId }
+                join tenantOperation in context.TenantEnabledOperations.AsNoTracking()
+                    on new { TenantId = tenantModule.TenantId, tenantModule.ModuleId, OperationId = permission.OperationId!.Value }
+                    equals new { tenantOperation.TenantId, tenantOperation.ModuleId, tenantOperation.OperationId }
+                join module in context.Modules.AsNoTracking() on permission.ModuleId!.Value equals module.Id
+                join moduleOperation in context.ModuleOperationMappings.AsNoTracking()
+                    on new { ModuleId = permission.ModuleId!.Value, OperationId = permission.OperationId!.Value }
+                    equals new { moduleOperation.ModuleId, moduleOperation.OperationId }
+                join operation in context.Operations.AsNoTracking() on permission.OperationId!.Value equals operation.Id
+                where userRole.EmployeeId == employeeId &&
+                      userRole.IsActive &&
+                      userRole.IsSoftDeleted != true &&
+                      userRole.RoleId.HasValue &&
+                      role.TenantId == tenantId &&
+                      role.IsActive &&
+                      role.IsSoftDeleted != true &&
+                      userRole.Employee != null &&
+                      userRole.Employee.TenantId == tenantId &&
+                      userRole.Employee.IsActive &&
+                      userRole.Employee.IsSoftDeleted != true &&
+                      permission.ModuleId.HasValue &&
+                      permission.OperationId.HasValue &&
+                      permission.IsActive == true &&
+                      permission.IsSoftDeleted != true &&
+                      permission.HasAccess == true &&
+                      tenantModule.IsEnabled &&
+                      tenantOperation.IsEnabled &&
+                      module.ModuleScope == (short)AppConstants.TenantModuleScope &&
+                      module.IsActive &&
+                      module.IsModuleDisplayInUI &&
+                      moduleOperation.IsActive == true &&
+                      moduleOperation.IsOperational == true &&
+                      operation.IsActive
+                select new NavigationOperationRecord(
+                    module.Id,
+                    operation.Id,
+                    operation.OperationName,
+                    operation.IconImage))
+                .ToListAsync(cancellationToken))
+                .Distinct()
+                .ToArray();
+
+            return BuildNavigationTree(tenantModules, allowedOperations);
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<NavigationMenuItemResponseDTO>> GetHostNavigationMenuAsync(
+            long hostRoleId,
+            bool isSuperAdmin,
+            CancellationToken cancellationToken = default)
+        {
+            var context = _context ?? throw new InvalidOperationException("Module context is unavailable.");
+
+            var hostModules = await context.Modules
+                .AsNoTracking()
+                .Where(module =>
+                    module.ModuleScope == (short)AppConstants.HostModuleScope &&
+                    module.IsActive &&
+                    module.IsModuleDisplayInUI)
+                .Select(module => new NavigationModuleRecord(
+                    module.Id,
+                    module.ModuleCode,
+                    module.ModuleName,
+                    module.DisplayName,
+                    module.Urlpath,
+                    module.ImageIconWeb,
+                    module.ParentModuleId,
+                    module.IsLeafNode ?? false,
+                    module.ModuleScope,
+                    module.ItemPriority ?? int.MaxValue))
+                .ToListAsync(cancellationToken);
+
+            var hostModuleOperations =
+                from moduleOperation in context.ModuleOperationMappings.AsNoTracking()
+                join module in context.Modules.AsNoTracking() on moduleOperation.ModuleId equals module.Id
+                join operation in context.Operations.AsNoTracking() on moduleOperation.OperationId equals operation.Id
+                where module.ModuleScope == (short)AppConstants.HostModuleScope &&
+                      module.IsActive &&
+                      module.IsModuleDisplayInUI &&
+                      moduleOperation.IsActive == true &&
+                      moduleOperation.IsOperational == true &&
+                      operation.IsActive
+                select new { module, operation };
+
+            NavigationOperationRecord[] allowedOperations;
+            if (isSuperAdmin)
+            {
+                allowedOperations = (await hostModuleOperations
+                    .Select(row => new NavigationOperationRecord(
+                        row.module.Id,
+                        row.operation.Id,
+                        row.operation.OperationName,
+                        row.operation.IconImage))
+                    .ToListAsync(cancellationToken))
+                    .Distinct()
+                    .ToArray();
+            }
+            else
+            {
+                allowedOperations = (await (
+                    from row in hostModuleOperations
+                    join permission in context.HostRoleModuleAndPermissions.AsNoTracking()
+                        on new { ModuleId = row.module.Id, OperationId = row.operation.Id }
+                        equals new { permission.ModuleId, permission.OperationId }
+                    where permission.HostRoleId == hostRoleId &&
+                          permission.IsActive &&
+                          !permission.IsSoftDeleted
+                    select new NavigationOperationRecord(
+                        row.module.Id,
+                        row.operation.Id,
+                        row.operation.OperationName,
+                        row.operation.IconImage))
+                    .ToListAsync(cancellationToken))
+                    .Distinct()
+                    .ToArray();
+            }
+
+            return BuildNavigationTree(hostModules, allowedOperations);
+        }
+
+        private static IReadOnlyCollection<NavigationMenuItemResponseDTO> BuildNavigationTree(
+            IReadOnlyCollection<NavigationModuleRecord> scopedModules,
+            IReadOnlyCollection<NavigationOperationRecord> allowedOperations)
+        {
+            var modulesById = scopedModules
+                .GroupBy(module => module.Id)
+                .ToDictionary(group => group.Key, group => group.First());
+            var visibleModuleIds = new HashSet<int>();
+            var operationsByModuleId = allowedOperations
+                .GroupBy(operation => operation.ModuleId)
+                .ToDictionary(
+                    group => group.Key,
+                    group => (IReadOnlyCollection<NavigationOperationResponseDTO>)group
+                        .GroupBy(operation => operation.OperationId)
+                        .Select(operationGroup => operationGroup.First())
+                        .OrderBy(operation => operation.OperationName)
+                        .ThenBy(operation => operation.OperationId)
+                        .Select(operation => new NavigationOperationResponseDTO
+                        {
+                            Id = operation.OperationId,
+                            Name = operation.OperationName,
+                            IconKey = operation.IconKey
+                        })
+                        .ToArray());
+
+            foreach (var operationModuleId in operationsByModuleId.Keys)
+            {
+                AddModuleAndAncestors(operationModuleId, modulesById, visibleModuleIds);
+            }
+
+            var childrenByParentId = modulesById.Values
+                .Where(module =>
+                    visibleModuleIds.Contains(module.Id) &&
+                    module.ParentModuleId.HasValue &&
+                    visibleModuleIds.Contains(module.ParentModuleId.Value))
+                .GroupBy(module => module.ParentModuleId!.Value)
+                .ToDictionary(group => group.Key, group => OrderNavigationModules(group));
+            var roots = OrderNavigationModules(
+                modulesById.Values.Where(module =>
+                    visibleModuleIds.Contains(module.Id) &&
+                    (!module.ParentModuleId.HasValue ||
+                     !visibleModuleIds.Contains(module.ParentModuleId.Value))));
+
+            return roots
+                .Select(module => BuildNavigationItem(module, childrenByParentId, operationsByModuleId, new HashSet<int>()))
+                .ToArray();
+        }
+
+        private static void AddModuleAndAncestors(
+            int moduleId,
+            IReadOnlyDictionary<int, NavigationModuleRecord> modulesById,
+            ISet<int> visibleModuleIds)
+        {
+            var visitedModuleIds = new HashSet<int>();
+            var currentModuleId = moduleId;
+
+            while (modulesById.TryGetValue(currentModuleId, out var module) &&
+                   visitedModuleIds.Add(currentModuleId))
+            {
+                visibleModuleIds.Add(currentModuleId);
+                if (!module.ParentModuleId.HasValue)
+                {
+                    break;
+                }
+
+                currentModuleId = module.ParentModuleId.Value;
+            }
+        }
+
+        private static NavigationMenuItemResponseDTO BuildNavigationItem(
+            NavigationModuleRecord module,
+            IReadOnlyDictionary<int, IReadOnlyCollection<NavigationModuleRecord>> childrenByParentId,
+            IReadOnlyDictionary<int, IReadOnlyCollection<NavigationOperationResponseDTO>> operationsByModuleId,
+            ISet<int> branchModuleIds)
+        {
+            if (!branchModuleIds.Add(module.Id))
+            {
+                return CreateNavigationItem(module, operationsByModuleId.GetValueOrDefault(module.Id), Array.Empty<NavigationMenuItemResponseDTO>());
+            }
+
+            var children = childrenByParentId.TryGetValue(module.Id, out var childModules)
+                ? childModules
+                    .Select(child => BuildNavigationItem(child, childrenByParentId, operationsByModuleId, new HashSet<int>(branchModuleIds)))
+                    .ToArray()
+                : Array.Empty<NavigationMenuItemResponseDTO>();
+
+            return CreateNavigationItem(module, operationsByModuleId.GetValueOrDefault(module.Id), children);
+        }
+
+        private static NavigationMenuItemResponseDTO CreateNavigationItem(
+            NavigationModuleRecord module,
+            IReadOnlyCollection<NavigationOperationResponseDTO>? operations,
+            IReadOnlyCollection<NavigationMenuItemResponseDTO> children) =>
+            new()
+            {
+                Id = module.Id,
+                ModuleCode = module.ModuleCode,
+                ModuleName = module.ModuleName,
+                DisplayName = module.DisplayName,
+                UrlPath = module.UrlPath,
+                IconKey = module.IconKey,
+                ParentModuleId = module.ParentModuleId,
+                IsLeafNode = module.IsLeafNode,
+                ModuleScope = module.ModuleScope,
+                Operations = operations ?? Array.Empty<NavigationOperationResponseDTO>(),
+                Children = children
+            };
+
+        private static IReadOnlyCollection<NavigationModuleRecord> OrderNavigationModules(
+            IEnumerable<NavigationModuleRecord> modules) =>
+            modules
+                .OrderBy(module => module.ItemPriority)
+                .ThenBy(module => module.ModuleName)
+                .ThenBy(module => module.Id)
+                .ToArray();
+
+        private sealed record NavigationModuleRecord(
+            int Id,
+            string? ModuleCode,
+            string ModuleName,
+            string? DisplayName,
+            string? UrlPath,
+            string? IconKey,
+            int? ParentModuleId,
+            bool IsLeafNode,
+            short ModuleScope,
+            int ItemPriority);
+
+        private sealed record NavigationOperationRecord(
+            int ModuleId,
+            int OperationId,
+            string OperationName,
+            string? IconKey);
+
+        #endregion
 
         #region Common Navigation Queries
 
