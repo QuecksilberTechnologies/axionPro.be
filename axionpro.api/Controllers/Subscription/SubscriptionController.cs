@@ -42,29 +42,25 @@ public class SubscriptionController : ControllerBase
     #endregion
 
     #region Subscription Plan Queries
-    #region Unused
-    //     /// <summary>
-    //     /// Not-Used-In-Angular.
-    //     /// </summary>
-    //     /// <remarks>
-    //     /// <para>Angular usage status: Not-Used-In-Angular.</para>
-    //     /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-    //     /// <para>Backend endpoint: GET /api/subscription/get-all-subscription-plan.</para>
-    //     /// </remarks>
-    //
-    //     [AllowAnonymous]
-    //     [HttpGet("get-all-subscription-plan")]
-    //     public async Task<IActionResult> GetAllSubscriptionPlan(
-    //         [FromQuery] SubscriptionPlanRequestDTO requestDTO,
-    //         CancellationToken cancellationToken)
-    //     {
-    //         var result = await _mediator.Send(
-    //             new GetSubscriptionPlanQuery(requestDTO),
-    //             cancellationToken);
-    //
-    //         return Ok(result);
-    //     }
-    #endregion
+    /// <summary>
+    /// Retrieves subscription plans for the public pricing flow.
+    /// </summary>
+    /// <remarks>
+    /// Supports the Angular pricing store call to
+    /// <c>GET /api/Subscription/get-all-subscription-plan</c>.
+    /// </remarks>
+    [AllowAnonymous]
+    [HttpGet("get-all-subscription-plan")]
+    public async Task<IActionResult> GetAllSubscriptionPlan(
+        [FromQuery] SubscriptionPlanRequestDTO requestDTO,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new GetSubscriptionPlanQuery(requestDTO),
+            cancellationToken);
+
+        return Ok(result);
+    }
     #region Unused
     //     /// <summary>
     //     /// Not-Used-In-Angular.
