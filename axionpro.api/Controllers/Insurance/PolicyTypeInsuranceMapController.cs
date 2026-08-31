@@ -57,25 +57,27 @@ namespace axionpro.api.Controllers.Insurance
         }
 
         // 🔹 GET INSURANCE LIST (GRID)
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: GET /api/policytypeinsurancemap/get-all-map-insurance.</para>
-        /// </remarks>
-        [HttpGet("get-all-map-insurance")]
-        
-        public async Task<IActionResult> GetList( [FromQuery] GetInsuranceForEmployeeDDLRequestDTO  requestDto)
-          {
-            _logger.LogInfo("Fetching mapped insurance policy list.");
-
-            var query = new GetAllInsuranceForEmployee(requestDto);
-            var result = await _mediator.Send(query);         
-
-            return Ok(result);
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: GET /api/policytypeinsurancemap/get-all-map-insurance.</para>
+        //         /// </remarks>
+        //         [HttpGet("get-all-map-insurance")]
+        //
+        //         public async Task<IActionResult> GetList( [FromQuery] GetInsuranceForEmployeeDDLRequestDTO  requestDto)
+        //           {
+        //             _logger.LogInfo("Fetching mapped insurance policy list.");
+        //
+        //             var query = new GetAllInsuranceForEmployee(requestDto);
+        //             var result = await _mediator.Send(query);
+        //
+        //             return Ok(result);
+        //         }
+        #endregion
         // 🔹 GET INSURANCE LIST (GRID)
         /// <summary>
         /// Used-In-Angular: retrieves policy type insurance maps.

@@ -29,58 +29,64 @@ namespace axionpro.api.Controllers.Travel
             _mediator = mediator;
             _logger = logger;
         }
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: GET /api/travel/getalltravelmodetype.</para>
-        /// </remarks>
-
-
-        [HttpGet("getalltravelmodetype")]       
-        public async Task<IActionResult> GetAllTravelModeType([FromQuery] TravelModeRequestDTO travelModeRequestDTO)
-        {
-            _logger.LogInfo($"Received request to get clientRequestType from userId: {travelModeRequestDTO.Id}");
-
-            var command = new GetAllTravelModeTypeQuery(travelModeRequestDTO);
-            var result = await _mediator.Send(command);
-            return Ok(result);
-        }
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: POST /api/travel/addtravelmode.</para>
-        /// </remarks>
-        [HttpPost("addtravelmode")] 
-        public async Task<IActionResult> CreateTravelModeType([FromBody] CreateTravelModeDTO createTravelModeDTO)
-        {   
-
-            _logger.LogInfo($"Received request to create a new leave type: {createTravelModeDTO.TravelModeName}");
-            var command = new CreateTravelModeTypeCommand(createTravelModeDTO);
-            var result = await _mediator.Send(command);
-            return Ok(result);        }
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: POST /api/travel/updatetravelmodetype.</para>
-        /// </remarks>
-
-        [HttpPost("updatetravelmodetype")]        
-        public async Task<IActionResult> UpdateTravelModeType([FromBody] UpdateTravelModeDTO updateTravelModeDTO)
-        {
-            _logger.LogInfo("Received request for update a leave" + updateTravelModeDTO.ToString());
-            var command = new UpdateTravelModeTypeCommand(updateTravelModeDTO);
-            var result = await _mediator.Send(command);            
-            return Ok(result);
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: GET /api/travel/getalltravelmodetype.</para>
+        //         /// </remarks>
+        //
+        //
+        //         [HttpGet("getalltravelmodetype")]
+        //         public async Task<IActionResult> GetAllTravelModeType([FromQuery] TravelModeRequestDTO travelModeRequestDTO)
+        //         {
+        //             _logger.LogInfo($"Received request to get clientRequestType from userId: {travelModeRequestDTO.Id}");
+        //
+        //             var command = new GetAllTravelModeTypeQuery(travelModeRequestDTO);
+        //             var result = await _mediator.Send(command);
+        //             return Ok(result);
+        //         }
+        #endregion
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: POST /api/travel/addtravelmode.</para>
+        //         /// </remarks>
+        //         [HttpPost("addtravelmode")]
+        //         public async Task<IActionResult> CreateTravelModeType([FromBody] CreateTravelModeDTO createTravelModeDTO)
+        //         {
+        //
+        //             _logger.LogInfo($"Received request to create a new leave type: {createTravelModeDTO.TravelModeName}");
+        //             var command = new CreateTravelModeTypeCommand(createTravelModeDTO);
+        //             var result = await _mediator.Send(command);
+        //             return Ok(result);        }
+        #endregion
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: POST /api/travel/updatetravelmodetype.</para>
+        //         /// </remarks>
+        //
+        //         [HttpPost("updatetravelmodetype")]
+        //         public async Task<IActionResult> UpdateTravelModeType([FromBody] UpdateTravelModeDTO updateTravelModeDTO)
+        //         {
+        //             _logger.LogInfo("Received request for update a leave" + updateTravelModeDTO.ToString());
+        //             var command = new UpdateTravelModeTypeCommand(updateTravelModeDTO);
+        //             var result = await _mediator.Send(command);
+        //             return Ok(result);
+        //         }
+        #endregion
         //  [HttpPost("getalltendermaincategory")]
         //public async Task<IActionResult> GetAllTenderMainCategories([FromBody] TenderCategoryRequestDTO? tenderCategoryRequestDTO)
         //{

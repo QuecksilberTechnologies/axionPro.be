@@ -408,9 +408,7 @@ namespace axionpro.persistance.Repositories
                 .AsNoTracking()
                 .Where(subscription =>
                     subscription.TenantId == tenantId &&
-                    subscription.IsActive &&
-                    subscription.SubscriptionPlan.IsActive &&
-                    !subscription.SubscriptionPlan.IsSoftDeleted)
+                    subscription.IsActive)
                 .OrderByDescending(subscription => subscription.SubscriptionStartDate)
                 .ThenByDescending(subscription => subscription.Id)
                 .Select(subscription => new HostTenantSubscriptionDetailDTO

@@ -39,26 +39,28 @@ public sealed class PlanModuleMappingController : ControllerBase
     #endregion
 
     #region Plan Module Mapping Endpoints
-    /// <summary>
-    /// Not-Used-In-Angular.
-    /// </summary>
-    /// <remarks>
-    /// <para>Angular usage status: Not-Used-In-Angular.</para>
-    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-    /// <para>Backend endpoint: GET /api/planmodulemapping/options/{}.</para>
-    /// </remarks>
-
-    [HttpGet("options/{subscriptionPlanId:int}")]
-    public async Task<IActionResult> GetOptions(
-        int subscriptionPlanId,
-        CancellationToken cancellationToken)
-    {
-        var result = await _mediator.Send(
-            new GetPlanModuleMappingOptionsQuery(subscriptionPlanId),
-            cancellationToken);
-
-        return Ok(result);
-    }
+    #region Unused
+    //     /// <summary>
+    //     /// Not-Used-In-Angular.
+    //     /// </summary>
+    //     /// <remarks>
+    //     /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    //     /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    //     /// <para>Backend endpoint: GET /api/planmodulemapping/options/{}.</para>
+    //     /// </remarks>
+    //
+    //     [HttpGet("options/{subscriptionPlanId:int}")]
+    //     public async Task<IActionResult> GetOptions(
+    //         int subscriptionPlanId,
+    //         CancellationToken cancellationToken)
+    //     {
+    //         var result = await _mediator.Send(
+    //             new GetPlanModuleMappingOptionsQuery(subscriptionPlanId),
+    //             cancellationToken);
+    //
+    //         return Ok(result);
+    //     }
+    #endregion
 
     /// <summary>
     /// Used-In-Angular: updates plan module mapping.

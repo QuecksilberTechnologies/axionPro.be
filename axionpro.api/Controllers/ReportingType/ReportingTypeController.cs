@@ -99,24 +99,26 @@ namespace axionpro.api.Controllers.ReportingType
         // =============================================================================================
         #region 🔹 GET reporting type BY ID
         // =============================================================================================
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: GET /api/reportingtype/get-by-id.</para>
-        /// </remarks>
-
-        [HttpGet("get-by-id")]   
-        public async Task<IActionResult> GetReportingTypeById([FromQuery] GetReportingTypeByIdRequestDTO dto)
-        {         
-
-                var result = await _mediator.Send(new GetReportingTypeByIdQuery(dto));      
-
-                return Ok(result);
-           
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: GET /api/reportingtype/get-by-id.</para>
+        //         /// </remarks>
+        //
+        //         [HttpGet("get-by-id")]
+        //         public async Task<IActionResult> GetReportingTypeById([FromQuery] GetReportingTypeByIdRequestDTO dto)
+        //         {
+        //
+        //                 var result = await _mediator.Send(new GetReportingTypeByIdQuery(dto));
+        //
+        //                 return Ok(result);
+        //
+        //         }
+        #endregion
 
         #endregion
 

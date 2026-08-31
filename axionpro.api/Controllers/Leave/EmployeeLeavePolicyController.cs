@@ -30,113 +30,125 @@ namespace axionpro.api.Controllers.Leave
             _logger = logger;
         }
         // ✅ Map EmployeeLeavePolicyMapping 
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: POST /api/employeeleavepolicy/add.</para>
-        /// </remarks>
-        [HttpPost("add")]     
-        
-        public async Task<IActionResult> MapEmployeeyAsync([FromBody] AddLeaveBalanceToEmployeeRequestDTO requestDTO)
-        {
-            _logger.LogInformation("Received request to create EmployeeLeavePolicyMapping: {Request}", JsonConvert.SerializeObject(requestDTO));
-            var command = new AddLeaveBalanceCommand(requestDTO);
-            var result = await _mediator.Send(command);
-            return Ok(result);
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: POST /api/employeeleavepolicy/add.</para>
+        //         /// </remarks>
+        //         [HttpPost("add")]
+        //
+        //         public async Task<IActionResult> MapEmployeeyAsync([FromBody] AddLeaveBalanceToEmployeeRequestDTO requestDTO)
+        //         {
+        //             _logger.LogInformation("Received request to create EmployeeLeavePolicyMapping: {Request}", JsonConvert.SerializeObject(requestDTO));
+        //             var command = new AddLeaveBalanceCommand(requestDTO);
+        //             var result = await _mediator.Send(command);
+        //             return Ok(result);
+        //         }
+        #endregion
         // ✅ Map EmployeeLeavePolicyMapping 
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: POST /api/employeeleavepolicy/leavebalance/update.</para>
-        /// </remarks>
-        [HttpPost("LeaveBalance/update")]        
-        public async Task<IActionResult> UpdateEmployeeyAsync([FromBody] UpdateLeaveBalanceToEmployeeRequestDTO requestDTO)
-        {
-            _logger.LogInformation("Received request to create EmployeeLeavePolicyMapping: {Request}", JsonConvert.SerializeObject(requestDTO));
-            var command = new UpdateLeaveBalanceCommand(requestDTO);
-            var result = await _mediator.Send(command);
-
-            return Ok(result);
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: POST /api/employeeleavepolicy/leavebalance/update.</para>
+        //         /// </remarks>
+        //         [HttpPost("LeaveBalance/update")]
+        //         public async Task<IActionResult> UpdateEmployeeyAsync([FromBody] UpdateLeaveBalanceToEmployeeRequestDTO requestDTO)
+        //         {
+        //             _logger.LogInformation("Received request to create EmployeeLeavePolicyMapping: {Request}", JsonConvert.SerializeObject(requestDTO));
+        //             var command = new UpdateLeaveBalanceCommand(requestDTO);
+        //             var result = await _mediator.Send(command);
+        //
+        //             return Ok(result);
+        //         }
+        #endregion
 
         // ✅ Map EmployeeLeavePolicyMapping 
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: POST /api/employeeleavepolicy/map.</para>
-        /// </remarks>
-        [HttpPost("map")]       
-        public async Task<IActionResult> MapEmployeeyAsync([FromBody] CreateEmployeeLeavePolicyMappingRequestDTO requestDTO)
-        {
-            _logger.LogInformation("Received request to create EmployeeLeavePolicyMapping: {Request}", JsonConvert.SerializeObject(requestDTO));
-            var command = new EmployeeLeavePolicyMapCommand(requestDTO);
-            var result = await _mediator.Send(command);
-            return Ok(result);
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: POST /api/employeeleavepolicy/map.</para>
+        //         /// </remarks>
+        //         [HttpPost("map")]
+        //         public async Task<IActionResult> MapEmployeeyAsync([FromBody] CreateEmployeeLeavePolicyMappingRequestDTO requestDTO)
+        //         {
+        //             _logger.LogInformation("Received request to create EmployeeLeavePolicyMapping: {Request}", JsonConvert.SerializeObject(requestDTO));
+        //             var command = new EmployeeLeavePolicyMapCommand(requestDTO);
+        //             var result = await _mediator.Send(command);
+        //             return Ok(result);
+        //         }
+        #endregion
 
         //  ✅ Get All Employee mapped EmployeeLeavePolicyMapping
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: GET /api/employeeleavepolicy/mapped/leave/policy/get.</para>
-        /// </remarks>
-        [HttpGet("Mapped/Leave/Policy/get")]        
-        public async Task<IActionResult> GetAllLeavePoliciesAsync([FromQuery] GetLeaveTypeWithPolicyMappingRequestDTO getLeavePolicyRequestDTO)
-        {
-            _logger.LogInformation("Fetching all Employee Mapped...");
-            var query = new GetAllLeavePolicyQuery(getLeavePolicyRequestDTO);
-            var result = await _mediator.Send(query);
-            return Ok(result);
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: GET /api/employeeleavepolicy/mapped/leave/policy/get.</para>
+        //         /// </remarks>
+        //         [HttpGet("Mapped/Leave/Policy/get")]
+        //         public async Task<IActionResult> GetAllLeavePoliciesAsync([FromQuery] GetLeaveTypeWithPolicyMappingRequestDTO getLeavePolicyRequestDTO)
+        //         {
+        //             _logger.LogInformation("Fetching all Employee Mapped...");
+        //             var query = new GetAllLeavePolicyQuery(getLeavePolicyRequestDTO);
+        //             var result = await _mediator.Send(query);
+        //             return Ok(result);
+        //         }
+        #endregion
         //  ✅ Get All Employee mapped EmployeeLeavePolicyMapping
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: GET /api/employeeleavepolicy/employeeleavepolicy/mapped/get.</para>
-        /// </remarks>
-        [HttpGet("EmployeeLeavePolicy/Mapped/get")]             
-        public async Task<IActionResult> GetAllEmployeeLeavePoliciesAsync([FromQuery] GetEmployeeLeavePolicyMappingRequestDTO requestDTO)
-        {
-            _logger.LogInformation("Fetching all Employee Mapped...");
-            var query = new GetAllEmployeeLeavePolicyQuery(requestDTO);
-            var result = await _mediator.Send(query);
-            return Ok(result);
-        }
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: POST /api/employeeleavepolicy/update.</para>
-        /// </remarks>
-
-        [HttpPost("update")]       
-        
-        public async Task<IActionResult> UpdateLeavePolicyAsync([FromBody] UpdateEmployeeLeavePolicyMappingRequestDTO requestDTO)
-        {
-            _logger.LogInformation("Received request to update LeavePolicy: {Request}", JsonConvert.SerializeObject(requestDTO));
-            var command = new UpdateEmployeeLeavePolicyMapCommand(requestDTO);
-            var result = await _mediator.Send(command);           
-
-            return Ok(result);
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: GET /api/employeeleavepolicy/employeeleavepolicy/mapped/get.</para>
+        //         /// </remarks>
+        //         [HttpGet("EmployeeLeavePolicy/Mapped/get")]
+        //         public async Task<IActionResult> GetAllEmployeeLeavePoliciesAsync([FromQuery] GetEmployeeLeavePolicyMappingRequestDTO requestDTO)
+        //         {
+        //             _logger.LogInformation("Fetching all Employee Mapped...");
+        //             var query = new GetAllEmployeeLeavePolicyQuery(requestDTO);
+        //             var result = await _mediator.Send(query);
+        //             return Ok(result);
+        //         }
+        #endregion
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: POST /api/employeeleavepolicy/update.</para>
+        //         /// </remarks>
+        //
+        //         [HttpPost("update")]
+        //
+        //         public async Task<IActionResult> UpdateLeavePolicyAsync([FromBody] UpdateEmployeeLeavePolicyMappingRequestDTO requestDTO)
+        //         {
+        //             _logger.LogInformation("Received request to update LeavePolicy: {Request}", JsonConvert.SerializeObject(requestDTO));
+        //             var command = new UpdateEmployeeLeavePolicyMapCommand(requestDTO);
+        //             var result = await _mediator.Send(command);
+        //
+        //             return Ok(result);
+        //         }
+        #endregion
         // ✅ Delete EmployeeLeavePolicyMapping (Soft Delete)
         //[HttpPost("delete")]
         //// [Authorize]

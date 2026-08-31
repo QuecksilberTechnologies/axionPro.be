@@ -5,7 +5,10 @@ const workspace = process.cwd();
 const frontendRoot = "C:/latestAxionProUI/axionpro-app/src";
 const backendRoot = path.join(workspace, "axionpro.api", "Controllers");
 const reportPath = path.join(workspace, "API-Documentation-Sync-Report.md");
-const applyChanges = process.argv.includes("--apply");
+const applyDocs = process.argv.includes("--apply");
+const commentUnused = process.argv.includes("--comment-unused");
+const dryRun = process.argv.includes("--dry-run");
+const applyChanges = (applyDocs || commentUnused) && !dryRun;
 
 async function walk(directory, predicate) {
   const output = [];
@@ -223,11 +226,16 @@ async function readBackendEndpoints() {
     const httpAttribute = /\[\s*Http(?<verb>Get|Post|Put|Delete|Patch|Head|Options)\s*(?:\(\s*"(?<route>[^"]*)")?[^\]]*\]/g;
     for (const match of active.matchAll(httpAttribute)) {
       const after = active.slice(match.index + match[0].length, match.index + match[0].length + 5000);
-      const action = /public\s+(?:async\s+)?[A-Za-z_$][\w$<>,?.\[\]\s]*?\s+(?<name>[A-Za-z_$][\w$]*)\s*\(/.exec(after)?.groups?.name;
-      if (!action) continue;
+      const actionMatch = /public\s+(?:async\s+)?[A-Za-z_$][\w$<>,?.\[\]\s]*?\s+(?<name>[A-Za-z_$][\w$]*)\s*\(/.exec(after);
+      if (!actionMatch) continue;
+      const actionIndex = match.index + match[0].length + actionMatch.index;
+      const actionBodyStart = active.indexOf("{", actionIndex);
+      const actionEnd = actionBodyStart >= 0 ? findClosingBrace(active, actionBodyStart) + 1 : -1;
+      if (actionEnd <= actionBodyStart) continue;
       endpoints.push({
-        file, relative: relativeTo(workspace, file), raw, className, action,
-        verb: match.groups.verb.toUpperCase(), route: combineControllerRoute(controllerRoute, match.groups.route ?? "", controllerName), attributeIndex: match.index,
+        file, relative: relativeTo(workspace, file), raw, className, action: actionMatch.groups.name,
+        verb: match.groups.verb.toUpperCase(), route: combineControllerRoute(controllerRoute, match.groups.route ?? "", controllerName),
+        attributeIndex: match.index, actionIndex, actionEnd,
       });
     }
   }
@@ -353,6 +361,38 @@ function attributeIndent(endpoint) {
   return endpoint.raw.slice(lineStart, endpoint.attributeIndex);
 }
 
+function lineStart(source, index) {
+  return source.lastIndexOf("\n", index - 1) + 1;
+}
+
+function lineEnd(source, index) {
+  const newline = source.indexOf("\n", index);
+  return newline < 0 ? source.length : newline + 1;
+}
+
+function commentOutAction(endpoint) {
+  const attributeBlockStart = findAttributeBlockStart(endpoint.raw, endpoint.attributeIndex);
+  const existingDoc = findXmlDocBlock(endpoint.raw, attributeBlockStart);
+  const start = existingDoc?.start ?? attributeBlockStart;
+  const block = endpoint.raw.slice(start, endpoint.actionEnd);
+  const eol = endpoint.raw.includes("\r\n") ? "\r\n" : "\n";
+  const indent = /^[ \t]*/.exec(block)?.[0] ?? "";
+  const commented = block.split(/\r?\n/).map((line) => `${indent}// ${line}`).join(eol);
+  return { start, end: endpoint.actionEnd, replacement: `${indent}#region Unused${eol}${commented}${eol}${indent}#endregion` };
+}
+
+function commentOutHttpAttribute(endpoint) {
+  const start = lineStart(endpoint.raw, endpoint.attributeIndex);
+  const end = lineEnd(endpoint.raw, endpoint.attributeIndex);
+  const line = endpoint.raw.slice(start, end).replace(/\r?\n$/, "");
+  const indent = /^[ \t]*/.exec(line)?.[0] ?? "";
+  const eol = endpoint.raw.includes("\r\n") ? "\r\n" : "\n";
+  return {
+    start, end,
+    replacement: `${indent}#region Unused${eol}${indent}// ${line.slice(indent.length)}${eol}${indent}#endregion${eol}`,
+  };
+}
+
 function buildMatchedDoc(endpoint, contexts, usageResolver) {
   const functions = unique(contexts.map((context) => `${context.className}.${context.methodName} (${context.relative}:${context.line})`));
   const purposes = unique(contexts.map((context) => context.purpose));
@@ -413,7 +453,10 @@ function buildReport(endpoints, angularByKey, usageResolver, componentRoutes, an
     `- Angular source: \`${frontendRoot}\``,
     "- Backend source: `axionpro.api/Controllers`.",
     "- An endpoint is marked **Used-In-Angular** only when HTTP verb and normalized route both match an active Angular HTTP call.",
-    "- **Not-Used-In-Angular** means no such active Angular call was found; the endpoint remains available in the backend.",
+    "- **Not-Used-In-Angular** means no such active Angular call was found.",
+    commentUnused
+      ? "- Every Not-Used-In-Angular action in this report is commented in its controller inside `#region Unused`; uncommenting that region restores it."
+      : "- Not-Used-In-Angular endpoints remain available in the backend until a `--comment-unused` run is requested.",
     "- UI pages are resolved statically from Angular route declarations. When that is not possible, the controller comment states this explicitly instead of guessing.",
     "",
     "## Summary",
@@ -423,12 +466,14 @@ function buildReport(endpoints, angularByKey, usageResolver, componentRoutes, an
     `| Backend controller endpoints scanned | ${endpoints.length} |`,
     `| Angular HTTP call-sites matched to backend endpoints | ${matched.length} |`,
     `| Backend endpoints marked Not-Used-In-Angular | ${unmatched} |`,
+    `| Unused endpoint source state | ${commentUnused ? "Commented in #region Unused" : "Active"} |`,
     `| Angular call expressions parsed (before backend matching) | ${angularCalls.length} |`,
     `| Static routed Angular components resolved | ${componentRoutes.size} |`,
     "",
     "## Controller documentation convention",
     "",
     "Every controller action now has endpoint-level XML documentation. Used endpoints include Angular function, inferred UI purpose, resolved UI pages, and consuming component(s). Unused endpoints carry the exact `Not-Used-In-Angular` status.",
+    commentUnused ? "Unused action source is line-commented inside a local `#region Unused`, so it can be restored without reconstructing code." : "",
     "",
     "## Complete endpoint matrix",
     "",
@@ -451,35 +496,76 @@ for (const call of angularCalls) {
 const componentRoutes = await buildComponentRoutes();
 const usageResolver = buildUsageResolver(angularRecords, componentRoutes);
 
-const updatesByFile = new Map();
+const documentationUpdatesByFile = new Map();
+if (applyDocs) {
+  for (const endpoint of endpoints) {
+    const attributeBlockStart = findAttributeBlockStart(endpoint.raw, endpoint.attributeIndex);
+    const existingDoc = findXmlDocBlock(endpoint.raw, attributeBlockStart);
+    const contexts = angularByKey.get(routeKey(endpoint.verb, endpoint.route)) ?? [];
+    const start = existingDoc?.start ?? attributeBlockStart;
+    const replacement = contexts.length ? buildMatchedDoc(endpoint, contexts, usageResolver) : buildNotUsedDoc(endpoint);
+    if (!documentationUpdatesByFile.has(endpoint.file)) documentationUpdatesByFile.set(endpoint.file, []);
+    documentationUpdatesByFile.get(endpoint.file).push({ start, end: attributeBlockStart, replacement: `${replacement}${endpoint.raw.includes("\r\n") ? "\r\n" : "\n"}` });
+  }
+}
+
+const unusedEndpoints = endpoints.filter((endpoint) => !(angularByKey.get(routeKey(endpoint.verb, endpoint.route)) ?? []).length);
+const unusedByAction = new Map();
 for (const endpoint of endpoints) {
-  const attributeBlockStart = findAttributeBlockStart(endpoint.raw, endpoint.attributeIndex);
-  const existingDoc = findXmlDocBlock(endpoint.raw, attributeBlockStart);
-  const contexts = angularByKey.get(routeKey(endpoint.verb, endpoint.route)) ?? [];
-  const start = existingDoc?.start ?? attributeBlockStart;
-  const replacement = contexts.length ? buildMatchedDoc(endpoint, contexts, usageResolver) : buildNotUsedDoc(endpoint);
-  if (!updatesByFile.has(endpoint.file)) updatesByFile.set(endpoint.file, []);
-  updatesByFile.get(endpoint.file).push({ start, end: attributeBlockStart, replacement: `${replacement}${endpoint.raw.includes("\r\n") ? "\r\n" : "\n"}` });
+  const key = `${endpoint.file}|${endpoint.actionIndex}`;
+  if (!unusedByAction.has(key)) unusedByAction.set(key, []);
+  unusedByAction.get(key).push(endpoint);
+}
+const unusedCommentUpdatesByFile = new Map();
+let fullyCommentedActions = 0;
+let selectivelyCommentedRoutes = 0;
+if (commentUnused) {
+  for (const actionEndpoints of unusedByAction.values()) {
+    const unusedInAction = actionEndpoints.filter((endpoint) => unusedEndpoints.includes(endpoint));
+    if (!unusedInAction.length) continue;
+    const file = actionEndpoints[0].file;
+    if (!unusedCommentUpdatesByFile.has(file)) unusedCommentUpdatesByFile.set(file, []);
+    if (unusedInAction.length === actionEndpoints.length) {
+      unusedCommentUpdatesByFile.get(file).push(commentOutAction(actionEndpoints[0]));
+      fullyCommentedActions++;
+    } else {
+      for (const endpoint of unusedInAction) {
+        unusedCommentUpdatesByFile.get(file).push(commentOutHttpAttribute(endpoint));
+        selectivelyCommentedRoutes++;
+      }
+    }
+  }
 }
 
 const report = buildReport(endpoints, angularByKey, usageResolver, componentRoutes, angularCalls);
 if (applyChanges) {
-  for (const [file, updates] of updatesByFile) {
-    let content = await fs.readFile(file, "utf8");
-    for (const update of updates.sort((left, right) => right.start - left.start)) content = content.slice(0, update.start) + update.replacement + content.slice(update.end);
-    await fs.writeFile(file, content, "utf8");
+  if (applyDocs) {
+    for (const [file, updates] of documentationUpdatesByFile) {
+      let content = await fs.readFile(file, "utf8");
+      for (const update of updates.sort((left, right) => right.start - left.start)) content = content.slice(0, update.start) + update.replacement + content.slice(update.end);
+      await fs.writeFile(file, content, "utf8");
+    }
+  }
+  if (commentUnused) {
+    for (const [file, updates] of unusedCommentUpdatesByFile) {
+      let content = await fs.readFile(file, "utf8");
+      for (const update of updates.sort((left, right) => right.start - left.start)) content = content.slice(0, update.start) + update.replacement + content.slice(update.end);
+      await fs.writeFile(file, content, "utf8");
+    }
   }
   await fs.writeFile(reportPath, report, "utf8");
 }
 
 const matched = endpoints.filter((endpoint) => angularByKey.has(routeKey(endpoint.verb, endpoint.route)));
 console.log(JSON.stringify({
-  mode: applyChanges ? "apply" : "dry-run",
+  mode: commentUnused ? (applyChanges ? "comment-unused" : "comment-unused-dry-run") : applyDocs ? "apply" : "dry-run",
   backendEndpoints: endpoints.length,
   angularHttpCallSites: angularCalls.length,
   matchedEndpoints: matched.length,
   notUsedInAngular: endpoints.length - matched.length,
   routedAngularComponents: componentRoutes.size,
   matchedWithoutResolvedPage: matched.filter((endpoint) => !(angularByKey.get(routeKey(endpoint.verb, endpoint.route)) ?? []).some((context) => usageResolver.pagesFor(context).length)).length,
+  fullyCommentedActions,
+  selectivelyCommentedRoutes,
   report: relativeTo(workspace, reportPath),
 }, null, 2));

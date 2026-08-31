@@ -59,27 +59,29 @@ namespace axionpro.api.Controllers.Ticket
         // ----------------------------------------------------------------------------------------------------
         // 2️⃣ READ - Get all Ticket Headers with filters
         // ----------------------------------------------------------------------------------------------------
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: GET /api/ticket/ticketheader/get-by-classification-id.</para>
-        /// </remarks>
-        [HttpGet("get-by-classification-id")]    
-        public async Task<IActionResult> GetAllHeaderFilterAsync([FromQuery] GetTicketHeaderByClassifyIdRequestDTO dto)
-        {
-          
-                _logger.LogInformation("📦 Fetching Ticket Headers with applied filters: {Filters}",
-                    JsonConvert.SerializeObject(dto));
-
-                var result = await _mediator.Send(new GetHeaderByClassifyIdQuery(dto));
-                _logger.LogInformation("✅ {Count} Ticket Headers fetched successfully.", result.Data?.Count ?? 0);
-                return Ok(result);
-           
-           
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: GET /api/ticket/ticketheader/get-by-classification-id.</para>
+        //         /// </remarks>
+        //         [HttpGet("get-by-classification-id")]
+        //         public async Task<IActionResult> GetAllHeaderFilterAsync([FromQuery] GetTicketHeaderByClassifyIdRequestDTO dto)
+        //         {
+        //
+        //                 _logger.LogInformation("📦 Fetching Ticket Headers with applied filters: {Filters}",
+        //                     JsonConvert.SerializeObject(dto));
+        //
+        //                 var result = await _mediator.Send(new GetHeaderByClassifyIdQuery(dto));
+        //                 _logger.LogInformation("✅ {Count} Ticket Headers fetched successfully.", result.Data?.Count ?? 0);
+        //                 return Ok(result);
+        //
+        //
+        //         }
+        #endregion
         //[HttpGet("get-filter")]    
         //public async Task<IActionResult> GetAllHeaderFilterAsync([FromQuery] GetHeaderRequestDTO dto)
         //{

@@ -219,14 +219,15 @@ namespace axionpro.persistance.Repositories
         {
             var context = _context ?? throw new InvalidOperationException("Module context is unavailable.");
 
+            // TenantEnabledModule is the tenant's entitlement snapshot.  Master-module
+            // activity/visibility must not revoke a feature that was already assigned to
+            // a tenant; the master record is used only for the current display metadata.
             var tenantModules = await (
                 from tenantModule in context.TenantEnabledModules.AsNoTracking()
                 join module in context.Modules.AsNoTracking() on tenantModule.ModuleId equals module.Id
                 where tenantModule.TenantId == tenantId &&
                       tenantModule.IsEnabled &&
-                      module.ModuleScope == (short)AppConstants.TenantModuleScope &&
-                      module.IsActive &&
-                      module.IsModuleDisplayInUI
+                      module.ModuleScope == (short)AppConstants.TenantModuleScope
                 select new NavigationModuleRecord(
                     module.Id,
                     module.ModuleCode,
@@ -234,8 +235,8 @@ namespace axionpro.persistance.Repositories
                     module.DisplayName,
                     module.Urlpath,
                     module.ImageIconWeb,
-                    module.ParentModuleId,
-                    module.IsLeafNode ?? false,
+                    tenantModule.ParentModuleId,
+                    tenantModule.IsLeafNode ?? false,
                     module.ModuleScope,
                     module.ItemPriority ?? int.MaxValue))
                 .ToListAsync(cancellationToken);
@@ -254,9 +255,6 @@ namespace axionpro.persistance.Repositories
                     on new { TenantId = tenantModule.TenantId, tenantModule.ModuleId, OperationId = permission.OperationId!.Value }
                     equals new { tenantOperation.TenantId, tenantOperation.ModuleId, tenantOperation.OperationId }
                 join module in context.Modules.AsNoTracking() on permission.ModuleId!.Value equals module.Id
-                join moduleOperation in context.ModuleOperationMappings.AsNoTracking()
-                    on new { ModuleId = permission.ModuleId!.Value, OperationId = permission.OperationId!.Value }
-                    equals new { moduleOperation.ModuleId, moduleOperation.OperationId }
                 join operation in context.Operations.AsNoTracking() on permission.OperationId!.Value equals operation.Id
                 where userRole.EmployeeId == employeeId &&
                       userRole.IsActive &&
@@ -276,12 +274,8 @@ namespace axionpro.persistance.Repositories
                       permission.HasAccess == true &&
                       tenantModule.IsEnabled &&
                       tenantOperation.IsEnabled &&
-                      module.ModuleScope == (short)AppConstants.TenantModuleScope &&
-                      module.IsActive &&
-                      module.IsModuleDisplayInUI &&
-                      moduleOperation.IsActive == true &&
-                      moduleOperation.IsOperational == true &&
-                      operation.IsActive
+                      tenantOperation.IsOperationUsed == true &&
+                      module.ModuleScope == (short)AppConstants.TenantModuleScope
                 select new NavigationOperationRecord(
                     module.Id,
                     operation.Id,

@@ -5,7 +5,6 @@
 // Purpose : Defines and handles the request to delete an Operation.
 // ================================================================
 
-using axionpro.application.Constants;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
@@ -95,18 +94,6 @@ public class DeleteOperationCommandHandler
         var operation = await _unitOfWork.OperationRepository
             .GetOperationByIdAsync(request.OperationId)
             ?? throw new ApiException("Operation not found.", 404);
-
-        if (await _unitOfWork.HostRolePermissionRepository
-                .IsOperationAssignedToNonDeletedPermissionAsync(operation.Id, cancellationToken))
-        {
-            throw new ConflictException(AppConstants.ErrorMessages.OperationAssignedToHostRolePermission);
-        }
-
-        if (await _unitOfWork.ModuleRepository
-                .IsOperationLinkedToAnyModuleAsync(operation.Id, cancellationToken))
-        {
-            throw new ConflictException(AppConstants.ErrorMessages.OperationLinkedToModule);
-        }
 
         var utcNow = DateTime.UtcNow;
         operation.UpdatedById = hostUserId;

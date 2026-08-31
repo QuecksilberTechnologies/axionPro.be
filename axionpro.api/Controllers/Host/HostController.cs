@@ -342,27 +342,29 @@ namespace axionpro.api.Controllers.Host
 
             return Ok(result);
         }
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: GET /api/host/get-host-module-by-id/{}.</para>
-        /// </remarks>
-
-        [HttpGet("get-host-module-by-id/{id:int}")]
-        public async Task<IActionResult> GetHostModuleById(
-            int id,
-            [FromQuery] bool? isActive = null)
-        {
-            _logger.LogInfo($"Received request to get Host module. Id: {id}, IsActive: {isActive}");
-
-            var query = new GetHostModuleByIdQuery(id, isActive);
-            var result = await _mediator.Send(query);
-
-            return Ok(result);
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: GET /api/host/get-host-module-by-id/{}.</para>
+        //         /// </remarks>
+        //
+        //         [HttpGet("get-host-module-by-id/{id:int}")]
+        //         public async Task<IActionResult> GetHostModuleById(
+        //             int id,
+        //             [FromQuery] bool? isActive = null)
+        //         {
+        //             _logger.LogInfo($"Received request to get Host module. Id: {id}, IsActive: {isActive}");
+        //
+        //             var query = new GetHostModuleByIdQuery(id, isActive);
+        //             var result = await _mediator.Send(query);
+        //
+        //             return Ok(result);
+        //         }
+        #endregion
 
         #endregion
 

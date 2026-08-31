@@ -70,24 +70,26 @@ namespace axionpro.api.Controllers.Leave
             return Ok(result);
         }
         //  ✅ Get All leave rule sandwich 
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: GET /api/leaverule/leaverule/sandwich/get.</para>
-        /// </remarks>
-        [HttpGet("LeaveRule/Sandwich/get")]       
-        
-        public async Task<IActionResult> GetAllLeaveRuleSandwichAsync([FromQuery] GetLeaveRuleRequestDTO getLeavePolicyRequestDTO)
-        {
-            _logger.LogInformation("Fetching all Leave rule...");
-            var query = new GetAllLeaveRuleQuery(getLeavePolicyRequestDTO);
-            var result = await _mediator.Send(query);
-
-            return Ok(result);
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: GET /api/leaverule/leaverule/sandwich/get.</para>
+        //         /// </remarks>
+        //         [HttpGet("LeaveRule/Sandwich/get")]
+        //
+        //         public async Task<IActionResult> GetAllLeaveRuleSandwichAsync([FromQuery] GetLeaveRuleRequestDTO getLeavePolicyRequestDTO)
+        //         {
+        //             _logger.LogInformation("Fetching all Leave rule...");
+        //             var query = new GetAllLeaveRuleQuery(getLeavePolicyRequestDTO);
+        //             var result = await _mediator.Send(query);
+        //
+        //             return Ok(result);
+        //         }
+        #endregion
 
         /// <summary>
         /// Used-In-Angular: updates leave rule.

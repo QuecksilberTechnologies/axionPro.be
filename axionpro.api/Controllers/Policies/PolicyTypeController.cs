@@ -180,22 +180,24 @@ namespace axionpro.api.Controllers.Policies
             var result = await _mediator.Send(command);
             return Ok(result);
         }
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: DELETE /api/policytype/delete-doc.</para>
-        /// </remarks>
-        [HttpDelete("delete-doc")]
-        public async Task<IActionResult> DeletePolicyTypeDocOnlyAsync([FromQuery] DeleteRequestDTO requestDTO)
-        {
-            _logger.LogInfo($"Received request to delete PolicyType: {JsonConvert.SerializeObject(requestDTO)}");
-            var command = new DeletePolicyTypeDocCommand(requestDTO);
-            var result = await _mediator.Send(command);
-            return Ok(result);
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: DELETE /api/policytype/delete-doc.</para>
+        //         /// </remarks>
+        //         [HttpDelete("delete-doc")]
+        //         public async Task<IActionResult> DeletePolicyTypeDocOnlyAsync([FromQuery] DeleteRequestDTO requestDTO)
+        //         {
+        //             _logger.LogInfo($"Received request to delete PolicyType: {JsonConvert.SerializeObject(requestDTO)}");
+        //             var command = new DeletePolicyTypeDocCommand(requestDTO);
+        //             var result = await _mediator.Send(command);
+        //             return Ok(result);
+        //         }
+        #endregion
 
     }
 }

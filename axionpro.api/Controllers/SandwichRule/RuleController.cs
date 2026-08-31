@@ -38,163 +38,179 @@ namespace axionpro.api.Controllers.SandwichRule
             _logger = logger;
         }
         #region CRUD-GET-DAY-COMBINATION BY-TENANT-ADMIN
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: POST /api/sandwich/daycombination/add.</para>
-        /// </remarks>
-
-        [HttpPost("/Sandwich/DayCombination/add")]
-        public async Task<IActionResult> GetAllDayCombinationByTenantUser([FromBody] CreateDayCombinationRequestDTO dTO)
-        {
-         // _logger.LogInformation("Received request to get Assets for userId: {LoginId}", AssetRequestDTO.Id);
-
-            var query = new CreateDayCombinationCommand(dTO);  //  Fix: No parameter needed in GetAllAssetQuery
-            var result = await _mediator.Send(query);
-            return Ok(result);
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: POST /api/sandwich/daycombination/add.</para>
+        //         /// </remarks>
+        //
+        //         [HttpPost("/Sandwich/DayCombination/add")]
+        //         public async Task<IActionResult> GetAllDayCombinationByTenantUser([FromBody] CreateDayCombinationRequestDTO dTO)
+        //         {
+        //          // _logger.LogInformation("Received request to get Assets for userId: {LoginId}", AssetRequestDTO.Id);
+        //
+        //             var query = new CreateDayCombinationCommand(dTO);  //  Fix: No parameter needed in GetAllAssetQuery
+        //             var result = await _mediator.Send(query);
+        //             return Ok(result);
+        //         }
+        #endregion
         #endregion
         #region Update--DAY-COMBINATION BY-TENANT-ADMIN
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: POST /api/sandwich/daycombination/update.</para>
-        /// </remarks>
-
-        [HttpPost("/Sandwich/DayCombination/update")]        
-        public async Task<IActionResult> UpdateDayCombinationByTenantUser([FromBody] UpdateDayCombinationRequestDTO dto)
-        {
-            var query = new UpdateDayCombinationCommand(dto);  //  Fix: No parameter needed in GetAllAssetQuery
-            var result = await _mediator.Send(query);
-
-            return Ok(result);
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: POST /api/sandwich/daycombination/update.</para>
+        //         /// </remarks>
+        //
+        //         [HttpPost("/Sandwich/DayCombination/update")]
+        //         public async Task<IActionResult> UpdateDayCombinationByTenantUser([FromBody] UpdateDayCombinationRequestDTO dto)
+        //         {
+        //             var query = new UpdateDayCombinationCommand(dto);  //  Fix: No parameter needed in GetAllAssetQuery
+        //             var result = await _mediator.Send(query);
+        //
+        //             return Ok(result);
+        //         }
+        #endregion
         #endregion
         #region Update-DAY-COMBINATION BY-TENANT-ADMIN
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: POST /api/sandwich/daycombination/delete.</para>
-        /// </remarks>
-
-        [HttpPost("/Sandwich/DayCombination/delete")]                  
-        public async Task<IActionResult> DeleteDayCombinationByTenantUser([FromBody] DeleteDayCombinationRequestDTO dto)
-        {
-                       // _logger.LogInformation("Received request to get Assets for userId: {LoginId}", AssetRequestDTO.Id);
-
-            var query = new DeleteDayCombinationCommand(dto);  //  Fix: No parameter needed in GetAllAssetQuery
-            var result = await _mediator.Send(query);                  
-
-            return Ok(result);
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: POST /api/sandwich/daycombination/delete.</para>
+        //         /// </remarks>
+        //
+        //         [HttpPost("/Sandwich/DayCombination/delete")]
+        //         public async Task<IActionResult> DeleteDayCombinationByTenantUser([FromBody] DeleteDayCombinationRequestDTO dto)
+        //         {
+        //                        // _logger.LogInformation("Received request to get Assets for userId: {LoginId}", AssetRequestDTO.Id);
+        //
+        //             var query = new DeleteDayCombinationCommand(dto);  //  Fix: No parameter needed in GetAllAssetQuery
+        //             var result = await _mediator.Send(query);
+        //
+        //             return Ok(result);
+        //         }
         #endregion
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: POST /api/sandwich/daycombination/get.</para>
-        /// </remarks>
-
-        [HttpPost("/Sandwich/DayCombination/get")]        
-        public async Task<IActionResult> GetAllDayCombinationByTenantUser([FromBody] GetDayCombinationRequestDTO dTO)
-        {
-
-            // _logger.LogInformation("Received request to get Assets for userId: {LoginId}", AssetRequestDTO.Id);
-
-            var query = new GetDayCombinationCommand(dTO);  //  Fix: No parameter needed in GetAllAssetQuery
-            var result = await _mediator.Send(query); 
-
-            return Ok(result);
-        }
+        #endregion
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: POST /api/sandwich/daycombination/get.</para>
+        //         /// </remarks>
+        //
+        //         [HttpPost("/Sandwich/DayCombination/get")]
+        //         public async Task<IActionResult> GetAllDayCombinationByTenantUser([FromBody] GetDayCombinationRequestDTO dTO)
+        //         {
+        //
+        //             // _logger.LogInformation("Received request to get Assets for userId: {LoginId}", AssetRequestDTO.Id);
+        //
+        //             var query = new GetDayCombinationCommand(dTO);  //  Fix: No parameter needed in GetAllAssetQuery
+        //             var result = await _mediator.Send(query);
+        //
+        //             return Ok(result);
+        //         }
+        #endregion
 
         #region CRUD-SANDWICH-RULE-BY-TENANT-ADMIN
 
         // 🔹 GET ALL
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: GET /api/sandwich/get.</para>
-        /// </remarks>
-        [HttpGet("/Sandwich/get")] 
-        public async Task<IActionResult> GetAllSandwichRule([FromQuery] GetLeaveSandwitchRuleRequestDTO dto)
-        { 
-
-            var query = new GetSandwichRuleCommand(dto);
-            var result = await _mediator.Send(query);  
-
-            return Ok(result);
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: GET /api/sandwich/get.</para>
+        //         /// </remarks>
+        //         [HttpGet("/Sandwich/get")]
+        //         public async Task<IActionResult> GetAllSandwichRule([FromQuery] GetLeaveSandwitchRuleRequestDTO dto)
+        //         {
+        //
+        //             var query = new GetSandwichRuleCommand(dto);
+        //             var result = await _mediator.Send(query);
+        //
+        //             return Ok(result);
+        //         }
+        #endregion
 
         // 🔹 CREATE
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: POST /api/sandwich/add.</para>
-        /// </remarks>
-        [HttpPost("/Sandwich/add")]        
-        public async Task<IActionResult> CreateSandwichRule([FromBody] CreateLeaveSandwichRuleRequestDTO dto)
-        {   
-
-            var command = new CreateSandwichRuleCommand(dto);
-            var result = await _mediator.Send(command);
-            return Ok(result);
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: POST /api/sandwich/add.</para>
+        //         /// </remarks>
+        //         [HttpPost("/Sandwich/add")]
+        //         public async Task<IActionResult> CreateSandwichRule([FromBody] CreateLeaveSandwichRuleRequestDTO dto)
+        //         {
+        //
+        //             var command = new CreateSandwichRuleCommand(dto);
+        //             var result = await _mediator.Send(command);
+        //             return Ok(result);
+        //         }
+        #endregion
 
         // 🔹 UPDATE
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: POST /api/sandwich/update.</para>
-        /// </remarks>
-        [HttpPost("/Sandwich/update")]        
-        public async Task<IActionResult> UpdateSandwichRule([FromBody] UpdateLeaveSandwitchRuleRequestDTO dto)
-        {
-           
-
-            var command = new UpdateSandwichRuleCommand(dto);
-            var result = await _mediator.Send(command);
-
-
-            return Ok(result);
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: POST /api/sandwich/update.</para>
+        //         /// </remarks>
+        //         [HttpPost("/Sandwich/update")]
+        //         public async Task<IActionResult> UpdateSandwichRule([FromBody] UpdateLeaveSandwitchRuleRequestDTO dto)
+        //         {
+        //
+        //
+        //             var command = new UpdateSandwichRuleCommand(dto);
+        //             var result = await _mediator.Send(command);
+        //
+        //
+        //             return Ok(result);
+        //         }
+        #endregion
 
         // 🔹 DELETE (Soft Delete)
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: DELETE /api/sandwich/delete.</para>
-        /// </remarks>
-        [HttpDelete("/Sandwich/delete")]        
-        public async Task<IActionResult> DeleteSandwichRule([FromQuery] DeleteLeaveSandwitchRuleRequestDTO dto)
-        {
-
-            var command = new DeleteSandwichRuleCommand(dto);
-            var result = await _mediator.Send(command);
-            return Ok(result);
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: DELETE /api/sandwich/delete.</para>
+        //         /// </remarks>
+        //         [HttpDelete("/Sandwich/delete")]
+        //         public async Task<IActionResult> DeleteSandwichRule([FromQuery] DeleteLeaveSandwitchRuleRequestDTO dto)
+        //         {
+        //
+        //             var command = new DeleteSandwichRuleCommand(dto);
+        //             var result = await _mediator.Send(command);
+        //             return Ok(result);
+        //         }
+        #endregion
 
         #endregion
 

@@ -42,96 +42,104 @@ public sealed class TenantParentModuleController : ControllerBase
     #endregion
 
     #region Tenant Parent Module Queries
-    /// <summary>
-    /// Not-Used-In-Angular.
-    /// </summary>
-    /// <remarks>
-    /// <para>Angular usage status: Not-Used-In-Angular.</para>
-    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-    /// <para>Backend endpoint: GET /api/tenantparentmodule/get-module-headers.</para>
-    /// </remarks>
-
-    [HttpGet("get-module-headers")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetModuleHeaders(
-        [FromQuery] TenantParentModuleHeaderRequestDTO requestDTO,
-        CancellationToken cancellationToken)
-    {
-        var result = await _mediator.Send(
-            new GetTenantParentModuleHeadersQuery(requestDTO),
-            cancellationToken);
-
-        return Ok(result);
-    }
-    /// <summary>
-    /// Not-Used-In-Angular.
-    /// </summary>
-    /// <remarks>
-    /// <para>Angular usage status: Not-Used-In-Angular.</para>
-    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-    /// <para>Backend endpoint: GET /api/tenantparentmodule/list.</para>
-    /// </remarks>
-
-    [HttpGet("list")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetModules(
-        [FromQuery] TenantParentModuleListRequestDTO requestDTO,
-        CancellationToken cancellationToken)
-    {
-        var result = await _mediator.Send(
-            new GetTenantParentModulesQuery(requestDTO),
-            cancellationToken);
-
-        return Ok(result);
-    }
-    /// <summary>
-    /// Not-Used-In-Angular.
-    /// </summary>
-    /// <remarks>
-    /// <para>Angular usage status: Not-Used-In-Angular.</para>
-    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-    /// <para>Backend endpoint: GET /api/tenantparentmodule/{}.</para>
-    /// </remarks>
-
-    [HttpGet("{id:int}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetModuleById(
-        int id,
-        [FromQuery] TenantParentModuleByIdRequestDTO requestDTO,
-        CancellationToken cancellationToken)
-    {
-        var result = await _mediator.Send(
-            new GetTenantParentModuleByIdQuery(id, requestDTO),
-            cancellationToken);
-
-        return Ok(result);
-    }
+    #region Unused
+    //     /// <summary>
+    //     /// Not-Used-In-Angular.
+    //     /// </summary>
+    //     /// <remarks>
+    //     /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    //     /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    //     /// <para>Backend endpoint: GET /api/tenantparentmodule/get-module-headers.</para>
+    //     /// </remarks>
+    //
+    //     [HttpGet("get-module-headers")]
+    //     [ProducesResponseType(StatusCodes.Status200OK)]
+    //     public async Task<IActionResult> GetModuleHeaders(
+    //         [FromQuery] TenantParentModuleHeaderRequestDTO requestDTO,
+    //         CancellationToken cancellationToken)
+    //     {
+    //         var result = await _mediator.Send(
+    //             new GetTenantParentModuleHeadersQuery(requestDTO),
+    //             cancellationToken);
+    //
+    //         return Ok(result);
+    //     }
+    #endregion
+    #region Unused
+    //     /// <summary>
+    //     /// Not-Used-In-Angular.
+    //     /// </summary>
+    //     /// <remarks>
+    //     /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    //     /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    //     /// <para>Backend endpoint: GET /api/tenantparentmodule/list.</para>
+    //     /// </remarks>
+    //
+    //     [HttpGet("list")]
+    //     [ProducesResponseType(StatusCodes.Status200OK)]
+    //     public async Task<IActionResult> GetModules(
+    //         [FromQuery] TenantParentModuleListRequestDTO requestDTO,
+    //         CancellationToken cancellationToken)
+    //     {
+    //         var result = await _mediator.Send(
+    //             new GetTenantParentModulesQuery(requestDTO),
+    //             cancellationToken);
+    //
+    //         return Ok(result);
+    //     }
+    #endregion
+    #region Unused
+    //     /// <summary>
+    //     /// Not-Used-In-Angular.
+    //     /// </summary>
+    //     /// <remarks>
+    //     /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    //     /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    //     /// <para>Backend endpoint: GET /api/tenantparentmodule/{}.</para>
+    //     /// </remarks>
+    //
+    //     [HttpGet("{id:int}")]
+    //     [ProducesResponseType(StatusCodes.Status200OK)]
+    //     public async Task<IActionResult> GetModuleById(
+    //         int id,
+    //         [FromQuery] TenantParentModuleByIdRequestDTO requestDTO,
+    //         CancellationToken cancellationToken)
+    //     {
+    //         var result = await _mediator.Send(
+    //             new GetTenantParentModuleByIdQuery(id, requestDTO),
+    //             cancellationToken);
+    //
+    //         return Ok(result);
+    //     }
+    #endregion
 
     #endregion
 
     #region Tenant Parent Module Status
-    /// <summary>
-    /// Not-Used-In-Angular.
-    /// </summary>
-    /// <remarks>
-    /// <para>Angular usage status: Not-Used-In-Angular.</para>
-    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-    /// <para>Backend endpoint: PATCH /api/tenantparentmodule/{}/status.</para>
-    /// </remarks>
-
-    [HttpPatch("{id:int}/status")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> UpdateModuleStatus(
-        int id,
-        [FromBody] UpdateTenantParentModuleStatusRequestDTO requestDTO,
-        CancellationToken cancellationToken)
-    {
-        var result = await _mediator.Send(
-            new UpdateTenantParentModuleStatusCommand(id, requestDTO),
-            cancellationToken);
-
-        return Ok(result);
-    }
+    #region Unused
+    //     /// <summary>
+    //     /// Not-Used-In-Angular.
+    //     /// </summary>
+    //     /// <remarks>
+    //     /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    //     /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    //     /// <para>Backend endpoint: PATCH /api/tenantparentmodule/{}/status.</para>
+    //     /// </remarks>
+    //
+    //     [HttpPatch("{id:int}/status")]
+    //     [ProducesResponseType(StatusCodes.Status200OK)]
+    //     public async Task<IActionResult> UpdateModuleStatus(
+    //         int id,
+    //         [FromBody] UpdateTenantParentModuleStatusRequestDTO requestDTO,
+    //         CancellationToken cancellationToken)
+    //     {
+    //         var result = await _mediator.Send(
+    //             new UpdateTenantParentModuleStatusCommand(id, requestDTO),
+    //             cancellationToken);
+    //
+    //         return Ok(result);
+    //     }
+    #endregion
 
     #endregion
 }

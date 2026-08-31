@@ -79,14 +79,13 @@ public class DeleteSubscriptionPlanCommandHandler
     #region Handle
 
     /// <summary>
-    /// Soft deletes an unused Subscription Plan and permanently removes all owned Module mappings atomically.
+    /// Soft deletes a Subscription Plan and permanently removes all owned Module mappings atomically.
     /// </summary>
     /// <param name="request">The delete command to process.</param>
     /// <param name="cancellationToken">The token used to observe cancellation.</param>
     /// <returns>A successful response when the plan is soft deleted.</returns>
     /// <exception cref="ValidationErrorException">Thrown when the command contains an invalid identifier.</exception>
     /// <exception cref="NotFoundException">Thrown when the requested plan is unavailable or already deleted.</exception>
-    /// <exception cref="ConflictException">Thrown when an active tenant still uses the plan.</exception>
     public async Task<ApiResponse<bool>> Handle(
         DeleteSubscriptionPlanCommand request,
         CancellationToken cancellationToken)
@@ -114,15 +113,6 @@ public class DeleteSubscriptionPlanCommandHandler
             throw new NotFoundException(AppConstants.ErrorMessages.SubscriptionPlanNotFound);
         }
 
-        // Prevent deletion while the plan is assigned to an active, legitimate tenant.
-        var isAssignedToTenant = await _unitOfWork.SubscriptionRepository
-            .IsSubscriptionPlanAssignedToAnyActiveTenantAsync(subscriptionPlan.Id, cancellationToken);
-
-        if (isAssignedToTenant)
-        {
-            throw new ConflictException(AppConstants.ErrorMessages.SubscriptionPlanInUse);
-        }
-
         var transactionStarted = false;
         var utcNow = DateTime.UtcNow;
         try
@@ -130,7 +120,9 @@ public class DeleteSubscriptionPlanCommandHandler
             await _unitOfWork.BeginTransactionAsync(cancellationToken);
             transactionStarted = true;
 
-            // Remove owned mapping rows only after all Plan deletion guards succeed.
+            // TenantEnabledModule/TenantEnabledOperation are independent tenant snapshots.
+            // Removing a retired plan's source mappings must not remove or invalidate
+            // any entitlement rows already assigned to a tenant.
             var deletedMappingCount = await _unitOfWork.PlanModuleMappingRepository
                 .DeleteAllBySubscriptionPlanIdAsync(subscriptionPlan.Id, cancellationToken);
 

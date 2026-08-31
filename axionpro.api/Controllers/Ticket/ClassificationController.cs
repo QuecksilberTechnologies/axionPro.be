@@ -104,24 +104,26 @@ public class TicketClassificationController : ControllerBase
     // ----------------------------------------------------------------------------------------------------
     // 3️⃣ READ (BY ID) - Get specific Ticket Classification
     // ----------------------------------------------------------------------------------------------------
-    /// <summary>
-    /// Not-Used-In-Angular.
-    /// </summary>
-    /// <remarks>
-    /// <para>Angular usage status: Not-Used-In-Angular.</para>
-    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-    /// <para>Backend endpoint: GET /api/ticketclassification/get.</para>
-    /// </remarks>
-    [HttpGet("get")]
-    public async Task<IActionResult> GetTicketClassificationById([FromQuery] GetClassificationRequestDTO dto)
-    {
-       
-            _logger.LogInformation("🔍 Fetching TicketClassification details for Id = {Id}", dto.Id);
-            var command = new GetClassificationByIdQuery(dto);
-            var result = await _mediator.Send(command);            
-            return Ok(result);
-       
-    }
+    #region Unused
+    //     /// <summary>
+    //     /// Not-Used-In-Angular.
+    //     /// </summary>
+    //     /// <remarks>
+    //     /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    //     /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    //     /// <para>Backend endpoint: GET /api/ticketclassification/get.</para>
+    //     /// </remarks>
+    //     [HttpGet("get")]
+    //     public async Task<IActionResult> GetTicketClassificationById([FromQuery] GetClassificationRequestDTO dto)
+    //     {
+    //
+    //             _logger.LogInformation("🔍 Fetching TicketClassification details for Id = {Id}", dto.Id);
+    //             var command = new GetClassificationByIdQuery(dto);
+    //             var result = await _mediator.Send(command);
+    //             return Ok(result);
+    //
+    //     }
+    #endregion
 
     // ----------------------------------------------------------------------------------------------------
     // 4️⃣ UPDATE - Modify existing Ticket Classification

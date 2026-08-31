@@ -1,13 +1,14 @@
 # Angular UI ↔ API Controller Usage Documentation
 
-Generated: 2026-08-31T16:27:20.727Z
+Generated: 2026-08-31T21:58:38.424Z
 
 ## Scope and matching rule
 
 - Angular source: `C:/latestAxionProUI/axionpro-app/src`
 - Backend source: `axionpro.api/Controllers`.
 - An endpoint is marked **Used-In-Angular** only when HTTP verb and normalized route both match an active Angular HTTP call.
-- **Not-Used-In-Angular** means no such active Angular call was found; the endpoint remains available in the backend.
+- **Not-Used-In-Angular** means no such active Angular call was found.
+- Every Not-Used-In-Angular action in this report is commented in its controller inside `#region Unused`; uncommenting that region restores it.
 - UI pages are resolved statically from Angular route declarations. When that is not possible, the controller comment states this explicitly instead of guessing.
 
 ## Summary
@@ -17,12 +18,14 @@ Generated: 2026-08-31T16:27:20.727Z
 | Backend controller endpoints scanned | 294 |
 | Angular HTTP call-sites matched to backend endpoints | 215 |
 | Backend endpoints marked Not-Used-In-Angular | 79 |
+| Unused endpoint source state | Commented in #region Unused |
 | Angular call expressions parsed (before backend matching) | 510 |
 | Static routed Angular components resolved | 136 |
 
 ## Controller documentation convention
 
 Every controller action now has endpoint-level XML documentation. Used endpoints include Angular function, inferred UI purpose, resolved UI pages, and consuming component(s). Unused endpoints carry the exact `Not-Used-In-Angular` status.
+Unused action source is line-commented inside a local `#region Unused`, so it can be restored without reconstructing code.
 
 ## Complete endpoint matrix
 

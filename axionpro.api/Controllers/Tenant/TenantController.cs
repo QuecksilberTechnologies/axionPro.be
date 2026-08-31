@@ -131,28 +131,30 @@ public class TenantController : ControllerBase
             cancellationToken);
         return Ok(result);
     }
-    /// <summary>
-    /// Not-Used-In-Angular.
-    /// </summary>
-    /// <remarks>
-    /// <para>Angular usage status: Not-Used-In-Angular.</para>
-    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-    /// <para>Backend endpoint: GET /api/tenant/{}/delete-dependencies.</para>
-    /// </remarks>
-
-    [Authorize]
-    [HttpGet("{id}/delete-dependencies")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetTenantDeleteDependencyInfoAsync(
-        string id,
-        [FromQuery] PermissionRequestDTO permissionRequest,
-        CancellationToken cancellationToken)
-    {
-        var result = await _mediator.Send(
-            new GetTenantDeleteDependencyInfoQuery(id, permissionRequest),
-            cancellationToken);
-        return Ok(result);
-    }
+    #region Unused
+    //     /// <summary>
+    //     /// Not-Used-In-Angular.
+    //     /// </summary>
+    //     /// <remarks>
+    //     /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    //     /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    //     /// <para>Backend endpoint: GET /api/tenant/{}/delete-dependencies.</para>
+    //     /// </remarks>
+    //
+    //     [Authorize]
+    //     [HttpGet("{id}/delete-dependencies")]
+    //     [ProducesResponseType(StatusCodes.Status200OK)]
+    //     public async Task<IActionResult> GetTenantDeleteDependencyInfoAsync(
+    //         string id,
+    //         [FromQuery] PermissionRequestDTO permissionRequest,
+    //         CancellationToken cancellationToken)
+    //     {
+    //         var result = await _mediator.Send(
+    //             new GetTenantDeleteDependencyInfoQuery(id, permissionRequest),
+    //             cancellationToken);
+    //         return Ok(result);
+    //     }
+    #endregion
     /// <summary>
     /// Used-In-Angular: creates tenant by host.
     /// </summary>
@@ -216,53 +218,57 @@ public class TenantController : ControllerBase
     #endregion
 
     #region Tenant Management Commands
-    /// <summary>
-    /// Not-Used-In-Angular.
-    /// </summary>
-    /// <remarks>
-    /// <para>Angular usage status: Not-Used-In-Angular.</para>
-    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-    /// <para>Backend endpoint: PUT /api/tenant/{}.</para>
-    /// </remarks>
-
-    [Authorize]
-    [HttpPut("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> UpdateHostManagedTenantAsync(
-        string id,
-        [FromBody] UpdateHostManagedTenantRequestDTO? requestDTO,
-        [FromQuery] PermissionRequestDTO? permissionRequest,
-        CancellationToken cancellationToken)
-    {
-        var result = await _mediator.Send(
-            new UpdateHostManagedTenantCommand(id, requestDTO, permissionRequest),
-            cancellationToken);
-
-        return Ok(result);
-    }
-    /// <summary>
-    /// Not-Used-In-Angular.
-    /// </summary>
-    /// <remarks>
-    /// <para>Angular usage status: Not-Used-In-Angular.</para>
-    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-    /// <para>Backend endpoint: DELETE /api/tenant/{}.</para>
-    /// </remarks>
-
-    [Authorize]
-    [HttpDelete("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> DeleteHostManagedTenantAsync(
-        string id,
-        [FromQuery] PermissionRequestDTO? permissionRequest,
-        CancellationToken cancellationToken)
-    {
-        var result = await _mediator.Send(
-            new DeleteHostManagedTenantCommand(id, permissionRequest),
-            cancellationToken);
-
-        return Ok(result);
-    }
+    #region Unused
+    //     /// <summary>
+    //     /// Not-Used-In-Angular.
+    //     /// </summary>
+    //     /// <remarks>
+    //     /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    //     /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    //     /// <para>Backend endpoint: PUT /api/tenant/{}.</para>
+    //     /// </remarks>
+    //
+    //     [Authorize]
+    //     [HttpPut("{id}")]
+    //     [ProducesResponseType(StatusCodes.Status200OK)]
+    //     public async Task<IActionResult> UpdateHostManagedTenantAsync(
+    //         string id,
+    //         [FromBody] UpdateHostManagedTenantRequestDTO? requestDTO,
+    //         [FromQuery] PermissionRequestDTO? permissionRequest,
+    //         CancellationToken cancellationToken)
+    //     {
+    //         var result = await _mediator.Send(
+    //             new UpdateHostManagedTenantCommand(id, requestDTO, permissionRequest),
+    //             cancellationToken);
+    //
+    //         return Ok(result);
+    //     }
+    #endregion
+    #region Unused
+    //     /// <summary>
+    //     /// Not-Used-In-Angular.
+    //     /// </summary>
+    //     /// <remarks>
+    //     /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    //     /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    //     /// <para>Backend endpoint: DELETE /api/tenant/{}.</para>
+    //     /// </remarks>
+    //
+    //     [Authorize]
+    //     [HttpDelete("{id}")]
+    //     [ProducesResponseType(StatusCodes.Status200OK)]
+    //     public async Task<IActionResult> DeleteHostManagedTenantAsync(
+    //         string id,
+    //         [FromQuery] PermissionRequestDTO? permissionRequest,
+    //         CancellationToken cancellationToken)
+    //     {
+    //         var result = await _mediator.Send(
+    //             new DeleteHostManagedTenantCommand(id, permissionRequest),
+    //             cancellationToken);
+    //
+    //         return Ok(result);
+    //     }
+    #endregion
     /// <summary>
     /// Used-In-Angular: performs the Angular function resend verification email.
     /// </summary>
@@ -371,48 +377,52 @@ public class TenantController : ControllerBase
     #endregion
 
     #region Existing Host User Command
-    /// <summary>
-    /// Not-Used-In-Angular.
-    /// </summary>
-    /// <remarks>
-    /// <para>Angular usage status: Not-Used-In-Angular.</para>
-    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-    /// <para>Backend endpoint: POST /api/tenant/create-host-user.</para>
-    /// </remarks>
-
-    [Authorize]
-    [HttpPost("create-host-user")]
-    public async Task<IActionResult> CreateHostUser([FromBody] CreateHostUserRequestDTO tenantCreateRequestDTO)
-    {
-        _logger.LogInfo("Received request for register a new Tenant" + tenantCreateRequestDTO.ToString());
-        var command = new CreateHostUserCommand(tenantCreateRequestDTO);
-        var result = await _mediator.Send(command);
-
-        return Ok(result);
-    }
+    #region Unused
+    //     /// <summary>
+    //     /// Not-Used-In-Angular.
+    //     /// </summary>
+    //     /// <remarks>
+    //     /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    //     /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    //     /// <para>Backend endpoint: POST /api/tenant/create-host-user.</para>
+    //     /// </remarks>
+    //
+    //     [Authorize]
+    //     [HttpPost("create-host-user")]
+    //     public async Task<IActionResult> CreateHostUser([FromBody] CreateHostUserRequestDTO tenantCreateRequestDTO)
+    //     {
+    //         _logger.LogInfo("Received request for register a new Tenant" + tenantCreateRequestDTO.ToString());
+    //         var command = new CreateHostUserCommand(tenantCreateRequestDTO);
+    //         var result = await _mediator.Send(command);
+    //
+    //         return Ok(result);
+    //     }
+    #endregion
 
     #endregion
 
     #region Existing Tenant Configuration Queries
-    /// <summary>
-    /// Not-Used-In-Angular.
-    /// </summary>
-    /// <remarks>
-    /// <para>Angular usage status: Not-Used-In-Angular.</para>
-    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-    /// <para>Backend endpoint: GET /api/tenant/get-all-tenant-by-subscription-plan-id.</para>
-    /// </remarks>
-
-    [HttpGet("get-all-tenant-by-subscription-plan-Id")]
-    public async Task<IActionResult> GetAllTenantBySubscriptionIdAsync([FromQuery] application.DTOs.Tenant.TenantRequestDTO code)
-    {
-        _logger.LogInfo($"Getting email templates for code: {code}");
-
-        var query = new GetAllTenantBySubscriptionPlanIdQuery(code);
-        var result = await _mediator.Send(query);
-
-        return Ok(result);
-    }
+    #region Unused
+    //     /// <summary>
+    //     /// Not-Used-In-Angular.
+    //     /// </summary>
+    //     /// <remarks>
+    //     /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    //     /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    //     /// <para>Backend endpoint: GET /api/tenant/get-all-tenant-by-subscription-plan-id.</para>
+    //     /// </remarks>
+    //
+    //     [HttpGet("get-all-tenant-by-subscription-plan-Id")]
+    //     public async Task<IActionResult> GetAllTenantBySubscriptionIdAsync([FromQuery] application.DTOs.Tenant.TenantRequestDTO code)
+    //     {
+    //         _logger.LogInfo($"Getting email templates for code: {code}");
+    //
+    //         var query = new GetAllTenantBySubscriptionPlanIdQuery(code);
+    //         var result = await _mediator.Send(query);
+    //
+    //         return Ok(result);
+    //     }
+    #endregion
 
     /// <summary>
     /// Used-In-Angular: retrieves employee code pattern.
@@ -435,24 +445,26 @@ public class TenantController : ControllerBase
 
         return Ok(result);
     }
-    /// <summary>
-    /// Not-Used-In-Angular.
-    /// </summary>
-    /// <remarks>
-    /// <para>Angular usage status: Not-Used-In-Angular.</para>
-    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-    /// <para>Backend endpoint: POST /api/tenant/get.</para>
-    /// </remarks>
-
-    [HttpPost("get")]
-    public async Task<IActionResult> GetAllTenantEnabledModuleOperationsByTenantIdAsync([FromBody] TenantEnabledModuleRequestDTO code)
-    {
-        _logger.LogInfo($"Getting email templates for code: {code}");
-
-        var query = new GetTenantEnabledModuleCommand(code);
-        var result = await _mediator.Send(query);
-        return Ok(result);
-    }
+    #region Unused
+    //     /// <summary>
+    //     /// Not-Used-In-Angular.
+    //     /// </summary>
+    //     /// <remarks>
+    //     /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    //     /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    //     /// <para>Backend endpoint: POST /api/tenant/get.</para>
+    //     /// </remarks>
+    //
+    //     [HttpPost("get")]
+    //     public async Task<IActionResult> GetAllTenantEnabledModuleOperationsByTenantIdAsync([FromBody] TenantEnabledModuleRequestDTO code)
+    //     {
+    //         _logger.LogInfo($"Getting email templates for code: {code}");
+    //
+    //         var query = new GetTenantEnabledModuleCommand(code);
+    //         var result = await _mediator.Send(query);
+    //         return Ok(result);
+    //     }
+    #endregion
 
     /// <summary>
     /// Used-In-Angular: retrieves tenant operations.

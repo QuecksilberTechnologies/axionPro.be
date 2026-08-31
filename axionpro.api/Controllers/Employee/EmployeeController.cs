@@ -191,32 +191,34 @@ namespace axionpro.api.Controllers.Employee
             return Ok(result);
         }
 
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: POST /api/employee/reset-password.</para>
-        /// </remarks>
-        [Authorize]
-        [HttpPost("reset-password")]
-        public async Task<IActionResult> ResetEmployeePassword(
-            [FromBody] ResetEmployeePasswordRequestDTO requestDto)
-        {
-            if (requestDto is null)
-            {
-                throw new axionpro.application.Exceptions.ValidationErrorException(
-                    axionpro.application.Constants.AppConstants.ErrorMessages.InvalidRequest);
-            }
-
-            _logger.LogInfo("Received authorized Tenant Employee password-reset request.");
-
-            var command = new ResetPasswordCommand(requestDto);
-            var result = await _mediator.Send(command);
-
-            return Ok(result);
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: POST /api/employee/reset-password.</para>
+        //         /// </remarks>
+        //         [Authorize]
+        //         [HttpPost("reset-password")]
+        //         public async Task<IActionResult> ResetEmployeePassword(
+        //             [FromBody] ResetEmployeePasswordRequestDTO requestDto)
+        //         {
+        //             if (requestDto is null)
+        //             {
+        //                 throw new axionpro.application.Exceptions.ValidationErrorException(
+        //                     axionpro.application.Constants.AppConstants.ErrorMessages.InvalidRequest);
+        //             }
+        //
+        //             _logger.LogInfo("Received authorized Tenant Employee password-reset request.");
+        //
+        //             var command = new ResetPasswordCommand(requestDto);
+        //             var result = await _mediator.Send(command);
+        //
+        //             return Ok(result);
+        //         }
+        #endregion
 
         /// <summary>
         /// Used-In-Angular: retrieves all percentage.

@@ -56,22 +56,24 @@ namespace axionpro.api.Controllers.Gender
         }
 
         //  ✅ Get All Gender 
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: GET /api/gender/get.</para>
-        /// </remarks>
-        [HttpGet("get")]       
-        public async Task<IActionResult> GetAllGenderAsync([FromQuery] GetGenderRequestDTO? getGenderRequestDTO)
-        {
-            _logger.LogInformation("Fetching all LeavePolicies...");
-            var query = new GetAllGenderQuery(getGenderRequestDTO);
-            var result = await _mediator.Send(query);
-            return Ok(result);
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: GET /api/gender/get.</para>
+        //         /// </remarks>
+        //         [HttpGet("get")]
+        //         public async Task<IActionResult> GetAllGenderAsync([FromQuery] GetGenderRequestDTO? getGenderRequestDTO)
+        //         {
+        //             _logger.LogInformation("Fetching all LeavePolicies...");
+        //             var query = new GetAllGenderQuery(getGenderRequestDTO);
+        //             var result = await _mediator.Send(query);
+        //             return Ok(result);
+        //         }
+        #endregion
          
 
     }

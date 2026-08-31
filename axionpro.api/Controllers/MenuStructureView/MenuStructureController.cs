@@ -20,34 +20,36 @@ namespace axionpro.api.Controllers.MenuStructureView
     [ApiController]
     public class MenuStructureController : ControllerBase
     {
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: POST /api/menustructure/get-menus-structure.</para>
-        /// </remarks>
-        [HttpPost("get-menus-structure")]
-        public IActionResult GetAllMenuStructure([FromBody] GetEmployeeTypeRequestDTO requestDto)
-        {
-            var menuDisplay = new List<GetMenuDataStructureResponseDTO>
-            {
-                new()
-                {
-                    Id = 1,
-                    DisplayOn = "Left-Menu"
-                },
-                new()
-                {
-                    Id = 1,
-                    DisplayOn = "Top-Bar"
-                }
-            };
-
-            return Ok(ApiResponse<List<GetMenuDataStructureResponseDTO>>.Success(
-                menuDisplay,
-                AppConstants.SuccessMessages.MenuDisplayStructureRetrieved));
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: POST /api/menustructure/get-menus-structure.</para>
+        //         /// </remarks>
+        //         [HttpPost("get-menus-structure")]
+        //         public IActionResult GetAllMenuStructure([FromBody] GetEmployeeTypeRequestDTO requestDto)
+        //         {
+        //             var menuDisplay = new List<GetMenuDataStructureResponseDTO>
+        //             {
+        //                 new()
+        //                 {
+        //                     Id = 1,
+        //                     DisplayOn = "Left-Menu"
+        //                 },
+        //                 new()
+        //                 {
+        //                     Id = 1,
+        //                     DisplayOn = "Top-Bar"
+        //                 }
+        //             };
+        //
+        //             return Ok(ApiResponse<List<GetMenuDataStructureResponseDTO>>.Success(
+        //                 menuDisplay,
+        //                 AppConstants.SuccessMessages.MenuDisplayStructureRetrieved));
+        //         }
+        #endregion
     }
 }

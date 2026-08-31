@@ -29,48 +29,52 @@ namespace axionpro.api.Controllers.Registration
         _mediator = mediator;
         _logger = logger;
     }
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: POST /api/registration/candidate.</para>
-        /// </remarks>
-
-        [HttpPost("candidate")]       
-        
-        // [Authorize]
-        public async Task<IActionResult> Login([FromBody] CandidateRequestDTO candidateRegistrationDTO)
-        {
-            _logger.LogInfo("Received request for register a new candidate" + candidateRegistrationDTO.ToString());
-            var command = new CandidateRegistrationCommand(candidateRegistrationDTO);
-            var result = await _mediator.Send(command);           
-            return Ok(result);
-        }
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: POST /api/registration/accessdetails.</para>
-        /// </remarks>
-
-       
-        [HttpPost("AccessDetails")]   
-        // [Authorize] // Ensures the user is authenticated via token
-        public async Task<IActionResult> UserAccessDetailsAsync([FromBody] AccessDetailRequestDTO accessDetailsDTO)
-        { 
-
-            // Create and send the command
-            var command = new EmployeeTypeBasicMenuCommand(accessDetailsDTO);
-            var result = await _mediator.Send(command);
-
-            // Success response
-            //  _logger.LogInformation("AccessDetail successfully retrieved for EmployeeId: {EmployeeId}", accessDetailsDTO.EmployeeId);
-            return Ok(result);
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: POST /api/registration/candidate.</para>
+        //         /// </remarks>
+        //
+        //         [HttpPost("candidate")]
+        //
+        //         // [Authorize]
+        //         public async Task<IActionResult> Login([FromBody] CandidateRequestDTO candidateRegistrationDTO)
+        //         {
+        //             _logger.LogInfo("Received request for register a new candidate" + candidateRegistrationDTO.ToString());
+        //             var command = new CandidateRegistrationCommand(candidateRegistrationDTO);
+        //             var result = await _mediator.Send(command);
+        //             return Ok(result);
+        //         }
+        #endregion
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: POST /api/registration/accessdetails.</para>
+        //         /// </remarks>
+        //
+        //
+        //         [HttpPost("AccessDetails")]
+        //         // [Authorize] // Ensures the user is authenticated via token
+        //         public async Task<IActionResult> UserAccessDetailsAsync([FromBody] AccessDetailRequestDTO accessDetailsDTO)
+        //         {
+        //
+        //             // Create and send the command
+        //             var command = new EmployeeTypeBasicMenuCommand(accessDetailsDTO);
+        //             var result = await _mediator.Send(command);
+        //
+        //             // Success response
+        //             //  _logger.LogInformation("AccessDetail successfully retrieved for EmployeeId: {EmployeeId}", accessDetailsDTO.EmployeeId);
+        //             return Ok(result);
+        //         }
+        #endregion
         
    
 }

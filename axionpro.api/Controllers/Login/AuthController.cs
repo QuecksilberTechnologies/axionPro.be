@@ -35,28 +35,30 @@ namespace axionpro.api.Controllers.Login
             _mediator = mediator;
             _logger = logger;
         }
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: POST /api/auth/login.</para>
-        /// </remarks>
-       
-
-        [HttpPost("login")]       
-        public async Task<IActionResult> Login([FromBody] LoginRequestDTO logindto)
-         {
-            _logger.LogInfo("Received login request for user: {LoginId}" + logindto.LoginId.ToString());
-            var command = new LoginCommand(logindto);
-            var result = await _mediator.Send(command);
-            if (!result.IsSucceeded)
-            {
-                return Unauthorized(result);
-            }
-           return Ok(result);
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: POST /api/auth/login.</para>
+        //         /// </remarks>
+        //
+        //
+        //         [HttpPost("login")]
+        //         public async Task<IActionResult> Login([FromBody] LoginRequestDTO logindto)
+        //          {
+        //             _logger.LogInfo("Received login request for user: {LoginId}" + logindto.LoginId.ToString());
+        //             var command = new LoginCommand(logindto);
+        //             var result = await _mediator.Send(command);
+        //             if (!result.IsSucceeded)
+        //             {
+        //                 return Unauthorized(result);
+        //             }
+        //            return Ok(result);
+        //         }
+        #endregion
         /// <summary>
         /// Used-In-Angular: performs the Angular function refresh token.
         /// </summary>

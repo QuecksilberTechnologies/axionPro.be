@@ -17,7 +17,6 @@ using AutoMapper;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.application.Interfaces;
 using axionpro.application.Features.OperationCmd.Commands;
-using axionpro.application.Constants;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces.ICommonRequest;
 
@@ -104,18 +103,6 @@ public class UpdateOperationCommandHandler : IRequestHandler<UpdateOperationComm
                 var existingOperation = await operationRepository
                     .GetOperationByIdAsync(dto.Id)
                     ?? throw new ApiException("Operation not found.", 404);
-
-                if (await _unitOfWork.HostRolePermissionRepository
-                        .IsOperationAssignedToNonDeletedPermissionAsync(existingOperation.Id, cancellationToken))
-                {
-                    throw new ConflictException(AppConstants.ErrorMessages.OperationAssignedToHostRolePermission);
-                }
-
-                if (dto.IsActive == false && await _unitOfWork.ModuleRepository
-                        .IsOperationLinkedToAnyModuleAsync(existingOperation.Id, cancellationToken))
-                {
-                    throw new ConflictException(AppConstants.ErrorMessages.OperationLinkedToModule);
-                }
 
                 Operation operation = _mapper.Map<Operation>(dto);
                 operation.IsActive = dto.IsActive ?? existingOperation.IsActive;

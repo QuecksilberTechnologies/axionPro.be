@@ -71,22 +71,24 @@ namespace axionpro.api.Controllers.Leave
         }
 
         //  ✅ Get All LeavePolicies
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: GET /api/policymappingleavetype/leavepolicy/employeetype/get.</para>
-        /// </remarks>
-        [HttpGet("LeavePolicy/EmployeeType/get")] 
-        public async Task<IActionResult> GetAllLeavePoliciesByEmployeeIdAsync([FromQuery] GetPolicyLeaveTypeByEmpTypeIdRequestDTO dTO)
-        {
-            _logger.LogInformation("Fetching all LeavePolicies...");
-            var query = new GetAllPolicyLeaveTypeByEmpTypeIdQuery(dTO);
-            var result = await _mediator.Send(query);
-            return Ok(result);
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: GET /api/policymappingleavetype/leavepolicy/employeetype/get.</para>
+        //         /// </remarks>
+        //         [HttpGet("LeavePolicy/EmployeeType/get")]
+        //         public async Task<IActionResult> GetAllLeavePoliciesByEmployeeIdAsync([FromQuery] GetPolicyLeaveTypeByEmpTypeIdRequestDTO dTO)
+        //         {
+        //             _logger.LogInformation("Fetching all LeavePolicies...");
+        //             var query = new GetAllPolicyLeaveTypeByEmpTypeIdQuery(dTO);
+        //             var result = await _mediator.Send(query);
+        //             return Ok(result);
+        //         }
+        #endregion
 
         /// <summary>
         /// Used-In-Angular: updates policy mapping leave type.

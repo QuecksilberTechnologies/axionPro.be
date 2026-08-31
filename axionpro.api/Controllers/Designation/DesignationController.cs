@@ -55,27 +55,29 @@ namespace axionpro.api.Controllers.Designation
 
             return Ok(result);
         }
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: POST /api/designation/department/group/get.</para>
-        /// </remarks>
-        [HttpPost("Department/Group/get")]
-        
-        
-        
-        public async Task<IActionResult> GetAllDepartmentAsyc([FromBody] GetDepartmentRequestDTO designationRequestDTO)
-        {
-            _logger.LogInfo($"Received request to get tenant from tenantId: {designationRequestDTO.Id}");
-
-            var command = new GetDepartmentQuery(designationRequestDTO);
-            var result = await _mediator.Send(command);
-
-            return Ok(result);
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: POST /api/designation/department/group/get.</para>
+        //         /// </remarks>
+        //         [HttpPost("Department/Group/get")]
+        //
+        //
+        //
+        //         public async Task<IActionResult> GetAllDepartmentAsyc([FromBody] GetDepartmentRequestDTO designationRequestDTO)
+        //         {
+        //             _logger.LogInfo($"Received request to get tenant from tenantId: {designationRequestDTO.Id}");
+        //
+        //             var command = new GetDepartmentQuery(designationRequestDTO);
+        //             var result = await _mediator.Send(command);
+        //
+        //             return Ok(result);
+        //         }
+        #endregion
 
         /// <summary>
         /// Used-In-Angular: retrieves designation options.

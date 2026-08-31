@@ -135,14 +135,6 @@ namespace axionpro.application.Features.ModuleCmd.Parent.Commands
                     throw new ConflictException(AppConstants.ErrorMessages.ResourceConflict);
                 }
 
-                if (entity.IsActive && !dto.IsActive && await _unitOfWork.ModuleRepository.HasChildrenAsync(
-                    entity.Id,
-                    entity.ModuleScope,
-                    cancellationToken))
-                {
-                    throw new ConflictException(AppConstants.ErrorMessages.ResourceConflict);
-                }
-
                 entity.ModuleCode = moduleCode;
                 entity.ModuleName = dto.ModuleName.Trim();
                 entity.DisplayName = dto.DisplayName?.Trim();

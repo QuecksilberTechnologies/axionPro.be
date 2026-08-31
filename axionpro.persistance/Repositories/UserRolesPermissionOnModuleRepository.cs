@@ -354,25 +354,9 @@ namespace axionpro.persistance.Repositories
                 //  Step 0: Create DbContext
                 //   await using var context = await _contextFactory.CreateDbContextAsync();
 
-                // ---------------------
-                // Step 1: Plan modules
-                // ---------------------
-                // PlanModuleMapping se plan ke active modules nikaal rahe hain
-                var planModuleIds = await _context.PlanModuleMappings
-                    .Where(p => p.SubscriptionPlanId == (dto.SubscriptionPlanId ?? 0) && p.IsActive == true)
-                    .Select(p => p.ModuleId)
-                    .Distinct()
-                    .ToListAsync();
-
-                if (planModuleIds == null || !planModuleIds.Any())
-                {
-                    _logger?.LogWarning("No active modules found for SubscriptionPlanId: {SubPlanId}", dto.SubscriptionPlanId);
-                    return null;
-                }
-
-                // ---------------------------------------
-                // Step 2: Tenant enabled modules
-                // ---------------------------------------
+                // TenantEnabledModule is the persisted entitlement snapshot.  Do not
+                // revalidate it through the current plan mapping: a Host may later
+                // retire/delete that plan without invalidating an existing tenant.
                 var tenantEnabledModuleIds = await _context.TenantEnabledModules
                     .Where(t => t.TenantId == dto.TenantId && t.IsEnabled == true)
                     .Select(t => t.ModuleId)
@@ -382,16 +366,6 @@ namespace axionpro.persistance.Repositories
                 if (tenantEnabledModuleIds == null || !tenantEnabledModuleIds.Any())
                 {
                     _logger?.LogWarning("No enabled modules found for TenantId: {TenantId}", dto.TenantId);
-                    return null;
-                }
-
-                // ---------------------------------------
-                // Step 3: Validation (plan modules match)
-                // ---------------------------------------
-                bool isMatched = planModuleIds.All(moduleId => tenantEnabledModuleIds.Contains(moduleId));
-                if (!isMatched)
-                {
-                    _logger?.LogWarning("Plan modules not fully enabled for TenantId: {TenantId}", dto.TenantId);
                     return null;
                 }
 
@@ -452,7 +426,6 @@ namespace axionpro.persistance.Repositories
                         where teo.TenantId == dto.TenantId
                               && leafModules.Select(x => x.Id).Contains(teo.ModuleId)
                               && teo.IsEnabled == true
-                              && op.IsActive
                         select new
                         {
                             ModuleId = teo.ModuleId,
@@ -529,7 +502,6 @@ namespace axionpro.persistance.Repositories
                     join m in _context.Modules on teo.ModuleId equals m.Id
                     where teo.TenantId == dto.TenantId
                           && teo.IsEnabled == true
-                          && op.IsActive
                     select new
                     {
                         m.Id,

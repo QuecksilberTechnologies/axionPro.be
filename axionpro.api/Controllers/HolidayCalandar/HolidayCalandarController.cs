@@ -30,27 +30,29 @@ namespace axionpro.api.Controllers.HolidayCalandar
             _mediator = mediator;
             _logger = logger;  // Logger service ko inject karna
         }
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: GET /api/holidaycalandar/get.</para>
-        /// </remarks>
-
-        [HttpGet("get")]      
-        public async Task<IActionResult> GetAllEmployeeInfo([FromQuery] BasicRequestDTO basicRequestDTO)
-        {            
-                var command = new GetHolidayCalandarQuery(basicRequestDTO);
-
-                // ✅ Send command instead of DTO
-                ApiResponse<List<OrganizationHolidayCalendarDTO>> result = await _mediator.Send(command);                
-                    return Ok(result);
-                
-           
-           
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: GET /api/holidaycalandar/get.</para>
+        //         /// </remarks>
+        //
+        //         [HttpGet("get")]
+        //         public async Task<IActionResult> GetAllEmployeeInfo([FromQuery] BasicRequestDTO basicRequestDTO)
+        //         {
+        //                 var command = new GetHolidayCalandarQuery(basicRequestDTO);
+        //
+        //                 // ✅ Send command instead of DTO
+        //                 ApiResponse<List<OrganizationHolidayCalendarDTO>> result = await _mediator.Send(command);
+        //                     return Ok(result);
+        //
+        //
+        //
+        //         }
+        #endregion
 
 
     }

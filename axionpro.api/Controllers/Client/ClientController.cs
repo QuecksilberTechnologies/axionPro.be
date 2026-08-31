@@ -29,46 +29,48 @@ namespace axionpro.api.Controllers.Client
                 _mediator = mediator;
                 _logger = logger;
             }
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: GET /api/client/get.</para>
-        /// </remarks>
-        
-        [HttpGet("get")]  
-        public async Task<IActionResult> GetAllClientType([FromQuery] GetOptionRequestDTO clientRequestType)
-        {
-            _logger.LogInfo($"📩 Received request to get client list for userId: {clientRequestType.UserEmployeeId}");
-
-            // 🧩 Dummy Data (Temporary Static List)
-            var clientList = new List<GetClientOptionResponseDTO>
-    {
-        new GetClientOptionResponseDTO { Id = "1", ClientName = "TechNova Solutions Pvt. Ltd." },
-        new GetClientOptionResponseDTO { Id = "2", ClientName = "InfyCore Technologies LLP" },
-        new GetClientOptionResponseDTO { Id = "3", ClientName = "BluePeak Consulting Services" },
-        new GetClientOptionResponseDTO { Id = "4", ClientName = "SkyBridge Digital Systems" },
-        new GetClientOptionResponseDTO { Id = "5", ClientName = "NextEra IT Innovations" },
-        new GetClientOptionResponseDTO { Id = "6", ClientName = "VirtuWorks Global Pvt. Ltd." },
-        new GetClientOptionResponseDTO { Id = "7", ClientName = "DataMinds Analytics" },
-        new GetClientOptionResponseDTO { Id = "8", ClientName = "ProEdge Business Solutions" },
-        new GetClientOptionResponseDTO { Id = "9", ClientName = "CloudNest Technologies" },
-        new GetClientOptionResponseDTO { Id = "10", ClientName = "AxionPro Workforce Systems" }
-    };
-
-            // 🧾 Wrap Response (Optional Standard Format)
-            var response = new
-            {
-                IsSucceeded = true,
-                Message = "Client list fetched successfully.",
-                Data = clientList
-            };
-
-            _logger.LogInfo($"✅ Returning {clientList.Count} clients successfully.");
-            return Ok(response);
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: GET /api/client/get.</para>
+        //         /// </remarks>
+        //
+        //         [HttpGet("get")]
+        //         public async Task<IActionResult> GetAllClientType([FromQuery] GetOptionRequestDTO clientRequestType)
+        //         {
+        //             _logger.LogInfo($"📩 Received request to get client list for userId: {clientRequestType.UserEmployeeId}");
+        //
+        //             // 🧩 Dummy Data (Temporary Static List)
+        //             var clientList = new List<GetClientOptionResponseDTO>
+        //     {
+        //         new GetClientOptionResponseDTO { Id = "1", ClientName = "TechNova Solutions Pvt. Ltd." },
+        //         new GetClientOptionResponseDTO { Id = "2", ClientName = "InfyCore Technologies LLP" },
+        //         new GetClientOptionResponseDTO { Id = "3", ClientName = "BluePeak Consulting Services" },
+        //         new GetClientOptionResponseDTO { Id = "4", ClientName = "SkyBridge Digital Systems" },
+        //         new GetClientOptionResponseDTO { Id = "5", ClientName = "NextEra IT Innovations" },
+        //         new GetClientOptionResponseDTO { Id = "6", ClientName = "VirtuWorks Global Pvt. Ltd." },
+        //         new GetClientOptionResponseDTO { Id = "7", ClientName = "DataMinds Analytics" },
+        //         new GetClientOptionResponseDTO { Id = "8", ClientName = "ProEdge Business Solutions" },
+        //         new GetClientOptionResponseDTO { Id = "9", ClientName = "CloudNest Technologies" },
+        //         new GetClientOptionResponseDTO { Id = "10", ClientName = "AxionPro Workforce Systems" }
+        //     };
+        //
+        //             // 🧾 Wrap Response (Optional Standard Format)
+        //             var response = new
+        //             {
+        //                 IsSucceeded = true,
+        //                 Message = "Client list fetched successfully.",
+        //                 Data = clientList
+        //             };
+        //
+        //             _logger.LogInfo($"✅ Returning {clientList.Count} clients successfully.");
+        //             return Ok(response);
+        //         }
+        #endregion
 
         //[HttpGet("get")]
         //public async Task<IActionResult> GetAllClientType([FromQuery] ClientRequestTypeDTO clientRequestType)
@@ -84,49 +86,53 @@ namespace axionpro.api.Controllers.Client
         //    }
         //    return Ok(result);
         //}
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: POST /api/client/add.</para>
-        /// </remarks>
-        [HttpPost("add")]   
-        public async Task<IActionResult> CreateClientType([FromBody] CreateClientTypeDTO createClientTypeDTO)
-        {
-            if (createClientTypeDTO == null)
-            {
-                _logger.LogInfo("Received null request for creating leave type.");  // ✅ अब सही है
-                return BadRequest(new { success = false, message = "Invalid request" });
-            }
-
-            _logger.LogInfo($"Received request to create a new leave type: {createClientTypeDTO.TypeName}");
-
-            var command = new  CreateClientTypeCommand(createClientTypeDTO);
-            var result = await _mediator.Send(command);
-
-
-            return Ok(result);
-        }
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: POST /api/client/update.</para>
-        /// </remarks>
-
-        [HttpPost("update")]        
-        public async Task<IActionResult> UpdateClientType([FromBody] UpdateClientTypeDTO updateClientTypeDTO)
-        {
-            _logger.LogInfo("Received request for update a leave" + updateClientTypeDTO.ToString());
-            var command = new UpdateClientTypeCommand(updateClientTypeDTO);
-            var result = await _mediator.Send(command);
-          
-            return Ok(result);
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: POST /api/client/add.</para>
+        //         /// </remarks>
+        //         [HttpPost("add")]
+        //         public async Task<IActionResult> CreateClientType([FromBody] CreateClientTypeDTO createClientTypeDTO)
+        //         {
+        //             if (createClientTypeDTO == null)
+        //             {
+        //                 _logger.LogInfo("Received null request for creating leave type.");  // ✅ अब सही है
+        //                 return BadRequest(new { success = false, message = "Invalid request" });
+        //             }
+        //
+        //             _logger.LogInfo($"Received request to create a new leave type: {createClientTypeDTO.TypeName}");
+        //
+        //             var command = new  CreateClientTypeCommand(createClientTypeDTO);
+        //             var result = await _mediator.Send(command);
+        //
+        //
+        //             return Ok(result);
+        //         }
+        #endregion
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: POST /api/client/update.</para>
+        //         /// </remarks>
+        //
+        //         [HttpPost("update")]
+        //         public async Task<IActionResult> UpdateClientType([FromBody] UpdateClientTypeDTO updateClientTypeDTO)
+        //         {
+        //             _logger.LogInfo("Received request for update a leave" + updateClientTypeDTO.ToString());
+        //             var command = new UpdateClientTypeCommand(updateClientTypeDTO);
+        //             var result = await _mediator.Send(command);
+        //
+        //             return Ok(result);
+        //         }
+        #endregion
         //  [HttpPost("getalltendermaincategory")]
         //public async Task<IActionResult> GetAllTenderMainCategories([FromBody] TenderCategoryRequestDTO? tenderCategoryRequestDTO)
         //{

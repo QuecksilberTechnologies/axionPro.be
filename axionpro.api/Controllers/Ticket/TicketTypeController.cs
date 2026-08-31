@@ -67,24 +67,26 @@ namespace axionpro.api.Controllers.Ticket
         // ----------------------------------------------------------------------------------------------------
 
         // <summary>
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: GET /api/ticket/tickettype/get-all.</para>
-        /// </remarks>
-
-
-        [HttpGet("get-all")]
-        public async Task<IActionResult> GetAllTicketTypes([FromQuery] GetTicketTypeRequestDTO dto)
-        {
-
-            _logger.LogInformation("📦 Fetching all Ticket Types...");
-            var result = await _mediator.Send(new GetAllTicketTypeQuery(dto));
-            return Ok(result);
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: GET /api/ticket/tickettype/get-all.</para>
+        //         /// </remarks>
+        //
+        //
+        //         [HttpGet("get-all")]
+        //         public async Task<IActionResult> GetAllTicketTypes([FromQuery] GetTicketTypeRequestDTO dto)
+        //         {
+        //
+        //             _logger.LogInformation("📦 Fetching all Ticket Types...");
+        //             var result = await _mediator.Send(new GetAllTicketTypeQuery(dto));
+        //             return Ok(result);
+        //         }
+        #endregion
         /// <summary>
         /// Used-In-Angular: retrieves ticket type ddl.
         /// </summary>
@@ -108,24 +110,26 @@ namespace axionpro.api.Controllers.Ticket
         // ----------------------------------------------------------------------------------------------------
         // 3️⃣ READ (BY ID) - Get specific Ticket Type
         // ----------------------------------------------------------------------------------------------------
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: GET /api/ticket/tickettype/get-by-id.</para>
-        /// </remarks>
-
-        [HttpGet("get-by-id")]
-        public async Task<IActionResult> GetTicketTypeById([FromQuery] GetTicketTypeByIdRequestDTO dto)
-        {
-
-            _logger.LogInformation("🔍 Fetching TicketType details for Id = {Id}", dto);
-            var result = await _mediator.Send(new GetTicketTypeByIdQuery(dto));
-            return Ok(result);
-
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: GET /api/ticket/tickettype/get-by-id.</para>
+        //         /// </remarks>
+        //
+        //         [HttpGet("get-by-id")]
+        //         public async Task<IActionResult> GetTicketTypeById([FromQuery] GetTicketTypeByIdRequestDTO dto)
+        //         {
+        //
+        //             _logger.LogInformation("🔍 Fetching TicketType details for Id = {Id}", dto);
+        //             var result = await _mediator.Send(new GetTicketTypeByIdQuery(dto));
+        //             return Ok(result);
+        //
+        //         }
+        #endregion
 
         // ----------------------------------------------------------------------------------------------------
         // 4️⃣ UPDATE - Modify existing Ticket Type
@@ -183,23 +187,25 @@ namespace axionpro.api.Controllers.Ticket
         /// Retrieves Ticket Types associated with a specific Module ID.
         /// </summary>
 
-        /// <summary>
-        /// Not-Used-In-Angular.
-        /// </summary>
-        /// <remarks>
-        /// <para>Angular usage status: Not-Used-In-Angular.</para>
-        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-        /// <para>Backend endpoint: GET /api/ticket/tickettype/get-by-header-id.</para>
-        /// </remarks>
-        [HttpGet("get-by-header-id")]
-        public async Task<IActionResult> GetTicketTypesByHeaderId( [FromQuery] GetTicketTypeByHeaderIdRequestDTO dto)
-        {
-
-                _logger.LogInformation("📂 Fetching Ticket Types for ModuleId = {ModuleId}", dto.TicketHeaderId);
-                var result = await _mediator.Send(new GetAllTicketTypeByHeaderIdQuery(dto));
-            return Ok(result);
-           
-        }
+        #region Unused
+        //         /// <summary>
+        //         /// Not-Used-In-Angular.
+        //         /// </summary>
+        //         /// <remarks>
+        //         /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        //         /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        //         /// <para>Backend endpoint: GET /api/ticket/tickettype/get-by-header-id.</para>
+        //         /// </remarks>
+        //         [HttpGet("get-by-header-id")]
+        //         public async Task<IActionResult> GetTicketTypesByHeaderId( [FromQuery] GetTicketTypeByHeaderIdRequestDTO dto)
+        //         {
+        //
+        //                 _logger.LogInformation("📂 Fetching Ticket Types for ModuleId = {ModuleId}", dto.TicketHeaderId);
+        //                 var result = await _mediator.Send(new GetAllTicketTypeByHeaderIdQuery(dto));
+        //             return Ok(result);
+        //
+        //         }
+        #endregion
         /// <summary>
         /// Retrieves Ticket Types associated with a specific Module ID.
         /// </summary>

@@ -30,18 +30,20 @@ public sealed class NavigationController : ControllerBase
         _mediator = mediator;
     }
 
-    /// <summary>
-    /// Not-Used-In-Angular.
-    /// </summary>
-    /// <remarks>
-    /// <para>Angular usage status: Not-Used-In-Angular.</para>
-    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
-    /// <para>Backend endpoint: GET /api/navigation/my-menu.</para>
-    /// </remarks>
-    [HttpGet("my-menu")]
-    public async Task<IActionResult> GetMyMenu(CancellationToken cancellationToken)
-    {
-        var result = await _mediator.Send(new GetMyNavigationMenuQuery(), cancellationToken);
-        return Ok(result);
-    }
+    #region Unused
+    //     /// <summary>
+    //     /// Not-Used-In-Angular.
+    //     /// </summary>
+    //     /// <remarks>
+    //     /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    //     /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    //     /// <para>Backend endpoint: GET /api/navigation/my-menu.</para>
+    //     /// </remarks>
+    //     [HttpGet("my-menu")]
+    //     public async Task<IActionResult> GetMyMenu(CancellationToken cancellationToken)
+    //     {
+    //         var result = await _mediator.Send(new GetMyNavigationMenuQuery(), cancellationToken);
+    //         return Ok(result);
+    //     }
+    #endregion
 }
