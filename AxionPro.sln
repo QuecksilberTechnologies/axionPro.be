@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "axionpro.infrastructure", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "axionpro.api", "axionpro.api\axionpro.api.csproj", "{25DB10A3-B9AF-9043-DED7-340AE9AFA16D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "axionpro.automationtests", "axionpro.automationtests\axionpro.automationtests.csproj", "{D31E7EE3-9C61-4CD0-9D1B-9D64E55D1A15}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,10 @@ Global
 		{25DB10A3-B9AF-9043-DED7-340AE9AFA16D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{25DB10A3-B9AF-9043-DED7-340AE9AFA16D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{25DB10A3-B9AF-9043-DED7-340AE9AFA16D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D31E7EE3-9C61-4CD0-9D1B-9D64E55D1A15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D31E7EE3-9C61-4CD0-9D1B-9D64E55D1A15}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D31E7EE3-9C61-4CD0-9D1B-9D64E55D1A15}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D31E7EE3-9C61-4CD0-9D1B-9D64E55D1A15}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -69,6 +75,7 @@ Global
 		{09079233-E5FA-B197-2F47-7DD6BE2602F2} = {1136E9A8-4469-4281-9905-39A719C8A434}
 		{BE4256D9-44C2-B3FE-8B8A-B4A47BDBF509} = {1136E9A8-4469-4281-9905-39A719C8A434}
 		{25DB10A3-B9AF-9043-DED7-340AE9AFA16D} = {DA1C66C3-238A-497F-85B9-ECE750F76930}
+		{D31E7EE3-9C61-4CD0-9D1B-9D64E55D1A15} = {45822CEF-D39F-4790-96D2-09719FF8D026}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {32F265A1-A243-4585-A6B4-74F2D3EBCF7A}
