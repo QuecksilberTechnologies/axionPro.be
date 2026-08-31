@@ -8,6 +8,7 @@
 using AutoMapper;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.RequestHelper;
+using axionpro.application.Constants;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -112,6 +113,13 @@ public class GetBaseEmployeeInfoQueryHandler : IRequestHandler<GetBaseEmployeeIn
 
                 if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
+
+                if (!await _commonRequestService.CanAccessEmployeeDataAsync(
+                        validation,
+                        employeeId,
+                        EmployeeDataAccessRequirement.PersonalDetails,
+                        cancellationToken))
+                    throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
                 // 4️⃣ FETCH DATA
                 // ===============================
                 var responseDTO =

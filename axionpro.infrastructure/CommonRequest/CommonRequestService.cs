@@ -123,6 +123,85 @@ namespace axionpro.infrastructure.CommonRequest
             }
         }
 
+        /// <summary>
+        /// Evaluates employee-owned data access from the already validated request context.
+        /// Permission to invoke the endpoint is handled by the existing stored procedure; this
+        /// method separately protects which employee's records that permitted endpoint may read or modify.
+        /// </summary>
+        public async Task<bool> CanAccessEmployeeDataAsync(
+            CommonDecodedResult requestContext,
+            long targetEmployeeId,
+            EmployeeDataAccessRequirement requirement,
+            CancellationToken cancellationToken = default)
+        {
+            if (!requestContext.Success ||
+                requestContext.TenantId <= 0 ||
+                requestContext.LoggedInEmployeeId <= 0 ||
+                targetEmployeeId <= 0)
+            {
+                return false;
+            }
+
+            var accessCacheKey = $"EmployeeDataAccess:{requestContext.TenantId}:{requestContext.LoggedInEmployeeId}:{requestContext.RoleTypeId}:{targetEmployeeId}:{(int)requirement}";
+            if (_context.HttpContext?.Items.TryGetValue(accessCacheKey, out var cachedAccess) == true &&
+                cachedAccess is bool allowed)
+            {
+                return allowed;
+            }
+
+            // Prove that the decoded target belongs to the requester's tenant before evaluating
+            // role visibility. This prevents a valid encrypted identifier from another tenant
+            // being used as an authorization target.
+            var targetEmployee = await _uow.Employees.GetByIdAsync(
+                targetEmployeeId,
+                requestContext.TenantId,
+                track: false);
+            if (targetEmployee is null)
+            {
+                return CacheEmployeeDataAccess(accessCacheKey, false);
+            }
+
+            if (requestContext.RoleTypeId == ConstantValues.RoleTypeAdmin ||
+                requestContext.LoggedInEmployeeId == targetEmployeeId)
+            {
+                return CacheEmployeeDataAccess(accessCacheKey, true);
+            }
+
+            if (requestContext.RoleTypeId != ConstantValues.RoleTypeManager)
+            {
+                // An Employee can use the directory only; personal and work-location
+                // information of another employee remains private.
+                return CacheEmployeeDataAccess(
+                    accessCacheKey,
+                    requirement == EmployeeDataAccessRequirement.DirectoryBasic);
+            }
+
+            // A Manager may see only current direct reports, never the entire tenant. The
+            // mapping lookup is set-based and indexed by tenant/manager/employee in the database.
+            if (requirement is not (EmployeeDataAccessRequirement.DirectoryBasic or EmployeeDataAccessRequirement.WorkLocation))
+            {
+                return CacheEmployeeDataAccess(accessCacheKey, false);
+            }
+
+            var isDirectReport = await _uow.EmployeeManagerMappingRepository.IsCurrentDirectReportAsync(
+                requestContext.TenantId,
+                requestContext.LoggedInEmployeeId,
+                targetEmployeeId,
+                cancellationToken);
+            return CacheEmployeeDataAccess(accessCacheKey, isDirectReport);
+        }
+
+        /// <summary>Caches a request-local authorization decision; it never crosses HTTP requests.</summary>
+        private bool CacheEmployeeDataAccess(string cacheKey, bool allowed)
+        {
+            if (_context.HttpContext is not null)
+            {
+                _context.HttpContext.Items[cacheKey] = allowed;
+            }
+
+            return allowed;
+        }
+
         #endregion
 
         #region Unified Authentication Validation

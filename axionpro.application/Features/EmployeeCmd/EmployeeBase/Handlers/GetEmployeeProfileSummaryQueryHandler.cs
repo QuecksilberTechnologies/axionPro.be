@@ -7,6 +7,7 @@
 
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.RequestHelper;
+using axionpro.application.Constants;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
@@ -102,6 +103,16 @@ public class GetEmployeeProfileSummaryQueryHandler
 
                 if (employeeId <= 0)
                     throw new ValidationErrorException("Invalid EmployeeId.");
+
+                var canAccessTarget = await _commonRequestService.CanAccessEmployeeDataAsync(
+                    validation,
+                    employeeId,
+                    EmployeeDataAccessRequirement.DirectoryBasic,
+                    cancellationToken);
+                if (!canAccessTarget)
+                {
+                    throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+                }
                 // 5️⃣ FETCH SUMMARY
                 // ===============================
                 var summary =

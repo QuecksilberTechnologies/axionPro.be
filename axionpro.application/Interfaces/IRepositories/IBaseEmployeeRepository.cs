@@ -58,7 +58,12 @@ public interface IBaseEmployeeRepository
 
     Task<PagedResponseDTO<GetBaseEmployeeResponseDTO>> GetInfo(long tenantId, long employeeId, GetBaseEmployeeRequestDTO dto);
 
-    Task<PagedResponseDTO<GetAllEmployeeInfoResponseDTO>> GetAllInfo(long tenantId, long? employeeId, GetAllEmployeeInfoRequestDTO dto);
+    Task<PagedResponseDTO<GetAllEmployeeInfoResponseDTO>> GetAllInfo(
+        long tenantId,
+        long? employeeId,
+        GetAllEmployeeInfoRequestDTO dto,
+        long requestingEmployeeId,
+        int requestingRoleTypeId);
 
     Task<Employee?> IsEmployeeExist(string employeeCode, long tenantId, bool track = true);
 

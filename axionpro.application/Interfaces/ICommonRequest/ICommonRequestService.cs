@@ -26,6 +26,22 @@ namespace axionpro.application.Interfaces.ICommonRequest
         /// </summary>
         /// <returns>The validated tenant request context.</returns>
         Task<CommonDecodedResult> ValidateTenantUserRequestAsync();
+
+        /// <summary>
+        /// Determines whether the authenticated tenant employee may access data that belongs to
+        /// the specified employee. The target is always verified against the authenticated tenant;
+        /// callers must never use an unverified client-supplied employee identifier as authority.
+        /// </summary>
+        /// <param name="requestContext">The trusted tenant context obtained from <see cref="ValidateTenantUserRequestAsync"/>.</param>
+        /// <param name="targetEmployeeId">The decoded employee identifier whose data is requested.</param>
+        /// <param name="requirement">The minimum visibility level required by the endpoint.</param>
+        /// <param name="cancellationToken">Token used to cancel the database lookup.</param>
+        /// <returns><see langword="true"/> only when the requester is entitled to the target data.</returns>
+        Task<bool> CanAccessEmployeeDataAsync(
+            CommonDecodedResult requestContext,
+            long targetEmployeeId,
+            EmployeeDataAccessRequirement requirement,
+            CancellationToken cancellationToken = default);
         /// <summary>
         /// Validates the current authenticated Host or Tenant request by delegating to the established principal-specific validation path.
         /// </summary>
@@ -53,5 +69,20 @@ namespace axionpro.application.Interfaces.ICommonRequest
         /// <returns>The validated Host user identifier, token role snapshot, and Host-scoped identifier protection key.</returns>
         /// <exception cref="UnauthorizedAccessException">Thrown when the current request is not authenticated as a valid Host user.</exception>
         Task<HostUserRequestContext> ValidateHostUserPermissionRequestAsync();
+    }
+
+    /// <summary>
+    /// Defines the information category requested from an employee-owned endpoint.
+    /// </summary>
+    public enum EmployeeDataAccessRequirement
+    {
+        /// <summary>Directory fields only: name, organization, approved contact, and profile image.</summary>
+        DirectoryBasic = 1,
+
+        /// <summary>Personal or administrative employee information.</summary>
+        PersonalDetails = 2,
+
+        /// <summary>Employee work-location assignments.</summary>
+        WorkLocation = 3
     }
 }

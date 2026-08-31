@@ -281,8 +281,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 return true;
             }
 
-            return requestingRoleTypeId == ConstantValues.RoleTypeAdmin ||
-                   requestingRoleTypeId == ConstantValues.RoleTypeManager;
+            return requestingRoleTypeId == ConstantValues.RoleTypeAdmin;
         }
 
         /// <summary>
@@ -293,10 +292,9 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         {
             employee.EmployementCode = null;
             employee.DateOfBirth = null;
-            employee.MobileNumber = null;
+            employee.DateOfOnBoarding = null;
             employee.Nationality = null;
             employee.CountryCode = null;
-            employee.OfficialEmail = null;
             employee.EmergencyContactPerson = null;
             employee.CompletionPercentage = null;
             employee.HasImagePicUploaded = null;

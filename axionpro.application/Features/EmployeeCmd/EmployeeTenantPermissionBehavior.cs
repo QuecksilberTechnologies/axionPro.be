@@ -10,6 +10,7 @@ using axionpro.application.DTOs.BaseDTO;
 using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
+using axionpro.application.Interfaces.IEncryptionService;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
@@ -25,6 +26,7 @@ namespace axionpro.application.Features.EmployeeCmd;
 public sealed class EmployeeTenantPermissionBehavior<TRequest, TResponse>(
     IUnitOfWork unitOfWork,
     ICommonRequestService commonRequestService,
+    IIdEncoderService idEncoderService,
     ILogger<EmployeeTenantPermissionBehavior<TRequest, TResponse>> logger)
     : IPipelineBehavior<TRequest, TResponse>
     where TRequest : notnull
@@ -108,9 +110,20 @@ public sealed class EmployeeTenantPermissionBehavior<TRequest, TResponse>(
                 permissionRequest.OperationId,
                 cancellationToken);
 
+        if (permissionResult.ResultCode == 1)
+        {
+            await EnsureEmployeeTargetAccessAsync(
+                request,
+                validation,
+                expectedModuleCode,
+                idEncoderService,
+                commonRequestService,
+                cancellationToken);
+            return await next();
+        }
+
         return permissionResult.ResultCode switch
         {
-            1 => await next(),
             0 => throw CreatePermissionDeniedException(),
             -1 or -2 => throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized),
             _ => throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized)
@@ -123,6 +136,69 @@ public sealed class EmployeeTenantPermissionBehavior<TRequest, TResponse>(
     /// </summary>
     private static ForbiddenAccessException CreatePermissionDeniedException() =>
         new(AppConstants.ErrorMessages.PermissionDenied);
+
+    /// <summary>
+    /// Applies employee-data scope before a handler can load a client-selected employee. This
+    /// complements the stored-procedure action grant: a role may invoke an endpoint, but still
+    /// may not use that endpoint to read or change another employee's private data.
+    /// </summary>
+    private static async Task EnsureEmployeeTargetAccessAsync(
+        TRequest request,
+        Common.Models.Security.CommonDecodedResult validation,
+        string expectedModuleCode,
+        IIdEncoderService idEncoderService,
+        ICommonRequestService commonRequestService,
+        CancellationToken cancellationToken)
+    {
+        // The paged directory handles heterogeneous visibility in its repository and projection:
+        // Admin sees full rows, Employee sees own full row plus colleagues' directory fields, and
+        // Manager receives self plus direct reports. It must not be reduced to one target here.
+        if (typeof(TRequest).Name == "GetAllEmployeeInfoQuery")
+        {
+            return;
+        }
+
+        var encodedEmployeeId = ResolveEmployeeId(request);
+        if (string.IsNullOrWhiteSpace(encodedEmployeeId))
+        {
+            // Record-id commands resolve the owner in their handler/repository. No client value is
+            // inferred as an employee target here.
+            return;
+        }
+
+        long targetEmployeeId;
+        try
+        {
+            targetEmployeeId = Common.Helpers.RequestHelper.RequestCommonHelper.DecodeOnlyEmployeeId(
+                encodedEmployeeId,
+                validation.Claims.TenantEncriptionKey,
+                idEncoderService);
+        }
+        catch (Exception)
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
+        }
+
+        if (targetEmployeeId <= 0)
+        {
+            throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
+        }
+
+        var requirement = expectedModuleCode == "EMP_WORK_LOCATIONS"
+            ? EmployeeDataAccessRequirement.WorkLocation
+            : typeof(TRequest).Name is "GetEmployeeProfileSummaryQuery" or "GetEmployeeImageQuery"
+                ? EmployeeDataAccessRequirement.DirectoryBasic
+                : EmployeeDataAccessRequirement.PersonalDetails;
+
+        if (!await commonRequestService.CanAccessEmployeeDataAsync(
+                validation,
+                targetEmployeeId,
+                requirement,
+                cancellationToken))
+        {
+            throw CreatePermissionDeniedException();
+        }
+    }
 
     /// <summary>
     /// Retrieves the DTO carrying ModuleId and OperationId without changing
@@ -147,6 +223,37 @@ public sealed class EmployeeTenantPermissionBehavior<TRequest, TResponse>(
             if (field?.GetValue(request) is PermissionRequestDTO fieldPermissionRequest)
             {
                 return fieldPermissionRequest;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Obtains a direct EmployeeId only from the known request/DTO shapes. It intentionally does
+    /// not inspect arbitrary string fields, avoiding accidental authorization decisions based on
+    /// unrelated client data.
+    /// </summary>
+    private static string? ResolveEmployeeId(TRequest request)
+    {
+        foreach (var owner in new object?[]
+                 {
+                     request,
+                     typeof(TRequest).GetProperty("DTO", BindingFlags.Public | BindingFlags.Instance)?.GetValue(request),
+                     typeof(TRequest).GetProperty("Filter", BindingFlags.Public | BindingFlags.Instance)?.GetValue(request)
+                 })
+        {
+            if (owner is null)
+            {
+                continue;
+            }
+
+            var employeeIdProperty = owner.GetType().GetProperty(
+                "EmployeeId",
+                BindingFlags.Public | BindingFlags.Instance);
+            if (employeeIdProperty?.GetValue(owner) is string employeeId)
+            {
+                return employeeId;
             }
         }
 

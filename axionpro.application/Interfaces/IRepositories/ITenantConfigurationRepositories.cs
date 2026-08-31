@@ -63,7 +63,12 @@ public interface IEmployeeLocationAssignmentRepository
     /// <summary>Gets a tracked employee-location assignment scoped to a Tenant.</summary>
     Task<EmployeeLocationAssignment?> GetForUpdateAsync(long tenantId, long id, CancellationToken cancellationToken);
     /// <summary>Gets a database-paged employee-location-assignment result.</summary>
-    Task<PagedResponseDTO<EmployeeLocationAssignment>> GetPagedAsync(long tenantId, EmployeeLocationAssignmentFilterRequestDTO filter, CancellationToken cancellationToken);
+    Task<PagedResponseDTO<EmployeeLocationAssignment>> GetPagedAsync(
+        long tenantId,
+        EmployeeLocationAssignmentFilterRequestDTO filter,
+        long requestingEmployeeId,
+        int requestingRoleTypeId,
+        CancellationToken cancellationToken);
     /// <summary>Determines whether the Employee is active and owned by the Tenant.</summary>
     Task<bool> IsEligibleEmployeeAsync(long tenantId, long employeeId, CancellationToken cancellationToken);
     /// <summary>Determines whether the location is active and owned by the Tenant.</summary>
@@ -84,7 +89,12 @@ public interface IEmployeeDeviceEnrollmentRepository
     /// <summary>Gets a tracked employee-device enrollment scoped to a Tenant.</summary>
     Task<EmployeeDeviceEnrollment?> GetForUpdateAsync(long tenantId, long id, CancellationToken cancellationToken);
     /// <summary>Gets a database-paged employee-device-enrollment result.</summary>
-    Task<PagedResponseDTO<EmployeeDeviceEnrollment>> GetPagedAsync(long tenantId, EmployeeDeviceEnrollmentFilterRequestDTO filter, CancellationToken cancellationToken);
+    Task<PagedResponseDTO<EmployeeDeviceEnrollment>> GetPagedAsync(
+        long tenantId,
+        EmployeeDeviceEnrollmentFilterRequestDTO filter,
+        long requestingEmployeeId,
+        int requestingRoleTypeId,
+        CancellationToken cancellationToken);
     /// <summary>Determines whether the Employee is active and owned by the Tenant.</summary>
     Task<bool> IsEligibleEmployeeAsync(long tenantId, long employeeId, CancellationToken cancellationToken);
     /// <summary>Determines whether a Host-managed TenantDevice is eligible for enrollment.</summary>
@@ -103,7 +113,12 @@ public interface IEmployeeWorkArrangementRepository
     /// <summary>Gets a tracked work arrangement scoped to a Tenant.</summary>
     Task<EmployeeWorkArrangement?> GetForUpdateAsync(long tenantId, long id, CancellationToken cancellationToken);
     /// <summary>Gets a database-paged employee-work-arrangement result.</summary>
-    Task<PagedResponseDTO<EmployeeWorkArrangement>> GetPagedAsync(long tenantId, EmployeeWorkArrangementFilterRequestDTO filter, CancellationToken cancellationToken);
+    Task<PagedResponseDTO<EmployeeWorkArrangement>> GetPagedAsync(
+        long tenantId,
+        EmployeeWorkArrangementFilterRequestDTO filter,
+        long requestingEmployeeId,
+        int requestingRoleTypeId,
+        CancellationToken cancellationToken);
     /// <summary>Determines whether the Employee is active and owned by the Tenant.</summary>
     Task<bool> IsEligibleEmployeeAsync(long tenantId, long employeeId, CancellationToken cancellationToken);
     /// <summary>Determines whether the AttendancePolicy is active and owned by the Tenant.</summary>
@@ -128,7 +143,12 @@ public interface IEmployeeWorkPatternRepository
     /// <summary>Gets a tracked work-pattern day scoped to a Tenant.</summary>
     Task<EmployeeWorkPattern?> GetForUpdateAsync(long tenantId, long id, CancellationToken cancellationToken);
     /// <summary>Gets a database-paged employee-work-pattern result.</summary>
-    Task<PagedResponseDTO<EmployeeWorkPattern>> GetPagedAsync(long tenantId, EmployeeWorkPatternFilterRequestDTO filter, CancellationToken cancellationToken);
+    Task<PagedResponseDTO<EmployeeWorkPattern>> GetPagedAsync(
+        long tenantId,
+        EmployeeWorkPatternFilterRequestDTO filter,
+        long requestingEmployeeId,
+        int requestingRoleTypeId,
+        CancellationToken cancellationToken);
     /// <summary>Determines whether the work arrangement is active and owned by the Tenant.</summary>
     Task<bool> IsEligibleArrangementAsync(long tenantId, long arrangementId, CancellationToken cancellationToken);
     /// <summary>Determines whether the location is active and owned by the Tenant.</summary>
@@ -147,7 +167,12 @@ public interface IEmployeeWorkModeOverrideRequestRepository
     /// <summary>Gets a tracked override request scoped to a Tenant.</summary>
     Task<EmployeeWorkModeOverrideRequest?> GetForUpdateAsync(long tenantId, long id, CancellationToken cancellationToken);
     /// <summary>Gets a database-paged work-mode-override result.</summary>
-    Task<PagedResponseDTO<EmployeeWorkModeOverrideRequest>> GetPagedAsync(long tenantId, EmployeeWorkModeOverrideFilterRequestDTO filter, CancellationToken cancellationToken);
+    Task<PagedResponseDTO<EmployeeWorkModeOverrideRequest>> GetPagedAsync(
+        long tenantId,
+        EmployeeWorkModeOverrideFilterRequestDTO filter,
+        long requestingEmployeeId,
+        int requestingRoleTypeId,
+        CancellationToken cancellationToken);
     /// <summary>Determines whether the Employee is active and owned by the Tenant.</summary>
     Task<bool> IsEligibleEmployeeAsync(long tenantId, long employeeId, CancellationToken cancellationToken);
     /// <summary>Determines whether the optional work arrangement is active and owned by the Tenant.</summary>

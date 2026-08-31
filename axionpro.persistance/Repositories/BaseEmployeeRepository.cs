@@ -8,6 +8,7 @@
 using AutoMapper;
 using axionpro.application.Common.Enums;
 using axionpro.application.Common.Helpers.PercentageHelper;
+using axionpro.application.Constants;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
@@ -1077,7 +1078,9 @@ namespace axionpro.persistance.Repositories
         public async Task<PagedResponseDTO<GetAllEmployeeInfoResponseDTO>> GetAllInfo(
             long tenantId,
             long? employeeId,
-            GetAllEmployeeInfoRequestDTO dto)
+            GetAllEmployeeInfoRequestDTO dto,
+            long requestingEmployeeId,
+            int requestingRoleTypeId)
         {
             try
             {
@@ -1144,6 +1147,29 @@ namespace axionpro.persistance.Repositories
                 // ----------------------------------------------------
                 if (employeeId.HasValue && employeeId.Value > 0)
                     baseQuery = baseQuery.Where(x => x.emp.Id == employeeId.Value);
+
+                // Managers are restricted to their own record and current direct reports. An
+                // Employee can browse the tenant directory, but the handler later projects every
+                // colleague row to directory-only fields. Unknown role types fail closed to self.
+                if (requestingRoleTypeId == ConstantValues.RoleTypeManager)
+                {
+                    var today = DateTime.UtcNow.Date;
+                    baseQuery = baseQuery.Where(x =>
+                        x.emp.Id == requestingEmployeeId ||
+                        _context.EmployeeManagerMappings.Any(mapping =>
+                            mapping.TenantId == tenantId &&
+                            mapping.ManagerId == requestingEmployeeId &&
+                            mapping.EmployeeId == x.emp.Id &&
+                            mapping.IsActive &&
+                            mapping.IsSoftDeleted != true &&
+                            mapping.EffectiveFrom <= today &&
+                            (!mapping.EffectiveTo.HasValue || mapping.EffectiveTo.Value >= today)));
+                }
+                else if (requestingRoleTypeId != ConstantValues.RoleTypeAdmin &&
+                         requestingRoleTypeId != ConstantValues.RoleTypeEmployee)
+                {
+                    baseQuery = baseQuery.Where(x => x.emp.Id == requestingEmployeeId);
+                }
 
                 if (!string.IsNullOrWhiteSpace(dto.EmailId))
                     baseQuery = baseQuery.Where(x => x.emp.OfficialEmail == dto.EmailId.Trim());

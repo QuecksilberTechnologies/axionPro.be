@@ -4,6 +4,7 @@ using axionpro.application.Interfaces.IHashed;
 using axionpro.application.Interfaces.IRepositories;
 using axionpro.domain.Entity;
 using axionpro.persistance.Data.Context;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -32,12 +33,38 @@ namespace axionpro.persistance.Repositories
         }
         public async Task<bool> ExistsPrimaryAsync(long employeeId, long tenantId)
         {
-            return   _context.EmployeeManagerMappings.Any(x =>
+            return await _context.EmployeeManagerMappings.AnyAsync(x =>
                     x.EmployeeId == employeeId &&
                     x.TenantId == tenantId &&
                     x.ReportingTypeId == 1 &&
                     x.IsActive &&
                     (x.IsSoftDeleted != true));
+        }
+
+        /// <inheritdoc />
+        public Task<bool> IsCurrentDirectReportAsync(
+            long tenantId,
+            long managerId,
+            long employeeId,
+            CancellationToken cancellationToken = default)
+        {
+            if (tenantId <= 0 || managerId <= 0 || employeeId <= 0)
+            {
+                return Task.FromResult(false);
+            }
+
+            var today = DateTime.UtcNow.Date;
+            return _context.EmployeeManagerMappings
+                .AsNoTracking()
+                .AnyAsync(mapping =>
+                    mapping.TenantId == tenantId &&
+                    mapping.ManagerId == managerId &&
+                    mapping.EmployeeId == employeeId &&
+                    mapping.IsActive &&
+                    mapping.IsSoftDeleted != true &&
+                    mapping.EffectiveFrom <= today &&
+                    (!mapping.EffectiveTo.HasValue || mapping.EffectiveTo.Value >= today),
+                    cancellationToken);
         }
     }
 }

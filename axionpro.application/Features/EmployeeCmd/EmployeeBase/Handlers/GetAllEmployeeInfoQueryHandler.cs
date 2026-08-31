@@ -110,7 +110,9 @@ public class GetAllEmployeeInfoQueryHandler : IRequestHandler<GetAllEmployeeInfo
                 var responseDTO = await _unitOfWork.Employees.GetAllInfo(
                     validation.TenantId,
                     employeeId,
-                    request.DTO);
+                    request.DTO,
+                    validation.LoggedInEmployeeId,
+                    validation.RoleTypeId);
 
                 if (responseDTO == null)
                     throw new ApiException("Employee data not found", 404);

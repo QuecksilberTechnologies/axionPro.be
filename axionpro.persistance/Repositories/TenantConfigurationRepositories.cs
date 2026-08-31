@@ -5,6 +5,7 @@
 // Purpose : Provides Tenant-isolated EF Core persistence for TenantConfiguration records.
 // ================================================================
 
+using axionpro.application.Constants;
 using axionpro.application.DTOS.Pagination;
 using axionpro.application.DTOS.TenantConfiguration;
 using axionpro.application.Interfaces.IRepositories;
@@ -192,10 +193,37 @@ public sealed class EmployeeLocationAssignmentRepository : TenantConfigurationRe
         Context.EmployeeLocationAssignments.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId && !x.IsSoftDeleted, cancellationToken);
 
     /// <inheritdoc />
-    public async Task<PagedResponseDTO<EmployeeLocationAssignment>> GetPagedAsync(long tenantId, EmployeeLocationAssignmentFilterRequestDTO filter, CancellationToken cancellationToken)
+    public async Task<PagedResponseDTO<EmployeeLocationAssignment>> GetPagedAsync(
+        long tenantId,
+        EmployeeLocationAssignmentFilterRequestDTO filter,
+        long requestingEmployeeId,
+        int requestingRoleTypeId,
+        CancellationToken cancellationToken)
     {
         var (pageNumber, pageSize) = NormalizePage(filter.PageNumber, filter.PageSize);
         var query = Context.EmployeeLocationAssignments.AsNoTracking().Include(x => x.Employee).Include(x => x.TenantLocation).Where(x => x.TenantId == tenantId && !x.IsSoftDeleted);
+
+        // A Manager receives only their own and actively mapped direct reports' locations.
+        // Employee and unknown role types fail closed to their own location assignments.
+        if (requestingRoleTypeId == ConstantValues.RoleTypeManager)
+        {
+            var today = DateTime.UtcNow.Date;
+            query = query.Where(assignment =>
+                assignment.EmployeeId == requestingEmployeeId ||
+                Context.EmployeeManagerMappings.Any(mapping =>
+                    mapping.TenantId == tenantId &&
+                    mapping.ManagerId == requestingEmployeeId &&
+                    mapping.EmployeeId == assignment.EmployeeId &&
+                    mapping.IsActive &&
+                    mapping.IsSoftDeleted != true &&
+                    mapping.EffectiveFrom <= today &&
+                    (!mapping.EffectiveTo.HasValue || mapping.EffectiveTo.Value >= today)));
+        }
+        else if (requestingRoleTypeId != ConstantValues.RoleTypeAdmin)
+        {
+            query = query.Where(assignment => assignment.EmployeeId == requestingEmployeeId);
+        }
+
         if (filter.ResolvedEmployeeId.HasValue) query = query.Where(x => x.EmployeeId == filter.ResolvedEmployeeId.Value);
         if (filter.TenantLocationId.HasValue) query = query.Where(x => x.TenantLocationId == filter.TenantLocationId.Value);
         if (filter.IsPrimary.HasValue) query = query.Where(x => x.IsPrimary == filter.IsPrimary.Value);
@@ -241,10 +269,11 @@ public sealed class EmployeeDeviceEnrollmentRepository : TenantConfigurationRepo
         Context.EmployeeDeviceEnrollments.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId && !x.IsSoftDeleted, cancellationToken);
 
     /// <inheritdoc />
-    public async Task<PagedResponseDTO<EmployeeDeviceEnrollment>> GetPagedAsync(long tenantId, EmployeeDeviceEnrollmentFilterRequestDTO filter, CancellationToken cancellationToken)
+    public async Task<PagedResponseDTO<EmployeeDeviceEnrollment>> GetPagedAsync(long tenantId, EmployeeDeviceEnrollmentFilterRequestDTO filter, long requestingEmployeeId, int requestingRoleTypeId, CancellationToken cancellationToken)
     {
         var (pageNumber, pageSize) = NormalizePage(filter.PageNumber, filter.PageSize);
         var query = Context.EmployeeDeviceEnrollments.AsNoTracking().Include(x => x.Employee).Where(x => x.TenantId == tenantId && !x.IsSoftDeleted);
+        if (requestingRoleTypeId != ConstantValues.RoleTypeAdmin) query = query.Where(x => x.EmployeeId == requestingEmployeeId);
         if (!string.IsNullOrWhiteSpace(filter.Search)) { var term = $"%{filter.Search.Trim()}%"; query = query.Where(x => EF.Functions.ILike(x.EnrollId, term) || (x.CardNumber != null && EF.Functions.ILike(x.CardNumber, term)) || Context.TenantDevices.Any(d => d.Id == x.TenantDeviceId && (EF.Functions.ILike(d.DeviceMaster.SNo, term) || EF.Functions.ILike(d.DeviceCode, term)))); }
         if (filter.ResolvedEmployeeId.HasValue) query = query.Where(x => x.EmployeeId == filter.ResolvedEmployeeId.Value);
         if (filter.TenantDeviceId.HasValue) query = query.Where(x => x.TenantDeviceId == filter.TenantDeviceId.Value);
@@ -289,10 +318,11 @@ public sealed class EmployeeWorkArrangementRepository : TenantConfigurationRepos
         Context.EmployeeWorkArrangements.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId && !x.IsSoftDeleted, cancellationToken);
 
     /// <inheritdoc />
-    public async Task<PagedResponseDTO<EmployeeWorkArrangement>> GetPagedAsync(long tenantId, EmployeeWorkArrangementFilterRequestDTO filter, CancellationToken cancellationToken)
+    public async Task<PagedResponseDTO<EmployeeWorkArrangement>> GetPagedAsync(long tenantId, EmployeeWorkArrangementFilterRequestDTO filter, long requestingEmployeeId, int requestingRoleTypeId, CancellationToken cancellationToken)
     {
         var (pageNumber, pageSize) = NormalizePage(filter.PageNumber, filter.PageSize);
         var query = Context.EmployeeWorkArrangements.AsNoTracking().Include(x => x.Employee).Include(x => x.AttendancePolicy).Include(x => x.PrimaryTenantLocation).Where(x => x.TenantId == tenantId && !x.IsSoftDeleted);
+        if (requestingRoleTypeId != ConstantValues.RoleTypeAdmin) query = query.Where(x => x.EmployeeId == requestingEmployeeId);
         if (filter.ResolvedEmployeeId.HasValue) query = query.Where(x => x.EmployeeId == filter.ResolvedEmployeeId.Value);
         if (filter.AttendancePolicyId.HasValue) query = query.Where(x => x.AttendancePolicyId == filter.AttendancePolicyId.Value);
         if (filter.PrimaryTenantLocationId.HasValue) query = query.Where(x => x.PrimaryTenantLocationId == filter.PrimaryTenantLocationId.Value);
@@ -340,17 +370,18 @@ public sealed class EmployeeWorkPatternRepository : TenantConfigurationRepositor
 
     /// <inheritdoc />
     public Task<EmployeeWorkPattern?> GetByIdAsync(long tenantId, long id, CancellationToken cancellationToken) =>
-        Context.EmployeeWorkPatterns.AsNoTracking().Include(x => x.TenantLocation).FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId && !x.IsSoftDeleted, cancellationToken);
+        Context.EmployeeWorkPatterns.AsNoTracking().Include(x => x.EmployeeWorkArrangement).Include(x => x.TenantLocation).FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId && !x.IsSoftDeleted, cancellationToken);
 
     /// <inheritdoc />
     public Task<EmployeeWorkPattern?> GetForUpdateAsync(long tenantId, long id, CancellationToken cancellationToken) =>
-        Context.EmployeeWorkPatterns.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId && !x.IsSoftDeleted, cancellationToken);
+        Context.EmployeeWorkPatterns.Include(x => x.EmployeeWorkArrangement).FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId && !x.IsSoftDeleted, cancellationToken);
 
     /// <inheritdoc />
-    public async Task<PagedResponseDTO<EmployeeWorkPattern>> GetPagedAsync(long tenantId, EmployeeWorkPatternFilterRequestDTO filter, CancellationToken cancellationToken)
+    public async Task<PagedResponseDTO<EmployeeWorkPattern>> GetPagedAsync(long tenantId, EmployeeWorkPatternFilterRequestDTO filter, long requestingEmployeeId, int requestingRoleTypeId, CancellationToken cancellationToken)
     {
         var (pageNumber, pageSize) = NormalizePage(filter.PageNumber, filter.PageSize);
-        var query = Context.EmployeeWorkPatterns.AsNoTracking().Include(x => x.TenantLocation).Where(x => x.TenantId == tenantId && !x.IsSoftDeleted);
+        var query = Context.EmployeeWorkPatterns.AsNoTracking().Include(x => x.EmployeeWorkArrangement).Include(x => x.TenantLocation).Where(x => x.TenantId == tenantId && !x.IsSoftDeleted);
+        if (requestingRoleTypeId != ConstantValues.RoleTypeAdmin) query = query.Where(x => x.EmployeeWorkArrangement.EmployeeId == requestingEmployeeId);
         if (filter.EmployeeWorkArrangementId.HasValue) query = query.Where(x => x.EmployeeWorkArrangementId == filter.EmployeeWorkArrangementId.Value);
         if (filter.DayOfWeek.HasValue) query = query.Where(x => x.DayOfWeek == (short)filter.DayOfWeek.Value);
         if (filter.IsActive.HasValue) query = query.Where(x => x.IsActive == filter.IsActive.Value);
@@ -393,10 +424,11 @@ public sealed class EmployeeWorkModeOverrideRequestRepository : TenantConfigurat
         Context.EmployeeWorkModeOverrideRequests.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId && !x.IsSoftDeleted, cancellationToken);
 
     /// <inheritdoc />
-    public async Task<PagedResponseDTO<EmployeeWorkModeOverrideRequest>> GetPagedAsync(long tenantId, EmployeeWorkModeOverrideFilterRequestDTO filter, CancellationToken cancellationToken)
+    public async Task<PagedResponseDTO<EmployeeWorkModeOverrideRequest>> GetPagedAsync(long tenantId, EmployeeWorkModeOverrideFilterRequestDTO filter, long requestingEmployeeId, int requestingRoleTypeId, CancellationToken cancellationToken)
     {
         var (pageNumber, pageSize) = NormalizePage(filter.PageNumber, filter.PageSize);
         var query = Context.EmployeeWorkModeOverrideRequests.AsNoTracking().Include(x => x.Employee).Include(x => x.TenantLocation).Where(x => x.TenantId == tenantId && !x.IsSoftDeleted);
+        if (requestingRoleTypeId != ConstantValues.RoleTypeAdmin) query = query.Where(x => x.EmployeeId == requestingEmployeeId);
         if (!string.IsNullOrWhiteSpace(filter.Search)) { var term = $"%{filter.Search.Trim()}%"; query = query.Where(x => EF.Functions.ILike(x.Reason, term)); }
         if (filter.ResolvedEmployeeId.HasValue) query = query.Where(x => x.EmployeeId == filter.ResolvedEmployeeId.Value);
         if (filter.RequestedWorkMode.HasValue) query = query.Where(x => x.RequestedWorkMode == (short)filter.RequestedWorkMode.Value);

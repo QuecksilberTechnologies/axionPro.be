@@ -6,6 +6,7 @@
 // ================================================================
 
 using axionpro.application.Common.Helpers.RequestHelper;
+using axionpro.application.Common.Models.Security;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.BaseDTO;
 using axionpro.application.Exceptions;
@@ -58,13 +59,55 @@ public abstract class TenantConfigurationHandlerBase
     }
 
     /// <summary>
+    /// Resolves the trusted tenant request context for handlers that first need to load a
+    /// record and then verify access against that record's owning employee.
+    /// </summary>
+    protected async Task<CommonDecodedResult> ValidateTenantDataAccessContextAsync()
+    {
+        var validation = await CommonRequestService.ValidateTenantUserRequestAsync();
+        if (!validation.Success || validation.TenantId <= 0 || validation.LoggedInEmployeeId <= 0)
+        {
+            throw new UnauthorizedAccessException(
+                validation.ErrorMessage ?? AppConstants.ErrorMessages.Unauthorized);
+        }
+
+        return validation;
+    }
+
+    /// <summary>
+    /// Enforces the central employee ownership rule after a target employee has been decoded or
+    /// resolved from a tenant-scoped record. A denied target always returns the standard 403 path.
+    /// </summary>
+    protected async Task EnsureEmployeeDataAccessAsync(
+        CommonDecodedResult validation,
+        long targetEmployeeId,
+        EmployeeDataAccessRequirement requirement,
+        CancellationToken cancellationToken)
+    {
+        var hasAccess = await CommonRequestService.CanAccessEmployeeDataAsync(
+            validation,
+            targetEmployeeId,
+            requirement,
+            cancellationToken);
+        if (!hasAccess)
+        {
+            throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+        }
+    }
+
+    /// <summary>
     /// Validates the tenant principal and decodes a required client-facing employee identifier.
     /// The encoded identifier is never passed to entities or repositories.
     /// </summary>
     protected async Task<(long TenantId, long ActorId, long EmployeeId)> ValidateTenantAndDecodeEmployeeIdAsync(
-        string? encodedEmployeeId)
+        string? encodedEmployeeId,
+        EmployeeDataAccessRequirement requirement = EmployeeDataAccessRequirement.PersonalDetails,
+        CancellationToken cancellationToken = default)
     {
-        var context = await ValidateTenantAndDecodeOptionalEmployeeIdAsync(encodedEmployeeId);
+        var context = await ValidateTenantAndDecodeOptionalEmployeeIdAsync(
+            encodedEmployeeId,
+            requirement,
+            cancellationToken);
         if (!context.EmployeeId.HasValue)
         {
             throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
@@ -77,7 +120,9 @@ public abstract class TenantConfigurationHandlerBase
     /// Validates the tenant principal and decodes an optional employee filter when the client supplied one.
     /// </summary>
     protected async Task<(long TenantId, long ActorId, long? EmployeeId)> ValidateTenantAndDecodeOptionalEmployeeIdAsync(
-        string? encodedEmployeeId)
+        string? encodedEmployeeId,
+        EmployeeDataAccessRequirement requirement = EmployeeDataAccessRequirement.PersonalDetails,
+        CancellationToken cancellationToken = default)
     {
         var validation = await CommonRequestService.ValidateTenantUserRequestAsync();
         if (!validation.Success ||
@@ -110,6 +155,12 @@ public abstract class TenantConfigurationHandlerBase
             {
                 throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidIdentifier);
             }
+
+            await EnsureEmployeeDataAccessAsync(
+                validation,
+                employeeId,
+                requirement,
+                cancellationToken);
 
             return (validation.TenantId, validation.LoggedInEmployeeId, employeeId);
         }

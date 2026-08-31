@@ -100,6 +100,15 @@ namespace axionpro.application.Features.EmployeeCmd.IdentitiesInfo.Handlers
                     if (employeeId <= 0)
                         throw new ValidationErrorException("Invalid EmployeeId.");
 
+                    if (!await _commonRequestService.CanAccessEmployeeDataAsync(
+                            validation,
+                            employeeId,
+                            EmployeeDataAccessRequirement.PersonalDetails,
+                            cancellationToken))
+                    {
+                        throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+                    }
+
                     string? documentPath = null;
                     string? documentName = null;
 

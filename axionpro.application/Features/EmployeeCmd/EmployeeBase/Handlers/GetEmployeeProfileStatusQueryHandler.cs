@@ -7,6 +7,7 @@
 
 using axionpro.application.Common.Helpers.axionpro.application.Configuration;
 using axionpro.application.Common.Helpers.EncryptionHelper;
+using axionpro.application.Constants;
 using axionpro.application.DTOs.BaseDTO;
 using axionpro.application.DTOS.Employee.CompletionPercentage;
 using axionpro.application.Exceptions;
@@ -105,6 +106,13 @@ public class GetEmployeeProfileStatusQueryHandler
 
             if (employeeId <= 0)
                 throw new ValidationErrorException("Invalid EmployeeId.");
+
+            if (!await _commonRequestService.CanAccessEmployeeDataAsync(
+                    validation,
+                    employeeId,
+                    EmployeeDataAccessRequirement.PersonalDetails,
+                    cancellationToken))
+                throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
             // 5️⃣ FETCH DATA
             // ===============================
             var sections =
