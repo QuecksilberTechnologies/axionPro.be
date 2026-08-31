@@ -1,5 +1,6 @@
 ﻿using axionpro.application.Common.Enums;
 using axionpro.application.Common.Helpers.PercentageHelper;
+using axionpro.application.Constants;
 using axionpro.application.DTOS.AssetDTO.asset;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
@@ -215,7 +216,10 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         public static List<GetAllEmployeeInfoResponseDTO> ToGetAllEmployeeInfoResponseDTOs(
      PagedResponseDTO<GetAllEmployeeInfoResponseDTO> entities,
       IIdEncoderService encoderService,
-      string tenantKey, IConfiguration configuration,IFileStorageService _fileStorageService)
+      string tenantKey,
+      IFileStorageService fileStorageService,
+      long requestingEmployeeId,
+      int requestingRoleTypeId)
         {
            
 
@@ -226,7 +230,17 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 
             foreach (var item in entities.Data)
             {
-                if (long.TryParse(item.EmployeeId, out long rawId) && rawId > 0)
+                var hasEmployeeId = long.TryParse(item.EmployeeId, out long rawId) && rawId > 0;
+                if (hasEmployeeId &&
+                    !CanViewEmployeePersonalData(
+                        requestingEmployeeId,
+                        rawId,
+                        requestingRoleTypeId))
+                {
+                    RedactEmployeeListPersonalData(item);
+                }
+
+                if (hasEmployeeId)
                 {
                     item.EmployeeId = encoderService.EncodeId_long(rawId, tenantKey);
                 }
@@ -234,7 +248,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 
                 // 📁 Final Image URL build
                 if (!string.IsNullOrEmpty(item.EmployeeImagePath))
-                    item.EmployeeImagePath = _fileStorageService.GetFileUrl(item.EmployeeImagePath);
+                    item.EmployeeImagePath = fileStorageService.GetFileUrl(item.EmployeeImagePath);
 
                 item.EmployementCode ??= string.Empty;
                 item.FirstName ??= string.Empty;
@@ -245,6 +259,47 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             }
 
             return entities.Data;
+        }
+
+        /// <summary>
+        /// Determines whether the current Tenant user may receive another Employee's personal details.
+        /// Employee-role users receive full details only for their own record. Admin and Manager
+        /// role types retain the existing full-directory view; unknown role types fail closed.
+        /// </summary>
+        public static bool CanViewEmployeePersonalData(
+            long requestingEmployeeId,
+            long subjectEmployeeId,
+            int requestingRoleTypeId)
+        {
+            if (requestingEmployeeId <= 0 || subjectEmployeeId <= 0)
+            {
+                return false;
+            }
+
+            if (requestingEmployeeId == subjectEmployeeId)
+            {
+                return true;
+            }
+
+            return requestingRoleTypeId == ConstantValues.RoleTypeAdmin ||
+                   requestingRoleTypeId == ConstantValues.RoleTypeManager;
+        }
+
+        /// <summary>
+        /// Removes personal and administrative fields from a directory row while retaining
+        /// the employee's basic organizational identity for Employee-role viewers.
+        /// </summary>
+        private static void RedactEmployeeListPersonalData(GetAllEmployeeInfoResponseDTO employee)
+        {
+            employee.EmployementCode = null;
+            employee.DateOfBirth = null;
+            employee.MobileNumber = null;
+            employee.Nationality = null;
+            employee.CountryCode = null;
+            employee.OfficialEmail = null;
+            employee.EmergencyContactPerson = null;
+            employee.CompletionPercentage = null;
+            employee.HasImagePicUploaded = null;
         }
 
  

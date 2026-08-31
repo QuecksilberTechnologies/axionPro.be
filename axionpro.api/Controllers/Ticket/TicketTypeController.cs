@@ -42,12 +42,14 @@ namespace axionpro.api.Controllers.Ticket
         // ----------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Supports the Angular UI flow for create ticket type.
+        /// Used-In-Angular: creates type.
         /// </summary>
         /// <remarks>
-        /// <para>Angular purpose: retrieves types.</para>
-        /// <para>Angular page(s): /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers; /app/tickets/types.</para>
-        /// <para>Angular API service call(s): TicketApi.getTypes (app/features/tickets/ticket-api.ts:113).</para>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): TicketApi.addType (app/features/tickets/ticket-api.ts:118).</para>
+        /// <para>Angular purpose: creates type.</para>
+        /// <para>Integrated UI page(s): /app/tickets/types</para>
+        /// <para>Angular UI component(s): TicketTypeManageDialog (app/features/tickets/ticket-type/ticket-type-manage-dialog/ticket-type-manage-dialog.ts); TicketTypeComponent (app/features/tickets/ticket-type/ticket-type.ts)</para>
         /// </remarks>
         [HttpPost("create")]
         public async Task<IActionResult> CreateTicketType([FromBody] AddTicketTypeRequestDTO dto)
@@ -66,12 +68,12 @@ namespace axionpro.api.Controllers.Ticket
 
         // <summary>
         /// <summary>
-        /// Supports the Angular UI flow for get all ticket types.
+        /// Not-Used-In-Angular.
         /// </summary>
         /// <remarks>
-        /// <para>Angular purpose: retrieves types.</para>
-        /// <para>Angular page(s): /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers; /app/tickets/types.</para>
-        /// <para>Angular API service call(s): TicketApi.getTypes (app/features/tickets/ticket-api.ts:107).</para>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: GET /api/ticket/tickettype/get-all.</para>
         /// </remarks>
 
 
@@ -84,12 +86,14 @@ namespace axionpro.api.Controllers.Ticket
             return Ok(result);
         }
         /// <summary>
-        /// Supports the Angular UI flow for get ddlticket types.
+        /// Used-In-Angular: retrieves ticket type ddl.
         /// </summary>
         /// <remarks>
-        /// <para>Angular purpose: deletes type.</para>
-        /// <para>Angular page(s): /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers; /app/tickets/types.</para>
-        /// <para>Angular API service call(s): TicketApi.deleteType (app/features/tickets/ticket-api.ts:131).</para>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): TicketApi.getTicketTypeDdl (app/features/tickets/ticket-api.ts:137).</para>
+        /// <para>Angular purpose: retrieves ticket type ddl.</para>
+        /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
+        /// <para>Angular UI component(s): TicketManageDialog (app/features/tickets/ticket-lists/ticket-manage-dialog/ticket-manage-dialog.ts)</para>
         /// </remarks>
 
         [HttpGet("ddl-list")]
@@ -104,6 +108,14 @@ namespace axionpro.api.Controllers.Ticket
         // ----------------------------------------------------------------------------------------------------
         // 3️⃣ READ (BY ID) - Get specific Ticket Type
         // ----------------------------------------------------------------------------------------------------
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: GET /api/ticket/tickettype/get-by-id.</para>
+        /// </remarks>
 
         [HttpGet("get-by-id")]
         public async Task<IActionResult> GetTicketTypeById([FromQuery] GetTicketTypeByIdRequestDTO dto)
@@ -120,12 +132,14 @@ namespace axionpro.api.Controllers.Ticket
         // ----------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Supports the Angular UI flow for update ticket type.
+        /// Used-In-Angular: updates type.
         /// </summary>
         /// <remarks>
-        /// <para>Angular purpose: creates type.</para>
-        /// <para>Angular page(s): /app/tickets/types.</para>
-        /// <para>Angular API service call(s): TicketApi.addType (app/features/tickets/ticket-api.ts:119).</para>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): TicketApi.updateType (app/features/tickets/ticket-api.ts:124).</para>
+        /// <para>Angular purpose: updates type.</para>
+        /// <para>Integrated UI page(s): /app/tickets/types</para>
+        /// <para>Angular UI component(s): TicketTypeManageDialog (app/features/tickets/ticket-type/ticket-type-manage-dialog/ticket-type-manage-dialog.ts); TicketTypeComponent (app/features/tickets/ticket-type/ticket-type.ts)</para>
         /// </remarks>
         [HttpPut("update")]      
         public async Task<IActionResult> UpdateTicketType([FromBody] UpdateTicketTypeRequestDTO dto)
@@ -142,12 +156,14 @@ namespace axionpro.api.Controllers.Ticket
         // ----------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Supports the Angular UI flow for delete ticket type.
+        /// Used-In-Angular: deletes type.
         /// </summary>
         /// <remarks>
-        /// <para>Angular purpose: updates type.</para>
-        /// <para>Angular page(s): /app/tickets/types.</para>
-        /// <para>Angular API service call(s): TicketApi.updateType (app/features/tickets/ticket-api.ts:125).</para>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): TicketApi.deleteType (app/features/tickets/ticket-api.ts:130).</para>
+        /// <para>Angular purpose: deletes type.</para>
+        /// <para>Integrated UI page(s): /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers; /app/tickets; /app/tickets/types</para>
+        /// <para>Angular UI component(s): TicketsStore (app/features/tickets/tickets.store.ts); TicketAgents (app/features/tickets/ticket-agents/ticket-agents.ts); TicketClassificationComponent (app/features/tickets/ticket-classification/ticket-classification.ts); TicketDetailSidebar (app/features/tickets/ticket-details/ticket-detail-sidebar/ticket-detail-sidebar.ts); TicketDetailsHeader (app/features/tickets/ticket-details/ticket-details-header/ticket-details-header.ts); TicketDetails (app/features/tickets/ticket-details/ticket-details.ts); TicketHeaderComponent (app/features/tickets/ticket-header/ticket-header.ts); TicketLists (app/features/tickets/ticket-lists/ticket-lists.ts)</para>
         /// </remarks>
         [HttpDelete("delete")]        
         public async Task<IActionResult> DeleteTicketType([FromBody]DeleteTicketTypeRequestDTO dto)
@@ -168,12 +184,12 @@ namespace axionpro.api.Controllers.Ticket
         /// </summary>
 
         /// <summary>
-        /// Supports the Angular UI flow for get ticket types by header id.
+        /// Not-Used-In-Angular.
         /// </summary>
         /// <remarks>
-        /// <para>Angular purpose: retrieves types.</para>
-        /// <para>Angular page(s): /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers; /app/tickets/types.</para>
-        /// <para>Angular API service call(s): TicketApi.getTypes (app/features/tickets/ticket-api.ts:107).</para>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: GET /api/ticket/tickettype/get-by-header-id.</para>
         /// </remarks>
         [HttpGet("get-by-header-id")]
         public async Task<IActionResult> GetTicketTypesByHeaderId( [FromQuery] GetTicketTypeByHeaderIdRequestDTO dto)

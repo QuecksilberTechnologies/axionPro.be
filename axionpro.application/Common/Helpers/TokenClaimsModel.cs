@@ -12,6 +12,7 @@ namespace axionpro.application.Common.Helpers
         public string? TenantId { get; set; }
         public string? TenantEncriptionKey { get; set; }
         public string? RoleId { get; set; }
+        public string? RoleTypeId { get; set; }
         public DateTime? Expiry { get; set; }
         public bool IsExpired { get; set; }
         // 🔥 ADD THESE

@@ -46,12 +46,14 @@ namespace axionpro.api.Controllers.Location
         
        
         /// <summary>
-        /// Supports the Angular UI flow for get country.
+        /// Used-In-Angular: retrieves countries.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): LocationsApi.getCountries (app/core/services/locations-api.ts:63).</para>
         /// <para>Angular purpose: retrieves countries.</para>
-        /// <para>Angular page(s): /auth/register-tenant; /app/designations; /app/employees; /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants; /app/tenant-locations/new; /app/tenant-locations/:tenantLocationId/edit; and 13 more.</para>
-        /// <para>Angular API service call(s): LocationsApi.getCountries (app/core/services/locations-api.ts:60).</para>
+        /// <para>Integrated UI page(s): /auth/register-tenant; /app/designations; /app/employees; /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants; /app/tenant-locations/new; /app/tenant-locations/:tenantLocationId/edit</para>
+        /// <para>Angular UI component(s): LookupStore (app/core/stores/lookup.store.ts); Registration (app/features/authentication/registration/registration.ts); DashboardHostStore (app/features/dashboard/dashboard-host/dashboard-host.store.ts); DepartmentsStore (app/features/departments/departments.store.ts); Designations (app/features/designations/designations.ts); Employees (app/features/employees/employees.ts); TenantDetail (app/features/host/tenants/tenant-detail/tenant-detail.ts); TenantForm (app/features/host/tenants/tenant-form/tenant-form.ts)</para>
         /// </remarks>
         [HttpGet("country/option")] 
         public async Task<IActionResult> getCountry([FromQuery] GetCountryOptionRequestDTO requestDTO)
@@ -63,12 +65,14 @@ namespace axionpro.api.Controllers.Location
             return Ok(result);        }
 
         /// <summary>
-        /// Supports the Angular UI flow for get state.
+        /// Used-In-Angular: retrieves states.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): LocationsApi.getStates (app/core/services/locations-api.ts:70).</para>
         /// <para>Angular purpose: retrieves states.</para>
-        /// <para>Angular page(s): /app/designations; /app/employees; /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants; /app/tenant-locations/new; /app/tenant-locations/:tenantLocationId/edit; /app/tenant-locations; and 12 more.</para>
-        /// <para>Angular API service call(s): LocationsApi.getStates (app/core/services/locations-api.ts:67).</para>
+        /// <para>Integrated UI page(s): /app/designations; /app/employees; /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants; /app/tenant-locations/new; /app/tenant-locations/:tenantLocationId/edit; /app/tenant-locations</para>
+        /// <para>Angular UI component(s): LookupStore (app/core/stores/lookup.store.ts); EmployeeContactForm (app/features/user-menu/employee-profile/employee-contact-info/employee-contact-form/employee-contact-form.ts); DashboardHostStore (app/features/dashboard/dashboard-host/dashboard-host.store.ts); DepartmentsStore (app/features/departments/departments.store.ts); Designations (app/features/designations/designations.ts); Employees (app/features/employees/employees.ts); TenantDetail (app/features/host/tenants/tenant-detail/tenant-detail.ts); TenantForm (app/features/host/tenants/tenant-form/tenant-form.ts)</para>
         /// </remarks>
         [HttpGet("State/option")]   
         public async Task<IActionResult> getState([FromQuery] GetStateOptionRequestDTO requestDTO)
@@ -79,12 +83,14 @@ namespace axionpro.api.Controllers.Location
             return Ok(result);
         }
         /// <summary>
-        /// Supports the Angular UI flow for get district.
+        /// Used-In-Angular: retrieves districts.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): LocationsApi.getDistricts (app/core/services/locations-api.ts:77).</para>
         /// <para>Angular purpose: retrieves districts.</para>
-        /// <para>Angular page(s): /app/designations; /app/employees; /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants; /app/tenant-locations/new; /app/tenant-locations/:tenantLocationId/edit; /app/tenant-locations; and 12 more.</para>
-        /// <para>Angular API service call(s): LocationsApi.getDistricts (app/core/services/locations-api.ts:74).</para>
+        /// <para>Integrated UI page(s): /app/designations; /app/employees; /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants; /app/tenant-locations/new; /app/tenant-locations/:tenantLocationId/edit; /app/tenant-locations</para>
+        /// <para>Angular UI component(s): LookupStore (app/core/stores/lookup.store.ts); EmployeeContactForm (app/features/user-menu/employee-profile/employee-contact-info/employee-contact-form/employee-contact-form.ts); DashboardHostStore (app/features/dashboard/dashboard-host/dashboard-host.store.ts); DepartmentsStore (app/features/departments/departments.store.ts); Designations (app/features/designations/designations.ts); Employees (app/features/employees/employees.ts); TenantDetail (app/features/host/tenants/tenant-detail/tenant-detail.ts); TenantForm (app/features/host/tenants/tenant-form/tenant-form.ts)</para>
         /// </remarks>
         [HttpGet("District/option")]         
         public async Task<IActionResult> getDistrict([FromQuery] GetDistrictOptionRequestDTO requestDTO)

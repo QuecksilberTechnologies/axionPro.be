@@ -30,13 +30,15 @@ public sealed class ProjectDetailController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves active feature headers, their child headers, operational leaf pages, and leaf-page operation metadata.
+    /// Used-In-Angular: retrieves feature pages.
     /// </summary>
     /// <remarks>
-    /// This public read-only endpoint intentionally has no request validation or permission check.
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): FeaturePageApi.getFeaturePages (app/core/services/feature-page-api.ts:25).</para>
+    /// <para>Angular purpose: retrieves feature pages.</para>
+    /// <para>Integrated UI page(s): /auth/login</para>
+    /// <para>Angular UI component(s): FeaturePageStore (app/core/stores/feature-page.store.ts); moduleOperationInterceptor (app/core/interceptors/module-operation-interceptor.ts); Login (app/features/authentication/login/login.ts); AppAsideMenu (app/layout/app-aside-menu/app-aside-menu.ts); AppHeader (app/layout/app-header/app-header.ts); appConfig (app/app.config.ts)</para>
     /// </remarks>
-    /// <param name="scope">Optional scope: 1 for Tenant, 2 for Host, 3 for Common; omit for all scopes.</param>
-    /// <param name="cancellationToken">A token used to cancel request processing.</param>
     [HttpGet("get-all")]
     public async Task<IActionResult> GetAll(
         [FromQuery(Name = "Scope")] short? scope,

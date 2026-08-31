@@ -7,7 +7,6 @@
 
 
 
-using AutoMapper;
 using axionpro.application.Constants;
 using axionpro.application.Common.Helpers.ProjectionHelpers.Employee;
 using axionpro.application.Common.Helpers.RequestHelper;
@@ -18,12 +17,8 @@ using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
 using axionpro.application.Interfaces.IFileStorage;
-using axionpro.application.Interfaces.IPermission;
-using axionpro.application.Interfaces.ITokenService;
 using axionpro.application.Wrappers;
 using MediatR;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
@@ -53,35 +48,20 @@ namespace axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers
 public class GetAllEmployeeInfoQueryHandler : IRequestHandler<GetAllEmployeeInfoQuery, ApiResponse<List<GetAllEmployeeInfoResponseDTO>>>
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<GetAllEmployeeInfoQueryHandler> _logger;
-        private readonly ITokenService _tokenService;
-        private readonly IPermissionService _permissionService;
-        private readonly IConfiguration _config;
-        private readonly IEncryptionService _encryptionService;
         private readonly IIdEncoderService _idEncoderService;
         private readonly ICommonRequestService _commonRequestService;
         private readonly IFileStorageService _fileStorageService;
 
         public GetAllEmployeeInfoQueryHandler(
             IUnitOfWork unitOfWork,
-            IMapper mapper,
-            IHttpContextAccessor httpContextAccessor,
             ILogger<GetAllEmployeeInfoQueryHandler> logger,
-            ITokenService tokenService,
-            IPermissionService permissionService,
-            IConfiguration config,
-            IEncryptionService encryptionService, IIdEncoderService idEncoderService, ICommonRequestService commonRequestService,IFileStorageService fileStorageService)
+            IIdEncoderService idEncoderService,
+            ICommonRequestService commonRequestService,
+            IFileStorageService fileStorageService)
         {
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
-            _httpContextAccessor = httpContextAccessor;
             _logger = logger;
-            _tokenService = tokenService;
-            _permissionService = permissionService;
-            _config = config;
-            _encryptionService = encryptionService;
             _idEncoderService = idEncoderService;
             _commonRequestService = commonRequestService;
             _fileStorageService = fileStorageService;
@@ -140,11 +120,15 @@ public class GetAllEmployeeInfoQueryHandler : IRequestHandler<GetAllEmployeeInfo
                 // ===============================
                 var items = responseDTO?.Data ?? new List<GetAllEmployeeInfoResponseDTO>();
 
-
+                // EmployeeTenantPermissionBehavior has already enforced the Module and stored-procedure
+                // permission check. The validated context below supplies the trusted viewer identity used
+                // only to shape the response; no client-provided role or EmployeeId controls visibility.
                 var resultList = items.Any()
-                    ? ProjectionHelper.ToGetAllEmployeeInfoResponseDTOs( responseDTO,  _idEncoderService,
+                    ? ProjectionHelper.ToGetAllEmployeeInfoResponseDTOs(responseDTO, _idEncoderService,
                         validation.Claims.TenantEncriptionKey,
-                        _config, _fileStorageService)
+                        _fileStorageService,
+                        validation.LoggedInEmployeeId,
+                        validation.RoleTypeId)
                     : new List<GetAllEmployeeInfoResponseDTO>();
 
                 // Expose the configured assignment limit on every existing Employee row without another role query.

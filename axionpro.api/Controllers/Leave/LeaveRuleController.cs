@@ -31,12 +31,14 @@ namespace axionpro.api.Controllers.Leave
 
         // ✅ Create PolicyMappingLeaveType
         /// <summary>
-        /// Supports the Angular UI flow for create leave rule async.
+        /// Used-In-Angular: creates leave rule.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): LeaveRule.createLeaveRule (app/core/services/leave-rule.ts:43).</para>
         /// <para>Angular purpose: creates leave rule.</para>
-        /// <para>Angular page(s): /app/leave/rules.</para>
-        /// <para>Angular API service call(s): LeaveRule.createLeaveRule (app/core/services/leave-rule.ts:42).</para>
+        /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
+        /// <para>Angular UI component(s): LeaveRuleDialog (app/features/leaves/leave-requests/leave-rules/leave-rule-dialog/leave-rule-dialog.ts)</para>
         /// </remarks>
         [HttpPost("create")]        
         public async Task<IActionResult> CreateLeaveRuleAsync([FromBody] CreateLeaveRuleDTORequest requestDTO)
@@ -49,12 +51,14 @@ namespace axionpro.api.Controllers.Leave
 
         //  ✅ Get All LeavePolicies
         /// <summary>
-        /// Supports the Angular UI flow for get all leave rule async.
+        /// Used-In-Angular: retrieves all leave rules.
         /// </summary>
         /// <remarks>
-        /// <para>Angular purpose: performs constructor.</para>
-        /// <para>Angular page(s): No Angular component caller was statically resolved; the Angular API-service wrapper is documented below..</para>
-        /// <para>Angular API service call(s): LeaveRule.constructor (app/core/services/leave-rule.ts:36).</para>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): LeaveRule.getAllLeaveRules (app/core/services/leave-rule.ts:37).</para>
+        /// <para>Angular purpose: retrieves all leave rules.</para>
+        /// <para>Integrated UI page(s): /app/leave/history; /app/leave/my; /app/leave/balances; /app/leave/inbox; /app/leave/rules; /app/leave/status; /app/leave/types; /app/profile/leave-info</para>
+        /// <para>Angular UI component(s): LeaveStore (app/features/leaves/leave.store.ts); LeaveHistory (app/features/user-menu/employee-profile/employee-leave-info/leave-history/leave-history.ts); LeaveManagement (app/features/leaves/leave-management/leave-management.ts); RequestLeaveDialog (app/features/leaves/leave-management/request-leave-dialog/request-leave-dialog.ts); LeaveBalances (app/features/leaves/leave-requests/leave-balances/leave-balances.ts); LeaveRequests (app/features/leaves/leave-requests/leave-requests.ts); LeaveRuleDialog (app/features/leaves/leave-requests/leave-rules/leave-rule-dialog/leave-rule-dialog.ts); LeaveRules (app/features/leaves/leave-requests/leave-rules/leave-rules.ts)</para>
         /// </remarks>
         [HttpGet("get")]        
         public async Task<IActionResult> GetAllLeaveRuleAsync([FromQuery] GetLeaveRuleRequestDTO getLeavePolicyRequestDTO)
@@ -66,6 +70,14 @@ namespace axionpro.api.Controllers.Leave
             return Ok(result);
         }
         //  ✅ Get All leave rule sandwich 
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: GET /api/leaverule/leaverule/sandwich/get.</para>
+        /// </remarks>
         [HttpGet("LeaveRule/Sandwich/get")]       
         
         public async Task<IActionResult> GetAllLeaveRuleSandwichAsync([FromQuery] GetLeaveRuleRequestDTO getLeavePolicyRequestDTO)
@@ -78,12 +90,14 @@ namespace axionpro.api.Controllers.Leave
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for update leave policy async.
+        /// Used-In-Angular: updates leave rule.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): LeaveRule.updateLeaveRule (app/core/services/leave-rule.ts:49).</para>
         /// <para>Angular purpose: updates leave rule.</para>
-        /// <para>Angular page(s): /app/leave/rules.</para>
-        /// <para>Angular API service call(s): LeaveRule.updateLeaveRule (app/core/services/leave-rule.ts:48).</para>
+        /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
+        /// <para>Angular UI component(s): LeaveRuleDialog (app/features/leaves/leave-requests/leave-rules/leave-rule-dialog/leave-rule-dialog.ts)</para>
         /// </remarks>
         [HttpPost("update")]    
         
@@ -96,12 +110,14 @@ namespace axionpro.api.Controllers.Leave
             return Ok(result);
         }
         /// <summary>
-        /// Supports the Angular UI flow for delete leave policy.
+        /// Used-In-Angular: deletes leave rule.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): LeaveRule.deleteLeaveRule (app/core/services/leave-rule.ts:55).</para>
         /// <para>Angular purpose: deletes leave rule.</para>
-        /// <para>Angular page(s): /app/leave/rules; /app/leave/history; /app/leave/my; /app/leave/balances; /app/leave/inbox; /app/leave/status; /app/leave/types; /app/profile/leave-info; and 1 more.</para>
-        /// <para>Angular API service call(s): LeaveRule.deleteLeaveRule (app/core/services/leave-rule.ts:54).</para>
+        /// <para>Integrated UI page(s): /app/leave/history; /app/leave/my; /app/leave/balances; /app/leave/inbox; /app/leave/rules; /app/leave/status; /app/leave/types; /app/profile/leave-info</para>
+        /// <para>Angular UI component(s): LeaveStore (app/features/leaves/leave.store.ts); LeaveHistory (app/features/user-menu/employee-profile/employee-leave-info/leave-history/leave-history.ts); LeaveManagement (app/features/leaves/leave-management/leave-management.ts); RequestLeaveDialog (app/features/leaves/leave-management/request-leave-dialog/request-leave-dialog.ts); LeaveBalances (app/features/leaves/leave-requests/leave-balances/leave-balances.ts); LeaveRequests (app/features/leaves/leave-requests/leave-requests.ts); LeaveRuleDialog (app/features/leaves/leave-requests/leave-rules/leave-rule-dialog/leave-rule-dialog.ts); LeaveRules (app/features/leaves/leave-requests/leave-rules/leave-rules.ts)</para>
         /// </remarks>
         [HttpPost("delete")]      
         

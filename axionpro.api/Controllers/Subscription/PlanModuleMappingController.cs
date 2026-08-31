@@ -39,6 +39,14 @@ public sealed class PlanModuleMappingController : ControllerBase
     #endregion
 
     #region Plan Module Mapping Endpoints
+    /// <summary>
+    /// Not-Used-In-Angular.
+    /// </summary>
+    /// <remarks>
+    /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    /// <para>Backend endpoint: GET /api/planmodulemapping/options/{}.</para>
+    /// </remarks>
 
     [HttpGet("options/{subscriptionPlanId:int}")]
     public async Task<IActionResult> GetOptions(
@@ -53,12 +61,14 @@ public sealed class PlanModuleMappingController : ControllerBase
     }
 
     /// <summary>
-    /// Supports the Angular UI flow for save.
+    /// Used-In-Angular: updates plan module mapping.
     /// </summary>
     /// <remarks>
-    /// <para>Angular purpose: performs save plan module mapping.</para>
-    /// <para>Angular page(s): /app/subscriptions.</para>
-    /// <para>Angular API service call(s): PlanModuleMappingApi.savePlanModuleMapping (app/core/services/plan-module-mapping-api.ts:32).</para>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): PlanModuleMappingApi.savePlanModuleMapping (app/core/services/plan-module-mapping-api.ts:39).</para>
+    /// <para>Angular purpose: updates plan module mapping.</para>
+    /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
+    /// <para>Angular UI component(s): SubscriptionPlanModuleMap (app/features/host/subscriptions/subscription-plan-module-map/subscription-plan-module-map.ts)</para>
     /// </remarks>
     [HttpPost("save")]
     public async Task<IActionResult> Save(

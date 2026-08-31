@@ -37,12 +37,14 @@ namespace axionpro.api.Controllers.Asset
         #region Tenant Admin - Asset Type CRUD
 
         /// <summary>
-        /// Supports the Angular UI flow for get all asset type.
+        /// Used-In-Angular: retrieves assets types.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): AssetTypesApi.fetchAssetsTypes (app/core/services/asset-types-api.ts:39).</para>
         /// <para>Angular purpose: retrieves assets types.</para>
-        /// <para>Angular page(s): /app/assets/asset-types; /app/assets/list; /app/roles.</para>
-        /// <para>Angular API service call(s): AssetTypesApi.fetchAssetsTypes (app/core/services/asset-types-api.ts:38).</para>
+        /// <para>Integrated UI page(s): /app/assets/asset-types; /app/assets/list</para>
+        /// <para>Angular UI component(s): AssetTypesStore (app/features/assets-management/asset-types/asset-types.store.ts); AssetsManagementStore (app/features/assets-management/assets-management.store.ts); AssetFilter (app/shared/components/asset/asset-filter/asset-filter.ts); UpsertAssetDialogStore (app/shared/components/asset/upsert-asset-dialog/upsert-asset-dialog.store.ts); AssetTypes (app/features/assets-management/asset-types/asset-types.ts); AssetsManagement (app/features/assets-management/assets-management.ts); UpsertAssetDialog (app/shared/components/asset/upsert-asset-dialog/upsert-asset-dialog.ts)</para>
         /// </remarks>
         [HttpGet("get")]
         public async Task<IActionResult> GetAllAssetType([FromQuery] GetTypeRequestDTO request)
@@ -57,12 +59,14 @@ namespace axionpro.api.Controllers.Asset
 
     
         /// <summary>
-        /// Supports the Angular UI flow for add asset type.
+        /// Used-In-Angular: creates asset type.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): AssetTypesApi.createAssetType (app/core/services/asset-types-api.ts:32).</para>
         /// <para>Angular purpose: creates asset type.</para>
-        /// <para>Angular page(s): /app/assets/asset-types.</para>
-        /// <para>Angular API service call(s): AssetTypesApi.createAssetType (app/core/services/asset-types-api.ts:31).</para>
+        /// <para>Integrated UI page(s): /app/assets/asset-types</para>
+        /// <para>Angular UI component(s): AssetTypeManageDialog (app/shared/components/asset/asset-type-manage-dialog/asset-type-manage-dialog.ts); AssetTypes (app/features/assets-management/asset-types/asset-types.ts)</para>
         /// </remarks>
         [HttpPost("add")]        
         public async Task<IActionResult> AddAssetType([FromBody] AddTypeRequestDTO request)
@@ -80,12 +84,14 @@ namespace axionpro.api.Controllers.Asset
         /// </summary>
         // [HttpPost("update")]
         /// <summary>
-        /// Supports the Angular UI flow for update asset type.
+        /// Used-In-Angular: updates asset type.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): AssetTypesApi.updateAssetType (app/core/services/asset-types-api.ts:45).</para>
         /// <para>Angular purpose: updates asset type.</para>
-        /// <para>Angular page(s): /app/assets/asset-types.</para>
-        /// <para>Angular API service call(s): AssetTypesApi.updateAssetType (app/core/services/asset-types-api.ts:44).</para>
+        /// <para>Integrated UI page(s): /app/assets/asset-types</para>
+        /// <para>Angular UI component(s): AssetTypeManageDialog (app/shared/components/asset/asset-type-manage-dialog/asset-type-manage-dialog.ts); AssetTypes (app/features/assets-management/asset-types/asset-types.ts)</para>
         /// </remarks>
         [HttpPut("update")] 
         public async Task<IActionResult> UpdateAssetType([FromBody] UpdateTypeRequestDTO request)
@@ -99,12 +105,14 @@ namespace axionpro.api.Controllers.Asset
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for delete asset type.
+        /// Used-In-Angular: deletes asset type.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): AssetTypesApi.deleteAssetType (app/core/services/asset-types-api.ts:52).</para>
         /// <para>Angular purpose: deletes asset type.</para>
-        /// <para>Angular page(s): /app/assets/asset-types.</para>
-        /// <para>Angular API service call(s): AssetTypesApi.deleteAssetType (app/core/services/asset-types-api.ts:51).</para>
+        /// <para>Integrated UI page(s): /app/assets/asset-types</para>
+        /// <para>Angular UI component(s): AssetTypesStore (app/features/assets-management/asset-types/asset-types.store.ts); AssetTypes (app/features/assets-management/asset-types/asset-types.ts)</para>
         /// </remarks>
         [HttpDelete("delete")] 
         public async Task<IActionResult> DeleteAssetType([FromQuery] DeleteTypeRequestDTO request)

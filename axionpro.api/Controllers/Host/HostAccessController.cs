@@ -40,6 +40,16 @@ public sealed class HostAccessController : ControllerBase
     #endregion
 
     #region Host Access Endpoints
+    /// <summary>
+    /// Used-In-Angular: retrieves host bootstrap.
+    /// </summary>
+    /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): AccessBootstrapApi.getHostBootstrap (app/core/services/access-bootstrap-api.ts:28).</para>
+    /// <para>Angular purpose: retrieves host bootstrap.</para>
+    /// <para>Integrated UI page(s): /app/policies/attendance-policies; /auth/login; /app/admin-dashboard; /app/departments; /app/designations; /app/device-masters; /app/modules/module-operations; /app/modules/operations</para>
+    /// <para>Angular UI component(s): CurrentUserPermissionsStore (app/core/stores/current-user-permissions.store.ts); hasModuleOperationGuard (app/core/guards/has-module-operation-guard.ts); hasModulePermissionGuard (app/core/guards/has-module-permission-guard.ts); superAdminGuard (app/core/guards/super-admin-guard.ts); AttendancePolicies (app/features/attendance-policies/attendance-policies.ts); Login (app/features/authentication/login/login.ts); DashboardAdmin (app/features/dashboard/dashboard-admin/dashboard-admin.ts); LocationsCard (app/features/dashboard/dashboard-admin/locations-card/locations-card.ts)</para>
+    /// </remarks>
 
     [HttpGet("bootstrap")]
     public async Task<IActionResult> GetBootstrap(CancellationToken cancellationToken)

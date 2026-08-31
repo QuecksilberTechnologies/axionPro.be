@@ -34,12 +34,14 @@ namespace axionpro.api.Controllers.Employee
         }
 
          /// <summary>
-         /// Supports the Angular UI flow for createpersonalinfo.
+         /// Used-In-Angular: creates employee sensitive.
          /// </summary>
          /// <remarks>
+         /// <para>Angular usage status: Used-In-Angular.</para>
+         /// <para>Angular function(s): EmployeeIdentityApi.createEmployeeSensitive (app/core/services/employee-identity-api.ts:75).</para>
          /// <para>Angular purpose: creates employee sensitive.</para>
-         /// <para>Angular page(s): /app/profile/identity-info.</para>
-         /// <para>Angular API service call(s): EmployeeIdentityApi.createEmployeeSensitive (app/core/services/employee-identity-api.ts:72).</para>
+         /// <para>Integrated UI page(s): /app/profile/identity-info</para>
+         /// <para>Angular UI component(s): EmployeeIdentityForm (app/features/user-menu/employee-profile/employee-identity-info/employee-identity-form/employee-identity-form.ts); EmployeeIdentityInfo (app/features/user-menu/employee-profile/employee-identity-info/employee-identity-info.ts)</para>
          /// </remarks>
         
          [HttpPost("Create")]         
@@ -55,12 +57,14 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for get sensitive data.
+        /// Used-In-Angular: retrieves employee identities.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeIdentityApi.getEmployeeIdentities (app/core/services/employee-identity-api.ts:69).</para>
         /// <para>Angular purpose: retrieves employee identities.</para>
-        /// <para>Angular page(s): /app/profile/identity-info.</para>
-        /// <para>Angular API service call(s): EmployeeIdentityApi.getEmployeeIdentities (app/core/services/employee-identity-api.ts:66).</para>
+        /// <para>Integrated UI page(s): /app/profile/identity-info</para>
+        /// <para>Angular UI component(s): EmployeeIdentityInfo (app/features/user-menu/employee-profile/employee-identity-info/employee-identity-info.ts)</para>
         /// </remarks>
         [HttpGet("get")]        
         public async Task<IActionResult> GetSensitiveData([FromQuery] GetIdentityRequestDTO commandDto)

@@ -34,6 +34,14 @@ namespace axionpro.api.Controllers.Module
         }
 
         #region Create Module
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: POST /api/commonmodule/add.</para>
+        /// </remarks>
 
         [HttpPost("add")]       
         public async Task<IActionResult> AddModule([FromBody] CreateCommonModuleRequestDTO? requestDto)

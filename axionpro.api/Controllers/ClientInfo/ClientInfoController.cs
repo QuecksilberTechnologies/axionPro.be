@@ -29,12 +29,14 @@ public class ClientInfoController : ControllerBase
         return ip;
     }
     /// <summary>
-    /// Supports the Angular UI flow for get device info.
+    /// Used-In-Angular: retrieves device info.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): AuthApi.getDeviceInfo (app/core/services/auth-api.ts:170).</para>
     /// <para>Angular purpose: retrieves device info.</para>
-    /// <para>Angular page(s): /auth/login.</para>
-    /// <para>Angular API service call(s): AuthApi.getDeviceInfo (app/core/services/auth-api.ts:161).</para>
+    /// <para>Integrated UI page(s): /auth/login</para>
+    /// <para>Angular UI component(s): Login (app/features/authentication/login/login.ts)</para>
     /// </remarks>
     [HttpGet("detect-device")]
     public IActionResult GetDeviceInfo()

@@ -16,6 +16,7 @@ namespace axionpro.application.Common.Models.Security
         public long UserEmployeeId { get; set; }
         public long TenantId { get; set; }
         public int RoleId { get; set; }
+        public int RoleTypeId { get; set; }
 
         
         public TokenClaimsModel? Claims { get; set; }

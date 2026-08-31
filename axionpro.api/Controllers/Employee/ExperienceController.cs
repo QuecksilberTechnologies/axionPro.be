@@ -38,12 +38,14 @@ namespace axionpro.api.Controllers.Employee
         // Create new employee experience record.
         // </summary>
         /// <summary>
-        /// Supports the Angular UI flow for create experience.
+        /// Used-In-Angular: creates employee experience.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeExperienceAPI.createEmployeeExperience (app/core/services/employee-experience-api.ts:104).</para>
         /// <para>Angular purpose: creates employee experience.</para>
-        /// <para>Angular page(s): /app/profile/experience-info.</para>
-        /// <para>Angular API service call(s): EmployeeExperienceAPI.createEmployeeExperience (app/core/services/employee-experience-api.ts:100).</para>
+        /// <para>Integrated UI page(s): /app/profile/experience-info</para>
+        /// <para>Angular UI component(s): EmployeeExperienceForm (app/features/user-menu/employee-profile/employee-experience-info/employee-experience-form/employee-experience-form.ts); EmployeeExperienceInfo (app/features/user-menu/employee-profile/employee-experience-info/employee-experience-info.ts)</para>
         /// </remarks>
         [HttpPost("create")]       
         [Consumes("multipart/form-data")]
@@ -56,12 +58,14 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for get allexperince info.
+        /// Used-In-Angular: retrieves employee experience.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeExperienceAPI.getEmployeeExperience (app/core/services/employee-experience-api.ts:98).</para>
         /// <para>Angular purpose: retrieves employee experience.</para>
-        /// <para>Angular page(s): /app/profile/experience-info.</para>
-        /// <para>Angular API service call(s): EmployeeExperienceAPI.getEmployeeExperience (app/core/services/employee-experience-api.ts:94).</para>
+        /// <para>Integrated UI page(s): /app/profile/experience-info</para>
+        /// <para>Angular UI component(s): EmployeeExperienceInfo (app/features/user-menu/employee-profile/employee-experience-info/employee-experience-info.ts)</para>
         /// </remarks>
         [HttpGet("get")]
         //    
@@ -77,12 +81,14 @@ namespace axionpro.api.Controllers.Employee
             
         }
         /// <summary>
-        /// Supports the Angular UI flow for update.
+        /// Used-In-Angular: updates employee experience.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeExperienceAPI.updateEmployeeExperience (app/core/services/employee-experience-api.ts:110).</para>
         /// <para>Angular purpose: updates employee experience.</para>
-        /// <para>Angular page(s): /app/profile/experience-info.</para>
-        /// <para>Angular API service call(s): EmployeeExperienceAPI.updateEmployeeExperience (app/core/services/employee-experience-api.ts:106).</para>
+        /// <para>Integrated UI page(s): /app/profile/experience-info</para>
+        /// <para>Angular UI component(s): EmployeeExperienceForm (app/features/user-menu/employee-profile/employee-experience-info/employee-experience-form/employee-experience-form.ts); EmployeeExperienceInfo (app/features/user-menu/employee-profile/employee-experience-info/employee-experience-info.ts)</para>
         /// </remarks>
         [HttpPost("update")]
         [Consumes("multipart/form-data")]
@@ -96,12 +102,14 @@ namespace axionpro.api.Controllers.Employee
             
         }
         /// <summary>
-        /// Supports the Angular UI flow for delete.
+        /// Used-In-Angular: deletes employee experience.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeExperienceAPI.deleteEmployeeExperience (app/core/services/employee-experience-api.ts:117).</para>
         /// <para>Angular purpose: deletes employee experience.</para>
-        /// <para>Angular page(s): /app/profile/experience-info.</para>
-        /// <para>Angular API service call(s): EmployeeExperienceAPI.deleteEmployeeExperience (app/core/services/employee-experience-api.ts:113).</para>
+        /// <para>Integrated UI page(s): /app/profile/experience-info</para>
+        /// <para>Angular UI component(s): EmployeeExperienceInfo (app/features/user-menu/employee-profile/employee-experience-info/employee-experience-info.ts)</para>
         /// </remarks>
         [HttpDelete("delete")]
         public async Task<IActionResult> Delete([FromQuery] DeleteRequestDTO dto)
@@ -118,12 +126,14 @@ namespace axionpro.api.Controllers.Employee
 
         }
         /// <summary>
-        /// Supports the Angular UI flow for delete doc.
+        /// Used-In-Angular: deletes employee experience doc.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeExperienceAPI.deleteEmployeeExperienceDoc (app/core/services/employee-experience-api.ts:123).</para>
         /// <para>Angular purpose: deletes employee experience doc.</para>
-        /// <para>Angular page(s): /app/profile/experience-info.</para>
-        /// <para>Angular API service call(s): EmployeeExperienceAPI.deleteEmployeeExperienceDoc (app/core/services/employee-experience-api.ts:119).</para>
+        /// <para>Integrated UI page(s): /app/profile/experience-info</para>
+        /// <para>Angular UI component(s): EmployeeExperienceForm (app/features/user-menu/employee-profile/employee-experience-info/employee-experience-form/employee-experience-form.ts); EmployeeExperienceInfo (app/features/user-menu/employee-profile/employee-experience-info/employee-experience-info.ts)</para>
         /// </remarks>
         [HttpDelete("delete-doc")]
         public async Task<IActionResult> DeleteDoc([FromQuery] DeleteRequestDTO dto)

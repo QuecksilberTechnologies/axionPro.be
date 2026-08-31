@@ -42,12 +42,14 @@ public sealed class CommonMenuController : ControllerBase
     #region Common Menu Endpoints
 
     /// <summary>
-    /// Supports the Angular UI flow for get.
+    /// Used-In-Angular: retrieves common menu.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): CommonMenuApi.getCommonMenu (app/core/services/common-menu-api.ts:20).</para>
     /// <para>Angular purpose: retrieves common menu.</para>
-    /// <para>Angular page(s): /auth/login; /app/admin-dashboard; /app/dashboard; /app/okr/dashboard; /app/okr/:id; /app/okr/my; /app/okr/team; /app/okr/company; and 18 more.</para>
-    /// <para>Angular API service call(s): CommonMenuApi.getCommonMenu (app/core/services/common-menu-api.ts:19).</para>
+    /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
+    /// <para>Angular UI component(s): isLogoutMenuItem (app/core/stores/auth.store.ts); UserMenu (app/layout/user-menu/user-menu.ts); AppHeader (app/layout/app-header/app-header.ts)</para>
     /// </remarks>
     [HttpGet]
     public async Task<IActionResult> Get(CancellationToken cancellationToken)

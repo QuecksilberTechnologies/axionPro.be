@@ -32,6 +32,14 @@ namespace axionpro.api.Controllers.EmailTemplate
             _emailService = emailService;
             _logger = logger;
         }
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: GET /api/emailtemplate/get-template-by-code.</para>
+        /// </remarks>
 
         [HttpGet("get-template-by-code")]      
         public async Task<IActionResult> GetTemplateByCodeAsync([FromQuery] string code)
@@ -43,6 +51,14 @@ namespace axionpro.api.Controllers.EmailTemplate
 
             return Ok(result);
         }
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: POST /api/emailtemplate/send-template.</para>
+        /// </remarks>
 
         [HttpPost("send-template")]
         public async Task<IActionResult> SendTemplatedEmail([FromBody] SendEmailTemplatRequestDTO request)

@@ -34,12 +34,14 @@ namespace axionpro.api.Controllers.Policies
             _logger = logger;
         }
         /// <summary>
-        /// Supports the Angular UI flow for get all policy types async.
+        /// Used-In-Angular: retrieves policy types.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): PolicyTypeApi.getPolicyTypes (app/core/services/policy-type-api.ts:81).</para>
         /// <para>Angular purpose: retrieves policy types.</para>
-        /// <para>Angular page(s): /app/policies.</para>
-        /// <para>Angular API service call(s): PolicyTypeApi.getPolicyTypes (app/core/services/policy-type-api.ts:78).</para>
+        /// <para>Integrated UI page(s): /app/policies</para>
+        /// <para>Angular UI component(s): PolicyTypes (app/features/policies/policy-types/policy-types.ts)</para>
         /// </remarks>
         [HttpGet("get-all")]    
         public async Task<IActionResult> GetAllPolicyTypesAsync([FromQuery] GetPolicyTypeRequestDTO requestDTO)
@@ -54,12 +56,14 @@ namespace axionpro.api.Controllers.Policies
             
         }
         /// <summary>
-        /// Supports the Angular UI flow for get ddlpolicy types async.
+        /// Used-In-Angular: retrieves policy type names.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): PolicyTypeApi.getPolicyTypeNames (app/core/services/policy-type-api.ts:88).</para>
         /// <para>Angular purpose: retrieves policy type names.</para>
-        /// <para>Angular page(s): /app/policies/attendance-policies; /app/policies/attendance-policies/new; /app/policies/attendance-policies/:attendancePolicyId/edit; /app/profile/insurance-info; /app/policies/insurance-policies; /app/policies/insurance-policy-type-mapping.</para>
-        /// <para>Angular API service call(s): PolicyTypeApi.getPolicyTypeNames (app/core/services/policy-type-api.ts:85).</para>
+        /// <para>Integrated UI page(s): /app/policies/attendance-policies; /app/policies/attendance-policies/new; /app/policies/attendance-policies/:attendancePolicyId/edit; /app/profile/insurance-info; /app/policies/insurance-policies; /app/policies/insurance-policy-type-mapping</para>
+        /// <para>Angular UI component(s): AttendancePolicies (app/features/attendance-policies/attendance-policies.ts); AttendancePolicyForm (app/features/attendance-policies/attendance-policy-form/attendance-policy-form.ts); UpsertInsurancePolicyDialog (app/features/policies/policies-insurance/upsert-insurance-policy-dialog/upsert-insurance-policy-dialog.ts); UpsertPolicyTypeInsuranceMapDialog (app/features/policies/policy-type-insurance-map/upsert-policy-type-insurance-map-dialog/upsert-policy-type-insurance-map-dialog.ts); EmployeeInsuranceForm (app/features/user-menu/employee-profile/employee-insurance-info/employee-insurance-form/employee-insurance-form.ts); EmployeeInsuranceInfo (app/features/user-menu/employee-profile/employee-insurance-info/employee-insurance-info.ts); PoliciesInsurance (app/features/policies/policies-insurance/policies-insurance.ts); PolicyTypeInsuranceMap (app/features/policies/policy-type-insurance-map/policy-type-insurance-map.ts)</para>
         /// </remarks>
         [HttpGet("get-ddl")]     
         public async Task<IActionResult> GetDDLPolicyTypesAsync(
@@ -84,12 +88,14 @@ namespace axionpro.api.Controllers.Policies
            
         }
         /// <summary>
-        /// Supports the Angular UI flow for get unstructured policy types async.
+        /// Used-In-Angular: retrieves policy type unstruct details.
         /// </summary>
         /// <remarks>
-        /// <para>Angular purpose: updates policy type.</para>
-        /// <para>Angular page(s): /app/policies.</para>
-        /// <para>Angular API service call(s): PolicyTypeApi.updatePolicyType (app/core/services/policy-type-api.ts:106).</para>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): PolicyTypeApi.getPolicyTypeUnstructDetails (app/core/services/policy-type-api.ts:109).</para>
+        /// <para>Angular purpose: retrieves policy type unstruct details.</para>
+        /// <para>Integrated UI page(s): /app/policies</para>
+        /// <para>Angular UI component(s): PolicyTypeUnstructDetail (app/features/policies/policy-types/policy-type-unstruct-detail/policy-type-unstruct-detail.ts); PolicyTypes (app/features/policies/policy-types/policy-types.ts)</para>
         /// </remarks>
         [HttpGet("get-all-unstruct")]     
         public async Task<IActionResult> GetUnstructuredPolicyTypesAsync(
@@ -116,12 +122,14 @@ namespace axionpro.api.Controllers.Policies
  
 
         /// <summary>
-        /// Supports the Angular UI flow for create policy type async.
+        /// Used-In-Angular: creates policy type.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): PolicyTypeApi.createPolicyType (app/core/services/policy-type-api.ts:94).</para>
         /// <para>Angular purpose: creates policy type.</para>
-        /// <para>Angular page(s): /app/policies.</para>
-        /// <para>Angular API service call(s): PolicyTypeApi.createPolicyType (app/core/services/policy-type-api.ts:91).</para>
+        /// <para>Integrated UI page(s): /app/policies</para>
+        /// <para>Angular UI component(s): UpsertPolicyTypesDialog (app/features/policies/policy-types/upsert-policy-types-dialog/upsert-policy-types-dialog.ts); PolicyTypes (app/features/policies/policy-types/policy-types.ts)</para>
         /// </remarks>
         [HttpPost("create")]
         [Consumes("multipart/form-data")]
@@ -134,12 +142,14 @@ namespace axionpro.api.Controllers.Policies
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for update policy type async.
+        /// Used-In-Angular: updates policy type.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): PolicyTypeApi.updatePolicyType (app/core/services/policy-type-api.ts:100).</para>
         /// <para>Angular purpose: updates policy type.</para>
-        /// <para>Angular page(s): /app/policies.</para>
-        /// <para>Angular API service call(s): PolicyTypeApi.updatePolicyType (app/core/services/policy-type-api.ts:97).</para>
+        /// <para>Integrated UI page(s): /app/policies</para>
+        /// <para>Angular UI component(s): UpsertPolicyTypesDialog (app/features/policies/policy-types/upsert-policy-types-dialog/upsert-policy-types-dialog.ts); PolicyTypes (app/features/policies/policy-types/policy-types.ts)</para>
         /// </remarks>
         [HttpPost("update")]
         [Consumes("multipart/form-data")]
@@ -153,12 +163,14 @@ namespace axionpro.api.Controllers.Policies
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for delete policy type async.
+        /// Used-In-Angular: deletes policy type.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): PolicyTypeApi.deletePolicyType (app/core/services/policy-type-api.ts:116).</para>
         /// <para>Angular purpose: deletes policy type.</para>
-        /// <para>Angular page(s): /app/policies.</para>
-        /// <para>Angular API service call(s): PolicyTypeApi.deletePolicyType (app/core/services/policy-type-api.ts:113).</para>
+        /// <para>Integrated UI page(s): /app/policies</para>
+        /// <para>Angular UI component(s): PolicyTypes (app/features/policies/policy-types/policy-types.ts)</para>
         /// </remarks>
         [HttpDelete("delete")]        
         public async Task<IActionResult> DeletePolicyTypeAsync([FromQuery] DeletePolicyTypeDTO requestDTO)
@@ -168,6 +180,14 @@ namespace axionpro.api.Controllers.Policies
             var result = await _mediator.Send(command);
             return Ok(result);
         }
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: DELETE /api/policytype/delete-doc.</para>
+        /// </remarks>
         [HttpDelete("delete-doc")]
         public async Task<IActionResult> DeletePolicyTypeDocOnlyAsync([FromQuery] DeleteRequestDTO requestDTO)
         {

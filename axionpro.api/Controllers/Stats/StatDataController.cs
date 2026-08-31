@@ -37,12 +37,14 @@ namespace axionpro.api.Controllers.Stats
         ///Dashboard statistics.
         // Returns employee summary statistics for dashboard widgets      
         /// <summary>
-        /// Supports the Angular UI flow for get employee dashboard summary async.
+        /// Used-In-Angular: retrieves employee statistics.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeesApi.getEmployeeStatistics (app/core/services/employee-api.ts:150).</para>
         /// <para>Angular purpose: retrieves employee statistics.</para>
-        /// <para>Angular page(s): /app/admin-dashboard; /app/employees.</para>
-        /// <para>Angular API service call(s): EmployeesApi.getEmployeeStatistics (app/core/services/employee-api.ts:146).</para>
+        /// <para>Integrated UI page(s): /app/admin-dashboard; /app/employees</para>
+        /// <para>Angular UI component(s): DashboardAdmin (app/features/dashboard/dashboard-admin/dashboard-admin.ts); EmployeesStore (app/features/employees/employees.store.ts); Employees (app/features/employees/employees.ts)</para>
         /// </remarks>
         [HttpGet("Dashboard/Employees/Statistics")]        
         public async Task<IActionResult> GetEmployeeDashboardSummaryAsync(
@@ -58,12 +60,14 @@ namespace axionpro.api.Controllers.Stats
 
     
         /// <summary>
-        /// Supports the Angular UI flow for dashboard.
+        /// Used-In-Angular: retrieves dashboard statistics.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): DashboardApi.getDashboardStatistics (app/core/services/dashboard-api.ts:59).</para>
         /// <para>Angular purpose: retrieves dashboard statistics.</para>
-        /// <para>Angular page(s): /app/admin-dashboard; /app/setting/billing.</para>
-        /// <para>Angular API service call(s): DashboardApi.getDashboardStatistics (app/core/services/dashboard-api.ts:56).</para>
+        /// <para>Integrated UI page(s): /app/admin-dashboard; /app/setting/billing; /app/assets/list; /app/employees</para>
+        /// <para>Angular UI component(s): DashboardAdmin (app/features/dashboard/dashboard-admin/dashboard-admin.ts); SubscriptionStore (app/features/subscription/subscription.store.ts); Subscription (app/features/subscription/subscription.ts); CdkCloseMenuOnScroll (app/shared/directives/cdk-close-menu-on-scroll.ts); AssetsManagement (app/features/assets-management/assets-management.ts); EmployeeRoleCell (app/features/employees/employee-role-cell/employee-role-cell.ts); Employees (app/features/employees/employees.ts)</para>
         /// </remarks>
         [HttpGet("Manager/Statistics/Dashboard/get")]        
         public async Task<IActionResult> dashboard([FromQuery] GetSummaryRequestDTO request)
@@ -82,12 +86,14 @@ namespace axionpro.api.Controllers.Stats
 
      
         /// <summary>
-        /// Supports the Angular UI flow for asset.
+        /// Used-In-Angular: retrieves asset statistics.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): DashboardApi.getAssetStatistics (app/core/services/dashboard-api.ts:66).</para>
         /// <para>Angular purpose: retrieves asset statistics.</para>
-        /// <para>Angular page(s): /app/assets/list.</para>
-        /// <para>Angular API service call(s): DashboardApi.getAssetStatistics (app/core/services/dashboard-api.ts:63).</para>
+        /// <para>Integrated UI page(s): /app/assets/list</para>
+        /// <para>Angular UI component(s): AssetsManagementStore (app/features/assets-management/assets-management.store.ts); AssetsManagement (app/features/assets-management/assets-management.ts)</para>
         /// </remarks>
         [HttpGet("Manager/Statistic/Asset")]    
         public async Task<IActionResult> Asset([FromQuery] GetSummaryRequestDTO request)

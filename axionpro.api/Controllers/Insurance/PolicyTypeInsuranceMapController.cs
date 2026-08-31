@@ -32,12 +32,14 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 CREATE INSURANCE And POLICY TYPE MAPPING
         /// <summary>
-        /// Supports the Angular UI flow for create.
+        /// Used-In-Angular: assigns or maps policy type insurance.
         /// </summary>
         /// <remarks>
-        /// <para>Angular purpose: updates total records.</para>
-        /// <para>Angular page(s): /app/policies/insurance-policy-type-mapping.</para>
-        /// <para>Angular API service call(s): PolicyTypeInsuranceMapApi.setTotalRecords (app/core/services/policy-type-insurance-map-api.ts:85).</para>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): PolicyTypeInsuranceMapApi.mapPolicyTypeInsurance (app/core/services/policy-type-insurance-map-api.ts:88).</para>
+        /// <para>Angular purpose: assigns or maps policy type insurance.</para>
+        /// <para>Integrated UI page(s): /app/policies/insurance-policy-type-mapping</para>
+        /// <para>Angular UI component(s): UpsertPolicyTypeInsuranceMapDialog (app/features/policies/policy-type-insurance-map/upsert-policy-type-insurance-map-dialog/upsert-policy-type-insurance-map-dialog.ts); PolicyTypeInsuranceMap (app/features/policies/policy-type-insurance-map/policy-type-insurance-map.ts)</para>
         /// </remarks>
         [HttpPost("map")]     
         
@@ -55,6 +57,14 @@ namespace axionpro.api.Controllers.Insurance
         }
 
         // 🔹 GET INSURANCE LIST (GRID)
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: GET /api/policytypeinsurancemap/get-all-map-insurance.</para>
+        /// </remarks>
         [HttpGet("get-all-map-insurance")]
         
         public async Task<IActionResult> GetList( [FromQuery] GetInsuranceForEmployeeDDLRequestDTO  requestDto)
@@ -68,12 +78,14 @@ namespace axionpro.api.Controllers.Insurance
         }
         // 🔹 GET INSURANCE LIST (GRID)
         /// <summary>
-        /// Supports the Angular UI flow for get list.
+        /// Used-In-Angular: retrieves policy type insurance maps.
         /// </summary>
         /// <remarks>
-        /// <para>Angular purpose: updates total records.</para>
-        /// <para>Angular page(s): /app/policies/insurance-policy-type-mapping.</para>
-        /// <para>Angular API service call(s): PolicyTypeInsuranceMapApi.setTotalRecords (app/core/services/policy-type-insurance-map-api.ts:60).</para>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): PolicyTypeInsuranceMapApi.getPolicyTypeInsuranceMaps (app/core/services/policy-type-insurance-map-api.ts:63).</para>
+        /// <para>Angular purpose: retrieves policy type insurance maps.</para>
+        /// <para>Integrated UI page(s): /app/policies/insurance-policy-type-mapping</para>
+        /// <para>Angular UI component(s): PolicyTypeInsuranceMap (app/features/policies/policy-type-insurance-map/policy-type-insurance-map.ts)</para>
         /// </remarks>
         [HttpGet("get-all")]
                
@@ -88,12 +100,14 @@ namespace axionpro.api.Controllers.Insurance
         }
         // 🔹 GET INSURANCE LIST (GRID)
         /// <summary>
-        /// Supports the Angular UI flow for get detail list.
+        /// Used-In-Angular: retrieves policy type insurance map details.
         /// </summary>
         /// <remarks>
-        /// <para>Angular purpose: updates total records.</para>
-        /// <para>Angular page(s): /app/policies/insurance-policy-type-mapping.</para>
-        /// <para>Angular API service call(s): PolicyTypeInsuranceMapApi.setTotalRecords (app/core/services/policy-type-insurance-map-api.ts:70).</para>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): PolicyTypeInsuranceMapApi.getPolicyTypeInsuranceMapDetails (app/core/services/policy-type-insurance-map-api.ts:73).</para>
+        /// <para>Angular purpose: retrieves policy type insurance map details.</para>
+        /// <para>Integrated UI page(s): /app/policies</para>
+        /// <para>Angular UI component(s): PolicyTypeMapDetail (app/features/policies/policy-types/policy-type-map-detail/policy-type-map-detail.ts); PolicyTypes (app/features/policies/policy-types/policy-types.ts)</para>
         /// </remarks>
         [HttpGet("get-details")]
         
@@ -106,12 +120,14 @@ namespace axionpro.api.Controllers.Insurance
         }
         // 🔹 DELETE POLICY INSURANCE MAPPING
         /// <summary>
-        /// Supports the Angular UI flow for delete.
+        /// Used-In-Angular: deletes policy type insurance map.
         /// </summary>
         /// <remarks>
-        /// <para>Angular purpose: updates total records.</para>
-        /// <para>Angular page(s): /app/policies/insurance-policy-type-mapping.</para>
-        /// <para>Angular API service call(s): PolicyTypeInsuranceMapApi.setTotalRecords (app/core/services/policy-type-insurance-map-api.ts:104).</para>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): PolicyTypeInsuranceMapApi.deletePolicyTypeInsuranceMap (app/core/services/policy-type-insurance-map-api.ts:107).</para>
+        /// <para>Angular purpose: deletes policy type insurance map.</para>
+        /// <para>Integrated UI page(s): /app/policies/insurance-policy-type-mapping</para>
+        /// <para>Angular UI component(s): PolicyTypeInsuranceMap (app/features/policies/policy-type-insurance-map/policy-type-insurance-map.ts)</para>
         /// </remarks>
         [HttpDelete("delete")]        
         public async Task<IActionResult> Delete(
@@ -124,12 +140,14 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 UPDATE POLICY INSURANCE MAPPING
         /// <summary>
-        /// Supports the Angular UI flow for update.
+        /// Used-In-Angular: updates policy type insurance map.
         /// </summary>
         /// <remarks>
-        /// <para>Angular purpose: updates total records.</para>
-        /// <para>Angular page(s): /app/policies/insurance-policy-type-mapping.</para>
-        /// <para>Angular API service call(s): PolicyTypeInsuranceMapApi.setTotalRecords (app/core/services/policy-type-insurance-map-api.ts:93).</para>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): PolicyTypeInsuranceMapApi.updatePolicyTypeInsuranceMap (app/core/services/policy-type-insurance-map-api.ts:96).</para>
+        /// <para>Angular purpose: updates policy type insurance map.</para>
+        /// <para>Integrated UI page(s): /app/policies/insurance-policy-type-mapping</para>
+        /// <para>Angular UI component(s): UpsertPolicyTypeInsuranceMapDialog (app/features/policies/policy-type-insurance-map/upsert-policy-type-insurance-map-dialog/upsert-policy-type-insurance-map-dialog.ts); PolicyTypeInsuranceMap (app/features/policies/policy-type-insurance-map/policy-type-insurance-map.ts)</para>
         /// </remarks>
         [HttpPut("update")]    
         public async Task<IActionResult> Update(

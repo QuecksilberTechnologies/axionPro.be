@@ -42,12 +42,14 @@ namespace axionpro.api.Controllers.Asset
 
 
         /// <summary>
-        /// Supports the Angular UI flow for get all assets.
+        /// Used-In-Angular: retrieves assets.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): AssetsApi.getAssets (app/core/services/assets-api.ts:36).</para>
         /// <para>Angular purpose: retrieves assets.</para>
-        /// <para>Angular page(s): /app/assets/list.</para>
-        /// <para>Angular API service call(s): AssetsApi.getAssets (app/core/services/assets-api.ts:35).</para>
+        /// <para>Integrated UI page(s): /app/assets/list</para>
+        /// <para>Angular UI component(s): AssetsManagementStore (app/features/assets-management/assets-management.store.ts); AssetsManagement (app/features/assets-management/assets-management.ts)</para>
         /// </remarks>
         [HttpGet("get")] 
         public async Task<IActionResult> GetAllAssets([FromQuery] GetAssetRequestDTO assetRequestDTO)
@@ -58,12 +60,14 @@ namespace axionpro.api.Controllers.Asset
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for add asset.
+        /// Used-In-Angular: creates asset.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): AssetsApi.createAsset (app/core/services/assets-api.ts:29).</para>
         /// <para>Angular purpose: creates asset.</para>
-        /// <para>Angular page(s): /app/assets/list.</para>
-        /// <para>Angular API service call(s): AssetsApi.createAsset (app/core/services/assets-api.ts:28).</para>
+        /// <para>Integrated UI page(s): /app/assets/list</para>
+        /// <para>Angular UI component(s): UpsertAssetDialogStore (app/shared/components/asset/upsert-asset-dialog/upsert-asset-dialog.store.ts); UpsertAssetDialog (app/shared/components/asset/upsert-asset-dialog/upsert-asset-dialog.ts); AssetsManagement (app/features/assets-management/assets-management.ts)</para>
         /// </remarks>
         [HttpPost("add")]
         [Consumes("multipart/form-data")]
@@ -76,12 +80,14 @@ namespace axionpro.api.Controllers.Asset
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for update asset.
+        /// Used-In-Angular: updates asset.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): AssetsApi.updateAsset (app/core/services/assets-api.ts:42).</para>
         /// <para>Angular purpose: updates asset.</para>
-        /// <para>Angular page(s): /app/assets/list.</para>
-        /// <para>Angular API service call(s): AssetsApi.updateAsset (app/core/services/assets-api.ts:41).</para>
+        /// <para>Integrated UI page(s): /app/assets/list</para>
+        /// <para>Angular UI component(s): UpsertAssetDialogStore (app/shared/components/asset/upsert-asset-dialog/upsert-asset-dialog.store.ts); UpsertAssetDialog (app/shared/components/asset/upsert-asset-dialog/upsert-asset-dialog.ts); AssetsManagement (app/features/assets-management/assets-management.ts)</para>
         /// </remarks>
         [HttpPut("update")]    
         
@@ -94,12 +100,14 @@ namespace axionpro.api.Controllers.Asset
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for delete asset.
+        /// Used-In-Angular: deletes asset.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): AssetsApi.deleteAsset (app/core/services/assets-api.ts:49).</para>
         /// <para>Angular purpose: deletes asset.</para>
-        /// <para>Angular page(s): /app/assets/list.</para>
-        /// <para>Angular API service call(s): AssetsApi.deleteAsset (app/core/services/assets-api.ts:48).</para>
+        /// <para>Integrated UI page(s): /app/assets/list</para>
+        /// <para>Angular UI component(s): AssetsManagementStore (app/features/assets-management/assets-management.store.ts); AssetsManagement (app/features/assets-management/assets-management.ts)</para>
         /// </remarks>
         [HttpDelete("delete")]        
         public async Task<IActionResult> DeleteAsset([FromQuery] DeleteAssetReqestDTO deleteAssetDTO)

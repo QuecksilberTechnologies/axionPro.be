@@ -37,12 +37,14 @@ namespace axionpro.api.Controllers.Ticket
         // 1️⃣ CREATE - Add new Ticket Header
         // ----------------------------------------------------------------------------------------------------
            /// <summary>
-           /// Supports the Angular UI flow for create header.
+           /// Used-In-Angular: creates header.
            /// </summary>
            /// <remarks>
+           /// <para>Angular usage status: Used-In-Angular.</para>
+           /// <para>Angular function(s): TicketApi.addHeader (app/features/tickets/ticket-api.ts:89).</para>
            /// <para>Angular purpose: creates header.</para>
-           /// <para>Angular page(s): /app/tickets/headers.</para>
-           /// <para>Angular API service call(s): TicketApi.addHeader (app/features/tickets/ticket-api.ts:85).</para>
+           /// <para>Integrated UI page(s): /app/tickets/headers</para>
+           /// <para>Angular UI component(s): TicketHeaderManageDialog (app/features/tickets/ticket-header/ticket-header-manage-dialog/ticket-header-manage-dialog.ts); TicketHeaderComponent (app/features/tickets/ticket-header/ticket-header.ts)</para>
            /// </remarks>
            [HttpPost("create")] 
          public async Task<IActionResult> CreateHeader([FromBody] AddHeaderRequestDTO dto)
@@ -58,12 +60,12 @@ namespace axionpro.api.Controllers.Ticket
         // 2️⃣ READ - Get all Ticket Headers with filters
         // ----------------------------------------------------------------------------------------------------
         /// <summary>
-        /// Supports the Angular UI flow for get all header filter async.
+        /// Not-Used-In-Angular.
         /// </summary>
         /// <remarks>
-        /// <para>Angular purpose: retrieves headers.</para>
-        /// <para>Angular page(s): /app/tickets/types; /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers.</para>
-        /// <para>Angular API service call(s): TicketApi.getHeaders (app/features/tickets/ticket-api.ts:79).</para>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: GET /api/ticket/ticketheader/get-by-classification-id.</para>
         /// </remarks>
         [HttpGet("get-by-classification-id")]    
         public async Task<IActionResult> GetAllHeaderFilterAsync([FromQuery] GetTicketHeaderByClassifyIdRequestDTO dto)
@@ -96,12 +98,14 @@ namespace axionpro.api.Controllers.Ticket
         // 3️⃣ UPDATE - Modify existing Ticket Header
         // ----------------------------------------------------------------------------------------------------
           /// <summary>
-          /// Supports the Angular UI flow for update header.
+          /// Used-In-Angular: updates header.
           /// </summary>
           /// <remarks>
+          /// <para>Angular usage status: Used-In-Angular.</para>
+          /// <para>Angular function(s): TicketApi.updateHeader (app/features/tickets/ticket-api.ts:95).</para>
           /// <para>Angular purpose: updates header.</para>
-          /// <para>Angular page(s): /app/tickets/headers.</para>
-          /// <para>Angular API service call(s): TicketApi.updateHeader (app/features/tickets/ticket-api.ts:91).</para>
+          /// <para>Integrated UI page(s): /app/tickets/headers</para>
+          /// <para>Angular UI component(s): TicketHeaderManageDialog (app/features/tickets/ticket-header/ticket-header-manage-dialog/ticket-header-manage-dialog.ts); TicketHeaderComponent (app/features/tickets/ticket-header/ticket-header.ts)</para>
           /// </remarks>
           [HttpPut("update")]
 
@@ -135,12 +139,14 @@ namespace axionpro.api.Controllers.Ticket
         // 4️⃣ DELETE - Soft delete Ticket Header
         // ----------------------------------------------------------------------------------------------------
         /// <summary>
-        /// Supports the Angular UI flow for delete ticket header.
+        /// Used-In-Angular: deletes header.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): TicketApi.deleteHeader (app/features/tickets/ticket-api.ts:101).</para>
         /// <para>Angular purpose: deletes header.</para>
-        /// <para>Angular page(s): /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers; /app/tickets/types.</para>
-        /// <para>Angular API service call(s): TicketApi.deleteHeader (app/features/tickets/ticket-api.ts:97).</para>
+        /// <para>Integrated UI page(s): /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers; /app/tickets; /app/tickets/types</para>
+        /// <para>Angular UI component(s): TicketsStore (app/features/tickets/tickets.store.ts); TicketAgents (app/features/tickets/ticket-agents/ticket-agents.ts); TicketClassificationComponent (app/features/tickets/ticket-classification/ticket-classification.ts); TicketDetailSidebar (app/features/tickets/ticket-details/ticket-detail-sidebar/ticket-detail-sidebar.ts); TicketDetailsHeader (app/features/tickets/ticket-details/ticket-details-header/ticket-details-header.ts); TicketDetails (app/features/tickets/ticket-details/ticket-details.ts); TicketHeaderComponent (app/features/tickets/ticket-header/ticket-header.ts); TicketLists (app/features/tickets/ticket-lists/ticket-lists.ts)</para>
         /// </remarks>
         [HttpDelete("delete")]
  

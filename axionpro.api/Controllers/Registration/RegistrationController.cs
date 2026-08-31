@@ -29,6 +29,14 @@ namespace axionpro.api.Controllers.Registration
         _mediator = mediator;
         _logger = logger;
     }
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: POST /api/registration/candidate.</para>
+        /// </remarks>
 
         [HttpPost("candidate")]       
         
@@ -40,6 +48,14 @@ namespace axionpro.api.Controllers.Registration
             var result = await _mediator.Send(command);           
             return Ok(result);
         }
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: POST /api/registration/accessdetails.</para>
+        /// </remarks>
 
        
         [HttpPost("AccessDetails")]   

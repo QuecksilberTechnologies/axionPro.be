@@ -42,6 +42,14 @@ public class SubscriptionController : ControllerBase
     #endregion
 
     #region Subscription Plan Queries
+    /// <summary>
+    /// Not-Used-In-Angular.
+    /// </summary>
+    /// <remarks>
+    /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    /// <para>Backend endpoint: GET /api/subscription/get-all-subscription-plan.</para>
+    /// </remarks>
 
     [AllowAnonymous]
     [HttpGet("get-all-subscription-plan")]
@@ -55,6 +63,14 @@ public class SubscriptionController : ControllerBase
 
         return Ok(result);
     }
+    /// <summary>
+    /// Not-Used-In-Angular.
+    /// </summary>
+    /// <remarks>
+    /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    /// <para>Backend endpoint: POST /api/subscription/get-all-host-subscription-plans.</para>
+    /// </remarks>
 
     [Authorize]
     [HttpPost("get-all-host-subscription-plans")]
@@ -68,6 +84,14 @@ public class SubscriptionController : ControllerBase
 
         return Ok(result);
     }
+    /// <summary>
+    /// Not-Used-In-Angular.
+    /// </summary>
+    /// <remarks>
+    /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    /// <para>Backend endpoint: GET /api/subscription/get-tenant-subscription-plan-info.</para>
+    /// </remarks>
 
     [HttpGet("get-tenant-subscription-plan-info")]
     public async Task<IActionResult> GetTenantSubscriptionPlanInfo(
@@ -80,6 +104,14 @@ public class SubscriptionController : ControllerBase
 
         return Ok(result);
     }
+    /// <summary>
+    /// Not-Used-In-Angular.
+    /// </summary>
+    /// <remarks>
+    /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    /// <para>Backend endpoint: GET /api/subscription/get-all-tenant-accessible-modules.</para>
+    /// </remarks>
 
     [HttpGet("get-all-tenant-accessible-modules")]
     public async Task<IActionResult> GetAllTenantAccessibleModules(
@@ -96,6 +128,14 @@ public class SubscriptionController : ControllerBase
     #endregion
 
     #region Subscription Plan Commands
+    /// <summary>
+    /// Not-Used-In-Angular.
+    /// </summary>
+    /// <remarks>
+    /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    /// <para>Backend endpoint: POST /api/subscription/add.</para>
+    /// </remarks>
 
     [Authorize]
     [HttpPost("add")]
@@ -111,12 +151,14 @@ public class SubscriptionController : ControllerBase
     }
 
     /// <summary>
-    /// Supports the Angular UI flow for update subscription.
+    /// Used-In-Angular: updates subscription plan.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): SubscriptionsApi.updateSubscriptionPlan (app/core/services/subscriptions-api.ts:95).</para>
     /// <para>Angular purpose: updates subscription plan.</para>
-    /// <para>Angular page(s): /app/subscriptions.</para>
-    /// <para>Angular API service call(s): SubscriptionsApi.updateSubscriptionPlan (app/core/services/subscriptions-api.ts:94).</para>
+    /// <para>Integrated UI page(s): /app/subscriptions</para>
+    /// <para>Angular UI component(s): SubscriptionPlanForm (app/features/host/subscriptions/subscription-plan-form/subscription-plan-form.ts); SubscriptionsStore (app/features/host/subscriptions/subscriptions.store.ts); Subscriptions (app/features/host/subscriptions/subscriptions.ts)</para>
     /// </remarks>
     [Authorize]
     [HttpPut("{id:long}")]
@@ -131,6 +173,14 @@ public class SubscriptionController : ControllerBase
 
         return Ok(result);
     }
+    /// <summary>
+    /// Not-Used-In-Angular.
+    /// </summary>
+    /// <remarks>
+    /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    /// <para>Backend endpoint: POST /api/subscription/delete-subscription-plan.</para>
+    /// </remarks>
 
     [Authorize]
     [HttpPost("delete-subscription-plan")]

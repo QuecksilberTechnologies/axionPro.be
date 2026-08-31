@@ -40,12 +40,14 @@ namespace axionpro.api.Controllers.Role
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for update role.
+        /// Used-In-Angular: updates role.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): RolesApi.updateRole (app/core/services/roles-api.ts:125).</para>
         /// <para>Angular purpose: updates role.</para>
-        /// <para>Angular page(s): /app/roles.</para>
-        /// <para>Angular API service call(s): RolesApi.updateRole (app/core/services/roles-api.ts:121).</para>
+        /// <para>Integrated UI page(s): /app/roles</para>
+        /// <para>Angular UI component(s): RoleDialog (app/features/roles/role-dialog/role-dialog.ts); RolesList (app/features/roles/roles-list/roles-list.ts)</para>
         /// </remarks>
         [HttpPut("update")]        
         // [Authorize]
@@ -57,12 +59,14 @@ namespace axionpro.api.Controllers.Role
             return Ok(result);
         }
         /// <summary>
-        /// Supports the Angular UI flow for get role.
+        /// Used-In-Angular: retrieves role options.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): RolesApi.getRoleOptions (app/core/services/roles-api.ts:119).</para>
         /// <para>Angular purpose: retrieves role options.</para>
-        /// <para>Angular page(s): /app/tickets/types; /app/employees; /app/profile/basic-info.</para>
-        /// <para>Angular API service call(s): RolesApi.getRoleOptions (app/core/services/roles-api.ts:115).</para>
+        /// <para>Integrated UI page(s): /app/tickets/types; /app/employees; /app/profile/basic-info</para>
+        /// <para>Angular UI component(s): RolePopup (app/features/employees/role-popup/role-popup.ts); TicketTypeManageDialog (app/features/tickets/ticket-type/ticket-type-manage-dialog/ticket-type-manage-dialog.ts); EmployeeManageDialog (app/shared/components/employee/employee-manage-dialog/employee-manage-dialog.ts); EmployeeRoleCell (app/features/employees/employee-role-cell/employee-role-cell.ts); TicketTypeComponent (app/features/tickets/ticket-type/ticket-type.ts); Employees (app/features/employees/employees.ts); EmployeeBasicInfo (app/features/user-menu/employee-profile/employee-basic-info/employee-basic-info.ts)</para>
         /// </remarks>
         [HttpGet("option")]      
         public async Task<IActionResult> getRole([FromQuery] GetRoleOptionRequestDTO requestDTO)
@@ -76,12 +80,14 @@ namespace axionpro.api.Controllers.Role
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for create role.
+        /// Used-In-Angular: creates role.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): RolesApi.addRole (app/core/services/roles-api.ts:105).</para>
         /// <para>Angular purpose: creates role.</para>
-        /// <para>Angular page(s): /app/roles.</para>
-        /// <para>Angular API service call(s): RolesApi.addRole (app/core/services/roles-api.ts:101).</para>
+        /// <para>Integrated UI page(s): /app/roles</para>
+        /// <para>Angular UI component(s): RoleDialog (app/features/roles/role-dialog/role-dialog.ts); RolesList (app/features/roles/roles-list/roles-list.ts)</para>
         /// </remarks>
         [HttpPost("add")]        
         // [Authorize]
@@ -94,12 +100,14 @@ namespace axionpro.api.Controllers.Role
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for get all roles.
+        /// Used-In-Angular: retrieves roles.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): RolesApi.getRoles (app/core/services/roles-api.ts:112).</para>
         /// <para>Angular purpose: retrieves roles.</para>
-        /// <para>Angular page(s): /app/roles; /app/host-roles/permissions/:hostRoleId; /app/roles/permissions/:roleId; /app/employees; /app/profile/basic-info.</para>
-        /// <para>Angular API service call(s): RolesApi.getRoles (app/core/services/roles-api.ts:108).</para>
+        /// <para>Integrated UI page(s): /app/roles; /app/roles/permissions/:roleId; /app/employees; /app/profile/basic-info</para>
+        /// <para>Angular UI component(s): RolePermissionsStore (app/features/roles/role-permissions/role-permissions.store.ts); RolesList (app/features/roles/roles-list/roles-list.ts); EmployeeManageDialog (app/shared/components/employee/employee-manage-dialog/employee-manage-dialog.ts); RolePermissions (app/features/roles/role-permissions/role-permissions.ts); Employees (app/features/employees/employees.ts); EmployeeBasicInfo (app/features/user-menu/employee-profile/employee-basic-info/employee-basic-info.ts)</para>
         /// </remarks>
         [HttpGet("get")]      
         
@@ -112,12 +120,14 @@ namespace axionpro.api.Controllers.Role
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for delete role.
+        /// Used-In-Angular: deletes role.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): RolesApi.deleteRole (app/core/services/roles-api.ts:132).</para>
         /// <para>Angular purpose: deletes role.</para>
-        /// <para>Angular page(s): /app/roles.</para>
-        /// <para>Angular API service call(s): RolesApi.deleteRole (app/core/services/roles-api.ts:128).</para>
+        /// <para>Integrated UI page(s): /app/roles</para>
+        /// <para>Angular UI component(s): RolesList (app/features/roles/roles-list/roles-list.ts)</para>
         /// </remarks>
         [HttpDelete("delete")] 
         public async Task<IActionResult> DeleteRole([FromQuery] DeleteRoleRequestDTO deleteRole)

@@ -31,12 +31,14 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 CREATE INSURANCE POLICY
         /// <summary>
-        /// Supports the Angular UI flow for create.
+        /// Used-In-Angular: creates insurance policies.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): PoliciesInsuranceApi.createInsurancePolicies (app/core/services/policies-insurance-api.ts:69).</para>
         /// <para>Angular purpose: creates insurance policies.</para>
-        /// <para>Angular page(s): /app/policies/insurance-policies.</para>
-        /// <para>Angular API service call(s): PoliciesInsuranceApi.createInsurancePolicies (app/core/services/policies-insurance-api.ts:65).</para>
+        /// <para>Integrated UI page(s): /app/policies/insurance-policies</para>
+        /// <para>Angular UI component(s): UpsertInsurancePolicyDialog (app/features/policies/policies-insurance/upsert-insurance-policy-dialog/upsert-insurance-policy-dialog.ts); PoliciesInsurance (app/features/policies/policies-insurance/policies-insurance.ts)</para>
         /// </remarks>
         [HttpPost("create")]  
         public async Task<IActionResult> Create(
@@ -54,12 +56,14 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 GET INSURANCE LIST (GRID)
         /// <summary>
-        /// Supports the Angular UI flow for get list.
+        /// Used-In-Angular: retrieves insurance policy names.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): PoliciesInsuranceApi.getInsurancePolicyNames (app/core/services/policies-insurance-api.ts:83).</para>
         /// <para>Angular purpose: retrieves insurance policy names.</para>
-        /// <para>Angular page(s): /app/policies/insurance-policy-type-mapping.</para>
-        /// <para>Angular API service call(s): PoliciesInsuranceApi.getInsurancePolicyNames (app/core/services/policies-insurance-api.ts:79).</para>
+        /// <para>Integrated UI page(s): /app/policies/insurance-policy-type-mapping</para>
+        /// <para>Angular UI component(s): UpsertPolicyTypeInsuranceMapDialog (app/features/policies/policy-type-insurance-map/upsert-policy-type-insurance-map-dialog/upsert-policy-type-insurance-map-dialog.ts); PolicyTypeInsuranceMap (app/features/policies/policy-type-insurance-map/policy-type-insurance-map.ts)</para>
         /// </remarks>
         [HttpGet("get-ddl")]     
         
@@ -77,12 +81,14 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 GET INSURANCE LIST (GRID)
         /// <summary>
-        /// Supports the Angular UI flow for get detail list.
+        /// Used-In-Angular: retrieves insurance details.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): PoliciesInsuranceApi.getInsuranceDetails (app/core/services/policies-insurance-api.ts:103).</para>
         /// <para>Angular purpose: retrieves insurance details.</para>
-        /// <para>Angular page(s): /app/profile/insurance-info.</para>
-        /// <para>Angular API service call(s): PoliciesInsuranceApi.getInsuranceDetails (app/core/services/policies-insurance-api.ts:99).</para>
+        /// <para>Integrated UI page(s): /app/profile/insurance-info</para>
+        /// <para>Angular UI component(s): EmployeeInsuranceForm (app/features/user-menu/employee-profile/employee-insurance-info/employee-insurance-form/employee-insurance-form.ts); EmployeeInsuranceInfo (app/features/user-menu/employee-profile/employee-insurance-info/employee-insurance-info.ts)</para>
         /// </remarks>
         [HttpGet("get-detail-ddl")]     
         
@@ -100,12 +106,14 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 GET INSURANCE LIST (GRID)
         /// <summary>
-        /// Supports the Angular UI flow for get list.
+        /// Used-In-Angular: retrieves insurance policies.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): PoliciesInsuranceApi.getInsurancePolicies (app/core/services/policies-insurance-api.ts:76).</para>
         /// <para>Angular purpose: retrieves insurance policies.</para>
-        /// <para>Angular page(s): /app/policies/insurance-policies.</para>
-        /// <para>Angular API service call(s): PoliciesInsuranceApi.getInsurancePolicies (app/core/services/policies-insurance-api.ts:72).</para>
+        /// <para>Integrated UI page(s): /app/policies/insurance-policies</para>
+        /// <para>Angular UI component(s): PoliciesInsurance (app/features/policies/policies-insurance/policies-insurance.ts)</para>
         /// </remarks>
         [HttpGet("get-all")]        
         public async Task<IActionResult> GetList(
@@ -120,12 +128,14 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 DELETE INSURANCE POLICY
         /// <summary>
-        /// Supports the Angular UI flow for delete.
+        /// Used-In-Angular: deletes insurance policy.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): PoliciesInsuranceApi.deleteInsurancePolicy (app/core/services/policies-insurance-api.ts:96).</para>
         /// <para>Angular purpose: deletes insurance policy.</para>
-        /// <para>Angular page(s): /app/policies/insurance-policies.</para>
-        /// <para>Angular API service call(s): PoliciesInsuranceApi.deleteInsurancePolicy (app/core/services/policies-insurance-api.ts:92).</para>
+        /// <para>Integrated UI page(s): /app/policies/insurance-policies</para>
+        /// <para>Angular UI component(s): PoliciesInsurance (app/features/policies/policies-insurance/policies-insurance.ts)</para>
         /// </remarks>
         [HttpDelete("delete")]        
         public async Task<IActionResult> Delete(
@@ -141,12 +151,14 @@ namespace axionpro.api.Controllers.Insurance
 
         // 🔹 UPDATE INSURANCE POLICY
         /// <summary>
-        /// Supports the Angular UI flow for update.
+        /// Used-In-Angular: updates insurance policies.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): PoliciesInsuranceApi.updateInsurancePolicies (app/core/services/policies-insurance-api.ts:89).</para>
         /// <para>Angular purpose: updates insurance policies.</para>
-        /// <para>Angular page(s): /app/policies/insurance-policies.</para>
-        /// <para>Angular API service call(s): PoliciesInsuranceApi.updateInsurancePolicies (app/core/services/policies-insurance-api.ts:85).</para>
+        /// <para>Integrated UI page(s): /app/policies/insurance-policies</para>
+        /// <para>Angular UI component(s): UpsertInsurancePolicyDialog (app/features/policies/policies-insurance/upsert-insurance-policy-dialog/upsert-insurance-policy-dialog.ts); PoliciesInsurance (app/features/policies/policies-insurance/policies-insurance.ts)</para>
         /// </remarks>
         [HttpPut("update")]        
         public async Task<IActionResult> Update(

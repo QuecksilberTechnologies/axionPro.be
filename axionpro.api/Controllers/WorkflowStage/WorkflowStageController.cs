@@ -42,6 +42,14 @@ namespace axionpro.api.Controllers.WorkflowStage
         // =============================================================================================
         #region 🔹 CREATE WORKFLOW STAGE
         // =============================================================================================
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: POST /api/workflowstage/create.</para>
+        /// </remarks>
 
         [HttpPost("create")]
         public async Task<IActionResult> CreateWorkflowStage([FromBody] CreateWorkflowStageRequestDTO dto)
@@ -58,6 +66,14 @@ namespace axionpro.api.Controllers.WorkflowStage
         // =============================================================================================
         #region 🔹 GET ALL WORKFLOW STAGES
         // =============================================================================================
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: GET /api/workflowstage/get-all.</para>
+        /// </remarks>
 
         [HttpGet("get-all")]   
         public async Task<IActionResult> GetAllWorkflowStages([FromQuery] GetWorkflowStageRequestDTO dto)
@@ -76,6 +92,14 @@ namespace axionpro.api.Controllers.WorkflowStage
         // =============================================================================================
         #region 🔹 GET WORKFLOW STAGE BY ID
         // =============================================================================================
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: GET /api/workflowstage/get.</para>
+        /// </remarks>
 
         [HttpGet("get")]    
         public async Task<IActionResult> GetWorkflowStageById([FromQuery] GetWorkflowStageByIdRequestDTO dto)
@@ -93,6 +117,14 @@ namespace axionpro.api.Controllers.WorkflowStage
         // =============================================================================================
         #region 🔹 UPDATE WORKFLOW STAGE
         // =============================================================================================
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: PUT /api/workflowstage/update.</para>
+        /// </remarks>
 
         [HttpPut("update")]      
         public async Task<IActionResult> UpdateWorkflowStage([FromBody] UpdateWorkflowStageRequestDTO dto)        {
@@ -108,6 +140,14 @@ namespace axionpro.api.Controllers.WorkflowStage
         // =============================================================================================
         #region 🔹 DELETE WORKFLOW STAGE
         // =============================================================================================
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: DELETE /api/workflowstage/delete.</para>
+        /// </remarks>
 
         [HttpDelete("delete")]       
         public async Task<IActionResult> DeleteWorkflowStage([FromBody] DeleteWorkflowStageRequestDTO dto)

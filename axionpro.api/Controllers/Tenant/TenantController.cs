@@ -59,12 +59,14 @@ public class TenantController : ControllerBase
     #region Existing Tenant Creation Command
 
     /// <summary>
-    /// Supports the Angular UI flow for tenant creation.
+    /// Used-In-Angular: creates tenant.
     /// </summary>
     /// <remarks>
-    /// <para>Angular purpose: performs register tenant.</para>
-    /// <para>Angular page(s): /auth/register-tenant; /app/tenants/new; /app/tenants/:tenantId/edit.</para>
-    /// <para>Angular API service call(s): TenantsApi.registerTenant (app/core/services/tenants-api.ts:98).</para>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): TenantsApi.registerTenant (app/core/services/tenants-api.ts:105).</para>
+    /// <para>Angular purpose: creates tenant.</para>
+    /// <para>Integrated UI page(s): /auth/register-tenant</para>
+    /// <para>Angular UI component(s): Registration (app/features/authentication/registration/registration.ts)</para>
     /// </remarks>
     [Authorize]
     [HttpPost("create-tenant")]
@@ -80,6 +82,16 @@ public class TenantController : ControllerBase
     #endregion
 
     #region Tenant Management Queries
+    /// <summary>
+    /// Used-In-Angular: updates tenant by host.
+    /// </summary>
+    /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): TenantsApi.updateTenantByHost (app/core/services/tenants-api.ts:169).</para>
+    /// <para>Angular purpose: updates tenant by host.</para>
+    /// <para>Integrated UI page(s): /app/tenants/new; /app/tenants/:tenantId/edit</para>
+    /// <para>Angular UI component(s): TenantForm (app/features/host/tenants/tenant-form/tenant-form.ts)</para>
+    /// </remarks>
 
     [Authorize]
     [HttpPut("new-tenant-update-by-host/{encryptedTenantId}")]
@@ -97,12 +109,14 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Adds missing entitlement snapshot rows for the selected Tenant from its currently active subscription plan.
+    /// Used-In-Angular: performs the Angular function sync active plan entitlements.
     /// </summary>
     /// <remarks>
-    /// <para>Angular purpose: explicitly synchronizes a selected Tenant's active-plan modules and operations into its entitlement snapshot.</para>
-    /// <para>Provide an encrypted <c>tenantId</c> in the body. Super Admin may use zero <c>moduleId</c>/<c>operationId</c>; other Host roles require valid permission identifiers.</para>
-    /// <para>The operation is additive and idempotent: existing TenantEnabledModule and TenantEnabledOperation rows remain unchanged and are never duplicated or removed.</para>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): TenantsApi.syncActivePlanEntitlements (app/core/services/tenants-api.ts:216).</para>
+    /// <para>Angular purpose: performs the Angular function sync active plan entitlements.</para>
+    /// <para>Integrated UI page(s): /app/tenants</para>
+    /// <para>Angular UI component(s): TenantsStore (app/features/host/tenants/tenants.store.ts); Tenants (app/features/host/tenants/tenants.ts)</para>
     /// </remarks>
     [Authorize]
     [HttpPost("sync-active-plan-entitlements")]
@@ -117,6 +131,14 @@ public class TenantController : ControllerBase
             cancellationToken);
         return Ok(result);
     }
+    /// <summary>
+    /// Not-Used-In-Angular.
+    /// </summary>
+    /// <remarks>
+    /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    /// <para>Backend endpoint: GET /api/tenant/{}/delete-dependencies.</para>
+    /// </remarks>
 
     [Authorize]
     [HttpGet("{id}/delete-dependencies")]
@@ -131,6 +153,16 @@ public class TenantController : ControllerBase
             cancellationToken);
         return Ok(result);
     }
+    /// <summary>
+    /// Used-In-Angular: creates tenant by host.
+    /// </summary>
+    /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): TenantsApi.createTenantByHost (app/core/services/tenants-api.ts:117).</para>
+    /// <para>Angular purpose: creates tenant by host.</para>
+    /// <para>Integrated UI page(s): /app/tenants/new; /app/tenants/:tenantId/edit</para>
+    /// <para>Angular UI component(s): TenantForm (app/features/host/tenants/tenant-form/tenant-form.ts)</para>
+    /// </remarks>
 
     [Authorize]
     [HttpPost("new-tentant-creation-by-host")]
@@ -144,12 +176,14 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Supports the Angular UI flow for get all tenants async.
+    /// Used-In-Angular: validates email.
     /// </summary>
     /// <remarks>
-    /// <para>Angular purpose: retrieves tenants.</para>
-    /// <para>Angular page(s): /app/tenant-devices/new; /app/tenant-devices/:tenantDeviceId/edit; /app/host-dashboard; /app/subscriptions; /app/tenant-devices; /app/tenants.</para>
-    /// <para>Angular API service call(s): TenantsApi.getTenants (app/core/services/tenants-api.ts:111).</para>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): TenantsApi.verifyEmail (app/core/services/tenants-api.ts:131).</para>
+    /// <para>Angular purpose: validates email.</para>
+    /// <para>Integrated UI page(s): /auth/registration-verify</para>
+    /// <para>Angular UI component(s): RegistrationVerify (app/features/authentication/registration/registration-verify/registration-verify.ts)</para>
     /// </remarks>
     [Authorize]
     [HttpGet("get-all-tenants")]
@@ -161,12 +195,14 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Supports the Angular UI flow for get tenant by id async.
+    /// Used-In-Angular: retrieves tenant by id.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): TenantsApi.getTenantById (app/core/services/tenants-api.ts:139).</para>
     /// <para>Angular purpose: retrieves tenant by id.</para>
-    /// <para>Angular page(s): /app/tenants/new; /app/tenants/:tenantId/edit.</para>
-    /// <para>Angular API service call(s): TenantsApi.getTenantById (app/core/services/tenants-api.ts:119).</para>
+    /// <para>Integrated UI page(s): /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants</para>
+    /// <para>Angular UI component(s): TenantDetail (app/features/host/tenants/tenant-detail/tenant-detail.ts); TenantForm (app/features/host/tenants/tenant-form/tenant-form.ts); Tenants (app/features/host/tenants/tenants.ts)</para>
     /// </remarks>
     [Authorize]
     [HttpGet("get-tenant-by-id")]
@@ -180,6 +216,14 @@ public class TenantController : ControllerBase
     #endregion
 
     #region Tenant Management Commands
+    /// <summary>
+    /// Not-Used-In-Angular.
+    /// </summary>
+    /// <remarks>
+    /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    /// <para>Backend endpoint: PUT /api/tenant/{}.</para>
+    /// </remarks>
 
     [Authorize]
     [HttpPut("{id}")]
@@ -196,6 +240,14 @@ public class TenantController : ControllerBase
 
         return Ok(result);
     }
+    /// <summary>
+    /// Not-Used-In-Angular.
+    /// </summary>
+    /// <remarks>
+    /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    /// <para>Backend endpoint: DELETE /api/tenant/{}.</para>
+    /// </remarks>
 
     [Authorize]
     [HttpDelete("{id}")]
@@ -211,6 +263,16 @@ public class TenantController : ControllerBase
 
         return Ok(result);
     }
+    /// <summary>
+    /// Used-In-Angular: performs the Angular function resend verification email.
+    /// </summary>
+    /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): TenantsApi.resendVerificationEmail (app/core/services/tenants-api.ts:208).</para>
+    /// <para>Angular purpose: performs the Angular function resend verification email.</para>
+    /// <para>Integrated UI page(s): /app/tenants</para>
+    /// <para>Angular UI component(s): TenantsStore (app/features/host/tenants/tenants.store.ts); Tenants (app/features/host/tenants/tenants.ts)</para>
+    /// </remarks>
 
     [Authorize]
     [HttpPost("{id}/resend-verification-by-host")]
@@ -229,12 +291,14 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Supports the Angular UI flow for update tenant async.
+    /// Used-In-Angular: updates tenant.
     /// </summary>
     /// <remarks>
-    /// <para>Angular purpose: updates modules and operations.</para>
-    /// <para>Angular page(s): /app/tenants/:tenantId/modules.</para>
-    /// <para>Angular API service call(s): TenantsApi.updateModulesAndOperations (app/core/services/tenants-api.ts:140).</para>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): TenantsApi.updateTenant (app/core/services/tenants-api.ts:177).</para>
+    /// <para>Angular purpose: updates tenant.</para>
+    /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
+    /// <para>Angular UI component(s): No consuming Angular component was statically resolved.</para>
     /// </remarks>
     [Authorize]
     [HttpPost("update-tenant")]
@@ -247,12 +311,14 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Supports the Angular UI flow for activate tenant async.
+    /// Used-In-Angular: performs the Angular function activate tenant.
     /// </summary>
     /// <remarks>
-    /// <para>Angular purpose: deactivates tenant.</para>
-    /// <para>Angular page(s): /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants.</para>
-    /// <para>Angular API service call(s): TenantsApi.deactivateTenant (app/core/services/tenants-api.ts:152).</para>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): TenantsApi.activateTenant (app/core/services/tenants-api.ts:189).</para>
+    /// <para>Angular purpose: performs the Angular function activate tenant.</para>
+    /// <para>Integrated UI page(s): /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants</para>
+    /// <para>Angular UI component(s): TenantForm (app/features/host/tenants/tenant-form/tenant-form.ts); TenantsStore (app/features/host/tenants/tenants.store.ts); Tenants (app/features/host/tenants/tenants.ts)</para>
     /// </remarks>
     [Authorize]
     [HttpPost("activate-tenant")]
@@ -264,12 +330,14 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Supports the Angular UI flow for deactivate tenant async.
+    /// Used-In-Angular: performs the Angular function deactivate tenant.
     /// </summary>
     /// <remarks>
-    /// <para>Angular purpose: deletes tenant.</para>
-    /// <para>Angular page(s): /app/tenants.</para>
-    /// <para>Angular API service call(s): TenantsApi.deleteTenant (app/core/services/tenants-api.ts:158).</para>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): TenantsApi.deactivateTenant (app/core/services/tenants-api.ts:195).</para>
+    /// <para>Angular purpose: performs the Angular function deactivate tenant.</para>
+    /// <para>Integrated UI page(s): /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants</para>
+    /// <para>Angular UI component(s): TenantForm (app/features/host/tenants/tenant-form/tenant-form.ts); TenantsStore (app/features/host/tenants/tenants.store.ts); Tenants (app/features/host/tenants/tenants.ts)</para>
     /// </remarks>
     [Authorize]
     [HttpPost("deactivate-tenant")]
@@ -281,12 +349,14 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Supports the Angular UI flow for delete tenant async.
+    /// Used-In-Angular: deletes tenant.
     /// </summary>
     /// <remarks>
-    /// <para>Angular purpose: resends verification email.</para>
-    /// <para>Angular page(s): /app/tenants.</para>
-    /// <para>Angular API service call(s): TenantsApi.resendVerificationEmail (app/core/services/tenants-api.ts:164).</para>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): TenantsApi.deleteTenant (app/core/services/tenants-api.ts:201).</para>
+    /// <para>Angular purpose: deletes tenant.</para>
+    /// <para>Integrated UI page(s): /app/tenants</para>
+    /// <para>Angular UI component(s): TenantsStore (app/features/host/tenants/tenants.store.ts); Tenants (app/features/host/tenants/tenants.ts)</para>
     /// </remarks>
     [Authorize]
     [HttpPost("delete-tenant")]
@@ -301,6 +371,14 @@ public class TenantController : ControllerBase
     #endregion
 
     #region Existing Host User Command
+    /// <summary>
+    /// Not-Used-In-Angular.
+    /// </summary>
+    /// <remarks>
+    /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    /// <para>Backend endpoint: POST /api/tenant/create-host-user.</para>
+    /// </remarks>
 
     [Authorize]
     [HttpPost("create-host-user")]
@@ -316,6 +394,14 @@ public class TenantController : ControllerBase
     #endregion
 
     #region Existing Tenant Configuration Queries
+    /// <summary>
+    /// Not-Used-In-Angular.
+    /// </summary>
+    /// <remarks>
+    /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    /// <para>Backend endpoint: GET /api/tenant/get-all-tenant-by-subscription-plan-id.</para>
+    /// </remarks>
 
     [HttpGet("get-all-tenant-by-subscription-plan-Id")]
     public async Task<IActionResult> GetAllTenantBySubscriptionIdAsync([FromQuery] application.DTOs.Tenant.TenantRequestDTO code)
@@ -329,12 +415,14 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Supports the Angular UI flow for get employee code pattern async.
+    /// Used-In-Angular: retrieves employee code pattern.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): TenantsApi.getEmployeeCodePattern (app/core/services/tenants-api.ts:154).</para>
     /// <para>Angular purpose: retrieves employee code pattern.</para>
-    /// <para>Angular page(s): /app/tenants/new; /app/tenants/:tenantId/edit.</para>
-    /// <para>Angular API service call(s): TenantsApi.getEmployeeCodePattern (app/core/services/tenants-api.ts:134).</para>
+    /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
+    /// <para>Angular UI component(s): No consuming Angular component was statically resolved.</para>
     /// </remarks>
     [HttpGet("get-employee-code-pattern")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
@@ -347,6 +435,14 @@ public class TenantController : ControllerBase
 
         return Ok(result);
     }
+    /// <summary>
+    /// Not-Used-In-Angular.
+    /// </summary>
+    /// <remarks>
+    /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    /// <para>Backend endpoint: POST /api/tenant/get.</para>
+    /// </remarks>
 
     [HttpPost("get")]
     public async Task<IActionResult> GetAllTenantEnabledModuleOperationsByTenantIdAsync([FromBody] TenantEnabledModuleRequestDTO code)
@@ -359,12 +455,14 @@ public class TenantController : ControllerBase
     }
 
     /// <summary>
-    /// Supports the Angular UI flow for get all node leafe with operations async.
+    /// Used-In-Angular: retrieves tenant operations.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): TenantsApi.getTenantOperations (app/core/services/tenants-api.ts:146).</para>
     /// <para>Angular purpose: retrieves tenant operations.</para>
-    /// <para>Angular page(s): /app/policies/attendance-policies; /auth/login; /app/admin-dashboard; /app/departments; /app/designations; /app/device-masters; /app/modules/module-operations; /app/modules/operations; and 25 more.</para>
-    /// <para>Angular API service call(s): TenantsApi.getTenantOperations (app/core/services/tenants-api.ts:126).</para>
+    /// <para>Integrated UI page(s): /app/policies/attendance-policies; /auth/login; /app/admin-dashboard; /app/departments; /app/designations; /app/device-masters; /app/modules/module-operations; /app/modules/operations</para>
+    /// <para>Angular UI component(s): CurrentUserPermissionsStore (app/core/stores/current-user-permissions.store.ts); EmployeesPermissionsStore (app/features/employees/employees-permissions/employees-permissions.store.ts); RolePermissionsStore (app/features/roles/role-permissions/role-permissions.store.ts); hasModuleOperationGuard (app/core/guards/has-module-operation-guard.ts); hasModulePermissionGuard (app/core/guards/has-module-permission-guard.ts); superAdminGuard (app/core/guards/super-admin-guard.ts); AttendancePolicies (app/features/attendance-policies/attendance-policies.ts); Login (app/features/authentication/login/login.ts)</para>
     /// </remarks>
     [HttpGet("get-all-tenant-operations")]
     public async Task<IActionResult> GetAllNodeLeafeWithOperationsAsync([FromQuery] TenantEnabledOperationsRequestDTO code)
@@ -382,12 +480,14 @@ public class TenantController : ControllerBase
     #region Existing Tenant Configuration Command
 
     /// <summary>
-    /// Supports the Angular UI flow for tenant module operations update.
+    /// Used-In-Angular: updates modules and operations.
     /// </summary>
     /// <remarks>
-    /// <para>Angular purpose: activates tenant.</para>
-    /// <para>Angular page(s): /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants.</para>
-    /// <para>Angular API service call(s): TenantsApi.activateTenant (app/core/services/tenants-api.ts:146).</para>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): TenantsApi.updateModulesAndOperations (app/core/services/tenants-api.ts:183).</para>
+    /// <para>Angular purpose: updates modules and operations.</para>
+    /// <para>Integrated UI page(s): /app/tenants/:tenantId/modules</para>
+    /// <para>Angular UI component(s): TenantModulesStore (app/features/host/tenants/tenant-modules/tenant-modules.store.ts); TenantModules (app/features/host/tenants/tenant-modules/tenant-modules.ts)</para>
     /// </remarks>
     [HttpPost("update-modules-and-operations")]
     public async Task<IActionResult> TenantModuleOperationsUpdate([FromBody] TenantModuleOperationsUpdateRequestDTO code)
@@ -404,12 +504,14 @@ public class TenantController : ControllerBase
     #region Existing Tenant Verification Command
 
     /// <summary>
-    /// Supports the Angular UI flow for verify email.
+    /// Used-In-Angular: validates email.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): TenantsApi.verifyEmail (app/core/services/tenants-api.ts:124).</para>
     /// <para>Angular purpose: validates email.</para>
-    /// <para>Angular page(s): /auth/registration-verify.</para>
-    /// <para>Angular API service call(s): TenantsApi.verifyEmail (app/core/services/tenants-api.ts:104).</para>
+    /// <para>Integrated UI page(s): /auth/registration-verify</para>
+    /// <para>Angular UI component(s): RegistrationVerify (app/features/authentication/registration/registration-verify/registration-verify.ts)</para>
     /// </remarks>
     [HttpPost("verify")]
     public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequestDTO request)

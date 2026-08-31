@@ -38,6 +38,14 @@ namespace axionpro.api.Controllers.SandwichRule
             _logger = logger;
         }
         #region CRUD-GET-DAY-COMBINATION BY-TENANT-ADMIN
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: POST /api/sandwich/daycombination/add.</para>
+        /// </remarks>
 
         [HttpPost("/Sandwich/DayCombination/add")]
         public async Task<IActionResult> GetAllDayCombinationByTenantUser([FromBody] CreateDayCombinationRequestDTO dTO)
@@ -50,6 +58,14 @@ namespace axionpro.api.Controllers.SandwichRule
         }
         #endregion
         #region Update--DAY-COMBINATION BY-TENANT-ADMIN
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: POST /api/sandwich/daycombination/update.</para>
+        /// </remarks>
 
         [HttpPost("/Sandwich/DayCombination/update")]        
         public async Task<IActionResult> UpdateDayCombinationByTenantUser([FromBody] UpdateDayCombinationRequestDTO dto)
@@ -61,6 +77,14 @@ namespace axionpro.api.Controllers.SandwichRule
         }
         #endregion
         #region Update-DAY-COMBINATION BY-TENANT-ADMIN
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: POST /api/sandwich/daycombination/delete.</para>
+        /// </remarks>
 
         [HttpPost("/Sandwich/DayCombination/delete")]                  
         public async Task<IActionResult> DeleteDayCombinationByTenantUser([FromBody] DeleteDayCombinationRequestDTO dto)
@@ -73,6 +97,14 @@ namespace axionpro.api.Controllers.SandwichRule
             return Ok(result);
         }
         #endregion
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: POST /api/sandwich/daycombination/get.</para>
+        /// </remarks>
 
         [HttpPost("/Sandwich/DayCombination/get")]        
         public async Task<IActionResult> GetAllDayCombinationByTenantUser([FromBody] GetDayCombinationRequestDTO dTO)
@@ -89,6 +121,14 @@ namespace axionpro.api.Controllers.SandwichRule
         #region CRUD-SANDWICH-RULE-BY-TENANT-ADMIN
 
         // 🔹 GET ALL
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: GET /api/sandwich/get.</para>
+        /// </remarks>
         [HttpGet("/Sandwich/get")] 
         public async Task<IActionResult> GetAllSandwichRule([FromQuery] GetLeaveSandwitchRuleRequestDTO dto)
         { 
@@ -100,6 +140,14 @@ namespace axionpro.api.Controllers.SandwichRule
         }
 
         // 🔹 CREATE
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: POST /api/sandwich/add.</para>
+        /// </remarks>
         [HttpPost("/Sandwich/add")]        
         public async Task<IActionResult> CreateSandwichRule([FromBody] CreateLeaveSandwichRuleRequestDTO dto)
         {   
@@ -110,6 +158,14 @@ namespace axionpro.api.Controllers.SandwichRule
         }
 
         // 🔹 UPDATE
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: POST /api/sandwich/update.</para>
+        /// </remarks>
         [HttpPost("/Sandwich/update")]        
         public async Task<IActionResult> UpdateSandwichRule([FromBody] UpdateLeaveSandwitchRuleRequestDTO dto)
         {
@@ -123,6 +179,14 @@ namespace axionpro.api.Controllers.SandwichRule
         }
 
         // 🔹 DELETE (Soft Delete)
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: DELETE /api/sandwich/delete.</para>
+        /// </remarks>
         [HttpDelete("/Sandwich/delete")]        
         public async Task<IActionResult> DeleteSandwichRule([FromQuery] DeleteLeaveSandwitchRuleRequestDTO dto)
         {

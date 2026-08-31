@@ -26,6 +26,14 @@ namespace axionpro.api.Controllers.Entity
             _mediator = mediator;
             _logger = logger;
         }
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: GET /api/entity/get.</para>
+        /// </remarks>
         [HttpGet("get")]
         public IActionResult GetStaticEntityNames([FromQuery] GetEntityNameRequestDTO dTO)
         {

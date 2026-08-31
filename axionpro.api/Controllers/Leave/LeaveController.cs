@@ -28,6 +28,14 @@ namespace axionpro.api.Controllers.Leave
             _mediator = mediator;
             _logger = logger;
         }
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: POST /api/leave/add.</para>
+        /// </remarks>
 
         [HttpPost("add")]     
         public async Task<IActionResult> CreateLeaveType([FromBody] CreateLeaveTypeRequestDTO createLeaveTypeDTO)
@@ -45,6 +53,14 @@ namespace axionpro.api.Controllers.Leave
 
             return Ok(result);
         }
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: GET /api/leave/get.</para>
+        /// </remarks>
         [HttpGet("get")]      
         public async Task<IActionResult> GetAllLeaves([FromQuery] GetLeaveTypeRequestDTO leaveRequestDTO)
         {
@@ -52,6 +68,14 @@ namespace axionpro.api.Controllers.Leave
             var result = await _mediator.Send(query);
             return Ok(result);
         }
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: POST /api/leave/update.</para>
+        /// </remarks>
         [HttpPost("update")]
         
         
@@ -64,6 +88,14 @@ namespace axionpro.api.Controllers.Leave
             var result = await _mediator.Send(command);           
             return Ok(result);
         }
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: GET /api/leave/delete.</para>
+        /// </remarks>
         [HttpGet("delete")]      
         // [Authorize]
         public async Task<IActionResult> DeleteLeave([FromQuery] DeleteLeaveRequestDTO request)

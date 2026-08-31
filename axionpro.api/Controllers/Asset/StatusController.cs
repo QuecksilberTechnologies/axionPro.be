@@ -38,12 +38,14 @@ namespace axionpro.api.Controllers.Asset
 
  
         /// <summary>
-        /// Supports the Angular UI flow for get by id asset status.
+        /// Used-In-Angular: retrieves assets status.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): AssetStatusApi.fetchAssetsStatus (app/core/services/asset-status-api.ts:35).</para>
         /// <para>Angular purpose: retrieves assets status.</para>
-        /// <para>Angular page(s): /app/assets/asset-status; /app/assets/list; /app/roles; /app/assets/asset-types.</para>
-        /// <para>Angular API service call(s): AssetStatusApi.fetchAssetsStatus (app/core/services/asset-status-api.ts:34).</para>
+        /// <para>Integrated UI page(s): /app/assets/asset-status; /app/assets/list</para>
+        /// <para>Angular UI component(s): AssetStatusStore (app/features/assets-management/asset-status/asset-status.store.ts); AssetsManagementStore (app/features/assets-management/assets-management.store.ts); AssetFilter (app/shared/components/asset/asset-filter/asset-filter.ts); UpsertAssetDialogStore (app/shared/components/asset/upsert-asset-dialog/upsert-asset-dialog.store.ts); AssetStatusComponent (app/features/assets-management/asset-status/asset-status.ts); AssetsManagement (app/features/assets-management/assets-management.ts); UpsertAssetDialog (app/shared/components/asset/upsert-asset-dialog/upsert-asset-dialog.ts)</para>
         /// </remarks>
         [HttpGet("get")]
         public async Task<IActionResult> GetByIdAssetStatus([FromQuery] GetStatusRequestDTO request)
@@ -55,12 +57,14 @@ namespace axionpro.api.Controllers.Asset
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for add asset status.
+        /// Used-In-Angular: creates asset status.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): AssetStatusApi.createAssetStatus (app/core/services/asset-status-api.ts:28).</para>
         /// <para>Angular purpose: creates asset status.</para>
-        /// <para>Angular page(s): /app/assets/asset-status.</para>
-        /// <para>Angular API service call(s): AssetStatusApi.createAssetStatus (app/core/services/asset-status-api.ts:27).</para>
+        /// <para>Integrated UI page(s): /app/assets/asset-status</para>
+        /// <para>Angular UI component(s): AssetStatusManageDialog (app/shared/components/asset/asset-status-manage-dialog/asset-status-manage-dialog.ts); AssetStatusComponent (app/features/assets-management/asset-status/asset-status.ts)</para>
         /// </remarks>
         [HttpPost("add")]
         public async Task<IActionResult> AddAssetStatus([FromBody] CreateStatusRequestDTO request)
@@ -73,12 +77,14 @@ namespace axionpro.api.Controllers.Asset
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for update asset status.
+        /// Used-In-Angular: updates asset status.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): AssetStatusApi.updateAssetStatus (app/core/services/asset-status-api.ts:41).</para>
         /// <para>Angular purpose: updates asset status.</para>
-        /// <para>Angular page(s): /app/assets/asset-status.</para>
-        /// <para>Angular API service call(s): AssetStatusApi.updateAssetStatus (app/core/services/asset-status-api.ts:40).</para>
+        /// <para>Integrated UI page(s): /app/assets/asset-status</para>
+        /// <para>Angular UI component(s): AssetStatusManageDialog (app/shared/components/asset/asset-status-manage-dialog/asset-status-manage-dialog.ts); AssetStatusComponent (app/features/assets-management/asset-status/asset-status.ts)</para>
         /// </remarks>
         [HttpPut("update")]
         public async Task<IActionResult> UpdateAssetStatus( [FromBody] UpdateStatusRequestDTO request)
@@ -92,12 +98,14 @@ namespace axionpro.api.Controllers.Asset
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for delete asset status.
+        /// Used-In-Angular: deletes asset status.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): AssetStatusApi.deleteAssetStatus (app/core/services/asset-status-api.ts:48).</para>
         /// <para>Angular purpose: deletes asset status.</para>
-        /// <para>Angular page(s): /app/assets/asset-status.</para>
-        /// <para>Angular API service call(s): AssetStatusApi.deleteAssetStatus (app/core/services/asset-status-api.ts:47).</para>
+        /// <para>Integrated UI page(s): /app/assets/asset-status</para>
+        /// <para>Angular UI component(s): AssetStatusStore (app/features/assets-management/asset-status/asset-status.store.ts); AssetStatusComponent (app/features/assets-management/asset-status/asset-status.ts)</para>
         /// </remarks>
         [HttpDelete("delete")]    
         

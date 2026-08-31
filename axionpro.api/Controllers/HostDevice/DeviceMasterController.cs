@@ -22,82 +22,96 @@ public sealed class DeviceMasterController(IMediator mediator, ILogger<DeviceMas
     #region Device Master Endpoints
 
     /// <summary>
-    /// Supports the Angular UI flow for create.
+    /// Used-In-Angular: creates device master.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): DeviceMasterApi.addDeviceMaster (app/core/services/device-master-api.ts:40).</para>
     /// <para>Angular purpose: creates device master.</para>
-    /// <para>Angular page(s): /app/device-masters/new; /app/device-masters/:deviceMasterId/edit.</para>
-    /// <para>Angular API service call(s): DeviceMasterApi.addDeviceMaster (app/core/services/device-master-api.ts:39).</para>
+    /// <para>Integrated UI page(s): /app/device-masters/new; /app/device-masters/:deviceMasterId/edit</para>
+    /// <para>Angular UI component(s): DeviceMasterForm (app/features/host/device-masters/device-master-form/device-master-form.ts)</para>
     /// </remarks>
     [HttpPost("create")]
     public async Task<IActionResult> Create([FromBody] CreateDeviceMasterRequestDTO dto, CancellationToken cancellationToken)
     { logger.LogInformation("Received DeviceMaster create request."); return Ok(await mediator.Send(new CreateDeviceMasterCommand(dto), cancellationToken)); }
 
     /// <summary>
-    /// Supports the Angular UI flow for get by id.
+    /// Used-In-Angular: retrieves device master.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): DeviceMasterApi.getDeviceMaster (app/core/services/device-master-api.ts:34).</para>
     /// <para>Angular purpose: retrieves device master.</para>
-    /// <para>Angular page(s): /app/device-masters/new; /app/device-masters/:deviceMasterId/edit.</para>
-    /// <para>Angular API service call(s): DeviceMasterApi.getDeviceMaster (app/core/services/device-master-api.ts:33).</para>
+    /// <para>Integrated UI page(s): /app/device-masters/new; /app/device-masters/:deviceMasterId/edit</para>
+    /// <para>Angular UI component(s): DeviceMasterForm (app/features/host/device-masters/device-master-form/device-master-form.ts)</para>
     /// </remarks>
     [HttpGet("get-by-id/{id:long}")]
     public async Task<IActionResult> GetById(long id, CancellationToken cancellationToken)
     { logger.LogInformation("Received DeviceMaster get-by-id request for {DeviceMasterId}.", id); return Ok(await mediator.Send(new GetDeviceMasterByIdQuery(id), cancellationToken)); }
 
     /// <summary>
-    /// Retrieves DeviceMaster information by its manufacturer serial number.
+    /// Not-Used-In-Angular.
     /// </summary>
     /// <remarks>
-    /// <para>Returns the active or inactive, non-soft-deleted DeviceMaster matching the supplied SNo.</para>
+    /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    /// <para>Backend endpoint: GET /api/devicemaster/get-info-by-sno/{}.</para>
     /// </remarks>
     [HttpGet("get-info-by-sno/{sNo}")]
     public async Task<IActionResult> GetInfoBySNo(string sNo, CancellationToken cancellationToken)
     { logger.LogInformation("Received DeviceMaster get-info-by-sno request."); return Ok(await mediator.Send(new GetDeviceMasterInfoBySNoQuery(sNo), cancellationToken)); }
 
     /// <summary>
-    /// Supports the Angular UI flow for get all.
+    /// Used-In-Angular: retrieves device masters.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): DeviceMasterApi.getDeviceMasters (app/core/services/device-master-api.ts:28).</para>
     /// <para>Angular purpose: retrieves device masters.</para>
-    /// <para>Angular page(s): /app/tenant-devices/new; /app/tenant-devices/:tenantDeviceId/edit; /app/device-masters; /app/tenant-devices.</para>
-    /// <para>Angular API service call(s): DeviceMasterApi.getDeviceMasters (app/core/services/device-master-api.ts:27).</para>
+    /// <para>Integrated UI page(s): /app/tenant-devices/new; /app/tenant-devices/:tenantDeviceId/edit; /app/device-masters; /app/tenant-devices</para>
+    /// <para>Angular UI component(s): DeviceMastersStore (app/features/host/device-masters/device-masters.store.ts); TenantDeviceForm (app/features/host/tenant-devices/tenant-device-form/tenant-device-form.ts); TenantDevicesStore (app/features/host/tenant-devices/tenant-devices.store.ts); DeviceMasters (app/features/host/device-masters/device-masters.ts); TenantDevices (app/features/host/tenant-devices/tenant-devices.ts)</para>
     /// </remarks>
     [HttpGet("get-all")]
     public async Task<IActionResult> GetAll([FromQuery] GetDeviceMasterListRequestDTO filter, CancellationToken cancellationToken)
     { logger.LogInformation("Received DeviceMaster list request."); return Ok(await mediator.Send(new GetAllDeviceMastersQuery(filter), cancellationToken)); }
 
     /// <summary>
-    /// Supports the Angular UI flow for update.
+    /// Used-In-Angular: updates device master.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): DeviceMasterApi.updateDeviceMaster (app/core/services/device-master-api.ts:47).</para>
     /// <para>Angular purpose: updates device master.</para>
-    /// <para>Angular page(s): /app/device-masters/new; /app/device-masters/:deviceMasterId/edit.</para>
-    /// <para>Angular API service call(s): DeviceMasterApi.updateDeviceMaster (app/core/services/device-master-api.ts:46).</para>
+    /// <para>Integrated UI page(s): /app/device-masters/new; /app/device-masters/:deviceMasterId/edit</para>
+    /// <para>Angular UI component(s): DeviceMasterForm (app/features/host/device-masters/device-master-form/device-master-form.ts)</para>
     /// </remarks>
     [HttpPost("update")]
     public async Task<IActionResult> Update([FromBody] UpdateDeviceMasterRequestDTO dto, CancellationToken cancellationToken)
     { logger.LogInformation("Received DeviceMaster update request for {DeviceMasterId}.", dto.Id); return Ok(await mediator.Send(new UpdateDeviceMasterCommand(dto), cancellationToken)); }
 
     /// <summary>
-    /// Supports the Angular UI flow for update status.
+    /// Used-In-Angular: updates device master status.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): DeviceMasterApi.setDeviceMasterStatus (app/core/services/device-master-api.ts:53).</para>
     /// <para>Angular purpose: updates device master status.</para>
-    /// <para>Angular page(s): /app/device-masters.</para>
-    /// <para>Angular API service call(s): DeviceMasterApi.setDeviceMasterStatus (app/core/services/device-master-api.ts:52).</para>
+    /// <para>Integrated UI page(s): /app/device-masters</para>
+    /// <para>Angular UI component(s): DeviceMastersStore (app/features/host/device-masters/device-masters.store.ts); DeviceMasters (app/features/host/device-masters/device-masters.ts)</para>
     /// </remarks>
     [HttpPost("update-status")]
     public async Task<IActionResult> UpdateStatus([FromBody] UpdateDeviceMasterStatusRequestDTO dto, CancellationToken cancellationToken)
     { logger.LogInformation("Received DeviceMaster status request for {DeviceMasterId}.", dto.Id); return Ok(await mediator.Send(new UpdateDeviceMasterStatusCommand(dto), cancellationToken)); }
 
     /// <summary>
-    /// Supports the Angular UI flow for delete.
+    /// Used-In-Angular: deletes device master.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): DeviceMasterApi.deleteDeviceMaster (app/core/services/device-master-api.ts:59).</para>
     /// <para>Angular purpose: deletes device master.</para>
-    /// <para>Angular page(s): /app/device-masters.</para>
-    /// <para>Angular API service call(s): DeviceMasterApi.deleteDeviceMaster (app/core/services/device-master-api.ts:58).</para>
+    /// <para>Integrated UI page(s): /app/device-masters</para>
+    /// <para>Angular UI component(s): DeviceMastersStore (app/features/host/device-masters/device-masters.store.ts); DeviceMasters (app/features/host/device-masters/device-masters.ts)</para>
     /// </remarks>
     [HttpDelete("delete/{id:long}")]
     public async Task<IActionResult> Delete(long id, CancellationToken cancellationToken)

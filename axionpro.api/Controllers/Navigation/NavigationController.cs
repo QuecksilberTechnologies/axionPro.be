@@ -31,12 +31,12 @@ public sealed class NavigationController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves the current authenticated user's permitted hamburger-menu hierarchy.
+    /// Not-Used-In-Angular.
     /// </summary>
     /// <remarks>
-    /// <para>Angular purpose: populates the authenticated dashboard hamburger menu.</para>
-    /// <para>Angular page(s): /app/dashboard; /app/admin-dashboard.</para>
-    /// <para>No RoleId, ModuleId, or OperationId is accepted from the client; the server derives the current context from the bearer token.</para>
+    /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    /// <para>Backend endpoint: GET /api/navigation/my-menu.</para>
     /// </remarks>
     [HttpGet("my-menu")]
     public async Task<IActionResult> GetMyMenu(CancellationToken cancellationToken)

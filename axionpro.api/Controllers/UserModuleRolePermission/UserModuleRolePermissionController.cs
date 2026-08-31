@@ -26,12 +26,14 @@ public class UserModuleRolePermissionController : ControllerBase
         _logger = logger;
     }
     /// <summary>
-    /// Supports the Angular UI flow for create permission.
+    /// Used-In-Angular: updates role permissions.
     /// </summary>
     /// <remarks>
-    /// <para>Angular purpose: performs save role permissions.</para>
-    /// <para>Angular page(s): /app/host-roles/permissions/:hostRoleId; /app/roles/permissions/:roleId.</para>
-    /// <para>Angular API service call(s): RolesApi.saveRolePermissions (app/core/services/roles-api.ts:151).</para>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): RolesApi.saveRolePermissions (app/core/services/roles-api.ts:155).</para>
+    /// <para>Angular purpose: updates role permissions.</para>
+    /// <para>Integrated UI page(s): /app/roles/permissions/:roleId</para>
+    /// <para>Angular UI component(s): RolePermissionsStore (app/features/roles/role-permissions/role-permissions.store.ts); RolePermissions (app/features/roles/role-permissions/role-permissions.ts)</para>
     /// </remarks>
 
     [HttpPost("assign-role-permissions")]    
@@ -46,12 +48,14 @@ public class UserModuleRolePermissionController : ControllerBase
         return Ok(result);
     }
     /// <summary>
-    /// Supports the Angular UI flow for get tenant enabled operations.
+    /// Used-In-Angular: retrieves role based permissions.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): RolesApi.getRoleBasedPermissions (app/core/services/roles-api.ts:146).</para>
     /// <para>Angular purpose: retrieves role based permissions.</para>
-    /// <para>Angular page(s): /app/policies/attendance-policies; /auth/login; /app/admin-dashboard; /app/departments; /app/designations; /app/device-masters; /app/modules/module-operations; /app/modules/operations; and 24 more.</para>
-    /// <para>Angular API service call(s): RolesApi.getRoleBasedPermissions (app/core/services/roles-api.ts:142).</para>
+    /// <para>Integrated UI page(s): /app/policies/attendance-policies; /auth/login; /app/admin-dashboard; /app/departments; /app/designations; /app/device-masters; /app/modules/module-operations; /app/modules/operations</para>
+    /// <para>Angular UI component(s): CurrentUserPermissionsStore (app/core/stores/current-user-permissions.store.ts); RolePermissionsStore (app/features/roles/role-permissions/role-permissions.store.ts); hasModuleOperationGuard (app/core/guards/has-module-operation-guard.ts); hasModulePermissionGuard (app/core/guards/has-module-permission-guard.ts); superAdminGuard (app/core/guards/super-admin-guard.ts); AttendancePolicies (app/features/attendance-policies/attendance-policies.ts); Login (app/features/authentication/login/login.ts); DashboardAdmin (app/features/dashboard/dashboard-admin/dashboard-admin.ts)</para>
     /// </remarks>
     [HttpGet("get-role-based-permissions")]
     public async Task<IActionResult> GetTenantEnabledOperations([FromQuery] GetAllActiveRoleModuleOperationsRequestByRoleIdDTO code)

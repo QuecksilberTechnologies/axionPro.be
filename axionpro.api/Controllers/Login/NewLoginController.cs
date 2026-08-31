@@ -41,15 +41,14 @@ public sealed class NewLoginController : ControllerBase
     #region Authentication Endpoints
 
     /// <summary>
-    /// Supports the Angular UI flow for login.
+    /// Used-In-Angular: authenticates the user.
     /// </summary>
     /// <remarks>
-    /// <para>Angular purpose: performs login.</para>
-    /// <para>Angular page(s): /auth/login.</para>
-    /// <para>Angular API service call(s): AuthApi.login (app/core/services/auth-api.ts:153).</para>
-    /// <para>Mobile purpose: submits the AxionPro mobile credential form and receives the first authenticated session.</para>
-    /// <para>Mobile page: AxionPro.Mobile/Features/Authentication/Pages/LoginPage.xaml.</para>
-    /// <para>Mobile call chain: LoginPage → LoginViewModel → AuthenticationService → AxionProApiClient.</para>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): AuthApi.login (app/core/services/auth-api.ts:162).</para>
+    /// <para>Angular purpose: authenticates the user.</para>
+    /// <para>Integrated UI page(s): /auth/login</para>
+    /// <para>Angular UI component(s): Login (app/features/authentication/login/login.ts)</para>
     /// </remarks>
     [HttpPost("login")]
     public async Task<IActionResult> Login(

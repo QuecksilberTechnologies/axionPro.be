@@ -31,6 +31,14 @@ namespace axionpro.api.Controllers.FileUpload
             _logger = logger;
             _fileStorageService = fileStorageService;
         }
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: POST /api/fileupload/uploadasset/upload.</para>
+        /// </remarks>
 
         [HttpPost("UploadAsset/upload")]     
         public async Task<IActionResult> UploadAsset([FromBody] UploadFileDTO dto)

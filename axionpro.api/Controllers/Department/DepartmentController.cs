@@ -34,12 +34,14 @@ namespace axionpro.api.Controllers.Department
         // -------------------------------------------------------
 
         /// <summary>
-        /// Supports the Angular UI flow for get all departments async.
+        /// Used-In-Angular: retrieves departments.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): DepartmentsApi.getDepartments (app/core/services/departments-api.ts:34).</para>
         /// <para>Angular purpose: retrieves departments.</para>
-        /// <para>Angular page(s): /app/departments.</para>
-        /// <para>Angular API service call(s): DepartmentsApi.getDepartments (app/core/services/departments-api.ts:33).</para>
+        /// <para>Integrated UI page(s): /app/departments</para>
+        /// <para>Angular UI component(s): DepartmentsStore (app/features/departments/departments.store.ts); Departments (app/features/departments/departments.ts)</para>
         /// </remarks>
         [HttpGet("get")]
         
@@ -60,12 +62,14 @@ namespace axionpro.api.Controllers.Department
         // -------------------------------------------------------
 
         /// <summary>
-        /// Supports the Angular UI flow for create department async.
+        /// Used-In-Angular: creates department.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): DepartmentsApi.addDepartment (app/core/services/departments-api.ts:27).</para>
         /// <para>Angular purpose: creates department.</para>
-        /// <para>Angular page(s): /app/departments.</para>
-        /// <para>Angular API service call(s): DepartmentsApi.addDepartment (app/core/services/departments-api.ts:26).</para>
+        /// <para>Integrated UI page(s): /app/departments</para>
+        /// <para>Angular UI component(s): DepartmentManageDialog (app/shared/components/department/department-manage-dialog/department-manage-dialog.ts); Departments (app/features/departments/departments.ts)</para>
         /// </remarks>
         [HttpPost("add")]
         public async Task<IActionResult> CreateDepartmentAsync([FromBody] CreateDepartmentRequestDTO createDto)
@@ -89,12 +93,14 @@ namespace axionpro.api.Controllers.Department
         // -------------------------------------------------------
 
         /// <summary>
-        /// Supports the Angular UI flow for update department async.
+        /// Used-In-Angular: updates department.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): DepartmentsApi.updateDepartment (app/core/services/departments-api.ts:47).</para>
         /// <para>Angular purpose: updates department.</para>
-        /// <para>Angular page(s): /app/departments.</para>
-        /// <para>Angular API service call(s): DepartmentsApi.updateDepartment (app/core/services/departments-api.ts:46).</para>
+        /// <para>Integrated UI page(s): /app/departments</para>
+        /// <para>Angular UI component(s): DepartmentsStore (app/features/departments/departments.store.ts); DepartmentManageDialog (app/shared/components/department/department-manage-dialog/department-manage-dialog.ts); Departments (app/features/departments/departments.ts)</para>
         /// </remarks>
         [HttpPut("update")]        
         public async Task<IActionResult> UpdateDepartmentAsync([FromBody] UpdateDepartmentRequestDTO updateDto)
@@ -113,12 +119,14 @@ namespace axionpro.api.Controllers.Department
             return Ok(result);
         }
         /// <summary>
-        /// Supports the Angular UI flow for get department.
+        /// Used-In-Angular: retrieves departments options.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): DepartmentsApi.getDepartmentsOptions (app/core/services/departments-api.ts:41).</para>
         /// <para>Angular purpose: retrieves departments options.</para>
-        /// <para>Angular page(s): /app/designations; /app/employees; /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants; /app/tenant-locations/new; /app/tenant-locations/:tenantLocationId/edit; /app/tenant-locations; and 12 more.</para>
-        /// <para>Angular API service call(s): DepartmentsApi.getDepartmentsOptions (app/core/services/departments-api.ts:40).</para>
+        /// <para>Integrated UI page(s): /app/designations; /app/employees; /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants; /app/tenant-locations/new; /app/tenant-locations/:tenantLocationId/edit; /app/tenant-locations</para>
+        /// <para>Angular UI component(s): LookupStore (app/core/stores/lookup.store.ts); DashboardHostStore (app/features/dashboard/dashboard-host/dashboard-host.store.ts); DepartmentsStore (app/features/departments/departments.store.ts); Designations (app/features/designations/designations.ts); Employees (app/features/employees/employees.ts); TenantDetail (app/features/host/tenants/tenant-detail/tenant-detail.ts); TenantForm (app/features/host/tenants/tenant-form/tenant-form.ts); Tenants (app/features/host/tenants/tenants.ts)</para>
         /// </remarks>
         [HttpGet("option")]        
         public async Task<IActionResult> getDepartment([FromQuery] GetOptionRequestDTO requestDTO)
@@ -135,12 +143,14 @@ namespace axionpro.api.Controllers.Department
         // -------------------------------------------------------
 
         /// <summary>
-        /// Supports the Angular UI flow for delete department async.
+        /// Used-In-Angular: deletes department.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): DepartmentsApi.deleteDepartment (app/core/services/departments-api.ts:54).</para>
         /// <para>Angular purpose: deletes department.</para>
-        /// <para>Angular page(s): /app/departments.</para>
-        /// <para>Angular API service call(s): DepartmentsApi.deleteDepartment (app/core/services/departments-api.ts:53).</para>
+        /// <para>Integrated UI page(s): /app/departments</para>
+        /// <para>Angular UI component(s): DepartmentsStore (app/features/departments/departments.store.ts); Departments (app/features/departments/departments.ts)</para>
         /// </remarks>
         [HttpDelete("delete")]        
         public async Task<IActionResult> DeleteDepartmentAsync([FromQuery] DeleteDepartmentRequestDTO deleteDto)

@@ -20,6 +20,14 @@ namespace axionpro.api.Controllers.MenuStructureView
     [ApiController]
     public class MenuStructureController : ControllerBase
     {
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: POST /api/menustructure/get-menus-structure.</para>
+        /// </remarks>
         [HttpPost("get-menus-structure")]
         public IActionResult GetAllMenuStructure([FromBody] GetEmployeeTypeRequestDTO requestDto)
         {

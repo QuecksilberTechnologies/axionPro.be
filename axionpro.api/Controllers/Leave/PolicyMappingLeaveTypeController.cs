@@ -32,12 +32,14 @@ namespace axionpro.api.Controllers.Leave
         
         // ✅ Create LeavePolicy
              /// <summary>
-             /// Supports the Angular UI flow for create leave policy async.
+             /// Used-In-Angular: assigns or maps policy mapping leave type.
              /// </summary>
              /// <remarks>
-             /// <para>Angular purpose: updates policy mapping leave types.</para>
-             /// <para>Angular page(s): /app/policies/leave-policy-type-mapping.</para>
-             /// <para>Angular API service call(s): PolicyMappingLeaveTypeApi.setPolicyMappingLeaveTypes (app/core/services/policy-mapping-leave-type-api.ts:79).</para>
+             /// <para>Angular usage status: Used-In-Angular.</para>
+             /// <para>Angular function(s): PolicyMappingLeaveTypeApi.mapPolicyMappingLeaveType (app/core/services/policy-mapping-leave-type-api.ts:83).</para>
+             /// <para>Angular purpose: assigns or maps policy mapping leave type.</para>
+             /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
+             /// <para>Angular UI component(s): LeaveTypeMappingDialog (app/features/policies/policy-mapping-leave-type/leave-type-mapping-dialog/leave-type-mapping-dialog.ts)</para>
              /// </remarks>
              [HttpPost("map")]         
         public async Task<IActionResult> CreateLeavePolicyAsync([FromBody] GetPolicyLeaveTypeMappingRequestDTO requestDTO)
@@ -50,12 +52,14 @@ namespace axionpro.api.Controllers.Leave
 
        //  ✅ Get All LeavePolicies
         /// <summary>
-        /// Supports the Angular UI flow for get all leave policies async.
+        /// Used-In-Angular: retrieves all policy mapping leave types.
         /// </summary>
         /// <remarks>
-        /// <para>Angular purpose: updates policy mapping leave types.</para>
-        /// <para>Angular page(s): /app/policies/leave-policy-type-mapping.</para>
-        /// <para>Angular API service call(s): PolicyMappingLeaveTypeApi.setPolicyMappingLeaveTypes (app/core/services/policy-mapping-leave-type-api.ts:46).</para>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): PolicyMappingLeaveTypeApi.getAllPolicyMappingLeaveTypes (app/core/services/policy-mapping-leave-type-api.ts:50).</para>
+        /// <para>Angular purpose: retrieves all policy mapping leave types.</para>
+        /// <para>Integrated UI page(s): /app/policies/leave-policy-type-mapping</para>
+        /// <para>Angular UI component(s): PolicyMappingLeaveType (app/features/policies/policy-mapping-leave-type/policy-mapping-leave-type.ts)</para>
         /// </remarks>
         [HttpGet("get")] 
         public async Task<IActionResult> GetAllLeavePoliciesAsync([FromQuery]  GetLeaveTypeWithPolicyMappingRequestDTO getLeavePolicyRequestDTO)
@@ -67,6 +71,14 @@ namespace axionpro.api.Controllers.Leave
         }
 
         //  ✅ Get All LeavePolicies
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: GET /api/policymappingleavetype/leavepolicy/employeetype/get.</para>
+        /// </remarks>
         [HttpGet("LeavePolicy/EmployeeType/get")] 
         public async Task<IActionResult> GetAllLeavePoliciesByEmployeeIdAsync([FromQuery] GetPolicyLeaveTypeByEmpTypeIdRequestDTO dTO)
         {
@@ -77,12 +89,14 @@ namespace axionpro.api.Controllers.Leave
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for update leave policy async.
+        /// Used-In-Angular: updates policy mapping leave type.
         /// </summary>
         /// <remarks>
-        /// <para>Angular purpose: updates policy mapping leave types.</para>
-        /// <para>Angular page(s): /app/policies/leave-policy-type-mapping.</para>
-        /// <para>Angular API service call(s): PolicyMappingLeaveTypeApi.setPolicyMappingLeaveTypes (app/core/services/policy-mapping-leave-type-api.ts:91).</para>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): PolicyMappingLeaveTypeApi.updatePolicyMappingLeaveType (app/core/services/policy-mapping-leave-type-api.ts:95).</para>
+        /// <para>Angular purpose: updates policy mapping leave type.</para>
+        /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
+        /// <para>Angular UI component(s): No consuming Angular component was statically resolved.</para>
         /// </remarks>
         [HttpPost("update")]       
         public async Task<IActionResult> UpdateLeavePolicyAsync([FromBody] UpdateEmployeeLeavePolicyMappingRequestDTO requestDTO)
@@ -93,12 +107,14 @@ namespace axionpro.api.Controllers.Leave
             return Ok(result);
         }
         /// <summary>
-        /// Supports the Angular UI flow for delete leave policy.
+        /// Used-In-Angular: deletes policy mapping leave type.
         /// </summary>
         /// <remarks>
-        /// <para>Angular purpose: updates policy mapping leave types.</para>
-        /// <para>Angular page(s): /app/policies/leave-policy-type-mapping.</para>
-        /// <para>Angular API service call(s): PolicyMappingLeaveTypeApi.setPolicyMappingLeaveTypes (app/core/services/policy-mapping-leave-type-api.ts:103).</para>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): PolicyMappingLeaveTypeApi.deletePolicyMappingLeaveType (app/core/services/policy-mapping-leave-type-api.ts:107).</para>
+        /// <para>Angular purpose: deletes policy mapping leave type.</para>
+        /// <para>Integrated UI page(s): /app/policies/leave-policy-type-mapping</para>
+        /// <para>Angular UI component(s): PolicyMappingLeaveType (app/features/policies/policy-mapping-leave-type/policy-mapping-leave-type.ts)</para>
         /// </remarks>
         [HttpPost("delete")]        
         // [Authorize]

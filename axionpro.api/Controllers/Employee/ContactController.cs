@@ -35,12 +35,14 @@ namespace axionpro.api.Controllers.Employee
             _logger = logger;
         }
         /// <summary>
-        /// Supports the Angular UI flow for create contact info.
+        /// Used-In-Angular: creates employee contact.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeContactsAPI.createEmployeeContact (app/core/services/employee-contacts-api.ts:79).</para>
         /// <para>Angular purpose: creates employee contact.</para>
-        /// <para>Angular page(s): /app/profile/contact-info.</para>
-        /// <para>Angular API service call(s): EmployeeContactsAPI.createEmployeeContact (app/core/services/employee-contacts-api.ts:75).</para>
+        /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
+        /// <para>Angular UI component(s): EmployeeContactForm (app/features/user-menu/employee-profile/employee-contact-info/employee-contact-form/employee-contact-form.ts)</para>
         /// </remarks>
         [HttpPost("create")]
         public async Task<IActionResult> CreateContactInfo([FromBody] CreateContactRequestDTO Dto)
@@ -67,12 +69,14 @@ namespace axionpro.api.Controllers.Employee
 
 
         /// <summary>
-        /// Supports the Angular UI flow for get bankinfo.
+        /// Used-In-Angular: retrieves employee contacts.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeContactsAPI.getEmployeeContacts (app/core/services/employee-contacts-api.ts:86).</para>
         /// <para>Angular purpose: retrieves employee contacts.</para>
-        /// <para>Angular page(s): /app/profile/contact-info.</para>
-        /// <para>Angular API service call(s): EmployeeContactsAPI.getEmployeeContacts (app/core/services/employee-contacts-api.ts:82).</para>
+        /// <para>Integrated UI page(s): /app/profile/contact-info</para>
+        /// <para>Angular UI component(s): EmployeeContactInfo (app/features/user-menu/employee-profile/employee-contact-info/employee-contact-info.ts)</para>
         /// </remarks>
         [HttpGet("get")]     
                 public async Task<IActionResult> GetBankinfo([FromQuery] GetContactRequestDTO requestDto)
@@ -89,12 +93,14 @@ namespace axionpro.api.Controllers.Employee
 
 
         /// <summary>
-        /// Supports the Angular UI flow for update contact.
+        /// Used-In-Angular: updates employee contact.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeContactsAPI.updateEmployeeContact (app/core/services/employee-contacts-api.ts:92).</para>
         /// <para>Angular purpose: updates employee contact.</para>
-        /// <para>Angular page(s): /app/profile/contact-info.</para>
-        /// <para>Angular API service call(s): EmployeeContactsAPI.updateEmployeeContact (app/core/services/employee-contacts-api.ts:88).</para>
+        /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
+        /// <para>Angular UI component(s): EmployeeContactForm (app/features/user-menu/employee-profile/employee-contact-info/employee-contact-form/employee-contact-form.ts)</para>
         /// </remarks>
         [HttpPost("update")]        
         public async Task<IActionResult> UpdateContact([FromBody] UpdateContactRequestDTO dto)
@@ -113,12 +119,14 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for delete.
+        /// Used-In-Angular: deletes employee contact.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeContactsAPI.deleteEmployeeContact (app/core/services/employee-contacts-api.ts:99).</para>
         /// <para>Angular purpose: deletes employee contact.</para>
-        /// <para>Angular page(s): /app/profile/contact-info.</para>
-        /// <para>Angular API service call(s): EmployeeContactsAPI.deleteEmployeeContact (app/core/services/employee-contacts-api.ts:95).</para>
+        /// <para>Integrated UI page(s): /app/profile/contact-info</para>
+        /// <para>Angular UI component(s): EmployeeContactInfo (app/features/user-menu/employee-profile/employee-contact-info/employee-contact-info.ts)</para>
         /// </remarks>
         [HttpDelete("delete")]   
         public async Task<IActionResult> Delete([FromQuery] DeleteRequestDTO dto)

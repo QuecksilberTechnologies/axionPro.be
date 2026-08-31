@@ -37,12 +37,14 @@ namespace axionpro.api.Controllers.Host
     }
 
         /// <summary>
-        /// Supports the Angular UI flow for create host user.
+        /// Used-In-Angular: creates host user.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): HostApi.createHostUser (app/core/services/host-api.ts:72).</para>
         /// <para>Angular purpose: creates host user.</para>
-        /// <para>Angular page(s): /app/host-users.</para>
-        /// <para>Angular API service call(s): HostApi.createHostUser (app/core/services/host-api.ts:71).</para>
+        /// <para>Integrated UI page(s): /app/host-users</para>
+        /// <para>Angular UI component(s): HostUserManageDialog (app/shared/components/host-user/host-user-manage-dialog/host-user-manage-dialog.ts); HostUsers (app/features/host/users/host-users.ts)</para>
         /// </remarks>
         [HttpPost("create-host-user")]
         public async Task<IActionResult> CreateHostUser([FromBody] CreateHostUserRequestDTO tenantCreateRequestDTO)
@@ -54,12 +56,14 @@ namespace axionpro.api.Controllers.Host
             return Ok(result);
         }
         /// <summary>
-        /// Supports the Angular UI flow for create host role.
+        /// Used-In-Angular: creates host role.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): HostApi.createHostRole (app/core/services/host-api.ts:102).</para>
         /// <para>Angular purpose: creates host role.</para>
-        /// <para>Angular page(s): /app/host-roles.</para>
-        /// <para>Angular API service call(s): HostApi.createHostRole (app/core/services/host-api.ts:101).</para>
+        /// <para>Integrated UI page(s): /app/host-roles</para>
+        /// <para>Angular UI component(s): HostRoleManageDialog (app/shared/components/host-role/host-role-manage-dialog/host-role-manage-dialog.ts); HostRoles (app/features/host/roles/host-roles.ts)</para>
         /// </remarks>
         [HttpPost("create-host-role")]
         public async Task<IActionResult> CreateHostRole( [FromBody] CreateHostRoleRequestDTO hostRoleRequestDTO)
@@ -77,12 +81,14 @@ namespace axionpro.api.Controllers.Host
         #region Host User CRUD
 
         /// <summary>
-        /// Supports the Angular UI flow for get host user by id.
+        /// Used-In-Angular: retrieves host user by id.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): HostApi.getHostUserById (app/core/services/host-api.ts:46).</para>
         /// <para>Angular purpose: retrieves host user by id.</para>
-        /// <para>Angular page(s): /auth/login; /app/admin-dashboard; /app/dashboard; /app/okr/dashboard; /app/okr/:id; /app/okr/my; /app/okr/team; /app/okr/company; and 42 more.</para>
-        /// <para>Angular API service call(s): HostApi.getHostUserById (app/core/services/host-api.ts:45).</para>
+        /// <para>Integrated UI page(s): /app/policies/attendance-policies; /auth/login; /app/admin-dashboard; /app/departments; /app/designations; /app/device-masters; /app/modules/module-operations; /app/modules/operations</para>
+        /// <para>Angular UI component(s): isLogoutMenuItem (app/core/stores/auth.store.ts); CurrentUserPermissionsStore (app/core/stores/current-user-permissions.store.ts); UserMenu (app/layout/user-menu/user-menu.ts); hasModuleOperationGuard (app/core/guards/has-module-operation-guard.ts); hasModulePermissionGuard (app/core/guards/has-module-permission-guard.ts); superAdminGuard (app/core/guards/super-admin-guard.ts); AttendancePolicies (app/features/attendance-policies/attendance-policies.ts); Login (app/features/authentication/login/login.ts)</para>
         /// </remarks>
         [HttpGet("get-host-user-by-id/{id}")]
         public async Task<IActionResult> GetHostUserById(long id)
@@ -97,12 +103,14 @@ namespace axionpro.api.Controllers.Host
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for get all host users.
+        /// Used-In-Angular: retrieves host users.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): HostApi.getHostUsers (app/core/services/host-api.ts:38).</para>
         /// <para>Angular purpose: retrieves host users.</para>
-        /// <para>Angular page(s): /app/host-dashboard; /app/host-users.</para>
-        /// <para>Angular API service call(s): HostApi.getHostUsers (app/core/services/host-api.ts:37).</para>
+        /// <para>Integrated UI page(s): /app/host-dashboard; /app/host-users</para>
+        /// <para>Angular UI component(s): DashboardHostStore (app/features/dashboard/dashboard-host/dashboard-host.store.ts); HostUsersStore (app/features/host/users/host-users.store.ts); DashboardHost (app/features/dashboard/dashboard-host/dashboard-host.ts); HostUsers (app/features/host/users/host-users.ts)</para>
         /// </remarks>
         [HttpGet("get-all-host-users")]
         public async Task<IActionResult> GetAllHostUsers(
@@ -119,12 +127,14 @@ namespace axionpro.api.Controllers.Host
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for update host user.
+        /// Used-In-Angular: updates host user.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): HostApi.updateHostUser (app/core/services/host-api.ts:78).</para>
         /// <para>Angular purpose: updates host user.</para>
-        /// <para>Angular page(s): /app/host-users; /app/profile; /auth/login; /app/admin-dashboard; /app/dashboard; /app/okr/dashboard; /app/okr/:id; /app/okr/my; and 10 more.</para>
-        /// <para>Angular API service call(s): HostApi.updateHostUser (app/core/services/host-api.ts:77).</para>
+        /// <para>Integrated UI page(s): /app/host-users; /app/profile</para>
+        /// <para>Angular UI component(s): HostUsersStore (app/features/host/users/host-users.store.ts); HostProfileStore (app/features/user-menu/host-profile/host-profile.store.ts); HostUserManageDialog (app/shared/components/host-user/host-user-manage-dialog/host-user-manage-dialog.ts); HostUsers (app/features/host/users/host-users.ts); HostProfile (app/features/user-menu/host-profile/host-profile.ts)</para>
         /// </remarks>
         [HttpPost("update-host-user")]
         public async Task<IActionResult> UpdateHostUser(
@@ -140,12 +150,14 @@ namespace axionpro.api.Controllers.Host
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for delete host user.
+        /// Used-In-Angular: deletes host user.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): HostApi.deleteHostUser (app/core/services/host-api.ts:84).</para>
         /// <para>Angular purpose: deletes host user.</para>
-        /// <para>Angular page(s): /app/host-users.</para>
-        /// <para>Angular API service call(s): HostApi.deleteHostUser (app/core/services/host-api.ts:83).</para>
+        /// <para>Integrated UI page(s): /app/host-users</para>
+        /// <para>Angular UI component(s): HostUsersStore (app/features/host/users/host-users.store.ts); HostUsers (app/features/host/users/host-users.ts)</para>
         /// </remarks>
         [HttpPost("delete-host-user")]
         public async Task<IActionResult> DeleteHostUser(
@@ -165,12 +177,14 @@ namespace axionpro.api.Controllers.Host
         #region Host User Password Management
 
         /// <summary>
-        /// Supports the Angular UI flow for change host user password.
+        /// Used-In-Angular: updates host user password.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): HostApi.changeHostUserPassword (app/core/services/host-api.ts:96).</para>
         /// <para>Angular purpose: updates host user password.</para>
-        /// <para>Angular page(s): /app/update-password.</para>
-        /// <para>Angular API service call(s): HostApi.changeHostUserPassword (app/core/services/host-api.ts:95).</para>
+        /// <para>Integrated UI page(s): /app/update-password</para>
+        /// <para>Angular UI component(s): UpdatePassword (app/features/user-menu/update-password/update-password.ts)</para>
         /// </remarks>
         [HttpPost("change-host-user-password")]
         public async Task<IActionResult> ChangeHostUserPassword(
@@ -186,12 +200,14 @@ namespace axionpro.api.Controllers.Host
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for reset host user password.
+        /// Used-In-Angular: performs the Angular function reset host user password.
         /// </summary>
         /// <remarks>
-        /// <para>Angular purpose: resets host user password.</para>
-        /// <para>Angular page(s): /app/host-users.</para>
-        /// <para>Angular API service call(s): HostApi.resetHostUserPassword (app/core/services/host-api.ts:89).</para>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): HostApi.resetHostUserPassword (app/core/services/host-api.ts:90).</para>
+        /// <para>Angular purpose: performs the Angular function reset host user password.</para>
+        /// <para>Integrated UI page(s): /app/host-users</para>
+        /// <para>Angular UI component(s): HostUserResetPasswordDialog (app/shared/components/host-user/host-user-reset-password-dialog/host-user-reset-password-dialog.ts); HostUsers (app/features/host/users/host-users.ts)</para>
         /// </remarks>
         [HttpPost("reset-host-user-password")]
         public async Task<IActionResult> ResetHostUserPassword(
@@ -211,12 +227,14 @@ namespace axionpro.api.Controllers.Host
         #region Host Role CRUD
 
         /// <summary>
-        /// Supports the Angular UI flow for get host role by id.
+        /// Used-In-Angular: retrieves host role by id.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): HostApi.getHostRoleById (app/core/services/host-api.ts:58).</para>
         /// <para>Angular purpose: retrieves host role by id.</para>
-        /// <para>Angular page(s): /app/host-roles/permissions/:hostRoleId.</para>
-        /// <para>Angular API service call(s): HostApi.getHostRoleById (app/core/services/host-api.ts:57).</para>
+        /// <para>Integrated UI page(s): /app/host-roles/permissions/:hostRoleId</para>
+        /// <para>Angular UI component(s): HostRolePermissionsStore (app/features/host/roles/host-role-permissions/host-role-permissions.store.ts); HostRolePermissions (app/features/host/roles/host-role-permissions/host-role-permissions.ts)</para>
         /// </remarks>
         [HttpGet("get-host-role-by-id/{id}")]
         public async Task<IActionResult> GetHostRoleById(long id)
@@ -231,12 +249,14 @@ namespace axionpro.api.Controllers.Host
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for get all host roles.
+        /// Used-In-Angular: retrieves host roles.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): HostApi.getHostRoles (app/core/services/host-api.ts:52).</para>
         /// <para>Angular purpose: retrieves host roles.</para>
-        /// <para>Angular page(s): /app/host-dashboard; /app/host-roles; /app/host-users.</para>
-        /// <para>Angular API service call(s): HostApi.getHostRoles (app/core/services/host-api.ts:51).</para>
+        /// <para>Integrated UI page(s): /app/host-dashboard; /app/host-roles; /app/host-users</para>
+        /// <para>Angular UI component(s): DashboardHostStore (app/features/dashboard/dashboard-host/dashboard-host.store.ts); HostRolesStore (app/features/host/roles/host-roles.store.ts); HostUserManageDialog (app/shared/components/host-user/host-user-manage-dialog/host-user-manage-dialog.ts); DashboardHost (app/features/dashboard/dashboard-host/dashboard-host.ts); HostRoles (app/features/host/roles/host-roles.ts); HostUsers (app/features/host/users/host-users.ts)</para>
         /// </remarks>
         [HttpGet("get-all-host-roles")]
         public async Task<IActionResult> GetAllHostRoles()
@@ -250,12 +270,14 @@ namespace axionpro.api.Controllers.Host
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for update host role.
+        /// Used-In-Angular: updates host role.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): HostApi.updateHostRole (app/core/services/host-api.ts:108).</para>
         /// <para>Angular purpose: updates host role.</para>
-        /// <para>Angular page(s): /app/host-roles.</para>
-        /// <para>Angular API service call(s): HostApi.updateHostRole (app/core/services/host-api.ts:107).</para>
+        /// <para>Integrated UI page(s): /app/host-roles</para>
+        /// <para>Angular UI component(s): HostRolesStore (app/features/host/roles/host-roles.store.ts); HostRoleManageDialog (app/shared/components/host-role/host-role-manage-dialog/host-role-manage-dialog.ts); HostRoles (app/features/host/roles/host-roles.ts)</para>
         /// </remarks>
         [HttpPost("update-host-role")]
         public async Task<IActionResult> UpdateHostRole(
@@ -271,12 +293,14 @@ namespace axionpro.api.Controllers.Host
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for delete host role.
+        /// Used-In-Angular: deletes host role.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): HostApi.deleteHostRole (app/core/services/host-api.ts:114).</para>
         /// <para>Angular purpose: deletes host role.</para>
-        /// <para>Angular page(s): /app/host-roles.</para>
-        /// <para>Angular API service call(s): HostApi.deleteHostRole (app/core/services/host-api.ts:113).</para>
+        /// <para>Integrated UI page(s): /app/host-roles</para>
+        /// <para>Angular UI component(s): HostRolesStore (app/features/host/roles/host-roles.store.ts); HostRoles (app/features/host/roles/host-roles.ts)</para>
         /// </remarks>
         [HttpPost("delete-host-role")]
         public async Task<IActionResult> DeleteHostRole(
@@ -296,12 +320,14 @@ namespace axionpro.api.Controllers.Host
         #region Host Module Queries
 
         /// <summary>
-        /// Supports the Angular UI flow for get host modules.
+        /// Used-In-Angular: retrieves host modules.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): HostApi.getHostModules (app/core/services/host-api.ts:66).</para>
         /// <para>Angular purpose: retrieves host modules.</para>
-        /// <para>Angular page(s): No Angular component caller was statically resolved; the Angular API-service wrapper is documented below..</para>
-        /// <para>Angular API service call(s): HostApi.getHostModules (app/core/services/host-api.ts:65).</para>
+        /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
+        /// <para>Angular UI component(s): No consuming Angular component was statically resolved.</para>
         /// </remarks>
         [HttpGet("get-host-modules")]
         public async Task<IActionResult> GetHostModules(
@@ -316,6 +342,14 @@ namespace axionpro.api.Controllers.Host
 
             return Ok(result);
         }
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: GET /api/host/get-host-module-by-id/{}.</para>
+        /// </remarks>
 
         [HttpGet("get-host-module-by-id/{id:int}")]
         public async Task<IActionResult> GetHostModuleById(

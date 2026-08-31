@@ -35,6 +35,14 @@ namespace axionpro.api.Controllers.Attendance
             _mediator = mediator;
             _logger = logger;
         }
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: POST /api/attendance/mark-attendance.</para>
+        /// </remarks>
 
 
         [HttpPost("mark-attendance")]
@@ -51,6 +59,14 @@ namespace axionpro.api.Controllers.Attendance
             return null;
         }
         #region TIMMY HTTPS Test
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: POST /api/attendance/timmy-test.</para>
+        /// </remarks>
 
         [AllowAnonymous]
         [HttpPost("timmy-test")]

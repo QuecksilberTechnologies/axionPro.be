@@ -28,6 +28,16 @@ namespace axionpro.api.Controllers.EnumTypes
             _mediator = mediator;
             _logger = logger;
         }
+        /// <summary>
+        /// Used-In-Angular: retrieves all currencies.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EnumApi.getAllCurrencies (app/core/services/enum-api.ts:30).</para>
+        /// <para>Angular purpose: retrieves all currencies.</para>
+        /// <para>Integrated UI page(s): /app/designations; /app/employees; /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants; /app/tenant-locations/new; /app/tenant-locations/:tenantLocationId/edit; /app/tenant-locations</para>
+        /// <para>Angular UI component(s): LookupStore (app/core/stores/lookup.store.ts); DashboardHostStore (app/features/dashboard/dashboard-host/dashboard-host.store.ts); DepartmentsStore (app/features/departments/departments.store.ts); Designations (app/features/designations/designations.ts); Employees (app/features/employees/employees.ts); TenantDetail (app/features/host/tenants/tenant-detail/tenant-detail.ts); TenantForm (app/features/host/tenants/tenant-form/tenant-form.ts); Tenants (app/features/host/tenants/tenants.ts)</para>
+        /// </remarks>
 
         [HttpGet("get-all-currencies")]
 

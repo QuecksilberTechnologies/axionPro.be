@@ -29,6 +29,14 @@ namespace axionpro.api.Controllers.Client
                 _mediator = mediator;
                 _logger = logger;
             }
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: GET /api/client/get.</para>
+        /// </remarks>
         
         [HttpGet("get")]  
         public async Task<IActionResult> GetAllClientType([FromQuery] GetOptionRequestDTO clientRequestType)
@@ -76,6 +84,14 @@ namespace axionpro.api.Controllers.Client
         //    }
         //    return Ok(result);
         //}
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: POST /api/client/add.</para>
+        /// </remarks>
         [HttpPost("add")]   
         public async Task<IActionResult> CreateClientType([FromBody] CreateClientTypeDTO createClientTypeDTO)
         {
@@ -93,6 +109,14 @@ namespace axionpro.api.Controllers.Client
 
             return Ok(result);
         }
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: POST /api/client/update.</para>
+        /// </remarks>
 
         [HttpPost("update")]        
         public async Task<IActionResult> UpdateClientType([FromBody] UpdateClientTypeDTO updateClientTypeDTO)

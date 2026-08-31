@@ -31,12 +31,14 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for create employee.
+        /// Used-In-Angular: creates employee education.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeEducationAPI.createEmployeeEducation (app/core/services/employee-education-api.ts:81).</para>
         /// <para>Angular purpose: creates employee education.</para>
-        /// <para>Angular page(s): /app/profile/education-info.</para>
-        /// <para>Angular API service call(s): EmployeeEducationAPI.createEmployeeEducation (app/core/services/employee-education-api.ts:77).</para>
+        /// <para>Integrated UI page(s): /app/profile/education-info</para>
+        /// <para>Angular UI component(s): EmployeeEducationForm (app/features/user-menu/employee-profile/employee-education-info/employee-education-form/employee-education-form.ts); EmployeeEducationInfo (app/features/user-menu/employee-profile/employee-education-info/employee-education-info.ts)</para>
         /// </remarks>
         [HttpPost("create")]        
         public async Task<IActionResult> CreateEmployee([FromForm] CreateEducationRequestDTO dto)
@@ -51,12 +53,14 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for get all employee info.
+        /// Used-In-Angular: retrieves employee educations.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeEducationAPI.getEmployeeEducations (app/core/services/employee-education-api.ts:88).</para>
         /// <para>Angular purpose: retrieves employee educations.</para>
-        /// <para>Angular page(s): /app/profile/education-info.</para>
-        /// <para>Angular API service call(s): EmployeeEducationAPI.getEmployeeEducations (app/core/services/employee-education-api.ts:84).</para>
+        /// <para>Integrated UI page(s): /app/profile/education-info</para>
+        /// <para>Angular UI component(s): EmployeeEducationInfo (app/features/user-menu/employee-profile/employee-education-info/employee-education-info.ts)</para>
         /// </remarks>
         [HttpGet("get")] 
         public async Task<IActionResult> GetAllEmployeeInfo([FromQuery] GetEducationRequestDTO commandDto)
@@ -71,12 +75,14 @@ namespace axionpro.api.Controllers.Employee
 
         
        /// <summary>
-       /// Supports the Angular UI flow for delete.
+       /// Used-In-Angular: deletes employee education.
        /// </summary>
        /// <remarks>
+       /// <para>Angular usage status: Used-In-Angular.</para>
+       /// <para>Angular function(s): EmployeeEducationAPI.deleteEmployeeEducation (app/core/services/employee-education-api.ts:101).</para>
        /// <para>Angular purpose: deletes employee education.</para>
-       /// <para>Angular page(s): /app/profile/education-info.</para>
-       /// <para>Angular API service call(s): EmployeeEducationAPI.deleteEmployeeEducation (app/core/services/employee-education-api.ts:97).</para>
+       /// <para>Integrated UI page(s): /app/profile/education-info</para>
+       /// <para>Angular UI component(s): EmployeeEducationInfo (app/features/user-menu/employee-profile/employee-education-info/employee-education-info.ts)</para>
        /// </remarks>
        [HttpDelete("delete")]
         public async Task<IActionResult> Delete([FromQuery] DeleteEducationRequestDTO dto)
@@ -93,12 +99,14 @@ namespace axionpro.api.Controllers.Employee
           
         }
         /// <summary>
-        /// Supports the Angular UI flow for update education.
+        /// Used-In-Angular: updates employee education.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeEducationAPI.updateEmployeeEducation (app/core/services/employee-education-api.ts:94).</para>
         /// <para>Angular purpose: updates employee education.</para>
-        /// <para>Angular page(s): /app/profile/education-info.</para>
-        /// <para>Angular API service call(s): EmployeeEducationAPI.updateEmployeeEducation (app/core/services/employee-education-api.ts:90).</para>
+        /// <para>Integrated UI page(s): /app/profile/education-info</para>
+        /// <para>Angular UI component(s): EmployeeEducationForm (app/features/user-menu/employee-profile/employee-education-info/employee-education-form/employee-education-form.ts); EmployeeEducationInfo (app/features/user-menu/employee-profile/employee-education-info/employee-education-info.ts)</para>
         /// </remarks>
         [HttpPost("update-education")]     
         public async Task<IActionResult> UpdateEducation(UpdateEducationRequestDTO dto)

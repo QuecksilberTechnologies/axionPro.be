@@ -42,12 +42,14 @@ public class ModuleOperationController : ControllerBase
     #region ModuleOperation CRUD
 
     /// <summary>
-    /// Supports the Angular UI flow for create module operation.
+    /// Used-In-Angular: creates module operation.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): ModuleOperationApi.addModuleOperation (app/core/services/module-operation-api.ts:38).</para>
     /// <para>Angular purpose: creates module operation.</para>
-    /// <para>Angular page(s): /app/modules/module-operations.</para>
-    /// <para>Angular API service call(s): ModuleOperationApi.addModuleOperation (app/core/services/module-operation-api.ts:37).</para>
+    /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
+    /// <para>Angular UI component(s): ModuleOperationForm (app/features/host/modules/module-operations/module-operation-form/module-operation-form.ts)</para>
     /// </remarks>
     [HttpPost("create")]
     public async Task<IActionResult> CreateModuleOperation(
@@ -62,12 +64,14 @@ public class ModuleOperationController : ControllerBase
     }
 
     /// <summary>
-    /// Supports the Angular UI flow for update module operation.
+    /// Used-In-Angular: updates module operation.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): ModuleOperationApi.updateModuleOperation (app/core/services/module-operation-api.ts:45).</para>
     /// <para>Angular purpose: updates module operation.</para>
-    /// <para>Angular page(s): /app/modules/module-operations.</para>
-    /// <para>Angular API service call(s): ModuleOperationApi.updateModuleOperation (app/core/services/module-operation-api.ts:44).</para>
+    /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
+    /// <para>Angular UI component(s): ModuleOperationForm (app/features/host/modules/module-operations/module-operation-form/module-operation-form.ts)</para>
     /// </remarks>
     [HttpPost("update")]
     public async Task<IActionResult> UpdateModuleOperation(
@@ -82,12 +86,14 @@ public class ModuleOperationController : ControllerBase
     }
 
     /// <summary>
-    /// Supports the Angular UI flow for delete module operation.
+    /// Used-In-Angular: deletes module operation.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): ModuleOperationApi.deleteModuleOperation (app/core/services/module-operation-api.ts:51).</para>
     /// <para>Angular purpose: deletes module operation.</para>
-    /// <para>Angular page(s): /app/modules/module-operations.</para>
-    /// <para>Angular API service call(s): ModuleOperationApi.deleteModuleOperation (app/core/services/module-operation-api.ts:50).</para>
+    /// <para>Integrated UI page(s): /app/modules/module-operations</para>
+    /// <para>Angular UI component(s): ModuleOperationsStore (app/features/host/modules/module-operations/module-operations.store.ts); ModuleOperations (app/features/host/modules/module-operations/module-operations.ts)</para>
     /// </remarks>
     [HttpDelete("delete/{id:int}")]
     public async Task<IActionResult> DeleteModuleOperation(
@@ -102,12 +108,14 @@ public class ModuleOperationController : ControllerBase
     }
 
     /// <summary>
-    /// Supports the Angular UI flow for get module operation by id.
+    /// Used-In-Angular: retrieves module operation.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): ModuleOperationApi.getModuleOperation (app/core/services/module-operation-api.ts:32).</para>
     /// <para>Angular purpose: retrieves module operation.</para>
-    /// <para>Angular page(s): /app/modules/module-operations.</para>
-    /// <para>Angular API service call(s): ModuleOperationApi.getModuleOperation (app/core/services/module-operation-api.ts:31).</para>
+    /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
+    /// <para>Angular UI component(s): ModuleOperationForm (app/features/host/modules/module-operations/module-operation-form/module-operation-form.ts)</para>
     /// </remarks>
     [HttpGet("get-by-id/{id:int}")]
     public async Task<IActionResult> GetModuleOperationById(
@@ -122,12 +130,14 @@ public class ModuleOperationController : ControllerBase
     }
 
     /// <summary>
-    /// Supports the Angular UI flow for get all module operations.
+    /// Used-In-Angular: retrieves module operations.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): ModuleOperationApi.getModuleOperations (app/core/services/module-operation-api.ts:26).</para>
     /// <para>Angular purpose: retrieves module operations.</para>
-    /// <para>Angular page(s): /app/modules/module-operations.</para>
-    /// <para>Angular API service call(s): ModuleOperationApi.getModuleOperations (app/core/services/module-operation-api.ts:25).</para>
+    /// <para>Integrated UI page(s): /app/modules/module-operations</para>
+    /// <para>Angular UI component(s): ModuleOperationsStore (app/features/host/modules/module-operations/module-operations.store.ts); ModuleOperations (app/features/host/modules/module-operations/module-operations.ts)</para>
     /// </remarks>
     [HttpGet("get-all")]
     public async Task<IActionResult> GetAllModuleOperations(CancellationToken cancellationToken)

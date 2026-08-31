@@ -44,12 +44,14 @@ namespace axionpro.api.Controllers.Employee
 
 
         /// <summary>
-        /// Supports the Angular UI flow for create employee.
+        /// Used-In-Angular: creates employee.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeesApi.createEmployee (app/core/services/employee-api.ts:95).</para>
         /// <para>Angular purpose: creates employee.</para>
-        /// <para>Angular page(s): /app/employees; /app/profile/basic-info.</para>
-        /// <para>Angular API service call(s): EmployeesApi.createEmployee (app/core/services/employee-api.ts:91).</para>
+        /// <para>Integrated UI page(s): /app/employees; /app/profile/basic-info</para>
+        /// <para>Angular UI component(s): EmployeeManageDialog (app/shared/components/employee/employee-manage-dialog/employee-manage-dialog.ts); Employees (app/features/employees/employees.ts); EmployeeBasicInfo (app/features/user-menu/employee-profile/employee-basic-info/employee-basic-info.ts)</para>
         /// </remarks>
         [Authorize]
         [HttpPost("create")]
@@ -74,12 +76,14 @@ namespace axionpro.api.Controllers.Employee
            
         }
         /// <summary>
-        /// Supports the Angular UI flow for update profie image.
+        /// Used-In-Angular: updates profile images.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeBasicAPI.updateProfileImages (app/core/services/employee-basic-api.ts:180).</para>
         /// <para>Angular purpose: updates profile images.</para>
-        /// <para>Angular page(s): /app/profile/basic-info; /app/profile; /app/profile/identity-info.</para>
-        /// <para>Angular API service call(s): EmployeeBasicAPI.updateProfileImages (app/core/services/employee-basic-api.ts:175).</para>
+        /// <para>Integrated UI page(s): /app/profile</para>
+        /// <para>Angular UI component(s): ProfileSummary (app/shared/components/profile/profile-summary/profile-summary.ts); EmployeeProfile (app/features/user-menu/employee-profile/employee-profile.ts)</para>
         /// </remarks>
 
 
@@ -98,12 +102,14 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for get all employee image.
+        /// Used-In-Angular: retrieves profile images.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeBasicAPI.getProfileImages (app/core/services/employee-basic-api.ts:174).</para>
         /// <para>Angular purpose: retrieves profile images.</para>
-        /// <para>Angular page(s): /app/profile/basic-info; /app/profile; /app/profile/identity-info.</para>
-        /// <para>Angular API service call(s): EmployeeBasicAPI.getProfileImages (app/core/services/employee-basic-api.ts:169).</para>
+        /// <para>Integrated UI page(s): /app/profile</para>
+        /// <para>Angular UI component(s): ProfileSummary (app/shared/components/profile/profile-summary/profile-summary.ts); EmployeeProfile (app/features/user-menu/employee-profile/employee-profile.ts)</para>
         /// </remarks>
         [Authorize]
         [HttpGet("Image/get")]     
@@ -120,12 +126,14 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for update section status bulk.
+        /// Used-In-Angular: updates edit status.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): ProfileAccessApi.updateEditStatus (app/core/services/profile-access-api.ts:50).</para>
         /// <para>Angular purpose: updates edit status.</para>
-        /// <para>Angular page(s): /app/profile/bank-info; /app/profile/basic-info; /app/profile/contact-info; /app/profile/dependent-info; /app/profile/education-info; /app/profile/experience-info; /app/profile/identity-info; /app/profile/insurance-info.</para>
-        /// <para>Angular API service call(s): ProfileAccessApi.updateEditStatus (app/core/services/profile-access-api.ts:47).</para>
+        /// <para>Integrated UI page(s): /app/profile/bank-info; /app/profile/basic-info; /app/profile/contact-info; /app/profile/dependent-info; /app/profile/education-info; /app/profile/experience-info; /app/profile/identity-info; /app/profile/insurance-info</para>
+        /// <para>Angular UI component(s): ProfileHeader (app/shared/components/profile/profile-header/profile-header.ts); EmployeeBankInfo (app/features/user-menu/employee-profile/employee-bank-info/employee-bank-info.ts); EmployeeBasicInfo (app/features/user-menu/employee-profile/employee-basic-info/employee-basic-info.ts); EmployeeContactInfo (app/features/user-menu/employee-profile/employee-contact-info/employee-contact-info.ts); EmployeeDependentInfo (app/features/user-menu/employee-profile/employee-dependent-info/employee-dependent-info.ts); EmployeeEducationInfo (app/features/user-menu/employee-profile/employee-education-info/employee-education-info.ts); EmployeeExperienceInfo (app/features/user-menu/employee-profile/employee-experience-info/employee-experience-info.ts); EmployeeIdentityInfo (app/features/user-menu/employee-profile/employee-identity-info/employee-identity-info.ts)</para>
         /// </remarks>
         [Authorize]
         [HttpPost("update-edit-status")]
@@ -142,12 +150,14 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for update verification status.
+        /// Used-In-Angular: updates verification status.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): ProfileAccessApi.updateVerificationStatus (app/core/services/profile-access-api.ts:44).</para>
         /// <para>Angular purpose: updates verification status.</para>
-        /// <para>Angular page(s): /app/profile/bank-info; /app/profile/basic-info; /app/profile/contact-info; /app/profile/dependent-info; /app/profile/education-info; /app/profile/experience-info; /app/profile/identity-info; /app/profile/insurance-info.</para>
-        /// <para>Angular API service call(s): ProfileAccessApi.updateVerificationStatus (app/core/services/profile-access-api.ts:41).</para>
+        /// <para>Integrated UI page(s): /app/profile/bank-info; /app/profile/basic-info; /app/profile/contact-info; /app/profile/dependent-info; /app/profile/education-info; /app/profile/experience-info; /app/profile/identity-info; /app/profile/insurance-info</para>
+        /// <para>Angular UI component(s): ProfileHeader (app/shared/components/profile/profile-header/profile-header.ts); EmployeeBankInfo (app/features/user-menu/employee-profile/employee-bank-info/employee-bank-info.ts); EmployeeBasicInfo (app/features/user-menu/employee-profile/employee-basic-info/employee-basic-info.ts); EmployeeContactInfo (app/features/user-menu/employee-profile/employee-contact-info/employee-contact-info.ts); EmployeeDependentInfo (app/features/user-menu/employee-profile/employee-dependent-info/employee-dependent-info.ts); EmployeeEducationInfo (app/features/user-menu/employee-profile/employee-education-info/employee-education-info.ts); EmployeeExperienceInfo (app/features/user-menu/employee-profile/employee-experience-info/employee-experience-info.ts); EmployeeIdentityInfo (app/features/user-menu/employee-profile/employee-identity-info/employee-identity-info.ts)</para>
         /// </remarks>
         [HttpPost("update-verification-status")]
         public async Task<IActionResult> UpdateVerificationStatus([FromBody] UpdateVerificationStatusRequestDTO_ dto)
@@ -161,12 +171,14 @@ namespace axionpro.api.Controllers.Employee
 
 
         /// <summary>
-        /// Supports the Angular UI flow for update section status bulk.
+        /// Used-In-Angular: updates bulk.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeesApi.updateBulk (app/core/services/employee-api.ts:128).</para>
         /// <para>Angular purpose: updates bulk.</para>
-        /// <para>Angular page(s): /app/employees.</para>
-        /// <para>Angular API service call(s): EmployeesApi.updateBulk (app/core/services/employee-api.ts:124).</para>
+        /// <para>Integrated UI page(s): /app/employees</para>
+        /// <para>Angular UI component(s): VerificationSettings (app/shared/components/employee/verification-settings/verification-settings.ts); Employees (app/features/employees/employees.ts)</para>
         /// </remarks>
         [Authorize]
         [HttpPost("update-bulk")]
@@ -180,17 +192,12 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Resets the password of a selected Tenant Employee.
+        /// Not-Used-In-Angular.
         /// </summary>
         /// <remarks>
-        /// <para>Authorization: only an authenticated Tenant user with the active
-        /// <c>EMP_PASSWORD_MANAGEMENT</c> module and <c>Reset Password</c>
-        /// operation permission can use this endpoint.</para>
-        /// <para>The supplied ModuleId is bound to the active module code and the
-        /// existing database stored procedure validates the supplied ModuleId and
-        /// OperationId against the caller's current role permissions.</para>
-        /// <para>The selected EmployeeId must be the client-safe encoded ID of an
-        /// active Employee belonging to the caller's Tenant.</para>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: POST /api/employee/reset-password.</para>
         /// </remarks>
         [Authorize]
         [HttpPost("reset-password")]
@@ -212,12 +219,14 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for get all employee percentage async.
+        /// Used-In-Angular: retrieves all percentage.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeesApi.getAllPercentage (app/core/services/employee-api.ts:122).</para>
         /// <para>Angular purpose: retrieves all percentage.</para>
-        /// <para>Angular page(s): /app/employees.</para>
-        /// <para>Angular API service call(s): EmployeesApi.getAllPercentage (app/core/services/employee-api.ts:118).</para>
+        /// <para>Integrated UI page(s): /app/employees</para>
+        /// <para>Angular UI component(s): VerificationSettings (app/shared/components/employee/verification-settings/verification-settings.ts); Employees (app/features/employees/employees.ts)</para>
         /// </remarks>
         [Authorize]
         [HttpGet("get-all-percentage")]
@@ -247,12 +256,14 @@ namespace axionpro.api.Controllers.Employee
 
 
         /// <summary>
-        /// Supports the Angular UI flow for get employee.
+        /// Used-In-Angular: retrieves employee basics.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeBasicAPI.getEmployeeBasics (app/core/services/employee-basic-api.ts:136).</para>
         /// <para>Angular purpose: retrieves employee basics.</para>
-        /// <para>Angular page(s): /app/profile/basic-info; /app/profile/identity-info; /app/employees/permissions/:employeeId.</para>
-        /// <para>Angular API service call(s): EmployeeBasicAPI.getEmployeeBasics (app/core/services/employee-basic-api.ts:132).</para>
+        /// <para>Integrated UI page(s): /app/profile/basic-info; /app/profile/identity-info; /app/employees/permissions/:employeeId</para>
+        /// <para>Angular UI component(s): EmployeesPermissionsStore (app/features/employees/employees-permissions/employees-permissions.store.ts); EmployeeBasicInfo (app/features/user-menu/employee-profile/employee-basic-info/employee-basic-info.ts); EmployeeIdentityInfo (app/features/user-menu/employee-profile/employee-identity-info/employee-identity-info.ts); EmployeesPermissions (app/features/employees/employees-permissions/employees-permissions.ts)</para>
         /// </remarks>
         [Authorize]
         [HttpGet("get")]
@@ -270,12 +281,14 @@ namespace axionpro.api.Controllers.Employee
            
         }
         /// <summary>
-        /// Supports the Angular UI flow for get employee summary.
+        /// Used-In-Angular: retrieves employee summary.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeesApi.getEmployeeSummary (app/core/services/employee-api.ts:142).</para>
         /// <para>Angular purpose: retrieves employee summary.</para>
-        /// <para>Angular page(s): /app/employees.</para>
-        /// <para>Angular API service call(s): EmployeesApi.getEmployeeSummary (app/core/services/employee-api.ts:138).</para>
+        /// <para>Integrated UI page(s): /app/employees</para>
+        /// <para>Angular UI component(s): AvatarPopup (app/features/employees/avatar-popup/avatar-popup.ts); Employees (app/features/employees/employees.ts)</para>
         /// </remarks>
         [Authorize]
         [HttpGet("get-summary")]
@@ -298,12 +311,14 @@ namespace axionpro.api.Controllers.Employee
 
         }
         /// <summary>
-        /// Supports the Angular UI flow for get employee profile summary.
+        /// Used-In-Angular: retrieves profile summary.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeBasicAPI.fetchProfileSummary (app/core/services/employee-basic-api.ts:158); EmployeeBasicAPI.getProfileSummary (app/core/services/employee-basic-api.ts:187).</para>
         /// <para>Angular purpose: retrieves profile summary.</para>
-        /// <para>Angular page(s): /app/profile/basic-info; /app/profile; /app/profile/identity-info.</para>
-        /// <para>Angular API service call(s): EmployeeBasicAPI.fetchProfileSummary (app/core/services/employee-basic-api.ts:154); EmployeeBasicAPI.getProfileSummary (app/core/services/employee-basic-api.ts:182).</para>
+        /// <para>Integrated UI page(s): /app/profile/basic-info; /app/profile</para>
+        /// <para>Angular UI component(s): EmployeeBasicInfo (app/features/user-menu/employee-profile/employee-basic-info/employee-basic-info.ts); ProfileSummary (app/shared/components/profile/profile-summary/profile-summary.ts); EmployeeProfile (app/features/user-menu/employee-profile/employee-profile.ts)</para>
         /// </remarks>
         [Authorize]
         [HttpGet("get-profile-summary")]
@@ -321,12 +336,14 @@ namespace axionpro.api.Controllers.Employee
            
         }
         /// <summary>
-        /// Supports the Angular UI flow for get all employee.
+        /// Used-In-Angular: retrieves all employees.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeesApi.getAllEmployees (app/core/services/employee-api.ts:102).</para>
         /// <para>Angular purpose: retrieves all employees.</para>
-        /// <para>Angular page(s): /app/assets/list; /app/employees; /app/leave/balances.</para>
-        /// <para>Angular API service call(s): EmployeesApi.getAllEmployees (app/core/services/employee-api.ts:98).</para>
+        /// <para>Integrated UI page(s): /app/assets/list; /app/employees</para>
+        /// <para>Angular UI component(s): AssignAssetPopup (app/features/assets-management/assign-asset-popup/assign-asset-popup.ts); EmployeesStore (app/features/employees/employees.store.ts); LeaveBalanceManageDialog (app/features/leaves/leave-requests/leave-balances/leave-balance-manage-dialog/leave-balance-manage-dialog.ts); TicketManageDialog (app/features/tickets/ticket-lists/ticket-manage-dialog/ticket-manage-dialog.ts); AssetsManagement (app/features/assets-management/assets-management.ts); Employees (app/features/employees/employees.ts)</para>
         /// </remarks>
         [Authorize]
         [HttpGet("get-all")]
@@ -343,12 +360,14 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for delete.
+        /// Used-In-Angular: deletes employee.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeesApi.deleteEmployee (app/core/services/employee-api.ts:115).</para>
         /// <para>Angular purpose: deletes employee.</para>
-        /// <para>Angular page(s): /app/employees.</para>
-        /// <para>Angular API service call(s): EmployeesApi.deleteEmployee (app/core/services/employee-api.ts:111).</para>
+        /// <para>Integrated UI page(s): /app/employees</para>
+        /// <para>Angular UI component(s): EmployeesStore (app/features/employees/employees.store.ts); Employees (app/features/employees/employees.ts)</para>
         /// </remarks>
         [Authorize]
         [HttpDelete("delete-all")]
@@ -364,12 +383,14 @@ namespace axionpro.api.Controllers.Employee
             
         }
         /// <summary>
-        /// Supports the Angular UI flow for update employee status.
+        /// Used-In-Angular: updates employee update status.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeesApi.updateEmployeeUpdateStatus (app/core/services/employee-api.ts:135).</para>
         /// <para>Angular purpose: updates employee update status.</para>
-        /// <para>Angular page(s): /app/employees.</para>
-        /// <para>Angular API service call(s): EmployeesApi.updateEmployeeUpdateStatus (app/core/services/employee-api.ts:131).</para>
+        /// <para>Integrated UI page(s): /app/employees</para>
+        /// <para>Angular UI component(s): EmployeesStore (app/features/employees/employees.store.ts); Employees (app/features/employees/employees.ts)</para>
         /// </remarks>
         [Authorize]
         [HttpPut("update-status")]
@@ -394,12 +415,14 @@ namespace axionpro.api.Controllers.Employee
         // Updates employee details.
         // </summary>
         /// <summary>
-        /// Supports the Angular UI flow for update.
+        /// Used-In-Angular: updates employee; updates employee basics.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeesApi.updateEmployee (app/core/services/employee-api.ts:108); EmployeeBasicAPI.updateEmployeeBasics (app/core/services/employee-basic-api.ts:142).</para>
         /// <para>Angular purpose: updates employee; updates employee basics.</para>
-        /// <para>Angular page(s): /app/employees; /app/profile/basic-info.</para>
-        /// <para>Angular API service call(s): EmployeesApi.updateEmployee (app/core/services/employee-api.ts:104); EmployeeBasicAPI.updateEmployeeBasics (app/core/services/employee-basic-api.ts:138).</para>
+        /// <para>Integrated UI page(s): /app/employees; /app/profile/basic-info</para>
+        /// <para>Angular UI component(s): EmployeeManageDialog (app/shared/components/employee/employee-manage-dialog/employee-manage-dialog.ts); Employees (app/features/employees/employees.ts); EmployeeBasicInfo (app/features/user-menu/employee-profile/employee-basic-info/employee-basic-info.ts)</para>
         /// </remarks>
         [Authorize]
         [HttpPost("update")]
@@ -420,12 +443,14 @@ namespace axionpro.api.Controllers.Employee
         // Updates employee details.
         // </summary>
         /// <summary>
-        /// Supports the Angular UI flow for official update.
+        /// Used-In-Angular: updates employee official basics.
         /// </summary>
         /// <remarks>
-        /// <para>Angular purpose: updates employee basics.</para>
-        /// <para>Angular page(s): /app/employees; /app/profile/basic-info.</para>
-        /// <para>Angular API service call(s): EmployeeBasicAPI.updateEmployeeBasics (app/core/services/employee-basic-api.ts:146).</para>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeBasicAPI.updateEmployeeOfficialBasics (app/core/services/employee-basic-api.ts:150).</para>
+        /// <para>Angular purpose: updates employee official basics.</para>
+        /// <para>Integrated UI page(s): /app/employees; /app/profile/basic-info</para>
+        /// <para>Angular UI component(s): EmployeeManageDialog (app/shared/components/employee/employee-manage-dialog/employee-manage-dialog.ts); Employees (app/features/employees/employees.ts); EmployeeBasicInfo (app/features/user-menu/employee-profile/employee-basic-info/employee-basic-info.ts)</para>
         /// </remarks>
         [Authorize]
         [HttpPost("official/update")]

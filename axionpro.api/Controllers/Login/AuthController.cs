@@ -35,6 +35,14 @@ namespace axionpro.api.Controllers.Login
             _mediator = mediator;
             _logger = logger;
         }
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: POST /api/auth/login.</para>
+        /// </remarks>
        
 
         [HttpPost("login")]       
@@ -50,12 +58,14 @@ namespace axionpro.api.Controllers.Login
            return Ok(result);
         }
         /// <summary>
-        /// Supports the Angular UI flow for refresh token.
+        /// Used-In-Angular: performs the Angular function refresh token.
         /// </summary>
         /// <remarks>
-        /// <para>Angular purpose: performs refresh token.</para>
-        /// <para>Angular page(s): No directly routed page was statically resolved. Angular caller component(s): TokenRefreshService (app/core/services/token-refresh-service.ts).</para>
-        /// <para>Angular API service call(s): AuthApi.refreshToken (app/core/services/auth-api.ts:169).</para>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): AuthApi.refreshToken (app/core/services/auth-api.ts:178).</para>
+        /// <para>Angular purpose: performs the Angular function refresh token.</para>
+        /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
+        /// <para>Angular UI component(s): TokenRefreshService (app/core/services/token-refresh-service.ts); authInterceptor (app/core/interceptors/auth-interceptor.ts); appConfig (app/app.config.ts)</para>
         /// </remarks>
         [HttpPost("refresh-token")]    
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDTO request)
@@ -147,12 +157,14 @@ namespace axionpro.api.Controllers.Login
 
         // ...
         /// <summary>
-        /// Supports the Angular UI flow for set login password.
+        /// Used-In-Angular: updates login password.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): AuthApi.updateLoginPassword (app/core/services/auth-api.ts:207).</para>
         /// <para>Angular purpose: updates login password.</para>
-        /// <para>Angular page(s): /auth/registration-password; /app/update-password.</para>
-        /// <para>Angular API service call(s): AuthApi.updateLoginPassword (app/core/services/auth-api.ts:193).</para>
+        /// <para>Integrated UI page(s): /auth/registration-password; /app/update-password</para>
+        /// <para>Angular UI component(s): RegistrationPassword (app/features/authentication/registration/registration-password/registration-password.ts); UpdatePassword (app/features/user-menu/update-password/update-password.ts)</para>
         /// </remarks>
 
         [HttpPost("update-login-password")]
@@ -168,12 +180,14 @@ namespace axionpro.api.Controllers.Login
 
         }
         /// <summary>
-        /// Supports the Angular UI flow for create new login password url.
+        /// Used-In-Angular: performs the Angular function resend credential.
         /// </summary>
         /// <remarks>
-        /// <para>Angular purpose: resends credential.</para>
-        /// <para>Angular page(s): /app/employees.</para>
-        /// <para>Angular API service call(s): AuthApi.resendCredential (app/core/services/auth-api.ts:205).</para>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): AuthApi.resendCredential (app/core/services/auth-api.ts:220).</para>
+        /// <para>Angular purpose: performs the Angular function resend credential.</para>
+        /// <para>Integrated UI page(s): /app/employees</para>
+        /// <para>Angular UI component(s): Employees (app/features/employees/employees.ts)</para>
         /// </remarks>
         [HttpPost("resend-credential")]        
         public async Task<IActionResult> CreateNewLoginPasswordURL([FromBody] SetNewPasswordLinkRequestDTO request)
@@ -189,12 +203,14 @@ namespace axionpro.api.Controllers.Login
             
         }
         /// <summary>
-        /// Supports the Angular UI flow for create login password.
+        /// Used-In-Angular: creates new login password.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): AuthApi.createNewLoginPassword (app/core/services/auth-api.ts:214).</para>
         /// <para>Angular purpose: creates new login password.</para>
-        /// <para>Angular page(s): /auth/reset-password; /auth/set-password.</para>
-        /// <para>Angular API service call(s): AuthApi.createNewLoginPassword (app/core/services/auth-api.ts:199).</para>
+        /// <para>Integrated UI page(s): /auth/reset-password; /auth/set-password</para>
+        /// <para>Angular UI component(s): ResetPassword (app/features/authentication/reset-password/reset-password.ts); SetPassword (app/features/authentication/set-password/set-password.ts)</para>
         /// </remarks>
         [HttpPost("create-new-password")]                
         public async Task<IActionResult> CreateLoginPassword([FromBody] NewLoginPasswordRequestDTO request)
@@ -228,12 +244,14 @@ namespace axionpro.api.Controllers.Login
         //    }
         //}
         /// <summary>
-        /// Supports the Angular UI flow for enter login id.
+        /// Used-In-Angular: performs the Angular function forgot password.
         /// </summary>
         /// <remarks>
-        /// <para>Angular purpose: performs forgot password.</para>
-        /// <para>Angular page(s): /auth/forgot-password; /auth/verify-otp.</para>
-        /// <para>Angular API service call(s): AuthApi.forgotPassword (app/core/services/auth-api.ts:175).</para>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): AuthApi.forgotPassword (app/core/services/auth-api.ts:186).</para>
+        /// <para>Angular purpose: performs the Angular function forgot password.</para>
+        /// <para>Integrated UI page(s): /auth/forgot-password; /auth/verify-otp</para>
+        /// <para>Angular UI component(s): ForgotPassword (app/features/authentication/forgot-password/forgot-password.ts); VerifyOtp (app/features/authentication/verify-otp/verify-otp.ts)</para>
         /// </remarks>
 
 
@@ -281,12 +299,14 @@ namespace axionpro.api.Controllers.Login
 
         //}
         /// <summary>
-        /// Supports the Angular UI flow for validate forgot password otp.
+        /// Used-In-Angular: validates forgot pass otp.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): AuthApi.validateForgotPassOtp (app/core/services/auth-api.ts:193).</para>
         /// <para>Angular purpose: validates forgot pass otp.</para>
-        /// <para>Angular page(s): /auth/verify-otp.</para>
-        /// <para>Angular API service call(s): AuthApi.validateForgotPassOtp (app/core/services/auth-api.ts:181).</para>
+        /// <para>Integrated UI page(s): /auth/verify-otp</para>
+        /// <para>Angular UI component(s): VerifyOtp (app/features/authentication/verify-otp/verify-otp.ts)</para>
         /// </remarks>
 
 

@@ -30,6 +30,14 @@ namespace axionpro.api.Controllers.Leave
             _logger = logger;
         }
         // ✅ Map EmployeeLeavePolicyMapping 
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: POST /api/employeeleavepolicy/add.</para>
+        /// </remarks>
         [HttpPost("add")]     
         
         public async Task<IActionResult> MapEmployeeyAsync([FromBody] AddLeaveBalanceToEmployeeRequestDTO requestDTO)
@@ -40,6 +48,14 @@ namespace axionpro.api.Controllers.Leave
             return Ok(result);
         }
         // ✅ Map EmployeeLeavePolicyMapping 
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: POST /api/employeeleavepolicy/leavebalance/update.</para>
+        /// </remarks>
         [HttpPost("LeaveBalance/update")]        
         public async Task<IActionResult> UpdateEmployeeyAsync([FromBody] UpdateLeaveBalanceToEmployeeRequestDTO requestDTO)
         {
@@ -51,6 +67,14 @@ namespace axionpro.api.Controllers.Leave
         }
 
         // ✅ Map EmployeeLeavePolicyMapping 
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: POST /api/employeeleavepolicy/map.</para>
+        /// </remarks>
         [HttpPost("map")]       
         public async Task<IActionResult> MapEmployeeyAsync([FromBody] CreateEmployeeLeavePolicyMappingRequestDTO requestDTO)
         {
@@ -61,6 +85,14 @@ namespace axionpro.api.Controllers.Leave
         }
 
         //  ✅ Get All Employee mapped EmployeeLeavePolicyMapping
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: GET /api/employeeleavepolicy/mapped/leave/policy/get.</para>
+        /// </remarks>
         [HttpGet("Mapped/Leave/Policy/get")]        
         public async Task<IActionResult> GetAllLeavePoliciesAsync([FromQuery] GetLeaveTypeWithPolicyMappingRequestDTO getLeavePolicyRequestDTO)
         {
@@ -70,6 +102,14 @@ namespace axionpro.api.Controllers.Leave
             return Ok(result);
         }
         //  ✅ Get All Employee mapped EmployeeLeavePolicyMapping
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: GET /api/employeeleavepolicy/employeeleavepolicy/mapped/get.</para>
+        /// </remarks>
         [HttpGet("EmployeeLeavePolicy/Mapped/get")]             
         public async Task<IActionResult> GetAllEmployeeLeavePoliciesAsync([FromQuery] GetEmployeeLeavePolicyMappingRequestDTO requestDTO)
         {
@@ -78,6 +118,14 @@ namespace axionpro.api.Controllers.Leave
             var result = await _mediator.Send(query);
             return Ok(result);
         }
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: POST /api/employeeleavepolicy/update.</para>
+        /// </remarks>
 
         [HttpPost("update")]       
         

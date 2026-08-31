@@ -42,12 +42,14 @@ namespace axionpro.api.Controllers.Employee
 
 
         /// <summary>
-        /// Supports the Angular UI flow for create bank info.
+        /// Used-In-Angular: creates employee bank.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeBanksAPI.createEmployeeBank (app/core/services/employee-banks-api.ts:89).</para>
         /// <para>Angular purpose: creates employee bank.</para>
-        /// <para>Angular page(s): /app/profile/bank-info.</para>
-        /// <para>Angular API service call(s): EmployeeBanksAPI.createEmployeeBank (app/core/services/employee-banks-api.ts:85).</para>
+        /// <para>Integrated UI page(s): /app/profile/bank-info</para>
+        /// <para>Angular UI component(s): EmployeeBankForm (app/features/user-menu/employee-profile/employee-bank-info/employee-bank-form/employee-bank-form.ts); EmployeeBankInfo (app/features/user-menu/employee-profile/employee-bank-info/employee-bank-info.ts)</para>
         /// </remarks>
         [HttpPost("create")]        
         public async Task<IActionResult> CreateBankInfo([FromForm] CreateBankRequestDTO Dto)
@@ -75,12 +77,14 @@ namespace axionpro.api.Controllers.Employee
  
 
         /// <summary>
-        /// Supports the Angular UI flow for get bankinfo.
+        /// Used-In-Angular: retrieves employee banks.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeBanksAPI.getEmployeeBanks (app/core/services/employee-banks-api.ts:96).</para>
         /// <para>Angular purpose: retrieves employee banks.</para>
-        /// <para>Angular page(s): /app/profile/bank-info.</para>
-        /// <para>Angular API service call(s): EmployeeBanksAPI.getEmployeeBanks (app/core/services/employee-banks-api.ts:92).</para>
+        /// <para>Integrated UI page(s): /app/profile/bank-info</para>
+        /// <para>Angular UI component(s): EmployeeBankInfo (app/features/user-menu/employee-profile/employee-bank-info/employee-bank-info.ts)</para>
         /// </remarks>
         [HttpGet("get")]
         
@@ -99,12 +103,14 @@ namespace axionpro.api.Controllers.Employee
           
      
         /// <summary>
-        /// Supports the Angular UI flow for delete.
+        /// Used-In-Angular: deletes employee bank.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeBanksAPI.deleteEmployeeBank (app/core/services/employee-banks-api.ts:109).</para>
         /// <para>Angular purpose: deletes employee bank.</para>
-        /// <para>Angular page(s): /app/profile/bank-info.</para>
-        /// <para>Angular API service call(s): EmployeeBanksAPI.deleteEmployeeBank (app/core/services/employee-banks-api.ts:105).</para>
+        /// <para>Integrated UI page(s): /app/profile/bank-info</para>
+        /// <para>Angular UI component(s): EmployeeBankInfo (app/features/user-menu/employee-profile/employee-bank-info/employee-bank-info.ts)</para>
         /// </remarks>
         [HttpDelete("delete")]
                 public async Task<IActionResult> Delete([FromQuery] DeleteBankRequestDTO dto)
@@ -121,12 +127,14 @@ namespace axionpro.api.Controllers.Employee
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for update.
+        /// Used-In-Angular: updates employee bank.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeBanksAPI.updateEmployeeBank (app/core/services/employee-banks-api.ts:102).</para>
         /// <para>Angular purpose: updates employee bank.</para>
-        /// <para>Angular page(s): /app/profile/bank-info.</para>
-        /// <para>Angular API service call(s): EmployeeBanksAPI.updateEmployeeBank (app/core/services/employee-banks-api.ts:98).</para>
+        /// <para>Integrated UI page(s): /app/profile/bank-info</para>
+        /// <para>Angular UI component(s): EmployeeBankForm (app/features/user-menu/employee-profile/employee-bank-info/employee-bank-form/employee-bank-form.ts); EmployeeBankInfo (app/features/user-menu/employee-profile/employee-bank-info/employee-bank-info.ts)</para>
         /// </remarks>
         [HttpPost("update")]
         public async Task<IActionResult> Update([FromForm] UpdateBankReqestDTO dto)

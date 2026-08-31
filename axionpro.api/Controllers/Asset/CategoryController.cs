@@ -37,12 +37,14 @@ namespace axionpro.api.Controllers.Asset
         #region Tenant Admin - Asset Category CRUD
 
         /// <summary>
-        /// Supports the Angular UI flow for get all asset category.
+        /// Used-In-Angular: retrieves all asset category.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): AssetCategoriesApi.getAllAssetCategory (app/core/services/asset-categories-api.ts:37).</para>
         /// <para>Angular purpose: retrieves all asset category.</para>
-        /// <para>Angular page(s): /app/assets/asset-categories; /app/assets/asset-types; /app/assets/list.</para>
-        /// <para>Angular API service call(s): AssetCategoriesApi.getAllAssetCategory (app/core/services/asset-categories-api.ts:36).</para>
+        /// <para>Integrated UI page(s): /app/assets/asset-categories; /app/assets/asset-types; /app/assets/list</para>
+        /// <para>Angular UI component(s): AssetCategoryStore (app/features/assets-management/asset-category/asset-category.store.ts); AssetTypesStore (app/features/assets-management/asset-types/asset-types.store.ts); AssetsManagementStore (app/features/assets-management/assets-management.store.ts); AssetTypeManageDialog (app/shared/components/asset/asset-type-manage-dialog/asset-type-manage-dialog.ts); UpsertAssetDialogStore (app/shared/components/asset/upsert-asset-dialog/upsert-asset-dialog.store.ts); AssetCategory (app/features/assets-management/asset-category/asset-category.ts); AssetTypes (app/features/assets-management/asset-types/asset-types.ts); AssetsManagement (app/features/assets-management/assets-management.ts)</para>
         /// </remarks>
         [HttpGet("get")]        
         public async Task<IActionResult> GetAllAssetCategory([FromQuery] GetCategoryReqestDTO request)
@@ -57,12 +59,14 @@ namespace axionpro.api.Controllers.Asset
 
         
         /// <summary>
-        /// Supports the Angular UI flow for add asset category.
+        /// Used-In-Angular: creates asset category.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): AssetCategoriesApi.createAssetCategory (app/core/services/asset-categories-api.ts:30).</para>
         /// <para>Angular purpose: creates asset category.</para>
-        /// <para>Angular page(s): /app/assets/asset-categories.</para>
-        /// <para>Angular API service call(s): AssetCategoriesApi.createAssetCategory (app/core/services/asset-categories-api.ts:29).</para>
+        /// <para>Integrated UI page(s): /app/assets/asset-categories</para>
+        /// <para>Angular UI component(s): AssetCategoryManageDialog (app/shared/components/asset/asset-category-manage-dialog/asset-category-manage-dialog.ts); AssetCategory (app/features/assets-management/asset-category/asset-category.ts)</para>
         /// </remarks>
         [HttpPost("add")]
         public async Task<IActionResult> AddAssetCategory([FromBody] AddCategoryReqestDTO request)
@@ -75,12 +79,14 @@ namespace axionpro.api.Controllers.Asset
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for update asset category.
+        /// Used-In-Angular: updates asset category.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): AssetCategoriesApi.updateAssetCategory (app/core/services/asset-categories-api.ts:44).</para>
         /// <para>Angular purpose: updates asset category.</para>
-        /// <para>Angular page(s): /app/assets/asset-categories.</para>
-        /// <para>Angular API service call(s): AssetCategoriesApi.updateAssetCategory (app/core/services/asset-categories-api.ts:43).</para>
+        /// <para>Integrated UI page(s): /app/assets/asset-categories</para>
+        /// <para>Angular UI component(s): AssetCategoryManageDialog (app/shared/components/asset/asset-category-manage-dialog/asset-category-manage-dialog.ts); AssetCategory (app/features/assets-management/asset-category/asset-category.ts)</para>
         /// </remarks>
         [HttpPut("update")] 
         public async Task<IActionResult> UpdateAssetCategory([FromBody] UpdateCategoryReqestDTO request)
@@ -94,12 +100,14 @@ namespace axionpro.api.Controllers.Asset
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for delete asset category.
+        /// Used-In-Angular: deletes asset category.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): AssetCategoriesApi.deleteAssetCategory (app/core/services/asset-categories-api.ts:51).</para>
         /// <para>Angular purpose: deletes asset category.</para>
-        /// <para>Angular page(s): /app/assets/asset-categories.</para>
-        /// <para>Angular API service call(s): AssetCategoriesApi.deleteAssetCategory (app/core/services/asset-categories-api.ts:50).</para>
+        /// <para>Integrated UI page(s): /app/assets/asset-categories</para>
+        /// <para>Angular UI component(s): AssetCategoryStore (app/features/assets-management/asset-category/asset-category.store.ts); AssetCategory (app/features/assets-management/asset-category/asset-category.ts)</para>
         /// </remarks>
         [HttpDelete("delete")]     
         public async Task<IActionResult> DeleteAssetCategory([FromQuery] DeleteCategoryReqestDTO request)

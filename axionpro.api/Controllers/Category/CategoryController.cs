@@ -30,6 +30,14 @@ namespace axionpro.api.Controllers.Category
             _mediator = mediator;
             _logger = logger;
         }
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: POST /api/category/get.</para>
+        /// </remarks>
         [HttpPost("get")]   
         
         public async Task<IActionResult> GetAllMainCategories([FromBody] CategoryRequestDTO? categoryRequestDTO)
@@ -57,6 +65,14 @@ namespace axionpro.api.Controllers.Category
         //    }
         //    return Ok(result);
         //}
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: POST /api/category/getallmainchildcategory.</para>
+        /// </remarks>
 
 
         [HttpPost("getallmainchildcategory")]    

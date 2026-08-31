@@ -34,12 +34,14 @@ public class TicketClassificationController : ControllerBase
     // 1️⃣ CREATE - Add new Ticket Classification
     // ----------------------------------------------------------------------------------------------------
     /// <summary>
-    /// Supports the Angular UI flow for create ticket classification.
+    /// Used-In-Angular: creates classification.
     /// </summary>
     /// <remarks>
-    /// <para>Angular purpose: retrieves classification ddl.</para>
-    /// <para>Angular page(s): /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers; /app/tickets/types.</para>
-    /// <para>Angular API service call(s): TicketApi.getClassificationDdl (app/features/tickets/ticket-api.ts:53).</para>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): TicketApi.addClassification (app/features/tickets/ticket-api.ts:56).</para>
+    /// <para>Angular purpose: creates classification.</para>
+    /// <para>Integrated UI page(s): /app/tickets/classifications</para>
+    /// <para>Angular UI component(s): TicketClassificationManageDialog (app/features/tickets/ticket-classification/ticket-classification-manage-dialog/ticket-classification-manage-dialog.ts); TicketClassificationComponent (app/features/tickets/ticket-classification/ticket-classification.ts)</para>
     /// </remarks>
     [HttpPost("create")]   
     public async Task<IActionResult> CreateTicketClassification([FromBody] AddClassificationRequestDTO dto)
@@ -57,12 +59,14 @@ public class TicketClassificationController : ControllerBase
     // 2️⃣ READ - Get all Ticket Classifications
     // ----------------------------------------------------------------------------------------------------
     /// <summary>
-    /// Supports the Angular UI flow for get all ticket classifications.
+    /// Used-In-Angular: retrieves classifications.
     /// </summary>
     /// <remarks>
-    /// <para>Angular purpose: retrieves classification ddl.</para>
-    /// <para>Angular page(s): /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers; /app/tickets/types.</para>
-    /// <para>Angular API service call(s): TicketApi.getClassificationDdl (app/features/tickets/ticket-api.ts:45).</para>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): TicketApi.getClassifications (app/features/tickets/ticket-api.ts:48).</para>
+    /// <para>Angular purpose: retrieves classifications.</para>
+    /// <para>Integrated UI page(s): /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers; /app/tickets; /app/tickets/types</para>
+    /// <para>Angular UI component(s): TicketsStore (app/features/tickets/tickets.store.ts); TicketAgents (app/features/tickets/ticket-agents/ticket-agents.ts); TicketClassificationComponent (app/features/tickets/ticket-classification/ticket-classification.ts); TicketDetailSidebar (app/features/tickets/ticket-details/ticket-detail-sidebar/ticket-detail-sidebar.ts); TicketDetailsHeader (app/features/tickets/ticket-details/ticket-details-header/ticket-details-header.ts); TicketDetails (app/features/tickets/ticket-details/ticket-details.ts); TicketHeaderComponent (app/features/tickets/ticket-header/ticket-header.ts); TicketLists (app/features/tickets/ticket-lists/ticket-lists.ts)</para>
     /// </remarks>
     [HttpGet("all")]
     public async Task<IActionResult> GetAllTicketClassifications([FromQuery] GetAllClassificationRequestDTO dto)
@@ -76,12 +80,14 @@ public class TicketClassificationController : ControllerBase
 
     }
     /// <summary>
-    /// Supports the Angular UI flow for get all ticket classifications.
+    /// Used-In-Angular: retrieves classification ddl.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): TicketApi.getClassificationDdl (app/features/tickets/ticket-api.ts:36).</para>
     /// <para>Angular purpose: retrieves classification ddl.</para>
-    /// <para>Angular page(s): /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers; /app/tickets/types.</para>
-    /// <para>Angular API service call(s): TicketApi.getClassificationDdl (app/features/tickets/ticket-api.ts:34).</para>
+    /// <para>Integrated UI page(s): /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers; /app/tickets; /app/tickets/types</para>
+    /// <para>Angular UI component(s): TicketManageDialog (app/features/tickets/ticket-lists/ticket-manage-dialog/ticket-manage-dialog.ts); TicketsStore (app/features/tickets/tickets.store.ts); TicketAgents (app/features/tickets/ticket-agents/ticket-agents.ts); TicketClassificationComponent (app/features/tickets/ticket-classification/ticket-classification.ts); TicketDetailSidebar (app/features/tickets/ticket-details/ticket-detail-sidebar/ticket-detail-sidebar.ts); TicketDetailsHeader (app/features/tickets/ticket-details/ticket-details-header/ticket-details-header.ts); TicketDetails (app/features/tickets/ticket-details/ticket-details.ts); TicketHeaderComponent (app/features/tickets/ticket-header/ticket-header.ts)</para>
     /// </remarks>
     [HttpGet("ddl-list")]
     public async Task<IActionResult> GetAllTicketClassifications([FromQuery] DDLClassificationRequestDTO dto)
@@ -98,6 +104,14 @@ public class TicketClassificationController : ControllerBase
     // ----------------------------------------------------------------------------------------------------
     // 3️⃣ READ (BY ID) - Get specific Ticket Classification
     // ----------------------------------------------------------------------------------------------------
+    /// <summary>
+    /// Not-Used-In-Angular.
+    /// </summary>
+    /// <remarks>
+    /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    /// <para>Backend endpoint: GET /api/ticketclassification/get.</para>
+    /// </remarks>
     [HttpGet("get")]
     public async Task<IActionResult> GetTicketClassificationById([FromQuery] GetClassificationRequestDTO dto)
     {
@@ -113,12 +127,14 @@ public class TicketClassificationController : ControllerBase
     // 4️⃣ UPDATE - Modify existing Ticket Classification
     // ----------------------------------------------------------------------------------------------------
     /// <summary>
-    /// Supports the Angular UI flow for update ticket classification.
+    /// Used-In-Angular: updates classification.
     /// </summary>
     /// <remarks>
-    /// <para>Angular purpose: retrieves classification ddl.</para>
-    /// <para>Angular page(s): /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers; /app/tickets/types.</para>
-    /// <para>Angular API service call(s): TicketApi.getClassificationDdl (app/features/tickets/ticket-api.ts:61).</para>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): TicketApi.updateClassification (app/features/tickets/ticket-api.ts:64).</para>
+    /// <para>Angular purpose: updates classification.</para>
+    /// <para>Integrated UI page(s): /app/tickets/classifications</para>
+    /// <para>Angular UI component(s): TicketClassificationManageDialog (app/features/tickets/ticket-classification/ticket-classification-manage-dialog/ticket-classification-manage-dialog.ts); TicketClassificationComponent (app/features/tickets/ticket-classification/ticket-classification.ts)</para>
     /// </remarks>
     [HttpPut("update")]
     public async Task<IActionResult> UpdateTicketClassification([FromBody] UpdateClassificationRequestDTO dto)
@@ -135,12 +151,14 @@ public class TicketClassificationController : ControllerBase
     // 5️⃣ DELETE - Soft delete Ticket Classification
     // ----------------------------------------------------------------------------------------------------
     /// <summary>
-    /// Supports the Angular UI flow for delete ticket classification.
+    /// Used-In-Angular: deletes classification.
     /// </summary>
     /// <remarks>
-    /// <para>Angular purpose: retrieves classification ddl.</para>
-    /// <para>Angular page(s): /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers; /app/tickets/types.</para>
-    /// <para>Angular API service call(s): TicketApi.getClassificationDdl (app/features/tickets/ticket-api.ts:69).</para>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): TicketApi.deleteClassification (app/features/tickets/ticket-api.ts:72).</para>
+    /// <para>Angular purpose: deletes classification.</para>
+    /// <para>Integrated UI page(s): /app/tickets/support-teams; /app/tickets/classifications; /app/tickets/:id; /app/tickets/headers; /app/tickets; /app/tickets/types</para>
+    /// <para>Angular UI component(s): TicketsStore (app/features/tickets/tickets.store.ts); TicketAgents (app/features/tickets/ticket-agents/ticket-agents.ts); TicketClassificationComponent (app/features/tickets/ticket-classification/ticket-classification.ts); TicketDetailSidebar (app/features/tickets/ticket-details/ticket-detail-sidebar/ticket-detail-sidebar.ts); TicketDetailsHeader (app/features/tickets/ticket-details/ticket-details-header/ticket-details-header.ts); TicketDetails (app/features/tickets/ticket-details/ticket-details.ts); TicketHeaderComponent (app/features/tickets/ticket-header/ticket-header.ts); TicketLists (app/features/tickets/ticket-lists/ticket-lists.ts)</para>
     /// </remarks>
     [HttpDelete("delete")] 
     public async Task<IActionResult> DeleteTicketClassification([FromBody] DeleteClassificationRequestDTO dto)

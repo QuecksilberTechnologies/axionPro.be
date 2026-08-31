@@ -42,6 +42,14 @@ public sealed class TenantParentModuleController : ControllerBase
     #endregion
 
     #region Tenant Parent Module Queries
+    /// <summary>
+    /// Not-Used-In-Angular.
+    /// </summary>
+    /// <remarks>
+    /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    /// <para>Backend endpoint: GET /api/tenantparentmodule/get-module-headers.</para>
+    /// </remarks>
 
     [HttpGet("get-module-headers")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -55,6 +63,14 @@ public sealed class TenantParentModuleController : ControllerBase
 
         return Ok(result);
     }
+    /// <summary>
+    /// Not-Used-In-Angular.
+    /// </summary>
+    /// <remarks>
+    /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    /// <para>Backend endpoint: GET /api/tenantparentmodule/list.</para>
+    /// </remarks>
 
     [HttpGet("list")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -68,6 +84,14 @@ public sealed class TenantParentModuleController : ControllerBase
 
         return Ok(result);
     }
+    /// <summary>
+    /// Not-Used-In-Angular.
+    /// </summary>
+    /// <remarks>
+    /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    /// <para>Backend endpoint: GET /api/tenantparentmodule/{}.</para>
+    /// </remarks>
 
     [HttpGet("{id:int}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -86,6 +110,14 @@ public sealed class TenantParentModuleController : ControllerBase
     #endregion
 
     #region Tenant Parent Module Status
+    /// <summary>
+    /// Not-Used-In-Angular.
+    /// </summary>
+    /// <remarks>
+    /// <para>Angular usage status: Not-Used-In-Angular.</para>
+    /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+    /// <para>Backend endpoint: PATCH /api/tenantparentmodule/{}/status.</para>
+    /// </remarks>
 
     [HttpPatch("{id:int}/status")]
     [ProducesResponseType(StatusCodes.Status200OK)]

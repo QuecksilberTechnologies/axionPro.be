@@ -36,12 +36,14 @@ namespace axionpro.api.Controllers.TenantIndustry
 
 
         /// <summary>
-        /// Supports the Angular UI flow for get all tenant by subscription id async.
+        /// Used-In-Angular: retrieves industries.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): IndustriesApi.getIndustries (app/core/services/industries-api.ts:45).</para>
         /// <para>Angular purpose: retrieves industries.</para>
-        /// <para>Angular page(s): /auth/register-tenant; /app/tenants/new; /app/tenants/:tenantId/edit.</para>
-        /// <para>Angular API service call(s): IndustriesApi.getIndustries (app/core/services/industries-api.ts:42).</para>
+        /// <para>Integrated UI page(s): /auth/register-tenant; /app/tenants/new; /app/tenants/:tenantId/edit</para>
+        /// <para>Angular UI component(s): Registration (app/features/authentication/registration/registration.ts); TenantForm (app/features/host/tenants/tenant-form/tenant-form.ts)</para>
         /// </remarks>
         [HttpGet("get-industries")]
         public async Task<IActionResult> GetAllTenantBySubscriptionIdAsync([FromQuery] int planId)
@@ -53,12 +55,14 @@ namespace axionpro.api.Controllers.TenantIndustry
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for get tenant subscription plan info async.
+        /// Used-In-Angular: retrieves tenant subscription plans.
         /// </summary>
         /// <remarks>
-        /// <para>Angular purpose: retrieves industries.</para>
-        /// <para>Angular page(s): /auth/register-tenant; /app/tenants/new; /app/tenants/:tenantId/edit.</para>
-        /// <para>Angular API service call(s): IndustriesApi.getIndustries (app/core/services/industries-api.ts:52).</para>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): IndustriesApi.getTenantSubscriptionPlans (app/core/services/industries-api.ts:59).</para>
+        /// <para>Angular purpose: retrieves tenant subscription plans.</para>
+        /// <para>Integrated UI page(s): /app/subscriptions</para>
+        /// <para>Angular UI component(s): SubscriptionPlanDetail (app/features/host/subscriptions/subscription-plan-detail/subscription-plan-detail.ts); SubscriptionsStore (app/features/host/subscriptions/subscriptions.store.ts); Subscriptions (app/features/host/subscriptions/subscriptions.ts)</para>
         /// </remarks>
         [HttpGet("get-tenant-subscription-plan")]       
         public async Task<IActionResult> GetTenantSubscriptionPlanInfoAsync([FromQuery] TenantSubscriptionPlanRequestDTO code)

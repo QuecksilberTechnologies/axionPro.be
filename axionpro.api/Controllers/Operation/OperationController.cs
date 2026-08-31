@@ -37,12 +37,14 @@ namespace axionpro.api.Controllers.Operation
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for get all operation asyc.
+        /// Used-In-Angular: retrieves options.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): OptionApi.getOptions (app/core/services/option-api.ts:31).</para>
         /// <para>Angular purpose: retrieves options.</para>
-        /// <para>Angular page(s): No Angular component caller was statically resolved; the Angular API-service wrapper is documented below..</para>
-        /// <para>Angular API service call(s): OptionApi.getOptions (app/core/services/option-api.ts:26).</para>
+        /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
+        /// <para>Angular UI component(s): No consuming Angular component was statically resolved.</para>
         /// </remarks>
         [HttpGet("get")]        
         public async Task<IActionResult> GetAllOperationAsyc([FromQuery] GetOperationRequestDTO operationRequestDTO)
@@ -56,12 +58,14 @@ namespace axionpro.api.Controllers.Operation
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for create operation.
+        /// Used-In-Angular: creates option.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): OptionApi.addOption (app/core/services/option-api.ts:37).</para>
         /// <para>Angular purpose: creates option.</para>
-        /// <para>Angular page(s): No Angular component caller was statically resolved; the Angular API-service wrapper is documented below..</para>
-        /// <para>Angular API service call(s): OptionApi.addOption (app/core/services/option-api.ts:32).</para>
+        /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
+        /// <para>Angular UI component(s): No consuming Angular component was statically resolved.</para>
         /// </remarks>
         [HttpPost("create")]
         
@@ -78,12 +82,14 @@ namespace axionpro.api.Controllers.Operation
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for update operation.
+        /// Used-In-Angular: updates option.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): OptionApi.updateOption (app/core/services/option-api.ts:43).</para>
         /// <para>Angular purpose: updates option.</para>
-        /// <para>Angular page(s): No Angular component caller was statically resolved; the Angular API-service wrapper is documented below..</para>
-        /// <para>Angular API service call(s): OptionApi.updateOption (app/core/services/option-api.ts:38).</para>
+        /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
+        /// <para>Angular UI component(s): No consuming Angular component was statically resolved.</para>
         /// </remarks>
         [HttpPost("update")]
                
@@ -95,12 +101,14 @@ namespace axionpro.api.Controllers.Operation
             return Ok(result);
         }
         /// <summary>
-        /// Supports the Angular UI flow for has page operation access.
+        /// Used-In-Angular: updates option.
         /// </summary>
         /// <remarks>
-        /// <para>Angular purpose: performs has access.</para>
-        /// <para>Angular page(s): No Angular component caller was statically resolved; the Angular API-service wrapper is documented below..</para>
-        /// <para>Angular API service call(s): OptionApi.hasAccess (app/core/services/option-api.ts:45).</para>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): OptionApi.updateOption (app/core/services/option-api.ts:50).</para>
+        /// <para>Angular purpose: updates option.</para>
+        /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
+        /// <para>Angular UI component(s): No consuming Angular component was statically resolved.</para>
         /// </remarks>
          [Authorize]
         [HttpGet("has-access")]

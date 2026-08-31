@@ -40,12 +40,14 @@ namespace axionpro.api.Controllers.Employee
 
 
         /// <summary>
-        /// Supports the Angular UI flow for create dependent info.
+        /// Used-In-Angular: creates employee dependent.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeDependentApi.createEmployeeDependent (app/core/services/employee-dependent-api.ts:72).</para>
         /// <para>Angular purpose: creates employee dependent.</para>
-        /// <para>Angular page(s): /app/profile/dependent-info.</para>
-        /// <para>Angular API service call(s): EmployeeDependentApi.createEmployeeDependent (app/core/services/employee-dependent-api.ts:68).</para>
+        /// <para>Integrated UI page(s): /app/profile/dependent-info</para>
+        /// <para>Angular UI component(s): EmployeeDependentForm (app/features/user-menu/employee-profile/employee-dependent-info/employee-dependent-form/employee-dependent-form.ts); EmployeeDependentInfo (app/features/user-menu/employee-profile/employee-dependent-info/employee-dependent-info.ts)</para>
         /// </remarks>
         [HttpPost("create")]
         [Consumes("multipart/form-data")]
@@ -70,12 +72,14 @@ namespace axionpro.api.Controllers.Employee
 
 
         /// <summary>
-        /// Supports the Angular UI flow for getinfo.
+        /// Used-In-Angular: retrieves employee dependents.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeDependentApi.getEmployeeDependents (app/core/services/employee-dependent-api.ts:79).</para>
         /// <para>Angular purpose: retrieves employee dependents.</para>
-        /// <para>Angular page(s): /app/profile/dependent-info.</para>
-        /// <para>Angular API service call(s): EmployeeDependentApi.getEmployeeDependents (app/core/services/employee-dependent-api.ts:75).</para>
+        /// <para>Integrated UI page(s): /app/profile/dependent-info</para>
+        /// <para>Angular UI component(s): EmployeeDependentInfo (app/features/user-menu/employee-profile/employee-dependent-info/employee-dependent-info.ts)</para>
         /// </remarks>
         [HttpGet("get")]    
         public async Task<IActionResult> Getinfo([FromQuery] GetDependentRequestDTO requestDto)
@@ -90,12 +94,14 @@ namespace axionpro.api.Controllers.Employee
            
         }
         /// <summary>
-        /// Supports the Angular UI flow for get in detail.
+        /// Used-In-Angular: retrieves employee dependents detail.
         /// </summary>
         /// <remarks>
-        /// <para>Angular purpose: retrieves employee dependents.</para>
-        /// <para>Angular page(s): /app/profile/dependent-info.</para>
-        /// <para>Angular API service call(s): EmployeeDependentApi.getEmployeeDependents (app/core/services/employee-dependent-api.ts:84).</para>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeDependentApi.getEmployeeDependentsDetail (app/core/services/employee-dependent-api.ts:88).</para>
+        /// <para>Angular purpose: retrieves employee dependents detail.</para>
+        /// <para>Integrated UI page(s): /app/profile/insurance-info</para>
+        /// <para>Angular UI component(s): EmployeeInsuranceForm (app/features/user-menu/employee-profile/employee-insurance-info/employee-insurance-form/employee-insurance-form.ts); EmployeeInsuranceInfo (app/features/user-menu/employee-profile/employee-insurance-info/employee-insurance-info.ts)</para>
         /// </remarks>
         [HttpGet("get-in-detail")]    
         public async Task<IActionResult> GetInDetail([FromQuery] GetDependentRequestDTO requestDto)
@@ -112,12 +118,14 @@ namespace axionpro.api.Controllers.Employee
         
 
       /// <summary>
-      /// Supports the Angular UI flow for delete.
+      /// Used-In-Angular: deletes employee dependent.
       /// </summary>
       /// <remarks>
+      /// <para>Angular usage status: Used-In-Angular.</para>
+      /// <para>Angular function(s): EmployeeDependentApi.deleteEmployeeDependent (app/core/services/employee-dependent-api.ts:103).</para>
       /// <para>Angular purpose: deletes employee dependent.</para>
-      /// <para>Angular page(s): /app/profile/dependent-info.</para>
-      /// <para>Angular API service call(s): EmployeeDependentApi.deleteEmployeeDependent (app/core/services/employee-dependent-api.ts:99).</para>
+      /// <para>Integrated UI page(s): /app/profile/dependent-info</para>
+      /// <para>Angular UI component(s): EmployeeDependentInfo (app/features/user-menu/employee-profile/employee-dependent-info/employee-dependent-info.ts)</para>
       /// </remarks>
       [HttpDelete("delete")]               
         public async Task<IActionResult> Delete([FromQuery] DeleteRequestDTO dto)
@@ -138,12 +146,14 @@ namespace axionpro.api.Controllers.Employee
 
 
         /// <summary>
-        /// Supports the Angular UI flow for update.
+        /// Used-In-Angular: updates employee dependent.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeDependentApi.updateEmployeeDependent (app/core/services/employee-dependent-api.ts:96).</para>
         /// <para>Angular purpose: updates employee dependent.</para>
-        /// <para>Angular page(s): /app/profile/dependent-info.</para>
-        /// <para>Angular API service call(s): EmployeeDependentApi.updateEmployeeDependent (app/core/services/employee-dependent-api.ts:92).</para>
+        /// <para>Integrated UI page(s): /app/profile/dependent-info</para>
+        /// <para>Angular UI component(s): EmployeeDependentForm (app/features/user-menu/employee-profile/employee-dependent-info/employee-dependent-form/employee-dependent-form.ts); EmployeeDependentInfo (app/features/user-menu/employee-profile/employee-dependent-info/employee-dependent-info.ts)</para>
         /// </remarks>
         [HttpPost("update")]
         [Consumes("multipart/form-data")]

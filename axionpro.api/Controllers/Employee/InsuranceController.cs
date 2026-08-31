@@ -39,12 +39,14 @@ public class InsuranceController : ControllerBase
  
 
     /// <summary>
-    /// Supports the Angular UI flow for enrolled employee.
+    /// Used-In-Angular: creates insurance.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): EmployeeInsuranceApi.createInsurance (app/core/services/employee-insurance-api.ts:70).</para>
     /// <para>Angular purpose: creates insurance.</para>
-    /// <para>Angular page(s): /app/profile/insurance-info.</para>
-    /// <para>Angular API service call(s): EmployeeInsuranceApi.createInsurance (app/core/services/employee-insurance-api.ts:66).</para>
+    /// <para>Integrated UI page(s): /app/profile/insurance-info</para>
+    /// <para>Angular UI component(s): EmployeeInsuranceForm (app/features/user-menu/employee-profile/employee-insurance-info/employee-insurance-form/employee-insurance-form.ts); EmployeeInsuranceInfo (app/features/user-menu/employee-profile/employee-insurance-info/employee-insurance-info.ts)</para>
     /// </remarks>
     
     [HttpPost("employee-insurance-enroll")]
@@ -58,12 +60,14 @@ public class InsuranceController : ControllerBase
         return Ok(result);
     }
     /// <summary>
-    /// Supports the Angular UI flow for delete enrolled employee.
+    /// Used-In-Angular: deletes insurance.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): EmployeeInsuranceApi.deleteInsurance (app/core/services/employee-insurance-api.ts:83).</para>
     /// <para>Angular purpose: deletes insurance.</para>
-    /// <para>Angular page(s): /app/profile/insurance-info.</para>
-    /// <para>Angular API service call(s): EmployeeInsuranceApi.deleteInsurance (app/core/services/employee-insurance-api.ts:79).</para>
+    /// <para>Integrated UI page(s): /app/profile/insurance-info</para>
+    /// <para>Angular UI component(s): EmployeeInsuranceInfo (app/features/user-menu/employee-profile/employee-insurance-info/employee-insurance-info.ts)</para>
     /// </remarks>
     [HttpDelete("delete")]
     //  [Authorize]   
@@ -77,12 +81,14 @@ public class InsuranceController : ControllerBase
     }
 
     /// <summary>
-    /// Supports the Angular UI flow for get.
+    /// Used-In-Angular: retrieves enrolled insurances.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): EmployeeInsuranceApi.getEnrolledInsurances (app/core/services/employee-insurance-api.ts:77).</para>
     /// <para>Angular purpose: retrieves enrolled insurances.</para>
-    /// <para>Angular page(s): /app/profile/insurance-info.</para>
-    /// <para>Angular API service call(s): EmployeeInsuranceApi.getEnrolledInsurances (app/core/services/employee-insurance-api.ts:73).</para>
+    /// <para>Integrated UI page(s): /app/profile/insurance-info</para>
+    /// <para>Angular UI component(s): EmployeeInsuranceInfo (app/features/user-menu/employee-profile/employee-insurance-info/employee-insurance-info.ts)</para>
     /// </remarks>
     [HttpGet("get-all-enroll")]  
     public async Task<IActionResult> Get([FromQuery] GetEnrolledEmployeeRequestDTO requestDto)

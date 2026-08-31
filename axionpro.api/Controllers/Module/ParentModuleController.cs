@@ -43,12 +43,14 @@ namespace axionpro.api.Controllers.Module
         #region Parent Module Commands
 
         /// <summary>
-        /// Supports the Angular UI flow for add module.
+        /// Used-In-Angular: creates parent module.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): ParentModuleApi.addParentModule (app/core/services/parent-module-api.ts:45).</para>
         /// <para>Angular purpose: creates parent module.</para>
-        /// <para>Angular page(s): /app/modules; /app/modules/sub-modules.</para>
-        /// <para>Angular API service call(s): ParentModuleApi.addParentModule (app/core/services/parent-module-api.ts:41).</para>
+        /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
+        /// <para>Angular UI component(s): ModuleForm (app/features/host/modules/module-form/module-form.ts)</para>
         /// </remarks>
         [HttpPost("add")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -65,12 +67,14 @@ namespace axionpro.api.Controllers.Module
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for update module.
+        /// Used-In-Angular: updates parent module.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): ParentModuleApi.updateParentModule (app/core/services/parent-module-api.ts:51).</para>
         /// <para>Angular purpose: updates parent module.</para>
-        /// <para>Angular page(s): /app/modules; /app/modules/sub-modules.</para>
-        /// <para>Angular API service call(s): ParentModuleApi.updateParentModule (app/core/services/parent-module-api.ts:47).</para>
+        /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
+        /// <para>Angular UI component(s): ModuleForm (app/features/host/modules/module-form/module-form.ts)</para>
         /// </remarks>
         [HttpPut("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -88,12 +92,14 @@ namespace axionpro.api.Controllers.Module
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for update module status.
+        /// Used-In-Angular: updates parent module status.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): ParentModuleApi.setParentModuleStatus (app/core/services/parent-module-api.ts:57).</para>
         /// <para>Angular purpose: updates parent module status.</para>
-        /// <para>Angular page(s): /app/modules.</para>
-        /// <para>Angular API service call(s): ParentModuleApi.setParentModuleStatus (app/core/services/parent-module-api.ts:53).</para>
+        /// <para>Integrated UI page(s): /app/modules</para>
+        /// <para>Angular UI component(s): ParentModulesStore (app/features/host/modules/parent-modules/parent-modules.store.ts); ParentModules (app/features/host/modules/parent-modules/parent-modules.ts)</para>
         /// </remarks>
         [HttpPatch("{id:int}/status")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -114,12 +120,14 @@ namespace axionpro.api.Controllers.Module
         #region Parent Module Queries
 
         /// <summary>
-        /// Supports the Angular UI flow for get module by id.
+        /// Used-In-Angular: retrieves parent module.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): ParentModuleApi.getParentModule (app/core/services/parent-module-api.ts:39).</para>
         /// <para>Angular purpose: retrieves parent module.</para>
-        /// <para>Angular page(s): /app/modules; /app/modules/sub-modules; /app/modules/module-operations.</para>
-        /// <para>Angular API service call(s): ParentModuleApi.getParentModule (app/core/services/parent-module-api.ts:35).</para>
+        /// <para>Integrated UI page(s): /app/modules/module-operations; /app/modules</para>
+        /// <para>Angular UI component(s): ModuleTreeReader (app/core/services/module-tree-reader.ts); ModuleForm (app/features/host/modules/module-form/module-form.ts); ModuleOperationsStore (app/features/host/modules/module-operations/module-operations.store.ts); ParentModulesStore (app/features/host/modules/parent-modules/parent-modules.store.ts); ModuleOperations (app/features/host/modules/module-operations/module-operations.ts); ParentModules (app/features/host/modules/parent-modules/parent-modules.ts)</para>
         /// </remarks>
         [HttpGet("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -136,12 +144,14 @@ namespace axionpro.api.Controllers.Module
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for get module headers.
+        /// Used-In-Angular: retrieves module headers.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): ParentModuleApi.getModuleHeaders (app/core/services/parent-module-api.ts:32).</para>
         /// <para>Angular purpose: retrieves module headers.</para>
-        /// <para>Angular page(s): /app/modules; /app/modules/sub-modules; /app/modules/module-operations.</para>
-        /// <para>Angular API service call(s): ParentModuleApi.getModuleHeaders (app/core/services/parent-module-api.ts:28).</para>
+        /// <para>Integrated UI page(s): /app/modules/sub-modules; /app/modules/module-operations; /app/modules</para>
+        /// <para>Angular UI component(s): ModuleTreeReader (app/core/services/module-tree-reader.ts); ModuleForm (app/features/host/modules/module-form/module-form.ts); ModuleOperationForm (app/features/host/modules/module-operations/module-operation-form/module-operation-form.ts); SubModulesStore (app/features/host/modules/sub-modules/sub-modules.store.ts); ModuleOperationsStore (app/features/host/modules/module-operations/module-operations.store.ts); ParentModulesStore (app/features/host/modules/parent-modules/parent-modules.store.ts); SubModules (app/features/host/modules/sub-modules/sub-modules.ts); ModuleOperations (app/features/host/modules/module-operations/module-operations.ts)</para>
         /// </remarks>
         [HttpGet("get-module-headers")]
         [ProducesResponseType(StatusCodes.Status200OK)]

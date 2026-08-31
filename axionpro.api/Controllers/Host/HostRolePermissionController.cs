@@ -43,12 +43,14 @@ public class HostRolePermissionController : ControllerBase
     #region HostRole Module Permissions
 
     /// <summary>
-    /// Supports the Angular UI flow for get role module permissions.
+    /// Used-In-Angular: retrieves host role module permissions.
     /// </summary>
     /// <remarks>
-    /// <para>Angular purpose: deletes host role.</para>
-    /// <para>Angular page(s): /app/host-roles.</para>
-    /// <para>Angular API service call(s): HostApi.deleteHostRole (app/core/services/host-api.ts:124).</para>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): HostApi.getHostRoleModulePermissions (app/core/services/host-api.ts:125).</para>
+    /// <para>Angular purpose: retrieves host role module permissions.</para>
+    /// <para>Integrated UI page(s): /app/policies/attendance-policies; /auth/login; /app/admin-dashboard; /app/departments; /app/designations; /app/device-masters; /app/modules/module-operations; /app/modules/operations</para>
+    /// <para>Angular UI component(s): CurrentUserPermissionsStore (app/core/stores/current-user-permissions.store.ts); HostRolePermissionsStore (app/features/host/roles/host-role-permissions/host-role-permissions.store.ts); hasModuleOperationGuard (app/core/guards/has-module-operation-guard.ts); hasModulePermissionGuard (app/core/guards/has-module-permission-guard.ts); superAdminGuard (app/core/guards/super-admin-guard.ts); AttendancePolicies (app/features/attendance-policies/attendance-policies.ts); Login (app/features/authentication/login/login.ts); DashboardAdmin (app/features/dashboard/dashboard-admin/dashboard-admin.ts)</para>
     /// </remarks>
     [HttpGet("get-role-module-permissions/{hostRoleId:long}")]
     public async Task<IActionResult> GetRoleModulePermissions(
@@ -63,12 +65,14 @@ public class HostRolePermissionController : ControllerBase
     }
 
     /// <summary>
-    /// Supports the Angular UI flow for save role module permissions.
+    /// Used-In-Angular: updates host role module permissions.
     /// </summary>
     /// <remarks>
-    /// <para>Angular purpose: deletes host role.</para>
-    /// <para>Angular page(s): /app/host-roles.</para>
-    /// <para>Angular API service call(s): HostApi.deleteHostRole (app/core/services/host-api.ts:139).</para>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): HostApi.saveHostRoleModulePermissions (app/core/services/host-api.ts:140).</para>
+    /// <para>Angular purpose: updates host role module permissions.</para>
+    /// <para>Integrated UI page(s): /app/host-roles/permissions/:hostRoleId</para>
+    /// <para>Angular UI component(s): HostRolePermissionsStore (app/features/host/roles/host-role-permissions/host-role-permissions.store.ts); HostRolePermissions (app/features/host/roles/host-role-permissions/host-role-permissions.ts)</para>
     /// </remarks>
     [HttpPost("save-role-module-permissions")]
     public async Task<IActionResult> SaveRoleModulePermissions(

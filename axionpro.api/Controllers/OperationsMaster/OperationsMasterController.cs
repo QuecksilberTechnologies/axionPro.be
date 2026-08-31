@@ -41,12 +41,14 @@ public class OperationsMasterController : ControllerBase
     #region Create
 
     /// <summary>
-    /// Supports the Angular UI flow for create operation.
+    /// Used-In-Angular: creates operation.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): OperationsMasterApi.addOperation (app/core/services/operations-master-api.ts:38).</para>
     /// <para>Angular purpose: creates operation.</para>
-    /// <para>Angular page(s): /app/modules/module-operations; /app/modules/operations.</para>
-    /// <para>Angular API service call(s): OperationsMasterApi.addOperation (app/core/services/operations-master-api.ts:37).</para>
+    /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
+    /// <para>Angular UI component(s): OperationForm (app/features/host/modules/operations/operation-form/operation-form.ts)</para>
     /// </remarks>
     [HttpPost("create-operation")]
     public async Task<IActionResult> CreateOperation(
@@ -65,12 +67,14 @@ public class OperationsMasterController : ControllerBase
     #region Update
 
     /// <summary>
-    /// Supports the Angular UI flow for update operation.
+    /// Used-In-Angular: updates operation.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): OperationsMasterApi.updateOperation (app/core/services/operations-master-api.ts:45).</para>
     /// <para>Angular purpose: updates operation.</para>
-    /// <para>Angular page(s): /app/modules/module-operations; /app/modules/operations.</para>
-    /// <para>Angular API service call(s): OperationsMasterApi.updateOperation (app/core/services/operations-master-api.ts:44).</para>
+    /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
+    /// <para>Angular UI component(s): OperationForm (app/features/host/modules/operations/operation-form/operation-form.ts)</para>
     /// </remarks>
     [HttpPost("update-operation")]
     public async Task<IActionResult> UpdateOperation(
@@ -89,12 +93,14 @@ public class OperationsMasterController : ControllerBase
     #region Delete
 
     /// <summary>
-    /// Supports the Angular UI flow for delete operation.
+    /// Used-In-Angular: deletes operation.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): OperationsMasterApi.deleteOperation (app/core/services/operations-master-api.ts:51).</para>
     /// <para>Angular purpose: deletes operation.</para>
-    /// <para>Angular page(s): /app/modules/module-operations; /app/modules/operations.</para>
-    /// <para>Angular API service call(s): OperationsMasterApi.deleteOperation (app/core/services/operations-master-api.ts:50).</para>
+    /// <para>Integrated UI page(s): /app/modules/operations</para>
+    /// <para>Angular UI component(s): OperationsStore (app/features/host/modules/operations/operations.store.ts); Operations (app/features/host/modules/operations/operations.ts)</para>
     /// </remarks>
     [HttpDelete("delete-operation/{operationId:int}")]
     public async Task<IActionResult> DeleteOperation(
@@ -113,12 +119,14 @@ public class OperationsMasterController : ControllerBase
     #region GetById
 
     /// <summary>
-    /// Supports the Angular UI flow for get operation by id.
+    /// Used-In-Angular: retrieves operation.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): OperationsMasterApi.getOperation (app/core/services/operations-master-api.ts:32).</para>
     /// <para>Angular purpose: retrieves operation.</para>
-    /// <para>Angular page(s): /app/modules/module-operations; /app/modules/operations.</para>
-    /// <para>Angular API service call(s): OperationsMasterApi.getOperation (app/core/services/operations-master-api.ts:31).</para>
+    /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
+    /// <para>Angular UI component(s): OperationForm (app/features/host/modules/operations/operation-form/operation-form.ts)</para>
     /// </remarks>
     [HttpGet("get-operation/{operationId:int}")]
     public async Task<IActionResult> GetOperationById(
@@ -137,12 +145,14 @@ public class OperationsMasterController : ControllerBase
     #region GetAll
 
     /// <summary>
-    /// Supports the Angular UI flow for get all operations.
+    /// Used-In-Angular: retrieves operations.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): OperationsMasterApi.getOperations (app/core/services/operations-master-api.ts:26).</para>
     /// <para>Angular purpose: retrieves operations.</para>
-    /// <para>Angular page(s): /app/modules/module-operations; /app/modules/operations.</para>
-    /// <para>Angular API service call(s): OperationsMasterApi.getOperations (app/core/services/operations-master-api.ts:25).</para>
+    /// <para>Integrated UI page(s): /app/modules/operations</para>
+    /// <para>Angular UI component(s): ModuleOperationForm (app/features/host/modules/module-operations/module-operation-form/module-operation-form.ts); OperationsStore (app/features/host/modules/operations/operations.store.ts); Operations (app/features/host/modules/operations/operations.ts)</para>
     /// </remarks>
     [HttpGet("get-all-operations")]
     public async Task<IActionResult> GetAllOperations(CancellationToken cancellationToken)

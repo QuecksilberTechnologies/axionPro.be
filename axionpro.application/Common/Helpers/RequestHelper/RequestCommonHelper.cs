@@ -36,6 +36,7 @@ namespace axionpro.application.Common.Helpers.RequestHelper
                 TenantId = rawClaims.TenantId,
                 TenantEncriptionKey =  EncryptionSanitizer.SuperSanitize(rawClaims.TenantEncriptionKey),
                 RoleId = rawClaims.RoleId,
+                RoleTypeId = rawClaims.RoleTypeId,
                 Expiry = rawClaims.Expiry,
                 IsExpired = rawClaims.IsExpired,
                 TokenPurpose = rawClaims.TokenPurpose,

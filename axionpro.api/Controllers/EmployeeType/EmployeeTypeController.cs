@@ -48,12 +48,14 @@ namespace axionpro.api.Controllers.EmployeeType
         #region Queries
 
         /// <summary>
-        /// Supports the Angular UI flow for get all employee type.
+        /// Used-In-Angular: retrieves employee types.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeTypesAPI.getEmployeeTypes (app/core/services/employee-types-api.ts:52).</para>
         /// <para>Angular purpose: retrieves employee types.</para>
-        /// <para>Angular page(s): No Angular component caller was statically resolved; the Angular API-service wrapper is documented below..</para>
-        /// <para>Angular API service call(s): EmployeeTypesAPI.getEmployeeTypes (app/core/services/employee-types-api.ts:49).</para>
+        /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
+        /// <para>Angular UI component(s): No consuming Angular component was statically resolved.</para>
         /// </remarks>
         [HttpGet("get")]
         public IActionResult GetAllEmployeeType(
@@ -99,12 +101,14 @@ namespace axionpro.api.Controllers.EmployeeType
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for get all employee type.
+        /// Used-In-Angular: retrieves employee type options.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): EmployeeTypesAPI.getEmployeeTypeOptions (app/core/services/employee-types-api.ts:59).</para>
         /// <para>Angular purpose: retrieves employee type options.</para>
-        /// <para>Angular page(s): /app/designations; /app/employees; /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants; /app/tenant-locations/new; /app/tenant-locations/:tenantLocationId/edit; /app/tenant-locations; and 12 more.</para>
-        /// <para>Angular API service call(s): EmployeeTypesAPI.getEmployeeTypeOptions (app/core/services/employee-types-api.ts:56).</para>
+        /// <para>Integrated UI page(s): /app/designations; /app/employees; /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants; /app/tenant-locations/new; /app/tenant-locations/:tenantLocationId/edit; /app/tenant-locations</para>
+        /// <para>Angular UI component(s): LookupStore (app/core/stores/lookup.store.ts); DashboardHostStore (app/features/dashboard/dashboard-host/dashboard-host.store.ts); DepartmentsStore (app/features/departments/departments.store.ts); Designations (app/features/designations/designations.ts); Employees (app/features/employees/employees.ts); TenantDetail (app/features/host/tenants/tenant-detail/tenant-detail.ts); TenantForm (app/features/host/tenants/tenant-form/tenant-form.ts); Tenants (app/features/host/tenants/tenants.ts)</para>
         /// </remarks>
         [HttpGet("option")]
         public async Task<IActionResult> GetAllEmployeeType([FromQuery] GetOptionRequestDTO requestDTO)

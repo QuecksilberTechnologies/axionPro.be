@@ -45,12 +45,14 @@ namespace axionpro.api.Controllers.ReportingType
         // =============================================================================================
 
         /// <summary>
-        /// Supports the Angular UI flow for create reporting type.
+        /// Used-In-Angular: creates report type.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): ReportTypeApi.addReportType (app/core/services/report-type-api.ts:32).</para>
         /// <para>Angular purpose: creates report type.</para>
-        /// <para>Angular page(s): /app/report-types.</para>
-        /// <para>Angular API service call(s): ReportTypeApi.addReportType (app/core/services/report-type-api.ts:31).</para>
+        /// <para>Integrated UI page(s): No static Angular route was resolved; see Angular UI component(s).</para>
+        /// <para>Angular UI component(s): ReportTypeManageDialog (app/features/report-type/report-type-manage-dialog/report-type-manage-dialog.ts)</para>
         /// </remarks>
 
         [HttpPost("create")]       
@@ -73,12 +75,14 @@ namespace axionpro.api.Controllers.ReportingType
         // =============================================================================================
 
         /// <summary>
-        /// Supports the Angular UI flow for get all reporting types.
+        /// Used-In-Angular: retrieves report types.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): ReportTypeApi.getReportTypes (app/core/services/report-type-api.ts:26).</para>
         /// <para>Angular purpose: retrieves report types.</para>
-        /// <para>Angular page(s): /app/report-types.</para>
-        /// <para>Angular API service call(s): ReportTypeApi.getReportTypes (app/core/services/report-type-api.ts:25).</para>
+        /// <para>Integrated UI page(s): /app/report-types</para>
+        /// <para>Angular UI component(s): ReportTypeStore (app/features/report-type/report-type.store.ts); ReportTypeComponent (app/features/report-type/report-type.ts)</para>
         /// </remarks>
         [HttpGet("get-all")]
         public async Task<IActionResult> GetAllReportingTypes([FromQuery] GetReportingTypeRequestDTO dto)
@@ -95,6 +99,14 @@ namespace axionpro.api.Controllers.ReportingType
         // =============================================================================================
         #region 🔹 GET reporting type BY ID
         // =============================================================================================
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: GET /api/reportingtype/get-by-id.</para>
+        /// </remarks>
 
         [HttpGet("get-by-id")]   
         public async Task<IActionResult> GetReportingTypeById([FromQuery] GetReportingTypeByIdRequestDTO dto)
@@ -113,12 +125,14 @@ namespace axionpro.api.Controllers.ReportingType
         // =============================================================================================
 
         /// <summary>
-        /// Supports the Angular UI flow for update reporting type.
+        /// Used-In-Angular: updates report type.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): ReportTypeApi.updateReportType (app/core/services/report-type-api.ts:38).</para>
         /// <para>Angular purpose: updates report type.</para>
-        /// <para>Angular page(s): /app/report-types.</para>
-        /// <para>Angular API service call(s): ReportTypeApi.updateReportType (app/core/services/report-type-api.ts:37).</para>
+        /// <para>Integrated UI page(s): /app/report-types</para>
+        /// <para>Angular UI component(s): ReportTypeManageDialog (app/features/report-type/report-type-manage-dialog/report-type-manage-dialog.ts); ReportTypeStore (app/features/report-type/report-type.store.ts); ReportTypeComponent (app/features/report-type/report-type.ts)</para>
         /// </remarks>
         [HttpPut("update")]  
         public async Task<IActionResult> UpdateReportingType([FromBody] UpdateReportingTypeRequestDTO dto)
@@ -138,12 +152,14 @@ namespace axionpro.api.Controllers.ReportingType
         // =============================================================================================
 
         /// <summary>
-        /// Supports the Angular UI flow for delete reporting type.
+        /// Used-In-Angular: deletes report type.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): ReportTypeApi.deleteReportType (app/core/services/report-type-api.ts:45).</para>
         /// <para>Angular purpose: deletes report type.</para>
-        /// <para>Angular page(s): /app/report-types.</para>
-        /// <para>Angular API service call(s): ReportTypeApi.deleteReportType (app/core/services/report-type-api.ts:44).</para>
+        /// <para>Integrated UI page(s): /app/report-types</para>
+        /// <para>Angular UI component(s): ReportTypeStore (app/features/report-type/report-type.store.ts); ReportTypeComponent (app/features/report-type/report-type.ts)</para>
         /// </remarks>
         [HttpDelete("delete")]       
         public async Task<IActionResult> DeleteReportingType([FromQuery] DeleteReportingTypeRequestDTO dto)

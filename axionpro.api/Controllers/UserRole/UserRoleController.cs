@@ -28,12 +28,14 @@ public class UserRoleController : ControllerBase
         _logger = logger;
     }
     /// <summary>
-    /// Supports the Angular UI flow for create permission.
+    /// Used-In-Angular: assigns or maps roles to user.
     /// </summary>
     /// <remarks>
-    /// <para>Angular purpose: assigns roles to user.</para>
-    /// <para>Angular page(s): /app/employees.</para>
-    /// <para>Angular API service call(s): RolesApi.assignRolesToUser (app/core/services/roles-api.ts:167).</para>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): RolesApi.assignRolesToUser (app/core/services/roles-api.ts:172).</para>
+    /// <para>Angular purpose: assigns or maps roles to user.</para>
+    /// <para>Integrated UI page(s): /app/employees</para>
+    /// <para>Angular UI component(s): EmployeesStore (app/features/employees/employees.store.ts); Employees (app/features/employees/employees.ts)</para>
     /// </remarks>
 
     [HttpPost("assign-roles-to-user")]    
@@ -48,12 +50,14 @@ public class UserRoleController : ControllerBase
         return Ok(result);
     }
     /// <summary>
-    /// Supports the Angular UI flow for get tenant enabled operations.
+    /// Used-In-Angular: retrieves all user roles.
     /// </summary>
     /// <remarks>
+    /// <para>Angular usage status: Used-In-Angular.</para>
+    /// <para>Angular function(s): RolesApi.getAllUserRoles (app/core/services/roles-api.ts:166).</para>
     /// <para>Angular purpose: retrieves all user roles.</para>
-    /// <para>Angular page(s): /app/employees.</para>
-    /// <para>Angular API service call(s): RolesApi.getAllUserRoles (app/core/services/roles-api.ts:161).</para>
+    /// <para>Integrated UI page(s): /app/employees</para>
+    /// <para>Angular UI component(s): RolePopup (app/features/employees/role-popup/role-popup.ts); EmployeeRoleCell (app/features/employees/employee-role-cell/employee-role-cell.ts); Employees (app/features/employees/employees.ts)</para>
     /// </remarks>
     [HttpGet("get-all-user-roles")]
     public async Task<IActionResult> GetTenantEnabledOperations([FromQuery] GetUserRoleRequestDTO dTO)

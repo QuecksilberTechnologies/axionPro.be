@@ -35,12 +35,14 @@ namespace axionpro.api.Controllers.Gender
         }
 
         /// <summary>
-        /// Supports the Angular UI flow for get gender.
+        /// Used-In-Angular: retrieves gender options.
         /// </summary>
         /// <remarks>
+        /// <para>Angular usage status: Used-In-Angular.</para>
+        /// <para>Angular function(s): UsersApi.getGenderOptions (app/core/services/users-api.ts:47).</para>
         /// <para>Angular purpose: retrieves gender options.</para>
-        /// <para>Angular page(s): /auth/register-tenant; /app/designations; /app/employees; /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants; /app/tenant-locations/new; /app/tenant-locations/:tenantLocationId/edit; and 13 more.</para>
-        /// <para>Angular API service call(s): UsersApi.getGenderOptions (app/core/services/users-api.ts:44).</para>
+        /// <para>Integrated UI page(s): /auth/register-tenant; /app/designations; /app/employees; /app/tenants/new; /app/tenants/:tenantId/edit; /app/tenants; /app/tenant-locations/new; /app/tenant-locations/:tenantLocationId/edit</para>
+        /// <para>Angular UI component(s): LookupStore (app/core/stores/lookup.store.ts); Registration (app/features/authentication/registration/registration.ts); DashboardHostStore (app/features/dashboard/dashboard-host/dashboard-host.store.ts); DepartmentsStore (app/features/departments/departments.store.ts); Designations (app/features/designations/designations.ts); Employees (app/features/employees/employees.ts); TenantDetail (app/features/host/tenants/tenant-detail/tenant-detail.ts); TenantForm (app/features/host/tenants/tenant-form/tenant-form.ts)</para>
         /// </remarks>
         [HttpGet("option")]               
         public async Task<IActionResult> getGender([FromQuery] GetOptionRequestDTO requestDTO)
@@ -54,6 +56,14 @@ namespace axionpro.api.Controllers.Gender
         }
 
         //  ✅ Get All Gender 
+        /// <summary>
+        /// Not-Used-In-Angular.
+        /// </summary>
+        /// <remarks>
+        /// <para>Angular usage status: Not-Used-In-Angular.</para>
+        /// <para>No active Angular HTTP call with the same HTTP method and normalized route was found in the scanned Angular source.</para>
+        /// <para>Backend endpoint: GET /api/gender/get.</para>
+        /// </remarks>
         [HttpGet("get")]       
         public async Task<IActionResult> GetAllGenderAsync([FromQuery] GetGenderRequestDTO? getGenderRequestDTO)
         {
