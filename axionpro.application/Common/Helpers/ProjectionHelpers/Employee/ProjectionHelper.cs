@@ -302,6 +302,30 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
             employee.HasImagePicUploaded = null;
         }
 
+        /// <summary>
+        /// Limits another Employee's compact profile summary to directory-level information.
+        /// Official contact details remain available for workplace communication, while the
+        /// internal employee code is visible only to the subject Employee, Admin, or Manager.
+        /// </summary>
+        public static EmployeeProfileSummaryInfo? ApplyEmployeeProfileSummaryVisibility(
+            EmployeeProfileSummaryInfo? employee,
+            long requestingEmployeeId,
+            long subjectEmployeeId,
+            int requestingRoleTypeId)
+        {
+            if (employee is null ||
+                CanViewEmployeePersonalData(
+                    requestingEmployeeId,
+                    subjectEmployeeId,
+                    requestingRoleTypeId))
+            {
+                return employee;
+            }
+
+            employee.EmployeeCode = null;
+            return employee;
+        }
+
  
      
         public static List<GetAssetResponseDTO> ToGetAssetResponseDTOs( List<GetAssetResponseDTO> source, IIdEncoderService encoderService,

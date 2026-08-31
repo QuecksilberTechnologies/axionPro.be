@@ -12,7 +12,6 @@ using axionpro.application.Exceptions;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
-using axionpro.application.Interfaces.IPermission;
 using axionpro.application.Wrappers;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -54,20 +53,17 @@ public class GetEmployeeProfileSummaryQueryHandler
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<GetEmployeeProfileSummaryQueryHandler> _logger;
-        private readonly IPermissionService _permissionService;
         private readonly ICommonRequestService _commonRequestService;
         private readonly IIdEncoderService _idEncoderService;
 
         public GetEmployeeProfileSummaryQueryHandler(
             IUnitOfWork unitOfWork,
             ILogger<GetEmployeeProfileSummaryQueryHandler> logger,
-            IPermissionService permissionService,
             ICommonRequestService commonRequestService,
             IIdEncoderService idEncoderService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
-            _permissionService = permissionService;
             _commonRequestService = commonRequestService;
             _idEncoderService = idEncoderService;
         }
@@ -130,6 +126,15 @@ public class GetEmployeeProfileSummaryQueryHandler
                         summary,
                         _idEncoderService,
                         validation.Claims.TenantEncriptionKey);
+
+                // EmployeeTenantPermissionBehavior has already completed the Module and
+                // stored-procedure permission check. Response visibility derives only from
+                // the validated token context and decoded target EmployeeId.
+                response = ProjectionHelper.ApplyEmployeeProfileSummaryVisibility(
+                    response,
+                    validation.LoggedInEmployeeId,
+                    employeeId,
+                    validation.RoleTypeId);
 
                 _logger.LogInformation("GetEmployeeProfileSummary success");
 
