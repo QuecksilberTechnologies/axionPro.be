@@ -22,28 +22,35 @@ namespace axionpro.infrastructure.BackgroundJob
             Console.WriteLine("✅ Common background service started.");
             _logger.LogInformation("✅ Common background service started.");
 
-            var timer = new PeriodicTimer(TimeSpan.FromMinutes(2));
+            using var timer = new PeriodicTimer(TimeSpan.FromMinutes(2));
 
-            while (await timer.WaitForNextTickAsync(stoppingToken))
+            try
             {
-                Console.WriteLine($"⏳ Background task running at {DateTime.Now}");
-                _logger.LogInformation("⏳ Background task running at {Time}", DateTime.Now);
-
-                try
+                while (await timer.WaitForNextTickAsync(stoppingToken))
                 {
-                    using var scope = _scopeFactory.CreateScope();
-                    var syncService = scope.ServiceProvider.GetRequiredService<ICommonServiceSyncRepository>();
+                    Console.WriteLine($"⏳ Background task running at {DateTime.Now}");
+                    _logger.LogInformation("⏳ Background task running at {Time}", DateTime.Now);
 
-                    await syncService.SyncAllTenantsNewModulesAndOperationsAsync();
+                    try
+                    {
+                        using var scope = _scopeFactory.CreateScope();
+                        var syncService = scope.ServiceProvider.GetRequiredService<ICommonServiceSyncRepository>();
 
-                    Console.WriteLine("✅ Module sync task completed.");
-                    _logger.LogInformation("✅ Module sync task completed at {Time}", DateTime.Now);
+                        await syncService.SyncAllTenantsNewModulesAndOperationsAsync();
+
+                        Console.WriteLine("✅ Module sync task completed.");
+                        _logger.LogInformation("✅ Module sync task completed at {Time}", DateTime.Now);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"❌ Error in background service: {ex.Message}");
+                        _logger.LogError(ex, "❌ Error occurred while syncing modules & operations.");
+                    }
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"❌ Error in background service: {ex.Message}");
-                    _logger.LogError(ex, "❌ Error occurred while syncing modules & operations.");
-                }
+            }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+                _logger.LogInformation("Common background service is stopping.");
             }
         }
     }

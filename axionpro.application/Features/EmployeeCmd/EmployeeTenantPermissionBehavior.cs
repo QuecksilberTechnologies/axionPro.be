@@ -177,6 +177,8 @@ public sealed class EmployeeTenantPermissionBehavior<TRequest, TResponse>(
             return "EMP_IDENTITY";
         if (requestNamespace.StartsWith("axionpro.application.Features.EmployeeCmd.EmployeeDeviceEnrollment", StringComparison.Ordinal))
             return "EMP_DEVICES";
+        if (requestNamespace.StartsWith("axionpro.application.Features.EmployeeCmd.ResetPassword", StringComparison.Ordinal))
+            return "EMP_PASSWORD_MANAGEMENT";
         if (requestNamespace.StartsWith("axionpro.application.Features.EmployeeCmd.EmployeeWorkInfo", StringComparison.Ordinal))
         {
             var requestName = typeof(TRequest).Name;

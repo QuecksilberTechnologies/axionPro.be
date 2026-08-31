@@ -81,6 +81,7 @@
     <Folder Include="Features\EmployeeCmd\Handlers\NewFolder\" />
     <Folder Include="Features\EmployeeCmd\IdentitiesInfo\Command\" />
     <Folder Include="Features\EmployeeCmd\IdentitiesInfo\Queries\" />
+    <Folder Include="Features\EmployeeCmd\ResetPassword\Handlers\" />
     <Folder Include="Features\EmployeeTypeCmd\Commands\" />
     <Folder Include="Features\EmployeeLeavePolicyMapCmd\Queries\" />
     <Folder Include="Features\EmployeeLeavePolicyMapCmd\NewFolder2\" />

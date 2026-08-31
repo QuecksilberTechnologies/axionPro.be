@@ -8,7 +8,9 @@
 using axionpro.application.DTOS.Common;
 using axionpro.application.DTOS.Employee.Bank;
 using axionpro.application.DTOS.Employee.BaseEmployee;
+using axionpro.application.DTOS.Employee.ResetPassword;
 using axionpro.application.Features.EmployeeCmd.EmployeeBase.Handlers;
+using axionpro.application.Features.EmployeeCmd.ResetPassword.Handlers;
 using axionpro.application.Features.EmployeeCmd.UpdateStatus.Handler;
 using axionpro.application.Features.EmployeeCmd.UpdateVerification.Handler;
 using axionpro.application.Interfaces.ILogger;
@@ -176,6 +178,39 @@ namespace axionpro.api.Controllers.Employee
 
             return Ok(result);
         }
+
+        /// <summary>
+        /// Resets the password of a selected Tenant Employee.
+        /// </summary>
+        /// <remarks>
+        /// <para>Authorization: only an authenticated Tenant user with the active
+        /// <c>EMP_PASSWORD_MANAGEMENT</c> module and <c>Reset Password</c>
+        /// operation permission can use this endpoint.</para>
+        /// <para>The supplied ModuleId is bound to the active module code and the
+        /// existing database stored procedure validates the supplied ModuleId and
+        /// OperationId against the caller's current role permissions.</para>
+        /// <para>The selected EmployeeId must be the client-safe encoded ID of an
+        /// active Employee belonging to the caller's Tenant.</para>
+        /// </remarks>
+        [Authorize]
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetEmployeePassword(
+            [FromBody] ResetEmployeePasswordRequestDTO requestDto)
+        {
+            if (requestDto is null)
+            {
+                throw new axionpro.application.Exceptions.ValidationErrorException(
+                    axionpro.application.Constants.AppConstants.ErrorMessages.InvalidRequest);
+            }
+
+            _logger.LogInfo("Received authorized Tenant Employee password-reset request.");
+
+            var command = new ResetPasswordCommand(requestDto);
+            var result = await _mediator.Send(command);
+
+            return Ok(result);
+        }
+
         /// <summary>
         /// Supports the Angular UI flow for get all employee percentage async.
         /// </summary>
