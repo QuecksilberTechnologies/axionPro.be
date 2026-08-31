@@ -45,6 +45,15 @@ namespace axionpro.application.Interfaces.IRepositories
             CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Determines whether a Designation is still assigned to a non-soft-deleted employee.
+        /// Inactive employees are intentionally included because they can be reactivated later.
+        /// </summary>
+        Task<bool> HasNonDeletedEmployeesAsync(
+            int designationId,
+            long tenantId,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Gets paged designation projections for a trusted tenant.
         /// </summary>
         Task<PagedResponseDTO<GetDesignationResponseDTO>> GetAsync(

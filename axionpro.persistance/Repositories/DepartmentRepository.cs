@@ -289,6 +289,25 @@ namespace axionpro.persistance.Repositories
         #region Delete
 
         /// <summary>
+        /// Determines whether the Department remains assigned to an employee in the same tenant.
+        /// The IsActive flag is deliberately excluded: an inactive employee is still a valid
+        /// dependency until that employee record is soft deleted.
+        /// </summary>
+        public Task<bool> HasNonDeletedEmployeesAsync(
+            int departmentId,
+            long tenantId,
+            CancellationToken cancellationToken = default)
+        {
+            return _context.Employees
+                .AsNoTracking()
+                .AnyAsync(
+                    employee => employee.TenantId == tenantId &&
+                                employee.DepartmentId == departmentId &&
+                                !employee.IsSoftDeleted,
+                    cancellationToken);
+        }
+
+        /// <summary>
         /// Soft deletes a department after enforcing tenant ownership.
         /// </summary>
         public async Task<bool> DeleteAsync(

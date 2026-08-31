@@ -160,6 +160,24 @@ namespace axionpro.application.Features.DesignationCmd.Handlers
                 throw new ValidationErrorException(
                     AppConstants.ErrorMessages.InvalidIdentifier);
 
+            // An inactive employee can be reactivated, so only a soft-deleted Employee
+            // is safe to ignore while validating Designation deletion dependencies.
+            var hasEmployees = await _unitOfWork.DesignationRepository
+                .HasNonDeletedEmployeesAsync(
+                    request.DTO.Id,
+                    tenantId,
+                    cancellationToken);
+
+            if (hasEmployees)
+            {
+                _logger.LogWarning(
+                    "Designation deletion blocked because non-soft-deleted employees are assigned. DesignationId: {DesignationId}, TenantId: {TenantId}",
+                    request.DTO.Id,
+                    tenantId);
+
+                throw new ConflictException(AppConstants.ErrorMessages.DesignationHasEmployees);
+            }
+
             var deleted = await _unitOfWork.DesignationRepository.DeleteDesignationAsync(
                 request.DTO.Id,
                 tenantId,

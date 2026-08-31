@@ -41,6 +41,15 @@ namespace axionpro.application.Interfaces.IRepositories
             CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Determines whether a Department is still assigned to a non-soft-deleted employee.
+        /// Inactive employees are intentionally included because they can be reactivated later.
+        /// </summary>
+        Task<bool> HasNonDeletedEmployeesAsync(
+            int departmentId,
+            long tenantId,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Creates a department using the supplied domain entity.
         /// </summary>
         Task<Department?> CreateAsync(

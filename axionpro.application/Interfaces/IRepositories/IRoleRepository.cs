@@ -34,6 +34,12 @@ namespace axionpro.application.Interfaces.IRepositories
         Task<bool> DeleteAsync(int id, long tenantId, long employeeId, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Determines whether a Role still has non-soft-deleted employee assignments or module-operation permissions.
+        /// Inactive dependent rows are intentionally included because they may be reactivated later.
+        /// </summary>
+        Task<bool> HasNonDeletedDependenciesAsync(int roleId, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Persists a prepared tenant role entity.
         /// </summary>
         Task<Role?> CreateAsync(Role entity, CancellationToken cancellationToken = default);

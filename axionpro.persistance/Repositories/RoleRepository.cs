@@ -411,6 +411,24 @@ public class RoleRepository : IRoleRepository
     #region Delete
 
     /// <summary>
+    /// Determines whether the Role is still referenced by a current employee-role assignment
+    /// or a current module-operation permission. The IsActive flag is deliberately not part
+    /// of this guard: an inactive dependency can be reactivated and must retain its Role.
+    /// </summary>
+    public Task<bool> HasNonDeletedDependenciesAsync(
+        int roleId,
+        CancellationToken cancellationToken = default)
+    {
+        return _context.Roles
+            .AsNoTracking()
+            .Where(role => role.Id == roleId)
+            .AnyAsync(
+                role => role.UserRole.Any(userRole => userRole.IsSoftDeleted != true) ||
+                        role.RoleModuleAndPermission.Any(permission => !permission.IsSoftDeleted),
+                cancellationToken);
+    }
+
+    /// <summary>
     /// Soft deletes a role after enforcing tenant ownership.
     /// </summary>
     public async Task<bool> DeleteAsync(

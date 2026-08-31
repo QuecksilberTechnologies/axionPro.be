@@ -109,6 +109,21 @@ namespace axionpro.application.Features.RoleCmd.Handlers
             if (request.DTO.Id <= 0)
                 throw new ValidationErrorException("Invalid role identifier.");
 
+            // An inactive assignment or permission can be reactivated later, so only a
+            // soft-deleted dependency is safe to ignore when deleting the Role.
+            var hasDependencies = await _unitOfWork.RoleRepository
+                .HasNonDeletedDependenciesAsync(request.DTO.Id, cancellationToken);
+
+            if (hasDependencies)
+            {
+                _logger.LogWarning(
+                    "Role deletion blocked because dependent UserRole or RoleModuleAndPermission records exist. RoleId: {RoleId}, TenantId: {TenantId}",
+                    request.DTO.Id,
+                    tenantId);
+
+                throw new ConflictException(AppConstants.ErrorMessages.RoleHasDependencies);
+            }
+
             var deleted = await _unitOfWork.RoleRepository.DeleteAsync(
                 request.DTO.Id,
                 tenantId,

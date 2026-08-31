@@ -164,6 +164,24 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                 throw new ValidationErrorException(
                     AppConstants.ErrorMessages.InvalidIdentifier);
 
+            // An inactive employee can be reactivated, so only a soft-deleted Employee
+            // is safe to ignore while validating Department deletion dependencies.
+            var hasEmployees = await _unitOfWork.DepartmentRepository
+                .HasNonDeletedEmployeesAsync(
+                    request.DTO.Id,
+                    tenantId,
+                    cancellationToken);
+
+            if (hasEmployees)
+            {
+                _logger.LogWarning(
+                    "Department deletion blocked because non-soft-deleted employees are assigned. DepartmentId: {DepartmentId}, TenantId: {TenantId}",
+                    request.DTO.Id,
+                    tenantId);
+
+                throw new ConflictException(AppConstants.ErrorMessages.DepartmentHasEmployees);
+            }
+
             var isDeleted = await _unitOfWork.DepartmentRepository.DeleteAsync(
                 request.DTO.Id,
                 tenantId,
