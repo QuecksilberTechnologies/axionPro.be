@@ -92,17 +92,8 @@ public sealed class TenantLocationPermissionBehavior<TRequest, TResponse>(
                 permissionRequest.OperationId,
                 cancellationToken);
 
-        switch (permissionResult.ResultCode)
-        {
-            case 1:
-                return await next();
-            case 0:
-                throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
-            case -1:
-            case -2:
-            default:
-                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
-        }
+        TenantRuntimePermissionValidator.EnsureAllowed(permissionResult);
+        return await next();
     }
 
     /// <summary>

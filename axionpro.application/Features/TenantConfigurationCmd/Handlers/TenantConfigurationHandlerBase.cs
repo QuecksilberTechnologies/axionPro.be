@@ -5,6 +5,7 @@
 // Purpose : Provides common authenticated Tenant context and response helpers for TenantConfiguration handlers.
 // ================================================================
 
+using axionpro.application.Common.Helpers;
 using axionpro.application.Common.Helpers.RequestHelper;
 using axionpro.application.Common.Models.Security;
 using axionpro.application.Constants;
@@ -215,39 +216,8 @@ public abstract class TenantConfigurationHandlerBase
                 request.OperationId,
                 cancellationToken);
 
-        switch (permissionResult.ResultCode)
-        {
-            case 1:
-                return (tenantId, actorId);
-
-            case -1:
-                Logger.LogWarning(
-                    "Tenant authorization context changed. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
-                    tenantId,
-                    actorId,
-                    tokenRoleId);
-                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
-
-            case -2:
-                Logger.LogWarning(
-                    "Invalid Tenant role context. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
-                    tenantId,
-                    actorId,
-                    tokenRoleId);
-                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
-
-            case 0:
-                Logger.LogWarning(
-                    "Tenant permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}",
-                    tenantId,
-                    actorId,
-                    request.ModuleId,
-                    request.OperationId);
-                throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
-
-            default:
-                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
-        }
+        TenantRuntimePermissionValidator.EnsureAllowed(permissionResult);
+        return (tenantId, actorId);
     }
 
     /// <summary>Creates a flattened paginated API response without data nesting.</summary>

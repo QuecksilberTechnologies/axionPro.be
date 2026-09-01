@@ -56,6 +56,7 @@ namespace axionpro.persistance.Repositories
         public async Task<EmployeeExperienceDocument?> GetSingleByDetailIdAsync(long detailId)
         {
             return await _context.EmployeeExperienceDocuments
+                .Include(x => x.EmployeeExperience)
                 .FirstOrDefaultAsync(x => x.EmployeeExperience.Id == detailId && !x.IsSoftDeleted);
         }
 

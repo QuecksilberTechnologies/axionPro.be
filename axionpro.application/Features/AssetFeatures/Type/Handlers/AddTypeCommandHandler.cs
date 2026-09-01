@@ -6,6 +6,7 @@
 // ================================================================
 
 using AutoMapper;
+using axionpro.application.Common.Helpers;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.AssetDTO.type;
 using axionpro.application.Exceptions;
@@ -136,27 +137,7 @@ public class AddTypeCommandHandler : IRequestHandler<AddTypeCommand, ApiResponse
                 request.DTO.OperationId,
                 cancellationToken);
 
-        switch (permissionResult.ResultCode)
-        {
-            case 1:
-                break;
-            case -1:
-                _logger.LogWarning(
-                    "Tenant authorization context changed while creating Asset Type. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
-                    tenantId, userEmployeeId, tokenRoleId);
-                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
-            case -2:
-                _logger.LogWarning(
-                    "Invalid Tenant role context while creating Asset Type. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
-                    tenantId, userEmployeeId, tokenRoleId);
-                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
-            case 0:
-            default:
-                _logger.LogWarning(
-                    "Asset Type creation permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}",
-                    tenantId, userEmployeeId, request.DTO.ModuleId, request.DTO.OperationId);
-                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
-        }
+        TenantRuntimePermissionValidator.EnsureAllowed(permissionResult);
 
         #endregion
 

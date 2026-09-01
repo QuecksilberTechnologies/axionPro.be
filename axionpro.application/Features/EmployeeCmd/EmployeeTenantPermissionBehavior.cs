@@ -5,6 +5,7 @@
 // Purpose : Enforces the trusted Tenant role-permission contract for EmployeeCmd requests.
 // ================================================================
 
+using axionpro.application.Common.Helpers;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.BaseDTO;
 using axionpro.application.Exceptions;
@@ -110,32 +111,17 @@ public sealed class EmployeeTenantPermissionBehavior<TRequest, TResponse>(
                 permissionRequest.OperationId,
                 cancellationToken);
 
-        if (permissionResult.ResultCode == 1)
-        {
-            await EnsureEmployeeTargetAccessAsync(
-                request,
-                validation,
-                expectedModuleCode,
-                idEncoderService,
-                commonRequestService,
-                cancellationToken);
-            return await next();
-        }
+        TenantRuntimePermissionValidator.EnsureAllowed(permissionResult);
 
-        return permissionResult.ResultCode switch
-        {
-            0 => throw CreatePermissionDeniedException(),
-            -1 or -2 => throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized),
-            _ => throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized)
-        };
+        await EnsureEmployeeTargetAccessAsync(
+            request,
+            validation,
+            expectedModuleCode,
+            idEncoderService,
+            commonRequestService,
+            cancellationToken);
+        return await next();
     }
-
-    /// <summary>
-    /// Creates the standard forbidden response after logging a database-confirmed
-    /// permission denial. Invalid or stale authentication contexts remain 401.
-    /// </summary>
-    private static ForbiddenAccessException CreatePermissionDeniedException() =>
-        new(AppConstants.ErrorMessages.PermissionDenied);
 
     /// <summary>
     /// Applies employee-data scope before a handler can load a client-selected employee. This
@@ -196,7 +182,7 @@ public sealed class EmployeeTenantPermissionBehavior<TRequest, TResponse>(
                 requirement,
                 cancellationToken))
         {
-            throw CreatePermissionDeniedException();
+            throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
         }
     }
 

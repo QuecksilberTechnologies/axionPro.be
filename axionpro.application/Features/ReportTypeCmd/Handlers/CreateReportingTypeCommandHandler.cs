@@ -6,6 +6,7 @@
 // ================================================================
 
 using AutoMapper;
+using axionpro.application.Common.Helpers;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.Manager.ReportingType;
 using axionpro.application.Exceptions;
@@ -108,27 +109,7 @@ public class CreateReportingTypeCommandHandler
                         request.DTO.OperationId,
                         cancellationToken);
 
-                switch (permissionResult.ResultCode)
-                {
-                    case 1:
-                        break;
-                    case -1:
-                        _logger.LogWarning(
-                            "Tenant authorization context changed while creating Reporting Type. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
-                            tenantId, userEmployeeId, tokenRoleId);
-                        throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
-                    case -2:
-                        _logger.LogWarning(
-                            "Invalid Tenant role context while creating Reporting Type. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
-                            tenantId, userEmployeeId, tokenRoleId);
-                        throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
-                    case 0:
-                    default:
-                        _logger.LogWarning(
-                            "Reporting Type creation permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}",
-                            tenantId, userEmployeeId, request.DTO.ModuleId, request.DTO.OperationId);
-                        throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
-                }
+                TenantRuntimePermissionValidator.EnsureAllowed(permissionResult);
 
                 #endregion
 

@@ -1,5 +1,7 @@
 ﻿using axionpro.application.DTOS.Common;
 using axionpro.application.Exceptions;
+using axionpro.application.Common.Enums;
+using axionpro.application.Constants;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Wrappers;
@@ -77,16 +79,22 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                     throw new ApiException("Document not found.", 404);
                 }
 
-                //// ===============================
-                //// 3️⃣ OWNERSHIP CHECK
-                //// ===============================
-                //if (existing.EmployeeId != loggedInEmployeeId)
-                //{
-                //    _logger.LogWarning("⚠️ Unauthorized delete | Id: {Id} | User: {UserId}",
-                //        request.DTO.Id, loggedInEmployeeId);
-
-                //    throw new UnauthorizedAccessException("Unauthorized access.");
-                //}
+                // Resolve the document owner from the database; a document identifier alone
+                // must never grant cross-employee access.
+                var canAccessOwner = await _commonRequestService.CanAccessEmployeeDataAsync(
+                    validation,
+                    existing.EmployeeExperience.EmployeeId,
+                    EmployeeDataAccessRequirement.PersonalDetails,
+                    cancellationToken);
+                if (!canAccessOwner)
+                {
+                    _logger.LogWarning(
+                        "Experience document deletion denied. DocumentId: {DocumentId}, ActorEmployeeId: {ActorEmployeeId}, OwnerEmployeeId: {OwnerEmployeeId}",
+                        request.DTO.Id,
+                        loggedInEmployeeId,
+                        existing.EmployeeExperience.EmployeeId);
+                    throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
+                }
 
                 // ===============================
                 // 4️⃣ ALREADY DELETED CHECK

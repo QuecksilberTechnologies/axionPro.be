@@ -7,6 +7,7 @@
 
 using axionpro.application.Common.Helpers.Converters;
 using axionpro.application.Common.Helpers.RequestHelper;
+using axionpro.application.Constants;
 using axionpro.application.DTOs.Module;
 using axionpro.application.DTOS.Employee.Contact;
 using axionpro.application.Exceptions;
@@ -89,7 +90,7 @@ public class UpdateContactInfoCommandHandler
             // 5️⃣ OWNERSHIP CHECK
             // ===============================
             if (existing.EmployeeId != loggedInEmployeeId)
-                throw new UnauthorizedAccessException("Unauthorized access.");
+                throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
 
             // ===============================
             // 6️⃣ START TRANSACTION

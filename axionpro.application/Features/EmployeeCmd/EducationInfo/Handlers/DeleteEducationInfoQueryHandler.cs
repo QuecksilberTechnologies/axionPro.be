@@ -1,5 +1,6 @@
 ﻿using axionpro.application.DTOS.Employee.Education;
 using axionpro.application.Exceptions;
+using axionpro.application.Constants;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IPermission;
@@ -78,7 +79,7 @@ namespace axionpro.application.Features.EmployeeCmd.EducationInfo.Handlers
                 // 5️⃣ OWNERSHIP CHECK
                 // ===============================
                 if (existing.EmployeeId != loggedInEmployeeId)
-                    throw new UnauthorizedAccessException("Unauthorized access.");
+                    throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
 
                 // ===============================
                 // 6️⃣ SOFT DELETE

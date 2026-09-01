@@ -1,5 +1,6 @@
 ﻿using axionpro.application.DTOS.Common;
 using axionpro.application.Exceptions;
+using axionpro.application.Constants;
 using axionpro.application.Interfaces;
 using axionpro.application.Interfaces.ICommonRequest;
 using axionpro.application.Interfaces.IEncryptionService;
@@ -86,7 +87,7 @@ namespace axionpro.application.Features.EmployeeCmd.ExperienceInfo.Handlers
                 if (existing.EmployeeId != loggedInEmployeeId)
                 {
                     _logger.LogWarning("⚠️ DeleteExperience unauthorized | Id: {Id} | User: {UserId}", request.DTO.Id, loggedInEmployeeId);
-                    throw new UnauthorizedAccessException("Unauthorized access.");
+                    throw new ForbiddenAccessException(AppConstants.ErrorMessages.PermissionDenied);
                 }
 
                 // ===============================

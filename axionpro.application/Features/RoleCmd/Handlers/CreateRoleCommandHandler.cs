@@ -6,6 +6,7 @@
 // ================================================================
 
 using AutoMapper;
+using axionpro.application.Common.Helpers;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.Role;
 using axionpro.application.Exceptions;
@@ -96,21 +97,7 @@ namespace axionpro.application.Features.RoleCmd.Handlers
             }
 
             var permissionResult = await _unitOfWork.StoreProcedureRepository.CheckTenantEmployeePermissionAsync(tenantId, userEmployeeId, tokenRoleId, request.DTO.ModuleId, request.DTO.OperationId, cancellationToken);
-            switch (permissionResult.ResultCode)
-            {
-                case 1:
-                    break;
-                case -1:
-                    _logger.LogWarning("Tenant authorization context changed while creating Role. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}", tenantId, userEmployeeId, tokenRoleId);
-                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
-                case -2:
-                    _logger.LogWarning("Invalid Tenant role context while creating Role. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}", tenantId, userEmployeeId, tokenRoleId);
-                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
-                case 0:
-                default:
-                    _logger.LogWarning("Role creation permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}", tenantId, userEmployeeId, request.DTO.ModuleId, request.DTO.OperationId);
-                    throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
-            }
+            TenantRuntimePermissionValidator.EnsureAllowed(permissionResult);
 
             var roleName = request.DTO.RoleName?.Trim();
             if (string.IsNullOrWhiteSpace(roleName))

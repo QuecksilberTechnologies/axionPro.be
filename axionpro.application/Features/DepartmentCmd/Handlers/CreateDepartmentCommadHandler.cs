@@ -7,6 +7,7 @@
 // ================================================================
 
 using AutoMapper;
+using axionpro.application.Common.Helpers;
 using axionpro.application.Constants;
 using axionpro.application.DTOs.Department;
 using axionpro.application.Exceptions;
@@ -204,115 +205,13 @@ namespace axionpro.application.Features.DepartmentCmd.Handlers
                         request.DTO.OperationId,
                         cancellationToken);
 
-            switch (permissionResult.ResultCode)
-            {
-                #region Permission Allowed
-
-                case 1:
-                    {
-                        _logger.LogInformation(
-                            "Department create permission granted. " +
-                            "TenantId: {TenantId}, EmployeeId: {EmployeeId}, " +
-                            "CurrentPrimaryRoleId: {CurrentPrimaryRoleId}, GrantedRoleId: {GrantedRoleId}",
-                            tenantId,
-                            userEmployeeId,
-                            permissionResult.CurrentPrimaryRoleId,
-                            permissionResult.GrantedRoleId);
-
-                        break;
-                    }
-
-                #endregion
-
-                #region Authorization Context Changed
-
-                case -1:
-                    {
-                        /*
-                         * Example:
-                         *
-                         * JWT Primary Role:
-                         * Engineering Manager = 52
-                         *
-                         * Current DB Primary Role:
-                         * Employee = 36
-                         *
-                         * The JWT authorization context is stale.
-                         *
-                         * This should result in 401 so the client can clear
-                         * the old session and perform a fresh login.
-                         */
-                        _logger.LogWarning(
-                            "Tenant authorization context changed. " +
-                            "TenantId: {TenantId}, EmployeeId: {EmployeeId}, " +
-                            "TokenRoleId: {TokenRoleId}, CurrentPrimaryRoleId: {CurrentPrimaryRoleId}",
-                            tenantId,
-                            userEmployeeId,
-                            tokenRoleId,
-                            permissionResult.CurrentPrimaryRoleId);
-
-                        throw new UnauthorizedAccessException(
-                            AppConstants.ErrorMessages.Unauthorized);
-                    }
-
-                #endregion
-
-                #region Invalid Role Context
-
-                case -2:
-                    {
-                        /*
-                         * No valid current Primary Role exists, multiple invalid
-                         * Primary Role assignments exist, or the supplied
-                         * authorization context is otherwise unusable.
-                         */
-                        _logger.LogWarning(
-                            "Invalid Tenant role context while creating Department. " +
-                            "TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
-                            tenantId,
-                            userEmployeeId,
-                            tokenRoleId);
-
-                        throw new UnauthorizedAccessException(
-                            AppConstants.ErrorMessages.Unauthorized);
-                    }
-
-                #endregion
-
-                #region Permission Denied
-
-                case 0:
-                default:
-                    {
-                        /*
-                         * The identity/session remains valid, but none of the
-                         * employee's CURRENT Primary or Secondary roles grants
-                         * Department + Add permission.
-                         *
-                         * IMPORTANT:
-                         * This is an authorization denial, not a stale-session
-                         * condition.
-                         *
-                         * If the project's centralized exception middleware
-                         * already has a dedicated 403 Forbidden exception,
-                         * use that exception here instead of
-                         * UnauthorizedAccessException.
-                         */
-                        _logger.LogWarning(
-                            "Department create permission denied. " +
-                            "TenantId: {TenantId}, EmployeeId: {EmployeeId}, " +
-                            "ModuleId: {ModuleId}, OperationId: {OperationId}",
-                            tenantId,
-                            userEmployeeId,
-                            request.DTO.ModuleId,
-                            request.DTO.OperationId);
-
-                        throw new UnauthorizedAccessException(
-                            AppConstants.ErrorMessages.Unauthorized);
-                    }
-
-                #endregion
-            }
+            TenantRuntimePermissionValidator.EnsureAllowed(permissionResult);
+            _logger.LogInformation(
+                "Department create permission granted. TenantId: {TenantId}, EmployeeId: {EmployeeId}, CurrentPrimaryRoleId: {CurrentPrimaryRoleId}, GrantedRoleId: {GrantedRoleId}",
+                tenantId,
+                userEmployeeId,
+                permissionResult.CurrentPrimaryRoleId,
+                permissionResult.GrantedRoleId);
 
             #endregion
 

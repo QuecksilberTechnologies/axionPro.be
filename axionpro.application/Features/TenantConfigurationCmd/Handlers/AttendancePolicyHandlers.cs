@@ -6,6 +6,7 @@
 // ================================================================
 
 using AutoMapper;
+using axionpro.application.Common.Helpers;
 using axionpro.application.Constants;
 using axionpro.application.DTOS.TenantConfiguration;
 using axionpro.application.Exceptions;
@@ -135,27 +136,7 @@ public sealed class CreateAttendancePolicyCommandHandler : TenantConfigurationHa
                 request.DTO.ModuleId,
                 request.DTO.OperationId,
                 cancellationToken);
-        switch (permissionResult.ResultCode)
-        {
-            case 1:
-                break;
-            case -1:
-                Logger.LogWarning(
-                    "Tenant authorization context changed while creating Attendance Policy. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
-                    tenantId, actorId, tokenRoleId);
-                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
-            case -2:
-                Logger.LogWarning(
-                    "Invalid Tenant role context while creating Attendance Policy. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
-                    tenantId, actorId, tokenRoleId);
-                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
-            case 0:
-            default:
-                Logger.LogWarning(
-                    "Attendance Policy creation permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}",
-                    tenantId, actorId, request.DTO.ModuleId, request.DTO.OperationId);
-                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
-        }
+        TenantRuntimePermissionValidator.EnsureAllowed(permissionResult);
 
         #endregion
         if (!await UnitOfWork.AttendancePolicyRepository.IsEligiblePolicyTypeAsync(tenantId, request.DTO.PolicyTypeId, cancellationToken)) throw new ValidationErrorException(AppConstants.ErrorMessages.InvalidTenantConfigurationReference);
@@ -225,27 +206,7 @@ public async Task<ApiResponse<AttendancePolicyResponseDTO>> Handle(UpdateAttenda
                 request.DTO.ModuleId,
                 request.DTO.OperationId,
                 cancellationToken);
-        switch (permissionResult.ResultCode)
-        {
-            case 1:
-                break;
-            case -1:
-                Logger.LogWarning(
-                    "Tenant authorization context changed while updating Attendance Policy. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
-                    tenantId, actorId, tokenRoleId);
-                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
-            case -2:
-                Logger.LogWarning(
-                    "Invalid Tenant role context while updating Attendance Policy. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
-                    tenantId, actorId, tokenRoleId);
-                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
-            case 0:
-            default:
-                Logger.LogWarning(
-                    "Attendance Policy update permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}",
-                    tenantId, actorId, request.DTO.ModuleId, request.DTO.OperationId);
-                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
-        }
+        TenantRuntimePermissionValidator.EnsureAllowed(permissionResult);
 
         #endregion
 
@@ -338,27 +299,7 @@ public async Task<ApiResponse<AttendancePolicyResponseDTO>> Handle(UpdateAttenda
                 request.DTO.ModuleId,
                 request.DTO.OperationId,
                 cancellationToken);
-        switch (permissionResult.ResultCode)
-        {
-            case 1:
-                break;
-            case -1:
-                Logger.LogWarning(
-                    "Tenant authorization context changed while changing Attendance Policy status. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
-                    tenantId, actorId, tokenRoleId);
-                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
-            case -2:
-                Logger.LogWarning(
-                    "Invalid Tenant role context while changing Attendance Policy status. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
-                    tenantId, actorId, tokenRoleId);
-                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
-            case 0:
-            default:
-                Logger.LogWarning(
-                    "Attendance Policy status permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}",
-                    tenantId, actorId, request.DTO.ModuleId, request.DTO.OperationId);
-                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
-        }
+        TenantRuntimePermissionValidator.EnsureAllowed(permissionResult);
 
         #endregion
 
@@ -441,27 +382,7 @@ public async Task<ApiResponse<List<AttendancePolicyResponseDTO>>> Handle(GetAtte
                 filter.ModuleId,
                 filter.OperationId,
                 cancellationToken);
-        switch (permissionResult.ResultCode)
-        {
-            case 1:
-                break;
-            case -1:
-                Logger.LogWarning(
-                    "Tenant authorization context changed while retrieving Attendance Policies. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
-                    tenantId, actorId, tokenRoleId);
-                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
-            case -2:
-                Logger.LogWarning(
-                    "Invalid Tenant role context while retrieving Attendance Policies. TenantId: {TenantId}, EmployeeId: {EmployeeId}, TokenRoleId: {TokenRoleId}",
-                    tenantId, actorId, tokenRoleId);
-                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
-            case 0:
-            default:
-                Logger.LogWarning(
-                    "Attendance Policy retrieval permission denied. TenantId: {TenantId}, EmployeeId: {EmployeeId}, ModuleId: {ModuleId}, OperationId: {OperationId}",
-                    tenantId, actorId, filter.ModuleId, filter.OperationId);
-                throw new UnauthorizedAccessException(AppConstants.ErrorMessages.Unauthorized);
-        }
+        TenantRuntimePermissionValidator.EnsureAllowed(permissionResult);
 
         #endregion
 
