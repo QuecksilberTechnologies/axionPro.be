@@ -27,6 +27,18 @@ namespace axionpro.application.Constants
 
         #endregion
 
+        #region Response Display Values
+
+        /// <summary>
+        /// Defines safe, professional placeholders for fields deliberately withheld by response-visibility rules.
+        /// </summary>
+        public static class ResponseValues
+        {
+            public const string Restricted = "Restricted";
+        }
+
+        #endregion
+
         #region Error Messages
 
         /// <summary>

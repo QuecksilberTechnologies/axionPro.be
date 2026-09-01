@@ -1198,10 +1198,16 @@ namespace axionpro.persistance.Repositories
                 int totalCount = await baseQuery.CountAsync();
 
                 // ----------------------------------------------------
-                // 3️⃣ PAGING (FIXED ORDERING)
+                // 3️⃣ PAGING AND DISPLAY ORDER
+                // Keep the authenticated Employee first, then group all remaining rows by
+                // Department so the API returns a stable, UI-ready directory without in-memory sorting.
                 // ----------------------------------------------------
                 var pagedEmployees = await baseQuery
-                    .OrderByDescending(x => x.emp.AddedDateTime)
+                    .OrderByDescending(x => x.emp.Id == requestingEmployeeId)
+                    .ThenBy(x => x.emp.DepartmentId ?? int.MaxValue)
+                    .ThenBy(x => x.DepartmentName)
+                    .ThenBy(x => x.emp.FirstName)
+                    .ThenBy(x => x.emp.LastName)
                     .ThenBy(x => x.emp.Id)
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)

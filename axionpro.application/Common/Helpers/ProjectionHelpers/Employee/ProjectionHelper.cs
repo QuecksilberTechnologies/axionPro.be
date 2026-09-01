@@ -263,8 +263,9 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
 
         /// <summary>
         /// Determines whether the current Tenant user may receive another Employee's personal details.
-        /// Employee-role users receive full details only for their own record. Admin and Manager
-        /// role types retain the existing full-directory view; unknown role types fail closed.
+        /// Employee-role users receive full details only for their own record. An Admin may
+        /// receive full details, while a Manager's direct-report rows stay directory-only.
+        /// Unknown role types fail closed.
         /// </summary>
         public static bool CanViewEmployeePersonalData(
             long requestingEmployeeId,
@@ -290,12 +291,12 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
         /// </summary>
         private static void RedactEmployeeListPersonalData(GetAllEmployeeInfoResponseDTO employee)
         {
-            employee.EmployementCode = null;
-            employee.DateOfBirth = null;
-            employee.DateOfOnBoarding = null;
-            employee.Nationality = null;
-            employee.CountryCode = null;
-            employee.EmergencyContactPerson = null;
+            employee.EmployementCode = AppConstants.ResponseValues.Restricted;
+            employee.DateOfBirth = AppConstants.ResponseValues.Restricted;
+            employee.DateOfOnBoarding = AppConstants.ResponseValues.Restricted;
+            employee.Nationality = AppConstants.ResponseValues.Restricted;
+            employee.CountryCode = AppConstants.ResponseValues.Restricted;
+            employee.EmergencyContactPerson = AppConstants.ResponseValues.Restricted;
             employee.CompletionPercentage = null;
             employee.HasImagePicUploaded = null;
         }
@@ -320,7 +321,7 @@ namespace axionpro.application.Common.Helpers.ProjectionHelpers.Employee
                 return employee;
             }
 
-            employee.EmployeeCode = null;
+            employee.EmployeeCode = AppConstants.ResponseValues.Restricted;
             return employee;
         }
 
