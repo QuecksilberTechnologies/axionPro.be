@@ -434,7 +434,7 @@ function declaredTypeNames(header) {
 
 function propertySummary(properties) {
   if (!properties?.length) return "No public properties were statically resolved.";
-  return properties.slice(0, 12).map((property) => `${property.name} (${property.type})`).join(", ");
+  return properties.map((property) => `${property.name} (${property.type})`).join(", ");
 }
 
 async function readApplicationMetadata() {
